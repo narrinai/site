@@ -203,6 +203,13 @@
       <button onclick="sendMessage(event)">Send</button>
     </div>
   </div>
+<!-- Registratie-popup -->
+<div id="registerPopup" style="display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%); background:#fff; border:1px solid #ccc; border-radius:8px; padding:20px; z-index:1000; max-width:90%; width:300px; box-shadow:0 0 10px rgba(0,0,0,0.2);">
+  <p>Voer je e-mailadres in om een account aan te maken. Door te registreren ga je automatisch akkoord met onze voorwaarden.</p>
+  <input type="email" id="emailInput" placeholder="jij@example.com" style="width:100%; padding:8px; margin-top:10px;" required>
+  <button onclick="registerUser()" style="margin-top:12px;">Registreren</button>
+</div>
+
 
  <script>
   function getUserToken() {
@@ -216,6 +223,14 @@
 
   const params = new URLSearchParams(window.location.search);
   const character = params.get("char") || "napoleon";
+
+  const userToken = localStorage.getItem("user_token");
+const userEmail = localStorage.getItem("user_email");
+
+if (!userToken || !userEmail) {
+  showRegistrationPopup(); // trigger popup als gebruiker niet is geregistreerd
+}
+
 
   const avatars = {
     napoleon: "napoleon.png",
@@ -279,6 +294,26 @@
     user_token: getUserToken() // 👈 toegevoegd
   })
 });
+function showRegistrationPopup() {
+  document.getElementById("registerPopup").style.display = "block";
+}
+
+async function registerUser() {
+  const email = document.getElementById("emailInput").value;
+  if (!email) return alert("Vul een geldig e-mailadres in");
+
+  const token = crypto.randomUUID();
+  localStorage.setItem("user_token", token);
+  localStorage.setItem("user_email", email);
+
+  await fetch("https://hook.eu2.make.com/c753wxuxgpcu37fol9seri6rdtpz2lju", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, token })
+  });
+
+  document.getElementById("registerPopup").style.display = "none";
+}
 
 
       const text = await response.text();
