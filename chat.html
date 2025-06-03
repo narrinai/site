@@ -113,13 +113,6 @@
   </div>
 
  <script>
-  const params = new URLSearchParams(window.location.search);
-  const character = params.get("char") || "napoleon";
-if (!avatars[character]) {
-  alert("⚠️ Onbekend character, fallback naar Napoleon.");
-  window.location.href = "?char=napoleon";
-}
-
 
   const avatars = {
     napoleon: "napoleon.png",
@@ -135,12 +128,20 @@ if (!avatars[character]) {
     goku: "Son Goku"
   };
 
+const params = new URLSearchParams(window.location.search);
+  const character = params.get("char") || "napoleon";
+if (!avatars[character]) {
+  alert("⚠️ Onbekend character, fallback naar Napoleon.");
+  window.location.href = "?char=napoleon";
+}
+
   const avatarUrl = avatars[character];
   const displayName = names[character];
-console.log("Character param:", character);
+  document.getElementById("characterName").innerText = displayName;
+
+  console.log("Character param:", character);
 console.log("Display name lookup:", names[character]);
 
-  document.getElementById("characterName").innerText = displayName;
 
   const chatlog = document.getElementById("chatlog");
   const userInput = document.getElementById("userInput");
