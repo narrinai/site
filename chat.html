@@ -294,13 +294,7 @@ if (!userToken || !userEmail) {
     user_token: getUserToken() // 👈 toegevoegd
   })
 });
-function showRegistrationPopup() {
-  document.getElementById("registerPopup").style.display = "block";
-}
 
-async function registerUser() {
-  const email = document.getElementById("emailInput").value;
-  if (!email) return alert("Vul een geldig e-mailadres in");
 
   const token = crypto.randomUUID();
   localStorage.setItem("user_token", token);
@@ -337,6 +331,29 @@ async function registerUser() {
 
     chatlog.scrollTop = chatlog.scrollHeight;
   }
+
+function showRegistrationPopup() {
+  document.getElementById("registerPopup").style.display = "block";
+}
+
+async function registerUser() {
+  const email = document.getElementById("emailInput").value;
+  if (!email) return alert("Vul een geldig e-mailadres in");
+
+  const token = crypto.randomUUID();
+  localStorage.setItem("user_token", token);
+  localStorage.setItem("user_email", email);
+
+  await fetch("https://hook.eu2.make.com/c753wxuxgpcu37fol9seri6rdtpz2lju", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, token })
+  });
+
+  document.getElementById("registerPopup").style.display = "none";
+}
+
+
 </script>
 </body>
 </html>
