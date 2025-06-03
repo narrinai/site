@@ -208,7 +208,7 @@
   function getUserToken() {
   let token = localStorage.getItem("user_token");
   if (!token) {
-    token = crypto.randomUUID(); // Genereert unieke ID
+    token = crypto.randomUUID(); // unieker dan zelf typen
     localStorage.setItem("user_token", token);
   }
   return token;
@@ -270,15 +270,16 @@
     chatlog.scrollTop = chatlog.scrollHeight;
 
     try {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-body: JSON.stringify({
-  text: input,
-  char: character,
-  user_token: getUserToken()
-})
-      });
+    const response = await fetch(endpoint, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    text: input,
+    char: character,
+    user_token: getUserToken() // 👈 toegevoegd
+  })
+});
+
 
       const text = await response.text();
       console.log("Raw response:", text);
@@ -295,3 +296,12 @@ body: JSON.stringify({
       console.error("Error in fetch:", err);
       // alert("❌ Error sending message: " + err.message); // Potentially annoying, log instead
       const errorElement = document.createElement('p');
+      errorElement.innerHTML = `<strong>${displayName}:</strong> ⚠️ Something went wrong while sending.`;
+      chatlog.appendChild(errorElement);
+    }
+
+    chatlog.scrollTop = chatlog.scrollHeight;
+  }
+</script>
+</body>
+</html>
