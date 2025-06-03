@@ -1,8 +1,9 @@
+<!-- chat.html (dynamisch template voor meerdere karakters, met Make-logica) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Character Chat</title>
   <style>
     :root {
@@ -42,8 +43,8 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      height: calc(100vh - 40px);
-      max-height: 800px;
+      height: calc(100vh - 40px); /* Full height minus body padding */
+      max-height: 800px; /* Optional: constrain max height */
     }
 
     #characterName {
@@ -53,7 +54,7 @@
       margin: 0;
       border-bottom: 1px solid var(--border-color);
       text-align: center;
-      background-color: #fff;
+      background-color: #fff; /* Keep header distinct */
     }
 
     #chatlog {
@@ -78,6 +79,20 @@
       font-weight: 600;
     }
 
+    #chatlog p:has(strong:first-child:contains("You:")) {
+      background-color: var(--user-message-bg);
+      color: var(--primary-color);
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+    }
+
+    #chatlog p:not(:has(strong:first-child:contains("You:"))) {
+      background-color: var(--bot-message-bg);
+      color: var(--text-color);
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+    }
+
     .avatar {
       width: 28px;
       height: 28px;
@@ -91,7 +106,7 @@
       display: flex;
       padding: 15px 20px;
       border-top: 1px solid var(--border-color);
-      background-color: #fff;
+      background-color: #fff; /* Keep input area distinct */
       gap: 10px;
     }
 
@@ -106,6 +121,11 @@
       outline: none;
     }
 
+    #userInput:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+    }
+
     button {
       padding: 12px 20px;
       background-color: var(--primary-color);
@@ -113,58 +133,68 @@
       border: none;
       border-radius: var(--border-radius);
       font-size: 1em;
+      font-weight: 500;
       cursor: pointer;
+      transition: background-color 0.2s ease;
     }
 
-    /* Popup overlay */
-    #popupOverlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.4);
-      z-index: 999;
+    button:hover {
+      background-color: #0056b3; /* Darker shade of primary */
     }
 
-    #registerPopup {
-      position: fixed;
-      top: 20%;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #fff;
-      border: 1px solid #ccc;
-      border-radius: 12px;
-      padding: 24px;
-      z-index: 1000;
-      max-width: 90%;
-      width: 320px;
-      box-shadow: 0 0 16px rgba(0, 0, 0, 0.25);
+    /* Custom scrollbar for webkit browsers */
+    #chatlog::-webkit-scrollbar {
+      width: 8px;
     }
 
-    #registerPopup p {
-      margin-bottom: 12px;
-      font-size: 0.9em;
+    #chatlog::-webkit-scrollbar-track {
+      background: transparent;
     }
 
-    #registerPopup input {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 12px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
+    #chatlog::-webkit-scrollbar-thumb {
+      background-color: var(--border-color);
+      border-radius: 10px;
+      border: 2px solid var(--chatlog-bg); /* Creates padding around thumb */
     }
 
-    #registerPopup small {
-      display: block;
-      font-size: 0.75em;
-      color: #555;
+    #chatlog::-webkit-scrollbar-thumb:hover {
+      background-color: var(--secondary-color);
+    }
+
+
+    @media (max-width: 600px) {
+      body {
+        padding: 0;
+      }
+      .chat-container {
+        border-radius: 0;
+        height: 100vh;
+        max-height: 100vh;
+      }
+      #characterName {
+        font-size: 1.1em;
+        padding: 12px 15px;
+      }
+      #chatlog {
+        padding: 15px;
+      }
+      .input-group {
+        padding: 10px 15px;
+      }
+      #userInput {
+        font-size: 0.95em;
+      }
+      button {
+        font-size: 0.95em;
+        padding: 10px 15px;
+      }
     }
   </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div id="popupOverlay" onclick="hidePopup(event)"></div>
   <div class="chat-container">
     <h2 id="characterName">Loading...</h2>
     <div id="chatlog"></div>
@@ -174,84 +204,94 @@
     </div>
   </div>
 
-  <div id="registerPopup" style="display:none">
-    <p>Voer je e-mailadres in om een account aan te maken. Door te registreren ga je automatisch akkoord met onze voorwaarden.</p>
-    <input type="email" id="emailInput" placeholder="jij@example.com" required>
-    <small>By continuing, you agree with the Terms and Privacy Policy.</small>
-    <button onclick="registerUser()">Registreren</button>
-  </div>
-
-<script>
-const endpoint = "https://hook.eu2.make.com/c753wxuxgpcu37fol9seri6rdtpz2lju";
-
-function getUserToken() {
+ <script>
+  function getUserToken() {
   let token = localStorage.getItem("user_token");
   if (!token) {
-    token = crypto.randomUUID();
+    token = crypto.randomUUID(); // Genereert unieke ID
     localStorage.setItem("user_token", token);
   }
   return token;
 }
 
-function showRegistrationPopup() {
-  document.getElementById("registerPopup").style.display = "block";
-  document.getElementById("popupOverlay").style.display = "block";
-}
+  const params = new URLSearchParams(window.location.search);
+  const character = params.get("char") || "napoleon";
 
-function hidePopup(e) {
-  if (e.target.id === "popupOverlay") {
-    document.getElementById("registerPopup").style.display = "none";
-    document.getElementById("popupOverlay").style.display = "none";
+  const avatars = {
+    napoleon: "napoleon.png",
+    gandalf: "gandalf.png",
+    goku: "goku.png",
+    buffy: "buffy.png" // Added buffy
+  };
+
+  if (!avatars[character]) {
+    alert("⚠️ Unknown character, defaulting to Napoleon.");
+    window.location.href = "?char=napoleon";
   }
-}
 
-async function registerUser() {
-  const email = document.getElementById("emailInput").value;
-  if (!email) return alert("Vul een geldig e-mailadres in");
+  const endpoint = "https://hook.eu2.make.com/c753wxuxgpcu37fol9seri6rdtpz2lju"; // één centrale Make webhook
 
-  const token = crypto.randomUUID();
-  localStorage.setItem("user_token", token);
-  localStorage.setItem("user_email", email);
+  const names = {
+    napoleon: "Napoleon Bonaparte",
+    gandalf: "Gandalf the Grey",
+    goku: "Son Goku",
+    buffy: "Buffy Summers" // Added Buffy
+  };
 
-  await fetch(endpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, token })
+  const avatarUrl = avatars[character];
+  const displayName = names[character];
+  console.log("Character param:", character);
+  console.log("Display name lookup:", names[character]);
+
+  document.getElementById("characterName").innerText = displayName;
+
+  const chatlog = document.getElementById("chatlog");
+  const userInput = document.getElementById("userInput");
+
+  userInput.addEventListener("keydown", e => { // Moved event listener here
+    if (e.key === "Enter" && !e.shiftKey) { // Send on Enter, allow Shift+Enter for newline
+        e.preventDefault(); // Prevent default Enter behavior (newline in textarea, form submission)
+        sendMessage();
+    }
   });
 
-  document.getElementById("registerPopup").style.display = "none";
-  document.getElementById("popupOverlay").style.display = "none";
-}
+  async function sendMessage(event) {
+    event?.preventDefault();
 
-async function sendMessage(event) {
-  event?.preventDefault();
+    const input = userInput.value.trim();
+    if (!input) return;
 
-  const userToken = localStorage.getItem("user_token");
-  const userEmail = localStorage.getItem("user_email");
+    // Display user message
+    const userMessageElement = document.createElement('p');
+    userMessageElement.innerHTML = `<strong>You:</strong> ${input.replace(/\n/g, "<br>")}`; // Handle newlines
+    chatlog.appendChild(userMessageElement);
 
-  if (!userToken || !userEmail) {
-    showRegistrationPopup();
-    return;
-  }
+    userInput.value = "";
+    chatlog.scrollTop = chatlog.scrollHeight;
 
-  const input = document.getElementById("userInput").value.trim();
-  if (!input) return;
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+body: JSON.stringify({
+  text: input,
+  char: character,
+  user_token: getUserToken()
+})
+      });
 
-  // add logic to show message locally if needed
-  await fetch(endpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text: input, char: "gandalf", user_token: userToken })
-  });
-}
+      const text = await response.text();
+      console.log("Raw response:", text);
 
-// Esc closes popup
-document.addEventListener("keydown", function(e) {
-  if (e.key === "Escape") {
-    document.getElementById("registerPopup").style.display = "none";
-    document.getElementById("popupOverlay").style.display = "none";
-  }
-});
-</script>
-</body>
-</html>
+      const data = JSON.parse(text);
+      const reply = data.reply || "⚠️ No reply.";
+
+      // Display bot message
+      const botMessageElement = document.createElement('p');
+      botMessageElement.innerHTML = `<strong><img class="avatar" src="${avatarUrl}" alt="${displayName} avatar"> ${displayName}:</strong> ${reply.replace(/\n/g, "<br>")}`; // Handle newlines
+      chatlog.appendChild(botMessageElement);
+
+    } catch (err) {
+      console.error("Error in fetch:", err);
+      // alert("❌ Error sending message: " + err.message); // Potentially annoying, log instead
+      const errorElement = document.createElement('p');
