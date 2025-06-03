@@ -162,7 +162,11 @@ userInput.addEventListener("keydown", e => {
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: input, char: character }) // 👈 char wordt meegegeven
+body: JSON.stringify({
+  text: input,
+  char: character,
+  user_token: localStorage.getItem("user_token") // 👈 token wordt meegestuurd
+})
       });
 
       const text = await response.text();
