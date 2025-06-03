@@ -236,7 +236,22 @@ body: JSON.stringify({
         user_email: email,
         user_token: token
       })
-    });
+    })
+    .then(res => res.json())
+.then(data => {
+  if (data.error) {
+    alert(data.error); // bijvoorbeeld: "Email already registered"
+    return;
+  }
+
+  // Succesvolle registratie
+  localStorage.setItem('user_email', email);
+  localStorage.setItem('user_token', token);
+  window.isRegistered = true;
+  document.getElementById('registrationPopup').style.display = 'none';
+})
+.catch(err => alert('Fout bij registreren: ' + err.message));
+    ;
   }
 </script>
 
