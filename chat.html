@@ -1,12 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Character Chat</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
       --background-color: #f7f9fc;
@@ -18,7 +15,7 @@
       --chatlog-bg: #ffffff;
       --user-message-bg: #e6f2ff;
       --bot-message-bg: #f1f3f5;
-      --font-family: 'Inter', sans-serif;
+      --font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
       --border-radius: 12px;
       --container-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     }
@@ -46,6 +43,7 @@
       flex-direction: column;
       overflow: hidden;
       height: calc(100vh - 40px);
+      max-height: 800px;
     }
 
     #characterName {
@@ -74,6 +72,19 @@
       line-height: 1.5;
       max-width: 85%;
       word-wrap: break-word;
+    }
+
+    #chatlog p strong {
+      font-weight: 600;
+    }
+
+    .avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      vertical-align: middle;
+      margin-right: 8px;
+      border: 1px solid var(--border-color);
     }
 
     .input-group {
@@ -105,33 +116,55 @@
       cursor: pointer;
     }
 
-    .avatar {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      vertical-align: middle;
-      margin-right: 8px;
-      border: 1px solid var(--border-color);
+    /* Popup overlay */
+    #popupOverlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 999;
     }
 
     #registerPopup {
-      display: none;
       position: fixed;
       top: 20%;
       left: 50%;
       transform: translateX(-50%);
       background: #fff;
       border: 1px solid #ccc;
-      border-radius: 8px;
-      padding: 20px;
+      border-radius: 12px;
+      padding: 24px;
       z-index: 1000;
       max-width: 90%;
-      width: 300px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      width: 320px;
+      box-shadow: 0 0 16px rgba(0, 0, 0, 0.25);
+    }
+
+    #registerPopup p {
+      margin-bottom: 12px;
+      font-size: 0.9em;
+    }
+
+    #registerPopup input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    #registerPopup small {
+      display: block;
+      font-size: 0.75em;
+      color: #555;
     }
   </style>
 </head>
 <body>
+  <div id="popupOverlay" onclick="hidePopup(event)"></div>
   <div class="chat-container">
     <h2 id="characterName">Loading...</h2>
     <div id="chatlog"></div>
@@ -141,118 +174,84 @@
     </div>
   </div>
 
-  <div id="registerPopup">
+  <div id="registerPopup" style="display:none">
     <p>Voer je e-mailadres in om een account aan te maken. Door te registreren ga je automatisch akkoord met onze voorwaarden.</p>
-    <input type="email" id="emailInput" placeholder="jij@example.com" required style="width: 100%; padding: 8px; margin-top: 10px;">
-    <button onclick="registerUser()" style="margin-top: 12px;">Registreren</button>
+    <input type="email" id="emailInput" placeholder="jij@example.com" required>
+    <small>By continuing, you agree with the Terms and Privacy Policy.</small>
+    <button onclick="registerUser()">Registreren</button>
   </div>
 
-  <script>
-    function getUserToken() {
-      let token = localStorage.getItem("user_token");
-      if (!token) {
-        token = crypto.randomUUID();
-        localStorage.setItem("user_token", token);
-      }
-      return token;
-    }
+<script>
+const endpoint = "https://hook.eu2.make.com/c753wxuxgpcu37fol9seri6rdtpz2lju";
 
-    const params = new URLSearchParams(window.location.search);
-    const character = params.get("char") || "napoleon";
+function getUserToken() {
+  let token = localStorage.getItem("user_token");
+  if (!token) {
+    token = crypto.randomUUID();
+    localStorage.setItem("user_token", token);
+  }
+  return token;
+}
 
-    const userToken = localStorage.getItem("user_token");
-    const userEmail = localStorage.getItem("user_email");
+function showRegistrationPopup() {
+  document.getElementById("registerPopup").style.display = "block";
+  document.getElementById("popupOverlay").style.display = "block";
+}
 
-    if (!userToken || !userEmail) {
-      showRegistrationPopup();
-    }
+function hidePopup(e) {
+  if (e.target.id === "popupOverlay") {
+    document.getElementById("registerPopup").style.display = "none";
+    document.getElementById("popupOverlay").style.display = "none";
+  }
+}
 
-    const names = {
-      napoleon: "Napoleon Bonaparte",
-      gandalf: "Gandalf the Grey",
-      goku: "Son Goku",
-      buffy: "Buffy Summers"
-    };
+async function registerUser() {
+  const email = document.getElementById("emailInput").value;
+  if (!email) return alert("Vul een geldig e-mailadres in");
 
-    const avatars = {
-      napoleon: "napoleon.png",
-      gandalf: "gandalf.png",
-      goku: "goku.png",
-      buffy: "buffy.png"
-    };
+  const token = crypto.randomUUID();
+  localStorage.setItem("user_token", token);
+  localStorage.setItem("user_email", email);
 
-    const endpoint = "https://hook.eu2.make.com/c753wxuxgpcu37fol9seri6rdtpz2lju";
-    const avatarUrl = avatars[character];
-    const displayName = names[character];
+  await fetch(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, token })
+  });
 
-    document.getElementById("characterName").innerText = displayName;
+  document.getElementById("registerPopup").style.display = "none";
+  document.getElementById("popupOverlay").style.display = "none";
+}
 
-    const chatlog = document.getElementById("chatlog");
-    const userInput = document.getElementById("userInput");
+async function sendMessage(event) {
+  event?.preventDefault();
 
-    userInput.addEventListener("keydown", e => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-      }
-    });
+  const userToken = localStorage.getItem("user_token");
+  const userEmail = localStorage.getItem("user_email");
 
-    async function sendMessage(event) {
-      event?.preventDefault();
-      const input = userInput.value.trim();
-      if (!input) return;
+  if (!userToken || !userEmail) {
+    showRegistrationPopup();
+    return;
+  }
 
-      const userMessage = document.createElement('p');
-      userMessage.innerHTML = `<strong>You:</strong> ${input}`;
-      chatlog.appendChild(userMessage);
-      userInput.value = "";
-      chatlog.scrollTop = chatlog.scrollHeight;
+  const input = document.getElementById("userInput").value.trim();
+  if (!input) return;
 
-      try {
-        const response = await fetch(endpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            text: input,
-            char: character,
-            user_token: getUserToken()
-          })
-        });
+  // add logic to show message locally if needed
+  await fetch(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text: input, char: "gandalf", user_token: userToken })
+  });
+}
 
-        const data = await response.json();
-        const reply = data.reply || "⚠️ No reply.";
-
-        const botMessage = document.createElement('p');
-        botMessage.innerHTML = `<strong><img class="avatar" src="${avatarUrl}" alt="${displayName}"> ${displayName}:</strong> ${reply}`;
-        chatlog.appendChild(botMessage);
-        chatlog.scrollTop = chatlog.scrollHeight;
-      } catch (err) {
-        const errorMsg = document.createElement('p');
-        errorMsg.innerHTML = `<strong>${displayName}:</strong> ⚠️ Er ging iets mis.`;
-        chatlog.appendChild(errorMsg);
-      }
-    }
-
-    function showRegistrationPopup() {
-      document.getElementById("registerPopup").style.display = "block";
-    }
-
-    async function registerUser() {
-      const email = document.getElementById("emailInput").value;
-      if (!email) return alert("Vul een geldig e-mailadres in");
-
-      const token = crypto.randomUUID();
-      localStorage.setItem("user_token", token);
-      localStorage.setItem("user_email", email);
-
-      await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, token })
-      });
-
-      document.getElementById("registerPopup").style.display = "none";
-    }
-  </script>
+// Esc closes popup
+document.addEventListener("keydown", function(e) {
+  if (e.key === "Escape") {
+    document.getElementById("registerPopup").style.display = "none";
+    document.getElementById("popupOverlay").style.display = "none";
+  }
+});
+</script>
 </body>
 </html>
