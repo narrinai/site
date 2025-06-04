@@ -120,61 +120,61 @@
 
 
  <script>
+  // ─────────────────────────────────────────────────────────────
+  //  DEFINITIES DIE AL BESTONDEN:
+  // ─────────────────────────────────────────────────────────────
 
   const avatars = {
     napoleon: "napoleon.png",
-    gandalf: "gandalf.png",
-    goku: "goku.png"
+    gandalf:  "gandalf.png",
+    goku:     "goku.png"
   };
 
-  const endpoint = "https://hook.eu2.make.com/c753wxuxgpcu37fol9seri6rdtpz2lju"; // één centrale Make webhook
+  const endpoint = "https://hook.eu2.make.com/c753wxuxgpcu37fol9seri6rdtpz2lju";
 
   const names = {
     napoleon: "Napoleon Bonaparte",
-    gandalf: "Gandalf the Grey",
-    goku: "Son Goku"
+    gandalf:  "Gandalf the Grey",
+    goku:     "Son Goku"
   };
 
-const params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(window.location.search);
   const character = params.get("char") || "napoleon";
-if (!avatars[character]) {
-  alert("⚠️ Onbekend character, fallback naar Napoleon.");
-  window.location.href = "?char=napoleon";
-}
 
-  const avatarUrl = avatars[character];
+  if (!avatars[character]) {
+    alert("⚠️ Onbekend character, fallback naar Napoleon.");
+    window.location.href = "?char=napoleon";
+  }
+
+  const avatarUrl   = avatars[character];
   const displayName = names[character];
   document.getElementById("characterName").innerText = displayName;
 
-  console.log("Character param:", character);
-console.log("Display name lookup:", names[character]);
-
-
-  const chatlog = document.getElementById("chatlog");
+  const chatlog   = document.getElementById("chatlog");
   const userInput = document.getElementById("userInput");
-userInput.addEventListener("keydown", e => {
-  if (e.key === "Enter") handleSendClick(e);
-});
-function handleSendClick(event) {
-  if (!window.isRegistered) {
-    document.getElementById('registrationPopup').style.display = 'flex';
-    return;
+
+  userInput.addEventListener("keydown", e => {
+    if (e.key === "Enter") handleSendClick(e);
+  });
+
+  function handleSendClick(event) {
+    if (!window.isRegistered) {
+      document.getElementById('registrationPopup').style.display = 'flex';
+      return;
+    }
+    sendMessage(event);
   }
 
-  sendMessage(event);
-}
-  // … hierboven staat al wat code, o.a. handleSendClick…
+  // ─────────────────────────────────────────────────────────────
+  //  HIER PLAATS JE fetchHistory() -FRAGMENT VOOR sendMessage() ↓
+  // ─────────────────────────────────────────────────────────────
 
-  // ───────────────────────────────────────────────────
-  // ↓ Plak hier vóór regel 166 het fetchHistory-fragment ↓
-  // ───────────────────────────────────────────────────
-
-  // Vervang deze URL door jouw eigen ChatHistory-webhook-URL:
+  // Vervang deze URL door jouw eigen “chat-history”-webhook-URL:
   const historyEndpoint = "https://hook.eu2.make.com/fjpapor4lkj9mpypaqx8no68d64bxe19";
 
   async function fetchHistory() {
     const userToken = localStorage.getItem("user_token");
-    const params = new URLSearchParams(window.location.search);
+    const params    = new URLSearchParams(window.location.search);
     const character = params.get("char");
     if (!userToken || !character) return;
 
@@ -194,7 +194,6 @@ function handleSendClick(event) {
       const data = await resp.json();
       if (!Array.isArray(data.history)) return;
 
-      const chatlog = document.getElementById("chatlog");
       data.history.forEach(record => {
         const role    = record.fields.Role;
         const message = record.fields.Message;
@@ -202,8 +201,6 @@ function handleSendClick(event) {
         if (role === "user") {
           p.innerHTML = `<strong>You:</strong> ${message}`;
         } else {
-          const avatarUrl   = avatars[character];
-          const displayName = names[character];
           p.innerHTML = `<strong><img class="avatar" src="${avatarUrl}" alt="avatar"> ${displayName}:</strong> ${message}`;
         }
         chatlog.appendChild(p);
@@ -215,14 +212,15 @@ function handleSendClick(event) {
   }
 
   window.addEventListener("DOMContentLoaded", fetchHistory);
-  // ───────────────────────────────────────────────────
-  // ↑ Einde fetchHistory‐fragment ↑
-  // ───────────────────────────────────────────────────
 
-  async function sendMessage(event) {    ← regel 166
-    event?.preventDefault();
-    // … rest van sendMessage …
-  }
+  // ─────────────────────────────────────────────────────────────
+  //  EINDE fetchHistory()-FRAGMENT ↑
+  // ─────────────────────────────────────────────────────────────
+
+
+  // ─────────────────────────────────────────────────────────────
+  //  ÉÉN enkele definitie van sendMessage()  ↓
+  // ─────────────────────────────────────────────────────────────
 
   async function sendMessage(event) {
     event?.preventDefault();
@@ -230,38 +228,48 @@ function handleSendClick(event) {
     const input = userInput.value.trim();
     if (!input) return;
 
-    chatlog.innerHTML += `<p><strong>You:</strong> ${input}</p>`;
-    userInput.value = "";
+    // Toon direct het user-bericht:
+    const divUser = document.createElement("p");
+    divUser.innerHTML = `<strong>You:</strong> ${input}`;
+    chatlog.appendChild(divUser);
     chatlog.scrollTop = chatlog.scrollHeight;
+    userInput.value = "";
 
     try {
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-body: JSON.stringify({
-  text: input,
-  char: character,
-  user_token: localStorage.getItem("user_token") // 👈 token wordt meegestuurd
-})
+        body: JSON.stringify({
+          text: input,
+          char: character,
+          user_token: localStorage.getItem("user_token")
+        })
       });
 
       const text = await response.text();
       console.log("Ruwe response:", text);
 
-
-      const data = JSON.parse(text);
+      const data  = JSON.parse(text);
       const reply = data.reply || "⚠️ No reply.";
 
-      chatlog.innerHTML += `<p><strong><img class="avatar" src="${avatarUrl}" alt="avatar"> ${displayName}:</strong> ${reply}</p>`;
+      const divBot = document.createElement("p");
+      divBot.innerHTML = `<strong><img class="avatar" src="${avatarUrl}" alt="avatar"> ${displayName}:</strong> ${reply}`;
+      chatlog.appendChild(divBot);
+      chatlog.scrollTop = chatlog.scrollHeight;
     } catch (err) {
       console.error("Fout in fetch:", err);
       alert("❌ Fout bij verzenden: " + err.message);
-      chatlog.innerHTML += `<p><strong>${displayName}:</strong> ⚠️ Er ging iets mis bij het versturen.</p>`;
+      const divErr = document.createElement("p");
+      divErr.innerHTML = `<strong>${displayName}:</strong> ⚠️ Er ging iets mis bij het versturen.`;
+      chatlog.appendChild(divErr);
+      chatlog.scrollTop = chatlog.scrollHeight;
     }
-
-    chatlog.scrollTop = chatlog.scrollHeight;
   }
+  // ─────────────────────────────────────────────────────────────
+  //  EINDE sendMessage()
+  // ─────────────────────────────────────────────────────────────
 </script>
+
 <!-- Registratiepopup -->
 <div id="registrationPopup" style="display: none !important; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
 
