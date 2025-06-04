@@ -163,6 +163,67 @@ function handleSendClick(event) {
 
   sendMessage(event);
 }
+  // … hierboven staat al wat code, o.a. handleSendClick…
+
+  // ───────────────────────────────────────────────────
+  // ↓ Plak hier vóór regel 166 het fetchHistory-fragment ↓
+  // ───────────────────────────────────────────────────
+
+  // Vervang deze URL door jouw eigen ChatHistory-webhook-URL:
+  const historyEndpoint = "https://hook.eu2.make.com/fjpapor4lkj9mpypaqx8no68d64bxe19";
+
+  async function fetchHistory() {
+    const userToken = localStorage.getItem("user_token");
+    const params = new URLSearchParams(window.location.search);
+    const character = params.get("char");
+    if (!userToken || !character) return;
+
+    try {
+      const resp = await fetch(historyEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_token: userToken,
+          char: character
+        })
+      });
+      if (!resp.ok) {
+        console.error("Fout bij ophalen historie:", resp.status, resp.statusText);
+        return;
+      }
+      const data = await resp.json();
+      if (!Array.isArray(data.history)) return;
+
+      const chatlog = document.getElementById("chatlog");
+      data.history.forEach(record => {
+        const role    = record.fields.Role;
+        const message = record.fields.Message;
+        const p = document.createElement("p");
+        if (role === "user") {
+          p.innerHTML = `<strong>You:</strong> ${message}`;
+        } else {
+          const avatarUrl   = avatars[character];
+          const displayName = names[character];
+          p.innerHTML = `<strong><img class="avatar" src="${avatarUrl}" alt="avatar"> ${displayName}:</strong> ${message}`;
+        }
+        chatlog.appendChild(p);
+      });
+      chatlog.scrollTop = chatlog.scrollHeight;
+    } catch (err) {
+      console.error("Uitzondering bij fetchHistory:", err);
+    }
+  }
+
+  window.addEventListener("DOMContentLoaded", fetchHistory);
+  // ───────────────────────────────────────────────────
+  // ↑ Einde fetchHistory‐fragment ↑
+  // ───────────────────────────────────────────────────
+
+  async function sendMessage(event) {    ← regel 166
+    event?.preventDefault();
+    // … rest van sendMessage …
+  }
+
   async function sendMessage(event) {
     event?.preventDefault();
 
