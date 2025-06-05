@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .login-container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      box-sizing: border-box;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+    }
+
+    input[type="email"] {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-bottom: 16px;
+      box-sizing: border-box;
+    }
+
+    button {
+      padding: 12px 24px;
+      background-color: #000;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    p.note {
+      font-size: 13px;
+      color: #555;
+      text-align: center;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h2>Log in to continue</h2>
+    <input type="email" id="email" placeholder="Enter your email" />
+    <button onclick="login()">Send Magic Link</button>
+    <p class="note">You'll receive a login link in your inbox.</p>
+  </div>
+
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script>
+    const supabase = supabase.createClient(
+      'https://clokawshlyzllgqcpoev.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsb2thd3NobHl6bGxncWNwb2V2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkxNTAxMTMsImV4cCI6MjA2NDcyNjExM30.5MyLznU7kNeA3iavlhRTa1dWmPm_G6JVYAyhGiGdeOc'
+    );
+
+    async function login() {
+      const email = document.getElementById("email").value.trim();
+      if (!email.includes("@")) {
+        alert("Please enter a valid email address.");
+        return;
+      }
+
+      const { error } = await supabase.auth.signInWithOtp({ email });
+      if (error) {
+        alert("Login error: " + error.message);
+      } else {
+        alert("✅ Magic link sent to " + email);
+      }
+    }
+  </script>
+</body>
+</html>
