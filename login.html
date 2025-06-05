@@ -76,19 +76,22 @@
     );
 
     async function login() {
-      const email = document.getElementById("email").value.trim();
-      if (!email.includes("@")) {
-        alert("Please enter a valid email address.");
-        return;
-      }
+  const email = document.getElementById("email").value.trim();
+  if (!email.includes("@")) {
+    alert("Please enter a valid email address.");
+    return;
+  }
 
-      const { error } = await supabase.auth.signInWithOtp({ email });
-      if (error) {
-        alert("Login error: " + error.message);
-      } else {
-        alert("✅ Magic link sent to " + email);
-      }
-    }
+  console.log("Trying to send magic link to:", email); // 👈 toegevoegde regel
+
+  const { error } = await supabase.auth.signInWithOtp({ email });
+  if (error) {
+    alert("Login error: " + error.message);
+  } else {
+    alert("✅ Magic link sent to " + email);
+  }
+}
+
   </script>
 </body>
 </html>
