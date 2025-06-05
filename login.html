@@ -68,30 +68,29 @@
   </div>
 
   <!-- Supabase SDK -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js" defer></script>
-  <script>
-    const supabase = supabase.createClient(
-      'https://clokawshlyzllgqcpoev.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsb2thd3NobHl6bGxncWNwb2V2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkxNTAxMTMsImV4cCI6MjA2NDcyNjExM30.5MyLznU7kNeA3iavlhRTa1dWmPm_G6JVYAyhGiGdeOc'
-    );
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script>
+  const client = supabase.createClient(
+    'https://clokawshlyzllgqcpoev.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInN1YiI6IjY4MW...'
+  );
 
-    async function login() {
-  const email = document.getElementById("email").value.trim();
-  if (!email.includes("@")) {
-    alert("Please enter a valid email address.");
-    return;
+  async function login() {
+    const email = document.getElementById("email").value.trim();
+    if (!email.includes("@")) {
+      alert("Please enter a valid email address.");
+      return;
+    }
+
+    console.log("Trying to send magic link to:", email);
+    const { error } = await client.auth.signInWithOtp({ email });
+    if (error) {
+      alert("Login error: " + error.message);
+    } else {
+      alert("✅ Magic link sent to " + email);
+    }
   }
+</script>
 
-  console.log("Trying to send magic link to:", email); // 👈 toegevoegde regel
-
-  const { error } = await supabase.auth.signInWithOtp({ email });
-  if (error) {
-    alert("Login error: " + error.message);
-  } else {
-    alert("✅ Magic link sent to " + email);
-  }
-}
-
-  </script>
 </body>
 </html>
