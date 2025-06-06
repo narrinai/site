@@ -124,27 +124,6 @@
 </script>
 
 
-  async function submitLogin() {
-    const email = document.getElementById("loginEmail").value.trim();
-    if (!email.includes("@")) {
-      alert("Please enter a valid email.");
-      return;
-    }
-
-    const { error } = await supabase.auth.signInWithOtp({
-  email,
-  options: {
-    redirectTo: "https://narrinai.netlify.app/chat.html"
-  }
-});
-    if (error) {
-      alert("Login failed: " + error.message);
-    } else {
-      alert("✅ Magic link sent! Check your inbox.");
-      document.getElementById("loginPopup").style.display = "none";
-    }
-  }
-</script>
 
 </head>
 <body>
@@ -157,8 +136,7 @@
     </div>
   </div>
 
-<script>
-</script>
+
 
 
  <script>
@@ -342,6 +320,27 @@ async function handleSendClick(event) {
 </div>
 
 
+<script>
+  async function submitLogin() {
+    const email = document.getElementById("loginEmail").value.trim();
+    if (!email.includes("@")) {
+      alert("Please enter a valid email.");
+      return;
+    }
 
+    const { error } = await supabase.auth.signInWithOtp({
+  email,
+  options: {
+    redirectTo: "https://narrinai.netlify.app/chat.html"
+  }
+});
+    if (error) {
+      alert("Login failed: " + error.message);
+    } else {
+      alert("✅ Magic link sent! Check your inbox.");
+      document.getElementById("loginPopup").style.display = "none";
+    }
+  }
+</script>
 </body>
 </html>
