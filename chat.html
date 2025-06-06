@@ -180,24 +180,27 @@
 async function handleSendClick(event) {
   console.log("🟢 Send button clicked");
 
-  const { data } = await supabase.auth.getSession();
-const uid = data.session.user.id; // <-- dít is de UID
-localStorage.setItem("user_token", uid); // vervangt access_token!
+  const { data, error } = await supabase.auth.getSession();
 
-
-  if (!data.session) {
-    console.log("🟡 Not logged in → showing popup");
+  if (!data || !data.session) {
+    console.log("🟡 Niet ingelogd → loginpopup tonen");
     document.getElementById("loginPopup").style.display = "flex";
     return;
   }
 
-  console.log("🟢 Logged in → sending message...");
+  const session = data.session;
+
+  // ✅ veilige toekenning
+  const uid = session.user?.id || "onbekend";
+  const accessToken = session.access_token;
+
   window.isRegistered = true;
-  localStorage.setItem("user_email", data.session.user.email);
-  localStorage.setItem("user_token", data.session.access_token);
+  localStorage.setItem("user_email", session.user.email);
+  localStorage.setItem("user_token", uid); // of accessToken, afhankelijk van je Make-config
 
   sendMessage(event);
 }
+
 
 
 
