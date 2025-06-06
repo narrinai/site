@@ -283,10 +283,21 @@ async function handleSendClick(event) {
         })
       });
 
-      const text = await response.text();
-      console.log("Ruwe response:", text);
+      const contentType = response.headers.get("content-type");
 
-      const data  = JSON.parse(text);
+const raw = await response.text();
+console.log("Ruwe response:", raw);
+
+let data = {};
+if (contentType && contentType.includes("application/json")) {
+  try {
+    data = JSON.parse(raw);
+  } catch (err) {
+    console.error("❌ JSON parse fout:", err);
+  }
+} else {
+  console.warn("⚠️ Response is geen JSON:", raw);
+}
       const reply = data.reply || "⚠️ No reply.";
 
       const divBot = document.createElement("p");
