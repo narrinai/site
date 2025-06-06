@@ -158,20 +158,24 @@
   });
 
 async function handleSendClick(event) {
+  console.log("🟢 Send button clicked");
+
   const { data } = await supabase.auth.getSession();
 
   if (!data.session) {
+    console.log("🟡 Not logged in → showing popup");
     document.getElementById("loginPopup").style.display = "flex";
     return;
   }
 
-  // ✅ User is ingelogd → doorgaan
+  console.log("🟢 Logged in → sending message...");
   window.isRegistered = true;
   localStorage.setItem("user_email", data.session.user.email);
   localStorage.setItem("user_token", data.session.access_token);
 
   sendMessage(event);
 }
+
 
 
 
