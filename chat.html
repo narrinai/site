@@ -164,8 +164,20 @@
             })
           }
         );
-        const data = await res.json();
-        console.log("Webhook1 responded:", data);
+
+        // Lees eerst de raw-tekst, want Make.com stuurt nu “Accepted” in plain text
+        const rawText = await res.text();
+        console.log("Webhook1 raw response:", rawText);
+
+        // Probeer conditioneel te parsen naar JSON
+        let data;
+        try {
+          data = JSON.parse(rawText);
+          console.log("Webhook1 parsed JSON:", data);
+        } catch (e) {
+          console.warn("Webhook1: antwoord is geen JSON, sla over:", e);
+          data = null;
+        }
       } catch (err) {
         console.error("Fout in registration-webhook call:", err);
       }
@@ -282,11 +294,16 @@
           return;
         }
 
+        // Lees eerst de raw-tekst
+        const rawText = await resp.text();
+        console.log("fetchHistory raw response:", rawText);
+
+        // Probeer conditioneel te parsen naar JSON
         let data;
         try {
-          data = await resp.json();
+          data = JSON.parse(rawText);
         } catch (e) {
-          console.error("fetchHistory → JSON.parse mislukte:", e);
+          console.error("fetchHistory → JSON.parse mislukte:", e, "Raw data:", rawText);
           return;
         }
 
