@@ -108,87 +108,85 @@
           Fouten omdat de pagina al opgebouwd is.
        ───────────────────────────────────────────────────────────── -->
   <!-- VERVANG DIT SCRIPT (oude init/log-in-flow) -->
-<script>
-  
-    // Wacht tot Netlify Identity volledig klaar is met parsen
   <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    console.log("DOM volledig geladen, roep init aan");
-    const netlifyIdentity = window.netlifyIdentity;
-    netlifyIdentity.init();
+    // Wacht tot Netlify Identity volledig klaar is met parsen
+    document.addEventListener("DOMContentLoaded", () => {
+      console.log("DOM volledig geladen, roep init aan");
+      const netlifyIdentity = window.netlifyIdentity;
+      netlifyIdentity.init();
 
-    console.log("Na init(), wacht op init-event");
-    netlifyIdentity.on("init", (user) => {
-      console.log(">>> INIT event: Netlify user is", user);
-      if (user) {
-        handleLogin(user);
-      } else {
-        netlifyIdentity.open("login");
-      }
-    });
-
-    netlifyIdentity.on("login", (user) => {
-      handleLogin(user);
-      netlifyIdentity.close();
-    });
-    netlifyIdentity.on("logout", () => {
-      clearLocalAuth();
-      window.location.href = "/";
-    });
-  });
-
-  async function handleLogin(user) {
-    const email = user.email;
-    const uid   = user.id;                // Netlify UID
-    const token = user.token.access_token; // Netlify JWT
-
-    localStorage.setItem("user_email", email);
-    localStorage.setItem("user_token", token);
-    localStorage.setItem("user_uid", uid);
-    window.isRegistered = true;
-
-    console.log("DEBUG: handleLogin(validated) → verstuur Webhook1:", {
-      user_email: email,
-      user_uid:   uid,
-      user_token: token
-    });
-
-    try {
-      const res = await fetch(
-        "https://hook.eu2.make.com/03ug6qzucda4ksrkcc06nu3bu3vetj15",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            user_email: email,
-            user_uid:   uid,
-            user_token: token
-          })
+      console.log("Na init(), wacht op init-event");
+      netlifyIdentity.on("init", (user) => {
+        console.log(">>> INIT event: Netlify user is", user);
+        if (user) {
+          handleLogin(user);
+        } else {
+          netlifyIdentity.open("login");
         }
-      );
-      const data = await res.json();
-      console.log("Webhook1 responded:", data);
-    } catch (err) {
-      console.error("Fout in registration-webhook call:", err);
+      });
+
+      netlifyIdentity.on("login", (user) => {
+        handleLogin(user);
+        netlifyIdentity.close();
+      });
+      netlifyIdentity.on("logout", () => {
+        clearLocalAuth();
+        window.location.href = "/";
+      });
+    });
+
+    async function handleLogin(user) {
+      const email = user.email;
+      const uid   = user.id;                // Netlify UID
+      const token = user.token.access_token; // Netlify JWT
+
+      localStorage.setItem("user_email", email);
+      localStorage.setItem("user_token", token);
+      localStorage.setItem("user_uid", uid);
+      window.isRegistered = true;
+
+      console.log("DEBUG: handleLogin(validated) → verstuur Webhook1:", {
+        user_email: email,
+        user_uid:   uid,
+        user_token: token
+      });
+
+      try {
+        const res = await fetch(
+          "https://hook.eu2.make.com/03ug6qzucda4ksrkcc06nu3bu3vetj15",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              user_email: email,
+              user_uid:   uid,
+              user_token: token
+            })
+          }
+        );
+        const data = await res.json();
+        console.log("Webhook1 responded:", data);
+      } catch (err) {
+        console.error("Fout in registration-webhook call:", err);
+      }
+
+      // Zodra de pagina geladen is, laad de chat-geschiedenis
+      if (
+        document.readyState === "interactive" ||
+        document.readyState === "complete"
+      ) {
+        fetchHistory();
+      }
     }
 
-    // Zodra de pagina geladen is, laad de chat-geschiedenis
-    if (
-      document.readyState === "interactive" ||
-      document.readyState === "complete"
-    ) {
-      fetchHistory();
+    function clearLocalAuth() {
+      localStorage.removeItem("user_email");
+      localStorage.removeItem("user_token");
+      localStorage.removeItem("user_uid");
+      window.isRegistered = false;
     }
-  }
-
-  function clearLocalAuth() {
-    localStorage.removeItem("user_email");
-    localStorage.removeItem("user_token");
-    localStorage.removeItem("user_uid");
-    window.isRegistered = false;
-  }
-</script>
-<!-- EINDE VERVANGING SCRIPT -->
+  </script>
+  <!-- EINDE VERVANGING SCRIPT -->
 
 </head>
 
