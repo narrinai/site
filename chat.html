@@ -107,84 +107,90 @@
           van Netlify Identity aanroept. Dit voorkomt `appendChild` 
           Fouten omdat de pagina al opgebouwd is.
        ───────────────────────────────────────────────────────────── -->
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const netlifyIdentity = window.netlifyIdentity;
-      netlifyIdentity.init();
+  <!-- VERVANG DIT SCRIPT (oude init/log-in-flow) -->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const netlifyIdentity = window.netlifyIdentity;
+    netlifyIdentity.init();
 
-      // Helper om lokale auth‐gegevens te verwijderen bij logout
-      function clearLocalAuth() {
-        localStorage.removeItem("user_email");
-        localStorage.removeItem("user_token");
-        localStorage.removeItem("user_uid");
-        window.isRegistered = false;
-      }
-
-      // Kijk of de user al ingelogd is
-      const currentUser = netlifyIdentity.currentUser();
-      console.log("Huidige Netlify‐user (na DOM):", currentUser);
-      if (currentUser) {
-        handleLogin(currentUser);
+    // Wacht tot Netlify Identity volledig klaar is met parsen
+    netlifyIdentity.on("init", (user) => {
+      console.log("INIT event: Netlify user is", user);
+      if (user) {
+        // Als user niet-null is (magic-link bevestigd of bestaande sessie)
+        handleLogin(user);
       } else {
-        // Als er nog geen ingelogde user is, toon de login-modal
+        // Anders open je de loginmodal
         netlifyIdentity.open("login");
       }
-
-      // Wat te doen bij een succesvolle login via de modal
-      netlifyIdentity.on("login", (user) => {
-        handleLogin(user);
-        netlifyIdentity.close();
-      });
-
-      // Wat te doen bij logout
-      netlifyIdentity.on("logout", () => {
-        clearLocalAuth();
-        window.location.href = "/";
-      });
     });
 
-    // Deze functie staat *buiten* de DOMContentLoaded-listener, 
-    // omdat we 'm zowel vanuit on("login") als uit de DOMContentLoaded willen aanroepen.
-    async function handleLogin(user) {
-      const email = user.email;
-      const uid   = user.id;                // Dit is je Netlify UID
-      const token = user.token.access_token; // Dit is je Netlify JWT
+    // Luister naar latere logins via de modal
+    netlifyIdentity.on("login", (user) => {
+      handleLogin(user);
+      netlifyIdentity.close();
+    });
 
-      // Sla de gegevens op in localStorage
-      localStorage.setItem("user_email", email);
-      localStorage.setItem("user_token", token);
-      localStorage.setItem("user_uid", uid);
-      window.isRegistered = true;
+    // Luister naar logout
+    netlifyIdentity.on("logout", () => {
+      clearLocalAuth();
+      window.location.href = "/";
+    });
+  });
 
-      // 1.6.1 Schrijf de gebruiker (indices) naar Airtable via Make‐webhook (registratie/updaten)
-      try {
-        const res = await fetch(
-          "https://hook.eu2.make.com/03ug6qzucda4ksrkcc06nu3bu3vetj15",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              user_email: email,
-              user_uid:   uid,
-              user_token: token
-            })
-          }
-        );
-        const data = await res.json();
-        console.log("Webhook1 responded:", data);
-      } catch (err) {
-        console.error("Fout in registration-webhook call:", err);
-      }
+  async function handleLogin(user) {
+    const email = user.email;
+    const uid   = user.id;                // Netlify UID
+    const token = user.token.access_token; // Netlify JWT
 
-      // 1.6.2 Zodra de pagina geladen is, laad de chat-geschiedenis
-      if (
-        document.readyState === "interactive" ||
-        document.readyState === "complete"
-      ) {
-        fetchHistory();
-      }
+    localStorage.setItem("user_email", email);
+    localStorage.setItem("user_token", token);
+    localStorage.setItem("user_uid", uid);
+    window.isRegistered = true;
+
+    console.log("DEBUG: handleLogin(validated) → verstuur Webhook1:", {
+      user_email: email,
+      user_uid:   uid,
+      user_token: token
+    });
+
+    try {
+      const res = await fetch(
+        "https://hook.eu2.make.com/03ug6qzucda4ksrkcc06nu3bu3vetj15",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user_email: email,
+            user_uid:   uid,
+            user_token: token
+          })
+        }
+      );
+      const data = await res.json();
+      console.log("Webhook1 responded:", data);
+    } catch (err) {
+      console.error("Fout in registration-webhook call:", err);
     }
-  </script>
+
+    // Zodra de pagina geladen is, laad de chat-geschiedenis
+    if (
+      document.readyState === "interactive" ||
+      document.readyState === "complete"
+    ) {
+      fetchHistory();
+    }
+  }
+
+  function clearLocalAuth() {
+    localStorage.removeItem("user_email");
+    localStorage.removeItem("user_token");
+    localStorage.removeItem("user_uid");
+    window.isRegistered = false;
+  }
+</script>
+<!-- EINDE VERVANGING SCRIPT -->
+
 </head>
 
 <body>
