@@ -109,29 +109,28 @@
        ───────────────────────────────────────────────────────────── -->
   <!-- VERVANG DIT SCRIPT (oude init/log-in-flow) -->
 <script>
+  
+    // Wacht tot Netlify Identity volledig klaar is met parsen
+  <script>
   document.addEventListener("DOMContentLoaded", () => {
+    console.log("DOM volledig geladen, roep init aan");
     const netlifyIdentity = window.netlifyIdentity;
     netlifyIdentity.init();
 
-    // Wacht tot Netlify Identity volledig klaar is met parsen
+    console.log("Na init(), wacht op init-event");
     netlifyIdentity.on("init", (user) => {
-      console.log("INIT event: Netlify user is", user);
+      console.log(">>> INIT event: Netlify user is", user);
       if (user) {
-        // Als user niet-null is (magic-link bevestigd of bestaande sessie)
         handleLogin(user);
       } else {
-        // Anders open je de loginmodal
         netlifyIdentity.open("login");
       }
     });
 
-    // Luister naar latere logins via de modal
     netlifyIdentity.on("login", (user) => {
       handleLogin(user);
       netlifyIdentity.close();
     });
-
-    // Luister naar logout
     netlifyIdentity.on("logout", () => {
       clearLocalAuth();
       window.location.href = "/";
