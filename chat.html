@@ -104,18 +104,25 @@
   <!-- Supabase SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <script>
-  const supabase = window.supabase.createClient("https://clokawshlyzllgqcpoev.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsb2thd3NobHl6bGxncWNwb2V2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkxNTAxMTMsImV4cCI6MjA2NDcyNjExM30.5MyLznU7kNeA3iavlhRTa1dWmPm_G6JVYAyhGiGdeOc");
+  const supabase = window.supabase.createClient(
+    "https://clokawshlyzllgqcpoev.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsb2thd3NobHl6bGxncWNwb2V2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkxNTAxMTMsImV4cCI6MjA2NDcyNjExM30.5MyLznU7kNeA3iavlhRTa1dWmPm_G6JVYAyhGiGdeOc"
+  );
 
-  // Controleer loginstatus
+  // ✅ Controleer of gebruiker is ingelogd via sessie/magic link
   supabase.auth.getSession().then(({ data }) => {
     if (data.session) {
       localStorage.setItem("user_email", data.session.user.email);
       localStorage.setItem("user_token", data.session.access_token);
       window.isRegistered = true;
+      console.log("✅ Ingelogd via sessie of magic link.");
     } else {
       window.isRegistered = false;
+      console.log("🟡 Niet ingelogd.");
     }
   });
+</script>
+
 
   async function submitLogin() {
     const email = document.getElementById("loginEmail").value.trim();
@@ -124,7 +131,12 @@
       return;
     }
 
-    const { error } = await supabase.auth.signInWithOtp({ email });
+    const { error } = await supabase.auth.signInWithOtp({
+  email,
+  options: {
+    redirectTo: "https://narrinai.netlify.app/chat.html"
+  }
+});
     if (error) {
       alert("Login failed: " + error.message);
     } else {
