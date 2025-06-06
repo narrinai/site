@@ -101,30 +101,84 @@
       }
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+
 <script>
-  const supabase = window.supabase.createClient(
-    'https://clokawshlyzllgqcpoev.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
-  );
+    // 1.1 Initialiseer Netlify Identity
+    const netlifyIdentity = window.netlifyIdentity;
+    netlifyIdentity.init();
 
-  supabase.auth.getSession().then(({ data }) => {
-    if (!data.session) {
-      // Gebruiker is niet ingelogd, redirect naar login.html
-      window.location.href = "/login.html";
-    } else {
-      // ✅ Gebruiker is ingelogd
-      const email = data.session.user.email;
-      console.log("✅ Ingelogd als:", email);
-
-      // Optioneel voor Make integratie:
-      localStorage.setItem("user_email", email);
-      localStorage.setItem("user_token", data.session.access_token);
-      window.isRegistered = true;
+    // 1.2 Helper om lokale auth‐gegevens te verwijderen bij logout
+    function clearLocalAuth() {
+      localStorage.removeItem("user_email");
+      localStorage.removeItem("user_token");
+      localStorage.removeItem("user_uid");
+      window.isRegistered = false;
     }
-  });
-</script>
 
+    // 1.3 Check direct of de user al ingelogd is
+    const currentUser = netlifyIdentity.currentUser();
+    if (currentUser) {
+      // Gebruiker is al ingelogd (bv. pagina herladen); ga naar handleLogin
+      handleLogin(currentUser);
+    } else {
+      // Niet ingelogd → toon de login/vendor signup‐modal
+      netlifyIdentity.open("login"); 
+    }
+
+    // 1.4 Eventlistener: wat te doen bij succesvolle login
+    netlifyIdentity.on("login", user => {
+      handleLogin(user);
+      netlifyIdentity.close();
+    });
+
+    // 1.5 Eventlistener: wat te doen bij logout
+    netlifyIdentity.on("logout", () => {
+      clearLocalAuth();
+      // Optioneel: stuur terug naar homepage of reload
+      window.location.href = "/";
+    });
+
+    // 1.6 Deze functie wordt aangeroepen zodra er ingelogd wordt
+    async function handleLogin(user) {
+      // user bevat velden: user.email, user.id (Netlify UUID), user.token.access_token
+      const email = user.email;
+      const uid   = user.id;                       // Netlify Identity ID (UUID)
+      const token = user.token.access_token;       // Netlify JWT
+
+      // Sla op in localStorage zodat fetchHistory() en sendMessage() dit kunnen gebruiken
+      localStorage.setItem("user_email", email);
+      localStorage.setItem("user_token", token);
+      localStorage.setItem("user_uid", uid);
+      window.isRegistered = true;
+
+      // 1.6.1 Schrijf de gebruiker (indices) naar Airtable via Make‐webhook (registratie/updaten)
+      try {
+        const res = await fetch("https://hook.eu2.make.com/03ug6qzucda4ksrkcc06nu3bu3vetj15", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user_email: email,
+            user_uid: uid,
+            user_token: token
+          })
+        });
+        const data = await res.json();
+        if (data.error) {
+          console.error("Make registratie‐error:", data.error);
+        } else {
+          console.log("Make heeft gebruiker geregistreerd/bijgewerkt:", data);
+        }
+      } catch (err) {
+        console.error("Fout in registration‐webhook call:", err);
+      }
+
+      // 1.6.2 Zodra de DOM volledig is geladen, roep fetchHistory() aan
+      if (document.readyState === "interactive" || document.readyState === "complete") {
+        fetchHistory();
+      }
+    }
+  </script>
 </head>
 <body>
   <div class="chat-container">
@@ -136,11 +190,7 @@
     </div>
   </div>
 
-<script>
-  const userEmail = localStorage.getItem('user_email');
-  const userToken = localStorage.getItem('user_token');
-  window.isRegistered = !!(userEmail && userToken);
-</script>
+
 
 
  <script>
@@ -181,49 +231,66 @@
     if (e.key === "Enter") handleSendClick(e);
   });
 
+  <script>
   function handleSendClick(event) {
     if (!window.isRegistered) {
-      document.getElementById('registrationPopup').style.display = 'flex';
+      // Als de gebruiker nog niet ingelogd is, toon Netlify Identity login‐modal
+      netlifyIdentity.open("login");
       return;
     }
     sendMessage(event);
   }
+</script>
 
+  <script>
   // ─────────────────────────────────────────────────────────────
-  //  HIER PLAATS JE fetchHistory()-FRAGMENT VOOR sendMessage() ↓
+  //  VERVANG fetchHistory() door deze Netlify‐variant
   // ─────────────────────────────────────────────────────────────
-
-  // Vervang deze URL door jouw eigen ChatHistory-webhook-URL uit Make:
   const historyEndpoint = "https://hook.eu2.make.com/fjpapor4lkj9mpypaqx8no68d64bxe19";
 
   async function fetchHistory() {
-    const userToken = localStorage.getItem("user_token");
-    const params    = new URLSearchParams(window.location.search);
-    const character = params.get("char");
-    if (!userToken || !character) return;
+    const token = localStorage.getItem("user_token");
+    const uid   = localStorage.getItem("user_uid");
+    const email = localStorage.getItem("user_email");
+    if (!token || !uid || !character || !email) {
+      console.warn("fetchHistory: mist token, uid, email of character");
+      return;
+    }
 
     try {
       const resp = await fetch(historyEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          user_token: userToken,
+          user_email: email,
+          user_uid: uid,
+          user_token: token,
           char: character
         })
       });
 
       if (!resp.ok) {
-        console.error("Fout bij ophalen historie:", resp.status, resp.statusText);
+        console.error("fetchHistory → resp.ok false:", resp.status, resp.statusText);
         return;
       }
 
-      const data = await resp.json();
-      if (!Array.isArray(data.history)) return;
+      let data;
+      try {
+        data = await resp.json();
+      } catch (e) {
+        console.error("fetchHistory → JSON.parse mislukte:", e);
+        return;
+      }
+
+      if (!Array.isArray(data.history)) {
+        console.warn("fetchHistory → verwacht data.history[] maar kreeg:", data);
+        return;
+      }
 
       data.history.forEach(record => {
         const role    = record.fields.Role;
         const message = record.fields.Message;
-        const p = document.createElement("p");
+        const p       = document.createElement("p");
         if (role === "user") {
           p.innerHTML = `<strong>You:</strong> ${message}`;
         } else {
@@ -234,28 +301,47 @@
 
       chatlog.scrollTop = chatlog.scrollHeight;
     } catch (err) {
-      console.error("Uitzondering bij fetchHistory:", err);
+      console.error("fetchHistory → Uitzondering bij fetchHistory:", err);
     }
   }
 
-  window.addEventListener("DOMContentLoaded", fetchHistory);
+  // Ophalen geschiedenis zodra de pagina geladen is
+  window.addEventListener("DOMContentLoaded", () => {
+    if (window.isRegistered) {
+      fetchHistory();
+    } else {
+      // Wacht kort tot handleLogin() localStorage heeft bijgewerkt
+      setTimeout(() => {
+        if (window.isRegistered) fetchHistory();
+      }, 500);
+    }
+  });
+  // ─────────────────────────────────────────────────────────────
+  //  EINDE VERVANGING fetchHistory()
+  // ─────────────────────────────────────────────────────────────
+</script>
 
+ <script>
   // ─────────────────────────────────────────────────────────────
-  //  EINDE fetchHistory()-FRAGMENT
+  //  VERVANG sendMessage() door deze Netlify‐variant
   // ─────────────────────────────────────────────────────────────
-
-
-  // ─────────────────────────────────────────────────────────────
-  //  ÉÉN enkele definitie van sendMessage():
-  // ─────────────────────────────────────────────────────────────
+  const endpoint = "https://hook.eu2.make.com/c753wxuxgpcu37fol9seri6rdtpz2lju";
 
   async function sendMessage(event) {
     event?.preventDefault();
-
     const input = userInput.value.trim();
     if (!input) return;
 
-    // Toon direct het user-bericht:
+    const token = localStorage.getItem("user_token");
+    const uid   = localStorage.getItem("user_uid");
+    const email = localStorage.getItem("user_email");
+    if (!token || !uid || !email) {
+      console.error("sendMessage: mist token, uid of email");
+      alert("Je bent niet (goed) ingelogd.");
+      return;
+    }
+
+    // Toon direct het user‐bericht
     const divUser = document.createElement("p");
     divUser.innerHTML = `<strong>You:</strong> ${input}`;
     chatlog.appendChild(divUser);
@@ -269,22 +355,39 @@
         body: JSON.stringify({
           text: input,
           char: character,
-          user_token: localStorage.getItem("user_token")
+          user_email: email,
+          user_uid: uid,
+          user_token: token
         })
       });
 
-      const text = await response.text();
-      console.log("Ruwe response:", text);
+      if (!response.ok) {
+        console.error("sendMessage → response.ok false:", response.status, response.statusText);
+        throw new Error(`Server gaf status ${response.status} terug`);
+      }
 
-      const data  = JSON.parse(text);
+      const text = await response.text();
+      console.log("Ruwe response van Make:", text);
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error("sendMessage → JSON.parse mislukte:", e);
+        throw new Error("Ongeldige JSON ontvangen van server");
+      }
+
       const reply = data.reply || "⚠️ No reply.";
 
+      // Toon bot‐antwoord
       const divBot = document.createElement("p");
-      divBot.innerHTML = `<strong><img class="avatar" src="${avatarUrl}" alt="avatar"> ${displayName}:</strong> ${reply}`;
+      divBot.innerHTML =
+        `<strong><img class="avatar" src="${avatarUrl}" alt="avatar"> ${displayName}:</strong> ${reply}`;
       chatlog.appendChild(divBot);
       chatlog.scrollTop = chatlog.scrollHeight;
+
     } catch (err) {
-      console.error("Fout in fetch:", err);
+      console.error("sendMessage → Fout in fetch of parsing:", err);
       alert("❌ Fout bij verzenden: " + err.message);
       const divErr = document.createElement("p");
       divErr.innerHTML = `<strong>${displayName}:</strong> ⚠️ Er ging iets mis bij het versturen.`;
@@ -293,64 +396,11 @@
     }
   }
   // ─────────────────────────────────────────────────────────────
-  //  EINDE sendMessage()
+  //  EINDE VERVANGING sendMessage()
   // ─────────────────────────────────────────────────────────────
 </script>
 
 
-<!-- Registratiepopup -->
-<div id="registrationPopup" style="display: none !important; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
-
-<div style="background: white; padding: 30px; border-radius: 12px; max-width: 520px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.2); font-family: sans-serif; box-sizing: border-box;">
-    <h2 style="margin-bottom: 20px;">Register to Chat</h2>
-    <input type="email" id="emailInput" placeholder="Enter your email" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 20px;">
-    <p style="font-size: 13px; color: #555; margin-top: 4px; margin-bottom: 16px;">
-  By continuing, you agree with the <a href="/terms" target="_blank" style="color: #000; text-decoration: underline;">Terms</a> and <a href="/privacy" target="_blank" style="color: #000; text-decoration: underline;">Privacy Policy</a>.
-</p>
-
-    <button onclick="submitRegistration()" style="padding: 10px 20px; background-color: #111; color: white; border: none; border-radius: 8px;">Register</button>
-  </div>
-</div>
-<script>
-  function submitRegistration() {
-    const email = document.getElementById('emailInput').value;
-    if (!email || !email.includes('@')) {
-      alert('Please enter a valid email address.');
-      return;
-    }
-
-    const token = crypto.randomUUID();
-    localStorage.setItem('user_email', email);
-    localStorage.setItem('user_token', token);
-    window.isRegistered = true;
-
-    document.getElementById('registrationPopup').style.display = 'none';
-
-    fetch('https://hook.eu2.make.com/03ug6qzucda4ksrkcc06nu3bu3vetj15', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        user_email: email,
-        user_token: token
-      })
-    })
-    .then(res => res.json())
-.then(data => {
-  if (data.error) {
-    alert(data.error); // bijvoorbeeld: "Email already registered"
-    return;
-  }
-
-  // Succesvolle registratie
-  localStorage.setItem('user_email', email);
-  localStorage.setItem('user_token', token);
-  window.isRegistered = true;
-  document.getElementById('registrationPopup').style.display = 'none';
-})
-.catch(err => alert('Fout bij registreren: ' + err.message));
-    ;
-  }
-</script>
 
 </body>
 </html>
