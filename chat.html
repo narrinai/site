@@ -101,7 +101,38 @@
       }
     }
   </style>
+  <!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script>
+  const supabase = window.supabase.createClient("https://clokawshlyzllgqcpoev.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsb2thd3NobHl6bGxncWNwb2V2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkxNTAxMTMsImV4cCI6MjA2NDcyNjExM30.5MyLznU7kNeA3iavlhRTa1dWmPm_G6JVYAyhGiGdeOc");
 
+  // Controleer loginstatus
+  supabase.auth.getSession().then(({ data }) => {
+    if (data.session) {
+      localStorage.setItem("user_email", data.session.user.email);
+      localStorage.setItem("user_token", data.session.access_token);
+      window.isRegistered = true;
+    } else {
+      window.isRegistered = false;
+    }
+  });
+
+  async function submitLogin() {
+    const email = document.getElementById("loginEmail").value.trim();
+    if (!email.includes("@")) {
+      alert("Please enter a valid email.");
+      return;
+    }
+
+    const { error } = await supabase.auth.signInWithOtp({ email });
+    if (error) {
+      alert("Login failed: " + error.message);
+    } else {
+      alert("✅ Magic link sent! Check your inbox.");
+      document.getElementById("loginPopup").style.display = "none";
+    }
+  }
+</script>
 
 </head>
 <body>
@@ -297,38 +328,8 @@ async function handleSendClick(event) {
     <button onclick="submitLogin()" style="padding: 10px 20px; background-color: #111; color: white; border: none; border-radius: 8px;">Send Link</button>
   </div>
 </div>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
-<script>
-  const supabase = window.supabase.createClient("https://clokawshlyzllgqcpoev.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsb2thd3NobHl6bGxncWNwb2V2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkxNTAxMTMsImV4cCI6MjA2NDcyNjExM30.5MyLznU7kNeA3iavlhRTa1dWmPm_G6JVYAyhGiGdeOc");
 
-  // Controleer loginstatus
-  supabase.auth.getSession().then(({ data }) => {
-    if (data.session) {
-      localStorage.setItem("user_email", data.session.user.email);
-      localStorage.setItem("user_token", data.session.access_token);
-      window.isRegistered = true;
-    } else {
-      window.isRegistered = false;
-    }
-  });
-
-  async function submitLogin() {
-    const email = document.getElementById("loginEmail").value.trim();
-    if (!email.includes("@")) {
-      alert("Please enter a valid email.");
-      return;
-    }
-
-    const { error } = await supabase.auth.signInWithOtp({ email });
-    if (error) {
-      alert("Login failed: " + error.message);
-    } else {
-      alert("✅ Magic link sent! Check your inbox.");
-      document.getElementById("loginPopup").style.display = "none";
-    }
-  }
-</script>
 
 </body>
 </html>
