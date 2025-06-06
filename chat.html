@@ -260,59 +260,61 @@ async function handleSendClick(event) {
   // ─────────────────────────────────────────────────────────────
 
   async function sendMessage(event) {
-    event?.preventDefault();
+  event?.preventDefault();
 
-    const input = userInput.value.trim();
-    if (!input) return;
+  const input = userInput.value.trim();
+  if (!input) return;
 
-    // Toon direct het user-bericht:
-    const divUser = document.createElement("p");
-    divUser.innerHTML = `<strong>You:</strong> ${input}`;
-    chatlog.appendChild(divUser);
-    chatlog.scrollTop = chatlog.scrollHeight;
-    userInput.value = "";
+  const divUser = document.createElement("p");
+  divUser.innerHTML = `<strong>You:</strong> ${input}`;
+  chatlog.appendChild(divUser);
+  chatlog.scrollTop = chatlog.scrollHeight;
+  userInput.value = "";
 
-    try {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: input,
-          char: character,
-          user_token: localStorage.getItem("user_token")
-        })
-      });
-
-      const contentType = response.headers.get("content-type");
-
-const raw = await response.text();
-console.log("Ruwe response:", raw);
-
-let data = {};
-if (contentType && contentType.includes("application/json")) {
   try {
-    data = JSON.parse(raw);
-  } catch (err) {
-    console.error("❌ JSON parse fout:", err);
-  }
-} else {
-  console.warn("⚠️ Response is geen JSON:", raw);
-}
-      const reply = data.reply || "⚠️ No reply.";
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text: input,
+        char: character,
+        user_token: localStorage.getItem("user_token")
+      })
+    });
 
-      const divBot = document.createElement("p");
-      divBot.innerHTML = `<strong><img class="avatar" src="${avatarUrl}" alt="avatar"> ${displayName}:</strong> ${reply}`;
-      chatlog.appendChild(divBot);
-      chatlog.scrollTop = chatlog.scrollHeight;
-    } catch (err) {
-      console.error("Fout in fetch:", err);
-      alert("❌ Fout bij verzenden: " + err.message);
-      const divErr = document.createElement("p");
-      divErr.innerHTML = `<strong>${displayName}:</strong> ⚠️ Er ging iets mis bij het versturen.`;
-      chatlog.appendChild(divErr);
-      chatlog.scrollTop = chatlog.scrollHeight;
+    const contentType = response.headers.get("content-type");
+    const raw = await response.text();
+    console.log("Ruwe response:", raw);
+
+    let data = {};
+    if (contentType && contentType.includes("application/json")) {
+      try {
+        data = JSON.parse(raw);
+      } catch (err) {
+        console.error("❌ JSON parse fout:", err);
+        throw new Error("Response is geen geldige JSON");
+      }
+    } else {
+      console.warn("⚠️ Response is geen JSON:", raw);
+      throw new Error("Server response was not JSON");
     }
+
+    const reply = data.reply || "⚠️ No reply.";
+    const divBot = document.createElement("p");
+    divBot.innerHTML = `<strong><img class="avatar" src="${avatarUrl}" alt="avatar"> ${displayName}:</strong> ${reply}`;
+    chatlog.appendChild(divBot);
+    chatlog.scrollTop = chatlog.scrollHeight;
+
+  } catch (err) {
+    console.error("Fout in fetch:", err);
+    alert("❌ Fout bij verzenden: " + err.message);
+    const divErr = document.createElement("p");
+    divErr.innerHTML = `<strong>${displayName}:</strong> ⚠️ Er ging iets mis bij het versturen.`;
+    chatlog.appendChild(divErr);
+    chatlog.scrollTop = chatlog.scrollHeight;
   }
+}
+
   // ─────────────────────────────────────────────────────────────
   //  EINDE sendMessage()
   // ─────────────────────────────────────────────────────────────
