@@ -5,6 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Character Chat</title>
+
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
@@ -54,8 +55,6 @@
       font-size: 16px;
       border: 1px solid #ccc;
       border-radius: 8px;
-
-
     }
 
     button {
@@ -80,35 +79,40 @@
       body {
         padding: 16px;
       }
-
       .chat-container {
         padding: 0;
       }
-
       #chatlog {
         height: 240px;
         font-size: 15px;
       }
-
       .input-group {
         flex-direction: column;
         gap: 12px;
       }
-
       #userInput,
       button {
         width: 100%;
       }
     }
   </style>
+
+  <!-- ─────────────────────────────────────────────────────────────
+       1) Laad allereerst de Netlify Identity‐widget in de <head>
+       ───────────────────────────────────────────────────────────── -->
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 
-  <!-- 2) Then pas je eigen code die wacht tot de DOM klaar is -->
+  <!-- ─────────────────────────────────────────────────────────────
+       2) Wacht tot de DOM volledig is geladen voordat je `init()` 
+          van Netlify Identity aanroept. Dit voorkomt `appendChild` 
+          Fouten omdat de pagina al opgebouwd is.
+       ───────────────────────────────────────────────────────────── -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const netlifyIdentity = window.netlifyIdentity;
       netlifyIdentity.init();
 
+      // Helper om lokale auth‐gegevens te verwijderen bij logout
       function clearLocalAuth() {
         localStorage.removeItem("user_email");
         localStorage.removeItem("user_token");
@@ -116,32 +120,37 @@
         window.isRegistered = false;
       }
 
-      // Kijk of er al een ingelogde user is
+      // Kijk of de user al ingelogd is
       const currentUser = netlifyIdentity.currentUser();
-      console.log("Huidige Netlify-user (na DOM):", currentUser);
+      console.log("Huidige Netlify‐user (na DOM):", currentUser);
       if (currentUser) {
         handleLogin(currentUser);
       } else {
+        // Als er nog geen ingelogde user is, toon de login-modal
         netlifyIdentity.open("login");
       }
 
-      netlifyIdentity.on("login", user => {
+      // Wat te doen bij een succesvolle login via de modal
+      netlifyIdentity.on("login", (user) => {
         handleLogin(user);
         netlifyIdentity.close();
       });
 
+      // Wat te doen bij logout
       netlifyIdentity.on("logout", () => {
         clearLocalAuth();
         window.location.href = "/";
       });
     });
 
-      // Deze functie staat *buiten* de DOMContentLoaded, zodat we 'm altijd kunnen aanroepen:
+    // Deze functie staat *buiten* de DOMContentLoaded-listener, 
+    // omdat we 'm zowel vanuit on("login") als uit de DOMContentLoaded willen aanroepen.
     async function handleLogin(user) {
       const email = user.email;
-      const uid   = user.id;
-      const token = user.token.access_token;
+      const uid   = user.id;                // Dit is je Netlify UID
+      const token = user.token.access_token; // Dit is je Netlify JWT
 
+      // Sla de gegevens op in localStorage
       localStorage.setItem("user_email", email);
       localStorage.setItem("user_token", token);
       localStorage.setItem("user_uid", uid);
@@ -149,13 +158,15 @@
 
       // 1.6.1 Schrijf de gebruiker (indices) naar Airtable via Make‐webhook (registratie/updaten)
       try {
-        const res = await fetch("https://hook.eu2.make.com/03ug6qzucda4ksrkcc06nu3bu3vetj15", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            user_email: email,
-            user_uid: uid,
-            user_token: token
+        const res = await fetch(
+          "https://hook.eu2.make.com/03ug6qzucda4ksrkcc06nu3bu3vetj15",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              user_email: email,
+              user_uid:   uid,
+              user_token: token
             })
           }
         );
@@ -165,7 +176,7 @@
         console.error("Fout in registration-webhook call:", err);
       }
 
-      // Zodra de pagina geladen is, laad chat-geschiedenis
+      // 1.6.2 Zodra de pagina geladen is, laad de chat-geschiedenis
       if (
         document.readyState === "interactive" ||
         document.readyState === "complete"
@@ -173,9 +184,9 @@
         fetchHistory();
       }
     }
-
   </script>
 </head>
+
 <body>
   <div class="chat-container">
     <h2 id="characterName">Loading...</h2>
@@ -186,11 +197,8 @@
     </div>
   </div>
 
-
-
-
- <!-- ─────────────────────────────────────────────────────────────
-       A) AVATARS, NAMES, CHARACTER‐SELECTIE
+  <!-- ─────────────────────────────────────────────────────────────
+       A) AVATARS, NAMES & CHARACTER‐SELECTIE
        ───────────────────────────────────────────────────────────── -->
   <script>
     const avatars = {
@@ -224,12 +232,14 @@
       if (e.key === "Enter") handleSendClick(e);
     });
   </script>
- <!-- ─────────────────────────────────────────────────────────────
-       B) handleSendClick (lichte aanpassing)
+
+  <!-- ─────────────────────────────────────────────────────────────
+       B) handleSendClick() (licht aangepast voor Netlify Identity)
        ───────────────────────────────────────────────────────────── -->
   <script>
     function handleSendClick(event) {
       if (!window.isRegistered) {
+        // Als er nog geen ingelogde user is, toon de Netlify login-modal
         netlifyIdentity.open("login");
         return;
       }
@@ -238,7 +248,7 @@
   </script>
 
   <!-- ─────────────────────────────────────────────────────────────
-       C) fetchHistory (Netlify‐variant)
+       C) fetchHistory() (Netlify-variant)
        ───────────────────────────────────────────────────────────── -->
   <script>
     const historyEndpoint = "https://hook.eu2.make.com/fjpapor4lkj9mpypaqx8no68d64bxe19";
@@ -282,7 +292,7 @@
           return;
         }
 
-        data.history.forEach(record => {
+        data.history.forEach((record) => {
           const role    = record.fields.Role;
           const message = record.fields.Message;
           const p       = document.createElement("p");
@@ -300,7 +310,7 @@
       }
     }
 
-    // Zodra de pagina geladen is, haal de geschiedenis op
+    // Zodra de pagina geladen is, roep fetchHistory() aan
     window.addEventListener("DOMContentLoaded", () => {
       if (window.isRegistered) {
         fetchHistory();
@@ -312,8 +322,8 @@
     });
   </script>
 
- <!-- ─────────────────────────────────────────────────────────────
-       D) sendMessage (Netlify‐variant)
+  <!-- ─────────────────────────────────────────────────────────────
+       D) sendMessage() (Netlify-variant)
        ───────────────────────────────────────────────────────────── -->
   <script>
     const endpoint = "https://hook.eu2.make.com/c753wxuxgpcu37fol9seri6rdtpz2lju";
@@ -332,7 +342,7 @@
         return;
       }
 
-      // Toon direct het user‐bericht
+      // Toon direct het user-bericht
       const divUser = document.createElement("p");
       divUser.innerHTML = `<strong>You:</strong> ${input}`;
       chatlog.appendChild(divUser);
@@ -370,7 +380,7 @@
 
         const reply = data.reply || "⚠️ No reply.";
 
-        // Toon bot‐antwoord
+        // Toon bot-antwoord
         const divBot = document.createElement("p");
         divBot.innerHTML =
           `<strong><img class="avatar" src="${avatarUrl}" alt="avatar"> ${displayName}:</strong> ${reply}`;
@@ -386,8 +396,5 @@
       }
     }
   </script>
-
-
-
 </body>
 </html>
