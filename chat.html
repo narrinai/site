@@ -113,7 +113,7 @@
   supabase.auth.getSession().then(({ data }) => {
     if (data.session) {
       localStorage.setItem("user_email", data.session.user.email);
-      localStorage.setItem("user_token", data.session.access_token);
+      localStorage.setItem("user_token", data.session.user.id); // = UID
       window.isRegistered = true;
       console.log("✅ Ingelogd via sessie of magic link.");
     } else {
@@ -285,22 +285,17 @@ localStorage.setItem("user_token", uid); // vervangt access_token!
       })
     });
 
-    const contentType = response.headers.get("content-type");
     const raw = await response.text();
-    console.log("Ruwe response:", raw);
+console.log("Ruwe response:", raw);
 
-    let data = {};
-    if (contentType && contentType.includes("application/json")) {
-      try {
-        data = JSON.parse(raw);
-      } catch (err) {
-        console.error("❌ JSON parse fout:", err);
-        throw new Error("Response is geen geldige JSON");
-      }
-    } else {
-      console.warn("⚠️ Response is geen JSON:", raw);
-      throw new Error("Server response was not JSON");
-    }
+let data = {};
+try {
+  data = JSON.parse(raw);
+} catch (err) {
+  console.warn("⚠️ Geen geldige JSON:", raw);
+  data.reply = "⚠️ Server gaf geen geldige reactie.";
+}
+
 
     const reply = data.reply || "⚠️ No reply.";
     const divBot = document.createElement("p");
