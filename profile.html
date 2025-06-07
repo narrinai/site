@@ -95,18 +95,11 @@
   <!-- Netlify Identity widget -->
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      if (!window.netlifyIdentity) return;
-      netlifyIdentity.init({
-        onInit: (error, user) => {
-          if (user) {
-            localStorage.setItem('user_email', user.email);
-            localStorage.setItem('user_token', user.token.access_token);
-            localStorage.setItem('user_uid', user.id);
-            loadProfile();
-          }
-        }
-      });
+    // Bij paginastart UI checken en profiel laden indien ingelogd
+window.addEventListener('DOMContentLoaded', () => {
+  checkAuthUI();
+  loadProfile();
+});
 
       netlifyIdentity.on('login', user => {
         netlifyIdentity.close();
