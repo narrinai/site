@@ -97,39 +97,40 @@
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       if (!window.netlifyIdentity) return;
-      netlifyIdentity.init({
-        onInit: (error, user) => {
-          if (user) handleLogin(user);
-        }
+      netlifyIdentity.init();
+
+      netlifyIdentity.on('login', user => {
+        netlifyIdentity.close();
+        localStorage.setItem('user_email', user.email);
+        localStorage.setItem('user_token', user.token.access_token);
+        localStorage.setItem('user_uid', user.id);
+        loadProfile();
       });
-      netlifyIdentity.on('login', handleLogin);
+
       netlifyIdentity.on('logout', () => {
         localStorage.clear();
         resetUI();
       });
-    });
 
-    function handleLogin(user) {
-      netlifyIdentity.close();
-      localStorage.setItem('user_email', user.email);
-      localStorage.setItem('user_token', user.token.access_token);
-      localStorage.setItem('user_uid', user.id);
-      checkAuthUI();
-      loadProfile();
-    }
+      // Bij paginastart, als ingelogd
+      const token = localStorage.getItem('user_token');
+      if (token) {
+        checkAuthUI();
+        loadProfile();
+      }
+    });
   </script>
 </head>
 
 <body>
   <div class="profile-container">
-    <!-- Log in / Registreren knop -->
-    <button id="login-btn" onclick="window.netlifyIdentity.open('login')"
-            style="margin-bottom:16px; padding:12px 24px; background:#000; color:#fff;
-                   border:none; border-radius:12px; cursor:pointer;">
+    <button id="login-btn" onclick="netlifyIdentity.open('login')"
+            style="margin-bottom:16px; padding:12px 24px; background:#000; color:#fff; border:none; border-radius:12px; cursor:pointer;">
       Log in / Registreren
     </button>
 
     <h1>Mijn Profiel</h1>
+
     <div id="profile">
       <div class="profile-item" data-field="email">
         <span class="label">E-mail:</span>
@@ -166,7 +167,7 @@
       if (token) {
         document.querySelectorAll('.edit-btn').forEach(btn => btn.style.display = 'inline-block');
         document.getElementById('upgrade-btn').style.display = 'block';
-        document.getElementById('login-btn').style.display   = 'none';
+        document.getElementById('login-btn').style.display = 'none';
       }
     }
 
