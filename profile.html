@@ -97,31 +97,28 @@
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       if (!window.netlifyIdentity) return;
-      netlifyIdentity.init();
+      netlifyIdentity.init({
+        onInit: (error, user) => {
+          if (user) {
+            localStorage.setItem('user_email', user.email);
+            localStorage.setItem('user_token', user.token.access_token);
+            localStorage.setItem('user_uid', user.id);
+            loadProfile();
+          }
+        }
+      });
 
-      // Zodra login succesvol is: sluit modal en laad profiel
       netlifyIdentity.on('login', user => {
         netlifyIdentity.close();
         localStorage.setItem('user_email', user.email);
         localStorage.setItem('user_token', user.token.access_token);
         localStorage.setItem('user_uid', user.id);
-        document.getElementById('login-btn').style.display = 'none';
         loadProfile();
       });
 
-      // Zodra uitgelogd: sluit modal, clear localStorage en reset UI
       netlifyIdentity.on('logout', () => {
-        netlifyIdentity.close();
-        localStorage.removeItem('user_email');
-        localStorage.removeItem('user_token');
-        localStorage.removeItem('user_uid');
-        document.getElementById('login-btn').style.display   = 'block';
-        document.getElementById('upgrade-btn').style.display = 'none';
-        document.querySelectorAll('.edit-btn').forEach(b => b.style.display = 'none');
-        setField('email','...');
-        setField('plan','...');
-        setField('usage','...');
-        document.getElementById('quota').textContent = '...';
+        localStorage.clear();
+        resetUI();
       });
     });
   </script>
@@ -129,13 +126,7 @@
 
 <body>
   <div class="profile-container">
-    <!-- Log in / Registreren knop -->
-    <button id="login-btn"
-            style="margin-bottom:16px; padding:12px 24px; background:#000; color:#fff;
-                   border:none; border-radius:12px; cursor:pointer;">
-      Log in / Registreren
-    </button>
-
+    <button id="login-btn" style="margin-bottom:16px; padding:12px 24px; background:#000; color:#fff; border:none; border-radius:12px; cursor:pointer;">Log in / Registreren</button>
     <h1>Mijn Profiel</h1>
     <div id="profile">
       <div class="profile-item" data-field="email">
@@ -158,28 +149,32 @@
   </div>
 
   <script>
-    // Open het login/registratie scherm
-    document.getElementById('login-btn').addEventListener('click', () => {
-      window.netlifyIdentity.open('login');
-    });
+    // Helfuncties en initialisatie
+    function resetUI() {
+      document.getElementById('login-btn').style.display = 'block';
+      document.getElementById('upgrade-btn').style.display = 'none';
+      document.querySelectorAll('.edit-btn').forEach(b => b.style.display = 'none');
+      setField('email','...');
+      setField('plan','...');
+      setField('usage','...');
+      document.getElementById('quota').textContent = '...';
+    }
 
     function checkAuthUI() {
       const token = localStorage.getItem('user_token');
       if (token) {
         document.querySelectorAll('.edit-btn').forEach(btn => btn.style.display = 'inline-block');
         document.getElementById('upgrade-btn').style.display = 'block';
-        document.getElementById('login-btn').style.display   = 'none';
+        document.getElementById('login-btn').style.display = 'none';
       }
     }
 
     async function loadProfile() {
+      checkAuthUI();
       const token = localStorage.getItem('user_token');
       const email = localStorage.getItem('user_email');
       const uid   = localStorage.getItem('user_uid');
-      if (!token || !email || !uid) {
-        showError('Niet ingelogd.');
-        return;
-      }
+      if (!token || !email || !uid) return;
       try {
         const resp = await fetch('https://hook.eu2.make.com/lya166veex7oo2wwo8mx4fuhlkssxlog', {
           method: 'POST',
@@ -191,7 +186,6 @@
         setField('email', data.email);
         setField('plan',  data.plan);
         setField('usage', `${data.usage}/${data.quota} chats`);
-        checkAuthUI();
       } catch (e) {
         showError(e.message);
       }
@@ -208,14 +202,12 @@
       err.style.display = 'block';
     }
 
-    function enableEdit(field) { /* … jouw bestaande logic … */ }
-    async function saveField(field, value) { /* … jouw bestaande logic … */ }
+    // Open login scherm
+    document.getElementById('login-btn').addEventListener('click', () => {
+      window.netlifyIdentity.open('login');
+    });
 
-    function handleUpgrade() {
-      window.location.href = '/checkout?plan=pro';
-    }
-
-    window.addEventListener('DOMContentLoaded', loadProfile);
+    // Bewaar bestaande enableEdit / saveField / handleUpgrade etc.
   </script>
 </body>
 </html>
