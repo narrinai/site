@@ -17,6 +17,13 @@
       -webkit-overflow-scrolling: touch;
     }
 
+    input, button {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      z-index: 10;
+      position: relative;
+    }
+
     .profile-container {
       max-width: 700px;
       margin: 0 auto;
@@ -31,50 +38,61 @@
     }
 
     .profile-item {
-      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #ffffff;
+      padding: 12px 16px;
+      border-radius: 8px;
       margin-bottom: 12px;
+      font-size: 16px;
     }
 
-    .label {
-      font-weight: bold;
+    .label { font-weight: bold; margin-right: 8px; }
+    .value { flex: 1; }
+
+    .edit-btn {
+      padding: 8px 16px;
+      background-color: #000;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      cursor: pointer;
+      display: none;
+    }
+
+    input.edit-input {
+      flex: 1;
+      padding: 12px 16px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
     }
 
     #upgrade-btn {
-      display: inline-block;
-      margin-top: 20px;
+      display: none;
       padding: 12px 24px;
       background-color: #000;
       color: #fff;
-      text-decoration: none;
       border: none;
       border-radius: 12px;
       font-size: 16px;
       cursor: pointer;
-      touch-action: manipulation;
+      margin-top: 20px;
+      width: 100%;
+      max-width: 200px;
     }
 
-    #error {
-      color: red;
-      margin-top: 16px;
-    }
+    #error { color: red; margin-top: 16px; }
 
     @media (max-width: 600px) {
-      body {
-        padding: 16px;
-      }
-      .profile-container {
-        padding: 16px;
-      }
-      h1 {
-        font-size: 20px;
-      }
-      .profile-item {
-        font-size: 15px;
-      }
-      #upgrade-btn {
-        width: 100%;
-        padding: 12px;
-      }
+      body { padding: 16px; }
+      .profile-container { padding: 16px; }
+      h1 { font-size: 20px; }
+      .profile-item { flex-direction: column; align-items: flex-start; font-size: 15px; padding: 10px; }
+      .edit-btn { width: 100%; margin-top: 8px; }
+      input.edit-input { width: 100%; margin-bottom: 8px; }
     }
   </style>
 </head>
@@ -82,54 +100,100 @@
   <div class="profile-container">
     <h1>Mijn Profiel</h1>
     <div id="profile">
-      <div class="profile-item"><span class="label">E-mail:</span> <span id="email">...</span></div>
-      <div class="profile-item"><span class="label">Plan:</span> <span id="plan">...</span></div>
-      <div class="profile-item"><span class="label">Verbruik:</span> <span id="usage">...</span>/<span id="quota">...</span> chats</div>
+      <div class="profile-item" data-field="email">
+        <span class="label">E-mail:</span>
+        <span class="value" id="email">...</span>
+        <button class="edit-btn" onclick="enableEdit('email')">Bewerk</button>
+      </div>
+      <div class="profile-item" data-field="plan">
+        <span class="label">Plan:</span>
+        <span class="value" id="plan">...</span>
+        <button class="edit-btn" onclick="enableEdit('plan')">Bewerk</button>
+      </div>
+      <div class="profile-item" data-field="usage">
+        <span class="label">Verbruik:</span>
+        <span class="value" id="usage">...</span>/<span id="quota">...</span>
+      </div>
       <button id="upgrade-btn" onclick="handleUpgrade()">Upgrade naar Pro</button>
       <div id="error" style="display:none;"></div>
     </div>
   </div>
 
   <script>
+    // Toon edit-functionaliteit alleen als ingelogd
+    function checkAuthUI() {
+      const token = localStorage.getItem('user_token');
+      if (token) {
+        document.querySelectorAll('.edit-btn').forEach(btn => btn.style.display = 'inline-block');
+        document.getElementById('upgrade-btn').style.display = 'block';
+      }
+    }
+
     async function loadProfile() {
       const token = localStorage.getItem('user_token');
       const email = localStorage.getItem('user_email');
       const uid   = localStorage.getItem('user_uid');
 
       if (!token || !email || !uid) {
-        document.getElementById('error').textContent = 'Niet ingelogd.';
-        document.getElementById('error').style.display = 'block';
+        showError('Niet ingelogd.');
         return;
       }
 
       try {
         const response = await fetch('https://hook.make.com/get-user-info', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            user_email: email,
-            user_uid:   uid,
-            user_token: token
-          })
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_email: email, user_uid: uid, user_token: token })
         });
-        if (!response.ok) {
-          throw new Error('Fout bij laden: ' + response.status);
-        }
+        if (!response.ok) throw new Error('Fout bij laden: ' + response.status);
         const data = await response.json();
-        document.getElementById('email').textContent = data.email;
-        document.getElementById('plan').textContent = data.plan;
-        document.getElementById('usage').textContent = data.usage;
-        document.getElementById('quota').textContent = data.quota;
+        setField('email', data.email);
+        setField('plan', data.plan);
+        setField('usage', data.usage + '/' + data.quota + ' chats');
+        checkAuthUI();
       } catch (err) {
-        document.getElementById('error').textContent = err.message;
-        document.getElementById('error').style.display = 'block';
+        showError(err.message);
       }
     }
 
-    function handleUpgrade() {
-      window.location.href = '/checkout?plan=pro';
+    function setField(field, text) {
+      const container = document.querySelector(`.profile-item[data-field="${field}"]`);
+      if (!container) return;
+      container.querySelector('.value').textContent = text;
     }
 
+    function showError(msg) {
+      const err = document.getElementById('error'); err.textContent = msg; err.style.display = 'block';
+    }
+
+    function enableEdit(field) {
+      const container = document.querySelector(`.profile-item[data-field="${field}"]`);
+      const valueEl = container.querySelector('.value');
+      const current = valueEl.textContent;
+      const input = document.createElement('input'); input.type = 'text'; input.value = current; input.className = 'edit-input';
+      const saveBtn = document.createElement('button'); saveBtn.textContent = 'Opslaan'; saveBtn.className = 'edit-btn';
+      saveBtn.onclick = () => saveField(field, input.value);
+      container.replaceChild(input, valueEl);
+      container.querySelector('.edit-btn').style.display = 'none';
+      container.insertBefore(saveBtn, container.querySelector('.edit-btn'));
+    }
+
+    async function saveField(field, value) {
+      const token = localStorage.getItem('user_token');
+      const email = localStorage.getItem('user_email');
+      const uid   = localStorage.getItem('user_uid');
+      try {
+        const res = await fetch('https://hook.make.com/update-user', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_email: email, user_uid: uid, user_token: token, field, value })
+        });
+        if (!res.ok) throw new Error('Fout bij opslaan');
+        loadProfile();
+      } catch (e) {
+        showError(e.message);
+      }
+    }
+
+    function handleUpgrade() { window.location.href = '/checkout?plan=pro'; }
     window.addEventListener('DOMContentLoaded', loadProfile);
   </script>
 </body>
