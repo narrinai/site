@@ -95,31 +95,40 @@
   <!-- Netlify Identity widget -->
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
   <script>
-    // Bij paginastart UI checken en profiel laden indien ingelogd
-window.addEventListener('DOMContentLoaded', () => {
-  checkAuthUI();
-  loadProfile();
-});
-
-      netlifyIdentity.on('login', user => {
-        netlifyIdentity.close();
-        localStorage.setItem('user_email', user.email);
-        localStorage.setItem('user_token', user.token.access_token);
-        localStorage.setItem('user_uid', user.id);
-        loadProfile();
+    document.addEventListener("DOMContentLoaded", () => {
+      if (!window.netlifyIdentity) return;
+      netlifyIdentity.init({
+        onInit: (error, user) => {
+          if (user) handleLogin(user);
+        }
       });
-
+      netlifyIdentity.on('login', handleLogin);
       netlifyIdentity.on('logout', () => {
         localStorage.clear();
         resetUI();
       });
     });
+
+    function handleLogin(user) {
+      netlifyIdentity.close();
+      localStorage.setItem('user_email', user.email);
+      localStorage.setItem('user_token', user.token.access_token);
+      localStorage.setItem('user_uid', user.id);
+      checkAuthUI();
+      loadProfile();
+    }
   </script>
 </head>
 
 <body>
   <div class="profile-container">
-    <button id="login-btn" style="margin-bottom:16px; padding:12px 24px; background:#000; color:#fff; border:none; border-radius:12px; cursor:pointer;">Log in / Registreren</button>
+    <!-- Log in / Registreren knop -->
+    <button id="login-btn" onclick="window.netlifyIdentity.open('login')"
+            style="margin-bottom:16px; padding:12px 24px; background:#000; color:#fff;
+                   border:none; border-radius:12px; cursor:pointer;">
+      Log in / Registreren
+    </button>
+
     <h1>Mijn Profiel</h1>
     <div id="profile">
       <div class="profile-item" data-field="email">
@@ -142,7 +151,6 @@ window.addEventListener('DOMContentLoaded', () => {
   </div>
 
   <script>
-    // Helfuncties en initialisatie
     function resetUI() {
       document.getElementById('login-btn').style.display = 'block';
       document.getElementById('upgrade-btn').style.display = 'none';
@@ -158,12 +166,11 @@ window.addEventListener('DOMContentLoaded', () => {
       if (token) {
         document.querySelectorAll('.edit-btn').forEach(btn => btn.style.display = 'inline-block');
         document.getElementById('upgrade-btn').style.display = 'block';
-        document.getElementById('login-btn').style.display = 'none';
+        document.getElementById('login-btn').style.display   = 'none';
       }
     }
 
     async function loadProfile() {
-      checkAuthUI();
       const token = localStorage.getItem('user_token');
       const email = localStorage.getItem('user_email');
       const uid   = localStorage.getItem('user_uid');
@@ -195,12 +202,13 @@ window.addEventListener('DOMContentLoaded', () => {
       err.style.display = 'block';
     }
 
-    // Open login scherm
-    document.getElementById('login-btn').addEventListener('click', () => {
-      window.netlifyIdentity.open('login');
-    });
+    function enableEdit(field) {
+      console.log('Enable edit for', field);
+    }
 
-    // Bewaar bestaande enableEdit / saveField / handleUpgrade etc.
+    function handleUpgrade() {
+      window.location.href = '/checkout?plan=pro';
+    }
   </script>
 </body>
 </html>
