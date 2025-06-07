@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -90,7 +90,12 @@
       body { padding: 16px; }
       .profile-container { padding: 16px; }
       h1 { font-size: 20px; }
-      .profile-item { flex-direction: column; align-items: flex-start; font-size: 15px; padding: 10px; }
+      .profile-item {
+        flex-direction: column;
+        align-items: flex-start;
+        font-size: 15px;
+        padding: 10px;
+      }
       .edit-btn { width: 100%; margin-top: 8px; }
       input.edit-input { width: 100%; margin-bottom: 8px; }
     }
@@ -100,16 +105,41 @@
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      window.netlifyIdentity && window.netlifyIdentity.init();
+      if (!window.netlifyIdentity) return;
+      netlifyIdentity.init();
+
+      // Na succesvolle login
+      netlifyIdentity.on('login', user => {
+        localStorage.setItem('user_email',    user.email);
+        localStorage.setItem('user_token',    user.token.access_token);
+        localStorage.setItem('user_uid',      user.id);
+        document.getElementById('login-btn').style.display = 'none';
+        loadProfile();
+      });
+
+      // Na logout
+      netlifyIdentity.on('logout', () => {
+        localStorage.removeItem('user_email');
+        localStorage.removeItem('user_token');
+        localStorage.removeItem('user_uid');
+        document.getElementById('login-btn').style.display   = 'block';
+        document.getElementById('upgrade-btn').style.display = 'none';
+        document.querySelectorAll('.edit-btn').forEach(b => b.style.display = 'none');
+        // reset profielvelden
+        setField('email', '...');
+        setField('plan',  '...');
+        setField('usage', '...');
+        document.getElementById('quota').textContent = '...';
+      });
     });
   </script>
 </head>
 
 <body>
   <div class="profile-container">
-    <!-- ← De nieuwe Log in knop -->
+    <!-- Log in / Registreren knop -->
     <button id="login-btn" style="margin-bottom:16px; padding:12px 24px; background:#000; color:#fff; border:none; border-radius:12px; cursor:pointer;">
-      Log in
+      Log in / Registreren
     </button>
 
     <h1>Mijn Profiel</h1>
@@ -134,7 +164,7 @@
   </div>
 
   <script>
-    // Trigger voor de Log in knop
+    // Open het login/registratie-scherm
     document.getElementById('login-btn').addEventListener('click', () => {
       window.netlifyIdentity.open('login');
     });
@@ -143,8 +173,8 @@
       const token = localStorage.getItem('user_token');
       if (token) {
         document.querySelectorAll('.edit-btn').forEach(btn => btn.style.display = 'inline-block');
-        document.getElementById('upgrade-btn').style.display = 'block';
-        document.getElementById('login-btn').style.display = 'none'; // verberg login-knop na inloggen
+        document.getElementById('upgrade-btn').style.display   = 'block';
+        document.getElementById('login-btn').style.display     = 'none';
       }
     }
 
@@ -152,33 +182,30 @@
       const token = localStorage.getItem('user_token');
       const email = localStorage.getItem('user_email');
       const uid   = localStorage.getItem('user_uid');
-
       if (!token || !email || !uid) {
         showError('Niet ingelogd.');
         return;
       }
-
       try {
-        const response = await fetch('https://hook.make.com/get-user-info', {
+        const resp = await fetch('https://hook.make.com/get-user-info', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ user_email: email, user_uid: uid, user_token: token })
         });
-        if (!response.ok) throw new Error('Fout bij laden: ' + response.status);
-        const data = await response.json();
+        if (!resp.ok) throw new Error('Fout bij laden: ' + resp.status);
+        const data = await resp.json();
         setField('email', data.email);
-        setField('plan', data.plan);
+        setField('plan',  data.plan);
         setField('usage', `${data.usage}/${data.quota} chats`);
         checkAuthUI();
-      } catch (err) {
-        showError(err.message);
+      } catch (e) {
+        showError(e.message);
       }
     }
 
     function setField(field, text) {
-      const container = document.querySelector(`.profile-item[data-field="${field}"]`);
-      if (!container) return;
-      container.querySelector('.value').textContent = text;
+      const c = document.querySelector(`.profile-item[data-field="${field}"]`);
+      if (c) c.querySelector('.value').textContent = text;
     }
 
     function showError(msg) {
@@ -188,11 +215,11 @@
     }
 
     function enableEdit(field) {
-      // … (jouw bestaande enableEdit-logic)
+      // … (jouw bestaande enableEdit-logic) …
     }
 
     async function saveField(field, value) {
-      // … (jouw bestaande saveField-logic)
+      // … (jouw bestaande saveField-logic) …
     }
 
     function handleUpgrade() {
