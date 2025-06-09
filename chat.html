@@ -336,14 +336,28 @@
       try {
         console.log("Loading character:", slug);
         
-        // Send special request to get character info
+        // Get user info if available
+        const token = localStorage.getItem("user_token");
+        const uid = localStorage.getItem("user_uid");
+        const email = localStorage.getItem("user_email");
+        
+        // Send request with user info if available
+        const requestData = {
+          action: "get_character",
+          slug: slug
+        };
+        
+        // Add user info if logged in
+        if (token && uid && email) {
+          requestData.user_token = token;
+          requestData.user_uid = uid;
+          requestData.user_email = email;
+        }
+        
         const response = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "get_character",
-            slug: slug
-          })
+          body: JSON.stringify(requestData)
         });
 
         if (!response.ok) {
@@ -448,8 +462,6 @@
        C) fetchHistory() (Netlify-variant)
        ───────────────────────────────────────────────────────────── -->
   <script>
-    const historyEndpoint = "https://hook.eu2.make.com/fjpapor4lkj9mpypaqx8no68d64bxe19";
-
     async function fetchHistory() {
       const token = localStorage.getItem("user_token");
       const uid   = localStorage.getItem("user_uid");
@@ -460,7 +472,7 @@
       }
 
       try {
-        const resp = await fetch(historyEndpoint, {
+        const resp = await fetch("https://hook.eu2.make.com/fjpapor4lkj9mpypaqx8no68d64bxe19", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -533,8 +545,6 @@
        D) sendMessage() (Netlify-variant)
        ───────────────────────────────────────────────────────────── -->
   <script>
-    const historyEndpoint = "https://hook.eu2.make.com/fjpapor4lkj9mpypaqx8no68d64bxe19";
-
     async function sendMessage(event) {
       event?.preventDefault();
       const userInput = document.getElementById("userInput");
