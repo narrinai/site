@@ -329,17 +329,19 @@
       loadCharacter(characterSlug);
     }
 
-    // Character loading endpoint - you'll need to create this Make.com webhook
-    const characterEndpoint = "https://hook.eu2.make.com/YOUR_CHARACTER_FETCH_WEBHOOK";
+    // Character loading - use existing chat endpoint
+    const endpoint = "https://hook.eu2.make.com/c753wxuxgpcu37fol9seri6rdtpz2lju";
 
     async function loadCharacter(slug) {
       try {
         console.log("Loading character:", slug);
         
-        const response = await fetch(characterEndpoint, {
+        // Send special request to get character info
+        const response = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            action: "get_character",
             character_slug: slug
           })
         });
@@ -359,11 +361,18 @@
           throw new Error("Invalid response format");
         }
 
-        if (!data.character) {
+        if (!data.character && !data.name) {
           throw new Error("Character not found");
         }
 
-        currentCharacter = data.character;
+        // Handle both possible response formats
+        currentCharacter = data.character || {
+          name: data.name,
+          character_title: data.character_title,
+          avatar_url: data.avatar_url,
+          character_description: data.character_description
+        };
+        
         setupCharacterInterface();
         
       } catch (error) {
