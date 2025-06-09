@@ -312,7 +312,7 @@
       border-radius: 12px;
       max-width: 600px;
       max-height: 80vh;
-      margin: 0 auto;
+      margin: 50px auto;
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -604,14 +604,7 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
           <label>Avatar Image</label>
           <div class="avatar-input-options">
             <div class="avatar-option">
-              <input type="radio" id="avatarUrl" name="avatarMethod" value="url" checked>
-              <label for="avatarUrl">Image URL</label>
-              <input type="url" id="avatarUrlInput" name="avatarUrlInput" 
-                     placeholder="https://example.com/image.jpg">
-            </div>
-            
-            <div class="avatar-option">
-              <input type="radio" id="avatarUpload" name="avatarMethod" value="upload">
+              <input type="radio" id="avatarUpload" name="avatarMethod" value="upload" checked>
               <label for="avatarUpload">Upload Image</label>
               <input type="file" id="avatarFileInput" name="avatarFileInput" 
                      accept="image/*" style="display: none;">
@@ -619,6 +612,13 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
                 Choose File
               </button>
               <span class="file-name" id="fileName">No file chosen</span>
+            </div>
+            
+            <div class="avatar-option">
+              <input type="radio" id="avatarUrl" name="avatarMethod" value="url">
+              <label for="avatarUrl">Image URL</label>
+              <input type="url" id="avatarUrlInput" name="avatarUrlInput" 
+                     placeholder="https://example.com/image.jpg">
             </div>
           </div>
           
@@ -664,14 +664,14 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
           <label for="characterTags">Tags</label>
           <div class="tags-input-container">
             <input type="text" id="characterTags" name="characterTags" 
-                   placeholder="Click to see suggested tags or type your own"
-                   readonly>
-            <button type="button" class="tags-button" onclick="openTagsModal()">
+                   placeholder="Type tags separated by commas or click the button"
+                   maxlength="200">
+            <button type="button" class="tags-button" id="tagsButton">
               <span id="tagsButtonText">Select Tags</span>
             </button>
           </div>
           <div class="tags-help">
-            Click the button above to get AI-suggested tags based on your character, or type your own tags separated by commas.
+            Type your tags separated by commas or use the button to browse suggested tags. Maximum 5 tags allowed.
           </div>
           <div class="tags-preview" id="tagsPreview"></div>
         </div>
@@ -682,7 +682,7 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
         <div class="tags-modal-content">
           <div class="tags-modal-header">
             <h3>Select Tags</h3>
-            <button type="button" class="close-modal" onclick="closeTagsModal()">×</button>
+            <button type="button" class="close-modal" id="closeModalBtn">×</button>
           </div>
           
           <div class="tags-modal-body">
@@ -702,7 +702,7 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
               <h4>✏️ Add Custom Tag</h4>
               <div class="custom-tag-input">
                 <input type="text" id="customTagInput" placeholder="Type a custom tag" maxlength="20">
-                <button type="button" onclick="addCustomTag()">Add</button>
+                <button type="button" id="addCustomTagBtn">Add</button>
               </div>
             </div>
           </div>
@@ -712,8 +712,8 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
               <strong>Selected:</strong> <span id="selectedTagsPreview">None</span>
             </div>
             <div class="modal-buttons">
-              <button type="button" class="btn-secondary" onclick="closeTagsModal()">Cancel</button>
-              <button type="button" class="btn-primary" onclick="applySelectedTags()">Apply Tags</button>
+              <button type="button" class="btn-secondary" id="cancelTagsBtn">Cancel</button>
+              <button type="button" class="btn-primary" id="applyTagsBtn">Apply Tags</button>
             </div>
           </div>
         </div>
@@ -726,18 +726,18 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
         <div class="form-group">
           <label>Who can use this character?</label>
           <div class="visibility-options">
-            <div class="radio-option selected" onclick="selectVisibility('private')">
-              <input type="radio" name="visibility" value="private" checked>
-              <div class="radio-option-content">
-                <div class="radio-option-title">🔒 Private</div>
-                <div class="radio-option-desc">Only you can chat with this character</div>
-              </div>
-            </div>
-            <div class="radio-option" onclick="selectVisibility('public')">
-              <input type="radio" name="visibility" value="public">
+            <div class="radio-option selected" onclick="selectVisibility('public')">
+              <input type="radio" name="visibility" value="public" checked>
               <div class="radio-option-content">
                 <div class="radio-option-title">🌍 Public</div>
                 <div class="radio-option-desc">Anyone can discover and chat with this character</div>
+              </div>
+            </div>
+            <div class="radio-option" onclick="selectVisibility('private')">
+              <input type="radio" name="visibility" value="private">
+              <div class="radio-option-content">
+                <div class="radio-option-title">🔒 Private</div>
+                <div class="radio-option-desc">Only you can chat with this character</div>
               </div>
             </div>
           </div>
@@ -767,6 +767,10 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
   </div>
 
   <script>
+    // Global variables
+    let selectedTags = [];
+    let currentAvatarUrl = '';
+
     // Character counters
     const counters = {
       characterName: { element: document.getElementById('nameCounter'), max: 50 },
@@ -791,11 +795,7 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
         
         updatePreview();
       });
-
-    // Tags functionality
-    const tagsInput = document.getElementById('characterTags');
-    const tagsPreview = document.getElementById('tagsPreview');
-    let selectedTags = [];
+    });
 
     // Common tags by category
     const commonTagsByCategory = {
@@ -821,6 +821,7 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
       'cooking-coach': ['chef', 'recipe', 'cuisine', 'cooking', 'baking', 'nutrition', 'ingredients', 'kitchen', 'culinary', 'food']
     };
 
+    // Tags functionality
     function openTagsModal() {
       document.getElementById('tagsModal').style.display = 'block';
       generateSuggestedTags();
@@ -908,11 +909,11 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
           selectedTags = selectedTags.filter(t => t !== tagText);
           tagElement.classList.remove('selected');
         } else {
-          if (selectedTags.length < 10) {
+          if (selectedTags.length < 5) {
             selectedTags.push(tagText);
             tagElement.classList.add('selected');
           } else {
-            alert('Maximum 10 tags allowed');
+            alert('Maximum 5 tags allowed');
           }
         }
         updateSelectedTagsPreview();
@@ -937,8 +938,8 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
         return;
       }
       
-      if (selectedTags.length >= 10) {
-        alert('Maximum 10 tags allowed');
+      if (selectedTags.length >= 5) {
+        alert('Maximum 5 tags allowed');
         return;
       }
       
@@ -963,6 +964,7 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
     }
 
     function applySelectedTags() {
+      const tagsInput = document.getElementById('characterTags');
       tagsInput.value = selectedTags.join(', ');
       updateTagsPreview();
       updateTagsButtonText();
@@ -970,11 +972,11 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
     }
 
     function updateTagsPreview() {
-      const tags = selectedTags;
+      const tagsPreview = document.getElementById('tagsPreview');
       
       tagsPreview.innerHTML = '';
       
-      tags.forEach(tag => {
+      selectedTags.forEach(tag => {
         const tagElement = document.createElement('span');
         tagElement.className = 'tag';
         tagElement.textContent = tag;
@@ -991,16 +993,30 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
       }
     }
 
-    // Initialize tags from existing input
-    tagsInput.addEventListener('click', openTagsModal);
+    // Event listeners for tags
+    document.getElementById('tagsButton').addEventListener('click', openTagsModal);
+    document.getElementById('closeModalBtn').addEventListener('click', closeTagsModal);
+    document.getElementById('cancelTagsBtn').addEventListener('click', closeTagsModal);
+    document.getElementById('applyTagsBtn').addEventListener('click', applySelectedTags);
+    document.getElementById('addCustomTagBtn').addEventListener('click', addCustomTag);
 
-    // Allow manual typing as fallback
-    tagsInput.addEventListener('input', () => {
-      if (tagsInput.value.includes(',')) {
-        selectedTags = tagsInput.value.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
-        updateTagsPreview();
-        updateTagsButtonText();
+    // Tags input functionality - both typing and modal
+    document.getElementById('characterTags').addEventListener('input', () => {
+      const tagsInput = document.getElementById('characterTags');
+      const inputValue = tagsInput.value;
+      
+      // Split by commas and clean tags
+      let tags = inputValue.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+      
+      // Limit to 5 tags
+      if (tags.length > 5) {
+        tags = tags.slice(0, 5);
+        tagsInput.value = tags.join(', ');
       }
+      
+      selectedTags = tags;
+      updateTagsPreview();
+      updateTagsButtonText();
     });
 
     // Category change updates common tags
@@ -1023,7 +1039,6 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
         addCustomTag();
       }
     });
-    });
 
     // Avatar functionality
     const avatarUrlInput = document.getElementById('avatarUrlInput');
@@ -1031,7 +1046,6 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
     const avatarPreview = document.getElementById('avatarPreview');
     const avatarImg = document.getElementById('avatarImg');
     const fileName = document.getElementById('fileName');
-    let currentAvatarUrl = '';
 
     // Avatar method selection
     document.querySelectorAll('input[name="avatarMethod"]').forEach(radio => {
@@ -1051,8 +1065,8 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
       });
     });
 
-    // Initialize first option as active
-    document.querySelector('.avatar-option').classList.add('active');
+    // Initialize first upload option as active
+    document.getElementById('avatarUpload').closest('.avatar-option').classList.add('active');
 
     // URL input
     avatarUrlInput.addEventListener('input', () => {
@@ -1063,11 +1077,6 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
 
     // File upload
     function triggerFileUpload() {
-      document.getElementById('avatarUpload').checked = true;
-      document.querySelectorAll('.avatar-option').forEach(option => {
-        option.classList.remove('active');
-      });
-      document.getElementById('avatarUpload').closest('.avatar-option').classList.add('active');
       avatarFileInput.click();
     }
 
@@ -1114,8 +1123,6 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
           currentAvatarUrl = '';
           updatePreview();
         }
-      } else {
-        // File upload handles its own preview
       }
     }
 
@@ -1133,7 +1140,6 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
     function updatePreview() {
       const name = document.getElementById('characterName').value.trim();
       const title = document.getElementById('characterTitle').value.trim();
-      const avatarUrl = document.getElementById('avatarUrl').value.trim();
       
       const previewSection = document.getElementById('previewSection');
       const previewName = document.getElementById('previewName');
@@ -1155,42 +1161,59 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
       }
     }
 
-    // Form submission
+    // Form submission with Make.com webhook
     document.getElementById('characterForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       
       const formData = new FormData(e.target);
-      const characterData = {
-        name: formData.get('characterName'),
-        title: formData.get('characterTitle'),
-        description: formData.get('characterDescription'),
-        avatarUrl: currentAvatarUrl,
-        prompt: formData.get('characterPrompt'),
-        tags: selectedTags,
-        category: formData.get('characterCategory'),
+      
+      // Prepare data for Make.com webhook
+      const webhookData = {
+        Email: "user@example.com", // You might want to get this from user session
+        characterData: {
+          name: formData.get('characterName'),
+          prompt: formData.get('characterPrompt')
+        },
         visibility: formData.get('visibility'),
-        createdAt: new Date().toISOString(),
-        id: generateCharacterId()
+        category: formData.get('characterCategory'),
+        character_id: generateSlug(formData.get('characterName')),
+        avatar_url: currentAvatarUrl || '',
+        tags: selectedTags,
+        character_description: formData.get('characterDescription') || '',
+        slug: generateSlug(formData.get('characterName')),
+        character_url: `https://narrin.ai/chat.html?char=${generateSlug(formData.get('characterName'))}`
       };
       
       // Validation
-      if (!characterData.name.trim()) {
+      if (!webhookData.characterData.name.trim()) {
         alert('Please enter a character name');
         return;
       }
       
-      if (!characterData.prompt.trim()) {
+      if (!webhookData.characterData.prompt.trim()) {
         alert('Please enter a character prompt');
         return;
       }
       
       try {
-        // Save character (implement your storage logic here)
-        await saveCharacter(characterData);
+        // Send to Make.com webhook
+        const response = await fetch('https://hook.eu2.make.com/c36jubkn9rbbqg0ovgfbx2ca1iwgf16q', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(webhookData)
+        });
         
-        // Redirect to character or show success
-        alert('Character created successfully!');
-        window.location.href = 'index.html'; // of naar character list
+        if (response.ok) {
+          const result = await response.json();
+          alert('Character created successfully!');
+          console.log('Character created:', result);
+          // Redirect to chat with the new character
+          window.location.href = `chat.html?char=${webhookData.slug}`;
+        } else {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
         
       } catch (error) {
         console.error('Error creating character:', error);
@@ -1198,20 +1221,15 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
       }
     });
 
-    function generateCharacterId() {
-      return 'char_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    }
-
-    async function saveCharacter(characterData) {
-      // Hier implementeer je je storage logica
-      // Bijvoorbeeld: localStorage, database call, etc.
-      
-      // Voor nu: localStorage als voorbeeld
-      const existingCharacters = JSON.parse(localStorage.getItem('characters') || '[]');
-      existingCharacters.push(characterData);
-      localStorage.setItem('characters', JSON.stringify(existingCharacters));
-      
-      console.log('Character saved:', characterData);
+    function generateSlug(name) {
+      if (!name) return '';
+      return name
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
     }
 
     function goBack() {
