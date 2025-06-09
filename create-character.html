@@ -1187,7 +1187,7 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
         visibility: formData.get('visibility'),
         category: formData.get('characterCategory'),
         character_id: generateSlug(formData.get('characterName')),
-        avatar_url: currentAvatarUrl || '',
+        avatar_url: isValidUrl(currentAvatarUrl) ? currentAvatarUrl : '', // Only send valid URLs
         tags: selectedTags,
         character_description: formData.get('characterDescription') || '',
         slug: generateSlug(formData.get('characterName')),
@@ -1242,6 +1242,19 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
         .replace(/\s+/g, '-')
         .replace(/-+/g, '-')
         .replace(/^-|-$/g, '');
+    }
+
+    function isValidUrl(string) {
+      if (!string) return false;
+      // Check if it's a base64 data URL (starts with data:)
+      if (string.startsWith('data:')) return false;
+      // Check if it's a valid HTTP/HTTPS URL
+      try {
+        const url = new URL(string);
+        return url.protocol === 'http:' || url.protocol === 'https:';
+      } catch (_) {
+        return false;
+      }
     }
 
     function goBack() {
