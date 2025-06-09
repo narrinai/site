@@ -31,6 +31,70 @@
       margin: 0 auto;
     }
 
+    .character-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding: 16px;
+      background: #f8f9fa;
+      border-radius: 12px;
+    }
+
+    .character-avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #e0e0e0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+    }
+
+    .character-info h2 {
+      margin: 0 0 4px 0;
+      color: #333;
+      font-size: 24px;
+    }
+
+    .character-info p {
+      margin: 0;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .loading-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #666;
+    }
+
+    .error-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #e74c3c;
+      background: #fdf2f2;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .error-state h3 {
+      margin: 0 0 8px 0;
+      color: #c53030;
+    }
+
+    .error-state p {
+      margin: 0 0 16px 0;
+    }
+
+    .error-state a {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
     #chatlog {
       height: 300px;
       overflow-y: auto;
@@ -65,6 +129,16 @@
       border-radius: 12px;
       font-size: 16px;
       cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    button:hover {
+      background-color: #333;
+    }
+
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
     }
 
     .avatar {
@@ -73,6 +147,7 @@
       border-radius: 50%;
       vertical-align: middle;
       margin-right: 8px;
+      object-fit: cover;
     }
 
     @media (max-width: 600px) {
@@ -81,6 +156,17 @@
       }
       .chat-container {
         padding: 0;
+      }
+      .character-header {
+        padding: 12px;
+      }
+      .character-avatar {
+        width: 48px;
+        height: 48px;
+        font-size: 24px;
+      }
+      .character-info h2 {
+        font-size: 20px;
       }
       #chatlog {
         height: 240px;
@@ -198,48 +284,137 @@
 
 <body>
   <div class="chat-container">
-    <h2 id="characterName">Loading...</h2>
-    <div id="chatlog"></div>
-    <div class="input-group">
-      <input id="userInput" type="text" placeholder="Say something..." />
-      <button onclick="handleSendClick(event)">Send</button>
+    <div id="loadingState" class="loading-state">
+      <h3>Loading character...</h3>
+      <p>Please wait while we fetch your character's information.</p>
+    </div>
+
+    <div id="errorState" class="error-state" style="display: none;">
+      <h3>Character not found</h3>
+      <p>The character you're looking for doesn't exist or isn't accessible.</p>
+      <a href="create-character.html">Create a new character</a> or <a href="/">go back to home</a>
+    </div>
+
+    <div id="chatInterface" style="display: none;">
+      <div class="character-header" id="characterHeader">
+        <div class="character-avatar" id="characterAvatar">👤</div>
+        <div class="character-info">
+          <h2 id="characterName">Loading...</h2>
+          <p id="characterTitle"></p>
+        </div>
+      </div>
+
+      <div id="chatlog"></div>
+      <div class="input-group">
+        <input id="userInput" type="text" placeholder="Say something..." />
+        <button onclick="handleSendClick(event)" id="sendButton">Send</button>
+      </div>
     </div>
   </div>
 
   <!-- ─────────────────────────────────────────────────────────────
-       A) AVATARS, NAMES & CHARACTER‐SELECTIE
+       A) CHARACTER LOADING & SETUP
        ───────────────────────────────────────────────────────────── -->
   <script>
-    const avatars = {
-      napoleon: "napoleon.png",
-      gandalf:  "gandalf.png",
-      goku:     "goku.png"
-    };
+    // Global variables
+    let currentCharacter = null;
+    let characterSlug = null;
 
-    const names = {
-      napoleon: "Napoleon Bonaparte",
-      gandalf:  "Gandalf the Grey",
-      goku:     "Son Goku"
-    };
+    const params = new URLSearchParams(window.location.search);
+    characterSlug = params.get("char");
 
-    const params    = new URLSearchParams(window.location.search);
-    const character = params.get("char") || "napoleon";
-
-    if (!avatars[character]) {
-      alert("⚠️ Onbekend character, fallback naar Napoleon.");
-      window.location.href = "?char=napoleon";
+    if (!characterSlug) {
+      showError("No character specified in URL");
+    } else {
+      loadCharacter(characterSlug);
     }
 
-    const avatarUrl   = avatars[character];
-    const displayName = names[character];
-    document.getElementById("characterName").innerText = displayName;
+    // Character loading endpoint - you'll need to create this Make.com webhook
+    const characterEndpoint = "https://hook.eu2.make.com/YOUR_CHARACTER_FETCH_WEBHOOK";
 
-    const chatlog   = document.getElementById("chatlog");
-    const userInput = document.getElementById("userInput");
+    async function loadCharacter(slug) {
+      try {
+        console.log("Loading character:", slug);
+        
+        const response = await fetch(characterEndpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            character_slug: slug
+          })
+        });
 
-    userInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") handleSendClick(e);
-    });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const rawText = await response.text();
+        console.log("Character API response:", rawText);
+
+        let data;
+        try {
+          data = JSON.parse(rawText);
+        } catch (e) {
+          console.error("Invalid JSON response:", e);
+          throw new Error("Invalid response format");
+        }
+
+        if (!data.character) {
+          throw new Error("Character not found");
+        }
+
+        currentCharacter = data.character;
+        setupCharacterInterface();
+        
+      } catch (error) {
+        console.error("Error loading character:", error);
+        showError("Failed to load character: " + error.message);
+      }
+    }
+
+    function setupCharacterInterface() {
+      if (!currentCharacter) return;
+
+      // Update page title
+      document.title = `Chat with ${currentCharacter.name}`;
+
+      // Update character header
+      document.getElementById('characterName').textContent = currentCharacter.name;
+      document.getElementById('characterTitle').textContent = currentCharacter.character_title || '';
+
+      // Update avatar
+      const avatarElement = document.getElementById('characterAvatar');
+      if (currentCharacter.avatar_url) {
+        avatarElement.innerHTML = `<img src="${currentCharacter.avatar_url}" alt="${currentCharacter.name}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+      } else {
+        avatarElement.innerHTML = '👤';
+      }
+
+      // Show chat interface, hide loading
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('chatInterface').style.display = 'block';
+
+      // Setup input listener
+      const userInput = document.getElementById("userInput");
+      userInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") handleSendClick(e);
+      });
+
+      // Load history if user is logged in
+      if (window.isRegistered) {
+        fetchHistory();
+      }
+    }
+
+    function showError(message) {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('errorState').style.display = 'block';
+      document.getElementById('chatInterface').style.display = 'none';
+      
+      // Optionally customize error message
+      const errorState = document.getElementById('errorState');
+      errorState.querySelector('p').textContent = message;
+    }
   </script>
 
   <!-- ─────────────────────────────────────────────────────────────
@@ -247,6 +422,11 @@
        ───────────────────────────────────────────────────────────── -->
   <script>
     function handleSendClick(event) {
+      if (!currentCharacter) {
+        alert("Character not loaded yet, please wait...");
+        return;
+      }
+      
       if (!window.isRegistered) {
         netlifyIdentity.open("login");
         return;
@@ -265,7 +445,7 @@
       const token = localStorage.getItem("user_token");
       const uid   = localStorage.getItem("user_uid");
       const email = localStorage.getItem("user_email");
-      if (!token || !uid || !character || !email) {
+      if (!token || !uid || !characterSlug || !email) {
         console.warn("fetchHistory: mist token, uid, email of character");
         return;
       }
@@ -278,7 +458,7 @@
             user_email: email,
             user_uid:   uid,
             user_token: token,
-            char:        character
+            char:        characterSlug
           })
         });
 
@@ -303,6 +483,7 @@
           return;
         }
 
+        const chatlog = document.getElementById("chatlog");
         data.history.forEach((record) => {
           const role    = record.fields.Role;
           const message = record.fields.Message;
@@ -310,7 +491,8 @@
           if (role === "user") {
             p.innerHTML = `<strong>You:</strong> ${message}`;
           } else {
-            p.innerHTML = `<strong><img class="avatar" src="${avatarUrl}" alt="avatar"> ${displayName}:</strong> ${message}`;
+            const avatarHtml = getAvatarHtml();
+            p.innerHTML = `<strong>${avatarHtml} ${currentCharacter?.name || 'Character'}:</strong> ${message}`;
           }
           chatlog.appendChild(p);
         });
@@ -321,13 +503,18 @@
       }
     }
 
+    function getAvatarHtml() {
+      if (currentCharacter?.avatar_url) {
+        return `<img class="avatar" src="${currentCharacter.avatar_url}" alt="avatar">`;
+      }
+      return '👤';
+    }
+
     // Als de pagina al geladen is en user is ingelogd, laad historie
     window.addEventListener("DOMContentLoaded", () => {
       if (window.isRegistered) {
-        fetchHistory();
-      } else {
         setTimeout(() => {
-          if (window.isRegistered) fetchHistory();
+          if (currentCharacter) fetchHistory();
         }, 500);
       }
     });
@@ -341,6 +528,7 @@
 
     async function sendMessage(event) {
       event?.preventDefault();
+      const userInput = document.getElementById("userInput");
       const input = userInput.value.trim();
       if (!input) return;
 
@@ -353,7 +541,13 @@
         return;
       }
 
+      // Disable send button during request
+      const sendButton = document.getElementById("sendButton");
+      sendButton.disabled = true;
+      sendButton.textContent = "Sending...";
+
       // Toon direct het user-bericht
+      const chatlog = document.getElementById("chatlog");
       const divUser = document.createElement("p");
       divUser.innerHTML = `<strong>You:</strong> ${input}`;
       chatlog.appendChild(divUser);
@@ -366,7 +560,7 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             text:       input,
-            char:       character,
+            char:       characterSlug,
             user_email: email,
             user_uid:   uid,
             user_token: token
@@ -393,17 +587,22 @@
 
         // Toon bot-antwoord
         const divBot = document.createElement("p");
-        divBot.innerHTML =
-          `<strong><img class="avatar" src="${avatarUrl}" alt="avatar"> ${displayName}:</strong> ${reply}`;
+        const avatarHtml = getAvatarHtml();
+        divBot.innerHTML = `<strong>${avatarHtml} ${currentCharacter?.name || 'Character'}:</strong> ${reply}`;
         chatlog.appendChild(divBot);
         chatlog.scrollTop = chatlog.scrollHeight;
+        
       } catch (err) {
         console.error("sendMessage → Fout in fetch of parsing:", err);
         alert("❌ Fout bij verzenden: " + err.message);
         const divErr = document.createElement("p");
-        divErr.innerHTML = `<strong>${displayName}:</strong> ⚠️ Er ging iets mis bij het versturen.`;
+        divErr.innerHTML = `<strong>${currentCharacter?.name || 'Character'}:</strong> ⚠️ Er ging iets mis bij het versturen.`;
         chatlog.appendChild(divErr);
         chatlog.scrollTop = chatlog.scrollHeight;
+      } finally {
+        // Re-enable send button
+        sendButton.disabled = false;
+        sendButton.textContent = "Send";
       }
     }
   </script>
