@@ -273,30 +273,50 @@
       border: 1px solid #4fd1c7;
     }
 
-    .tags-input-container {
+    .suggested-tags-section {
+      margin-bottom: 16px;
+    }
+
+    .suggested-tags {
       display: flex;
+      flex-wrap: wrap;
       gap: 8px;
-      align-items: stretch;
+      margin-bottom: 12px;
     }
 
-    .tags-input-container input {
-      flex: 1;
+    .suggested-tag {
+      background-color: #e8f4f8;
+      border: 2px solid #2c5282;
+      color: #2c5282;
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 14px;
       cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
     }
 
-    .tags-button {
-      padding: 12px 20px;
+    .suggested-tag:hover {
+      background-color: #c2e7f0;
+    }
+
+    .suggested-tag.selected {
+      background-color: #2c5282;
+      color: white;
+    }
+
+    .more-tags-button {
+      padding: 8px 16px;
       background-color: #f0f0f0;
       color: #333;
       border: 1px solid #ccc;
       border-radius: 8px;
       font-size: 14px;
       cursor: pointer;
-      white-space: nowrap;
       transition: all 0.2s ease;
     }
 
-    .tags-button:hover {
+    .more-tags-button:hover {
       background-color: #e0e0e0;
     }
 
@@ -362,16 +382,8 @@
       flex: 1;
     }
 
-    .suggested-tags-section,
-    .common-tags-section,
-    .custom-tags-section {
+    .common-tags-section {
       margin-bottom: 24px;
-    }
-
-    .suggested-tags-section:last-child,
-    .common-tags-section:last-child,
-    .custom-tags-section:last-child {
-      margin-bottom: 0;
     }
 
     .tags-modal-body h4 {
@@ -380,7 +392,6 @@
       color: #333;
     }
 
-    .suggested-tags,
     .common-tags {
       display: flex;
       flex-wrap: wrap;
@@ -409,46 +420,11 @@
       color: #2c5282;
     }
 
-    .tag-option.new-tag {
-      background-color: #e6fffa;
-      border-color: #4fd1c7;
-      color: #234e52;
-    }
-
-    .tag-option.new-tag.selected {
-      background-color: #b2f5ea;
-      border-color: #319795;
-      color: #234e52;
-    }
-
     .loading-tags {
       color: #666;
       font-style: italic;
       padding: 12px;
       text-align: center;
-    }
-
-    .custom-tag-input {
-      display: flex;
-      gap: 8px;
-    }
-
-    .custom-tag-input input {
-      flex: 1;
-      padding: 8px 12px;
-      font-size: 14px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-
-    .custom-tag-input button {
-      padding: 8px 16px;
-      font-size: 14px;
-      background-color: #333;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
     }
 
     .tags-modal-footer {
@@ -544,6 +520,76 @@
       margin-top: 4px;
     }
 
+    /* Success Modal Styles */
+    .success-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .success-modal-content {
+      background: white;
+      border-radius: 12px;
+      max-width: 400px;
+      margin: 100px auto;
+      overflow: hidden;
+      text-align: center;
+    }
+
+    .success-modal-header {
+      padding: 30px 20px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .success-modal-header h3 {
+      margin: 0 0 10px 0;
+      font-size: 24px;
+    }
+
+    .success-modal-header p {
+      margin: 0;
+      opacity: 0.9;
+      font-size: 16px;
+    }
+
+    .success-modal-body {
+      padding: 20px;
+    }
+
+    .success-modal-body p {
+      margin: 0 0 20px 0;
+      color: #666;
+      line-height: 1.5;
+    }
+
+    .success-modal-footer {
+      padding: 0 20px 20px;
+    }
+
+    .success-modal-footer button {
+      width: 100%;
+      padding: 12px;
+      background-color: #667eea;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .success-modal-footer button:hover {
+      background-color: #5a6fd8;
+    }
+
     @media (max-width: 600px) {
       body {
         padding: 16px;
@@ -564,6 +610,15 @@
 
       .button-group {
         flex-direction: column;
+      }
+
+      .suggested-tags {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .suggested-tag {
+        text-align: center;
       }
     }
   </style>
@@ -679,17 +734,17 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
         </div>
         
         <div class="form-group">
-          <label for="characterTags">Tags</label>
-          <div class="tags-input-container">
-            <input type="text" id="characterTags" name="characterTags" 
-                   placeholder="Type tags separated by commas or click the button"
-                   maxlength="200">
-            <button type="button" class="tags-button" id="tagsButton">
-              <span id="tagsButtonText">Select Tags</span>
+          <label>Tags</label>
+          <div class="suggested-tags-section">
+            <div class="suggested-tags" id="suggestedTags">
+              <!-- Suggested tags will be generated here -->
+            </div>
+            <button type="button" class="more-tags-button" id="moreTagsButton">
+              Browse More Tags
             </button>
           </div>
           <div class="tags-help">
-            Type your tags separated by commas or use the button to browse suggested tags. Maximum 5 tags allowed.
+            Select up to 5 tags that best describe your character. These help others discover your character.
           </div>
           <div class="tags-preview" id="tagsPreview"></div>
         </div>
@@ -699,32 +754,14 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
       <div class="tags-modal" id="tagsModal">
         <div class="tags-modal-content">
           <div class="tags-modal-header">
-            <h3>Select Tags</h3>
+            <h3>Browse Tags</h3>
             <button type="button" class="close-modal" id="closeModalBtn">×</button>
           </div>
           
           <div class="tags-modal-body">
-            <div class="suggested-tags-section">
-              <h4>🤖 AI Suggested Tags</h4>
-              <div class="suggested-tags" id="suggestedTags">
-                <div class="loading-tags">Analyzing your character...</div>
-              </div>
-            </div>
-            
             <div class="common-tags-section">
-              <h4>🏷️ Common Tags</h4>
+              <h4>🏷️ Available Tags</h4>
               <div class="common-tags" id="commonTags"></div>
-            </div>
-            
-            <div class="custom-tags-section">
-              <h4>✏️ Add Custom Tag</h4>
-              <div class="custom-tag-input">
-                <input type="text" id="customTagInput" placeholder="Type a custom tag" maxlength="20">
-                <button type="button" id="addCustomTagBtn">Add</button>
-              </div>
-              <div style="font-size: 12px; color: #666; margin-top: 4px;">
-                New tags will be created and saved to the database automatically.
-              </div>
             </div>
           </div>
           
@@ -736,6 +773,22 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
               <button type="button" class="btn-secondary" id="cancelTagsBtn">Cancel</button>
               <button type="button" class="btn-primary" id="applyTagsBtn">Apply Tags</button>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Success Modal -->
+      <div class="success-modal" id="successModal">
+        <div class="success-modal-content">
+          <div class="success-modal-header">
+            <h3>🎉 Success!</h3>
+            <p>Your character has been created</p>
+          </div>
+          <div class="success-modal-body">
+            <p>Your new character is ready to chat! You'll be redirected to start your conversation.</p>
+          </div>
+          <div class="success-modal-footer">
+            <button type="button" id="successModalBtn">Start Chatting</button>
           </div>
         </div>
       </div>
@@ -792,6 +845,32 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
     let selectedTags = [];
     let currentAvatarUrl = '';
 
+    // Predefined tags that exist in Airtable
+    const availableTags = [
+      'leader', 'warrior', 'politician', 'emperor', 'king', 'revolutionary', 'military', 'ancient', 'medieval', 'renaissance',
+      'hero', 'villain', 'magic', 'adventure', 'fantasy', 'science-fiction', 'mystery', 'detective', 'superhero', 'wizard',
+      'actor', 'musician', 'singer', 'artist', 'famous', 'entertainment', 'hollywood', 'pop-culture', 'influencer', 'star',
+      'shounen', 'shoujo', 'seinen', 'josei', 'mecha', 'ninja', 'samurai', 'school', 'romance', 'action',
+      'rpg', 'fps', 'mmorpg', 'indie', 'strategy', 'simulation', 'arcade', 'platformer', 'puzzle',
+      'drama', 'comedy', 'thriller', 'horror', 'sci-fi', 'series', 'documentary',
+      'god', 'goddess', 'legend', 'myth', 'folklore', 'divine', 'supernatural', 'epic', 'mystical',
+      'creative', 'unique', 'custom', 'personal', 'innovative', 'artistic', 'imaginative', 'experimental', 'concept', 'design',
+      'helpful', 'smart', 'efficient', 'friendly', 'professional', 'knowledgeable', 'supportive', 'tech', 'modern', 'digital',
+      'teacher', 'professor', 'tutor', 'mentor', 'academic', 'learning', 'knowledge', 'study', 'science', 'research',
+      'workout', 'training', 'health', 'exercise', 'strength', 'cardio', 'nutrition', 'wellness', 'athletic', 'motivation',
+      'leadership', 'entrepreneur', 'management', 'success', 'productivity', 'corporate', 'growth', 'innovation',
+      'goals', 'personal-growth', 'inspiration', 'positive', 'mindset', 'self-improvement', 'balance',
+      'multilingual', 'conversation', 'grammar', 'vocabulary', 'pronunciation', 'culture', 'communication', 'fluency',
+      'resume', 'interview', 'networking', 'job-search', 'skills', 'advancement', 'workplace', 'development', 'guidance',
+      'expression', 'brainstorming', 'artistic-block', 'vision',
+      'study-tips', 'organization', 'exam-prep', 'note-taking', 'time-management', 'focus',
+      'love', 'dating', 'marriage', 'friendship', 'social', 'empathy', 'connection', 'understanding', 'support',
+      'meditation', 'zen', 'peaceful', 'calm', 'stress-relief', 'awareness', 'present', 'spiritual', 'inner-peace',
+      'chef', 'recipe', 'cuisine', 'cooking', 'baking', 'ingredients', 'kitchen', 'culinary', 'food',
+      'confident', 'authoritative', 'wise', 'funny', 'humorous', 'mysterious', 'enigmatic', 'interesting', 'engaging',
+      'french', 'european', 'strategic', 'historical'
+    ];
+
     // Character counters
     const counters = {
       characterName: { element: document.getElementById('nameCounter'), max: 50 },
@@ -815,37 +894,84 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
         }
         
         updatePreview();
+        generateSuggestedTags();
       });
     });
 
-    // Common tags by category
-    const commonTagsByCategory = {
-      'historical': ['leader', 'warrior', 'politician', 'emperor', 'king', 'revolutionary', 'military', 'ancient', 'medieval', 'renaissance'],
-      'fictional': ['hero', 'villain', 'magic', 'adventure', 'fantasy', 'science-fiction', 'mystery', 'detective', 'superhero', 'wizard'],
-      'celebrity': ['actor', 'musician', 'singer', 'artist', 'famous', 'entertainment', 'hollywood', 'pop-culture', 'influencer', 'star'],
-      'anime-manga': ['shounen', 'shoujo', 'seinen', 'josei', 'mecha', 'ninja', 'samurai', 'school', 'romance', 'action'],
-      'gaming': ['rpg', 'fps', 'mmorpg', 'indie', 'strategy', 'adventure', 'simulation', 'arcade', 'platformer', 'puzzle'],
-      'movies-tv': ['drama', 'comedy', 'action', 'thriller', 'horror', 'romance', 'sci-fi', 'fantasy', 'documentary', 'series'],
-      'mythology': ['god', 'goddess', 'legend', 'myth', 'folklore', 'ancient', 'divine', 'supernatural', 'epic', 'mystical'],
-      'original': ['creative', 'unique', 'custom', 'personal', 'innovative', 'artistic', 'imaginative', 'experimental', 'concept', 'design'],
-      'ai-assistant': ['helpful', 'smart', 'efficient', 'friendly', 'professional', 'knowledgeable', 'supportive', 'tech', 'modern', 'digital'],
-      'educational': ['teacher', 'professor', 'tutor', 'mentor', 'academic', 'learning', 'knowledge', 'study', 'science', 'research'],
-      'fitness-coach': ['workout', 'training', 'health', 'exercise', 'strength', 'cardio', 'nutrition', 'wellness', 'athletic', 'motivation'],
-      'business-coach': ['leadership', 'entrepreneur', 'strategy', 'management', 'success', 'productivity', 'professional', 'corporate', 'growth', 'innovation'],
-      'life-coach': ['motivation', 'goals', 'personal-growth', 'inspiration', 'positive', 'mindset', 'success', 'self-improvement', 'wellness', 'balance'],
-      'language-coach': ['multilingual', 'teacher', 'conversation', 'grammar', 'vocabulary', 'pronunciation', 'culture', 'communication', 'fluency', 'learning'],
-      'career-coach': ['professional', 'resume', 'interview', 'networking', 'job-search', 'skills', 'advancement', 'workplace', 'development', 'guidance'],
-      'creativity-coach': ['artistic', 'creative', 'inspiration', 'imagination', 'design', 'innovation', 'expression', 'brainstorming', 'artistic-block', 'vision'],
-      'study-coach': ['academic', 'learning', 'study-tips', 'organization', 'productivity', 'exam-prep', 'research', 'note-taking', 'time-management', 'focus'],
-      'relationship-coach': ['communication', 'love', 'dating', 'marriage', 'friendship', 'social', 'empathy', 'connection', 'understanding', 'support'],
-      'mindfulness-coach': ['meditation', 'zen', 'peaceful', 'calm', 'stress-relief', 'awareness', 'present', 'spiritual', 'balance', 'inner-peace'],
-      'cooking-coach': ['chef', 'recipe', 'cuisine', 'cooking', 'baking', 'nutrition', 'ingredients', 'kitchen', 'culinary', 'food']
-    };
+    // Generate suggested tags based on character info
+    function generateSuggestedTags() {
+      const name = document.getElementById('characterName').value.trim();
+      const tagline = document.getElementById('characterTitle').value.trim();
+      const description = document.getElementById('characterDescription').value.trim();
+      const prompt = document.getElementById('characterPrompt').value.trim();
+      
+      const allText = `${name} ${tagline} ${description} ${prompt}`.toLowerCase();
+      
+      // Find matching tags from available tags
+      const suggestions = [];
+      
+      availableTags.forEach(tag => {
+        const tagLower = tag.toLowerCase();
+        if (allText.includes(tagLower) || 
+            allText.includes(tagLower.replace('-', ' ')) ||
+            allText.includes(tagLower.replace('-', ''))) {
+          suggestions.push(tag);
+        }
+      });
+      
+      // Add some specific keyword matches
+      if (allText.includes('napoleon')) suggestions.push('french', 'military', 'emperor', 'historical', 'leader');
+      if (allText.includes('emperor') || allText.includes('king') || allText.includes('queen')) suggestions.push('royal', 'leader', 'historical');
+      if (allText.includes('war') || allText.includes('battle')) suggestions.push('military', 'warrior', 'strategic');
+      if (allText.includes('confident') || allText.includes('authority')) suggestions.push('confident', 'authoritative');
+      if (allText.includes('wise') || allText.includes('knowledge')) suggestions.push('wise', 'knowledgeable');
+      if (allText.includes('funny') || allText.includes('humor')) suggestions.push('funny', 'humorous');
+      if (allText.includes('mysterious') || allText.includes('secret')) suggestions.push('mysterious', 'enigmatic');
+      
+      // Remove duplicates and limit to 5
+      const uniqueSuggestions = [...new Set(suggestions)].filter(tag => availableTags.includes(tag)).slice(0, 5);
+      
+      // If no suggestions, add some defaults
+      if (uniqueSuggestions.length === 0) {
+        uniqueSuggestions.push('friendly', 'helpful', 'interesting');
+      }
+      
+      // Update suggested tags display
+      const suggestedTagsContainer = document.getElementById('suggestedTags');
+      suggestedTagsContainer.innerHTML = '';
+      
+      uniqueSuggestions.forEach(tag => {
+        const tagElement = document.createElement('div');
+        tagElement.className = 'suggested-tag';
+        tagElement.textContent = tag;
+        
+        if (selectedTags.includes(tag)) {
+          tagElement.classList.add('selected');
+        }
+        
+        tagElement.addEventListener('click', () => toggleSuggestedTag(tag, tagElement));
+        suggestedTagsContainer.appendChild(tagElement);
+      });
+    }
 
-    // Tags functionality
+    function toggleSuggestedTag(tag, element) {
+      if (selectedTags.includes(tag)) {
+        selectedTags = selectedTags.filter(t => t !== tag);
+        element.classList.remove('selected');
+      } else {
+        if (selectedTags.length < 5) {
+          selectedTags.push(tag);
+          element.classList.add('selected');
+        } else {
+          alert('Maximum 5 tags allowed');
+        }
+      }
+      updateTagsPreview();
+    }
+
+    // Tags modal functionality
     function openTagsModal() {
       document.getElementById('tagsModal').style.display = 'block';
-      generateSuggestedTags();
       updateCommonTags();
       updateSelectedTagsPreview();
     }
@@ -854,69 +980,17 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
       document.getElementById('tagsModal').style.display = 'none';
     }
 
-    function generateSuggestedTags() {
-      const suggestedTagsContainer = document.getElementById('suggestedTags');
-      suggestedTagsContainer.innerHTML = '<div class="loading-tags">Analyzing your character...</div>';
-      
-      setTimeout(() => {
-        const name = document.getElementById('characterName').value.trim();
-        const tagline = document.getElementById('characterTitle').value.trim();
-        const description = document.getElementById('characterDescription').value.trim();
-        const prompt = document.getElementById('characterPrompt').value.trim();
-        
-        const allText = `${name} ${tagline} ${description} ${prompt}`.toLowerCase();
-        
-        // Simple keyword-based suggestion system
-        const suggestions = [];
-        
-        // Historical figures
-        if (allText.includes('emperor') || allText.includes('king') || allText.includes('queen')) suggestions.push('royal', 'leader', 'historical');
-        if (allText.includes('napoleon')) suggestions.push('french', 'military', 'emperor', 'historical', 'leader');
-        if (allText.includes('war') || allText.includes('battle') || allText.includes('military')) suggestions.push('military', 'warrior', 'strategic');
-        if (allText.includes('french') || allText.includes('france')) suggestions.push('french', 'european');
-        
-        // Personality traits
-        if (allText.includes('confident') || allText.includes('authority')) suggestions.push('confident', 'authoritative');
-        if (allText.includes('wise') || allText.includes('knowledge')) suggestions.push('wise', 'knowledgeable');
-        if (allText.includes('funny') || allText.includes('humor')) suggestions.push('funny', 'humorous');
-        if (allText.includes('mysterious') || allText.includes('secret')) suggestions.push('mysterious', 'enigmatic');
-        
-        // Generic fallbacks
-        if (suggestions.length === 0) {
-          suggestions.push('friendly', 'helpful', 'interesting', 'unique');
-        }
-        
-        // Remove duplicates and limit to 8
-        const uniqueSuggestions = [...new Set(suggestions)].slice(0, 8);
-        
-        suggestedTagsContainer.innerHTML = '';
-        uniqueSuggestions.forEach(tag => {
-          const tagElement = createTagOption(tag, true);
-          suggestedTagsContainer.appendChild(tagElement);
-        });
-        
-        if (uniqueSuggestions.length === 0) {
-          suggestedTagsContainer.innerHTML = '<div class="loading-tags">No specific suggestions found. Try the common tags below!</div>';
-        }
-      }, 1000);
-    }
-
     function updateCommonTags() {
-      const category = document.getElementById('characterCategory').value;
       const commonTagsContainer = document.getElementById('commonTags');
       
-      const tags = category && commonTagsByCategory[category] 
-        ? commonTagsByCategory[category] 
-        : ['friendly', 'helpful', 'interesting', 'creative', 'unique', 'smart', 'fun', 'engaging'];
-      
       commonTagsContainer.innerHTML = '';
-      tags.forEach(tag => {
-        const tagElement = createTagOption(tag, false);
+      availableTags.forEach(tag => {
+        const tagElement = createTagOption(tag);
         commonTagsContainer.appendChild(tagElement);
       });
     }
 
-    function createTagOption(tagText, isSuggested) {
+    function createTagOption(tagText) {
       const tagElement = document.createElement('div');
       tagElement.className = 'tag-option';
       tagElement.textContent = tagText;
@@ -943,38 +1017,6 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
       return tagElement;
     }
 
-    function addCustomTag() {
-      const input = document.getElementById('customTagInput');
-      const tag = input.value.trim().toLowerCase();
-      
-      if (!tag) return;
-      
-      if (!/^[a-zA-Z0-9\s\-]+$/.test(tag) || tag.length > 20) {
-        alert('Tags can only contain letters, numbers, spaces, and hyphens (max 20 characters)');
-        return;
-      }
-      
-      if (selectedTags.includes(tag)) {
-        alert('Tag already selected');
-        return;
-      }
-      
-      if (selectedTags.length >= 5) {
-        alert('Maximum 5 tags allowed');
-        return;
-      }
-      
-      selectedTags.push(tag);
-      input.value = '';
-      updateSelectedTagsPreview();
-      
-      // Add to common tags section for immediate selection
-      const commonTagsContainer = document.getElementById('commonTags');
-      const tagElement = createTagOption(tag, false);
-      tagElement.classList.add('selected');
-      commonTagsContainer.appendChild(tagElement);
-    }
-
     function updateSelectedTagsPreview() {
       const preview = document.getElementById('selectedTagsPreview');
       if (selectedTags.length === 0) {
@@ -985,10 +1027,17 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
     }
 
     function applySelectedTags() {
-      const tagsInput = document.getElementById('characterTags');
-      tagsInput.value = selectedTags.join(', ');
       updateTagsPreview();
-      updateTagsButtonText();
+      // Update suggested tags display
+      const suggestedTagsContainer = document.getElementById('suggestedTags');
+      suggestedTagsContainer.querySelectorAll('.suggested-tag').forEach(element => {
+        const tag = element.textContent;
+        if (selectedTags.includes(tag)) {
+          element.classList.add('selected');
+        } else {
+          element.classList.remove('selected');
+        }
+      });
       closeTagsModal();
     }
 
@@ -1005,59 +1054,16 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
       });
     }
 
-    function updateTagsButtonText() {
-      const button = document.getElementById('tagsButtonText');
-      if (selectedTags.length === 0) {
-        button.textContent = 'Select Tags';
-      } else {
-        button.textContent = `${selectedTags.length} tag${selectedTags.length === 1 ? '' : 's'} selected`;
-      }
-    }
-
     // Event listeners for tags
-    document.getElementById('tagsButton').addEventListener('click', openTagsModal);
+    document.getElementById('moreTagsButton').addEventListener('click', openTagsModal);
     document.getElementById('closeModalBtn').addEventListener('click', closeTagsModal);
     document.getElementById('cancelTagsBtn').addEventListener('click', closeTagsModal);
     document.getElementById('applyTagsBtn').addEventListener('click', applySelectedTags);
-    document.getElementById('addCustomTagBtn').addEventListener('click', addCustomTag);
-
-    // Tags input functionality - both typing and modal
-    document.getElementById('characterTags').addEventListener('input', () => {
-      const tagsInput = document.getElementById('characterTags');
-      const inputValue = tagsInput.value;
-      
-      // Split by commas and clean tags
-      let tags = inputValue.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
-      
-      // Limit to 5 tags
-      if (tags.length > 5) {
-        tags = tags.slice(0, 5);
-        tagsInput.value = tags.join(', ');
-      }
-      
-      selectedTags = tags;
-      updateTagsPreview();
-      updateTagsButtonText();
-    });
-
-    // Category change updates common tags
-    document.getElementById('characterCategory').addEventListener('change', () => {
-      if (document.getElementById('tagsModal').style.display === 'block') {
-        updateCommonTags();
-      }
-    });
 
     // Close modal when clicking outside
     document.getElementById('tagsModal').addEventListener('click', (e) => {
       if (e.target === document.getElementById('tagsModal')) {
         closeTagsModal();
-      }
-    });
-
-    // Custom tag input enter key
-    document.getElementById('customTagInput').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        addCustomTag();
       }
     });
 
@@ -1182,7 +1188,21 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
       }
     }
 
-    // Form submission with Make.com webhook - simplified for Airtable
+    // Success modal functionality
+    function showSuccessModal(characterSlug) {
+      document.getElementById('successModal').style.display = 'block';
+      
+      document.getElementById('successModalBtn').onclick = () => {
+        window.location.href = `chat.html?char=${characterSlug}`;
+      };
+      
+      // Auto redirect after 3 seconds
+      setTimeout(() => {
+        window.location.href = `chat.html?char=${characterSlug}`;
+      }, 3000);
+    }
+
+    // Form submission with Make.com webhook
     document.getElementById('characterForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       
@@ -1198,7 +1218,8 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
       
       const formData = new FormData(e.target);
       
-      // Prepare data for Make.com webhook - Make will handle tag creation/linking in Airtable
+      // Prepare data for Make.com webhook
+      const characterSlug = generateSlug(formData.get('characterName'));
       const webhookData = {
         Email: userEmail,
         characterData: {
@@ -1207,12 +1228,13 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
         },
         visibility: formData.get('visibility'),
         category: formData.get('characterCategory'),
-        character_id: generateSlug(formData.get('characterName')),
+        character_id: characterSlug,
         avatar_url: isValidUrl(currentAvatarUrl) ? currentAvatarUrl : '',
-        tags: selectedTags, // Make will create new tags if they don't exist
+        tags: selectedTags,
         character_description: formData.get('characterDescription') || '',
-        slug: generateSlug(formData.get('characterName')),
-        character_url: `https://narrin.ai/chat.html?char=${generateSlug(formData.get('characterName'))}`
+        character_title: formData.get('characterTitle') || '',
+        slug: characterSlug,
+        character_url: `https://narrin.ai/chat.html?char=${characterSlug}`
       };
       
       // Validation
@@ -1227,6 +1249,11 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
       }
       
       try {
+        // Disable submit button to prevent double submission
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Creating...';
+        
         // Send to Make.com webhook
         const response = await fetch('https://hook.eu2.make.com/c36jubkn9rbbqg0ovgfbx2ca1iwgf16q', {
           method: 'POST',
@@ -1238,10 +1265,10 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
         
         if (response.ok) {
           const result = await response.json();
-          alert('Character created successfully!');
           console.log('Character created:', result);
-          // Redirect to chat with the new character
-          window.location.href = `chat.html?char=${webhookData.slug}`;
+          
+          // Show success modal instead of alert
+          showSuccessModal(characterSlug);
         } else {
           const errorText = await response.text();
           console.error('Error response:', errorText);
@@ -1251,6 +1278,11 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
       } catch (error) {
         console.error('Error creating character:', error);
         alert('Error creating character. Please try again.');
+        
+        // Re-enable submit button
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Create Character';
       }
     });
 
@@ -1284,8 +1316,9 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
       }
     }
 
-    // Initialize preview
+    // Initialize
     updatePreview();
+    generateSuggestedTags();
   </script>
 </body>
 </html>
