@@ -1165,11 +1165,21 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
     document.getElementById('characterForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       
+      // Check if user is logged in
+      const userEmail = localStorage.getItem('user_email');
+      const userToken = localStorage.getItem('user_token');
+      const userUid = localStorage.getItem('user_uid');
+      
+      if (!userEmail || !userToken || !userUid) {
+        alert('Je moet eerst inloggen om een character aan te maken. Ga naar profile.html om in te loggen.');
+        return;
+      }
+      
       const formData = new FormData(e.target);
       
       // Prepare data for Make.com webhook
       const webhookData = {
-        Email: "user@example.com", // You might want to get this from user session
+        Email: userEmail, // Use real logged in user email
         characterData: {
           name: formData.get('characterName'),
           prompt: formData.get('characterPrompt')
@@ -1212,6 +1222,8 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
           // Redirect to chat with the new character
           window.location.href = `chat.html?char=${webhookData.slug}`;
         } else {
+          const errorText = await response.text();
+          console.error('Error response:', errorText);
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
