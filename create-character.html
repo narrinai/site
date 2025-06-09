@@ -520,75 +520,7 @@
       margin-top: 4px;
     }
 
-    /* Success Modal Styles */
-    .success-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-      z-index: 1000;
-      padding: 20px;
-      box-sizing: border-box;
-    }
-
-    .success-modal-content {
-      background: white;
-      border-radius: 12px;
-      max-width: 400px;
-      margin: 100px auto;
-      overflow: hidden;
-      text-align: center;
-    }
-
-    .success-modal-header {
-      padding: 30px 20px 20px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-    }
-
-    .success-modal-header h3 {
-      margin: 0 0 10px 0;
-      font-size: 24px;
-    }
-
-    .success-modal-header p {
-      margin: 0;
-      opacity: 0.9;
-      font-size: 16px;
-    }
-
-    .success-modal-body {
-      padding: 20px;
-    }
-
-    .success-modal-body p {
-      margin: 0 0 20px 0;
-      color: #666;
-      line-height: 1.5;
-    }
-
-    .success-modal-footer {
-      padding: 0 20px 20px;
-    }
-
-    .success-modal-footer button {
-      width: 100%;
-      padding: 12px;
-      background-color: #667eea;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-      transition: background-color 0.2s ease;
-    }
-
-    .success-modal-footer button:hover {
-      background-color: #5a6fd8;
-    }
+    /* Removed success modal styles - no longer needed */
 
     @media (max-width: 600px) {
       body {
@@ -1188,20 +1120,6 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
       }
     }
 
-    // Success modal functionality
-    function showSuccessModal(characterSlug) {
-      document.getElementById('successModal').style.display = 'block';
-      
-      document.getElementById('successModalBtn').onclick = () => {
-        window.location.href = `chat.html?char=${characterSlug}`;
-      };
-      
-      // Auto redirect after 3 seconds
-      setTimeout(() => {
-        window.location.href = `chat.html?char=${characterSlug}`;
-      }, 3000);
-    }
-
     // Form submission with Make.com webhook
     document.getElementById('characterForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -1267,8 +1185,8 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
           const result = await response.json();
           console.log('Character created:', result);
           
-          // Show success modal instead of alert
-          showSuccessModal(characterSlug);
+          // Direct redirect to the new character
+          window.location.href = `chat.html?char=${characterSlug}`;
         } else {
           const errorText = await response.text();
           console.error('Error response:', errorText);
