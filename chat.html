@@ -722,10 +722,16 @@
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            text:       input,
-            char:       characterSlug,
+            action: "chat",
+            text: input,
+            slug: characterSlug,
+            char: characterSlug,  // Voor backward compatibility
+            name: currentCharacter?.name,
+            character_title: currentCharacter?.character_title,
+            character_description: currentCharacter?.character_description,
+            avatar_url: currentCharacter?.avatar_url,
             user_email: email,
-            user_uid:   uid,
+            user_uid: uid,
             user_token: token
           })
         });
