@@ -566,7 +566,7 @@
   </script>
 
   <!-- ─────────────────────────────────────────────────────────────
-       B) handleSendClick() (zorgt dat login‐modal alleen opent als niet ingelogd)
+       B) handleSendClick() (FIXED VERSION - zorgt dat login‐modal alleen opent als niet ingelogd)
        ───────────────────────────────────────────────────────────── -->
   <script>
     function handleSendClick(event) {
@@ -575,10 +575,16 @@
         return;
       }
       
-      if (!window.isRegistered) {
+      // Check if user is logged in by checking the current Netlify Identity user
+      const currentUser = netlifyIdentity.currentUser();
+      
+      if (!currentUser || !window.isRegistered) {
+        // Only open login modal if user is not logged in
         netlifyIdentity.open("login");
         return;
       }
+      
+      // User is logged in, proceed with sending the message
       sendMessage(event);
     }
   </script>
