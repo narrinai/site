@@ -566,12 +566,10 @@
   </script>
 
   <!-- ─────────────────────────────────────────────────────────────
-       B) handleSendClick() (FIXED VERSION - volledig nieuwe aanpak)
+       B) handleSendClick() (FINAL VERSION - zonder content debug)
        ───────────────────────────────────────────────────────────── -->
   <script>
     function handleSendClick(event) {
-      console.log("handleSendClick called!");
-      
       if (!currentCharacter) {
         alert("Character not loaded yet, please wait...");
         return;
@@ -582,22 +580,13 @@
       const uid = localStorage.getItem("user_uid");
       const email = localStorage.getItem("user_email");
       
-      console.log("Login check:", {
-        hasToken: !!token,
-        hasUid: !!uid,
-        hasEmail: !!email,
-        isRegistered: window.isRegistered
-      });
-      
       // If we have all required data, user is logged in
       if (token && uid && email) {
-        console.log("User is logged in via localStorage, sending message");
         sendMessage(event);
         return;
       }
       
       // Only open login if we don't have the required data
-      console.log("User not logged in, opening login modal");
       netlifyIdentity.open("login");
     }
   </script>
