@@ -3,147 +3,781 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Napoleon Chat</title>
+  <title>Narrin AI - AI Character Chat</title>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
       margin: 0;
-      padding: 20px;
+      padding: 0;
       background-color: #ffffff;
-      pointer-events: auto;
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
-      -webkit-overflow-scrolling: touch;
+      color: #333;
+      line-height: 1.6;
     }
 
-    input,
-    button {
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
-      z-index: 10;
+    /* Header */
+    .header {
+      background: #ffffff;
+      border-bottom: 1px solid #e0e0e0;
+      padding: 16px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 600;
+      color: #000;
+      text-decoration: none;
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border: none;
+      display: inline-block;
+      text-align: center;
+    }
+
+    .btn-primary {
+      background-color: #000;
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background-color: #333;
+    }
+
+    .btn-secondary {
+      background-color: #f5f5f5;
+      color: #333;
+      border: 1px solid #e0e0e0;
+    }
+
+    .btn-secondary:hover {
+      background-color: #e0e0e0;
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      padding: 60px 20px;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+
+    .hero h1 {
+      font-size: 48px;
+      margin: 0 0 16px 0;
+      font-weight: 700;
+      color: #000;
+    }
+
+    .hero p {
+      font-size: 20px;
+      color: #666;
+      margin: 0 0 32px 0;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-large {
+      padding: 16px 32px;
+      font-size: 16px;
+      border-radius: 12px;
+    }
+
+    /* Search Section */
+    .search-section {
+      padding: 40px 20px;
+      background: #ffffff;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .search-container {
+      max-width: 600px;
+      margin: 0 auto;
       position: relative;
     }
 
-    .chat-container {
-      max-width: 700px;
-      margin: 0 auto;
-    }
-
-    #chatlog {
-      height: 300px;
-      overflow-y: auto;
-      background: #f5f5f5;
-      padding: 16px;
-      border-radius: 10px;
-      margin-bottom: 20px;
+    .search-input {
+      width: 100%;
+      padding: 16px 20px;
       font-size: 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      box-sizing: border-box;
+      transition: border-color 0.2s ease;
     }
 
-    .input-group {
+    .search-input:focus {
+      outline: none;
+      border-color: #000;
+    }
+
+    /* Content */
+    .content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    /* Category Navigation */
+    .category-nav {
+      margin-bottom: 40px;
+    }
+
+    .category-nav h2 {
+      font-size: 24px;
+      margin: 0 0 20px 0;
+      color: #000;
+    }
+
+    .category-buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .category-btn {
+      padding: 12px 20px;
+      background: #f8f9fa;
+      border: 2px solid #e9ecef;
+      border-radius: 25px;
+      text-decoration: none;
+      color: #495057;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .category-btn:hover {
+      border-color: #000;
+      background: #f0f0f0;
+    }
+
+    /* Tags */
+    .tags-section {
+      margin-bottom: 50px;
+    }
+
+    .tags-section h3 {
+      font-size: 18px;
+      margin: 0 0 16px 0;
+      color: #666;
+    }
+
+    .tags-container {
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
     }
 
-    #userInput {
-      flex: 1 1 240px;
-      max-width: 600px;
-      min-width: 180px;
-      padding: 12px 16px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
+    .tag-btn {
+      padding: 8px 16px;
+      background: #e8f4f8;
+      border: 1px solid #bee5eb;
+      border-radius: 20px;
+      text-decoration: none;
+      color: #0c5460;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s ease;
     }
 
-    button {
-      padding: 12px 24px;
-      background-color: #000;
-      color: #fff;
-      border: none;
+    .tag-btn:hover {
+      background: #d1ecf1;
+      border-color: #0c5460;
+    }
+
+    /* Character Sections */
+    .character-section {
+      margin-bottom: 50px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 24px;
+      margin: 0;
+      color: #000;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .view-all {
+      color: #666;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+
+    .view-all:hover {
+      color: #000;
+    }
+
+    /* Character Grid */
+    .character-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 20px;
+      overflow-x: auto;
+      padding-bottom: 10px;
+    }
+
+    .character-card {
+      background: #ffffff;
+      border: 1px solid #e0e0e0;
       border-radius: 12px;
-      font-size: 16px;
-      cursor: pointer;
+      padding: 16px;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.2s ease;
+      text-align: center;
+      min-width: 160px;
     }
 
-    .avatar {
-      width: 32px;
-      height: 32px;
+    .character-card:hover {
+      border-color: #000;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .character-avatar {
+      width: 60px;
+      height: 60px;
       border-radius: 50%;
-      vertical-align: middle;
-      margin-right: 8px;
+      margin: 0 auto 12px;
+      background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      border: 2px solid #e0e0e0;
+      overflow: hidden;
     }
 
-    @media (max-width: 600px) {
-      body {
-        padding: 16px;
+    .character-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .character-name {
+      font-weight: 600;
+      margin: 0 0 4px 0;
+      font-size: 14px;
+      color: #000;
+    }
+
+    .character-title {
+      font-size: 12px;
+      color: #666;
+      margin: 0;
+      line-height: 1.3;
+    }
+
+    /* Stats Section */
+    .stats-section {
+      background: #f8f9fa;
+      padding: 40px 20px;
+      text-align: center;
+      margin-bottom: 40px;
+      border-radius: 12px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 30px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 32px;
+      font-weight: 700;
+      color: #000;
+      margin: 0 0 8px 0;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: #666;
+      margin: 0;
+    }
+
+    /* Mobile Optimizations */
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 36px;
       }
 
-      .chat-container {
-        padding: 0;
+      .hero p {
+        font-size: 18px;
       }
 
-      #chatlog {
-        height: 240px;
-        font-size: 15px;
+      .hero-buttons {
+        flex-direction: column;
+        align-items: center;
       }
 
-      .input-group {
+      .character-grid {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        gap: 16px;
+        padding-bottom: 20px;
+      }
+
+      .character-card {
+        flex: 0 0 140px;
+        scroll-snap-align: start;
+      }
+
+      .character-avatar {
+        width: 50px;
+        height: 50px;
+      }
+
+      .category-buttons {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: 10px;
+      }
+
+      .category-btn {
+        flex: 0 0 auto;
+      }
+
+      .header-content {
         flex-direction: column;
         gap: 12px;
       }
 
-      #userInput,
-      button {
+      .nav-buttons {
+        justify-content: center;
         width: 100%;
+      }
+
+      .section-title {
+        font-size: 20px;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+      }
+    }
+
+    /* Loading Animation */
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #333;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Scroll indicators */
+    .scroll-indicator {
+      position: absolute;
+      right: -10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(0,0,0,0.1);
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      color: #666;
+    }
+
+    .character-grid-container {
+      position: relative;
+    }
+
+    @media (min-width: 769px) {
+      .scroll-indicator {
+        display: none;
       }
     }
   </style>
 </head>
 <body>
-  <div class="chat-container">
-    <div id="chatlog"></div>
-    <div class="input-group">
-      <input id="userInput" type="text" placeholder="Ask Napoleon something" />
-      <button onclick="sendMessage(event)">Send</button>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <a href="index.html" class="logo">Narrin AI</a>
+      <nav class="nav-buttons">
+        <a href="chats.html" class="btn btn-secondary">💬 Mijn Chats</a>
+        <a href="login.html" class="btn btn-secondary">🔑 Inloggen</a>
+        <a href="register.html" class="btn btn-secondary">📝 Registreren</a>
+        <a href="create-character.html" class="btn btn-primary">✨ Character Maken</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <h1>Chat met AI Characters</h1>
+    <p>Ontdek duizenden unieke AI personalities. Van historische figuren tot fictieve helden.</p>
+    <div class="hero-buttons">
+      <a href="create-character.html" class="btn btn-primary btn-large">✨ Maak je Character</a>
+      <a href="#categories" class="btn btn-secondary btn-large">🎭 Browse Characters</a>
+    </div>
+  </section>
+
+  <!-- Search Section -->
+  <section class="search-section">
+    <div class="search-container">
+      <input type="text" class="search-input" placeholder="Zoek naar characters..." id="searchInput">
+    </div>
+  </section>
+
+  <!-- Content -->
+  <div class="content" id="categories">
+    <!-- Stats -->
+    <div class="stats-section">
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-number">10K+</div>
+          <div class="stat-label">Characters</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">50K+</div>
+          <div class="stat-label">Gesprekken</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">5K+</div>
+          <div class="stat-label">Gebruikers</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">24/7</div>
+          <div class="stat-label">Beschikbaar</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Category Navigation -->
+    <div class="category-nav">
+      <h2>🎯 Categorieën</h2>
+      <div class="category-buttons">
+        <a href="category.html?cat=historical" class="category-btn">🏛️ Historisch</a>
+        <a href="category.html?cat=fictional" class="category-btn">📚 Fictie</a>
+        <a href="category.html?cat=celebrity" class="category-btn">⭐ Beroemdheden</a>
+        <a href="category.html?cat=anime-manga" class="category-btn">🎌 Anime & Manga</a>
+        <a href="category.html?cat=gaming" class="category-btn">🎮 Gaming</a>
+        <a href="category.html?cat=movies-tv" class="category-btn">🎬 Films & TV</a>
+        <a href="category.html?cat=ai-assistant" class="category-btn">🤖 AI Assistenten</a>
+        <a href="category.html?cat=coaching" class="category-btn">💪 Coaching</a>
+      </div>
+      
+      <div class="tags-section">
+        <h3>🏷️ Populaire Tags</h3>
+        <div class="tags-container">
+          <a href="category.html?tag=wise" class="tag-btn">wise</a>
+          <a href="category.html?tag=funny" class="tag-btn">funny</a>
+          <a href="category.html?tag=helpful" class="tag-btn">helpful</a>
+          <a href="category.html?tag=mysterious" class="tag-btn">mysterious</a>
+          <a href="category.html?tag=leader" class="tag-btn">leader</a>
+          <a href="category.html?tag=creative" class="tag-btn">creative</a>
+          <a href="category.html?tag=romantic" class="tag-btn">romantic</a>
+          <a href="category.html?tag=adventure" class="tag-btn">adventure</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Character Sections -->
+    <div class="character-section">
+      <div class="section-header">
+        <h2 class="section-title">🏛️ Historische Figuren</h2>
+        <a href="category.html?cat=historical" class="view-all">Bekijk alle →</a>
+      </div>
+      <div class="character-grid-container">
+        <div class="character-grid" id="historical-grid">
+          <div class="loading"></div>
+        </div>
+        <div class="scroll-indicator">→</div>
+      </div>
+    </div>
+
+    <div class="character-section">
+      <div class="section-header">
+        <h2 class="section-title">📚 Fictieve Characters</h2>
+        <a href="category.html?cat=fictional" class="view-all">Bekijk alle →</a>
+      </div>
+      <div class="character-grid-container">
+        <div class="character-grid" id="fictional-grid">
+          <div class="loading"></div>
+        </div>
+        <div class="scroll-indicator">→</div>
+      </div>
+    </div>
+
+    <div class="character-section">
+      <div class="section-header">
+        <h2 class="section-title">⭐ Beroemdheden</h2>
+        <a href="category.html?cat=celebrity" class="view-all">Bekijk alle →</a>
+      </div>
+      <div class="character-grid-container">
+        <div class="character-grid" id="celebrity-grid">
+          <div class="loading"></div>
+        </div>
+        <div class="scroll-indicator">→</div>
+      </div>
+    </div>
+
+    <div class="character-section">
+      <div class="section-header">
+        <h2 class="section-title">🎌 Anime & Manga</h2>
+        <a href="category.html?cat=anime-manga" class="view-all">Bekijk alle →</a>
+      </div>
+      <div class="character-grid-container">
+        <div class="character-grid" id="anime-grid">
+          <div class="loading"></div>
+        </div>
+        <div class="scroll-indicator">→</div>
+      </div>
+    </div>
+
+    <div class="character-section">
+      <div class="section-header">
+        <h2 class="section-title">🎮 Gaming Characters</h2>
+        <a href="category.html?cat=gaming" class="view-all">Bekijk alle →</a>
+      </div>
+      <div class="character-grid-container">
+        <div class="character-grid" id="gaming-grid">
+          <div class="loading"></div>
+        </div>
+        <div class="scroll-indicator">→</div>
+      </div>
+    </div>
+
+    <div class="character-section">
+      <div class="section-header">
+        <h2 class="section-title">🎬 Films & TV</h2>
+        <a href="category.html?cat=movies-tv" class="view-all">Bekijk alle →</a>
+      </div>
+      <div class="character-grid-container">
+        <div class="character-grid" id="movies-grid">
+          <div class="loading"></div>
+        </div>
+        <div class="scroll-indicator">→</div>
+      </div>
+    </div>
+
+    <div class="character-section">
+      <div class="section-header">
+        <h2 class="section-title">⚡ Mythologie</h2>
+        <a href="category.html?cat=mythology" class="view-all">Bekijk alle →</a>
+      </div>
+      <div class="character-grid-container">
+        <div class="character-grid" id="mythology-grid">
+          <div class="loading"></div>
+        </div>
+        <div class="scroll-indicator">→</div>
+      </div>
+    </div>
+
+    <div class="character-section">
+      <div class="section-header">
+        <h2 class="section-title">🤖 AI Assistenten</h2>
+        <a href="category.html?cat=ai-assistant" class="view-all">Bekijk alle →</a>
+      </div>
+      <div class="character-grid-container">
+        <div class="character-grid" id="ai-assistant-grid">
+          <div class="loading"></div>
+        </div>
+        <div class="scroll-indicator">→</div>
+      </div>
+    </div>
+
+    <div class="character-section">
+      <div class="section-header">
+        <h2 class="section-title">💪 Coaching & Training</h2>
+        <a href="category.html?cat=coaching" class="view-all">Bekijk alle →</a>
+      </div>
+      <div class="character-grid-container">
+        <div class="character-grid" id="coaching-grid">
+          <div class="loading"></div>
+        </div>
+        <div class="scroll-indicator">→</div>
+      </div>
+    </div>
+
+    <div class="character-section">
+      <div class="section-header">
+        <h2 class="section-title">✨ Trending Nu</h2>
+        <a href="category.html?sort=trending" class="view-all">Bekijk alle →</a>
+      </div>
+      <div class="character-grid-container">
+        <div class="character-grid" id="trending-grid">
+          <div class="loading"></div>
+        </div>
+        <div class="scroll-indicator">→</div>
+      </div>
     </div>
   </div>
 
   <script>
-    const chatlog = document.getElementById("chatlog");
-    const userInput = document.getElementById("userInput");
+    // Sample character data (in real app, this would come from API)
+    const sampleCharacters = {
+      historical: [
+        { name: "Napoleon Bonaparte", title: "French Emperor", avatar: "🤴", slug: "napoleon" },
+        { name: "Cleopatra", title: "Queen of Egypt", avatar: "👸", slug: "cleopatra" },
+        { name: "Leonardo da Vinci", title: "Renaissance Genius", avatar: "🎨", slug: "leonardo" },
+        { name: "Albert Einstein", title: "Physicist", avatar: "🧠", slug: "einstein" },
+        { name: "Marie Curie", title: "Scientist", avatar: "🔬", slug: "marie-curie" },
+        { name: "Winston Churchill", title: "British PM", avatar: "🎩", slug: "churchill" }
+      ],
+      fictional: [
+        { name: "Sherlock Holmes", title: "Detective", avatar: "🕵️", slug: "sherlock" },
+        { name: "Gandalf", title: "Wizard", avatar: "🧙", slug: "gandalf" },
+        { name: "Hermione Granger", title: "Witch", avatar: "📚", slug: "hermione" },
+        { name: "Tony Stark", title: "Iron Man", avatar: "🦾", slug: "tony-stark" },
+        { name: "Yoda", title: "Jedi Master", avatar: "👽", slug: "yoda" },
+        { name: "Tyrion Lannister", title: "The Imp", avatar: "🍷", slug: "tyrion" }
+      ],
+      celebrity: [
+        { name: "Elon Musk", title: "Tech Entrepreneur", avatar: "🚀", slug: "elon-musk" },
+        { name: "Oprah Winfrey", title: "Media Mogul", avatar: "📺", slug: "oprah" },
+        { name: "Gordon Ramsay", title: "Chef", avatar: "👨‍🍳", slug: "gordon-ramsay" },
+        { name: "Steve Jobs", title: "Apple Founder", avatar: "💻", slug: "steve-jobs" },
+        { name: "Taylor Swift", title: "Singer", avatar: "🎤", slug: "taylor-swift" },
+        { name: "Bill Gates", title: "Microsoft Founder", avatar: "💼", slug: "bill-gates" }
+      ],
+      "anime-manga": [
+        { name: "Naruto Uzumaki", title: "Ninja Hero", avatar: "🥷", slug: "naruto" },
+        { name: "Goku", title: "Saiyan Warrior", avatar: "🐒", slug: "goku" },
+        { name: "Sailor Moon", title: "Magical Girl", avatar: "🌙", slug: "sailor-moon" },
+        { name: "Light Yagami", title: "Death Note", avatar: "📓", slug: "light-yagami" },
+        { name: "Edward Elric", title: "Alchemist", avatar: "⚗️", slug: "edward-elric" },
+        { name: "Monkey D. Luffy", title: "Pirate King", avatar: "🏴‍☠️", slug: "luffy" }
+      ],
+      gaming: [
+        { name: "Master Chief", title: "Spartan", avatar: "⚔️", slug: "master-chief" },
+        { name: "Kratos", title: "God of War", avatar: "⚡", slug: "kratos" },
+        { name: "Lara Croft", title: "Tomb Raider", avatar: "🏺", slug: "lara-croft" },
+        { name: "Mario", title: "Plumber", avatar: "🍄", slug: "mario" },
+        { name: "Geralt", title: "Witcher", avatar: "🗡️", slug: "geralt" },
+        { name: "Cloud Strife", title: "SOLDIER", avatar: "⚔️", slug: "cloud" }
+      ],
+      "movies-tv": [
+        { name: "Walter White", title: "Chemistry Teacher", avatar: "🧪", slug: "walter-white" },
+        { name: "Tyrion Lannister", title: "Hand of the King", avatar: "👑", slug: "tyrion-got" },
+        { name: "The Joker", title: "Clown Prince", avatar: "🃏", slug: "joker" },
+        { name: "Darth Vader", title: "Sith Lord", avatar: "🖤", slug: "darth-vader" },
+        { name: "Rick Sanchez", title: "Mad Scientist", avatar: "🥒", slug: "rick" },
+        { name: "Eleven", title: "Psychic Girl", avatar: "🔮", slug: "eleven" }
+      ],
+      mythology: [
+        { name: "Zeus", title: "King of Gods", avatar: "⚡", slug: "zeus" },
+        { name: "Thor", title: "God of Thunder", avatar: "🔨", slug: "thor" },
+        { name: "Athena", title: "Goddess of Wisdom", avatar: "🦉", slug: "athena" },
+        { name: "Loki", title: "Trickster God", avatar: "🐍", slug: "loki" },
+        { name: "Anubis", title: "God of Death", avatar: "🐺", slug: "anubis" },
+        { name: "Odin", title: "All-Father", avatar: "👁️", slug: "odin" }
+      ],
+      "ai-assistant": [
+        { name: "Study Buddy", title: "Learning Assistant", avatar: "📖", slug: "study-buddy" },
+        { name: "Code Helper", title: "Programming AI", avatar: "💻", slug: "code-helper" },
+        { name: "Therapy Bot", title: "Mental Health", avatar: "🧘", slug: "therapy-bot" },
+        { name: "Fitness Coach", title: "Personal Trainer", avatar: "💪", slug: "fitness-coach" },
+        { name: "Career Advisor", title: "Job Guidance", avatar: "💼", slug: "career-advisor" },
+        { name: "Language Teacher", title: "Multilingual Tutor", avatar: "🗣️", slug: "language-teacher" }
+      ],
+      coaching: [
+        { name: "Tony Robbins", title: "Life Coach", avatar: "🌟", slug: "tony-robbins" },
+        { name: "Jillian Michaels", title: "Fitness Expert", avatar: "🏋️", slug: "jillian-michaels" },
+        { name: "Tim Ferriss", title: "Productivity Guru", avatar: "⏰", slug: "tim-ferriss" },
+        { name: "Brené Brown", title: "Vulnerability Expert", avatar: "💝", slug: "brene-brown" },
+        { name: "Gary Vaynerchuk", title: "Business Coach", avatar: "📈", slug: "gary-vee" },
+        { name: "Marie Kondo", title: "Organization Expert", avatar: "✨", slug: "marie-kondo" }
+      ],
+      trending: [
+        { name: "ChatGPT", title: "AI Assistant", avatar: "🤖", slug: "chatgpt" },
+        { name: "Elon Musk", title: "Tech Visionary", avatar: "🚀", slug: "elon" },
+        { name: "The Joker", title: "Chaos Agent", avatar: "🃏", slug: "joker-trending" },
+        { name: "Gandalf", title: "Wise Wizard", avatar: "🧙", slug: "gandalf-trending" },
+        { name: "Napoleon", title: "Emperor", avatar: "⚔️", slug: "napoleon-trending" },
+        { name: "Yoda", title: "Jedi Master", avatar: "👽", slug: "yoda-trending" }
+      ]
+    };
 
-    async function sendMessage(event) {
-      event?.preventDefault(); // belangrijk voor mobiel
-
-      const input = userInput.value.trim();
-      if (!input) return;
-
-      chatlog.innerHTML += `<p><strong>You:</strong> ${input}</p>`;
-      userInput.value = "";
-      chatlog.scrollTop = chatlog.scrollHeight;
-
-      try {
-        const response = await fetch("https://hook.eu2.make.com/c753wxuxgpcu37fol9seri6rdtpz2lju", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: input }),
-        });
-
-        const text = await response.text();
-        console.log("Ruwe response:", text);
-
-        const data = JSON.parse(text);
-        const reply = data.reply || "⚠️ Napoleon had no reply.";
-
-        chatlog.innerHTML += `<p><strong><img src="napoleon.png" class="avatar" alt="Napoleon"> Napoleon:</strong> ${reply}</p>`;
-      } catch (error) {
-        console.error("Fout in fetch:", error);
-        alert("❌ Fout bij verzenden: " + error.message);
-        chatlog.innerHTML += `<p><strong>Napoleon:</strong> ⚠️ Er ging iets mis bij het versturen.</p>`;
-      }
-
-      chatlog.scrollTop = chatlog.scrollHeight;
+    // Load characters for each category
+    function loadCharactersForCategory(category, gridId) {
+      const grid = document.getElementById(gridId);
+      const characters = sampleCharacters[category] || [];
+      
+      // Clear loading spinner
+      grid.innerHTML = '';
+      
+      characters.forEach(character => {
+        const card = document.createElement('a');
+        card.className = 'character-card';
+        card.href = `chat.html?char=${character.slug}`;
+        
+        card.innerHTML = `
+          <div class="character-avatar">${character.avatar}</div>
+          <div class="character-name">${character.name}</div>
+          <div class="character-title">${character.title}</div>
+        `;
+        
+        grid.appendChild(card);
+      });
     }
-  </script>
-</body>
-</html>
+
+    // Initialize all character grids
+    function initializeCharacterGrids() {
+      loadCharactersForCategory('historical', 'historical-
