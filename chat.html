@@ -575,15 +575,31 @@
         return;
       }
       
-      // Check if user is logged in by checking the current Netlify Identity user
+      // Debug logging
       const currentUser = netlifyIdentity.currentUser();
+      const token = localStorage.getItem("user_token");
+      const uid = localStorage.getItem("user_uid");
+      const email = localStorage.getItem("user_email");
       
-      if (!currentUser || !window.isRegistered) {
-        // Only open login modal if user is not logged in
+      console.log("DEBUG handleSendClick:", {
+        currentUser: currentUser,
+        isRegistered: window.isRegistered,
+        hasToken: !!token,
+        hasUid: !!uid,
+        hasEmail: !!email
+      });
+      
+      // Check multiple ways if user is logged in
+      const isLoggedIn = currentUser || 
+                        (window.isRegistered && token && uid && email);
+      
+      if (!isLoggedIn) {
+        console.log("User not logged in, opening login modal");
         netlifyIdentity.open("login");
         return;
       }
       
+      console.log("User is logged in, proceeding with message");
       // User is logged in, proceed with sending the message
       sendMessage(event);
     }
