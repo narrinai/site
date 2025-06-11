@@ -19,63 +19,110 @@
     }
 
     input,
-    button {
+    button,
+    textarea {
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
       z-index: 10;
       position: relative;
     }
 
-    .chat-container {
+    .container {
       max-width: 700px;
       margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 32px;
+      margin: 0 0 10px 0;
+      color: #333;
+    }
+
+    .header p {
+      color: #666;
+      font-size: 16px;
+      margin: 0;
+    }
+
+    .character-section {
+      background: #f8f9fa;
+      padding: 24px;
+      border-radius: 12px;
+      margin-bottom: 20px;
     }
 
     .character-header {
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 20px;
-      padding: 16px;
-      background: #f8f9fa;
-      border-radius: 12px;
+      gap: 16px;
     }
 
     .character-avatar {
-      width: 64px;
-      height: 64px;
+      width: 80px;
+      height: 80px;
       border-radius: 50%;
       object-fit: cover;
       background: #e0e0e0;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 32px;
+      font-size: 40px;
+      flex-shrink: 0;
+    }
+
+    .character-avatar img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .character-info {
+      flex: 1;
     }
 
     .character-info h2 {
-      margin: 0 0 4px 0;
+      margin: 0 0 8px 0;
       color: #333;
       font-size: 24px;
+      font-weight: 600;
     }
 
     .character-info p {
       margin: 0;
       color: #666;
-      font-size: 14px;
+      font-size: 16px;
+    }
+
+    .chat-section {
+      background: #f8f9fa;
+      padding: 24px;
+      border-radius: 12px;
+      margin-bottom: 20px;
     }
 
     .loading-state {
       text-align: center;
-      padding: 40px 20px;
+      padding: 60px 20px;
       color: #666;
+    }
+
+    .loading-state h3 {
+      font-size: 20px;
+      margin: 0 0 12px 0;
+      color: #333;
     }
 
     .error-state {
       text-align: center;
       padding: 40px 20px;
-      color: #e74c3c;
-      background: #fdf2f2;
+      color: #c53030;
+      background: #fed7d7;
       border-radius: 12px;
       margin-bottom: 20px;
     }
@@ -83,53 +130,78 @@
     .error-state h3 {
       margin: 0 0 8px 0;
       color: #c53030;
+      font-size: 20px;
     }
 
     .error-state p {
       margin: 0 0 16px 0;
+      font-size: 16px;
     }
 
     .error-state a {
-      color: #667eea;
+      color: #2c5282;
       text-decoration: none;
       font-weight: 500;
+      transition: color 0.2s ease;
+    }
+
+    .error-state a:hover {
+      color: #2a4e7c;
+      text-decoration: underline;
     }
 
     #chatlog {
-      height: 300px;
+      height: 400px;
       overflow-y: auto;
-      background: #f5f5f5;
-      padding: 16px;
-      border-radius: 10px;
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
       margin-bottom: 20px;
       font-size: 16px;
+      border: 1px solid #e0e0e0;
+    }
+
+    #chatlog p {
+      margin: 0 0 16px 0;
+      line-height: 1.5;
+    }
+
+    #chatlog p:last-child {
+      margin-bottom: 0;
     }
 
     .input-group {
       display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 12px;
     }
 
     #userInput {
-      flex: 1 1 240px;
-      max-width: 600px;
-      min-width: 180px;
-      padding: 12px 16px;
+      flex: 1;
+      padding: 14px 16px;
       font-size: 16px;
       border: 1px solid #ccc;
       border-radius: 8px;
+      font-family: inherit;
+      transition: border-color 0.2s ease;
+    }
+
+    #userInput:focus {
+      outline: none;
+      border-color: #333;
     }
 
     button {
-      padding: 12px 24px;
+      padding: 14px 28px;
       background-color: #000;
       color: #fff;
       border: none;
       border-radius: 12px;
       font-size: 16px;
+      font-weight: 500;
       cursor: pointer;
-      transition: background-color 0.2s ease;
+      transition: all 0.2s ease;
+      min-width: 100px;
     }
 
     button:hover {
@@ -141,44 +213,82 @@
       cursor: not-allowed;
     }
 
+    .disclaimer {
+      font-size: 12px;
+      color: #666;
+      text-align: center;
+      line-height: 1.4;
+      margin-top: 0;
+    }
+
+    .disclaimer-icon {
+      display: inline-block;
+      margin-right: 4px;
+    }
+
     .avatar {
-      width: 32px;
-      height: 32px;
+      width: 24px;
+      height: 24px;
       border-radius: 50%;
       vertical-align: middle;
       margin-right: 8px;
       object-fit: cover;
     }
 
+    .message-avatar {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 24px;
+      font-size: 12px;
+      vertical-align: middle;
+      margin-right: 8px;
+      background: #e0e0e0;
+    }
+
     @media (max-width: 600px) {
       body {
         padding: 16px;
       }
-      .chat-container {
-        padding: 0;
+
+      .header h1 {
+        font-size: 28px;
       }
-      .character-header {
-        padding: 12px;
+
+      .character-section,
+      .chat-section {
+        padding: 20px;
       }
+
       .character-avatar {
-        width: 48px;
-        height: 48px;
-        font-size: 24px;
+        width: 64px;
+        height: 64px;
+        font-size: 32px;
       }
+
       .character-info h2 {
         font-size: 20px;
       }
+
       #chatlog {
-        height: 240px;
+        height: 300px;
+        padding: 16px;
         font-size: 15px;
       }
+
       .input-group {
         flex-direction: column;
-        gap: 12px;
       }
-      #userInput,
+
       button {
         width: 100%;
+      }
+
+      .disclaimer {
+        font-size: 11px;
+        padding: 0 8px;
       }
     }
   </style>
@@ -283,7 +393,7 @@
 </head>
 
 <body>
-  <div class="chat-container">
+  <div class="container">
     <div id="loadingState" class="loading-state">
       <h3>Loading character...</h3>
       <p>Please wait while we fetch your character's information.</p>
@@ -296,18 +406,33 @@
     </div>
 
     <div id="chatInterface" style="display: none;">
-      <div class="character-header" id="characterHeader">
-        <div class="character-avatar" id="characterAvatar">👤</div>
-        <div class="character-info">
-          <h2 id="characterName">Loading...</h2>
-          <p id="characterTitle"></p>
+      <div class="header">
+        <h1>Character Chat</h1>
+        <p>Have a conversation with your AI character</p>
+      </div>
+
+      <div class="character-section">
+        <div class="character-header" id="characterHeader">
+          <div class="character-avatar" id="characterAvatar">👤</div>
+          <div class="character-info">
+            <h2 id="characterName">Loading...</h2>
+            <p id="characterTitle"></p>
+          </div>
         </div>
       </div>
 
-      <div id="chatlog"></div>
-      <div class="input-group">
-        <input id="userInput" type="text" placeholder="Say something..." />
-        <button onclick="handleSendClick(event)" id="sendButton">Send</button>
+      <div class="chat-section">
+        <div id="chatlog"></div>
+        <div class="input-group">
+          <input id="userInput" type="text" placeholder="Type your message here..." />
+          <button onclick="handleSendClick(event)" id="sendButton">Send</button>
+        </div>
+        <div class="disclaimer">
+          <span class="disclaimer-icon">ℹ️</span>
+          This is an AI chatbot and not a real person. All responses are generated by artificial intelligence and should be treated as fiction. 
+          Do not rely on any information provided as factual or as professional advice. 
+          The platform owner assumes no responsibility for the content generated by AI characters.
+        </div>
       </div>
     </div>
   </div>
@@ -408,7 +533,7 @@
       // Update avatar
       const avatarElement = document.getElementById('characterAvatar');
       if (currentCharacter.avatar_url) {
-        avatarElement.innerHTML = `<img src="${currentCharacter.avatar_url}" alt="${currentCharacter.name}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+        avatarElement.innerHTML = `<img src="${currentCharacter.avatar_url}" alt="${currentCharacter.name}">`;
       } else {
         avatarElement.innerHTML = '👤';
       }
@@ -513,7 +638,7 @@
             p.innerHTML = `<strong>You:</strong> ${message}`;
           } else {
             const avatarHtml = getAvatarHtml();
-            p.innerHTML = `<strong>${avatarHtml} ${currentCharacter?.name || 'Character'}:</strong> ${message}`;
+            p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${message}`;
           }
           chatlog.appendChild(p);
         });
@@ -528,7 +653,7 @@
       if (currentCharacter?.avatar_url) {
         return `<img class="avatar" src="${currentCharacter.avatar_url}" alt="avatar">`;
       }
-      return '👤';
+      return '<span class="message-avatar">👤</span>';
     }
 
     // Als de pagina al geladen is en user is ingelogd, laad historie
@@ -607,7 +732,7 @@
         // Toon bot-antwoord
         const divBot = document.createElement("p");
         const avatarHtml = getAvatarHtml();
-        divBot.innerHTML = `<strong>${avatarHtml} ${currentCharacter?.name || 'Character'}:</strong> ${reply}`;
+        divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${reply}`;
         chatlog.appendChild(divBot);
         chatlog.scrollTop = chatlog.scrollHeight;
         
