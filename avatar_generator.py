@@ -169,9 +169,13 @@ def process_characters(start_index=0):
         
         print(f"\n[{index+1}/{len(df)}] Processing: {name}")
         
-        # Skip if already has avatar URL
-        if pd.notna(row.get('avatar_url')) and row['avatar_url'].startswith('http'):
-            print(f"  ✅ Already has avatar URL, skipping")
+        # Skip if already has GitHub avatar URL (not DiceBear)
+        current_url = row.get('avatar_url', '')
+        if (pd.notna(current_url) and 
+            current_url.startswith('http') and 
+            'dicebear.com' not in current_url and
+            'cdn.jsdelivr.net' in current_url):
+            print(f"  ✅ Already has GitHub avatar URL, skipping")
             continue
         
         # Create safe DALL-E prompt
