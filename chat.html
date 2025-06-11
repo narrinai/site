@@ -566,42 +566,39 @@
   </script>
 
   <!-- ─────────────────────────────────────────────────────────────
-       B) handleSendClick() (FIXED VERSION - zorgt dat login‐modal alleen opent als niet ingelogd)
+       B) handleSendClick() (FIXED VERSION - volledig nieuwe aanpak)
        ───────────────────────────────────────────────────────────── -->
   <script>
     function handleSendClick(event) {
+      console.log("handleSendClick called!");
+      
       if (!currentCharacter) {
         alert("Character not loaded yet, please wait...");
         return;
       }
       
-      // Debug logging
-      const currentUser = netlifyIdentity.currentUser();
+      // Check localStorage first - this is more reliable
       const token = localStorage.getItem("user_token");
       const uid = localStorage.getItem("user_uid");
       const email = localStorage.getItem("user_email");
       
-      console.log("DEBUG handleSendClick:", {
-        currentUser: currentUser,
-        isRegistered: window.isRegistered,
+      console.log("Login check:", {
         hasToken: !!token,
         hasUid: !!uid,
-        hasEmail: !!email
+        hasEmail: !!email,
+        isRegistered: window.isRegistered
       });
       
-      // Check multiple ways if user is logged in
-      const isLoggedIn = currentUser || 
-                        (window.isRegistered && token && uid && email);
-      
-      if (!isLoggedIn) {
-        console.log("User not logged in, opening login modal");
-        netlifyIdentity.open("login");
+      // If we have all required data, user is logged in
+      if (token && uid && email) {
+        console.log("User is logged in via localStorage, sending message");
+        sendMessage(event);
         return;
       }
       
-      console.log("User is logged in, proceeding with message");
-      // User is logged in, proceed with sending the message
-      sendMessage(event);
+      // Only open login if we don't have the required data
+      console.log("User not logged in, opening login modal");
+      netlifyIdentity.open("login");
     }
   </script>
 
