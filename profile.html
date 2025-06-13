@@ -568,6 +568,16 @@
         netlifyUser = user;
         handleLoginSuccess(user);
         window.netlifyIdentity.close();
+        
+        // 🔄 NEW: Check for redirect URL and redirect back after login
+        const redirectUrl = localStorage.getItem('login_redirect_url');
+        if (redirectUrl && redirectUrl !== window.location.href) {
+          localStorage.removeItem('login_redirect_url'); // Clean up
+          showSuccess('Login successful! Redirecting back...');
+          setTimeout(() => {
+            window.location.href = redirectUrl;
+          }, 1500); // Small delay to show success message
+        }
       });
 
       window.netlifyIdentity.on('logout', () => {
