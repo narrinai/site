@@ -3,14 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mijn Profiel</title>
+  <title>My Profile - Narrin AI</title>
+  <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
       margin: 0;
-      padding: 20px;
+      padding: 0;
       background-color: #ffffff;
+      color: #333;
+      line-height: 1.6;
       pointer-events: auto;
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
@@ -23,24 +26,97 @@
       z-index: 10;
       position: relative;
     }
+
+    /* Header Navigation */
+    .header {
+      background: #ffffff;
+      border-bottom: 1px solid #e0e0e0;
+      padding: 16px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 600;
+      color: #000;
+      text-decoration: none;
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .nav-buttons .btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border: none;
+      display: inline-block;
+      text-align: center;
+    }
+
+    .nav-buttons .btn-primary {
+      background-color: #000;
+      color: #fff;
+    }
+
+    .nav-buttons .btn-primary:hover {
+      background-color: #333;
+    }
+
+    .nav-buttons .btn-secondary {
+      background-color: #f5f5f5;
+      color: #333;
+      border: 1px solid #e0e0e0;
+    }
+
+    .nav-buttons .btn-secondary:hover {
+      background-color: #e0e0e0;
+    }
+
+    .nav-buttons .btn-secondary.active {
+      background-color: #000;
+      color: #fff;
+      border-color: #000;
+    }
     
     .container {
       max-width: 700px;
       margin: 0 auto;
+      padding: 20px;
     }
     
-    .header {
+    .page-header {
       text-align: center;
       margin-bottom: 30px;
     }
     
-    .header h1 {
+    .page-header h1 {
       font-size: 32px;
       margin: 0 0 10px 0;
       color: #333;
     }
     
-    .header p {
+    .page-header p {
       color: #666;
       font-size: 16px;
       margin: 0;
@@ -266,12 +342,32 @@
       color: #666;
     }
     
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+      .header-content {
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .nav-buttons {
+        width: 100%;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .nav-buttons .btn {
+        flex: 1;
+        padding: 8px 12px;
+        font-size: 12px;
+      }
+    }
+    
     @media (max-width: 600px) {
-      body { 
+      .container { 
         padding: 16px; 
       }
       
-      .header h1 {
+      .page-header h1 {
         font-size: 28px;
       }
       
@@ -328,45 +424,61 @@
       }
     }
   </style>
-
-  <!-- Netlify Identity widget -->
-  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
 
 <body>
+  <!-- Header Navigation -->
+  <header class="header">
+    <div class="header-content">
+      <a href="index.html" class="logo">Narrin AI</a>
+      <nav class="nav-buttons">
+        <a href="index.html" class="btn btn-secondary">🏠 Home</a>
+        <a href="characters.html" class="btn btn-secondary">🎭 Characters</a>
+        <a href="chats.html" class="btn btn-secondary">💬 Chats</a>
+        <a href="profile.html" class="btn btn-secondary active">👤 Profile</a>
+        <a href="create-character.html" class="btn btn-primary">✨ Create Character</a>
+      </nav>
+    </div>
+  </header>
+
   <div class="container">
-    <div class="header-controls">
-      <button id="login-btn" class="btn">Log in / Registreren</button>
-      <button id="logout-btn" class="btn" style="display:none;">Uitloggen</button>
+    <div class="page-header">
+      <h1>My Profile</h1>
+      <p>Manage your account settings and view your usage</p>
     </div>
     
-    <div class="header">
-      <h1>Mijn Profiel</h1>
-      <p>Beheer je account instellingen en bekijk je gebruik</p>
-    </div>
-    
-    <div id="profile">
+    <div id="not-logged-in" style="display: none;">
       <div class="form-section">
-        <h2>Account Informatie</h2>
+        <h2>⚠️ Not logged in</h2>
+        <p>You must be logged in to view your profile.</p>
+        <button class="btn" onclick="window.netlifyIdentity.open('login')" style="background-color: #000; color: white;">
+          👤 Log in
+        </button>
+      </div>
+    </div>
+    
+    <div id="profile" style="display: none;">
+      <div class="form-section">
+        <h2>Account Information</h2>
         
         <div class="profile-item" data-field="email">
-          <span class="label">E-mail:</span>
+          <span class="label">Email:</span>
           <span class="value" id="email">...</span>
-          <button class="edit-btn" onclick="enableEdit('email')">Bewerk</button>
+          <button class="edit-btn" onclick="enableEdit('email')">Edit</button>
         </div>
         
         <div class="profile-item" data-field="plan">
           <span class="label">Plan:</span>
           <span class="value" id="plan">...</span>
-          <button class="edit-btn" onclick="enableEdit('plan')">Bewerk</button>
+          <button class="edit-btn" onclick="enableEdit('plan')">Edit</button>
         </div>
         
         <div class="profile-item" data-field="usage">
-          <span class="label">Verbruik:</span>
+          <span class="label">Usage:</span>
           <div class="value">
             <div class="usage-display">
               <span class="usage-text">
-                <span id="usage">...</span> / <span id="quota">...</span> berichten
+                <span id="usage">...</span> / <span id="quota">...</span> messages
               </span>
               <div class="usage-bar">
                 <div class="usage-fill" id="usage-fill" style="width: 0%"></div>
@@ -375,7 +487,13 @@
           </div>
         </div>
         
-        <button id="upgrade-btn" onclick="handleUpgrade()">Upgrade naar Pro</button>
+        <button id="upgrade-btn" onclick="handleUpgrade()">Upgrade to Pro</button>
+        
+        <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center;">
+          <button id="logout-btn" class="btn" onclick="handleLogout()" style="background-color: #dc3545; color: white;">
+            🚪 Log out
+          </button>
+        </div>
       </div>
       
       <div id="error" style="display:none;"></div>
@@ -408,8 +526,8 @@
     function setupEventListeners() {
       // Netlify Identity events
       window.netlifyIdentity.on('login', user => {
-        console.log('✅ Login succesvol:', user.email);
-        window.netlifyIdentity.close(); // Sluit login modal
+        console.log('✅ Login successful:', user.email);
+        window.netlifyIdentity.close(); // Close login modal
         localStorage.setItem('user_email', user.email);
         localStorage.setItem('user_token', user.token.access_token);
         localStorage.setItem('user_uid', user.id);
@@ -419,33 +537,27 @@
       });
 
       window.netlifyIdentity.on('logout', () => {
-        console.log('👋 Uitgelogd');
+        console.log('👋 Logged out');
         localStorage.clear();
         resetUI();
+        // Redirect to home page after logout
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1000);
       });
+    }
 
-      // Login button
-      document.getElementById('login-btn').addEventListener('click', () => {
-        window.netlifyIdentity.open('login');
-      });
-
-      // Logout button
-      document.getElementById('logout-btn').addEventListener('click', () => {
+    // Logout function
+    function handleLogout() {
+      if (confirm('Are you sure you want to log out?')) {
         window.netlifyIdentity.logout();
-      });
+      }
     }
 
     // UI Helper functions
     function resetUI() {
-      document.getElementById('login-btn').style.display = 'block';
-      document.getElementById('logout-btn').style.display = 'none';
-      document.getElementById('upgrade-btn').style.display = 'none';
-      document.querySelectorAll('.edit-btn').forEach(b => b.style.display = 'none');
-      setField('email','...');
-      setField('plan','...');
-      setField('usage','...');
-      document.getElementById('quota').textContent = '...';
-      document.getElementById('usage-fill').style.width = '0%';
+      document.getElementById('not-logged-in').style.display = 'block';
+      document.getElementById('profile').style.display = 'none';
       hideMessages();
     }
 
@@ -455,13 +567,13 @@
       const uid = localStorage.getItem('user_uid');
       
       if (token && email && uid) {
+        document.getElementById('not-logged-in').style.display = 'none';
+        document.getElementById('profile').style.display = 'block';
         document.querySelectorAll('.edit-btn').forEach(btn => btn.style.display = 'inline-block');
         document.getElementById('upgrade-btn').style.display = 'block';
-        document.getElementById('login-btn').style.display = 'none';
-        document.getElementById('logout-btn').style.display = 'inline-block';
-        console.log('✅ Auth UI ingesteld - gebruiker is ingelogd');
+        console.log('✅ User is logged in - auth UI set');
       } else {
-        console.log('❌ Auth UI reset - gebruiker niet ingelogd');
+        console.log('❌ User not logged in - auth UI reset');
         resetUI();
       }
     }
@@ -473,7 +585,7 @@
       const uid = localStorage.getItem('user_uid');
       
       if (!token || !email || !uid) {
-        console.log('⚠️ Geen auth data - profiel niet geladen');
+        console.log('⚠️ No auth data - profile not loaded');
         return;
       }
 
@@ -487,7 +599,7 @@
           user_token: token 
         };
         
-        logDebug('Request payload', payload);
+        console.log('Request payload', payload);
         
         const resp = await fetch('https://hook.eu2.make.com/lya166veex7oo2wwo8mx4fuhlkssxlog', {
           method: 'POST',
@@ -502,9 +614,9 @@
         }
         
         const data = await resp.json();
-        console.log('📋 Profile data ontvangen:', data);
+        console.log('📋 Profile data received:', data);
         
-        // Verwerk de data
+        // Process the data
         if (data.email) setField('email', data.email);
         if (data.plan) setField('plan', data.plan);
         if (data.usage !== undefined && data.quota !== undefined) {
@@ -516,12 +628,12 @@
           document.getElementById('usage-fill').style.width = `${Math.min(percentage, 100)}%`;
         }
         
-        showSuccess('Profiel succesvol geladen!');
-        console.log('✅ Profiel geladen en UI bijgewerkt');
+        showSuccess('Profile loaded successfully!');
+        console.log('✅ Profile loaded and UI updated');
         
       } catch (error) {
-        console.error('❌ Fout bij laden profiel:', error);
-        showError(`Fout bij laden: ${error.message}`);
+        console.error('❌ Error loading profile:', error);
+        showError(`Loading error: ${error.message}`);
       } finally {
         hideLoading();
       }
@@ -530,7 +642,7 @@
     // Edit functionality
     function enableEdit(field) {
       if (isEditing) {
-        showError('Er wordt al een veld bewerkt. Sla eerst op of annuleer.');
+        showError('A field is already being edited. Save or cancel first.');
         return;
       }
       
@@ -557,13 +669,13 @@
       
       // Create save and cancel buttons
       const saveBtn = document.createElement('button');
-      saveBtn.textContent = 'Opslaan';
+      saveBtn.textContent = 'Save';
       saveBtn.className = 'save-btn';
       saveBtn.style.display = 'inline-block';
       saveBtn.onclick = () => saveField(field);
       
       const cancelBtn = document.createElement('button');
-      cancelBtn.textContent = 'Annuleer';
+      cancelBtn.textContent = 'Cancel';
       cancelBtn.className = 'cancel-btn';
       cancelBtn.style.display = 'inline-block';
       cancelBtn.onclick = () => cancelEdit(field);
@@ -601,7 +713,7 @@
       const newValue = input.value.trim();
       
       if (!newValue) {
-        showError('Waarde mag niet leeg zijn');
+        showError('Value cannot be empty');
         return;
       }
       
@@ -641,12 +753,12 @@
         
         // Update UI
         finishEdit(field, newValue);
-        showSuccess(`${field} succesvol bijgewerkt!`);
+        showSuccess(`${field} updated successfully!`);
         console.log(`✅ Field ${field} saved successfully`);
         
       } catch (error) {
         console.error(`❌ Error saving ${field}:`, error);
-        showError(`Fout bij opslaan: ${error.message}`);
+        showError(`Save error: ${error.message}`);
       } finally {
         hideLoading();
       }
@@ -725,7 +837,7 @@
 
     // Upgrade function (placeholder)
     function handleUpgrade() {
-      showSuccess('Upgrade functionaliteit komt binnenkort!');
+      showSuccess('Upgrade functionality coming soon!');
       console.log('🚀 Upgrade button clicked');
     }
   </script>
