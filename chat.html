@@ -551,23 +551,32 @@
 
   <!-- Navigation and Netlify Identity functions -->
   <script>
+    // Check if mobile device
+    function isMobileDevice() {
+      return window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+
     // Netlify Identity functions (matching index.html)
     function openNetlifyLogin() {
       if (window.netlifyIdentity) {
-        // Temporarily lower header z-index before opening modal
-        const header = document.querySelector('.header');
-        if (header) {
-          header.style.zIndex = '1';
-        }
-        
-        window.netlifyIdentity.open();
-        
-        // Restore header z-index after modal closes
-        setTimeout(() => {
+        if (isMobileDevice()) {
+          // On mobile, redirect to login page instead of modal
+          window.location.href = '/.netlify/identity/login';
+        } else {
+          // On desktop, use modal with z-index fix
+          const header = document.querySelector('.header');
           if (header) {
-            header.style.zIndex = '100';
+            header.style.zIndex = '1';
           }
-        }, 500);
+          
+          window.netlifyIdentity.open();
+          
+          setTimeout(() => {
+            if (header) {
+              header.style.zIndex = '100';
+            }
+          }, 500);
+        }
       } else {
         console.error('Netlify Identity not loaded');
         alert('Login system not available. Please try again later.');
