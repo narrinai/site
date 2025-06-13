@@ -785,8 +785,25 @@
         return;
       }
       
-      // Only open login if we don't have the required data
-      netlifyIdentity.open("login");
+      // Check if mobile and redirect to profile, otherwise open modal
+      if (isMobileDevice()) {
+        // Store current page for redirect after login
+        localStorage.setItem('login_redirect_url', window.location.href);
+        window.location.href = 'profile.html';
+      } else {
+        const header = document.querySelector('.header');
+        if (header) {
+          header.style.zIndex = '1';
+        }
+        
+        window.netlifyIdentity.open('login');
+        
+        setTimeout(() => {
+          if (header) {
+            header.style.zIndex = '100';
+          }
+        }, 500);
+      }
     }
   </script>
 
