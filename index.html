@@ -944,11 +944,9 @@
       const user = window.netlifyIdentity && window.netlifyIdentity.currentUser();
       
       if (user) {
-        loginBtn.innerHTML = '👤 ' + user.user_metadata.full_name || user.email;
+        loginBtn.innerHTML = '👤 ' + (user.user_metadata.full_name || user.email);
         loginBtn.onclick = function() {
-          if (confirm('Do you want to logout?')) {
-            window.netlifyIdentity.logout();
-          }
+          window.location.href = 'profile.html';
           return false;
         };
       } else {
