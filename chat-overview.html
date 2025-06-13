@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Chats - Narrin AI</title>
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #ffffff;
+      pointer-events: auto;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    input,
+    button,
+    textarea {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      z-index: 10;
+      position: relative;
+    }
+
+    /* Header Styles (matching other pages) */
+    .header {
+      background: #ffffff;
+      border-bottom: 1px solid #e0e0e0;
+      padding: 16px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 600;
+      color: #000;
+      text-decoration: none;
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border: none;
+      display: inline-block;
+      text-align: center;
+    }
+
+    .btn-primary {
+      background-color: #000;
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background-color: #333;
+    }
+
+    .btn-secondary {
+      background-color: #f5f5f5;
+      color: #333;
+      border: 1px solid #e0e0e0;
+    }
+
+    .btn-secondary:hover {
+      background-color: #e0e0e0;
+    }
+
+    @media (max-width: 768px) {
+      .nav-buttons {
+        gap: 8px;
+      }
+      
+      .btn {
+        padding: 8px 12px;
+        font-size: 12px;
+      }
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 5px 20px;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .page-header h1 {
+      font-size: 28px;
+      margin: 0 0 8px 0;
+      color: #333;
+    }
+
+    .page-header p {
+      color: #666;
+      font-size: 16px;
+      margin: 0;
+    }
+
+    .loading-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #666;
+    }
+
+    .loading-state h3 {
+      font-size: 20px;
+      margin: 0 0 12px 0;
+      color: #333;
+    }
+
+    .error-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #c53030;
+      background: #fed7d7;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .error-state h3 {
+      margin: 0 0 8px 0;
+      color: #c53030;
+      font-size: 20px;
+    }
+
+    .not-logged-in {
+      text-align: center;
+      padding: 60px 20px;
+      background: #f8f9fa;
+      border-radius: 12px;
+      margin: 20px 0;
+    }
+
+    .not-logged-in h3 {
+      font-size: 24px;
+      margin: 0 0 12px 0;
+      color: #333;
+    }
+
+    .not-logged-in p {
+      color: #666;
+      margin: 0 0 24px 0;
+      font-size: 16px;
+    }
+
+    .create-character-cta {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 40px 30px;
+      border-radius: 16px;
+      text-align: center;
+      color: white;
+      margin-bottom: 30px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .create-character-cta::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+      pointer-events: none;
+    }
+
+    .create-character-cta .content {
+      position: relative;
+      z-index: 10;
+    }
+
+    .create-character-cta h2 {
+      font-size: 24px;
+      margin: 0 0 12px 0;
+      font-weight: 700;
+    }
+
+    .create-character-cta p {
+      font-size: 16px;
+      margin: 0 0 24px 0;
+      opacity: 0.9;
+    }
+
+    .create-character-cta .btn {
+      background: rgba(255, 255, 255, 0.9);
+      color: #667eea;
+      font-weight: 600;
+      padding: 14px 28px;
+      font-size: 16px;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+    }
+
+    .create-character-cta .btn:hover {
+      background: white;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .chats-section {
+      margin-bottom: 40px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      margin: 0;
+      color: #333;
+      font-weight: 600;
+    }
+
+    .chats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+
+    .chat-card {
+      background: #ffffff;
+      border: 1px solid #e0e0e0;
+      border-radius: 12px;
+      padding: 20px;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .chat-card:hover {
+      border-color: #000;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .chat-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .chat-avatar {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      border: 2px solid #e0e0e0;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .chat-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    .chat-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .chat-name {
+      font-weight: 600;
+      margin: 0 0 4px 0;
+      font-size: 16px;
+      color: #000;
+    }
+
+    .chat-title {
+      font-size: 13px;
+      color: #666;
+      margin: 0;
+    }
+
+    .chat-preview {
+      color: #666;
+      font-size: 14px;
+      line-height: 1.4;
+      margin: 0 0 8px 0;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .chat-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: #999;
+    }
+
+    .chat-date {
+      font-size: 12px;
+      color: #999;
+    }
+
+    .message-count {
+      background: #f0f0f0;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      color: #666;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #666;
+    }
+
+    .empty-state h3 {
+      font-size: 20px;
+      margin: 0 0 12px 0;
+      color: #333;
+    }
+
+    .empty-state p {
+      margin: 0 0 24px 0;
+      font-size: 16px;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 8px 16px;
+      }
+
+      .page-header h1 {
+        font-size: 24px;
+      }
+
+      .chats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .create-character-cta {
+        padding: 30px 20px;
+      }
+
+      .create-character-cta h2 {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <a href="index.html" class="logo">Narrin AI</a>
+      <nav class="nav-buttons">
+        <a href="category.html" class="btn btn-secondary">🎭 Characters</a>
+        <a href="#" onclick="openNetlifyLogin(); return false;" class="btn btn-secondary" id="loginBtn">👤 Login</a>
+        <a href="create-character.html" class="btn btn-primary">✨ Create Character</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="page-header">
+      <h1>My Chats</h1>
+      <p>Continue your conversations with AI characters</p>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loadingState" class="loading-state">
+      <h3>Loading your chats...</h3>
+      <p>Please wait while we fetch your conversation history.</p>
+    </div>
+
+    <!-- Error State -->
+    <div id="errorState" class="error-state" style="display: none;">
+      <h3>Unable to load chats</h3>
+      <p>There was an error loading your chat history. Please try again later.</p>
+    </div>
+
+    <!-- Not Logged In State -->
+    <div id="notLoggedIn" class="not-logged-in" style="display: none;">
+      <h3>🔒 Login Required</h3>
+      <p>You need to be logged in to view your chat history.</p>
+      <button class="btn btn-primary" onclick="openNetlifyLogin()">👤 Log in</button>
+    </div>
+
+    <!-- Main Content -->
+    <div id="mainContent" style="display: none;">
+      <!-- Create Character CTA -->
+      <div class="create-character-cta">
+        <div class="content">
+          <h2>✨ Create Your Own AI Character</h2>
+          <p>Bring unique personalities to life and have conversations tailored just for you</p>
+          <a href="create-character.html" class="btn">Create New Character</a>
+        </div>
+      </div>
+
+      <!-- Chats Section -->
+      <div class="chats-section">
+        <div class="section-header">
+          <h2 class="section-title">💬 Recent Conversations</h2>
+        </div>
+        
+        <div id="chatsContainer">
+          <div class="chats-grid" id="chatsGrid">
+            <!-- Chat cards will be populated here -->
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="empty-state" style="display: none;">
+          <h3>No conversations yet</h3>
+          <p>Start chatting with AI characters to see your conversations here</p>
+          <a href="category.html" class="btn btn-primary">Browse Characters</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Global variables
+    let userChats = [];
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('🚀 Chat overview page loaded');
+      
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.init();
+        setupEventListeners();
+        checkAuthAndLoadChats();
+      } else {
+        console.error('❌ Netlify Identity not loaded');
+        showError('Authentication system not available');
+      }
+    });
+
+    function setupEventListeners() {
+      window.netlifyIdentity.on('init', user => {
+        updateLoginButton();
+        if (user) {
+          checkAuthAndLoadChats();
+        }
+      });
+
+      window.netlifyIdentity.on('login', user => {
+        updateLoginButton();
+        window.netlifyIdentity.close();
+        checkAuthAndLoadChats();
+      });
+
+      window.netlifyIdentity.on('logout', () => {
+        updateLoginButton();
+        showNotLoggedIn();
+      });
+    }
+
+    function openNetlifyLogin() {
+      if (window.netlifyIdentity) {
+        localStorage.setItem('login_redirect_url', window.location.href);
+        window.location.href = 'profile.html';
+      } else {
+        console.error('Netlify Identity not loaded');
+        alert('Login system not available. Please try again later.');
+      }
+    }
+
+    function updateLoginButton() {
+      const loginBtn = document.getElementById('loginBtn');
+      const user = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+      
+      if (user) {
+        loginBtn.innerHTML = '👤 ' + (user.user_metadata.full_name || user.email);
+        loginBtn.onclick = function() {
+          window.location.href = 'profile.html';
+          return false;
+        };
+      } else {
+        loginBtn.innerHTML = '👤 Login';
+        loginBtn.onclick = function() {
+          openNetlifyLogin();
+          return false;
+        };
+      }
+    }
+
+    function checkAuthAndLoadChats() {
+      const token = localStorage.getItem('user_token');
+      const email = localStorage.getItem('user_email');
+      const uid = localStorage.getItem('user_uid');
+      const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+
+      if ((token && email && uid) || netlifyUser) {
+        console.log('✅ User is authenticated, loading chats');
+        loadUserChats();
+      } else {
+        console.log('❌ User not authenticated');
+        showNotLoggedIn();
+      }
+    }
+
+    async function loadUserChats() {
+      showLoading();
+      
+      try {
+        const token = localStorage.getItem('user_token');
+        const email = localStorage.getItem('user_email');
+        const uid = localStorage.getItem('user_uid');
+
+        if (!token || !email || !uid) {
+          throw new Error('Missing authentication data');
+        }
+
+        // Make API call to fetch user's chat history
+        const response = await fetch('https://hook.eu2.make.com/your-chats-webhook-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_email: email,
+            user_uid: uid,
+            user_token: token,
+            action: 'get_user_chats'
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        userChats = data.chats || [];
+        
+        console.log('📋 Loaded chats:', userChats);
+        displayChats();
+        
+      } catch (error) {
+        console.error('❌ Error loading chats:', error);
+        // For demo purposes, show sample data when API fails
+        showSampleChats();
+      }
+    }
+
+    function showSampleChats() {
+      // Sample data for demonstration
+      userChats = [
+        {
+          character_name: "Albert Einstein",
+          character_title: "Physicist",
+          character_slug: "albert-einstein",
+          avatar_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+          last_message: "The important thing is not to stop questioning. Curiosity has its own reason for existing.",
+          last_message_date: "2 hours ago",
+          message_count: 12
+        },
+        {
+          character_name: "Marie Curie",
+          character_title: "Scientist",
+          character_slug: "marie-curie",
+          avatar_url: "https://images.unsplash.com/photo-1494790108755-2616b612b631?w=150&h=150&fit=crop&crop=face",
+          last_message: "In science, we must be interested in things, not in persons.",
+          last_message_date: "1 day ago",
+          message_count: 8
+        },
+        {
+          character_name: "Leonardo da Vinci",
+          character_title: "Renaissance Genius",
+          character_slug: "leonardo-da-vinci",
+          avatar_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+          last_message: "Learning never exhausts the mind. Art is never finished, only abandoned.",
+          last_message_date: "3 days ago",
+          message_count: 24
+        }
+      ];
+      
+      displayChats();
+    }
+
+    function displayChats() {
+      hideLoading();
+      showMainContent();
+
+      const chatsGrid = document.getElementById('chatsGrid');
+      const emptyState = document.getElementById('emptyState');
+
+      if (userChats.length === 0) {
+        chatsGrid.style.display = 'none';
+        emptyState.style.display = 'block';
+        return;
+      }
+
+      chatsGrid.style.display = 'grid';
+      emptyState.style.display = 'none';
+      chatsGrid.innerHTML = '';
+
+      userChats.forEach(chat => {
+        const chatCard = createChatCard(chat);
+        chatsGrid.appendChild(chatCard);
+      });
+    }
+
+    function createChatCard(chat) {
+      const card = document.createElement('a');
+      card.className = 'chat-card';
+      card.href = `chat.html?char=${chat.character_slug}`;
+      
+      const avatarContent = chat.avatar_url 
+        ? `<img src="${chat.avatar_url}" alt="${chat.character_name}" onerror="this.parentElement.innerHTML='👤'">`
+        : '👤';
+
+      card.innerHTML = `
+        <div class="chat-header">
+          <div class="chat-avatar">${avatarContent}</div>
+          <div class="chat-info">
+            <h3 class="chat-name">${chat.character_name}</h3>
+            <p class="chat-title">${chat.character_title || ''}</p>
+          </div>
+        </div>
+        <div class="chat-preview">${chat.last_message || 'Start a new conversation...'}</div>
+        <div class="chat-meta">
+          <span class="chat-date">${chat.last_message_date || 'Never'}</span>
+          <span class="message-count">${chat.message_count || 0} messages</span>
+        </div>
+      `;
+
+      return card;
+    }
+
+    // UI State Functions
+    function showLoading() {
+      document.getElementById('loadingState').style.display = 'block';
+      document.getElementById('errorState').style.display = 'none';
+      document.getElementById('notLoggedIn').style.display = 'none';
+      document.getElementById('mainContent').style.display = 'none';
+    }
+
+    function hideLoading() {
+      document.getElementById('loadingState').style.display = 'none';
+    }
+
+    function showError(message) {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('errorState').style.display = 'block';
+      document.getElementById('notLoggedIn').style.display = 'none';
+      document.getElementById('mainContent').style.display = 'none';
+      
+      const errorState = document.getElementById('errorState');
+      errorState.querySelector('p').textContent = message;
+    }
+
+    function showNotLoggedIn() {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('errorState').style.display = 'none';
+      document.getElementById('notLoggedIn').style.display = 'block';
+      document.getElementById('mainContent').style.display = 'none';
+    }
+
+    function showMainContent() {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('errorState').style.display = 'none';
+      document.getElementById('notLoggedIn').style.display = 'none';
+      document.getElementById('mainContent').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
