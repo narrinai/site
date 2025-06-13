@@ -560,8 +560,9 @@
     function openNetlifyLogin() {
       if (window.netlifyIdentity) {
         if (isMobileDevice()) {
-          // On mobile, redirect to login page instead of modal
-          window.location.href = '/.netlify/identity/login';
+          // On mobile, show alert and redirect to profile page
+          alert('For the best login experience on mobile, please use the profile page.');
+          window.location.href = 'profile.html';
         } else {
           // On desktop, use modal with z-index fix
           const header = document.querySelector('.header');
@@ -569,7 +570,7 @@
             header.style.zIndex = '1';
           }
           
-          window.netlifyIdentity.open();
+          window.netlifyIdentity.open('login');
           
           setTimeout(() => {
             if (header) {
