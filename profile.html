@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -97,6 +97,11 @@
       background-color: #000;
       color: #fff;
       border-color: #000;
+    }
+
+    /* Fix for Netlify Identity modal z-index */
+    .netlify-identity-widget {
+      z-index: 999999 !important;
     }
     
     .container {
@@ -433,9 +438,7 @@
       <a href="index.html" class="logo">Narrin AI</a>
       <nav class="nav-buttons">
         <a href="index.html" class="btn btn-secondary">🏠 Home</a>
-        <a href="characters.html" class="btn btn-secondary">🎭 Characters</a>
-        <a href="chats.html" class="btn btn-secondary">💬 Chats</a>
-        <a href="profile.html" class="btn btn-secondary active">👤 Profile</a>
+        <a href="category.html" class="btn btn-secondary">🎭 Characters</a>
         <a href="create-character.html" class="btn btn-primary">✨ Create Character</a>
       </nav>
     </div>
@@ -451,7 +454,7 @@
       <div class="form-section">
         <h2>⚠️ Not logged in</h2>
         <p>You must be logged in to view your profile.</p>
-        <button class="btn" onclick="window.netlifyIdentity.open('login')" style="background-color: #000; color: white;">
+        <button class="btn" onclick="openLogin()" style="background-color: #000; color: white;">
           👤 Log in
         </button>
       </div>
@@ -506,76 +509,127 @@
     let isEditing = false;
     let currentEditingField = null;
     let originalValue = null;
+    let netlifyUser = null;
 
-    // Bij paginastart UI checken en profiel laden indien ingelogd
-    window.addEventListener('DOMContentLoaded', () => {
-      console.log('🚀 Pagina geladen, checking auth...');
+    // Initialize Netlify Identity and check login status
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('🚀 Page loaded, initializing...');
       
-      // Sluit Netlify Identity widget automatisch
+      // Initialize Netlify Identity
       if (window.netlifyIdentity) {
-        window.netlifyIdentity.close();
+        window.netlifyIdentity.init();
+        
+        // Check if user is already logged in
+        netlifyUser = window.netlifyIdentity.currentUser();
+        
+        if (netlifyUser) {
+          console.log('✅ User already logged in:', netlifyUser.email);
+          handleLoginSuccess(netlifyUser);
+        } else {
+          console.log('❌ No user logged in');
+          checkLocalStorage();
+        }
+        
+        // Set up event listeners
+        setupEventListeners();
+      } else {
+        console.error('❌ Netlify Identity not loaded');
       }
-      
-      checkAuthUI();
-      loadProfile();
-      
-      // Event listeners
-      setupEventListeners();
     });
 
-    function setupEventListeners() {
-      // Netlify Identity events
-      window.netlifyIdentity.on('login', user => {
-        console.log('✅ Login successful:', user.email);
-        window.netlifyIdentity.close(); // Close login modal
-        localStorage.setItem('user_email', user.email);
-        localStorage.setItem('user_token', user.token.access_token);
-        localStorage.setItem('user_uid', user.id);
-        
-        checkAuthUI();
-        loadProfile();
-      });
-
-      window.netlifyIdentity.on('logout', () => {
-        console.log('👋 Logged out');
-        localStorage.clear();
-        resetUI();
-        // Redirect to home page after logout
-        setTimeout(() => {
-          window.location.href = 'index.html';
-        }, 1000);
-      });
-    }
-
-    // Logout function
-    function handleLogout() {
-      if (confirm('Are you sure you want to log out?')) {
-        window.netlifyIdentity.logout();
-      }
-    }
-
-    // UI Helper functions
-    function resetUI() {
-      document.getElementById('not-logged-in').style.display = 'block';
-      document.getElementById('profile').style.display = 'none';
-      hideMessages();
-    }
-
-    function checkAuthUI() {
+    function checkLocalStorage() {
+      // Check if we have stored auth data
       const token = localStorage.getItem('user_token');
       const email = localStorage.getItem('user_email');
       const uid = localStorage.getItem('user_uid');
       
       if (token && email && uid) {
-        document.getElementById('not-logged-in').style.display = 'none';
-        document.getElementById('profile').style.display = 'block';
-        document.querySelectorAll('.edit-btn').forEach(btn => btn.style.display = 'inline-block');
-        document.getElementById('upgrade-btn').style.display = 'block';
-        console.log('✅ User is logged in - auth UI set');
+        console.log('✅ Found stored auth data for:', email);
+        showProfileUI();
+        loadProfile();
       } else {
-        console.log('❌ User not logged in - auth UI reset');
-        resetUI();
+        console.log('❌ No stored auth data found');
+        showLoginUI();
       }
+    }
+
+    function setupEventListeners() {
+      // Netlify Identity events
+      window.netlifyIdentity.on('init', user => {
+        console.log('🔄 Netlify Identity initialized, user:', user?.email || 'none');
+        if (user && !netlifyUser) {
+          netlifyUser = user;
+          handleLoginSuccess(user);
+        }
+      });
+
+      window.netlifyIdentity.on('login', user => {
+        console.log('✅ Login successful:', user.email);
+        netlifyUser = user;
+        handleLoginSuccess(user);
+        window.netlifyIdentity.close();
+      });
+
+      window.netlifyIdentity.on('logout', () => {
+        console.log('👋 Logged out');
+        netlifyUser = null;
+        localStorage.clear();
+        showLoginUI();
+        // Redirect to home page after logout
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1000);
+      });
+
+      window.netlifyIdentity.on('error', err => {
+        console.error('❌ Netlify Identity error:', err);
+        showError('Authentication error: ' + err.message);
+      });
+    }
+
+    function handleLoginSuccess(user) {
+      // Store user data
+      localStorage.setItem('user_email', user.email);
+      localStorage.setItem('user_token', user.token.access_token);
+      localStorage.setItem('user_uid', user.id);
+      
+      // Update UI
+      showProfileUI();
+      loadProfile();
+    }
+
+    function openLogin() {
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.open('login');
+      } else {
+        showError('Login system not available. Please try again later.');
+      }
+    }
+
+    function handleLogout() {
+      if (confirm('Are you sure you want to log out?')) {
+        if (window.netlifyIdentity) {
+          window.netlifyIdentity.logout();
+        } else {
+          // Fallback if Netlify Identity is not available
+          localStorage.clear();
+          showLoginUI();
+          window.location.href = 'index.html';
+        }
+      }
+    }
+
+    function showLoginUI() {
+      document.getElementById('not-logged-in').style.display = 'block';
+      document.getElementById('profile').style.display = 'none';
+      hideMessages();
+    }
+
+    function showProfileUI() {
+      document.getElementById('not-logged-in').style.display = 'none';
+      document.getElementById('profile').style.display = 'block';
+      document.querySelectorAll('.edit-btn').forEach(btn => btn.style.display = 'inline-block');
+      document.getElementById('upgrade-btn').style.display = 'block';
     }
 
     // Profile loading
@@ -585,11 +639,12 @@
       const uid = localStorage.getItem('user_uid');
       
       if (!token || !email || !uid) {
-        console.log('⚠️ No auth data - profile not loaded');
+        console.log('⚠️ No auth data - showing login UI');
+        showLoginUI();
         return;
       }
 
-      console.log('📡 Loading profile...');
+      console.log('📡 Loading profile for:', email);
       showLoading();
       
       try {
