@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Narrin AI - AI Character Chat</title>
+  <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
@@ -469,7 +470,7 @@
       <nav class="nav-buttons">
         <a href="characters.html" class="btn btn-secondary">🎭 Characters</a>
         <a href="chats.html" class="btn btn-secondary">💬 Chats</a>
-        <a href="login.html" class="btn btn-secondary">👤 Login/Register</a>
+        <a href="#" onclick="openNetlifyLogin(); return false;" class="btn btn-secondary" id="loginBtn">👤 Login</a>
         <a href="create-character.html" class="btn btn-primary">✨ Create Character</a>
       </nav>
     </div>
@@ -927,6 +928,53 @@
       const searchTerm = e.target.value.toLowerCase();
       console.log('Search term:', searchTerm);
     });
+
+    // Netlify Identity functions
+    function openNetlifyLogin() {
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.open();
+      } else {
+        console.error('Netlify Identity not loaded');
+        alert('Login system not available. Please try again later.');
+      }
+    }
+
+    function updateLoginButton() {
+      const loginBtn = document.getElementById('loginBtn');
+      const user = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+      
+      if (user) {
+        loginBtn.innerHTML = '👤 ' + user.user_metadata.full_name || user.email;
+        loginBtn.onclick = function() {
+          if (confirm('Do you want to logout?')) {
+            window.netlifyIdentity.logout();
+          }
+          return false;
+        };
+      } else {
+        loginBtn.innerHTML = '👤 Login';
+        loginBtn.onclick = function() {
+          openNetlifyLogin();
+          return false;
+        };
+      }
+    }
+
+    // Initialize Netlify Identity
+    if (window.netlifyIdentity) {
+      window.netlifyIdentity.on('init', user => {
+        updateLoginButton();
+      });
+
+      window.netlifyIdentity.on('login', user => {
+        updateLoginButton();
+        window.netlifyIdentity.close();
+      });
+
+      window.netlifyIdentity.on('logout', () => {
+        updateLoginButton();
+      });
+    }
   </script>
 </body>
 </html>
