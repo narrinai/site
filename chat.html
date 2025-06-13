@@ -551,10 +551,6 @@
 
   <!-- Navigation and Netlify Identity functions -->
   <script>
-    // Check if mobile device
-    function isMobileDevice() {
-      return window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    }
 
     // Netlify Identity functions (matching index.html)
     function openNetlifyLogin() {
@@ -613,24 +609,10 @@
         window.netlifyIdentity.on('login', user => {
           updateLoginButton();
           window.netlifyIdentity.close();
-          
-          // Restore header z-index after login
-          const header = document.querySelector('.header');
-          if (header) {
-            header.style.zIndex = '100';
-          }
         });
 
         window.netlifyIdentity.on('logout', () => {
           updateLoginButton();
-        });
-
-        window.netlifyIdentity.on('close', () => {
-          // Restore header z-index when modal closes
-          const header = document.querySelector('.header');
-          if (header) {
-            header.style.zIndex = '100';
-          }
         });
       }
     });
@@ -774,36 +756,21 @@
         return;
       }
       
-      // Check localStorage first - this is more reliable
+      // Better login detection - check multiple sources
       const token = localStorage.getItem("user_token");
       const uid = localStorage.getItem("user_uid");
       const email = localStorage.getItem("user_email");
+      const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
       
-      // If we have all required data, user is logged in
-      if (token && uid && email) {
+      // If we have all required data OR netlify user, user is logged in
+      if ((token && uid && email) || netlifyUser) {
         sendMessage(event);
         return;
       }
       
-      // Check if mobile and redirect to profile, otherwise open modal
-      if (isMobileDevice()) {
-        // Store current page for redirect after login
-        localStorage.setItem('login_redirect_url', window.location.href);
-        window.location.href = 'profile.html';
-      } else {
-        const header = document.querySelector('.header');
-        if (header) {
-          header.style.zIndex = '1';
-        }
-        
-        window.netlifyIdentity.open('login');
-        
-        setTimeout(() => {
-          if (header) {
-            header.style.zIndex = '100';
-          }
-        }, 500);
-      }
+      // Not logged in - redirect to profile for login
+      localStorage.setItem('login_redirect_url', window.location.href);
+      window.location.href = 'profile.html';
     }
   </script>
 
