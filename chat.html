@@ -27,7 +27,7 @@
       position: relative;
     }
 
-    /* Header Styles (matching index.html) */
+    /* Header Navigation */
     .header {
       background: #ffffff;
       border-bottom: 1px solid #e0e0e0;
@@ -35,6 +35,28 @@
       position: sticky;
       top: 0;
       z-index: 100;
+    }
+
+    /* Fix for Netlify Identity modal z-index on all devices */
+    .netlify-identity-widget,
+    [data-netlify-identity-widget],
+    .netlify-identity-widget iframe,
+    .netlify-identity-widget > div,
+    .netlify-identity-widget .netlify-identity-modal {
+      z-index: 2147483647 !important;
+    }
+
+    /* Additional mobile-specific fixes */
+    @media (max-width: 768px) {
+      .netlify-identity-widget {
+        position: fixed !important;
+        z-index: 2147483647 !important;
+      }
+      
+      .netlify-identity-widget > div {
+        position: fixed !important;
+        z-index: 2147483647 !important;
+      }
     }
 
     .header-content {
@@ -532,7 +554,20 @@
     // Netlify Identity functions (matching index.html)
     function openNetlifyLogin() {
       if (window.netlifyIdentity) {
+        // Temporarily lower header z-index before opening modal
+        const header = document.querySelector('.header');
+        if (header) {
+          header.style.zIndex = '1';
+        }
+        
         window.netlifyIdentity.open();
+        
+        // Restore header z-index after modal closes
+        setTimeout(() => {
+          if (header) {
+            header.style.zIndex = '100';
+          }
+        }, 500);
       } else {
         console.error('Netlify Identity not loaded');
         alert('Login system not available. Please try again later.');
@@ -568,10 +603,24 @@
         window.netlifyIdentity.on('login', user => {
           updateLoginButton();
           window.netlifyIdentity.close();
+          
+          // Restore header z-index after login
+          const header = document.querySelector('.header');
+          if (header) {
+            header.style.zIndex = '100';
+          }
         });
 
         window.netlifyIdentity.on('logout', () => {
           updateLoginButton();
+        });
+
+        window.netlifyIdentity.on('close', () => {
+          // Restore header z-index when modal closes
+          const header = document.querySelector('.header');
+          if (header) {
+            header.style.zIndex = '100';
+          }
         });
       }
     });
