@@ -929,10 +929,21 @@
       console.log('Search term:', searchTerm);
     });
 
+    // Utility function to detect mobile
+    function isMobileDevice() {
+      return window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+
     // Netlify Identity functions
     function openNetlifyLogin() {
       if (window.netlifyIdentity) {
-        window.netlifyIdentity.open();
+        if (isMobileDevice()) {
+          // On mobile, redirect to profile page for better UX
+          window.location.href = 'profile.html';
+        } else {
+          // On desktop, use modal
+          window.netlifyIdentity.open('login');
+        }
       } else {
         console.error('Netlify Identity not loaded');
         alert('Login system not available. Please try again later.');
