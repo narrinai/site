@@ -81,6 +81,67 @@
       background-color: #e0e0e0;
     }
 
+    /* Netlify Identity Modal Positioning - Fixed for mobile */
+    .netlify-identity-widget,
+    [data-netlify-identity-widget] {
+      z-index: 1001 !important;
+    }
+
+    .netlify-identity-widget iframe,
+    .netlify-identity-widget > div,
+    .netlify-identity-widget .netlify-identity-modal {
+      z-index: 1001 !important;
+    }
+
+    /* Force modal to appear below header on mobile */
+    @media (max-width: 768px) {
+      .netlify-identity-widget {
+        position: fixed !important;
+        top: 80px !important; /* Below header */
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        z-index: 1001 !important;
+      }
+      
+      .netlify-identity-widget > div {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        z-index: 1001 !important;
+        margin: 0 !important;
+        padding: 20px !important;
+        box-sizing: border-box !important;
+      }
+
+      .netlify-identity-widget .netlify-identity-modal {
+        position: relative !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        border-radius: 12px !important;
+        z-index: 1001 !important;
+      }
+
+      /* Ensure header stays on top when modal is open */
+      .header {
+        z-index: 1002 !important;
+        position: relative !important;
+      }
+    }
+
+    /* Desktop modal positioning */
+    @media (min-width: 769px) {
+      .netlify-identity-widget .netlify-identity-modal {
+        margin-top: 100px !important; /* Space for header */
+      }
+    }
+
     /* Hero Section */
     .hero {
       text-align: center;
