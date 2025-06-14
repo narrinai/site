@@ -37,24 +37,13 @@
       z-index: 100;
     }
 
-    /* Fix for Netlify Identity modal z-index on all devices */
-    .netlify-identity-widget,
-    [data-netlify-identity-widget],
-    .netlify-identity-widget iframe,
-    .netlify-identity-widget > div,
-    .netlify-identity-widget .netlify-identity-modal {
-      z-index: 2147483647 !important;
-    }
-
-    /* Additional mobile-specific fixes */
-    @media (max-width: 768px) {
-      .netlify-identity-widget {
-        position: fixed !important;
-        z-index: 2147483647 !important;
-      }
-      
-      .netlify-identity-widget > div {
-        position: fixed !important;
+    /* Fix for Netlify Identity modal z-index on desktop only */
+    @media (min-width: 769px) {
+      .netlify-identity-widget,
+      [data-netlify-identity-widget],
+      .netlify-identity-widget iframe,
+      .netlify-identity-widget > div,
+      .netlify-identity-widget .netlify-identity-modal {
         z-index: 2147483647 !important;
       }
     }
@@ -568,23 +557,11 @@
     function openNetlifyLogin() {
       if (window.netlifyIdentity) {
         if (isMobileDevice()) {
-          // On mobile, show alert and redirect to profile page
-          alert('For the best login experience on mobile, please use the profile page.');
+          // On mobile, redirect to profile page for better UX
           window.location.href = 'profile.html';
         } else {
-          // On desktop, use modal with z-index fix
-          const header = document.querySelector('.header');
-          if (header) {
-            header.style.zIndex = '1';
-          }
-          
+          // On desktop, use modal
           window.netlifyIdentity.open('login');
-          
-          setTimeout(() => {
-            if (header) {
-              header.style.zIndex = '100';
-            }
-          }, 500);
         }
       } else {
         console.error('Netlify Identity not loaded');
