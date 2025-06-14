@@ -701,55 +701,21 @@
       document.getElementById('pagination').innerHTML = '';
     }
 
+    // Utility function to detect mobile
+    function isMobileDevice() {
+      return window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+
     // Netlify Identity functions
     function openNetlifyLogin() {
       if (window.netlifyIdentity) {
-        window.netlifyIdentity.open();
-      } else {
-        console.error('Netlify Identity not loaded');
-        alert('Login system not available. Please try again later.');
-      }
-    }
-
-    function updateLoginButton() {
-      const loginBtn = document.getElementById('loginBtn');
-      const user = window.netlifyIdentity && window.netlifyIdentity.currentUser();
-      
-      if (user) {
-        loginBtn.innerHTML = '👤 ' + (user.user_metadata.full_name || user.email);
-        loginBtn.onclick = function() {
+        if (isMobileDevice()) {
+          // On mobile, redirect to profile page for better UX
           window.location.href = 'profile.html';
-          return false;
-        };
-      } else {
-        loginBtn.innerHTML = '👤 Login';
-        loginBtn.onclick = function() {
-          openNetlifyLogin();
-          return false;
-        };
-      }
-    }
-
-    // Initialize Netlify Identity
-    if (window.netlifyIdentity) {
-      window.netlifyIdentity.on('init', user => {
-        updateLoginButton();
-      });
-
-      window.netlifyIdentity.on('login', user => {
-        updateLoginButton();
-        window.netlifyIdentity.close();
-      });
-
-      window.netlifyIdentity.on('logout', () => {
-        updateLoginButton();
-      });
-    }
-
-    // Netlify Identity functions
-    function openNetlifyLogin() {
-      if (window.netlifyIdentity) {
-        window.netlifyIdentity.open();
+        } else {
+          // On desktop, use modal
+          window.netlifyIdentity.open('login');
+        }
       } else {
         console.error('Netlify Identity not loaded');
         alert('Login system not available. Please try again later.');
