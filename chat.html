@@ -495,6 +495,10 @@
       localStorage.removeItem("user_uid");
       window.isRegistered = false;
     }
+
+    function isMobileDevice() {
+      return window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
   </script>
   <!-- EINDE AANGEPASTE SCRIPT -->
 
@@ -634,8 +638,9 @@
     let currentCharacter = null;
     let characterSlug = null;
     
-    // Endpoints
-    const endpoint = "https://hook.eu2.make.com/c753wxuxgpcu37fol9seri6rdtpz2lju";
+    // FIXED: Separate endpoints for different actions
+    const getCharacterEndpoint = "https://hook.eu2.make.com/c753wxuxgpcu37fol9seri6rdtpz2lju";
+    const chatEndpoint = "https://hook.eu2.make.com/c753wxuxgpcu37fol9seri6rdtpz2lju";
 
     const params = new URLSearchParams(window.location.search);
     characterSlug = params.get("char");
@@ -668,7 +673,7 @@
           requestData.user_email = email;
         }
         
-        const response = await fetch(endpoint, {
+        const response = await fetch(getCharacterEndpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(requestData)
@@ -866,7 +871,7 @@
   </script>
 
   <!-- ─────────────────────────────────────────────────────────────
-       D) sendMessage() (Netlify-variant)
+       D) sendMessage() (FIXED VERSION - uses correct endpoint)
        ───────────────────────────────────────────────────────────── -->
   <script>
     async function sendMessage(event) {
@@ -900,21 +905,23 @@
       userInput.value = "";
 
       try {
-        const response = await fetch(endpoint, {
+        // FIXED: Use chatEndpoint instead of wrong endpoint
+        const response = await fetch(chatEndpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: "chat",
             text: input,
             slug: characterSlug,
-            char: characterSlug,  // For backward compatibility
+            character_id: characterSlug,
             name: currentCharacter?.name,
             character_title: currentCharacter?.character_title,
             character_description: currentCharacter?.character_description,
             avatar_url: currentCharacter?.avatar_url,
             user_email: email,
             user_uid: uid,
-            user_token: token
+            user_token: token,
+            role: "user"
           })
         });
 
