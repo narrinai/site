@@ -353,7 +353,9 @@
 
     .mobile-usp-track {
       display: flex;
+      flex-direction: column;
       transition: transform var(--transition-slow);
+      height: 300%;
     }
 
     .mobile-usp-item {
@@ -364,8 +366,9 @@
       font-size: var(--font-size-xs);
       font-weight: 500;
       white-space: nowrap;
-      min-width: 100%;
+      min-height: 100%;
       justify-content: center;
+      flex-shrink: 0;
     }
 
     /* Mobile Search Button */
@@ -633,19 +636,38 @@
 
       .header-content {
         min-height: 60px;
-        gap: var(--spacing-xs);
+        gap: var(--spacing-sm);
         padding: 0;
+        display: grid;
+        grid-template-columns: auto 1fr auto auto;
+        align-items: center;
       }
 
       .logo {
         font-size: var(--font-size-lg);
         flex-shrink: 0;
+        min-width: fit-content;
+        grid-column: 1;
+      }
+
+      .mobile-usp-carousel {
+        display: flex;
+        height: 24px;
+        overflow: hidden;
+        position: relative;
+        grid-column: 2;
+        justify-self: center;
+        align-items: center;
+        justify-content: center;
       }
 
       .mobile-nav-container {
         flex-shrink: 0;
         min-width: fit-content;
         display: flex !important;
+        gap: var(--spacing-xs);
+        grid-column: 3 / 5;
+        justify-self: end;
       }
 
       .nav-center {
@@ -656,20 +678,30 @@
         display: none !important;
       }
 
-      .mobile-usp-carousel {
-        display: flex;
-      }
-
       .mobile-search-btn {
         display: flex;
+        flex-shrink: 0;
       }
 
       .mobile-menu-btn {
         display: flex;
+        flex-shrink: 0;
       }
 
       .mobile-search-overlay {
         top: 60px;
+      }
+    }
+
+    /* Extra small mobile devices */
+    @media (max-width: 480px) {
+      .header-content {
+        gap: var(--spacing-xs);
+        grid-template-columns: auto 1fr auto auto;
+      }
+      
+      .logo {
+        font-size: var(--font-size-base);
       }
     }
 
@@ -1394,7 +1426,7 @@
       if (window.innerWidth <= 768 && uspTrack) {
         uspInterval = setInterval(() => {
           currentUspIndex = (currentUspIndex + 1) % 3;
-          uspTrack.style.transform = `translateX(-${currentUspIndex * 100}%)`;
+          uspTrack.style.transform = `translateY(-${currentUspIndex * 33.333}%)`;
         }, 3000);
       }
     }
