@@ -201,7 +201,7 @@
     .mobile-menu-toggle span {
       width: 20px;
       height: 2px;
-      background: var(--color-navy);
+      background: var(--gradient-primary);
       transition: all var(--transition-base);
       border-radius: 1px;
     }
@@ -242,6 +242,8 @@
     /* Search bar in navigation - Icon Style */
     .nav-search {
       position: relative;
+      display: flex;
+      align-items: center;
     }
 
     .search-icon-container {
@@ -890,11 +892,14 @@
         gap: calc(var(--spacing-sm) * 0.8);
         align-items: center;
         justify-content: space-between;
+        flex-wrap: nowrap;
       }
 
       .logo {
         font-size: calc(var(--font-size-base) * 0.9);
         text-align: left;
+        flex-shrink: 0;
+        order: 0;
       }
 
       .nav-center {
@@ -903,6 +908,8 @@
         max-width: none;
         flex: 1;
         justify-content: center;
+        order: 2;
+        align-items: center;
       }
 
       .search-icon-container {
@@ -916,18 +923,27 @@
       }
 
       .nav-search-input {
-        width: 100%;
-        max-width: 280px;
+        width: calc(100vw - 2rem);
+        max-width: calc(100vw - 2rem);
         padding: calc(var(--spacing-xs) * 0.6) calc(var(--spacing-xs) * 0.8);
         font-size: calc(var(--font-size-xs) * 0.9);
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1001;
+        box-shadow: var(--shadow-lg);
+        border-radius: var(--radius-md);
       }
 
       .nav-usps {
         justify-content: center;
         gap: var(--spacing-lg);
         flex-wrap: nowrap;
-        width: 200px;
+        width: 180px;
         height: 20px;
+        order: 1;
+        flex-shrink: 0;
       }
 
       .nav-usps .usp-item {
@@ -941,22 +957,29 @@
 
       .mobile-menu {
         display: none;
-        position: absolute;
-        top: 100%;
-        right: 0;
+        position: fixed;
+        top: 60px;
+        right: var(--spacing-sm);
         background: var(--color-white);
         border: 2px solid var(--color-light-gray);
         border-radius: var(--radius-md);
-        box-shadow: var(--shadow-lg);
+        box-shadow: var(--shadow-xl);
         padding: var(--spacing-md);
         flex-direction: column;
         gap: var(--spacing-sm);
         min-width: 160px;
-        z-index: 100;
+        z-index: 1001;
+        transform: translateY(-10px);
+        opacity: 0;
+        transition: all var(--transition-base);
+        pointer-events: none;
       }
 
       .mobile-menu.active {
         display: flex;
+        transform: translateY(0);
+        opacity: 1;
+        pointer-events: auto;
       }
 
       .mobile-menu .nav-link {
@@ -976,6 +999,9 @@
       .nav-buttons {
         gap: calc(var(--spacing-xs) * 0.8);
         justify-content: flex-end;
+        order: 3;
+        flex-shrink: 0;
+        position: relative;
       }
 
       .btn {
@@ -1050,15 +1076,6 @@
     <div class="header-content">
       <a href="index.html" class="logo">Narrin AI</a>
       <div class="nav-center">
-        <div class="nav-search">
-          <div class="search-icon-container" id="searchIconContainer">
-            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.35-4.35"></path>
-            </svg>
-          </div>
-          <input type="text" class="nav-search-input hidden" placeholder="Search characters..." id="navSearchInput">
-        </div>
         <div class="nav-usps">
           <div class="usp-item active" id="usp-1">
             <div class="usp-icon">🔒</div>
@@ -1072,6 +1089,15 @@
             <div class="usp-icon">🔐</div>
             <span>Private Data</span>
           </div>
+        </div>
+        <div class="nav-search">
+          <div class="search-icon-container" id="searchIconContainer">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+          </div>
+          <input type="text" class="nav-search-input hidden" placeholder="Search characters..." id="navSearchInput">
         </div>
       </div>
       <nav class="nav-buttons">
