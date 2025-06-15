@@ -136,10 +136,7 @@ class CharacterAvatarUploader:
                 cx=self.google_cx,
                 searchType='image',
                 num=count,
-                imgSize='medium',
-                imgType='face',
-                safe='active',
-                fileType='jpg,png'
+                safe='active'
             ).execute()
             
             images = []
@@ -161,44 +158,9 @@ class CharacterAvatarUploader:
             return []
 
     def search_unsplash_images(self, character, count=3):
-        """Zoek hoge kwaliteit portraits op Unsplash"""
-        if self.unsplash_access_key == 'YOUR_UNSPLASH_KEY':
-            return []
-            
-        url = "https://api.unsplash.com/search/photos"
-        
-        params = {
-            'query': f"{character['name']} portrait face",
-            'orientation': 'squarish',
-            'per_page': count,
-            'order_by': 'relevant',
-            'content_filter': 'high',
-            'client_id': self.unsplash_access_key
-        }
-        
-        try:
-            response = self.session.get(url, params=params)
-            response.raise_for_status()
-            data = response.json()
-            
-            images = []
-            for result in data.get('results', []):
-                images.append({
-                    'url': result['urls']['regular'],  # 400x400 perfect for avatars
-                    'thumbnail': result['urls']['thumb'],
-                    'title': result.get('alt_description', ''),
-                    'source': 'unsplash',
-                    'photographer': result['user']['name'],
-                    'width': 400,
-                    'height': 400
-                })
-            
-            print(f"  📷 Found {len(images)} images from Unsplash")
-            return images
-            
-        except Exception as e:
-            print(f"❌ Unsplash search error for {character['name']}: {e}")
-            return []
+        """Unsplash not available - skip"""
+        print(f"  ⏭️ Unsplash not approved - skipping")
+        return []
 
     def download_and_process_image(self, url, target_size=(400, 400)):
         """Download en verwerk afbeelding tot perfect avatar formaat"""
