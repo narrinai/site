@@ -13,19 +13,47 @@ from io import BytesIO
 import hashlib
 from datetime import datetime
 import base64
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Try to import Google API client libraries
+try:
+    from google.oauth2 import service_account
+    from googleapiclient.discovery import build
+    GOOGLE_AVAILABLE = True
+except ImportError:
+    print("⚠️ Google API client not installed. Run: pip3 install google-api-python-client google-auth")
+    GOOGLE_AVAILABLE = False
 
 class CharacterAvatarUploader:
     def __init__(self):
-        # Google Custom Search API credentials
-        self.google_api_key = os.getenv('GOOGLE_API_KEY', 'YOUR_API_KEY_HERE')
+        # Google Service Account credentials
+        self.google_credentials_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
         self.google_cx = os.getenv('GOOGLE_CX', 'YOUR_CX_HERE')
+        
+        # Initialize Google Custom Search service
+        self.search_service = None
+        if GOOGLE_AVAILABLE and self.google_credentials_path and os.path.exists(self.google_credentials_path):
+            try:
+                credentials = service_account.Credentials.from_service_account_file(
+                    self.google_credentials_path
+                )
+                self.search_service = build('customsearch', 'v1', credentials=credentials)
+                print("✅ Google Search service initialized")
+            except Exception as e:
+                print(f"⚠️ Google credentials error: {e}")
+        
+        # Unsplash API (backup source)
+        self.unsplash_access_key = os.getenv('UNSPLASH_ACCESS_KEY', 'YOUR_UNSPLASH_KEY')
         
         # Netlify credentials
         self.netlify_token = os.getenv('NETLIFY_TOKEN', 'YOUR_NETLIFY_TOKEN')
         self.netlify_site_id = os.getenv('NETLIFY_SITE_ID', 'YOUR_SITE_ID')
         
         # Airtable credentials
-        self.airtable_token = os.getenv('AIRTABLE_TOKEN', 'patB2fzOVMIwxMUMt.3fef5681ebf3046dafbcab8010618eff3451442252c160353aa5131db5414db1')
+        self.airtable_token = os.getenv('AIRTABLE_TOKEN', 'YOUR_AIRTABLE_TOKEN')
         self.airtable_base = os.getenv('AIRTABLE_BASE', 'app7aSv140x93FY8r')
         self.airtable_table = 'Characters'
         
@@ -98,28 +126,24 @@ class CharacterAvatarUploader:
         return f"{base_terms} {extra_terms}"
 
     def search_google_images(self, character, count=3):
-        """Zoek afbeeldingen via Google Custom Search"""
-        url = "https://www.googleapis.com/customsearch/v1"
-        
-        params = {
-            'key': self.google_api_key,
-            'cx': self.google_cx,
-            'q': character['search_terms'],
-            'searchType': 'image',
-            'num': count,
-            'imgSize': 'medium',
-            'imgType': 'face',
-            'safe': 'active',
-            'fileType': 'jpg,png'
-        }
+        """Zoek afbeeldingen via Google Custom Search met Service Account"""
+        if not self.search_service:
+            return []
         
         try:
-            response = self.session.get(url, params=params)
-            response.raise_for_status()
-            data = response.json()
+            result = self.search_service.cse().list(
+                q=character['search_terms'],
+                cx=self.google_cx,
+                searchType='image',
+                num=count,
+                imgSize='medium',
+                imgType='face',
+                safe='active',
+                fileType='jpg,png'
+            ).execute()
             
             images = []
-            for item in data.get('items', []):
+            for item in result.get('items', []):
                 images.append({
                     'url': item['link'],
                     'thumbnail': item['image']['thumbnailLink'],
@@ -129,10 +153,51 @@ class CharacterAvatarUploader:
                     'height': item['image'].get('height', 0)
                 })
             
+            print(f"  📷 Found {len(images)} images from Google")
             return images
             
         except Exception as e:
             print(f"❌ Google search error for {character['name']}: {e}")
+            return []
+
+    def search_unsplash_images(self, character, count=3):
+        """Zoek hoge kwaliteit portraits op Unsplash"""
+        if self.unsplash_access_key == 'YOUR_UNSPLASH_KEY':
+            return []
+            
+        url = "https://api.unsplash.com/search/photos"
+        
+        params = {
+            'query': f"{character['name']} portrait face",
+            'orientation': 'squarish',
+            'per_page': count,
+            'order_by': 'relevant',
+            'content_filter': 'high',
+            'client_id': self.unsplash_access_key
+        }
+        
+        try:
+            response = self.session.get(url, params=params)
+            response.raise_for_status()
+            data = response.json()
+            
+            images = []
+            for result in data.get('results', []):
+                images.append({
+                    'url': result['urls']['regular'],  # 400x400 perfect for avatars
+                    'thumbnail': result['urls']['thumb'],
+                    'title': result.get('alt_description', ''),
+                    'source': 'unsplash',
+                    'photographer': result['user']['name'],
+                    'width': 400,
+                    'height': 400
+                })
+            
+            print(f"  📷 Found {len(images)} images from Unsplash")
+            return images
+            
+        except Exception as e:
+            print(f"❌ Unsplash search error for {character['name']}: {e}")
             return []
 
     def download_and_process_image(self, url, target_size=(400, 400)):
@@ -215,8 +280,11 @@ class CharacterAvatarUploader:
         """Verwerk een character: zoek afbeelding, upload naar Netlify, update Airtable"""
         print(f"\n🔄 Processing: {character['name']}")
         
-        # Zoek afbeeldingen
+        # Zoek afbeeldingen (probeer Google eerst, dan Unsplash als backup)
         images = self.search_google_images(character, 3)
+        if not images:
+            print(f"  🔄 Trying Unsplash as backup...")
+            images = self.search_unsplash_images(character, 3)
         
         if not images:
             print(f"❌ No images found for {character['name']}")
@@ -224,7 +292,7 @@ class CharacterAvatarUploader:
         
         # Probeer de beste afbeeldingen tot er een werkt
         for i, img_info in enumerate(images):
-            print(f"  📷 Trying image {i+1}: {img_info['source']}")
+            print(f"  📷 Trying image {i+1}: {img_info.get('source', 'unknown')}")
             
             # Download en verwerk
             processed_image = self.download_and_process_image(img_info['url'])
@@ -253,20 +321,17 @@ class CharacterAvatarUploader:
         """Check of alle API credentials zijn ingesteld"""
         missing = []
         
-        if self.google_api_key == 'YOUR_API_KEY_HERE':
-            missing.append('GOOGLE_API_KEY')
-        if self.google_cx == 'YOUR_CX_HERE':
-            missing.append('GOOGLE_CX')
+        if not self.search_service and self.unsplash_access_key == 'YOUR_UNSPLASH_KEY':
+            missing.append('Either Google Service Account OR Unsplash API')
         if self.netlify_token == 'YOUR_NETLIFY_TOKEN':
             missing.append('NETLIFY_TOKEN')
         if self.netlify_site_id == 'YOUR_SITE_ID':
             missing.append('NETLIFY_SITE_ID')
+        if self.airtable_token == 'YOUR_AIRTABLE_TOKEN':
+            missing.append('AIRTABLE_TOKEN')
         
         if missing:
             print(f"❌ Missing environment variables: {', '.join(missing)}")
-            print("\n📝 Set them with:")
-            for var in missing:
-                print(f"   export {var}='your_value_here'")
             return False
         
         return True
@@ -324,28 +389,34 @@ def setup_instructions():
     print("""
 🔧 SETUP INSTRUCTIES:
 
-1. Google Custom Search API:
-   export GOOGLE_API_KEY="your_google_api_key"
-   export GOOGLE_CX="your_search_engine_id"
+1. Google Custom Search API (recommended):
+   - Download Service Account JSON from Google Cloud Console
+   - Place in Narrin AI folder
+   - Set: GOOGLE_APPLICATION_CREDENTIALS=./your-service-account.json
+   - Set: GOOGLE_CX="your_search_engine_id"
 
-2. Netlify API:
-   export NETLIFY_TOKEN="your_netlify_token"
-   export NETLIFY_SITE_ID="your_site_id"
+2. Unsplash API (alternative):
+   - Get free API key from unsplash.com/developers
+   - Set: UNSPLASH_ACCESS_KEY="your_unsplash_key"
 
-3. Airtable (already configured):
+3. Netlify API (required):
+   - Get token from Netlify dashboard
+   - Set: NETLIFY_TOKEN="your_netlify_token" 
+   - Set: NETLIFY_SITE_ID="your_site_id"
+
+4. Airtable (already configured):
    - Base: app7aSv140x93FY8r
    - Table: Characters
 
-4. Run:
-   python character_avatar_uploader.py
+5. Install dependencies:
+   pip3 install requests pillow python-dotenv google-api-python-client google-auth
+
+6. Run:
+   python3 character_avatar_uploader.py
 
 🌐 Results:
 - Avatars: https://narrin.ai/avatars/character-name.jpg
 - Airtable Avatar_URL updated automatically
-
-📚 API Setup:
-- Google: https://developers.google.com/custom-search
-- Netlify: https://docs.netlify.com/api/get-started/
 """)
 
 if __name__ == "__main__":

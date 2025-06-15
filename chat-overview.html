@@ -61,6 +61,19 @@
       flex-wrap: wrap;
     }
 
+    .nav-link {
+      color: #333;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      padding: 8px 12px;
+    }
+
+    .nav-link:hover {
+      color: #000;
+    }
+
     .btn {
       padding: 10px 20px;
       border-radius: 8px;
@@ -395,8 +408,9 @@
     <div class="header-content">
       <a href="index.html" class="logo">Narrin AI</a>
       <nav class="nav-buttons">
-        <a href="category.html" class="btn btn-secondary">🎭 Characters</a>
-        <a href="#" onclick="openNetlifyLogin(); return false;" class="btn btn-secondary" id="loginBtn">👤 Login</a>
+        <a href="index.html" class="nav-link">Characters</a>
+        <a href="chat-overview.html" class="nav-link">Chats</a>
+        <a href="profile.html" class="nav-link" id="loginBtn">Login/Register</a>
         <a href="create-character.html" class="btn btn-primary">✨ Create Character</a>
       </nav>
     </div>
@@ -454,7 +468,7 @@
         <div id="emptyState" class="empty-state" style="display: none;">
           <h3>No conversations yet</h3>
           <p>Start chatting with AI characters to see your conversations here</p>
-          <a href="category.html" class="btn btn-primary">Browse Characters</a>
+          <a href="index.html" class="btn btn-primary">Browse Characters</a>
         </div>
       </div>
     </div>
@@ -513,17 +527,11 @@
       const user = window.netlifyIdentity && window.netlifyIdentity.currentUser();
       
       if (user) {
-        loginBtn.innerHTML = '👤 ' + (user.user_metadata.full_name || user.email);
-        loginBtn.onclick = function() {
-          window.location.href = 'profile.html';
-          return false;
-        };
+        loginBtn.innerHTML = (user.user_metadata.full_name || user.email);
+        loginBtn.href = 'profile.html';
       } else {
-        loginBtn.innerHTML = '👤 Login';
-        loginBtn.onclick = function() {
-          openNetlifyLogin();
-          return false;
-        };
+        loginBtn.innerHTML = 'Login/Register';
+        loginBtn.href = 'profile.html';
       }
     }
 

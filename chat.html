@@ -775,7 +775,7 @@
       <nav class="nav-buttons">
         <a href="index.html" class="nav-link">Characters</a>
         <a href="chat-overview.html" class="nav-link">Chats</a>
-        <a href="#" onclick="openNetlifyLogin(); return false;" class="nav-link" id="loginBtn">👤 Login</a>
+        <a href="profile.html" class="nav-link" id="loginBtn">Login/Register</a>
         <a href="create-character.html" class="btn btn-primary">✨ Create Character</a>
       </nav>
     </div>
@@ -849,17 +849,11 @@
       const user = window.netlifyIdentity && window.netlifyIdentity.currentUser();
       
       if (user) {
-        loginBtn.innerHTML = '👤 ' + (user.user_metadata.full_name || user.email);
-        loginBtn.onclick = function() {
-          window.location.href = 'profile.html';
-          return false;
-        };
+        loginBtn.innerHTML = (user.user_metadata.full_name || user.email);
+        loginBtn.href = 'profile.html';
       } else {
-        loginBtn.innerHTML = '👤 Login';
-        loginBtn.onclick = function() {
-          openNetlifyLogin();
-          return false;
-        };
+        loginBtn.innerHTML = 'Login/Register';
+        loginBtn.href = 'profile.html';
       }
     }
 
