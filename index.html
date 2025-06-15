@@ -188,14 +188,23 @@
       flex-wrap: wrap;
     }
 
+    /* Navigation center section with search and USPs */
+    .nav-center {
+      display: flex;
+      align-items: center;
+      gap: calc(var(--spacing-lg) * 1.5);
+      flex: 1;
+      justify-content: center;
+      max-width: 800px;
+    }
+
     /* Search bar in navigation */
     .nav-search {
       position: relative;
-      margin-right: calc(var(--spacing-sm) * 0.8);
     }
 
     .nav-search-input {
-      width: 400px;
+      width: 320px;
       padding: calc(var(--spacing-xs) * 0.7) calc(var(--spacing-sm) * 0.8);
       font-size: calc(var(--font-size-sm) * 0.9);
       border: 2px solid var(--color-light-gray);
@@ -217,6 +226,34 @@
     .nav-search-input::placeholder {
       color: var(--color-gray-light);
       font-weight: 400;
+    }
+
+    /* USPs in navigation */
+    .nav-usps {
+      display: flex;
+      align-items: center;
+      gap: calc(var(--spacing-lg) * 1.2);
+      flex-wrap: nowrap;
+    }
+
+    .nav-usps .usp-item {
+      display: flex;
+      align-items: center;
+      gap: calc(var(--spacing-xs) * 0.8);
+      color: var(--color-gray-dark);
+      font-size: calc(var(--font-size-xs) * 0.9);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .nav-usps .usp-icon {
+      font-size: calc(var(--font-size-sm) * 0.9);
+      color: var(--color-teal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
     }
 
     .nav-link {
@@ -753,18 +790,43 @@
         padding: calc(var(--spacing-sm) * 1.0) var(--spacing-sm);
       }
 
+      .header-content {
+        flex-direction: column;
+        gap: calc(var(--spacing-sm) * 0.8);
+        align-items: stretch;
+      }
+
       .logo {
         font-size: calc(var(--font-size-base) * 0.9);
+        text-align: center;
+      }
+
+      .nav-center {
+        flex-direction: column;
+        gap: calc(var(--spacing-sm) * 0.8);
+        max-width: none;
       }
 
       .nav-search-input {
-        width: 280px;
+        width: 100%;
+        max-width: 280px;
         padding: calc(var(--spacing-xs) * 0.6) calc(var(--spacing-xs) * 0.8);
         font-size: calc(var(--font-size-xs) * 0.9);
       }
 
+      .nav-usps {
+        justify-content: center;
+        gap: var(--spacing-lg);
+        flex-wrap: wrap;
+      }
+
+      .nav-usps .usp-item {
+        font-size: calc(var(--font-size-xs) * 0.85);
+      }
+
       .nav-buttons {
         gap: calc(var(--spacing-xs) * 0.8);
+        justify-content: center;
       }
 
       .nav-link {
@@ -810,6 +872,7 @@
       outline: 2px solid var(--color-teal);
       outline-offset: 2px;
     }
+
   </style>
 </head>
 <body>
@@ -817,8 +880,24 @@
   <header class="header">
     <div class="header-content">
       <a href="index.html" class="logo">Narrin AI</a>
-      <div class="nav-search">
-        <input type="text" class="nav-search-input" placeholder="Search characters..." id="navSearchInput">
+      <div class="nav-center">
+        <div class="nav-search">
+          <input type="text" class="nav-search-input" placeholder="Search characters..." id="navSearchInput">
+        </div>
+        <div class="nav-usps">
+          <div class="usp-item">
+            <div class="usp-icon">🔒</div>
+            <span>100% Safe</span>
+          </div>
+          <div class="usp-item">
+            <div class="usp-icon">🧠</div>
+            <span>Extensive Character Memory</span>
+          </div>
+          <div class="usp-item">
+            <div class="usp-icon">🔐</div>
+            <span>Private Data</span>
+          </div>
+        </div>
       </div>
       <nav class="nav-buttons">
         <a href="characters.html" class="nav-link">Characters</a>
