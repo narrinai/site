@@ -5,385 +5,631 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Narrin AI - AI Character Chat</title>
   <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  
+  <!-- Import Modern Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
   <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #ffffff;
-      color: #333;
-      line-height: 1.6;
+    /* Creative & Bold Color Palette with White Primary */
+    :root {
+      /* Primary Colors - White Based */
+      --color-white: #ffffff;
+      --color-off-white: #fafafa;
+      --color-light-gray: #f5f5f5;
+      
+      /* Bold Accent Colors - Teal & Coral */
+      --color-teal: #14b8a6;
+      --color-teal-light: #5eead4;
+      --color-teal-dark: #0f766e;
+      --color-coral: #f97316;
+      --color-coral-light: #fb923c;
+      --color-coral-dark: #ea580c;
+      
+      /* Supporting Colors */
+      --color-navy: #1e293b;
+      --color-navy-light: #334155;
+      --color-gray: #64748b;
+      --color-gray-light: #94a3b8;
+      --color-gray-dark: #475569;
+      
+      /* Gradients */
+      --gradient-primary: linear-gradient(135deg, var(--color-teal) 0%, var(--color-coral) 100%);
+      --gradient-subtle: linear-gradient(135deg, var(--color-teal-light) 0%, var(--color-coral-light) 100%);
+      --gradient-background: linear-gradient(135deg, var(--color-white) 0%, var(--color-off-white) 100%);
+      
+      /* Shadows */
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      --shadow-colored: 0 10px 25px -5px rgba(20, 184, 166, 0.2);
+      
+      /* Spacing */
+      --spacing-xs: 0.5rem;
+      --spacing-sm: 0.75rem;
+      --spacing-md: 1rem;
+      --spacing-lg: 1.5rem;
+      --spacing-xl: 2rem;
+      --spacing-2xl: 3rem;
+      --spacing-3xl: 4rem;
+      
+      /* Typography */
+      --font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-secondary: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      
+      --font-size-xs: 0.75rem;
+      --font-size-sm: 0.875rem;
+      --font-size-base: 1rem;
+      --font-size-lg: 1.125rem;
+      --font-size-xl: 1.25rem;
+      --font-size-2xl: 1.5rem;
+      --font-size-3xl: 1.875rem;
+      --font-size-4xl: 2.25rem;
+      --font-size-5xl: 3rem;
+      --font-size-6xl: 3.75rem;
+      
+      /* Border Radius */
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --radius-full: 9999px;
+      
+      /* Transitions */
+      --transition-fast: 0.15s ease-out;
+      --transition-base: 0.2s ease-out;
+      --transition-slow: 0.3s ease-out;
     }
 
-    /* Header */
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font-primary);
+      margin: 0;
+      padding: 0;
+      background: var(--color-off-white);
+      color: var(--color-navy);
+      line-height: 1.6;
+      font-size: var(--font-size-base);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      scroll-behavior: smooth;
+      width: 100%;
+      min-height: 100vh;
+    }
+
+    /* Header - Ultra Compact */
     .header {
-      background: #ffffff;
-      border-bottom: 1px solid #e0e0e0;
-      padding: 16px 20px;
+      background:
+        linear-gradient(135deg, rgba(20, 184, 166, 0.08) 0%, rgba(249, 115, 22, 0.08) 100%),
+        linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.02) 50%, transparent 60%),
+        rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: calc(var(--spacing-sm) * 1.2) var(--spacing-lg);
       position: sticky;
       top: 0;
       z-index: 100;
+      transition: all var(--transition-base);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Playful geometric accent for header */
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background:
+        radial-gradient(circle at 15% 50%, rgba(20, 184, 166, 0.03) 0%, transparent 30%),
+        radial-gradient(circle at 85% 50%, rgba(249, 115, 22, 0.03) 0%, transparent 30%);
+      pointer-events: none;
+    }
+
+    /* Subtle animated dots pattern */
+    .header::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image:
+        radial-gradient(circle at 20% 20%, rgba(20, 184, 166, 0.1) 1px, transparent 1px),
+        radial-gradient(circle at 80% 80%, rgba(249, 115, 22, 0.1) 1px, transparent 1px);
+      background-size: 40px 40px, 60px 60px;
+      opacity: 0.3;
+      pointer-events: none;
     }
 
     .header-content {
-      max-width: 1200px;
-      margin: 0 auto;
+      width: 100%;
+      margin: 0;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 16px;
+      gap: calc(var(--spacing-xs) * 0.8);
+      padding: 0 var(--spacing-lg);
     }
 
     .logo {
-      font-size: 24px;
-      font-weight: 600;
-      color: #000;
+      font-family: var(--font-secondary);
+      font-size: calc(var(--font-size-lg) * 0.9);
+      font-weight: 800;
+      color: var(--color-navy);
       text-decoration: none;
+      letter-spacing: -0.02em;
+      transition: all var(--transition-base);
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      position: relative;
+      z-index: 10;
+    }
+
+    .logo:hover {
+      opacity: 0.8;
+      transform: scale(1.02);
     }
 
     .nav-buttons {
       display: flex;
-      gap: 12px;
+      gap: calc(var(--spacing-md) * 1.2);
       align-items: center;
       flex-wrap: wrap;
     }
 
-    .btn {
-      padding: 10px 20px;
-      border-radius: 8px;
+    /* Search bar in navigation */
+    .nav-search {
+      position: relative;
+      margin-right: calc(var(--spacing-sm) * 0.8);
+    }
+
+    .nav-search-input {
+      width: 400px;
+      padding: calc(var(--spacing-xs) * 0.7) calc(var(--spacing-sm) * 0.8);
+      font-size: calc(var(--font-size-sm) * 0.9);
+      border: 2px solid var(--color-light-gray);
+      border-radius: var(--radius-full);
+      box-sizing: border-box;
+      transition: all var(--transition-base);
+      background: var(--color-white);
+      color: var(--color-navy);
+      box-shadow: var(--shadow-sm);
+      font-family: inherit;
+    }
+
+    .nav-search-input:focus {
+      outline: none;
+      border-color: var(--color-teal);
+      box-shadow: var(--shadow-md);
+    }
+
+    .nav-search-input::placeholder {
+      color: var(--color-gray-light);
+      font-weight: 400;
+    }
+
+    .nav-link {
+      color: var(--color-navy);
       text-decoration: none;
       font-weight: 500;
-      font-size: 14px;
-      transition: all 0.2s ease;
+      font-size: calc(var(--font-size-sm) * 0.95);
+      transition: all var(--transition-base);
+      position: relative;
+      padding: calc(var(--spacing-xs) * 0.8) 0;
+    }
+
+    .nav-link:hover {
+      color: var(--color-teal);
+      opacity: 0.8;
+    }
+
+    .btn {
+      padding: calc(var(--spacing-xs) * 0.7) calc(var(--spacing-sm) * 0.9);
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: calc(var(--font-size-xs) * 0.9);
+      transition: all var(--transition-base);
       cursor: pointer;
       border: none;
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       text-align: center;
+      position: relative;
+      overflow: hidden;
+      white-space: nowrap;
+      letter-spacing: -0.01em;
     }
 
     .btn-primary {
-      background-color: #000;
-      color: #fff;
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      box-shadow: var(--shadow-colored);
+      border: 1px solid transparent;
     }
 
     .btn-primary:hover {
-      background-color: #333;
+      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
     }
 
     .btn-secondary {
-      background-color: #f5f5f5;
-      color: #333;
-      border: 1px solid #e0e0e0;
+      background: var(--color-white);
+      color: var(--color-navy);
+      border: 2px solid var(--color-teal);
+      box-shadow: var(--shadow-sm);
     }
 
     .btn-secondary:hover {
-      background-color: #e0e0e0;
+      background: var(--color-teal);
+      color: var(--color-white);
+      transform: translateY(-2px);
     }
 
-    /* Netlify Identity Modal Positioning - Fixed for mobile */
-    .netlify-identity-widget,
-    [data-netlify-identity-widget] {
-      z-index: 1001 !important;
-    }
-
-    .netlify-identity-widget iframe,
-    .netlify-identity-widget > div,
-    .netlify-identity-widget .netlify-identity-modal {
-      z-index: 1001 !important;
-    }
-
-    /* Force modal to appear below header on mobile */
-    @media (max-width: 768px) {
-      .netlify-identity-widget {
-        position: fixed !important;
-        top: 80px !important; /* Below header */
-        left: 0 !important;
-        right: 0 !important;
-        bottom: 0 !important;
-        z-index: 1001 !important;
-      }
-      
-      .netlify-identity-widget > div {
-        position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        bottom: 0 !important;
-        z-index: 1001 !important;
-        margin: 0 !important;
-        padding: 20px !important;
-        box-sizing: border-box !important;
-      }
-
-      .netlify-identity-widget .netlify-identity-modal {
-        position: relative !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        width: 100% !important;
-        max-width: none !important;
-        margin: 0 !important;
-        border-radius: 12px !important;
-        z-index: 1001 !important;
-      }
-
-      /* Ensure header stays on top when modal is open */
-      .header {
-        z-index: 1002 !important;
-        position: relative !important;
-      }
-    }
-
-    /* Desktop modal positioning */
-    @media (min-width: 769px) {
-      .netlify-identity-widget .netlify-identity-modal {
-        margin-top: 100px !important; /* Space for header */
-      }
-    }
-
-    /* Hero Section */
+    /* Hero Section - Ultra Compact */
     .hero {
       text-align: center;
-      padding: 60px 20px;
-      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      padding: calc(var(--spacing-xl) * 0.8) var(--spacing-lg) 0;
+      background: var(--color-off-white);
+      position: relative;
+    }
+
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 var(--spacing-lg);
     }
 
     .hero h1 {
-      font-size: 48px;
-      margin: 0 0 16px 0;
-      font-weight: 700;
-      color: #000;
+      font-family: var(--font-secondary);
+      font-size: clamp(calc(var(--font-size-2xl) * 0.9), 3.5vw, calc(var(--font-size-3xl) * 0.9));
+      margin: 0 0 calc(var(--spacing-sm) * 0.9) 0;
+      font-weight: 800;
+      color: var(--color-navy);
+      letter-spacing: -0.04em;
+      line-height: 1.05;
     }
 
     .hero p {
-      font-size: 20px;
-      color: #666;
-      margin: 0 0 32px 0;
+      font-size: calc(var(--font-size-base) * 0.95);
+      color: var(--color-gray);
+      margin: 0 auto calc(var(--spacing-lg) * 0.9) auto;
       max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
+      line-height: 1.5;
+      font-weight: 400;
     }
 
     .hero-buttons {
       display: flex;
-      gap: 16px;
+      gap: calc(var(--spacing-sm) * 0.9);
       justify-content: center;
       flex-wrap: wrap;
     }
 
     .btn-large {
-      padding: 16px 32px;
-      font-size: 16px;
-      border-radius: 12px;
+      padding: calc(var(--spacing-sm) * 0.9) calc(var(--spacing-lg) * 0.9);
+      font-size: calc(var(--font-size-sm) * 0.95);
+      border-radius: var(--radius-full);
+      font-weight: 700;
+      min-width: 160px;
     }
 
-    /* Search Section */
+    /* Search Section - Minimal */
     .search-section {
-      padding: 40px 20px;
+      padding: var(--spacing-xl) var(--spacing-xl);
+      background: var(--color-off-white);
     }
 
     .search-container {
       max-width: 600px;
       margin: 0 auto;
       position: relative;
+      padding: 0 var(--spacing-lg);
     }
 
     .search-input {
       width: 100%;
-      padding: 16px 20px;
-      font-size: 16px;
-      border: 2px solid #e0e0e0;
-      border-radius: 12px;
+      padding: var(--spacing-lg) var(--spacing-xl);
+      font-size: var(--font-size-lg);
+      border: 2px solid var(--color-light-gray);
+      border-radius: var(--radius-full);
       box-sizing: border-box;
-      transition: border-color 0.2s ease;
+      transition: all var(--transition-base);
+      background: var(--color-white);
+      color: var(--color-navy);
+      box-shadow: var(--shadow-sm);
+      font-family: inherit;
     }
 
     .search-input:focus {
       outline: none;
-      border-color: #000;
+      border-color: var(--color-teal);
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-2px);
     }
 
-    /* Content */
+    .search-input::placeholder {
+      color: var(--color-gray-light);
+      font-weight: 400;
+    }
+
+    /* Content - Clean Layout with Seamless Background Flow */
     .content {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 40px 20px;
+      width: 100%;
+      margin: 0;
+      padding: 0 var(--spacing-xl);
+      background: var(--color-off-white);
     }
 
-    /* Category Navigation */
+    /* Category Navigation - Seamless Background Integration */
     .category-nav {
-      margin-bottom: 40px;
+      margin-bottom: var(--spacing-lg);
+      background: var(--color-off-white);
+      padding: 0 var(--spacing-md);
+      margin-top: calc(var(--spacing-xs) * -0.5);
+      border-radius: 0;
+      border: none;
+      box-shadow: none;
     }
 
-    .category-nav h2 {
-      font-size: 24px;
-      margin: 0 0 20px 0;
-      color: #000;
+    .filters-container {
+      display: flex;
+      gap: var(--spacing-md);
+      align-items: flex-start;
+      position: relative;
+      z-index: 2;
+      justify-content: center;
+    }
+
+    .filter-section {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+    }
+
+    .filter-label {
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      color: var(--color-gray-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: var(--spacing-xs);
+      text-align: center;
     }
 
     .category-buttons {
       display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 20px;
+      gap: var(--spacing-md);
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding: var(--spacing-xs) 0 var(--spacing-xs) 0;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      justify-content: center;
+    }
+
+    .category-buttons::-webkit-scrollbar {
+      display: none;
     }
 
     .category-btn {
-      padding: 12px 20px;
-      background: #f8f9fa;
-      border: 2px solid #e9ecef;
-      border-radius: 25px;
+      padding: calc(var(--spacing-xs) * 0.6) calc(var(--spacing-sm) * 0.9);
+      background: var(--gradient-primary);
+      border: 1px solid transparent;
+      border-radius: var(--radius-md);
       text-decoration: none;
-      color: #495057;
-      font-weight: 500;
-      transition: all 0.2s ease;
+      color: var(--color-white);
+      font-weight: 600;
+      font-size: calc(var(--font-size-xs) * 0.9);
+      transition: all var(--transition-base);
       white-space: nowrap;
+      flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-colored);
     }
 
     .category-btn:hover {
-      border-color: #000;
-      background: #f0f0f0;
+      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
     }
 
-    /* Tags */
-    .tags-section {
-      margin-bottom: 50px;
-    }
-
-    .tags-section h3 {
-      font-size: 18px;
-      margin: 0 0 16px 0;
-      color: #666;
-    }
-
+    /* Tags - Visually Distinct from Categories */
     .tags-container {
       display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
+      gap: var(--spacing-md);
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding: var(--spacing-xs) 0 var(--spacing-xs) 0;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      justify-content: center;
+    }
+
+    .tags-container::-webkit-scrollbar {
+      display: none;
     }
 
     .tag-btn {
-      padding: 8px 16px;
-      background: #e8f4f8;
-      border: 1px solid #bee5eb;
-      border-radius: 20px;
+      padding: calc(var(--spacing-xs) * 0.6) calc(var(--spacing-sm) * 0.9);
+      background: var(--gradient-primary);
+      border: 1px solid transparent;
+      border-radius: var(--radius-md);
       text-decoration: none;
-      color: #0c5460;
-      font-size: 13px;
-      font-weight: 500;
-      transition: all 0.2s ease;
+      color: var(--color-white);
+      font-size: calc(var(--font-size-xs) * 0.9);
+      font-weight: 600;
+      transition: all var(--transition-base);
+      white-space: nowrap;
+      flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-colored);
     }
 
     .tag-btn:hover {
-      background: #d1ecf1;
-      border-color: #0c5460;
+      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
     }
 
-    /* Character Sections */
+    /* Character Sections - Always 1 Line with Horizontal Scroll */
     .character-section {
-      margin-bottom: 50px;
+      margin-bottom: var(--spacing-3xl);
     }
 
     .section-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
+      margin-bottom: var(--spacing-lg);
     }
 
     .section-title {
-      font-size: 24px;
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-2xl);
       margin: 0;
-      color: #000;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      color: var(--color-navy);
+      font-weight: 700;
+      letter-spacing: -0.02em;
     }
 
     .view-all {
-      color: #666;
+      color: var(--color-teal);
       text-decoration: none;
-      font-weight: 500;
-      transition: color 0.2s ease;
+      font-weight: 600;
+      font-size: var(--font-size-sm);
+      transition: all var(--transition-base);
+      padding: var(--spacing-xs) var(--spacing-md);
+      border-radius: var(--radius-full);
+      border: 1px solid transparent;
     }
 
     .view-all:hover {
-      color: #000;
+      background: var(--color-teal);
+      color: var(--color-white);
+      transform: translateY(-1px);
     }
 
-    /* Character Grid */
+    /* Character Grid - Always 1 Line with Horizontal Scrolling */
     .character-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 20px;
+      display: flex;
+      gap: var(--spacing-lg);
       overflow-x: auto;
-      padding-bottom: 10px;
-      max-width: 100%;
+      padding: var(--spacing-xs) 0 var(--spacing-md) 0;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .character-grid::-webkit-scrollbar {
+      display: none;
     }
 
     .character-card {
-      background: #ffffff;
-      border: 1px solid #e0e0e0;
-      border-radius: 12px;
-      padding: 16px;
+      background: var(--color-white);
+      border: 2px solid var(--color-light-gray);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-lg);
       text-decoration: none;
       color: inherit;
-      transition: all 0.2s ease;
+      transition: all var(--transition-base);
       text-align: center;
-      min-width: 160px;
+      min-width: 280px;
+      flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      scroll-snap-align: start;
     }
 
     .character-card:hover {
-      border-color: #000;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      border-color: var(--color-teal);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-xl);
+      z-index: 10;
+      position: relative;
     }
 
     .character-avatar {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      margin: 0 auto 12px;
-      background: #f0f0f0;
+      width: 160px;
+      height: 160px;
+      border-radius: var(--radius-full);
+      margin: 0 auto var(--spacing-md);
+      background: var(--color-off-white);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 24px;
-      border: 2px solid #e0e0e0;
+      font-size: var(--font-size-2xl);
+      border: 3px solid var(--color-light-gray);
       overflow: hidden;
+      position: relative;
+      transition: all var(--transition-base);
+    }
+
+    .character-card:hover .character-avatar {
+      border-color: var(--color-teal);
+      transform: scale(1.05);
+      z-index: 11;
+      position: relative;
     }
 
     .character-avatar img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      border-radius: 50%;
+      border-radius: var(--radius-full);
+      transition: transform var(--transition-base);
+    }
+
+    .character-card:hover .character-avatar img {
+      transform: scale(1.1);
     }
 
     .character-name {
-      font-weight: 600;
-      margin: 0 0 4px 0;
-      font-size: 14px;
-      color: #000;
+      font-weight: 700;
+      margin: 0 0 var(--spacing-xs) 0;
+      font-size: var(--font-size-base);
+      color: var(--color-navy);
+      letter-spacing: -0.01em;
     }
 
     .character-title {
-      font-size: 12px;
-      color: #666;
+      font-size: var(--font-size-sm);
+      color: var(--color-gray);
       margin: 0;
-      line-height: 1.3;
+      line-height: 1.4;
+      font-weight: 400;
     }
 
     /* Loading Animation */
     .loading {
       display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid #f3f3f3;
-      border-top: 3px solid #333;
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--color-light-gray);
+      border-top: 3px solid var(--color-teal);
       border-radius: 50%;
       animation: spin 1s linear infinite;
+      margin: var(--spacing-xl) auto;
     }
 
     @keyframes spin {
@@ -391,51 +637,18 @@
       100% { transform: rotate(360deg); }
     }
 
-    /* Create Character CTA */
+    /* Create Character CTA - Bold & Creative */
     .create-character-cta {
       position: relative;
-      background: linear-gradient(145deg, #667eea 0%, #764ba2 100%);
-      padding: 80px 20px;
-      margin: 60px 0 0 0;
-      border-radius: 20px;
+      background: var(--gradient-primary);
+      padding: var(--spacing-3xl) var(--spacing-xl);
+      margin: var(--spacing-3xl) 0 0 0;
+      border-radius: var(--radius-xl);
       text-align: center;
       overflow: hidden;
       color: white;
+      box-shadow: var(--shadow-xl);
     }
-
-    .create-character-cta::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
-      pointer-events: none;
-    }
-
-    .floating-emojis {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      pointer-events: none;
-    }
-
-    .floating-emoji {
-      position: absolute;
-      animation: floatEmoji 8s ease-in-out infinite;
-      font-size: 24px;
-      opacity: 0.6;
-    }
-
-    .floating-emoji:nth-child(1) { animation-delay: 0s; top: 20%; left: 10%; }
-    .floating-emoji:nth-child(2) { animation-delay: -1s; top: 60%; left: 15%; }
-    .floating-emoji:nth-child(3) { animation-delay: -2s; top: 10%; right: 20%; }
-    .floating-emoji:nth-child(4) { animation-delay: -3s; top: 70%; right: 10%; }
-    .floating-emoji:nth-child(5) { animation-delay: -4s; top: 40%; left: 5%; }
-    .floating-emoji:nth-child(6) { animation-delay: -5s; top: 30%; right: 5%; }
 
     .cta-content {
       position: relative;
@@ -448,78 +661,154 @@
       width: 80px;
       height: 80px;
       background: rgba(255, 255, 255, 0.2);
-      border-radius: 20px;
+      border-radius: var(--radius-lg);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 36px;
-      margin: 0 auto 24px;
+      font-size: var(--font-size-3xl);
+      margin: 0 auto var(--spacing-xl);
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.3);
     }
 
     .cta-content h2 {
-      font-size: 32px;
-      font-weight: 700;
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-3xl);
+      font-weight: 800;
       color: white;
-      margin: 0 0 16px 0;
+      margin: 0 0 var(--spacing-lg) 0;
+      letter-spacing: -0.02em;
     }
 
     .cta-content p {
-      font-size: 16px;
+      font-size: var(--font-size-lg);
       color: rgba(255, 255, 255, 0.9);
-      margin: 0 0 32px 0;
+      margin: 0 0 var(--spacing-2xl) 0;
       line-height: 1.6;
     }
 
     .btn-cta {
       background: rgba(255, 255, 255, 0.9);
-      color: #667eea;
-      font-weight: 600;
+      color: var(--color-teal);
+      font-weight: 700;
       border: none;
-      transition: all 0.3s ease;
+      transition: all var(--transition-slow);
     }
 
     .btn-cta:hover {
       background: white;
-      transform: translateY(-2px);
+      opacity: 0.95;
       box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-    }
-
-    @keyframes floatEmoji {
-      0%, 100% { transform: translateY(0px) rotate(0deg); }
-      25% { transform: translateY(-15px) rotate(5deg); }
-      50% { transform: translateY(-25px) rotate(0deg); }
-      75% { transform: translateY(-10px) rotate(-5deg); }
     }
 
     /* Mobile Optimizations */
     @media (max-width: 768px) {
-      .hero h1 {
-        font-size: 32px;
+      .hero {
+        padding: calc(var(--spacing-lg) * 0.8) var(--spacing-md) calc(var(--spacing-md) * 0.9);
       }
 
-      .character-grid {
-        display: flex;
-        overflow-x: auto;
-        scroll-snap-type: x mandatory;
-        gap: 12px;
-        padding: 0 0 15px 0;
-        -webkit-overflow-scrolling: touch;
+      .hero h1 {
+        font-size: clamp(calc(var(--font-size-xl) * 0.9), 5vw, calc(var(--font-size-2xl) * 0.9));
+        margin-bottom: calc(var(--spacing-sm) * 0.8);
+      }
+
+      .hero p {
+        font-size: calc(var(--font-size-sm) * 0.95);
+        margin-bottom: calc(var(--spacing-md) * 0.8);
+      }
+
+      .hero-buttons {
+        flex-direction: column;
+        gap: calc(var(--spacing-sm) * 0.8);
+        align-items: center;
+      }
+
+      .btn-large {
+        width: 100%;
+        max-width: 240px;
+        padding: calc(var(--spacing-xs) * 0.9) calc(var(--spacing-md) * 0.9);
+        font-size: calc(var(--font-size-xs) * 0.95);
       }
 
       .character-card {
-        flex: 0 0 120px;
-        scroll-snap-align: start;
-        padding: 12px;
-        min-width: 120px;
+        min-width: 200px;
+        padding: var(--spacing-lg);
       }
 
       .character-avatar {
-        width: 45px;
-        height: 45px;
-        margin-bottom: 8px;
+        width: 140px;
+        height: 140px;
+        margin-bottom: var(--spacing-md);
       }
+
+      .content {
+        padding: var(--spacing-xl) var(--spacing-md);
+      }
+
+      .search-section {
+        padding: var(--spacing-lg) var(--spacing-md);
+      }
+
+      .header {
+        padding: calc(var(--spacing-sm) * 1.0) var(--spacing-sm);
+      }
+
+      .logo {
+        font-size: calc(var(--font-size-base) * 0.9);
+      }
+
+      .nav-search-input {
+        width: 280px;
+        padding: calc(var(--spacing-xs) * 0.6) calc(var(--spacing-xs) * 0.8);
+        font-size: calc(var(--font-size-xs) * 0.9);
+      }
+
+      .nav-buttons {
+        gap: calc(var(--spacing-xs) * 0.8);
+      }
+
+      .nav-link {
+        font-size: calc(var(--font-size-xs) * 0.95);
+      }
+
+      .btn {
+        padding: calc(var(--spacing-xs) * 0.6) calc(var(--spacing-sm) * 0.8);
+        font-size: calc(var(--font-size-xs) * 0.85);
+      }
+
+      .filters-container {
+        flex-direction: column;
+        gap: var(--spacing-md);
+        justify-content: center;
+      }
+
+      .filter-section {
+        width: 100%;
+      }
+
+      .category-buttons,
+      .tags-container {
+        justify-content: center;
+      }
+    }
+
+    /* Accessibility improvements */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* Focus styles for keyboard navigation */
+    .btn:focus,
+    .category-btn:focus,
+    .tag-btn:focus,
+    .character-card:focus,
+    .search-input:focus {
+      outline: 2px solid var(--color-teal);
+      outline-offset: 2px;
     }
   </style>
 </head>
@@ -528,10 +817,13 @@
   <header class="header">
     <div class="header-content">
       <a href="index.html" class="logo">Narrin AI</a>
+      <div class="nav-search">
+        <input type="text" class="nav-search-input" placeholder="Search characters..." id="navSearchInput">
+      </div>
       <nav class="nav-buttons">
-        <a href="characters.html" class="btn btn-secondary">🎭 Characters</a>
-        <a href="chats.html" class="btn btn-secondary">💬 Chats</a>
-        <a href="#" onclick="openNetlifyLogin(); return false;" class="btn btn-secondary" id="loginBtn">👤 Login</a>
+        <a href="characters.html" class="nav-link">Characters</a>
+        <a href="chats.html" class="nav-link">Chats</a>
+        <a href="#" onclick="openNetlifyLogin(); return false;" class="nav-link" id="loginBtn">Login/Register</a>
         <a href="create-character.html" class="btn btn-primary">✨ Create Character</a>
       </nav>
     </div>
@@ -539,53 +831,50 @@
 
   <!-- Hero Section -->
   <section class="hero">
-    <h1>Chat with AI Characters</h1>
-    <p>Discover thousands of unique AI personalities. From historical figures to fictional heroes.</p>
-    <div class="hero-buttons">
-      <a href="create-character.html" class="btn btn-primary btn-large">✨ Create Character</a>
+    <div class="hero-content">
+      <h1>Chat with AI Characters</h1>
+      <p>Discover thousands of unique AI personalities. Engage in meaningful conversations that inspire and entertain.</p>
     </div>
   </section>
 
-  <!-- Search Section -->
-  <section class="search-section">
-    <div class="search-container">
-      <input type="text" class="search-input" placeholder="Search for characters..." id="searchInput">
-    </div>
-  </section>
 
   <!-- Content -->
   <div class="content" id="categories">
 
-    <!-- Category Navigation -->
+    <!-- Category Navigation - Reorganized with Categories and Tags Side by Side -->
     <div class="category-nav">
-      <h2>🎯 Categories</h2>
-      <div class="category-buttons">
-        <a href="category.html?cat=historical" class="category-btn">🏛️ Historical</a>
-        <a href="category.html?cat=fictional" class="category-btn">📚 Fiction</a>
-        <a href="category.html?cat=celebrity" class="category-btn">⭐ Celebrities</a>
-        <a href="category.html?cat=anime-manga" class="category-btn">🎌 Anime & Manga</a>
-        <a href="category.html?cat=gaming" class="category-btn">🎮 Gaming</a>
-      </div>
-      
-      <div class="tags-section">
-        <h3>🏷️ Popular Tags</h3>
-        <div class="tags-container">
-          <a href="category.html?tag=wise" class="tag-btn">wise</a>
-          <a href="category.html?tag=funny" class="tag-btn">funny</a>
-          <a href="category.html?tag=helpful" class="tag-btn">helpful</a>
-          <a href="category.html?tag=mysterious" class="tag-btn">mysterious</a>
-          <a href="category.html?tag=leader" class="tag-btn">leader</a>
-          <a href="category.html?tag=creative" class="tag-btn">creative</a>
-          <a href="category.html?tag=romantic" class="tag-btn">romantic</a>
-          <a href="category.html?tag=adventure" class="tag-btn">adventure</a>
+      <div class="filters-container">
+        <!-- Categories Section -->
+        <div class="filter-section">
+          <div class="category-buttons">
+            <a href="category.html?cat=historical" class="category-btn">Historical</a>
+            <a href="category.html?cat=fictional" class="category-btn">Fiction</a>
+            <a href="category.html?cat=celebrity" class="category-btn">Celebrities</a>
+            <a href="category.html?cat=anime-manga" class="category-btn">Anime & Manga</a>
+            <a href="category.html?cat=gaming" class="category-btn">Gaming</a>
+          </div>
+        </div>
+        
+        <!-- Tags Section -->
+        <div class="filter-section">
+          <div class="tags-container">
+            <a href="category.html?tag=wise" class="tag-btn">Wise</a>
+            <a href="category.html?tag=funny" class="tag-btn">Funny</a>
+            <a href="category.html?tag=helpful" class="tag-btn">Helpful</a>
+            <a href="category.html?tag=mysterious" class="tag-btn">Mysterious</a>
+            <a href="category.html?tag=leader" class="tag-btn">Leader</a>
+            <a href="category.html?tag=creative" class="tag-btn">Creative</a>
+            <a href="category.html?tag=romantic" class="tag-btn">Romantic</a>
+            <a href="category.html?tag=adventure" class="tag-btn">Adventure</a>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Character Sections -->
-    <div class="character-section">
+    <!-- Character Sections - Always 1 Line with Horizontal Scroll -->
+    <div class="character-section" id="historical-figures">
       <div class="section-header">
-        <h2 class="section-title">🏛️ Historical Figures</h2>
+        <h2 class="section-title">Historical Figures</h2>
         <a href="category.html?cat=historical" class="view-all">View all →</a>
       </div>
       <div class="character-grid" id="historical-grid">
@@ -595,7 +884,7 @@
 
     <div class="character-section">
       <div class="section-header">
-        <h2 class="section-title">📚 Fictional Characters</h2>
+        <h2 class="section-title">Fictional Characters</h2>
         <a href="category.html?cat=fictional" class="view-all">View all →</a>
       </div>
       <div class="character-grid" id="fictional-grid">
@@ -605,7 +894,7 @@
 
     <div class="character-section">
       <div class="section-header">
-        <h2 class="section-title">⭐ Celebrities</h2>
+        <h2 class="section-title">Celebrities</h2>
         <a href="category.html?cat=celebrity" class="view-all">View all →</a>
       </div>
       <div class="character-grid" id="celebrity-grid">
@@ -615,7 +904,7 @@
 
     <div class="character-section">
       <div class="section-header">
-        <h2 class="section-title">🎌 Anime & Manga</h2>
+        <h2 class="section-title">Anime & Manga</h2>
         <a href="category.html?cat=anime-manga" class="view-all">View all →</a>
       </div>
       <div class="character-grid" id="anime-grid">
@@ -625,7 +914,7 @@
 
     <div class="character-section">
       <div class="section-header">
-        <h2 class="section-title">🎮 Gaming Characters</h2>
+        <h2 class="section-title">Gaming Characters</h2>
         <a href="category.html?cat=gaming" class="view-all">View all →</a>
       </div>
       <div class="character-grid" id="gaming-grid">
@@ -633,176 +922,186 @@
       </div>
     </div>
 
+    <!-- Create Character CTA -->
+    <div class="create-character-cta">
+      <div class="cta-content">
+        <div class="cta-icon">✨</div>
+        <h2>Create Your Own Character</h2>
+        <p>Bring your imagination to life. Design unique AI personalities with custom traits, backgrounds, and conversation styles.</p>
+        <a href="create-character.html" class="btn btn-cta btn-large">Start Creating</a>
+      </div>
+    </div>
+
   </div>
 
   <script>
     // Make.com webhook URL for character directory
-    const MAKE_WEBHOOK_URL = 'https://hook.eu2.make.com/kej/ez9bgc9g1ic7xh55dx13zsp1go1g'; // Your working webhook URL!
+    const MAKE_WEBHOOK_URL = 'https://hook.eu2.make.com/kej/ez9bgc9g1ic7xh55dx13zsp1go1g';
     
     // Airtable API configuration - using AI Database Platform base
-    const AIRTABLE_BASE_ID = 'app7aSv140x93FY8r'; // AI Database Platform base ID
+    const AIRTABLE_BASE_ID = 'app7aSv140x93FY8r';
     const AIRTABLE_API_KEY = 'patB2fzOVMIwxMUMt.3fef5681ebf3046dafbcab8010618eff3451442252c160353aa5131db5414db1';
-    const AIRTABLE_TABLE_NAME = 'Characters'; // Characters table name
+    const AIRTABLE_TABLE_NAME = 'Characters';
 
-    // Sample fallback data - update these URLs to your own character URLs
+    // Sample fallback data - updated to use local avatar files
     const sampleCharacters = {
       historical: [
         { 
           name: "Napoleon Bonaparte", 
           title: "French Emperor", 
-          avatar: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Jacques-Louis_David_-_The_Emperor_Napoleon_in_His_Study_at_the_Tuileries_-_Google_Art_Project.jpg/150px-Jacques-Louis_David_-_The_Emperor_Napoleon_in_His_Study_at_the_Tuileries_-_Google_Art_Project.jpg",
-          character_url: "/chat/napoleon-bonaparte" // Update to your character URL structure
+          avatar: "avatars/napoleon-bonaparte.webp",
+          character_url: "/chat/napoleon-bonaparte"
         },
         { 
-          name: "Cleopatra", 
+          name: "Cleopatra VII", 
           title: "Queen of Egypt", 
-          avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face",
+          avatar: "avatars/cleopatra-vii.webp",
           character_url: "/chat/cleopatra-vii"
         },
-        { 
-          name: "Leonardo da Vinci", 
-          title: "Renaissance Genius", 
-          avatar: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Leonardo_self.jpg/150px-Leonardo_self.jpg",
+        {
+          name: "Leonardo da Vinci",
+          title: "Renaissance Genius",
+          avatar: "avatars/leonardo-da-vinci.webp",
           character_url: "/chat/leonardo-da-vinci"
         },
-        { 
-          name: "Albert Einstein", 
-          title: "Physicist", 
-          avatar: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Einstein_1921_by_F_Schmutzer_-_restoration.jpg/150px-Einstein_1921_by_F_Schmutzer_-_restoration.jpg",
+        {
+          name: "Albert Einstein",
+          title: "Physicist",
+          avatar: "avatars/albert-einstein.webp",
           character_url: "/chat/albert-einstein"
         },
-        { 
-          name: "Marie Curie", 
-          title: "Scientist", 
-          avatar: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Marie_Curie_c1920.jpg/150px-Marie_Curie_c1920.jpg",
+        {
+          name: "Marie Curie",
+          title: "Scientist",
+          avatar: "avatars/marie-curie.webp",
           character_url: "/chat/marie-curie"
         }
       ],
       fictional: [
-        { 
-          name: "Sherlock Holmes", 
-          title: "Detective", 
-          avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+        {
+          name: "Sherlock Holmes",
+          title: "Detective",
+          avatar: "avatars/sherlock-holmes.webp",
           character_url: "/chat/sherlock-holmes"
         },
-        { 
-          name: "Gandalf", 
-          title: "Wizard", 
-          avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+        {
+          name: "Gandalf the Grey",
+          title: "Wizard",
+          avatar: "avatars/gandalf-the-grey.webp",
           character_url: "/chat/gandalf-the-grey"
         },
-        { 
-          name: "Hermione Granger", 
-          title: "Witch", 
-          avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b631?w=150&h=150&fit=crop&crop=face",
+        {
+          name: "Hermione Granger",
+          title: "Witch",
+          avatar: "avatars/hermione-granger.webp",
           character_url: "/chat/hermione-granger"
         },
-        { 
-          name: "Tyrion Lannister", 
-          title: "The Imp", 
-          avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face",
+        {
+          name: "Tyrion Lannister",
+          title: "The Imp",
+          avatar: "avatars/tyrion-lannister.webp",
           character_url: "/chat/tyrion-lannister"
         },
-        { 
-          name: "Yoda", 
-          title: "Jedi Master", 
-          avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face",
+        {
+          name: "Yoda",
+          title: "Jedi Master",
+          avatar: "avatars/yoda.webp",
           character_url: "/chat/yoda"
         }
       ],
       celebrity: [
-        { 
-          name: "Elon Musk", 
-          title: "Tech Entrepreneur", 
-          avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+        {
+          name: "Elon Musk",
+          title: "Tech Entrepreneur",
+          avatar: "avatars/elon-musk.webp",
           character_url: "/chat/elon-musk"
         },
-        { 
-          name: "Oprah Winfrey", 
-          title: "Media Mogul", 
-          avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+        {
+          name: "Oprah Winfrey",
+          title: "Media Mogul",
+          avatar: "avatars/oprah-winfrey.webp",
           character_url: "/chat/oprah-winfrey"
         },
-        { 
-          name: "Gordon Ramsay", 
-          title: "Chef", 
-          avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+        {
+          name: "Gordon Ramsay",
+          title: "Chef",
+          avatar: "avatars/gordon-ramsay.webp",
           character_url: "/chat/gordon-ramsay"
         },
-        { 
-          name: "Steve Jobs", 
-          title: "Apple Founder", 
-          avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face",
+        {
+          name: "Steve Jobs",
+          title: "Apple Founder",
+          avatar: "avatars/steve-jobs.webp",
           character_url: "/chat/steve-jobs"
         },
-        { 
-          name: "Taylor Swift", 
-          title: "Singer", 
-          avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face",
+        {
+          name: "Taylor Swift",
+          title: "Singer",
+          avatar: "avatars/taylor-swift.webp",
           character_url: "/chat/taylor-swift"
         }
       ],
       "anime-manga": [
-        { 
-          name: "Naruto Uzumaki", 
-          title: "Ninja Hero", 
-          avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+        {
+          name: "Naruto Uzumaki",
+          title: "Ninja Hero",
+          avatar: "avatars/naruto-uzumaki.webp",
           character_url: "/chat/naruto-uzumaki"
         },
-        { 
-          name: "Goku", 
-          title: "Saiyan Warrior", 
-          avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face",
+        {
+          name: "Goku",
+          title: "Saiyan Warrior",
+          avatar: "avatars/goku.webp",
           character_url: "/chat/goku"
         },
-        { 
-          name: "Sailor Moon", 
-          title: "Magical Girl", 
-          avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b631?w=150&h=150&fit=crop&crop=face",
+        {
+          name: "Sailor Moon",
+          title: "Magical Girl",
+          avatar: "avatars/sailor-moon.webp",
           character_url: "/chat/sailor-moon"
         },
-        { 
-          name: "Light Yagami", 
-          title: "Death Note", 
-          avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+        {
+          name: "Light Yagami",
+          title: "Death Note",
+          avatar: "avatars/light-yagami.webp",
           character_url: "/chat/light-yagami"
         },
-        { 
-          name: "Edward Elric", 
-          title: "Alchemist", 
-          avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face",
+        {
+          name: "Edward Elric",
+          title: "Alchemist",
+          avatar: "avatars/edward-elric.webp",
           character_url: "/chat/edward-elric"
         }
       ],
       gaming: [
-        { 
-          name: "Master Chief", 
-          title: "Spartan", 
-          avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+        {
+          name: "Master Chief",
+          title: "Spartan",
+          avatar: "avatars/master-chief.webp",
           character_url: "/chat/master-chief"
         },
-        { 
-          name: "Kratos", 
-          title: "God of War", 
-          avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+        {
+          name: "Kratos",
+          title: "God of War",
+          avatar: "avatars/kratos.webp",
           character_url: "/chat/kratos"
         },
-        { 
-          name: "Lara Croft", 
-          title: "Tomb Raider", 
-          avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face",
+        {
+          name: "Lara Croft",
+          title: "Tomb Raider",
+          avatar: "avatars/lara-croft.webp",
           character_url: "/chat/lara-croft"
         },
-        { 
-          name: "Mario", 
-          title: "Plumber", 
-          avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face",
+        {
+          name: "Mario",
+          title: "Plumber",
+          avatar: "avatars/mario.webp",
           character_url: "/chat/mario"
         },
-        { 
-          name: "Geralt", 
-          title: "Witcher", 
-          avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face",
+        {
+          name: "Geralt of Rivia",
+          title: "Witcher",
+          avatar: "avatars/geralt-of-rivia.webp",
           character_url: "/chat/geralt-of-rivia"
         }
       ]
@@ -823,7 +1122,7 @@
       }
       
       // Try direct Airtable API second
-      const isAirtableConfigured = AIRTABLE_BASE_ID !== 'your-base-id' && 
+      const isAirtableConfigured = AIRTABLE_BASE_ID !== 'your-base-id' &&
                                    AIRTABLE_API_KEY !== 'your-api-key';
       
       if (isAirtableConfigured) {
@@ -852,14 +1151,14 @@
       }
       
       const data = await response.json();
-      console.log(`Loaded ${category} characters:`, data); // Debug log
+      console.log(`Loaded ${category} characters:`, data);
       
       // Clear loading spinner
       grid.innerHTML = '';
       
       if (data.records && data.records.length > 0) {
         data.records.forEach(record => {
-          const fields = record.fields || record; // Handle different response formats
+          const fields = record.fields || record;
           const card = document.createElement('a');
           card.className = 'character-card';
           
@@ -869,7 +1168,7 @@
           // Handle Avatar_URL from Airtable
           const avatarUrl = fields.Avatar_URL || fields.avatar_url || fields.Avatar_File?.[0]?.url;
           
-          const avatarContent = avatarUrl 
+          const avatarContent = avatarUrl
             ? `<img src="${avatarUrl}" alt="${fields.Name}" onerror="this.parentElement.innerHTML='👤'">`
             : '👤';
           
@@ -898,7 +1197,6 @@
         const card = document.createElement('a');
         card.className = 'character-card';
         card.href = character.character_url;
-        // Internal URLs, don't open in new tab
         
         card.innerHTML = `
           <div class="character-avatar">
@@ -951,10 +1249,10 @@
           card.href = fields.Character_URL || fields.character_url || `/chat/${fields.Slug || fields.slug || record.id}`;
           
           // Get avatar image from Airtable
-          const avatarUrl = fields.Avatar_URL || fields.avatar_url || 
+          const avatarUrl = fields.Avatar_URL || fields.avatar_url ||
                            (fields.Avatar && fields.Avatar.length > 0 ? fields.Avatar[0].url : null);
           
-          const avatarContent = avatarUrl 
+          const avatarContent = avatarUrl
             ? `<img src="${avatarUrl}" alt="${fields.Name}" onerror="this.parentElement.innerHTML='👤'">`
             : '👤';
           
@@ -968,7 +1266,7 @@
         });
       } else {
         // Show message if no characters found
-        grid.innerHTML = '<p style="text-align: center; color: #666; grid-column: 1/-1;">No characters found in this category.</p>';
+        grid.innerHTML = '<p style="text-align: center; color: var(--color-gray); grid-column: 1/-1;">No characters found in this category.</p>';
       }
     }
 
@@ -984,10 +1282,16 @@
     // Initialize when page loads
     document.addEventListener('DOMContentLoaded', initializeCharacterGrids);
 
-    // Search functionality
-    document.getElementById('searchInput').addEventListener('input', function(e) {
-      const searchTerm = e.target.value.toLowerCase();
+    // Search functionality for both search inputs
+    function handleSearch(searchTerm) {
       console.log('Search term:', searchTerm);
+      // Add search functionality here
+    }
+
+    // Navigation search input
+    document.getElementById('navSearchInput').addEventListener('input', function(e) {
+      const searchTerm = e.target.value.toLowerCase();
+      handleSearch(searchTerm);
     });
 
     // Utility function to detect mobile
@@ -1016,13 +1320,13 @@
       const user = window.netlifyIdentity && window.netlifyIdentity.currentUser();
       
       if (user) {
-        loginBtn.innerHTML = '👤 ' + (user.user_metadata.full_name || user.email);
+        loginBtn.innerHTML = (user.user_metadata.full_name || user.email);
         loginBtn.onclick = function() {
           window.location.href = 'profile.html';
           return false;
         };
       } else {
-        loginBtn.innerHTML = '👤 Login';
+        loginBtn.innerHTML = 'Login/Register';
         loginBtn.onclick = function() {
           openNetlifyLogin();
           return false;
