@@ -40,10 +40,17 @@ class CharacterAvatarUploader:
                 credentials = service_account.Credentials.from_service_account_file(
                     self.google_credentials_path
                 )
+                # Custom Search API doesn't require specific scopes
                 self.search_service = build('customsearch', 'v1', credentials=credentials)
                 print("✅ Google Search service initialized")
             except Exception as e:
                 print(f"⚠️ Google credentials error: {e}")
+                # Fallback: probeer zonder credentials (werkt alleen met API key)
+                print("🔄 Trying fallback method with API key...")
+                self.google_api_key = os.getenv('GOOGLE_API_KEY', 'YOUR_API_KEY_HERE')
+                if self.google_api_key != 'YOUR_API_KEY_HERE':
+                    self.search_service = build('customsearch', 'v1', developerKey=self.google_api_key)
+                    print("✅ Google Search service initialized with API key")
         
         # Unsplash API (backup source)
         self.unsplash_access_key = os.getenv('UNSPLASH_ACCESS_KEY', 'YOUR_UNSPLASH_KEY')
