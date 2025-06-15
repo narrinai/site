@@ -5,15 +5,101 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>My Profile - Narrin AI</title>
   <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  
+  <!-- Import Modern Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
+    /* Creative & Bold Color Palette with White Primary */
+    :root {
+      /* Primary Colors - White Based */
+      --color-white: #ffffff;
+      --color-off-white: #fafafa;
+      --color-light-gray: #f5f5f5;
+      
+      /* Bold Accent Colors - Teal & Coral */
+      --color-teal: #14b8a6;
+      --color-teal-light: #5eead4;
+      --color-teal-dark: #0f766e;
+      --color-coral: #f97316;
+      --color-coral-light: #fb923c;
+      --color-coral-dark: #ea580c;
+      
+      /* Supporting Colors */
+      --color-navy: #1e293b;
+      --color-navy-light: #334155;
+      --color-gray: #64748b;
+      --color-gray-light: #94a3b8;
+      --color-gray-dark: #475569;
+      
+      /* Gradients */
+      --gradient-primary: linear-gradient(135deg, var(--color-teal) 0%, var(--color-coral) 100%);
+      --gradient-subtle: linear-gradient(135deg, var(--color-teal-light) 0%, var(--color-coral-light) 100%);
+      --gradient-background: linear-gradient(135deg, var(--color-white) 0%, var(--color-off-white) 100%);
+      
+      /* Shadows */
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      --shadow-colored: 0 10px 25px -5px rgba(20, 184, 166, 0.2);
+      
+      /* Spacing */
+      --spacing-xs: 0.5rem;
+      --spacing-sm: 0.75rem;
+      --spacing-md: 1rem;
+      --spacing-lg: 1.5rem;
+      --spacing-xl: 2rem;
+      --spacing-2xl: 3rem;
+      --spacing-3xl: 4rem;
+      
+      /* Typography */
+      --font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-secondary: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      
+      --font-size-xs: 0.75rem;
+      --font-size-sm: 0.875rem;
+      --font-size-base: 1rem;
+      --font-size-lg: 1.125rem;
+      --font-size-xl: 1.25rem;
+      --font-size-2xl: 1.5rem;
+      --font-size-3xl: 1.875rem;
+      --font-size-4xl: 2.25rem;
+      --font-size-5xl: 3rem;
+      --font-size-6xl: 3.75rem;
+      
+      /* Border Radius */
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --radius-full: 9999px;
+      
+      /* Transitions */
+      --transition-fast: 0.15s ease-out;
+      --transition-base: 0.2s ease-out;
+      --transition-slow: 0.3s ease-out;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+      font-family: var(--font-primary);
       margin: 0;
       padding: 0;
-      background-color: #ffffff;
-      color: #333;
+      background: var(--color-off-white);
+      color: var(--color-navy);
       line-height: 1.6;
+      font-size: var(--font-size-base);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      scroll-behavior: smooth;
+      width: 100%;
+      min-height: 100vh;
       pointer-events: auto;
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
@@ -27,76 +113,224 @@
       position: relative;
     }
 
-    /* Header Navigation */
+    /* Header - Ultra Compact */
     .header {
-      background: #ffffff;
-      border-bottom: 1px solid #e0e0e0;
-      padding: 16px 20px;
+      background:
+        linear-gradient(135deg, rgba(20, 184, 166, 0.08) 0%, rgba(249, 115, 22, 0.08) 100%),
+        linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.02) 50%, transparent 60%),
+        rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: calc(var(--spacing-sm) * 1.2) var(--spacing-lg);
       position: sticky;
       top: 0;
       z-index: 100;
+      transition: all var(--transition-base);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Playful geometric accent for header */
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background:
+        radial-gradient(circle at 15% 50%, rgba(20, 184, 166, 0.03) 0%, transparent 30%),
+        radial-gradient(circle at 85% 50%, rgba(249, 115, 22, 0.03) 0%, transparent 30%);
+      pointer-events: none;
+    }
+
+    /* Subtle animated dots pattern */
+    .header::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image:
+        radial-gradient(circle at 20% 20%, rgba(20, 184, 166, 0.1) 1px, transparent 1px),
+        radial-gradient(circle at 80% 80%, rgba(249, 115, 22, 0.1) 1px, transparent 1px);
+      background-size: 40px 40px, 60px 60px;
+      opacity: 0.3;
+      pointer-events: none;
     }
 
     .header-content {
-      max-width: 1200px;
-      margin: 0 auto;
+      width: 100%;
+      margin: 0;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 16px;
+      gap: calc(var(--spacing-xs) * 0.8);
+      padding: 0 var(--spacing-lg);
     }
 
     .logo {
-      font-size: 24px;
-      font-weight: 600;
-      color: #000;
+      font-family: var(--font-secondary);
+      font-size: calc(var(--font-size-lg) * 0.9);
+      font-weight: 800;
+      color: var(--color-navy);
       text-decoration: none;
+      letter-spacing: -0.02em;
+      transition: all var(--transition-base);
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      position: relative;
+      z-index: 10;
+    }
+
+    .logo:hover {
+      opacity: 0.8;
+      transform: scale(1.02);
     }
 
     .nav-buttons {
       display: flex;
-      gap: 12px;
+      gap: calc(var(--spacing-md) * 1.2);
       align-items: center;
       flex-wrap: wrap;
     }
 
-    .nav-buttons .btn {
-      padding: 10px 20px;
-      border-radius: 8px;
+    /* Navigation center section with search and USPs */
+    .nav-center {
+      display: flex;
+      align-items: center;
+      gap: calc(var(--spacing-lg) * 1.5);
+      flex: 1;
+      justify-content: center;
+      max-width: 800px;
+    }
+
+    /* Search bar in navigation */
+    .nav-search {
+      position: relative;
+    }
+
+    .nav-search-input {
+      width: 320px;
+      padding: calc(var(--spacing-xs) * 0.7) calc(var(--spacing-sm) * 0.8);
+      font-size: calc(var(--font-size-sm) * 0.9);
+      border: 2px solid var(--color-light-gray);
+      border-radius: var(--radius-full);
+      box-sizing: border-box;
+      transition: all var(--transition-base);
+      background: var(--color-white);
+      color: var(--color-navy);
+      box-shadow: var(--shadow-sm);
+      font-family: inherit;
+    }
+
+    .nav-search-input:focus {
+      outline: none;
+      border-color: var(--color-teal);
+      box-shadow: var(--shadow-md);
+    }
+
+    .nav-search-input::placeholder {
+      color: var(--color-gray-light);
+      font-weight: 400;
+    }
+
+    /* USPs in navigation */
+    .nav-usps {
+      display: flex;
+      align-items: center;
+      gap: calc(var(--spacing-lg) * 1.2);
+      flex-wrap: nowrap;
+    }
+
+    .nav-usps .usp-item {
+      display: flex;
+      align-items: center;
+      gap: calc(var(--spacing-xs) * 0.8);
+      color: var(--color-gray-dark);
+      font-size: calc(var(--font-size-xs) * 0.9);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .nav-usps .usp-icon {
+      font-size: calc(var(--font-size-sm) * 0.9);
+      color: var(--color-teal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+    }
+
+    .nav-link {
+      color: var(--color-navy);
       text-decoration: none;
       font-weight: 500;
-      font-size: 14px;
-      transition: all 0.2s ease;
+      font-size: calc(var(--font-size-sm) * 0.95);
+      transition: all var(--transition-base);
+      position: relative;
+      padding: calc(var(--spacing-xs) * 0.8) 0;
+    }
+
+    .nav-link:hover {
+      color: var(--color-teal);
+      opacity: 0.8;
+    }
+
+    .btn {
+      padding: calc(var(--spacing-xs) * 0.7) calc(var(--spacing-sm) * 0.9);
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: calc(var(--font-size-xs) * 0.9);
+      transition: all var(--transition-base);
       cursor: pointer;
       border: none;
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       text-align: center;
+      position: relative;
+      overflow: hidden;
+      white-space: nowrap;
+      letter-spacing: -0.01em;
     }
 
-    .nav-buttons .btn-primary {
-      background-color: #000;
-      color: #fff;
+    .btn-primary {
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      box-shadow: var(--shadow-colored);
+      border: 1px solid transparent;
     }
 
-    .nav-buttons .btn-primary:hover {
-      background-color: #333;
+    .btn-primary:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
     }
 
-    .nav-buttons .btn-secondary {
-      background-color: #f5f5f5;
-      color: #333;
-      border: 1px solid #e0e0e0;
+    .btn-secondary {
+      background: var(--color-white);
+      color: var(--color-navy);
+      border: 2px solid var(--color-teal);
+      box-shadow: var(--shadow-sm);
     }
 
-    .nav-buttons .btn-secondary:hover {
-      background-color: #e0e0e0;
+    .btn-secondary:hover {
+      background: var(--color-teal);
+      color: var(--color-white);
+      transform: translateY(-2px);
     }
 
-    .nav-buttons .btn-secondary.active {
-      background-color: #000;
-      color: #fff;
-      border-color: #000;
+    .btn-secondary.active {
+      background: var(--color-teal);
+      color: var(--color-white);
+      border-color: var(--color-teal);
     }
 
     /* Netlify Identity Modal Positioning - Fixed for mobile and desktop */
@@ -163,54 +397,69 @@
     .container {
       max-width: 700px;
       margin: 0 auto;
-      padding: 20px;
+      padding: var(--spacing-xl);
     }
     
     .page-header {
       text-align: center;
-      margin-bottom: 30px;
+      margin-bottom: var(--spacing-2xl);
     }
     
     .page-header h1 {
-      font-size: 32px;
-      margin: 0 0 10px 0;
-      color: #333;
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-4xl);
+      margin: 0 0 var(--spacing-md) 0;
+      color: var(--color-navy);
+      font-weight: 800;
+      letter-spacing: -0.02em;
     }
     
     .page-header p {
-      color: #666;
-      font-size: 16px;
+      color: var(--color-gray);
+      font-size: var(--font-size-lg);
       margin: 0;
+      font-weight: 400;
     }
     
     .header-controls {
       display: flex;
       align-items: center;
       justify-content: flex-end;
-      margin-bottom: 20px;
-      gap: 12px;
+      margin-bottom: var(--spacing-xl);
+      gap: var(--spacing-md);
     }
     
     .form-section {
-      background: #f8f9fa;
-      padding: 24px;
-      border-radius: 12px;
-      margin-bottom: 20px;
+      background: var(--color-white);
+      padding: var(--spacing-2xl);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--spacing-xl);
+      box-shadow: var(--shadow-md);
+      border: 2px solid var(--color-light-gray);
+      transition: all var(--transition-base);
+    }
+    
+    .form-section:hover {
+      border-color: var(--color-teal);
+      box-shadow: var(--shadow-lg);
     }
     
     .form-section h2 {
-      margin: 0 0 16px 0;
-      font-size: 20px;
-      color: #333;
+      margin: 0 0 var(--spacing-lg) 0;
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-2xl);
+      color: var(--color-navy);
+      font-weight: 700;
+      letter-spacing: -0.01em;
     }
     
     .profile-item {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 16px 0;
-      border-bottom: 1px solid #e0e0e0;
-      transition: all 0.2s ease;
+      padding: var(--spacing-lg) 0;
+      border-bottom: 1px solid var(--color-light-gray);
+      transition: all var(--transition-base);
     }
     
     .profile-item:last-child {
@@ -218,157 +467,186 @@
     }
     
     .profile-item.editing {
-      background: #f0f4f8;
-      margin: -16px -24px;
-      padding: 16px 24px;
-      border-radius: 8px;
+      background: var(--color-off-white);
+      margin: calc(var(--spacing-lg) * -1) calc(var(--spacing-2xl) * -1);
+      padding: var(--spacing-lg) var(--spacing-2xl);
+      border-radius: var(--radius-md);
       border-bottom: none;
     }
     
-    .label { 
-      font-weight: 500;
-      color: #333;
-      margin-right: 16px;
+    .label {
+      font-weight: 600;
+      color: var(--color-navy);
+      margin-right: var(--spacing-lg);
       min-width: 100px;
+      font-size: var(--font-size-sm);
     }
     
-    .value { 
+    .value {
       flex: 1;
-      color: #666;
-      margin-right: 16px;
+      color: var(--color-gray);
+      margin-right: var(--spacing-lg);
+      font-size: var(--font-size-base);
     }
     
     .edit-btn, .save-btn, .cancel-btn {
-      padding: 8px 16px;
+      padding: var(--spacing-xs) var(--spacing-md);
       border: none;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 500;
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
       cursor: pointer;
       display: none;
-      margin-left: 8px;
-      transition: all 0.2s ease;
+      margin-left: var(--spacing-xs);
+      transition: all var(--transition-base);
     }
     
     .edit-btn {
-      background-color: #f0f0f0;
-      color: #333;
+      background: var(--color-white);
+      color: var(--color-navy);
+      border: 2px solid var(--color-teal);
+      box-shadow: var(--shadow-sm);
     }
     
     .edit-btn:hover {
-      background-color: #e0e0e0;
+      background: var(--color-teal);
+      color: var(--color-white);
+      transform: translateY(-2px);
     }
     
     .save-btn {
-      background-color: #000;
-      color: white;
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      box-shadow: var(--shadow-colored);
     }
     
     .save-btn:hover {
-      background-color: #333;
+      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
     }
     
     .cancel-btn {
-      background-color: #e0e0e0;
-      color: #333;
+      background: var(--color-light-gray);
+      color: var(--color-gray-dark);
+      border: 1px solid var(--color-gray-light);
     }
     
     .cancel-btn:hover {
-      background-color: #d0d0d0;
+      background: var(--color-gray-light);
+      transform: translateY(-1px);
     }
     
     input.edit-input {
       flex: 1;
-      padding: 12px 16px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      margin-right: 16px;
-      font-family: inherit;
-      transition: border-color 0.2s ease;
+      padding: var(--spacing-md) var(--spacing-lg);
+      font-size: var(--font-size-base);
+      border: 2px solid var(--color-light-gray);
+      border-radius: var(--radius-md);
+      margin-right: var(--spacing-lg);
+      font-family: var(--font-primary);
+      transition: all var(--transition-base);
+      background: var(--color-white);
+      color: var(--color-navy);
     }
     
     input.edit-input:focus {
       outline: none;
-      border-color: #333;
+      border-color: var(--color-teal);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
     }
     
     #upgrade-btn {
       display: none;
-      padding: 14px 28px;
-      background-color: #667eea;
-      color: #fff;
+      padding: var(--spacing-lg) var(--spacing-2xl);
+      background: var(--gradient-primary);
+      color: var(--color-white);
       border: none;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: 500;
+      border-radius: var(--radius-full);
+      font-size: var(--font-size-lg);
+      font-weight: 700;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all var(--transition-base);
       width: 100%;
-      margin-top: 16px;
+      margin-top: var(--spacing-lg);
+      box-shadow: var(--shadow-colored);
     }
     
     #upgrade-btn:hover {
-      background-color: #5a67d8;
+      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-xl);
     }
     
-    .btn {
-      padding: 12px 24px;
+    .btn-form {
+      padding: var(--spacing-md) var(--spacing-xl);
       border: none;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: 500;
+      border-radius: var(--radius-full);
+      font-size: var(--font-size-base);
+      font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all var(--transition-base);
+      font-family: var(--font-primary);
     }
     
     #login-btn {
-      background-color: #000;
-      color: white;
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      box-shadow: var(--shadow-colored);
     }
     
     #login-btn:hover {
-      background-color: #333;
+      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
     }
     
     #logout-btn {
-      background-color: #e0e0e0;
-      color: #333;
+      background: var(--color-coral);
+      color: var(--color-white);
+      box-shadow: var(--shadow-md);
     }
     
     #logout-btn:hover {
-      background-color: #d0d0d0;
+      background: var(--color-coral-dark);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
     }
     
     #debug-toggle {
-      background-color: #f0f0f0;
-      color: #333;
-      padding: 10px 16px;
-      font-size: 14px;
+      background: var(--color-light-gray);
+      color: var(--color-gray-dark);
+      padding: var(--spacing-xs) var(--spacing-md);
+      font-size: var(--font-size-sm);
+      border: 1px solid var(--color-gray-light);
     }
     
     #debug-toggle:hover {
-      background-color: #e0e0e0;
+      background: var(--color-gray-light);
+      transform: translateY(-1px);
     }
     
-    #error { 
+    #error {
       color: #c53030;
-      margin-top: 20px;
-      padding: 16px;
+      margin-top: var(--spacing-xl);
+      padding: var(--spacing-lg);
       background: #fed7d7;
-      border-radius: 8px;
+      border-radius: var(--radius-md);
       border-left: 4px solid #c53030;
-      font-size: 14px;
+      font-size: var(--font-size-sm);
+      box-shadow: var(--shadow-sm);
     }
     
     #success {
       color: #276749;
-      margin-top: 20px;
-      padding: 16px;
+      margin-top: var(--spacing-xl);
+      padding: var(--spacing-lg);
       background: #c6f6d5;
-      border-radius: 8px;
+      border-radius: var(--radius-md);
       border-left: 4px solid #38a169;
-      font-size: 14px;
+      font-size: var(--font-size-sm);
+      box-shadow: var(--shadow-sm);
     }
     
     .loading {
@@ -379,61 +657,97 @@
     .usage-display {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: var(--spacing-md);
     }
     
     .usage-bar {
       flex: 1;
       height: 8px;
-      background: #e0e0e0;
-      border-radius: 10px;
+      background: var(--color-light-gray);
+      border-radius: var(--radius-full);
       overflow: hidden;
       max-width: 200px;
     }
     
     .usage-fill {
       height: 100%;
-      background: #667eea;
-      border-radius: 10px;
+      background: var(--gradient-primary);
+      border-radius: var(--radius-full);
       transition: width 0.5s ease;
     }
     
     .usage-text {
-      font-size: 14px;
-      color: #666;
+      font-size: var(--font-size-sm);
+      color: var(--color-gray);
+      font-weight: 500;
     }
     
     /* Mobile Responsive */
     @media (max-width: 768px) {
+      .header {
+        padding: calc(var(--spacing-sm) * 1.0) var(--spacing-sm);
+      }
+
       .header-content {
         flex-direction: column;
-        gap: 12px;
+        gap: calc(var(--spacing-sm) * 0.8);
+        align-items: stretch;
+      }
+
+      .logo {
+        font-size: calc(var(--font-size-base) * 0.9);
+        text-align: center;
+      }
+
+      .nav-center {
+        flex-direction: column;
+        gap: calc(var(--spacing-sm) * 0.8);
+        max-width: none;
+      }
+
+      .nav-search-input {
+        width: 100%;
+        max-width: 280px;
+        padding: calc(var(--spacing-xs) * 0.6) calc(var(--spacing-xs) * 0.8);
+        font-size: calc(var(--font-size-xs) * 0.9);
+      }
+
+      .nav-usps {
+        justify-content: center;
+        gap: var(--spacing-lg);
+        flex-wrap: wrap;
+      }
+
+      .nav-usps .usp-item {
+        font-size: calc(var(--font-size-xs) * 0.85);
       }
 
       .nav-buttons {
-        width: 100%;
-        justify-content: space-between;
-        gap: 8px;
+        gap: calc(var(--spacing-xs) * 0.8);
+        justify-content: center;
       }
 
-      .nav-buttons .btn {
-        flex: 1;
-        padding: 8px 12px;
-        font-size: 12px;
+      .nav-link {
+        font-size: calc(var(--font-size-xs) * 0.95);
+      }
+
+      .btn {
+        padding: calc(var(--spacing-xs) * 0.6) calc(var(--spacing-sm) * 0.8);
+        font-size: calc(var(--font-size-xs) * 0.85);
       }
     }
     
     @media (max-width: 600px) {
-      .container { 
-        padding: 16px; 
+      .container {
+        padding: var(--spacing-lg);
       }
       
       .page-header h1 {
-        font-size: 28px;
+        font-size: var(--font-size-3xl);
       }
       
       .form-section {
-        padding: 20px;
+        padding: var(--spacing-xl);
       }
       
       .header-controls {
@@ -444,12 +758,12 @@
       .profile-item {
         flex-direction: column;
         align-items: flex-start;
-        gap: 8px;
+        gap: var(--spacing-xs);
       }
       
       .profile-item.editing {
-        margin: -16px -20px;
-        padding: 16px 20px;
+        margin: calc(var(--spacing-lg) * -1) calc(var(--spacing-xl) * -1);
+        padding: var(--spacing-lg) var(--spacing-xl);
       }
       
       .label {
@@ -461,40 +775,79 @@
         margin-right: 0;
       }
       
-      .edit-btn, .save-btn, .cancel-btn { 
+      .edit-btn, .save-btn, .cancel-btn {
         width: 100%;
-        margin: 8px 0 0 0;
+        margin: var(--spacing-xs) 0 0 0;
       }
       
-      input.edit-input { 
+      input.edit-input {
         width: 100%;
         margin-right: 0;
-        margin-bottom: 8px;
+        margin-bottom: var(--spacing-xs);
       }
       
-      .btn {
+      .btn-form {
         width: 100%;
       }
       
       #debug-toggle {
-        margin-top: 8px;
+        margin-top: var(--spacing-xs);
       }
       
       .usage-bar {
         max-width: none;
       }
     }
+
+    /* Accessibility improvements */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* Focus styles for keyboard navigation */
+    .btn:focus,
+    .edit-btn:focus,
+    .save-btn:focus,
+    .cancel-btn:focus,
+    input.edit-input:focus {
+      outline: 2px solid var(--color-teal);
+      outline-offset: 2px;
+    }
   </style>
 </head>
 
 <body>
-  <!-- Header Navigation -->
+  <!-- Header -->
   <header class="header">
     <div class="header-content">
       <a href="index.html" class="logo">Narrin AI</a>
+      <div class="nav-center">
+        <div class="nav-search">
+          <input type="text" class="nav-search-input" placeholder="Search characters..." id="navSearchInput">
+        </div>
+        <div class="nav-usps">
+          <div class="usp-item">
+            <div class="usp-icon">🔒</div>
+            <span>100% Safe</span>
+          </div>
+          <div class="usp-item">
+            <div class="usp-icon">🧠</div>
+            <span>Extensive Character Memory</span>
+          </div>
+          <div class="usp-item">
+            <div class="usp-icon">🔐</div>
+            <span>Private Data</span>
+          </div>
+        </div>
+      </div>
       <nav class="nav-buttons">
-        <a href="index.html" class="btn btn-secondary">🏠 Home</a>
-        <a href="category.html" class="btn btn-secondary">🎭 Characters</a>
+        <a href="index.html" class="nav-link">Characters</a>
+        <a href="chat-overview.html" class="nav-link">Chats</a>
+        <a href="profile.html" class="nav-link" id="loginBtn">Login/Register</a>
         <a href="create-character.html" class="btn btn-primary">✨ Create Character</a>
       </nav>
     </div>

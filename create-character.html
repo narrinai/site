@@ -3,15 +3,104 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Create Character - Napoleon Chat</title>
+  <title>Create Character - Narrin AI</title>
   <!-- Netlify Identity Widget -->
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  
+  <!-- Import Modern Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
   <style>
+    /* Creative & Bold Color Palette with White Primary */
+    :root {
+      /* Primary Colors - White Based */
+      --color-white: #ffffff;
+      --color-off-white: #fafafa;
+      --color-light-gray: #f5f5f5;
+      
+      /* Bold Accent Colors - Teal & Coral */
+      --color-teal: #14b8a6;
+      --color-teal-light: #5eead4;
+      --color-teal-dark: #0f766e;
+      --color-coral: #f97316;
+      --color-coral-light: #fb923c;
+      --color-coral-dark: #ea580c;
+      
+      /* Supporting Colors */
+      --color-navy: #1e293b;
+      --color-navy-light: #334155;
+      --color-gray: #64748b;
+      --color-gray-light: #94a3b8;
+      --color-gray-dark: #475569;
+      
+      /* Gradients */
+      --gradient-primary: linear-gradient(135deg, var(--color-teal) 0%, var(--color-coral) 100%);
+      --gradient-subtle: linear-gradient(135deg, var(--color-teal-light) 0%, var(--color-coral-light) 100%);
+      --gradient-background: linear-gradient(135deg, var(--color-white) 0%, var(--color-off-white) 100%);
+      
+      /* Shadows */
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      --shadow-colored: 0 10px 25px -5px rgba(20, 184, 166, 0.2);
+      
+      /* Spacing */
+      --spacing-xs: 0.5rem;
+      --spacing-sm: 0.75rem;
+      --spacing-md: 1rem;
+      --spacing-lg: 1.5rem;
+      --spacing-xl: 2rem;
+      --spacing-2xl: 3rem;
+      --spacing-3xl: 4rem;
+      
+      /* Typography */
+      --font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-secondary: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      
+      --font-size-xs: 0.75rem;
+      --font-size-sm: 0.875rem;
+      --font-size-base: 1rem;
+      --font-size-lg: 1.125rem;
+      --font-size-xl: 1.25rem;
+      --font-size-2xl: 1.5rem;
+      --font-size-3xl: 1.875rem;
+      --font-size-4xl: 2.25rem;
+      --font-size-5xl: 3rem;
+      --font-size-6xl: 3.75rem;
+      
+      /* Border Radius */
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --radius-full: 9999px;
+      
+      /* Transitions */
+      --transition-fast: 0.15s ease-out;
+      --transition-base: 0.2s ease-out;
+      --transition-slow: 0.3s ease-out;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+      font-family: var(--font-primary);
       margin: 0;
       padding: 0;
-      background-color: #ffffff;
+      background: var(--color-off-white);
+      color: var(--color-navy);
+      line-height: 1.6;
+      font-size: var(--font-size-base);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      scroll-behavior: smooth;
+      width: 100%;
+      min-height: 100vh;
       pointer-events: auto;
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
@@ -25,70 +114,150 @@
       position: relative;
     }
 
-    /* Header Navigation */
+    /* Header - Ultra Compact */
     .header {
-      background: #ffffff;
-      border-bottom: 1px solid #e0e0e0;
-      padding: 16px 20px;
+      background:
+        linear-gradient(135deg, rgba(20, 184, 166, 0.08) 0%, rgba(249, 115, 22, 0.08) 100%),
+        linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.02) 50%, transparent 60%),
+        rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: calc(var(--spacing-sm) * 1.2) var(--spacing-lg);
       position: sticky;
       top: 0;
       z-index: 100;
+      transition: all var(--transition-base);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Playful geometric accent for header */
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background:
+        radial-gradient(circle at 15% 50%, rgba(20, 184, 166, 0.03) 0%, transparent 30%),
+        radial-gradient(circle at 85% 50%, rgba(249, 115, 22, 0.03) 0%, transparent 30%);
+      pointer-events: none;
+    }
+
+    /* Subtle animated dots pattern */
+    .header::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image:
+        radial-gradient(circle at 20% 20%, rgba(20, 184, 166, 0.1) 1px, transparent 1px),
+        radial-gradient(circle at 80% 80%, rgba(249, 115, 22, 0.1) 1px, transparent 1px);
+      background-size: 40px 40px, 60px 60px;
+      opacity: 0.3;
+      pointer-events: none;
     }
 
     .header-content {
-      max-width: 1200px;
-      margin: 0 auto;
+      width: 100%;
+      margin: 0;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 16px;
+      gap: calc(var(--spacing-xs) * 0.8);
+      padding: 0 var(--spacing-lg);
     }
 
     .logo {
-      font-size: 24px;
-      font-weight: 600;
-      color: #000;
+      font-family: var(--font-secondary);
+      font-size: calc(var(--font-size-lg) * 0.9);
+      font-weight: 800;
+      color: var(--color-navy);
       text-decoration: none;
+      letter-spacing: -0.02em;
+      transition: all var(--transition-base);
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      position: relative;
+      z-index: 10;
+    }
+
+    .logo:hover {
+      opacity: 0.8;
+      transform: scale(1.02);
     }
 
     .nav-buttons {
       display: flex;
-      gap: 12px;
+      gap: calc(var(--spacing-md) * 1.2);
       align-items: center;
       flex-wrap: wrap;
     }
 
-    .btn {
-      padding: 10px 20px;
-      border-radius: 8px;
+    .nav-link {
+      color: var(--color-navy);
       text-decoration: none;
       font-weight: 500;
-      font-size: 14px;
-      transition: all 0.2s ease;
+      font-size: calc(var(--font-size-sm) * 0.95);
+      transition: all var(--transition-base);
+      position: relative;
+      padding: calc(var(--spacing-xs) * 0.8) 0;
+    }
+
+    .nav-link:hover {
+      color: var(--color-teal);
+      opacity: 0.8;
+    }
+
+    .btn {
+      padding: calc(var(--spacing-xs) * 0.7) calc(var(--spacing-sm) * 0.9);
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: calc(var(--font-size-xs) * 0.9);
+      transition: all var(--transition-base);
       cursor: pointer;
       border: none;
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       text-align: center;
+      position: relative;
+      overflow: hidden;
+      white-space: nowrap;
+      letter-spacing: -0.01em;
     }
 
     .btn-primary {
-      background-color: #000;
-      color: #fff;
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      box-shadow: var(--shadow-colored);
+      border: 1px solid transparent;
     }
 
     .btn-primary:hover {
-      background-color: #333;
+      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
     }
 
     .btn-secondary {
-      background-color: #f5f5f5;
-      color: #333;
-      border: 1px solid #e0e0e0;
+      background: var(--color-white);
+      color: var(--color-navy);
+      border: 2px solid var(--color-teal);
+      box-shadow: var(--shadow-sm);
     }
 
     .btn-secondary:hover {
-      background-color: #e0e0e0;
+      background: var(--color-teal);
+      color: var(--color-white);
+      transform: translateY(-2px);
     }
 
     /* Netlify Identity Modal Positioning */
@@ -115,62 +284,80 @@
     }
 
     .login-message {
-      background: white;
-      padding: 40px;
-      border-radius: 12px;
+      background: var(--color-white);
+      padding: var(--spacing-2xl);
+      border-radius: var(--radius-lg);
       text-align: center;
       max-width: 400px;
-      margin: 20px;
+      margin: var(--spacing-xl);
+      box-shadow: var(--shadow-xl);
     }
 
     .login-message h3 {
-      margin: 0 0 16px 0;
-      color: #333;
+      margin: 0 0 var(--spacing-lg) 0;
+      color: var(--color-navy);
+      font-family: var(--font-secondary);
+      font-weight: 700;
     }
 
     .login-message p {
-      margin: 0 0 24px 0;
-      color: #666;
+      margin: 0 0 var(--spacing-xl) 0;
+      color: var(--color-gray);
     }
 
     .container {
       max-width: 700px;
       margin: 0 auto;
-      padding: 20px;
+      padding: var(--spacing-xl);
     }
 
     .header-page {
       text-align: center;
-      margin-bottom: 30px;
+      margin-bottom: var(--spacing-2xl);
     }
 
     .header-page h1 {
-      font-size: 32px;
-      margin: 0 0 10px 0;
-      color: #333;
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-4xl);
+      margin: 0 0 var(--spacing-md) 0;
+      color: var(--color-navy);
+      font-weight: 800;
+      letter-spacing: -0.02em;
     }
 
     .header-page p {
-      color: #666;
-      font-size: 16px;
+      color: var(--color-gray);
+      font-size: var(--font-size-lg);
       margin: 0;
+      font-weight: 400;
     }
 
     .form-section {
-      background: #f8f9fa;
-      padding: 24px;
-      border-radius: 12px;
-      margin-bottom: 20px;
+      background: var(--color-white);
+      padding: var(--spacing-2xl);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--spacing-xl);
+      box-shadow: var(--shadow-md);
+      border: 2px solid var(--color-light-gray);
+      transition: all var(--transition-base);
+    }
+
+    .form-section:hover {
+      border-color: var(--color-teal);
+      box-shadow: var(--shadow-lg);
     }
 
     .form-section h2 {
-      margin: 0 0 16px 0;
-      font-size: 20px;
-      color: #333;
+      margin: 0 0 var(--spacing-lg) 0;
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-2xl);
+      color: var(--color-navy);
+      font-weight: 700;
+      letter-spacing: -0.01em;
     }
 
     .form-group {
-      margin-bottom: 20px;
+      margin-bottom: var(--spacing-xl);
     }
 
     .form-group:last-child {
@@ -179,27 +366,42 @@
 
     label {
       display: block;
-      margin-bottom: 8px;
-      font-weight: 500;
-      color: #333;
+      margin-bottom: var(--spacing-xs);
+      font-weight: 600;
+      color: var(--color-navy);
+      font-size: var(--font-size-sm);
     }
 
-    input[type="text"], 
-    input[type="url"], 
-    textarea, 
+    input[type="text"],
+    input[type="url"],
+    textarea,
     select {
       width: 100%;
-      padding: 12px 16px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
+      padding: var(--spacing-md) var(--spacing-lg);
+      font-size: var(--font-size-base);
+      border: 2px solid var(--color-light-gray);
+      border-radius: var(--radius-md);
       box-sizing: border-box;
-      font-family: inherit;
+      font-family: var(--font-primary);
+      transition: all var(--transition-base);
+      background: var(--color-white);
+      color: var(--color-navy);
+    }
+
+    input[type="text"]:focus,
+    input[type="url"]:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--color-teal);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
     }
 
     textarea {
       resize: vertical;
       min-height: 120px;
+      line-height: 1.6;
     }
 
     .character-prompt {
@@ -207,42 +409,53 @@
     }
 
     .avatar-preview {
-      margin-top: 12px;
+      margin-top: var(--spacing-md);
       display: none;
     }
 
     .avatar-preview img {
       width: 80px;
       height: 80px;
-      border-radius: 50%;
+      border-radius: var(--radius-full);
       object-fit: cover;
-      border: 3px solid #e0e0e0;
+      border: 3px solid var(--color-light-gray);
+      transition: all var(--transition-base);
+    }
+
+    .avatar-preview img:hover {
+      border-color: var(--color-teal);
+      transform: scale(1.05);
     }
 
     .visibility-options {
       display: flex;
-      gap: 20px;
-      margin-top: 12px;
+      gap: var(--spacing-xl);
+      margin-top: var(--spacing-md);
     }
 
     .radio-option {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: var(--spacing-xs);
       cursor: pointer;
-      padding: 12px 16px;
-      border: 2px solid #e0e0e0;
-      border-radius: 8px;
-      transition: all 0.2s ease;
+      padding: var(--spacing-md) var(--spacing-lg);
+      border: 2px solid var(--color-light-gray);
+      border-radius: var(--radius-md);
+      transition: all var(--transition-base);
+      background: var(--color-white);
+      box-shadow: var(--shadow-sm);
     }
 
     .radio-option:hover {
-      border-color: #333;
+      border-color: var(--color-teal);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
     }
 
     .radio-option.selected {
-      border-color: #000;
-      background-color: #f0f0f0;
+      border-color: var(--color-teal);
+      background: var(--color-off-white);
+      box-shadow: var(--shadow-colored);
     }
 
     .radio-option input[type="radio"] {
@@ -255,49 +468,60 @@
     }
 
     .radio-option-title {
-      font-weight: 500;
-      margin-bottom: 4px;
+      font-weight: 600;
+      margin-bottom: var(--spacing-xs);
+      color: var(--color-navy);
+      font-size: var(--font-size-sm);
     }
 
     .radio-option-desc {
-      font-size: 14px;
-      color: #666;
+      font-size: var(--font-size-xs);
+      color: var(--color-gray);
+      line-height: 1.4;
     }
 
     .button-group {
       display: flex;
-      gap: 12px;
-      margin-top: 30px;
+      gap: var(--spacing-md);
+      margin-top: var(--spacing-2xl);
     }
 
     button {
-      padding: 14px 28px;
+      padding: var(--spacing-lg) var(--spacing-2xl);
       border: none;
-      border-radius: 12px;
-      font-size: 16px;
+      border-radius: var(--radius-full);
+      font-size: var(--font-size-base);
       cursor: pointer;
-      font-weight: 500;
-      transition: all 0.2s ease;
+      font-weight: 600;
+      transition: all var(--transition-base);
+      font-family: var(--font-primary);
     }
 
     .btn-primary-form {
-      background-color: #000;
-      color: #fff;
+      background: var(--gradient-primary);
+      color: var(--color-white);
       flex: 1;
+      box-shadow: var(--shadow-colored);
     }
 
     .btn-primary-form:hover {
-      background-color: #333;
+      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-xl);
     }
 
     .btn-secondary-form {
-      background-color: #e0e0e0;
-      color: #333;
+      background: var(--color-white);
+      color: var(--color-navy);
+      border: 2px solid var(--color-teal);
       min-width: 120px;
+      box-shadow: var(--shadow-sm);
     }
 
     .btn-secondary-form:hover {
-      background-color: #d0d0d0;
+      background: var(--color-teal);
+      color: var(--color-white);
+      transform: translateY(-2px);
     }
 
     .preview-section {
@@ -632,32 +856,52 @@
     }
 
     @media (max-width: 768px) {
+      .header {
+        padding: calc(var(--spacing-sm) * 1.0) var(--spacing-sm);
+      }
+
+      .header-content {
+        flex-direction: column;
+        gap: calc(var(--spacing-sm) * 0.8);
+        align-items: stretch;
+      }
+
+      .logo {
+        font-size: calc(var(--font-size-base) * 0.9);
+        text-align: center;
+      }
+
       .nav-buttons {
-        gap: 8px;
+        gap: calc(var(--spacing-xs) * 0.8);
+        justify-content: center;
+      }
+
+      .nav-link {
+        font-size: calc(var(--font-size-xs) * 0.95);
       }
       
       .btn {
-        padding: 8px 12px;
-        font-size: 12px;
+        padding: calc(var(--spacing-xs) * 0.6) calc(var(--spacing-sm) * 0.8);
+        font-size: calc(var(--font-size-xs) * 0.85);
       }
     }
 
     @media (max-width: 600px) {
       .container {
-        padding: 16px;
+        padding: var(--spacing-lg);
       }
 
       .header-page h1 {
-        font-size: 28px;
+        font-size: var(--font-size-3xl);
       }
 
       .form-section {
-        padding: 20px;
+        padding: var(--spacing-xl);
       }
 
       .visibility-options {
         flex-direction: column;
-        gap: 12px;
+        gap: var(--spacing-md);
       }
 
       .button-group {
@@ -673,6 +917,26 @@
         text-align: center;
       }
     }
+
+    /* Accessibility improvements */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* Focus styles for keyboard navigation */
+    .btn:focus,
+    button:focus,
+    input:focus,
+    textarea:focus,
+    select:focus,
+    .radio-option:focus {
+      outline: 2px solid var(--color-teal);
+      outline-offset: 2px;
+    }
   </style>
 </head>
 <body>
@@ -681,8 +945,9 @@
     <div class="header-content">
       <a href="index.html" class="logo">Narrin AI</a>
       <nav class="nav-buttons">
-        <a href="category.html" class="btn btn-secondary">🎭 Characters</a>
-        <a href="#" onclick="openNetlifyLogin(); return false;" class="btn btn-secondary" id="loginBtn">👤 Login</a>
+        <a href="index.html" class="nav-link">Characters</a>
+        <a href="chat-overview.html" class="nav-link">Chats</a>
+        <a href="#" onclick="openNetlifyLogin(); return false;" class="nav-link" id="loginBtn">👤 Login</a>
         <a href="create-character.html" class="btn btn-primary">✨ Create Character</a>
       </nav>
     </div>
