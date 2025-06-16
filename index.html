@@ -1776,6 +1776,24 @@
       }
     }
 
+    // Load sample characters (fallback data without avatar URLs to prevent errors)
+    function loadSampleCharacters(category, gridId, limit = 5) {
+      const grid = document.getElementById(gridId);
+      const characters = sampleCharacters[category] || [];
+      
+      console.log(`📦 Loading ${characters.length} sample characters for category: ${category}`);
+      
+      grid.innerHTML = '';
+      
+      characters.slice(0, limit).forEach((character, index) => {
+        console.log(`🔍 Sample character ${index + 1}:`, character);
+        const card = createCharacterCard(character);
+        grid.appendChild(card);
+      });
+      
+      console.log(`✅ Successfully loaded ${Math.min(characters.length, limit)} sample characters`);
+    }
+
     // Load sample characters
     function loadSampleCharacters(category, gridId, limit = 5) {
       const grid = document.getElementById(gridId);
