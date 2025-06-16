@@ -321,63 +321,72 @@ class SimpleAvatarUploader:
             print(f"   ❌ Failed to save locally")
             return None
 
-    def create_upload_script(self):
-        """Create a batch upload script for Git deployment"""
-        script_content = '''#!/bin/bash
-# Git Batch Upload Script for Avatars
-# Run this script to upload all avatar files to Netlify via Git
-
-echo "🚀 Starting Git upload to Netlify..."
-
-# Check if we're in a git repository
-if ! git rev-parse --git-dir > /dev/null 2>&1; then
-    echo "❌ Not in a Git repository"
-    exit 1
-fi
-
-# Check if avatars directory exists
-if [ ! -d "avatars" ]; then
-    echo "❌ avatars/ directory not found"
-    exit 1
-fi
-
-# Show what will be uploaded
-echo "📊 Avatar files to upload:"
-ls -la avatars/*.webp | wc -l
-echo " avatar files found"
-
-# Add all avatar files
-echo "📤 Adding avatar files to Git..."
-git add avatars/
-
-# Commit with timestamp
-echo "💾 Committing changes..."
-git commit -m "Upload avatar batch - $(date +%Y-%m-%d_%H-%M-%S)"
-
-# Push to trigger Netlify deployment
-echo "🚀 Pushing to trigger Netlify deployment..."
-git push
-
-echo "✅ Upload complete!"
-echo "🌐 Your avatars should be available at:"
-echo "   https://narrin.ai/avatars/"
-echo ""
-echo "⏱️  Wait 1-2 minutes for Netlify deployment to complete"
-'''
-        
+    def auto_upload_to_git(self, success_count):
+        """Automatically upload avatar files to Git/Netlify"""
+        if success_count == 0:
+            print("⚠️ No files to upload")
+            return False
+            
         try:
-            with open('upload_avatars.sh', 'w') as f:
-                f.write(script_content)
-            
-            # Make executable on Unix systems
+            import subprocess
             import os
-            import stat
-            os.chmod('upload_avatars.sh', stat.S_IRWXU | stat.S_IRGRP | stat.S_IROTH)
             
-            print("📝 Created Git upload script: upload_avatars.sh")
+            # Check if we're in a Git repository
+            result = subprocess.run(['git', 'rev-parse', '--git-dir'], 
+                                  capture_output=True, text=True)
+            if result.returncode != 0:
+                print("⚠️ Not in a Git repository - skipping auto upload")
+                return False
+            
+            # Check if avatars directory exists and has files
+            if not os.path.exists('avatars') or not os.listdir('avatars'):
+                print("⚠️ No avatar files found - skipping upload")
+                return False
+            
+            print(f"\n🚀 Auto-uploading {success_count} avatar files to Git/Netlify...")
+            
+            # Add avatar files
+            result = subprocess.run(['git', 'add', 'avatars/'], 
+                                  capture_output=True, text=True)
+            if result.returncode != 0:
+                print(f"❌ Git add failed: {result.stderr}")
+                return False
+            
+            # Commit with timestamp
+            from datetime import datetime
+            timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            commit_msg = f"Auto-upload {success_count} character avatars - {timestamp}"
+            
+            result = subprocess.run(['git', 'commit', '-m', commit_msg], 
+                                  capture_output=True, text=True)
+            if result.returncode != 0:
+                if "nothing to commit" in result.stdout:
+                    print("ℹ️ No changes to commit")
+                    return True
+                else:
+                    print(f"❌ Git commit failed: {result.stderr}")
+                    return False
+            
+            print(f"✅ Committed: {commit_msg}")
+            
+            # Push to trigger Netlify deployment
+            result = subprocess.run(['git', 'push'], 
+                                  capture_output=True, text=True, timeout=60)
+            if result.returncode != 0:
+                print(f"❌ Git push failed: {result.stderr}")
+                return False
+            
+            print(f"🚀 Pushed to Git - Netlify deployment starting...")
+            print(f"⏱️ Wait 1-2 minutes for deployment to complete")
+            print(f"🌐 Avatars will be available at: https://narrin.ai/avatars/")
+            
             return True
+            
+        except subprocess.TimeoutExpired:
+            print("⏰ Git push timeout - try manually")
+            return False
         except Exception as e:
-            print(f"❌ Failed to create upload script: {e}")
+            print(f"❌ Auto-upload error: {e}")
             return False
 
     def create_netlify_toml(self):
@@ -509,10 +518,10 @@ echo "⏱️  Wait 1-2 minutes for Netlify deployment to complete"
         print("❌ All images failed")
         return False
 
-    def run(self, skip_existing=False, start_from=1, clear_cache=False):
-        """Run the uploader with direct-to-avatars approach"""
-        print("🚀 Starting Enhanced Avatar Uploader (Direct-to-Git Mode)")
-        print("📁 All files will be saved directly to avatars/ directory")
+    def run(self, skip_existing=False, start_from=1, clear_cache=False, auto_upload=True):
+        """Run the uploader with automatic Git upload"""
+        print("🚀 Starting Enhanced Avatar Uploader (Auto-Upload Mode)")
+        print("📁 Files will be saved to avatars/ and auto-uploaded to Git/Netlify")
         
         print("📊 Loading ALL characters from Airtable...")
         
@@ -558,20 +567,20 @@ echo "⏱️  Wait 1-2 minutes for Netlify deployment to complete"
         print(f"❌ Failed: {failed}")
         print(f"📊 Total processed: {success + failed}")
         
-        # Create upload utilities
-        print(f"\n📦 Creating upload utilities...")
-        self.create_upload_script()
-        self.create_netlify_toml()
-        
-        print(f"\n🌟 Next Steps:")
-        print(f"   1. All avatar files are saved in: ./avatars/")
-        print(f"   2. Airtable has been updated with the expected URLs")
-        print(f"   3. To upload to Netlify, run: ./upload_avatars.sh")
-        print(f"   4. Or manually commit and push:")
-        print(f"      git add avatars/")
-        print(f"      git commit -m 'Add character avatars'")
-        print(f"      git push")
-        print(f"\n🎯 After upload, all URLs will work at: https://narrin.ai/avatars/")
+        # Auto-upload to Git/Netlify
+        if auto_upload and success > 0:
+            upload_success = self.auto_upload_to_git(success)
+            if upload_success:
+                print(f"\n🎯 All Done! Avatars are being deployed to Netlify automatically.")
+                print(f"🌐 Check your avatars at: https://narrin.ai/avatars/")
+            else:
+                print(f"\n⚠️ Auto-upload failed. Upload manually with:")
+                print(f"   git add avatars/")
+                print(f"   git commit -m 'Add character avatars'")
+                print(f"   git push")
+        else:
+            print(f"\n📁 Avatar files saved in: ./avatars/")
+            print(f"🔧 Upload manually if needed")
         
         return success, failed
 
@@ -579,12 +588,13 @@ if __name__ == "__main__":
     import sys
     
     print("🚀 Character Avatar Uploader for 186+ characters")
-    print("📸 Using WebP format with cache-busting for optimal performance")
+    print("📸 Using WebP format with automatic Git deployment")
     print("📁 Script: character_avatar_uploader.py")
     
     # Parse command line arguments
     skip_existing = '--skip-existing' in sys.argv
     clear_cache = '--clear-cache' in sys.argv
+    no_auto_upload = '--no-auto-upload' in sys.argv
     start_from = 1
     
     # Check for --start-from argument
@@ -600,10 +610,13 @@ if __name__ == "__main__":
     print(f"   Skip existing: {skip_existing}")
     print(f"   Clear cache: {clear_cache}")
     print(f"   Start from: {start_from}")
+    print(f"   Auto upload: {not no_auto_upload}")
     print(f"\n💡 Usage examples:")
     print(f"   python character_avatar_uploader.py")
     print(f"   python character_avatar_uploader.py --skip-existing")
+    print(f"   python character_avatar_uploader.py --no-auto-upload")
     print(f"   python character_avatar_uploader.py --clear-cache --start-from 50")
     
     uploader = SimpleAvatarUploader()
-    uploader.run(skip_existing=skip_existing, start_from=start_from, clear_cache=clear_cache)
+    uploader.run(skip_existing=skip_existing, start_from=start_from, 
+                clear_cache=clear_cache, auto_upload=not no_auto_upload)
