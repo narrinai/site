@@ -53,17 +53,24 @@ class SimpleAvatarUploader:
                 params['offset'] = offset
             
             print(f"📄 Loading page {page}...")
+            print(f"   URL: {url}")
+            print(f"   Params: {params}")
+            
             response = self.session.get(url, headers=headers, params=params)
             
             if not response.ok:
-                print(f"❌ Airtable error: {response.status_code}")
+                print(f"❌ Airtable error: {response.status_code} - {response.text}")
                 break
                 
             data = response.json()
+            print(f"   Response keys: {list(data.keys())}")
             
             # Process characters from this page
             page_records = 0
-            for record in data.get('records', []):
+            records = data.get('records', [])
+            print(f"   Records in response: {len(records)}")
+            
+            for record in records:
                 fields = record['fields']
                 if fields.get('Name'):
                     all_characters.append({
@@ -74,41 +81,53 @@ class SimpleAvatarUploader:
                     })
                     page_records += 1
             
-            print(f"   ✅ Found {page_records} characters on page {page}")
+            print(f"   ✅ Found {page_records} valid characters on page {page}")
             
             # Check if there are more pages
             offset = data.get('offset')
+            print(f"   Next offset: {offset}")
+            
             if not offset:
-                print(f"📋 Reached end of records")
+                print(f"📋 Reached end of records (no more offset)")
                 break
             
             page += 1
             # Safety break to prevent infinite loops
             if page > 10:
-                print("⚠️ Too many pages, stopping")
+                print("⚠️ Too many pages, stopping for safety")
                 break
         
         print(f"📊 Total loaded: {len(all_characters)} characters from Airtable")
         return all_characters
 
     def search_google(self, character):
-        """Search Google for images"""
+        """Search Google for NEW images (not existing avatars)"""
         if not self.search_service:
             return []
         
+        # Use more specific search terms to get better results
+        search_terms = f"{character['name']} portrait character art"
+        
         try:
             result = self.search_service.cse().list(
-                q=character['search_terms'],
+                q=search_terms,
                 cx=self.google_cx,
                 searchType='image',
-                num=3
+                num=5,  # Get more options
+                safe='active'
             ).execute()
             
             images = []
             for item in result.get('items', []):
-                images.append({'url': item['link']})
+                # Skip if this looks like an existing avatar from our site
+                if 'narrin.ai' not in item['link']:
+                    images.append({
+                        'url': item['link'],
+                        'title': item.get('title', ''),
+                        'source': item.get('displayLink', '')
+                    })
             
-            print(f"  📷 Found {len(images)} images")
+            print(f"  📷 Found {len(images)} new images (excluding existing)")
             return images
             
         except Exception as e:
@@ -143,7 +162,7 @@ class SimpleAvatarUploader:
         """Upload WebP image to Netlify using deploy API"""
         import base64
         
-        # Method 1: Try direct file upload
+        # Method 1: Try direct file upload first
         file_url = f"https://api.netlify.com/api/v1/sites/{self.netlify_site_id}/files/{filename}"
         headers = {
             'Authorization': f'Bearer {self.netlify_token}',
@@ -153,9 +172,12 @@ class SimpleAvatarUploader:
         try:
             response = requests.put(file_url, data=image_data, headers=headers)
             if response.ok:
+                print(f"✅ Direct upload successful")
                 return f"https://narrin.ai/{filename}"
+            else:
+                print(f"⚠️ Direct upload failed: {response.status_code}")
         except Exception as e:
-            print(f"⚠️ Direct upload failed: {e}")
+            print(f"⚠️ Direct upload error: {e}")
         
         # Method 2: Try deploy API with base64
         try:
@@ -177,28 +199,17 @@ class SimpleAvatarUploader:
             
             response = requests.post(deploy_url, json=deploy_data, headers=headers)
             if response.ok:
+                print(f"✅ Deploy upload successful")
                 return f"https://narrin.ai/{filename}"
             else:
-                print(f"⚠️ Deploy API error: {response.status_code} - {response.text}")
+                print(f"⚠️ Deploy API failed: {response.status_code}")
                 
         except Exception as e:
             print(f"❌ Deploy upload error: {e}")
         
-        # Method 3: Simple fallback - save to local and suggest manual upload
-        try:
-            import os
-            os.makedirs('temp_avatars', exist_ok=True)
-            local_path = f"temp_avatars/{filename.split('/')[-1]}"
-            
-            with open(local_path, 'wb') as f:
-                f.write(image_data)
-            
-            print(f"💾 Saved locally: {local_path} (upload manually to Netlify)")
-            return f"https://narrin.ai/{filename}"  # Return expected URL
-            
-        except Exception as e:
-            print(f"❌ All upload methods failed: {e}")
-            return None
+        # If Netlify fails, we should fail the character processing
+        print(f"❌ All Netlify upload methods failed")
+        return None
 
     def update_airtable(self, character_id, avatar_url):
         """Update Airtable with avatar URL"""
@@ -246,7 +257,7 @@ class SimpleAvatarUploader:
         print("❌ Failed")
         return False
 
-    def run(self, skip_existing=False):
+    def run(self, skip_existing=False, start_from=1):
         """Run the uploader"""
         print("🚀 Starting Simple Avatar Uploader")
         print("📊 Loading ALL characters from Airtable...")
@@ -260,11 +271,16 @@ class SimpleAvatarUploader:
         else:
             print(f"📋 Processing ALL {len(characters)} characters (overwriting existing)")
         
+        # Start from specific character number
+        if start_from > 1:
+            characters = characters[start_from-1:]
+            print(f"▶️ Starting from character #{start_from}")
+        
         success = 0
         failed = 0
         
-        for i, char in enumerate(characters, 1):
-            print(f"\n[{i}/{len(characters)}] {char['name']}")
+        for i, char in enumerate(characters, start_from):
+            print(f"\n[{i}/{len(characters)+start_from-1}] {char['name']}")
             
             try:
                 if self.process_character(char):
@@ -276,7 +292,7 @@ class SimpleAvatarUploader:
                 time.sleep(1.5)
                 
             except KeyboardInterrupt:
-                print(f"\n⏹️  Process stopped by user at {i}/{len(characters)}")
+                print(f"\n⏹️  Process stopped by user at {i}")
                 break
             except Exception as e:
                 print(f"❌ Unexpected error: {e}")
@@ -286,7 +302,7 @@ class SimpleAvatarUploader:
         print(f"\n🎉 Complete!")
         print(f"✅ Successful: {success}")
         print(f"❌ Failed: {failed}")
-        print(f"📊 Total processed: {success + failed}/{len(characters)}")
+        print(f"📊 Total processed: {success + failed}")
         print(f"🌐 Avatars available at: https://narrin.ai/avatars/ (WebP format)")
 
 if __name__ == "__main__":
@@ -295,8 +311,18 @@ if __name__ == "__main__":
     print("🚀 Avatar Uploader for 186+ characters")
     print("📸 Using WebP format for optimal loading speed")
     
-    # Check for command line arguments
-    skip_existing = len(sys.argv) > 1 and sys.argv[1] == '--skip-existing'
+    # Parse command line arguments
+    skip_existing = '--skip-existing' in sys.argv
+    start_from = 1
+    
+    # Check for --start-from argument
+    for i, arg in enumerate(sys.argv):
+        if arg == '--start-from' and i + 1 < len(sys.argv):
+            try:
+                start_from = int(sys.argv[i + 1])
+            except ValueError:
+                print("❌ Invalid start number")
+                exit(1)
     
     uploader = SimpleAvatarUploader()
-    uploader.run(skip_existing=skip_existing)
+    uploader.run(skip_existing=skip_existing, start_from=start_from)
