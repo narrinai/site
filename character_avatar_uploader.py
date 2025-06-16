@@ -37,32 +37,8 @@ class SimpleAvatarUploader:
         
         self.session = requests.Session()
 
-    def load_characters(self):
-        """Load ALL characters from Airtable (expecting 186+) with view specification"""
-        # Try multiple approaches to get all records
-        
-        # Approach 1: Try with Grid view (default view)
-        print("🔍 Trying Approach 1: Default Grid view")
-        characters = self._load_characters_with_view(None)
-        
-        if len(characters) >= 180:
-            return characters
-            
-        # Approach 2: Try with explicit view name
-        print("🔍 Trying Approach 2: Main view")  
-        characters = self._load_characters_with_view("Grid view")
-        
-        if len(characters) >= 180:
-            return characters
-            
-        # Approach 3: Try without any view restrictions
-        print("🔍 Trying Approach 3: All records (no view)")
-        characters = self._load_characters_with_view("ALL")
-        
-        return characters
-    
-    def _load_characters_with_view(self, view_name):
-        """Load characters with specific view"""
+    def load_characters_with_formula(self, formula=None):
+        """Load characters with Airtable formula filter"""
         url = f"https://api.airtable.com/v0/{self.airtable_base}/Characters"
         headers = {'Authorization': f'Bearer {self.airtable_token}'}
         
@@ -70,54 +46,32 @@ class SimpleAvatarUploader:
         offset = None
         page = 1
         
-        print(f"📄 Loading with view: {view_name or 'Default'}")
+        print(f"📄 Loading with formula: {formula or 'None'}")
         
-        # Loop through ALL pages to get every single character
         while True:
             params = {'maxRecords': 100}
             
-            # Add view parameter if specified
-            if view_name and view_name != "ALL":
-                params['view'] = view_name
-            elif view_name == "ALL":
-                # Don't add view parameter at all - get raw table data
-                pass
+            if formula:
+                params['filterByFormula'] = formula
                 
             if offset:
                 params['offset'] = offset
             
             print(f"📄 Loading page {page}...")
-            print(f"   URL: {url}")
             print(f"   Params: {params}")
             
             try:
                 response = self.session.get(url, headers=headers, params=params)
-                
-                print(f"   📡 Response status: {response.status_code}")
                 
                 if not response.ok:
                     print(f"❌ Airtable error: {response.status_code} - {response.text}")
                     break
                     
                 data = response.json()
-                print(f"   📊 Response keys: {list(data.keys())}")
-                
-                # Debug: Show raw response structure
-                if 'records' in data:
-                    print(f"   📋 Records in response: {len(data['records'])}")
-                else:
-                    print(f"   ❌ No 'records' key in response!")
-                    break
-                
-                if 'offset' in data:
-                    print(f"   🔄 Offset present: {data['offset'][:20]}...")
-                else:
-                    print(f"   🏁 No offset - this should be the last page")
-                
-                # Process characters from this page
-                page_records = 0
                 records = data.get('records', [])
+                print(f"   📋 Records in response: {len(records)}")
                 
+                page_records = 0
                 for record in records:
                     fields = record.get('fields', {})
                     if fields.get('Name'):
@@ -128,27 +82,18 @@ class SimpleAvatarUploader:
                             'current_avatar': fields.get('Avatar_URL', '')
                         })
                         page_records += 1
-                    else:
-                        print(f"   ⚠️ Record without Name: {record['id']}")
                 
                 print(f"   ✅ Found {page_records} valid characters on page {page}")
                 print(f"   📊 Running total: {len(all_characters)} characters")
                 
-                # Check if there are more pages
                 offset = data.get('offset')
-                print(f"   🔍 Next offset: {'Present' if offset else 'None'}")
-                
                 if not offset:
-                    print(f"📋 Reached end of records (no more offset)")
                     break
                 
                 page += 1
-                # Safety break to prevent infinite loops
-                if page > 20:
-                    print("⚠️ Too many pages, stopping for safety")
+                if page > 10:
                     break
                     
-                # Small delay to be nice to Airtable API
                 import time
                 time.sleep(0.5)
                 
@@ -156,15 +101,56 @@ class SimpleAvatarUploader:
                 print(f"❌ API request error: {e}")
                 break
         
-        print(f"\n📊 Results for view '{view_name or 'Default'}':")
-        print(f"   Total loaded: {len(all_characters)} characters")
-        print(f"   Pages processed: {page}")
-        
-        if len(all_characters) > 0:
-            print(f"   First 3: {[c['name'] for c in all_characters[:3]]}")
-            print(f"   Last 3: {[c['name'] for c in all_characters[-3:]]}")
-        
         return all_characters
+
+    def load_characters(self):
+        """Load ALL characters using multiple strategies"""
+        print("🔍 Strategy 1: Loading first 100 characters (A-M)")
+        
+        # Try to get characters starting with A-M
+        formula1 = "OR(LEFT(Name,1)='A',LEFT(Name,1)='B',LEFT(Name,1)='C',LEFT(Name,1)='D',LEFT(Name,1)='E',LEFT(Name,1)='F',LEFT(Name,1)='G',LEFT(Name,1)='H',LEFT(Name,1)='I',LEFT(Name,1)='J',LEFT(Name,1)='K',LEFT(Name,1)='L',LEFT(Name,1)='M')"
+        
+        chars_1 = self.load_characters_with_formula(formula1)
+        
+        print(f"\n🔍 Strategy 2: Loading remaining characters (N-Z + numbers)")
+        
+        # Try to get characters starting with N-Z and numbers
+        formula2 = "OR(LEFT(Name,1)='N',LEFT(Name,1)='O',LEFT(Name,1)='P',LEFT(Name,1)='Q',LEFT(Name,1)='R',LEFT(Name,1)='S',LEFT(Name,1)='T',LEFT(Name,1)='U',LEFT(Name,1)='V',LEFT(Name,1)='W',LEFT(Name,1)='X',LEFT(Name,1)='Y',LEFT(Name,1)='Z',LEFT(Name,1)='0',LEFT(Name,1)='1',LEFT(Name,1)='2',LEFT(Name,1)='3',LEFT(Name,1)='4',LEFT(Name,1)='5',LEFT(Name,1)='6',LEFT(Name,1)='7',LEFT(Name,1)='8',LEFT(Name,1)='9')"
+        
+        chars_2 = self.load_characters_with_formula(formula2)
+        
+        # Combine results
+        all_characters = chars_1 + chars_2
+        
+        # Remove duplicates (just in case)
+        seen_ids = set()
+        unique_characters = []
+        for char in all_characters:
+            if char['id'] not in seen_ids:
+                unique_characters.append(char)
+                seen_ids.add(char['id'])
+        
+        print(f"\n📊 Combined Results:")
+        print(f"   Strategy 1 (A-M): {len(chars_1)} characters")
+        print(f"   Strategy 2 (N-Z): {len(chars_2)} characters")
+        print(f"   Total unique: {len(unique_characters)} characters")
+        print(f"   Expected: ~186 characters")
+        
+        if len(unique_characters) > 0:
+            print(f"   First 3: {[c['name'] for c in unique_characters[:3]]}")
+            print(f"   Last 3: {[c['name'] for c in unique_characters[-3:]]}")
+        
+        # If still not enough, try one more strategy
+        if len(unique_characters) < 150:
+            print(f"\n🔍 Strategy 3: Loading ALL records (no filter)")
+            chars_3 = self.load_characters_with_formula(None)
+            print(f"   Strategy 3 result: {len(chars_3)} characters")
+            
+            # Use the best result
+            if len(chars_3) > len(unique_characters):
+                unique_characters = chars_3
+        
+        return unique_characters
 
     def search_google(self, character):
         """Search Google for NEW images (not existing avatars)"""
