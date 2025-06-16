@@ -211,24 +211,10 @@ class SimpleAvatarUploader:
         """Upload WebP image to Netlify using deploy API"""
         import base64
         
-        # Method 1: Try direct file upload first
-        file_url = f"https://api.netlify.com/api/v1/sites/{self.netlify_site_id}/files/{filename}"
-        headers = {
-            'Authorization': f'Bearer {self.netlify_token}',
-            'Content-Type': 'image/webp'
-        }
+        print(f"   📤 Uploading to Netlify: {filename}")
+        print(f"   📊 File size: {len(image_data)} bytes")
         
-        try:
-            response = requests.put(file_url, data=image_data, headers=headers)
-            if response.ok:
-                print(f"✅ Direct upload successful")
-                return f"https://narrin.ai/{filename}"
-            else:
-                print(f"⚠️ Direct upload failed: {response.status_code}")
-        except Exception as e:
-            print(f"⚠️ Direct upload error: {e}")
-        
-        # Method 2: Try deploy API with base64
+        # Method 1: Try deploy API (most reliable for file uploads)
         try:
             deploy_url = f"https://api.netlify.com/api/v1/sites/{self.netlify_site_id}/deploys"
             
@@ -246,19 +232,83 @@ class SimpleAvatarUploader:
                 'Content-Type': 'application/json'
             }
             
+            print(f"   🚀 Trying deploy API...")
             response = requests.post(deploy_url, json=deploy_data, headers=headers)
-            if response.ok:
-                print(f"✅ Deploy upload successful")
+            
+            print(f"   📡 Deploy API response: {response.status_code}")
+            if response.status_code in [200, 201]:
+                deploy_info = response.json()
+                print(f"   ✅ Deploy successful - ID: {deploy_info.get('id', 'unknown')}")
+                print(f"   📋 Deploy state: {deploy_info.get('state', 'unknown')}")
+                
+                # Wait for deploy to be ready
+                deploy_id = deploy_info.get('id')
+                if deploy_id:
+                    self.wait_for_deploy(deploy_id)
+                
                 return f"https://narrin.ai/{filename}"
             else:
-                print(f"⚠️ Deploy API failed: {response.status_code}")
+                print(f"   ❌ Deploy API failed: {response.status_code}")
+                print(f"   📄 Response: {response.text[:200]}")
                 
         except Exception as e:
-            print(f"❌ Deploy upload error: {e}")
+            print(f"   ❌ Deploy API error: {e}")
         
-        # If Netlify fails, we should fail the character processing
-        print(f"❌ All Netlify upload methods failed")
+        # Method 2: Try direct file upload as fallback
+        try:
+            print(f"   🔄 Trying direct file upload...")
+            file_url = f"https://api.netlify.com/api/v1/sites/{self.netlify_site_id}/files/{filename}"
+            headers = {
+                'Authorization': f'Bearer {self.netlify_token}',
+                'Content-Type': 'image/webp'
+            }
+            
+            response = requests.put(file_url, data=image_data, headers=headers)
+            print(f"   📡 Direct upload response: {response.status_code}")
+            
+            if response.status_code in [200, 201]:
+                print(f"   ✅ Direct upload successful")
+                return f"https://narrin.ai/{filename}"
+            else:
+                print(f"   ❌ Direct upload failed: {response.status_code}")
+                print(f"   📄 Response: {response.text[:200]}")
+                
+        except Exception as e:
+            print(f"   ❌ Direct upload error: {e}")
+        
+        print(f"   💥 All Netlify upload methods failed")
         return None
+
+    def wait_for_deploy(self, deploy_id, max_wait=30):
+        """Wait for Netlify deploy to complete"""
+        print(f"   ⏳ Waiting for deploy {deploy_id} to complete...")
+        
+        for i in range(max_wait):
+            try:
+                status_url = f"https://api.netlify.com/api/v1/deploys/{deploy_id}"
+                headers = {'Authorization': f'Bearer {self.netlify_token}'}
+                
+                response = requests.get(status_url, headers=headers)
+                if response.ok:
+                    deploy_info = response.json()
+                    state = deploy_info.get('state', 'unknown')
+                    print(f"   📊 Deploy state: {state}")
+                    
+                    if state == 'ready':
+                        print(f"   ✅ Deploy ready!")
+                        return True
+                    elif state in ['error', 'failed']:
+                        print(f"   ❌ Deploy failed!")
+                        return False
+                    
+                time.sleep(1)
+                
+            except Exception as e:
+                print(f"   ⚠️ Deploy check error: {e}")
+                break
+        
+        print(f"   ⏰ Deploy wait timeout")
+        return False
 
     def verify_upload(self, url, max_retries=3):
         """Verify that the uploaded image is accessible with retries"""
