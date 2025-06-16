@@ -1525,9 +1525,150 @@
       return window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     }
 
+    // Enhanced redirect handling
+    function setupRedirectHandling() {
+      // Store the referring page when coming to profile
+      if (document.referrer && document.referrer !== window.location.href) {
+        const referrer = new URL(document.referrer);
+        // Only store if it's from the same domain and not already the profile page
+        if (referrer.hostname === window.location.hostname && 
+            !referrer.pathname.includes('profile.html')) {
+          localStorage.setItem('login_redirect_url', document.referrer);
+          console.log('🔄 Stored redirect URL:', document.referrer);
+        }
+      }
+    }
+
+    // Enhanced login success handler
+    function handleLoginSuccess(user) {
+      console.log('✅ Login/Registration successful:', user.email);
+      
+      // Store user data
+      localStorage.setItem('user_email', user.email);
+      localStorage.setItem('user_token', user.token.access_token);
+      localStorage.setItem('user_uid', user.id);
+      
+      // Create/update user in Airtable (important for new registrations!)
+      createOrUpdateUser(user);
+      
+      // Update UI
+      showProfileUI();
+      
+      // Handle redirect
+      handlePostLoginRedirect();
+    }
+
+    // New function to create/update user in Airtable
+    async function createOrUpdateUser(user) {
+      console.log('👤 Creating/updating user in database:', user.email);
+      
+      try {
+        const payload = {
+          user_email: user.email,
+          user_uid: user.id,
+          user_token: user.token.access_token,
+          action: 'create_or_update', // New action for user creation
+          user_metadata: {
+            full_name: user.user_metadata?.full_name || '',
+            avatar_url: user.user_metadata?.avatar_url || '',
+            provider: user.app_metadata?.provider || 'email'
+          }
+        };
+        
+        const resp = await fetch('https://hook.eu2.make.com/lya166veex7oo2wwo8mx4fuhlkssxlog', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        
+        if (!resp.ok) {
+          throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+        }
+        
+        const result = await resp.json();
+        console.log('✅ User created/updated successfully:', result);
+        
+        // Now load the profile
+        loadProfile();
+        
+      } catch (error) {
+        console.error('❌ Error creating/updating user:', error);
+        showError('Failed to set up user account. Please refresh the page.');
+        
+        // Still try to load profile with fallback data
+        loadProfile();
+      }
+    }
+
+    // New function to handle post-login redirect
+    function handlePostLoginRedirect() {
+      const redirectUrl = localStorage.getItem('login_redirect_url');
+      
+      if (redirectUrl && redirectUrl !== window.location.href) {
+        localStorage.removeItem('login_redirect_url');
+        showSuccess('Login successful! Redirecting back...');
+        
+        setTimeout(() => {
+          console.log('🔄 Redirecting to:', redirectUrl);
+          window.location.href = redirectUrl;
+        }, 2000); // Longer delay to ensure user creation completes
+      } else {
+        // No specific redirect, go to characters page for better UX
+        showSuccess('Welcome! Redirecting to characters...');
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 2000);
+      }
+    }
+
+    // Enhanced event listeners setup
+    function setupEventListeners() {
+      // Netlify Identity events
+      window.netlifyIdentity.on('init', user => {
+        console.log('🔄 Netlify Identity initialized, user:', user?.email || 'none');
+        if (user && !netlifyUser) {
+          netlifyUser = user;
+          handleLoginSuccess(user);
+        }
+      });
+
+      window.netlifyIdentity.on('login', user => {
+        console.log('✅ Login successful:', user.email);
+        netlifyUser = user;
+        handleLoginSuccess(user);
+        window.netlifyIdentity.close();
+      });
+
+      // IMPORTANT: Handle signup separately from login
+      window.netlifyIdentity.on('signup', user => {
+        console.log('🎉 New user signup:', user.email);
+        netlifyUser = user;
+        handleLoginSuccess(user); // Same handler, but will create new user
+        window.netlifyIdentity.close();
+      });
+
+      window.netlifyIdentity.on('logout', () => {
+        console.log('👋 Logged out');
+        netlifyUser = null;
+        localStorage.clear();
+        showLoginUI();
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1000);
+      });
+
+      window.netlifyIdentity.on('error', err => {
+        console.error('❌ Netlify Identity error:', err);
+        showError('Authentication error: ' + err.message);
+      });
+    }
+
     // Initialize Netlify Identity and check login status
     document.addEventListener('DOMContentLoaded', () => {
       console.log('🚀 Page loaded, initializing...');
+      
+      // Set up redirect handling FIRST
+      setupRedirectHandling();
       
       // Initialize Netlify Identity
       if (window.netlifyIdentity) {
@@ -1538,7 +1679,9 @@
         
         if (netlifyUser) {
           console.log('✅ User already logged in:', netlifyUser.email);
-          handleLoginSuccess(netlifyUser);
+          // For existing logged-in users, just load profile (don't redirect)
+          showProfileUI();
+          loadProfile();
         } else {
           console.log('❌ No user logged in');
           checkLocalStorage();
@@ -1567,68 +1710,17 @@
       }
     }
 
-    function setupEventListeners() {
-      // Netlify Identity events
-      window.netlifyIdentity.on('init', user => {
-        console.log('🔄 Netlify Identity initialized, user:', user?.email || 'none');
-        if (user && !netlifyUser) {
-          netlifyUser = user;
-          handleLoginSuccess(user);
-        }
-      });
-
-      window.netlifyIdentity.on('login', user => {
-        console.log('✅ Login successful:', user.email);
-        netlifyUser = user;
-        handleLoginSuccess(user);
-        window.netlifyIdentity.close();
-        
-        // 🔄 NEW: Check for redirect URL and redirect back after login
-        const redirectUrl = localStorage.getItem('login_redirect_url');
-        if (redirectUrl && redirectUrl !== window.location.href) {
-          localStorage.removeItem('login_redirect_url'); // Clean up
-          showSuccess('Login successful! Redirecting back...');
-          setTimeout(() => {
-            window.location.href = redirectUrl;
-          }, 1500); // Small delay to show success message
-        }
-      });
-
-      window.netlifyIdentity.on('logout', () => {
-        console.log('👋 Logged out');
-        netlifyUser = null;
-        localStorage.clear();
-        showLoginUI();
-        // Redirect to home page after logout
-        setTimeout(() => {
-          window.location.href = 'index.html';
-        }, 1000);
-      });
-
-      window.netlifyIdentity.on('error', err => {
-        console.error('❌ Netlify Identity error:', err);
-        showError('Authentication error: ' + err.message);
-      });
-    }
-
-    function handleLoginSuccess(user) {
-      // Store user data
-      localStorage.setItem('user_email', user.email);
-      localStorage.setItem('user_token', user.token.access_token);
-      localStorage.setItem('user_uid', user.id);
-      
-      // Update UI
-      showProfileUI();
-      loadProfile();
-    }
-
+    // Fix 1: Enhanced openLogin function with redirect setup
     function openLogin() {
+      // Store current page as redirect if not already set
+      if (!localStorage.getItem('login_redirect_url') && document.referrer) {
+        localStorage.setItem('login_redirect_url', document.referrer);
+      }
+      
       if (window.netlifyIdentity) {
         if (isMobileDevice()) {
-          // On mobile, show in full screen with proper positioning
           window.netlifyIdentity.open('login');
         } else {
-          // On desktop, use modal
           window.netlifyIdentity.open('login');
         }
       } else {
@@ -1662,7 +1754,7 @@
       document.getElementById('upgrade-btn').style.display = 'block';
     }
 
-    // Profile loading
+    // Fix 2: Enhanced loadProfile with better error handling for new users
     async function loadProfile() {
       const token = localStorage.getItem('user_token');
       const email = localStorage.getItem('user_email');
@@ -1681,7 +1773,8 @@
         const payload = { 
           user_email: email, 
           user_uid: uid, 
-          user_token: token 
+          user_token: token,
+          action: 'get_profile' // Explicit action for profile loading
         };
         
         console.log('Request payload', payload);
@@ -1695,46 +1788,44 @@
         console.log('📡 Response status:', resp.status);
         
         if (!resp.ok) {
+          // If user not found (404), create them
+          if (resp.status === 404) {
+            console.log('🔄 User not found, creating...');
+            const user = {
+              email: email,
+              id: uid,
+              token: { access_token: token },
+              user_metadata: {}
+            };
+            await createOrUpdateUser(user);
+            return; // createOrUpdateUser will call loadProfile again
+          }
           throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
         }
         
-        // Get raw response text first for debugging
         const responseText = await resp.text();
         console.log('📋 Raw response:', responseText);
         
-        // Try to parse JSON
         let data;
         try {
           data = JSON.parse(responseText);
           console.log('📋 Parsed JSON data:', data);
         } catch (parseError) {
           console.error('❌ JSON Parse Error:', parseError);
-          console.error('❌ Response text that failed to parse:', responseText);
           throw new Error('Invalid JSON response from server');
         }
         
         // Process the data with fallbacks
-        if (data.email) {
-          setField('email', data.email);
-        } else if (email) {
-          setField('email', email); // Fallback to stored email
-        }
-        
-        if (data.plan) {
-          setField('plan', data.plan);
-        } else {
-          setField('plan', 'Free'); // Default plan
-        }
+        setField('email', data.email || email);
+        setField('plan', data.plan || 'Free');
         
         if (data.usage !== undefined && data.quota !== undefined) {
           setField('usage', `${data.usage}`);
           document.getElementById('quota').textContent = data.quota;
           
-          // Update usage bar
           const percentage = (data.usage / data.quota) * 100;
           document.getElementById('usage-fill').style.width = `${Math.min(percentage, 100)}%`;
         } else {
-          // Default values if not provided
           setField('usage', '0');
           document.getElementById('quota').textContent = '100';
           document.getElementById('usage-fill').style.width = '0%';
@@ -1748,14 +1839,11 @@
         showError(`Loading error: ${error.message}`);
         
         // Show basic info even if webhook fails
-        const email = localStorage.getItem('user_email');
-        if (email) {
-          setField('email', email);
-          setField('plan', 'Free');
-          setField('usage', '0');
-          document.getElementById('quota').textContent = '100';
-          document.getElementById('usage-fill').style.width = '0%';
-        }
+        setField('email', email);
+        setField('plan', 'Free');
+        setField('usage', '0');
+        document.getElementById('quota').textContent = '100';
+        document.getElementById('usage-fill').style.width = '0%';
       } finally {
         hideLoading();
       }
@@ -1963,6 +2051,29 @@
       console.log('🚀 Upgrade button clicked');
     }
 
+    // Fix 3: Better navigation handling for all pages
+    function initializeNavigation() {
+      // Update login buttons with user info
+      updateLoginButton();
+      
+      // Set up click handlers for login buttons
+      const loginBtns = document.querySelectorAll('#loginBtn, #mobileLoginBtn');
+      loginBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const user = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+          if (user) {
+            // User is logged in, go to profile
+            window.location.href = 'profile.html';
+          } else {
+            // User not logged in, store current page and open login
+            localStorage.setItem('login_redirect_url', window.location.href);
+            openLogin();
+          }
+        });
+      });
+    }
+
     // ===== NETLIFY IDENTITY BUTTON UPDATES =====
     function updateLoginButton() {
       const loginBtn = document.getElementById('loginBtn');
@@ -1994,6 +2105,9 @@
       });
       window.netlifyIdentity.on('logout', updateLoginButton);
     }
+
+    // Fix 4: Call navigation initialization
+    document.addEventListener('DOMContentLoaded', initializeNavigation);
   </script>
 </body>
 </html>
