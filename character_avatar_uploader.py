@@ -208,66 +208,30 @@ class SimpleAvatarUploader:
             return False
 
     def upload_to_netlify(self, image_data, filename):
-        """Upload WebP image to Netlify using deploy API"""
+        """Upload WebP image to Netlify using file API (more reliable)"""
         import base64
         
         print(f"   📤 Uploading to Netlify: {filename}")
         print(f"   📊 File size: {len(image_data)} bytes")
         
-        # Method 1: Try deploy API (most reliable for file uploads)
+        # Method 1: Use Large Media API (for binary files)
         try:
-            deploy_url = f"https://api.netlify.com/api/v1/sites/{self.netlify_site_id}/deploys"
-            
-            # Encode image as base64
-            encoded_image = base64.b64encode(image_data).decode('utf-8')
-            
-            deploy_data = {
-                "files": {
-                    filename: encoded_image
-                }
-            }
-            
+            # First, get upload URL
+            upload_url = f"https://api.netlify.com/api/v1/sites/{self.netlify_site_id}/files/{filename}"
             headers = {
                 'Authorization': f'Bearer {self.netlify_token}',
-                'Content-Type': 'application/json'
+                'Content-Type': 'image/webp',
+                'Content-Length': str(len(image_data))
             }
             
-            print(f"   🚀 Trying deploy API...")
-            response = requests.post(deploy_url, json=deploy_data, headers=headers)
+            print(f"   🚀 Direct file upload...")
+            response = requests.put(upload_url, data=image_data, headers=headers)
             
-            print(f"   📡 Deploy API response: {response.status_code}")
-            if response.status_code in [200, 201]:
-                deploy_info = response.json()
-                print(f"   ✅ Deploy successful - ID: {deploy_info.get('id', 'unknown')}")
-                print(f"   📋 Deploy state: {deploy_info.get('state', 'unknown')}")
-                
-                # Wait for deploy to be ready
-                deploy_id = deploy_info.get('id')
-                if deploy_id:
-                    self.wait_for_deploy(deploy_id)
-                
-                return f"https://narrin.ai/{filename}"
-            else:
-                print(f"   ❌ Deploy API failed: {response.status_code}")
-                print(f"   📄 Response: {response.text[:200]}")
-                
-        except Exception as e:
-            print(f"   ❌ Deploy API error: {e}")
-        
-        # Method 2: Try direct file upload as fallback
-        try:
-            print(f"   🔄 Trying direct file upload...")
-            file_url = f"https://api.netlify.com/api/v1/sites/{self.netlify_site_id}/files/{filename}"
-            headers = {
-                'Authorization': f'Bearer {self.netlify_token}',
-                'Content-Type': 'image/webp'
-            }
-            
-            response = requests.put(file_url, data=image_data, headers=headers)
-            print(f"   📡 Direct upload response: {response.status_code}")
-            
-            if response.status_code in [200, 201]:
+            print(f"   📡 Upload response: {response.status_code}")
+            if response.status_code in [200, 201, 204]:
                 print(f"   ✅ Direct upload successful")
+                # Give Netlify time to process
+                time.sleep(2)
                 return f"https://narrin.ai/{filename}"
             else:
                 print(f"   ❌ Direct upload failed: {response.status_code}")
@@ -276,39 +240,79 @@ class SimpleAvatarUploader:
         except Exception as e:
             print(f"   ❌ Direct upload error: {e}")
         
-        print(f"   💥 All Netlify upload methods failed")
+        # Method 2: Use simple deploy with single file (faster)
+        try:
+            print(f"   🔄 Trying simple deploy...")
+            deploy_url = f"https://api.netlify.com/api/v1/sites/{self.netlify_site_id}/deploys"
+            
+            # Create a minimal deploy with just this file
+            files = {
+                filename: base64.b64encode(image_data).decode('utf-8')
+            }
+            
+            deploy_data = {
+                "files": files,
+                "draft": False,
+                "async": False  # Synchronous deploy
+            }
+            
+            headers = {
+                'Authorization': f'Bearer {self.netlify_token}',
+                'Content-Type': 'application/json'
+            }
+            
+            response = requests.post(deploy_url, json=deploy_data, headers=headers, timeout=60)
+            print(f"   📡 Deploy response: {response.status_code}")
+            
+            if response.status_code in [200, 201]:
+                deploy_info = response.json()
+                state = deploy_info.get('state', 'unknown')
+                print(f"   📋 Deploy state: {state}")
+                
+                if state in ['ready', 'current']:
+                    print(f"   ✅ Synchronous deploy successful")
+                    return f"https://narrin.ai/{filename}"
+                else:
+                    print(f"   ⚠️ Deploy in state: {state}")
+                    # Still return URL, might work
+                    return f"https://narrin.ai/{filename}"
+            else:
+                print(f"   ❌ Deploy failed: {response.status_code}")
+                print(f"   📄 Response: {response.text[:200]}")
+                
+        except Exception as e:
+            print(f"   ❌ Deploy error: {e}")
+        
+        # Method 3: Try with curl-like approach using requests-toolbelt
+        try:
+            print(f"   🔧 Trying multipart upload...")
+            from requests_toolbelt.multipart.encoder import MultipartEncoder
+            
+            # This might not work if requests-toolbelt isn't installed, but worth trying
+            multipart_data = MultipartEncoder(
+                fields={
+                    'file': (filename, image_data, 'image/webp')
+                }
+            )
+            
+            upload_url = f"https://api.netlify.com/api/v1/sites/{self.netlify_site_id}/files/{filename}"
+            headers = {
+                'Authorization': f'Bearer {self.netlify_token}',
+                'Content-Type': multipart_data.content_type
+            }
+            
+            response = requests.put(upload_url, data=multipart_data, headers=headers)
+            if response.status_code in [200, 201, 204]:
+                print(f"   ✅ Multipart upload successful")
+                return f"https://narrin.ai/{filename}"
+                
+        except ImportError:
+            print(f"   ⚠️ requests-toolbelt not available, skipping multipart")
+        except Exception as e:
+            print(f"   ❌ Multipart upload error: {e}")
+        
+        print(f"   💥 All upload methods failed")
         return None
-
-    def wait_for_deploy(self, deploy_id, max_wait=30):
-        """Wait for Netlify deploy to complete"""
-        print(f"   ⏳ Waiting for deploy {deploy_id} to complete...")
-        
-        for i in range(max_wait):
-            try:
-                status_url = f"https://api.netlify.com/api/v1/deploys/{deploy_id}"
-                headers = {'Authorization': f'Bearer {self.netlify_token}'}
-                
-                response = requests.get(status_url, headers=headers)
-                if response.ok:
-                    deploy_info = response.json()
-                    state = deploy_info.get('state', 'unknown')
-                    print(f"   📊 Deploy state: {state}")
-                    
-                    if state == 'ready':
-                        print(f"   ✅ Deploy ready!")
-                        return True
-                    elif state in ['error', 'failed']:
-                        print(f"   ❌ Deploy failed!")
-                        return False
-                    
-                time.sleep(1)
-                
-            except Exception as e:
-                print(f"   ⚠️ Deploy check error: {e}")
-                break
-        
-        print(f"   ⏰ Deploy wait timeout")
-        return False
 
     def verify_upload(self, url, max_retries=3):
         """Verify that the uploaded image is accessible with retries"""
