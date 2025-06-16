@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Simple Avatar Uploader - API Key Only
+Simple Avatar Uploader - API Key Only with Cache-Busting
 """
 
 import requests
@@ -158,6 +158,23 @@ class SimpleAvatarUploader:
             print(f"❌ Image processing error: {e}")
             return None
 
+    def clear_netlify_cache(self):
+        """Clear Netlify cache for the site"""
+        cache_url = f"https://api.netlify.com/api/v1/sites/{self.netlify_site_id}/cache"
+        headers = {'Authorization': f'Bearer {self.netlify_token}'}
+        
+        try:
+            response = requests.delete(cache_url, headers=headers)
+            if response.ok:
+                print("✅ Netlify cache cleared")
+                return True
+            else:
+                print(f"⚠️ Cache clear failed: {response.status_code}")
+                return False
+        except Exception as e:
+            print(f"❌ Cache clear error: {e}")
+            return False
+
     def upload_to_netlify(self, image_data, filename):
         """Upload WebP image to Netlify using deploy API"""
         import base64
@@ -211,26 +228,41 @@ class SimpleAvatarUploader:
         print(f"❌ All Netlify upload methods failed")
         return None
 
+    def verify_upload(self, url):
+        """Verify that the uploaded image is accessible"""
+        try:
+            response = requests.head(url, timeout=10)
+            print(f"   🔍 Verification: {response.status_code} for {url}")
+            return response.status_code == 200
+        except Exception as e:
+            print(f"   ❌ Verification failed: {e}")
+            return False
+
     def update_airtable(self, character_id, avatar_url):
-        """Update Airtable with avatar URL"""
+        """Update Airtable with avatar URL and cache-busting"""
         url = f"https://api.airtable.com/v0/{self.airtable_base}/Characters/{character_id}"
         headers = {
             'Authorization': f'Bearer {self.airtable_token}',
             'Content-Type': 'application/json'
         }
         
-        data = {"fields": {"Avatar_URL": avatar_url}}
+        # Add cache-busting parameter to force refresh
+        cache_buster = int(time.time())
+        avatar_url_with_cache_buster = f"{avatar_url}?v={cache_buster}"
+        
+        data = {"fields": {"Avatar_URL": avatar_url_with_cache_buster}}
         
         try:
             response = requests.patch(url, json=data, headers=headers)
             response.raise_for_status()
+            print(f"   📝 Airtable updated with cache-buster: ?v={cache_buster}")
             return True
         except Exception as e:
             print(f"❌ Airtable update error: {e}")
             return False
 
     def process_character(self, character):
-        """Process one character"""
+        """Process one character with enhanced cache-busting"""
         print(f"\n🔄 Processing: {character['name']}")
         
         # Search for images
@@ -239,27 +271,53 @@ class SimpleAvatarUploader:
             print("❌ No images found")
             return False
         
+        # Generate unique filename with timestamp for cache-busting
+        timestamp = int(time.time())
+        safe_name = character['name'].lower().replace(' ', '-').replace('/', '-').replace('\\', '-')
+        filename = f"avatars/{safe_name}-{timestamp}.webp"
+        
+        print(f"   📁 Target filename: {filename}")
+        
         # Try each image
-        for img in images:
+        for i, img in enumerate(images, 1):
+            print(f"   🖼️  Trying image {i}/{len(images)}: {img['source']}")
+            
             processed = self.process_image(img['url'])
             if not processed:
+                print(f"   ❌ Image {i} processing failed")
                 continue
             
-            filename = f"avatars/{character['name'].lower().replace(' ', '-')}.webp"
             avatar_url = self.upload_to_netlify(processed, filename)
             if not avatar_url:
+                print(f"   ❌ Image {i} upload failed")
                 continue
             
+            # Verify upload worked before updating Airtable
+            print(f"   🔍 Verifying upload...")
+            if not self.verify_upload(avatar_url):
+                print(f"   ⚠️ Upload verification failed for {avatar_url}")
+                continue
+            
+            # Update Airtable with cache-busting URL
             if self.update_airtable(character['id'], avatar_url):
                 print(f"✅ Success: {avatar_url}")
                 return True
+            else:
+                print(f"   ❌ Airtable update failed")
         
-        print("❌ Failed")
+        print("❌ All images failed")
         return False
 
-    def run(self, skip_existing=False, start_from=1):
-        """Run the uploader"""
-        print("🚀 Starting Simple Avatar Uploader")
+    def run(self, skip_existing=False, start_from=1, clear_cache=False):
+        """Run the uploader with enhanced options"""
+        print("🚀 Starting Enhanced Avatar Uploader with Cache-Busting")
+        
+        # Optionally clear Netlify cache at start
+        if clear_cache:
+            print("🧹 Clearing Netlify cache...")
+            self.clear_netlify_cache()
+            time.sleep(2)  # Give cache clear time to propagate
+        
         print("📊 Loading ALL characters from Airtable...")
         
         characters = self.load_characters()
@@ -289,7 +347,7 @@ class SimpleAvatarUploader:
                     failed += 1
                 
                 # Rate limiting - be nice to the APIs
-                time.sleep(1.5)
+                time.sleep(2)  # Slightly longer delay for cache propagation
                 
             except KeyboardInterrupt:
                 print(f"\n⏹️  Process stopped by user at {i}")
@@ -304,15 +362,21 @@ class SimpleAvatarUploader:
         print(f"❌ Failed: {failed}")
         print(f"📊 Total processed: {success + failed}")
         print(f"🌐 Avatars available at: https://narrin.ai/avatars/ (WebP format)")
+        
+        # Clear cache one more time at the end
+        if success > 0:
+            print("\n🧹 Final cache clear...")
+            self.clear_netlify_cache()
 
 if __name__ == "__main__":
     import sys
     
-    print("🚀 Avatar Uploader for 186+ characters")
-    print("📸 Using WebP format for optimal loading speed")
+    print("🚀 Enhanced Avatar Uploader for 186+ characters")
+    print("📸 Using WebP format with cache-busting for optimal performance")
     
     # Parse command line arguments
     skip_existing = '--skip-existing' in sys.argv
+    clear_cache = '--clear-cache' in sys.argv
     start_from = 1
     
     # Check for --start-from argument
@@ -324,5 +388,10 @@ if __name__ == "__main__":
                 print("❌ Invalid start number")
                 exit(1)
     
+    print(f"🔧 Options:")
+    print(f"   Skip existing: {skip_existing}")
+    print(f"   Clear cache: {clear_cache}")
+    print(f"   Start from: {start_from}")
+    
     uploader = SimpleAvatarUploader()
-    uploader.run(skip_existing=skip_existing, start_from=start_from)
+    uploader.run(skip_existing=skip_existing, start_from=start_from, clear_cache=clear_cache)
