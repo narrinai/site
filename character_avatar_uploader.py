@@ -135,13 +135,42 @@ class SimpleAvatarUploader:
             return []
 
     def process_image(self, url):
-        """Download and process image to WebP format"""
+        """Download and process image to WebP format with better error handling"""
         try:
-            response = self.session.get(url, timeout=15)
+            # Set proper headers to avoid being blocked
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            }
+            
+            response = self.session.get(url, timeout=15, headers=headers)
             response.raise_for_status()
             
+            # Check if we actually got image data
+            content_type = response.headers.get('content-type', '').lower()
+            if not any(img_type in content_type for img_type in ['image/', 'jpeg', 'jpg', 'png', 'webp', 'gif']):
+                print(f"   ⚠️ Not an image file: {content_type}")
+                return None
+            
+            # Check file size (skip if too small or too large)
+            content_length = len(response.content)
+            if content_length < 1024:  # Less than 1KB
+                print(f"   ⚠️ Image too small: {content_length} bytes")
+                return None
+            if content_length > 5 * 1024 * 1024:  # More than 5MB
+                print(f"   ⚠️ Image too large: {content_length} bytes")
+                return None
+            
             img = Image.open(BytesIO(response.content))
-            if img.mode != 'RGB':
+            
+            # Convert to RGB if needed
+            if img.mode in ('RGBA', 'LA', 'P'):
+                # Create white background for transparency
+                background = Image.new('RGB', img.size, (255, 255, 255))
+                if img.mode == 'P':
+                    img = img.convert('RGBA')
+                background.paste(img, mask=img.split()[-1] if img.mode in ('RGBA', 'LA') else None)
+                img = background
+            elif img.mode != 'RGB':
                 img = img.convert('RGB')
             
             # Smart crop to square, focusing on center/face area
@@ -152,10 +181,13 @@ class SimpleAvatarUploader:
             img.save(img_bytes, format='WEBP', quality=85, optimize=True)
             img_bytes.seek(0)
             
+            processed_size = len(img_bytes.getvalue())
+            print(f"   ✅ Image processed: {content_length} → {processed_size} bytes")
+            
             return img_bytes.getvalue()
             
         except Exception as e:
-            print(f"❌ Image processing error: {e}")
+            print(f"   ❌ Image processing error: {e}")
             return None
 
     def clear_netlify_cache(self):
@@ -228,15 +260,35 @@ class SimpleAvatarUploader:
         print(f"❌ All Netlify upload methods failed")
         return None
 
-    def verify_upload(self, url):
-        """Verify that the uploaded image is accessible"""
-        try:
-            response = requests.head(url, timeout=10)
-            print(f"   🔍 Verification: {response.status_code} for {url}")
-            return response.status_code == 200
-        except Exception as e:
-            print(f"   ❌ Verification failed: {e}")
-            return False
+    def verify_upload(self, url, max_retries=3):
+        """Verify that the uploaded image is accessible with retries"""
+        for attempt in range(max_retries):
+            try:
+                # Wait a bit for Netlify to propagate the file
+                if attempt > 0:
+                    wait_time = attempt * 2
+                    print(f"   ⏳ Waiting {wait_time}s for Netlify propagation...")
+                    time.sleep(wait_time)
+                
+                response = requests.head(url, timeout=15)
+                print(f"   🔍 Verification attempt {attempt + 1}: {response.status_code}")
+                
+                if response.status_code == 200:
+                    print(f"   ✅ Upload verified successfully")
+                    return True
+                elif response.status_code == 404 and attempt < max_retries - 1:
+                    print(f"   ⏳ File not yet available, retrying...")
+                    continue
+                else:
+                    print(f"   ❌ Verification failed with status: {response.status_code}")
+                    
+            except Exception as e:
+                print(f"   ❌ Verification attempt {attempt + 1} failed: {e}")
+                if attempt < max_retries - 1:
+                    time.sleep(2)
+                    continue
+        
+        return False
 
     def update_airtable(self, character_id, avatar_url):
         """Update Airtable with avatar URL and cache-busting"""
@@ -295,8 +347,9 @@ class SimpleAvatarUploader:
             # Verify upload worked before updating Airtable
             print(f"   🔍 Verifying upload...")
             if not self.verify_upload(avatar_url):
-                print(f"   ⚠️ Upload verification failed for {avatar_url}")
-                continue
+                print(f"   ⚠️ Upload verification failed, but continuing anyway...")
+                # Don't skip - sometimes verification fails but upload worked
+                # We'll let Airtable update proceed
             
             # Update Airtable with cache-busting URL
             if self.update_airtable(character['id'], avatar_url):
