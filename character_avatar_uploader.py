@@ -38,7 +38,31 @@ class SimpleAvatarUploader:
         self.session = requests.Session()
 
     def load_characters(self):
-        """Load ALL characters from Airtable (expecting 186+) with enhanced debugging"""
+        """Load ALL characters from Airtable (expecting 186+) with view specification"""
+        # Try multiple approaches to get all records
+        
+        # Approach 1: Try with Grid view (default view)
+        print("🔍 Trying Approach 1: Default Grid view")
+        characters = self._load_characters_with_view(None)
+        
+        if len(characters) >= 180:
+            return characters
+            
+        # Approach 2: Try with explicit view name
+        print("🔍 Trying Approach 2: Main view")  
+        characters = self._load_characters_with_view("Grid view")
+        
+        if len(characters) >= 180:
+            return characters
+            
+        # Approach 3: Try without any view restrictions
+        print("🔍 Trying Approach 3: All records (no view)")
+        characters = self._load_characters_with_view("ALL")
+        
+        return characters
+    
+    def _load_characters_with_view(self, view_name):
+        """Load characters with specific view"""
         url = f"https://api.airtable.com/v0/{self.airtable_base}/Characters"
         headers = {'Authorization': f'Bearer {self.airtable_token}'}
         
@@ -46,9 +70,19 @@ class SimpleAvatarUploader:
         offset = None
         page = 1
         
+        print(f"📄 Loading with view: {view_name or 'Default'}")
+        
         # Loop through ALL pages to get every single character
         while True:
             params = {'maxRecords': 100}
+            
+            # Add view parameter if specified
+            if view_name and view_name != "ALL":
+                params['view'] = view_name
+            elif view_name == "ALL":
+                # Don't add view parameter at all - get raw table data
+                pass
+                
             if offset:
                 params['offset'] = offset
             
@@ -73,7 +107,6 @@ class SimpleAvatarUploader:
                     print(f"   📋 Records in response: {len(data['records'])}")
                 else:
                     print(f"   ❌ No 'records' key in response!")
-                    print(f"   🔍 Raw response: {str(data)[:200]}...")
                     break
                 
                 if 'offset' in data:
@@ -110,8 +143,8 @@ class SimpleAvatarUploader:
                     break
                 
                 page += 1
-                # Safety break to prevent infinite loops - increased for 186+ characters
-                if page > 20:  # Allow up to 20 pages (2000 records max)
+                # Safety break to prevent infinite loops
+                if page > 20:
                     print("⚠️ Too many pages, stopping for safety")
                     break
                     
@@ -123,22 +156,13 @@ class SimpleAvatarUploader:
                 print(f"❌ API request error: {e}")
                 break
         
-        print(f"\n📊 Final Results:")
-        print(f"   Total loaded: {len(all_characters)} characters from Airtable")
-        print(f"   Expected: ~186 characters")
+        print(f"\n📊 Results for view '{view_name or 'Default'}':")
+        print(f"   Total loaded: {len(all_characters)} characters")
         print(f"   Pages processed: {page}")
         
-        if len(all_characters) < 180:
-            print(f"⚠️ Warning: Found fewer characters than expected (186)")
-            print(f"   This might indicate:")
-            print(f"   - Pagination issues")
-            print(f"   - API view/filter restrictions") 
-            print(f"   - Missing records in API response")
-            
-            # Show first and last few character names for debugging
-            if len(all_characters) > 0:
-                print(f"   First 3 characters: {[c['name'] for c in all_characters[:3]]}")
-                print(f"   Last 3 characters: {[c['name'] for c in all_characters[-3:]]}")
+        if len(all_characters) > 0:
+            print(f"   First 3: {[c['name'] for c in all_characters[:3]]}")
+            print(f"   Last 3: {[c['name'] for c in all_characters[-3:]]}")
         
         return all_characters
 
