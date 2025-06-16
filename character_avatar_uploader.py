@@ -207,53 +207,110 @@ class SimpleAvatarUploader:
             print(f"❌ Cache clear error: {e}")
             return False
 
-    def upload_to_netlify(self, image_data, filename):
-        """Upload WebP image to Netlify using file API (more reliable)"""
-        import base64
+    def test_netlify_connection(self):
+        """Test Netlify API connection and permissions"""
+        print("🔧 Testing Netlify API connection...")
         
+        # Test 1: Get site info
+        try:
+            site_url = f"https://api.netlify.com/api/v1/sites/{self.netlify_site_id}"
+            headers = {'Authorization': f'Bearer {self.netlify_token}'}
+            
+            response = requests.get(site_url, headers=headers)
+            if response.ok:
+                site_info = response.json()
+                print(f"✅ Site connection OK: {site_info.get('name', 'unknown')}")
+                print(f"   Site URL: {site_info.get('url', 'unknown')}")
+                print(f"   Published: {site_info.get('published_deploy', {}).get('id', 'unknown')}")
+            else:
+                print(f"❌ Site connection failed: {response.status_code}")
+                return False
+        except Exception as e:
+            print(f"❌ Site connection error: {e}")
+            return False
+        
+        # Test 2: List existing files 
+        try:
+            files_url = f"https://api.netlify.com/api/v1/sites/{self.netlify_site_id}/files"
+            response = requests.get(files_url, headers=headers)
+            if response.ok:
+                files = response.json()
+                print(f"✅ Files API OK: {len(files)} files found")
+                # Check if avatars directory exists
+                avatar_files = [f for f in files if f.get('path', '').startswith('avatars/')]
+                print(f"   Avatar files: {len(avatar_files)}")
+            else:
+                print(f"⚠️ Files API failed: {response.status_code}")
+        except Exception as e:
+            print(f"⚠️ Files API error: {e}")
+        
+        return True
+
+    def upload_to_netlify(self, image_data, filename):
+        """Upload using Forms API (more reliable for static sites)"""
         print(f"   📤 Uploading to Netlify: {filename}")
         print(f"   📊 File size: {len(image_data)} bytes")
         
-        # Method 1: Use Large Media API (for binary files)
+        # Method 1: Try using Forms API to upload file
         try:
-            # First, get upload URL
+            # Create a simple form submission to upload the file
+            form_url = f"https://api.netlify.com/api/v1/sites/{self.netlify_site_id}/forms"
+            headers = {'Authorization': f'Bearer {self.netlify_token}'}
+            
+            # First check if we can create forms
+            response = requests.get(form_url, headers=headers)
+            print(f"   📋 Forms API accessible: {response.status_code}")
+            
+        except Exception as e:
+            print(f"   ⚠️ Forms API error: {e}")
+        
+        # Method 2: Direct binary upload with proper headers
+        try:
+            print(f"   🚀 Trying direct binary upload...")
+            
+            # Ensure directory exists in the path
             upload_url = f"https://api.netlify.com/api/v1/sites/{self.netlify_site_id}/files/{filename}"
+            
             headers = {
                 'Authorization': f'Bearer {self.netlify_token}',
                 'Content-Type': 'image/webp',
-                'Content-Length': str(len(image_data))
+                'Content-Length': str(len(image_data)),
+                'Cache-Control': 'no-cache'
             }
             
-            print(f"   🚀 Direct file upload...")
-            response = requests.put(upload_url, data=image_data, headers=headers)
-            
+            response = requests.put(upload_url, data=image_data, headers=headers, timeout=30)
             print(f"   📡 Upload response: {response.status_code}")
+            print(f"   📄 Response headers: {dict(response.headers)}")
+            
             if response.status_code in [200, 201, 204]:
-                print(f"   ✅ Direct upload successful")
-                # Give Netlify time to process
-                time.sleep(2)
+                print(f"   ✅ Binary upload successful")
+                # Wait a bit for propagation
+                time.sleep(3)
                 return f"https://narrin.ai/{filename}"
             else:
-                print(f"   ❌ Direct upload failed: {response.status_code}")
-                print(f"   📄 Response: {response.text[:200]}")
+                print(f"   ❌ Binary upload failed: {response.status_code}")
+                print(f"   📄 Response: {response.text}")
                 
         except Exception as e:
-            print(f"   ❌ Direct upload error: {e}")
+            print(f"   ❌ Binary upload error: {e}")
         
-        # Method 2: Use simple deploy with single file (faster)
+        # Method 3: Use Git LFS-style upload (for large files)
         try:
-            print(f"   🔄 Trying simple deploy...")
+            print(f"   🔄 Trying LFS-style upload...")
+            import base64
+            
+            # Create a deploy with proper manifest
             deploy_url = f"https://api.netlify.com/api/v1/sites/{self.netlify_site_id}/deploys"
             
-            # Create a minimal deploy with just this file
-            files = {
-                filename: base64.b64encode(image_data).decode('utf-8')
-            }
+            # Create file manifest
+            file_digest = base64.b64encode(image_data).decode('utf-8')
             
             deploy_data = {
-                "files": files,
+                "files": {
+                    filename: file_digest
+                },
                 "draft": False,
-                "async": False  # Synchronous deploy
+                "branch": "main"  # Specify branch
             }
             
             headers = {
@@ -261,55 +318,28 @@ class SimpleAvatarUploader:
                 'Content-Type': 'application/json'
             }
             
-            response = requests.post(deploy_url, json=deploy_data, headers=headers, timeout=60)
-            print(f"   📡 Deploy response: {response.status_code}")
+            response = requests.post(deploy_url, json=deploy_data, headers=headers, timeout=45)
+            print(f"   📡 LFS Deploy response: {response.status_code}")
             
             if response.status_code in [200, 201]:
                 deploy_info = response.json()
+                deploy_id = deploy_info.get('id')
                 state = deploy_info.get('state', 'unknown')
-                print(f"   📋 Deploy state: {state}")
+                print(f"   📋 Deploy created: {deploy_id} (state: {state})")
                 
-                if state in ['ready', 'current']:
-                    print(f"   ✅ Synchronous deploy successful")
+                # For LFS, we don't wait - just return the URL
+                if state in ['ready', 'current', 'building', 'uploading']:
+                    print(f"   ✅ LFS deploy accepted")
                     return f"https://narrin.ai/{filename}"
                 else:
-                    print(f"   ⚠️ Deploy in state: {state}")
-                    # Still return URL, might work
-                    return f"https://narrin.ai/{filename}"
+                    print(f"   ⚠️ Deploy state: {state}")
+                    
             else:
-                print(f"   ❌ Deploy failed: {response.status_code}")
-                print(f"   📄 Response: {response.text[:200]}")
+                print(f"   ❌ LFS deploy failed: {response.status_code}")
+                print(f"   📄 Response: {response.text[:300]}")
                 
         except Exception as e:
-            print(f"   ❌ Deploy error: {e}")
-        
-        # Method 3: Try with curl-like approach using requests-toolbelt
-        try:
-            print(f"   🔧 Trying multipart upload...")
-            from requests_toolbelt.multipart.encoder import MultipartEncoder
-            
-            # This might not work if requests-toolbelt isn't installed, but worth trying
-            multipart_data = MultipartEncoder(
-                fields={
-                    'file': (filename, image_data, 'image/webp')
-                }
-            )
-            
-            upload_url = f"https://api.netlify.com/api/v1/sites/{self.netlify_site_id}/files/{filename}"
-            headers = {
-                'Authorization': f'Bearer {self.netlify_token}',
-                'Content-Type': multipart_data.content_type
-            }
-            
-            response = requests.put(upload_url, data=multipart_data, headers=headers)
-            if response.status_code in [200, 201, 204]:
-                print(f"   ✅ Multipart upload successful")
-                return f"https://narrin.ai/{filename}"
-                
-        except ImportError:
-            print(f"   ⚠️ requests-toolbelt not available, skipping multipart")
-        except Exception as e:
-            print(f"   ❌ Multipart upload error: {e}")
+            print(f"   ❌ LFS upload error: {e}")
         
         print(f"   💥 All upload methods failed")
         return None
@@ -418,6 +448,12 @@ class SimpleAvatarUploader:
     def run(self, skip_existing=False, start_from=1, clear_cache=False):
         """Run the uploader with enhanced options"""
         print("🚀 Starting Enhanced Avatar Uploader with Cache-Busting")
+        
+        # Test Netlify connection first
+        print("\n🔧 Testing Netlify API...")
+        if not self.test_netlify_connection():
+            print("❌ Netlify connection failed. Please check your credentials.")
+            return
         
         # Optionally clear Netlify cache at start
         if clear_cache:
