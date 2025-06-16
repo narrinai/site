@@ -247,22 +247,22 @@ class SimpleAvatarUploader:
         return True
 
     def save_file_locally(self, image_data, filename):
-        """Save file locally as backup and for manual upload"""
+        """Save file directly to avatars/ directory (not local_avatars/avatars/)"""
         import os
         
-        # Create local avatars directory
-        local_dir = "local_avatars"
-        os.makedirs(local_dir, exist_ok=True)
+        # Create avatars directory directly (for Git upload)
+        avatars_dir = "avatars"
+        os.makedirs(avatars_dir, exist_ok=True)
         
-        # Save file locally
-        local_path = os.path.join(local_dir, os.path.basename(filename))
+        # Save file directly in avatars/ directory
+        local_path = os.path.join(avatars_dir, os.path.basename(filename))
         try:
             with open(local_path, 'wb') as f:
                 f.write(image_data)
-            print(f"   💾 Saved locally: {local_path}")
+            print(f"   💾 Saved to: {local_path}")
             return local_path
         except Exception as e:
-            print(f"   ❌ Local save error: {e}")
+            print(f"   ❌ Save error: {e}")
             return None
 
     def upload_via_netlify_cli(self, local_path, remote_filename):
@@ -322,34 +322,47 @@ class SimpleAvatarUploader:
             return None
 
     def create_upload_script(self):
-        """Create a batch upload script for manual deployment"""
+        """Create a batch upload script for Git deployment"""
         script_content = '''#!/bin/bash
-# Netlify Batch Upload Script
-# Run this script to upload all avatar files to Netlify
+# Git Batch Upload Script for Avatars
+# Run this script to upload all avatar files to Netlify via Git
 
-echo "🚀 Starting batch upload to Netlify..."
+echo "🚀 Starting Git upload to Netlify..."
 
-# Check if Netlify CLI is installed
-if ! command -v netlify &> /dev/null; then
-    echo "❌ Netlify CLI not found. Install it with:"
-    echo "   npm install -g netlify-cli"
+# Check if we're in a git repository
+if ! git rev-parse --git-dir > /dev/null 2>&1; then
+    echo "❌ Not in a Git repository"
     exit 1
 fi
 
-# Login check
-if ! netlify status &> /dev/null; then
-    echo "🔐 Please login to Netlify first:"
-    echo "   netlify login"
+# Check if avatars directory exists
+if [ ! -d "avatars" ]; then
+    echo "❌ avatars/ directory not found"
     exit 1
 fi
 
-# Upload the local_avatars directory
-echo "📤 Deploying avatars..."
-netlify deploy --dir=local_avatars --prod
+# Show what will be uploaded
+echo "📊 Avatar files to upload:"
+ls -la avatars/*.webp | wc -l
+echo " avatar files found"
+
+# Add all avatar files
+echo "📤 Adding avatar files to Git..."
+git add avatars/
+
+# Commit with timestamp
+echo "💾 Committing changes..."
+git commit -m "Upload avatar batch - $(date +%Y-%m-%d_%H-%M-%S)"
+
+# Push to trigger Netlify deployment
+echo "🚀 Pushing to trigger Netlify deployment..."
+git push
 
 echo "✅ Upload complete!"
-echo "🌐 Your avatars should now be available at:"
+echo "🌐 Your avatars should be available at:"
 echo "   https://narrin.ai/avatars/"
+echo ""
+echo "⏱️  Wait 1-2 minutes for Netlify deployment to complete"
 '''
         
         try:
@@ -361,28 +374,33 @@ echo "   https://narrin.ai/avatars/"
             import stat
             os.chmod('upload_avatars.sh', stat.S_IRWXU | stat.S_IRGRP | stat.S_IROTH)
             
-            print("📝 Created upload script: upload_avatars.sh")
+            print("📝 Created Git upload script: upload_avatars.sh")
             return True
         except Exception as e:
             print(f"❌ Failed to create upload script: {e}")
             return False
 
     def create_netlify_toml(self):
-        """Create netlify.toml configuration for proper routing"""
-        toml_content = '''[build]
-  publish = "local_avatars"
+        """Create netlify.toml configuration if needed"""
+        # Check if netlify.toml already exists
+        if os.path.exists('netlify.toml'):
+            print("⚙️ netlify.toml already exists, skipping")
+            return True
+            
+        toml_content = '''# Netlify configuration for avatar hosting
+[build]
+  publish = "."
 
-[[redirects]]
-  from = "/avatars/*"
-  to = "/:splat"
-  status = 200
-
-[build.environment]
-  NODE_VERSION = "18"
+# Optional: Add headers for better caching of avatars
+[[headers]]
+  for = "/avatars/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"
+    Content-Type = "image/webp"
 '''
         
         try:
-            with open('local_avatars/netlify.toml', 'w') as f:
+            with open('netlify.toml', 'w') as f:
                 f.write(toml_content)
             print("⚙️ Created netlify.toml configuration")
             return True
@@ -492,9 +510,9 @@ echo "   https://narrin.ai/avatars/"
         return False
 
     def run(self, skip_existing=False, start_from=1, clear_cache=False):
-        """Run the uploader with local-first approach"""
-        print("🚀 Starting Enhanced Avatar Uploader (Local-First Mode)")
-        print("📁 All files will be saved locally for batch upload")
+        """Run the uploader with direct-to-avatars approach"""
+        print("🚀 Starting Enhanced Avatar Uploader (Direct-to-Git Mode)")
+        print("📁 All files will be saved directly to avatars/ directory")
         
         print("📊 Loading ALL characters from Airtable...")
         
@@ -546,14 +564,14 @@ echo "   https://narrin.ai/avatars/"
         self.create_netlify_toml()
         
         print(f"\n🌟 Next Steps:")
-        print(f"   1. All avatar files are saved in: ./local_avatars/")
+        print(f"   1. All avatar files are saved in: ./avatars/")
         print(f"   2. Airtable has been updated with the expected URLs")
         print(f"   3. To upload to Netlify, run: ./upload_avatars.sh")
-        print(f"   4. Or manually drag/drop the local_avatars folder to Netlify")
-        print(f"\n💡 Alternative: Use Netlify's web interface:")
-        print(f"   - Go to your Netlify dashboard")
-        print(f"   - Drag the 'local_avatars' folder to deploy")
-        print(f"   - Files will be available at: https://narrin.ai/avatars/")
+        print(f"   4. Or manually commit and push:")
+        print(f"      git add avatars/")
+        print(f"      git commit -m 'Add character avatars'")
+        print(f"      git push")
+        print(f"\n🎯 After upload, all URLs will work at: https://narrin.ai/avatars/")
         
         return success, failed
 
