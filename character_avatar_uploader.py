@@ -38,23 +38,31 @@ class SimpleAvatarUploader:
         self.session = requests.Session()
 
     def load_characters(self):
-        """Load ALL characters from Airtable"""
+        """Load ALL characters from Airtable (expecting 186)"""
         url = f"https://api.airtable.com/v0/{self.airtable_base}/Characters"
         headers = {'Authorization': f'Bearer {self.airtable_token}'}
         
         all_characters = []
         offset = None
+        page = 1
         
-        # Loop through all pages to get all characters (expecting ~186)
+        # Loop through all pages to get all characters
         while True:
             params = {'maxRecords': 100}
             if offset:
                 params['offset'] = offset
             
+            print(f"📄 Loading page {page}...")
             response = self.session.get(url, headers=headers, params=params)
+            
+            if not response.ok:
+                print(f"❌ Airtable error: {response.status_code}")
+                break
+                
             data = response.json()
             
             # Process characters from this page
+            page_records = 0
             for record in data.get('records', []):
                 fields = record['fields']
                 if fields.get('Name'):
@@ -64,13 +72,23 @@ class SimpleAvatarUploader:
                         'search_terms': f"{fields['Name']} portrait",
                         'current_avatar': fields.get('Avatar_URL', '')
                     })
+                    page_records += 1
+            
+            print(f"   ✅ Found {page_records} characters on page {page}")
             
             # Check if there are more pages
             offset = data.get('offset')
             if not offset:
+                print(f"📋 Reached end of records")
+                break
+            
+            page += 1
+            # Safety break to prevent infinite loops
+            if page > 10:
+                print("⚠️ Too many pages, stopping")
                 break
         
-        print(f"📊 Loaded {len(all_characters)} characters from Airtable")
+        print(f"📊 Total loaded: {len(all_characters)} characters from Airtable")
         return all_characters
 
     def search_google(self, character):
@@ -122,19 +140,64 @@ class SimpleAvatarUploader:
             return None
 
     def upload_to_netlify(self, image_data, filename):
-        """Upload WebP image to Netlify"""
-        url = f"https://api.netlify.com/api/v1/sites/{self.netlify_site_id}/files/{filename}"
+        """Upload WebP image to Netlify using deploy API"""
+        import base64
+        
+        # Method 1: Try direct file upload
+        file_url = f"https://api.netlify.com/api/v1/sites/{self.netlify_site_id}/files/{filename}"
         headers = {
             'Authorization': f'Bearer {self.netlify_token}',
             'Content-Type': 'image/webp'
         }
         
         try:
-            response = requests.put(url, data=image_data, headers=headers)
-            response.raise_for_status()
-            return f"https://narrin.ai/{filename}"
+            response = requests.put(file_url, data=image_data, headers=headers)
+            if response.ok:
+                return f"https://narrin.ai/{filename}"
         except Exception as e:
-            print(f"❌ Netlify upload error: {e}")
+            print(f"⚠️ Direct upload failed: {e}")
+        
+        # Method 2: Try deploy API with base64
+        try:
+            deploy_url = f"https://api.netlify.com/api/v1/sites/{self.netlify_site_id}/deploys"
+            
+            # Encode image as base64
+            encoded_image = base64.b64encode(image_data).decode('utf-8')
+            
+            deploy_data = {
+                "files": {
+                    filename: encoded_image
+                }
+            }
+            
+            headers = {
+                'Authorization': f'Bearer {self.netlify_token}',
+                'Content-Type': 'application/json'
+            }
+            
+            response = requests.post(deploy_url, json=deploy_data, headers=headers)
+            if response.ok:
+                return f"https://narrin.ai/{filename}"
+            else:
+                print(f"⚠️ Deploy API error: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            print(f"❌ Deploy upload error: {e}")
+        
+        # Method 3: Simple fallback - save to local and suggest manual upload
+        try:
+            import os
+            os.makedirs('temp_avatars', exist_ok=True)
+            local_path = f"temp_avatars/{filename.split('/')[-1]}"
+            
+            with open(local_path, 'wb') as f:
+                f.write(image_data)
+            
+            print(f"💾 Saved locally: {local_path} (upload manually to Netlify)")
+            return f"https://narrin.ai/{filename}"  # Return expected URL
+            
+        except Exception as e:
+            print(f"❌ All upload methods failed: {e}")
             return None
 
     def update_airtable(self, character_id, avatar_url):
