@@ -38,25 +38,40 @@ class SimpleAvatarUploader:
         self.session = requests.Session()
 
     def load_characters(self):
-        """Load characters from Airtable"""
+        """Load ALL characters from Airtable"""
         url = f"https://api.airtable.com/v0/{self.airtable_base}/Characters"
         headers = {'Authorization': f'Bearer {self.airtable_token}'}
         
-        response = self.session.get(url, headers=headers, params={'maxRecords': 10})
-        data = response.json()
+        all_characters = []
+        offset = None
         
-        characters = []
-        for record in data.get('records', []):
-            fields = record['fields']
-            if fields.get('Name'):
-                characters.append({
-                    'name': fields['Name'],
-                    'id': record['id'],
-                    'search_terms': f"{fields['Name']} portrait"
-                })
+        # Loop through all pages to get all characters (expecting ~186)
+        while True:
+            params = {'maxRecords': 100}
+            if offset:
+                params['offset'] = offset
+            
+            response = self.session.get(url, headers=headers, params=params)
+            data = response.json()
+            
+            # Process characters from this page
+            for record in data.get('records', []):
+                fields = record['fields']
+                if fields.get('Name'):
+                    all_characters.append({
+                        'name': fields['Name'],
+                        'id': record['id'],
+                        'search_terms': f"{fields['Name']} portrait",
+                        'current_avatar': fields.get('Avatar_URL', '')
+                    })
+            
+            # Check if there are more pages
+            offset = data.get('offset')
+            if not offset:
+                break
         
-        print(f"📊 Loaded {len(characters)} characters")
-        return characters
+        print(f"📊 Loaded {len(all_characters)} characters from Airtable")
+        return all_characters
 
     def search_google(self, character):
         """Search Google for images"""
@@ -83,7 +98,7 @@ class SimpleAvatarUploader:
             return []
 
     def process_image(self, url):
-        """Download and process image"""
+        """Download and process image to WebP format"""
         try:
             response = self.session.get(url, timeout=15)
             response.raise_for_status()
@@ -92,10 +107,12 @@ class SimpleAvatarUploader:
             if img.mode != 'RGB':
                 img = img.convert('RGB')
             
-            img = ImageOps.fit(img, (400, 400), Image.Resampling.LANCZOS)
+            # Smart crop to square, focusing on center/face area
+            img = ImageOps.fit(img, (400, 400), Image.Resampling.LANCZOS, centering=(0.5, 0.4))
             
+            # Save as WebP for better compression and quality
             img_bytes = BytesIO()
-            img.save(img_bytes, format='JPEG', quality=90)
+            img.save(img_bytes, format='WEBP', quality=85, optimize=True)
             img_bytes.seek(0)
             
             return img_bytes.getvalue()
@@ -105,11 +122,11 @@ class SimpleAvatarUploader:
             return None
 
     def upload_to_netlify(self, image_data, filename):
-        """Upload to Netlify"""
+        """Upload WebP image to Netlify"""
         url = f"https://api.netlify.com/api/v1/sites/{self.netlify_site_id}/files/{filename}"
         headers = {
             'Authorization': f'Bearer {self.netlify_token}',
-            'Content-Type': 'image/jpeg'
+            'Content-Type': 'image/webp'
         }
         
         try:
@@ -154,7 +171,7 @@ class SimpleAvatarUploader:
             if not processed:
                 continue
             
-            filename = f"avatars/{character['name'].lower().replace(' ', '-')}.jpg"
+            filename = f"avatars/{character['name'].lower().replace(' ', '-')}.webp"
             avatar_url = self.upload_to_netlify(processed, filename)
             if not avatar_url:
                 continue
@@ -166,21 +183,57 @@ class SimpleAvatarUploader:
         print("❌ Failed")
         return False
 
-    def run(self):
+    def run(self, skip_existing=False):
         """Run the uploader"""
         print("🚀 Starting Simple Avatar Uploader")
+        print("📊 Loading ALL characters from Airtable...")
         
         characters = self.load_characters()
+        
+        # Optionally skip characters that already have avatars
+        if skip_existing:
+            characters = [c for c in characters if not c.get('current_avatar')]
+            print(f"📋 Processing {len(characters)} characters without avatars")
+        else:
+            print(f"📋 Processing ALL {len(characters)} characters (overwriting existing)")
+        
         success = 0
+        failed = 0
         
         for i, char in enumerate(characters, 1):
-            print(f"[{i}/{len(characters)}] {char['name']}")
-            if self.process_character(char):
-                success += 1
-            time.sleep(1)
+            print(f"\n[{i}/{len(characters)}] {char['name']}")
+            
+            try:
+                if self.process_character(char):
+                    success += 1
+                else:
+                    failed += 1
+                
+                # Rate limiting - be nice to the APIs
+                time.sleep(1.5)
+                
+            except KeyboardInterrupt:
+                print(f"\n⏹️  Process stopped by user at {i}/{len(characters)}")
+                break
+            except Exception as e:
+                print(f"❌ Unexpected error: {e}")
+                failed += 1
+                continue
         
-        print(f"\n🎉 Complete! {success}/{len(characters)} successful")
+        print(f"\n🎉 Complete!")
+        print(f"✅ Successful: {success}")
+        print(f"❌ Failed: {failed}")
+        print(f"📊 Total processed: {success + failed}/{len(characters)}")
+        print(f"🌐 Avatars available at: https://narrin.ai/avatars/ (WebP format)")
 
 if __name__ == "__main__":
+    import sys
+    
+    print("🚀 Avatar Uploader for 186+ characters")
+    print("📸 Using WebP format for optimal loading speed")
+    
+    # Check for command line arguments
+    skip_existing = len(sys.argv) > 1 and sys.argv[1] == '--skip-existing'
+    
     uploader = SimpleAvatarUploader()
-    uploader.run()
+    uploader.run(skip_existing=skip_existing)
