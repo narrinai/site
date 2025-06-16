@@ -371,8 +371,9 @@ class SimpleAvatarUploader:
 if __name__ == "__main__":
     import sys
     
-    print("🚀 Enhanced Avatar Uploader for 186+ characters")
+    print("🚀 Character Avatar Uploader for 186+ characters")
     print("📸 Using WebP format with cache-busting for optimal performance")
+    print("📁 Script: character_avatar_uploader.py")
     
     # Parse command line arguments
     skip_existing = '--skip-existing' in sys.argv
@@ -392,6 +393,10 @@ if __name__ == "__main__":
     print(f"   Skip existing: {skip_existing}")
     print(f"   Clear cache: {clear_cache}")
     print(f"   Start from: {start_from}")
+    print(f"\n💡 Usage examples:")
+    print(f"   python character_avatar_uploader.py")
+    print(f"   python character_avatar_uploader.py --skip-existing")
+    print(f"   python character_avatar_uploader.py --clear-cache --start-from 50")
     
     uploader = SimpleAvatarUploader()
     uploader.run(skip_existing=skip_existing, start_from=start_from, clear_cache=clear_cache)
