@@ -246,103 +246,149 @@ class SimpleAvatarUploader:
         
         return True
 
+    def save_file_locally(self, image_data, filename):
+        """Save file locally as backup and for manual upload"""
+        import os
+        
+        # Create local avatars directory
+        local_dir = "local_avatars"
+        os.makedirs(local_dir, exist_ok=True)
+        
+        # Save file locally
+        local_path = os.path.join(local_dir, os.path.basename(filename))
+        try:
+            with open(local_path, 'wb') as f:
+                f.write(image_data)
+            print(f"   💾 Saved locally: {local_path}")
+            return local_path
+        except Exception as e:
+            print(f"   ❌ Local save error: {e}")
+            return None
+
+    def upload_via_netlify_cli(self, local_path, remote_filename):
+        """Try uploading via Netlify CLI if available"""
+        import subprocess
+        import os
+        
+        try:
+            # Check if Netlify CLI is available
+            result = subprocess.run(['netlify', '--version'], 
+                                  capture_output=True, text=True, timeout=5)
+            if result.returncode != 0:
+                print(f"   ⚠️ Netlify CLI not available")
+                return None
+                
+            print(f"   🚀 Trying Netlify CLI upload...")
+            
+            # Use netlify deploy to upload single file
+            cmd = [
+                'netlify', 'deploy', 
+                '--site', self.netlify_site_id,
+                '--auth', self.netlify_token,
+                '--dir', os.path.dirname(local_path),
+                '--prod'
+            ]
+            
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+            
+            if result.returncode == 0:
+                print(f"   ✅ CLI upload successful")
+                return f"https://narrin.ai/{remote_filename}"
+            else:
+                print(f"   ❌ CLI upload failed: {result.stderr}")
+                return None
+                
+        except FileNotFoundError:
+            print(f"   ⚠️ Netlify CLI not installed")
+            return None
+        except Exception as e:
+            print(f"   ❌ CLI upload error: {e}")
+            return None
+
     def upload_to_netlify(self, image_data, filename):
-        """Upload using Forms API (more reliable for static sites)"""
-        print(f"   📤 Uploading to Netlify: {filename}")
+        """Save locally and skip Netlify API (too unreliable)"""
+        print(f"   📤 Processing: {filename}")
         print(f"   📊 File size: {len(image_data)} bytes")
         
-        # Method 1: Try using Forms API to upload file
-        try:
-            # Create a simple form submission to upload the file
-            form_url = f"https://api.netlify.com/api/v1/sites/{self.netlify_site_id}/forms"
-            headers = {'Authorization': f'Bearer {self.netlify_token}'}
-            
-            # First check if we can create forms
-            response = requests.get(form_url, headers=headers)
-            print(f"   📋 Forms API accessible: {response.status_code}")
-            
-        except Exception as e:
-            print(f"   ⚠️ Forms API error: {e}")
+        # Save locally for manual/batch upload
+        local_path = self.save_file_locally(image_data, filename)
         
-        # Method 2: Direct binary upload with proper headers
-        try:
-            print(f"   🚀 Trying direct binary upload...")
-            
-            # Ensure directory exists in the path
-            upload_url = f"https://api.netlify.com/api/v1/sites/{self.netlify_site_id}/files/{filename}"
-            
-            headers = {
-                'Authorization': f'Bearer {self.netlify_token}',
-                'Content-Type': 'image/webp',
-                'Content-Length': str(len(image_data)),
-                'Cache-Control': 'no-cache'
-            }
-            
-            response = requests.put(upload_url, data=image_data, headers=headers, timeout=30)
-            print(f"   📡 Upload response: {response.status_code}")
-            print(f"   📄 Response headers: {dict(response.headers)}")
-            
-            if response.status_code in [200, 201, 204]:
-                print(f"   ✅ Binary upload successful")
-                # Wait a bit for propagation
-                time.sleep(3)
-                return f"https://narrin.ai/{filename}"
-            else:
-                print(f"   ❌ Binary upload failed: {response.status_code}")
-                print(f"   📄 Response: {response.text}")
-                
-        except Exception as e:
-            print(f"   ❌ Binary upload error: {e}")
+        if local_path:
+            print(f"   ✅ Saved locally for upload: {local_path}")
+            # Return the expected Netlify URL
+            return f"https://narrin.ai/{filename}"
+        else:
+            print(f"   ❌ Failed to save locally")
+            return None
+
+    def create_upload_script(self):
+        """Create a batch upload script for manual deployment"""
+        script_content = '''#!/bin/bash
+# Netlify Batch Upload Script
+# Run this script to upload all avatar files to Netlify
+
+echo "🚀 Starting batch upload to Netlify..."
+
+# Check if Netlify CLI is installed
+if ! command -v netlify &> /dev/null; then
+    echo "❌ Netlify CLI not found. Install it with:"
+    echo "   npm install -g netlify-cli"
+    exit 1
+fi
+
+# Login check
+if ! netlify status &> /dev/null; then
+    echo "🔐 Please login to Netlify first:"
+    echo "   netlify login"
+    exit 1
+fi
+
+# Upload the local_avatars directory
+echo "📤 Deploying avatars..."
+netlify deploy --dir=local_avatars --prod
+
+echo "✅ Upload complete!"
+echo "🌐 Your avatars should now be available at:"
+echo "   https://narrin.ai/avatars/"
+'''
         
-        # Method 3: Use Git LFS-style upload (for large files)
         try:
-            print(f"   🔄 Trying LFS-style upload...")
-            import base64
+            with open('upload_avatars.sh', 'w') as f:
+                f.write(script_content)
             
-            # Create a deploy with proper manifest
-            deploy_url = f"https://api.netlify.com/api/v1/sites/{self.netlify_site_id}/deploys"
+            # Make executable on Unix systems
+            import os
+            import stat
+            os.chmod('upload_avatars.sh', stat.S_IRWXU | stat.S_IRGRP | stat.S_IROTH)
             
-            # Create file manifest
-            file_digest = base64.b64encode(image_data).decode('utf-8')
-            
-            deploy_data = {
-                "files": {
-                    filename: file_digest
-                },
-                "draft": False,
-                "branch": "main"  # Specify branch
-            }
-            
-            headers = {
-                'Authorization': f'Bearer {self.netlify_token}',
-                'Content-Type': 'application/json'
-            }
-            
-            response = requests.post(deploy_url, json=deploy_data, headers=headers, timeout=45)
-            print(f"   📡 LFS Deploy response: {response.status_code}")
-            
-            if response.status_code in [200, 201]:
-                deploy_info = response.json()
-                deploy_id = deploy_info.get('id')
-                state = deploy_info.get('state', 'unknown')
-                print(f"   📋 Deploy created: {deploy_id} (state: {state})")
-                
-                # For LFS, we don't wait - just return the URL
-                if state in ['ready', 'current', 'building', 'uploading']:
-                    print(f"   ✅ LFS deploy accepted")
-                    return f"https://narrin.ai/{filename}"
-                else:
-                    print(f"   ⚠️ Deploy state: {state}")
-                    
-            else:
-                print(f"   ❌ LFS deploy failed: {response.status_code}")
-                print(f"   📄 Response: {response.text[:300]}")
-                
+            print("📝 Created upload script: upload_avatars.sh")
+            return True
         except Exception as e:
-            print(f"   ❌ LFS upload error: {e}")
+            print(f"❌ Failed to create upload script: {e}")
+            return False
+
+    def create_netlify_toml(self):
+        """Create netlify.toml configuration for proper routing"""
+        toml_content = '''[build]
+  publish = "local_avatars"
+
+[[redirects]]
+  from = "/avatars/*"
+  to = "/:splat"
+  status = 200
+
+[build.environment]
+  NODE_VERSION = "18"
+'''
         
-        print(f"   💥 All upload methods failed")
-        return None
+        try:
+            with open('local_avatars/netlify.toml', 'w') as f:
+                f.write(toml_content)
+            print("⚙️ Created netlify.toml configuration")
+            return True
+        except Exception as e:
+            print(f"⚠️ Failed to create netlify.toml: {e}")
+            return False
 
     def verify_upload(self, url, max_retries=3):
         """Verify that the uploaded image is accessible with retries"""
@@ -446,20 +492,9 @@ class SimpleAvatarUploader:
         return False
 
     def run(self, skip_existing=False, start_from=1, clear_cache=False):
-        """Run the uploader with enhanced options"""
-        print("🚀 Starting Enhanced Avatar Uploader with Cache-Busting")
-        
-        # Test Netlify connection first
-        print("\n🔧 Testing Netlify API...")
-        if not self.test_netlify_connection():
-            print("❌ Netlify connection failed. Please check your credentials.")
-            return
-        
-        # Optionally clear Netlify cache at start
-        if clear_cache:
-            print("🧹 Clearing Netlify cache...")
-            self.clear_netlify_cache()
-            time.sleep(2)  # Give cache clear time to propagate
+        """Run the uploader with local-first approach"""
+        print("🚀 Starting Enhanced Avatar Uploader (Local-First Mode)")
+        print("📁 All files will be saved locally for batch upload")
         
         print("📊 Loading ALL characters from Airtable...")
         
@@ -489,8 +524,8 @@ class SimpleAvatarUploader:
                 else:
                     failed += 1
                 
-                # Rate limiting - be nice to the APIs
-                time.sleep(2)  # Slightly longer delay for cache propagation
+                # Shorter delay since we're not hitting Netlify API
+                time.sleep(0.5)
                 
             except KeyboardInterrupt:
                 print(f"\n⏹️  Process stopped by user at {i}")
@@ -500,16 +535,27 @@ class SimpleAvatarUploader:
                 failed += 1
                 continue
         
-        print(f"\n🎉 Complete!")
+        print(f"\n🎉 Processing Complete!")
         print(f"✅ Successful: {success}")
         print(f"❌ Failed: {failed}")
         print(f"📊 Total processed: {success + failed}")
-        print(f"🌐 Avatars available at: https://narrin.ai/avatars/ (WebP format)")
         
-        # Clear cache one more time at the end
-        if success > 0:
-            print("\n🧹 Final cache clear...")
-            self.clear_netlify_cache()
+        # Create upload utilities
+        print(f"\n📦 Creating upload utilities...")
+        self.create_upload_script()
+        self.create_netlify_toml()
+        
+        print(f"\n🌟 Next Steps:")
+        print(f"   1. All avatar files are saved in: ./local_avatars/")
+        print(f"   2. Airtable has been updated with the expected URLs")
+        print(f"   3. To upload to Netlify, run: ./upload_avatars.sh")
+        print(f"   4. Or manually drag/drop the local_avatars folder to Netlify")
+        print(f"\n💡 Alternative: Use Netlify's web interface:")
+        print(f"   - Go to your Netlify dashboard")
+        print(f"   - Drag the 'local_avatars' folder to deploy")
+        print(f"   - Files will be available at: https://narrin.ai/avatars/")
+        
+        return success, failed
 
 if __name__ == "__main__":
     import sys
