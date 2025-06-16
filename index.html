@@ -1696,19 +1696,24 @@
       grid.innerHTML = '';
       
       if (data.records && data.records.length > 0) {
-        data.records.forEach(record => {
+        data.records.forEach((record, index) => {
           const fields = record.fields || record;
-          console.log('Character data from Airtable:', fields); // Debug log
+          console.log(`Character ${index + 1} from Airtable:`, fields); // Debug log
+          console.log(`Avatar URL for ${fields.Name || fields.name}:`, fields.Avatar_URL || fields.avatar_url); // Debug specific avatar
           const card = createCharacterCard(fields);
           grid.appendChild(card);
         });
       } else if (data.length > 0) {
         // Handle direct array response
-        data.forEach(character => {
-          console.log('Character data (direct array):', character); // Debug log
+        data.forEach((character, index) => {
+          console.log(`Character ${index + 1} (direct array):`, character); // Debug log
+          console.log(`Avatar URL for ${character.Name || character.name}:`, character.Avatar_URL || character.avatar_url); // Debug specific avatar
           const card = createCharacterCard(character);
           grid.appendChild(card);
         });
+      } else {
+        console.warn('No records found in Make.com response:', data);
+        throw new Error('No records returned from Make.com');
       }
     }
 
@@ -1741,16 +1746,24 @@
       
       card.href = characterUrl;
       
-      // Priority order for avatar: avatar_url (new field), Avatar_URL, avatar (old field)
-      const avatarUrl = character.avatar_url || character.Avatar_URL || character.avatar;
+      // Extensive avatar URL checking - all possible field names
+      const avatarUrl = character.avatar_url || 
+                       character.Avatar_URL || 
+                       character.avatar || 
+                       character.Avatar ||
+                       character.image_url ||
+                       character.Image_URL ||
+                       character.picture ||
+                       character.Picture;
+                       
       const name = character.name || character.Name || 'Unknown';
-      const title = character.title || character.Character_Title || character.character_title || '';
+      const title = character.title || character.Character_Title || character.character_title || character.Character_title || '';
       
-      console.log('Character avatar URL:', avatarUrl, 'for character:', name); // Debug log
+      console.log('Final avatar URL used for', name, ':', avatarUrl); // Debug log
       
       card.innerHTML = `
         <div class="character-avatar">
-          ${avatarUrl ? `<img src="${avatarUrl}" alt="${name}" loading="lazy" onerror="this.parentElement.innerHTML='👤'">` : '👤'}
+          ${avatarUrl ? `<img src="${avatarUrl}" alt="${name}" loading="lazy" onerror="console.error('Failed to load image:', '${avatarUrl}'); this.parentElement.innerHTML='👤'">` : '👤'}
         </div>
         <div class="character-name">${name}</div>
         <div class="character-title">${title}</div>
