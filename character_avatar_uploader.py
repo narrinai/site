@@ -344,24 +344,23 @@ class SimpleAvatarUploader:
         
         return False
 
-    def update_airtable(self, character_id, avatar_url):
-        """Update Airtable with avatar URL and cache-busting"""
+    def update_airtable(self, character_id, avatar_url, original_timestamp):
+        """Update Airtable with avatar URL using consistent timestamp"""
         url = f"https://api.airtable.com/v0/{self.airtable_base}/Characters/{character_id}"
         headers = {
             'Authorization': f'Bearer {self.airtable_token}',
             'Content-Type': 'application/json'
         }
         
-        # Add cache-busting parameter to force refresh
-        cache_buster = int(time.time())
-        avatar_url_with_cache_buster = f"{avatar_url}?v={cache_buster}"
+        # Use the same timestamp that was used for the filename
+        avatar_url_with_cache_buster = f"{avatar_url}?v={original_timestamp}"
         
         data = {"fields": {"Avatar_URL": avatar_url_with_cache_buster}}
         
         try:
             response = requests.patch(url, json=data, headers=headers)
             response.raise_for_status()
-            print(f"   📝 Airtable updated with cache-buster: ?v={cache_buster}")
+            print(f"   📝 Airtable updated with cache-buster: ?v={original_timestamp}")
             return True
         except Exception as e:
             print(f"❌ Airtable update error: {e}")
@@ -383,6 +382,7 @@ class SimpleAvatarUploader:
         filename = f"avatars/{safe_name}-{timestamp}.webp"
         
         print(f"   📁 Target filename: {filename}")
+        print(f"   🕒 Using timestamp: {timestamp}")
         
         # Try each image
         for i, img in enumerate(images, 1):
@@ -405,9 +405,9 @@ class SimpleAvatarUploader:
                 # Don't skip - sometimes verification fails but upload worked
                 # We'll let Airtable update proceed
             
-            # Update Airtable with cache-busting URL
-            if self.update_airtable(character['id'], avatar_url):
-                print(f"✅ Success: {avatar_url}")
+            # Update Airtable with cache-busting URL using the same timestamp
+            if self.update_airtable(character['id'], avatar_url, timestamp):
+                print(f"✅ Success: {avatar_url}?v={timestamp}")
                 return True
             else:
                 print(f"   ❌ Airtable update failed")
