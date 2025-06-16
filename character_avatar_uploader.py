@@ -38,7 +38,7 @@ class SimpleAvatarUploader:
         self.session = requests.Session()
 
     def load_characters(self):
-        """Load ALL characters from Airtable (expecting 186+)"""
+        """Load ALL characters from Airtable (expecting 186+) with enhanced debugging"""
         url = f"https://api.airtable.com/v0/{self.airtable_base}/Characters"
         headers = {'Authorization': f'Bearer {self.airtable_token}'}
         
@@ -56,54 +56,89 @@ class SimpleAvatarUploader:
             print(f"   URL: {url}")
             print(f"   Params: {params}")
             
-            response = self.session.get(url, headers=headers, params=params)
-            
-            if not response.ok:
-                print(f"❌ Airtable error: {response.status_code} - {response.text}")
-                break
+            try:
+                response = self.session.get(url, headers=headers, params=params)
                 
-            data = response.json()
-            print(f"   Response keys: {list(data.keys())}")
-            
-            # Process characters from this page
-            page_records = 0
-            records = data.get('records', [])
-            print(f"   Records in response: {len(records)}")
-            
-            for record in records:
-                fields = record['fields']
-                if fields.get('Name'):
-                    all_characters.append({
-                        'name': fields['Name'],
-                        'id': record['id'],
-                        'search_terms': f"{fields['Name']} portrait",
-                        'current_avatar': fields.get('Avatar_URL', '')
-                    })
-                    page_records += 1
-            
-            print(f"   ✅ Found {page_records} valid characters on page {page}")
-            print(f"   📊 Running total: {len(all_characters)} characters")
-            
-            # Check if there are more pages
-            offset = data.get('offset')
-            print(f"   Next offset: {offset}")
-            
-            if not offset:
-                print(f"📋 Reached end of records (no more offset)")
-                break
-            
-            page += 1
-            # Safety break to prevent infinite loops - increased for 186+ characters
-            if page > 20:  # Allow up to 20 pages (2000 records max)
-                print("⚠️ Too many pages, stopping for safety")
+                print(f"   📡 Response status: {response.status_code}")
+                
+                if not response.ok:
+                    print(f"❌ Airtable error: {response.status_code} - {response.text}")
+                    break
+                    
+                data = response.json()
+                print(f"   📊 Response keys: {list(data.keys())}")
+                
+                # Debug: Show raw response structure
+                if 'records' in data:
+                    print(f"   📋 Records in response: {len(data['records'])}")
+                else:
+                    print(f"   ❌ No 'records' key in response!")
+                    print(f"   🔍 Raw response: {str(data)[:200]}...")
+                    break
+                
+                if 'offset' in data:
+                    print(f"   🔄 Offset present: {data['offset'][:20]}...")
+                else:
+                    print(f"   🏁 No offset - this should be the last page")
+                
+                # Process characters from this page
+                page_records = 0
+                records = data.get('records', [])
+                
+                for record in records:
+                    fields = record.get('fields', {})
+                    if fields.get('Name'):
+                        all_characters.append({
+                            'name': fields['Name'],
+                            'id': record['id'],
+                            'search_terms': f"{fields['Name']} portrait",
+                            'current_avatar': fields.get('Avatar_URL', '')
+                        })
+                        page_records += 1
+                    else:
+                        print(f"   ⚠️ Record without Name: {record['id']}")
+                
+                print(f"   ✅ Found {page_records} valid characters on page {page}")
+                print(f"   📊 Running total: {len(all_characters)} characters")
+                
+                # Check if there are more pages
+                offset = data.get('offset')
+                print(f"   🔍 Next offset: {'Present' if offset else 'None'}")
+                
+                if not offset:
+                    print(f"📋 Reached end of records (no more offset)")
+                    break
+                
+                page += 1
+                # Safety break to prevent infinite loops - increased for 186+ characters
+                if page > 20:  # Allow up to 20 pages (2000 records max)
+                    print("⚠️ Too many pages, stopping for safety")
+                    break
+                    
+                # Small delay to be nice to Airtable API
+                import time
+                time.sleep(0.5)
+                
+            except Exception as e:
+                print(f"❌ API request error: {e}")
                 break
         
-        print(f"📊 Total loaded: {len(all_characters)} characters from Airtable")
-        print(f"🎯 Expected ~186 characters, found {len(all_characters)}")
+        print(f"\n📊 Final Results:")
+        print(f"   Total loaded: {len(all_characters)} characters from Airtable")
+        print(f"   Expected: ~186 characters")
+        print(f"   Pages processed: {page}")
         
         if len(all_characters) < 180:
             print(f"⚠️ Warning: Found fewer characters than expected (186)")
-            print(f"   This might indicate pagination issues or missing data")
+            print(f"   This might indicate:")
+            print(f"   - Pagination issues")
+            print(f"   - API view/filter restrictions") 
+            print(f"   - Missing records in API response")
+            
+            # Show first and last few character names for debugging
+            if len(all_characters) > 0:
+                print(f"   First 3 characters: {[c['name'] for c in all_characters[:3]]}")
+                print(f"   Last 3 characters: {[c['name'] for c in all_characters[-3:]]}")
         
         return all_characters
 
