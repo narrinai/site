@@ -920,6 +920,7 @@
       border: 3px solid var(--color-light-gray);
       overflow: hidden;
       transition: all var(--transition-base);
+      position: relative;
     }
 
     .character-card:hover .character-avatar {
@@ -931,6 +932,15 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    .character-avatar .avatar-fallback {
+      color: var(--color-gray-light);
+      font-size: 4rem;
+      z-index: 1;
     }
 
     .character-name {
@@ -1494,37 +1504,37 @@
     // ===== CHARACTER DATA =====
     const MAKE_WEBHOOK_URL = 'https://hook.eu2.make.com/kej/ez9bgc9g1ic7xh55dx13zsp1go1g';
 
-    // Update sample data with new avatar_url structure  
+    // Updated sample data with working avatars
     const sampleCharacters = {
       historical: [
         { 
           name: "Napoleon Bonaparte", 
           title: "French Emperor", 
-          avatar_url: "https://cdn.airtable.com/v1/15/15/1638360000000/your-image-url-1.jpg",
+          avatar_url: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=160&h=160&fit=crop&crop=face",
           character_url: "chat.html?char=napoleon-bonaparte"
         },
         { 
           name: "Cleopatra VII", 
           title: "Queen of Egypt", 
-          avatar_url: "https://cdn.airtable.com/v1/15/15/1638360000000/your-image-url-2.jpg",
+          avatar_url: "https://images.unsplash.com/photo-1494790108755-2616c179a6c8?w=160&h=160&fit=crop&crop=face",
           character_url: "chat.html?char=cleopatra-vii"
         },
         {
           name: "Leonardo da Vinci",
           title: "Renaissance Genius",
-          avatar_url: "https://cdn.airtable.com/v1/15/15/1638360000000/your-image-url-3.jpg",
+          avatar_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=160&h=160&fit=crop&crop=face",
           character_url: "chat.html?char=leonardo-da-vinci"
         },
         {
           name: "Albert Einstein",
           title: "Physicist",
-          avatar_url: "https://cdn.airtable.com/v1/15/15/1638360000000/your-image-url-4.jpg",
+          avatar_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=160&h=160&fit=crop&crop=face",
           character_url: "chat.html?char=albert-einstein"
         },
         {
           name: "Marie Curie",
           title: "Scientist",
-          avatar_url: "https://cdn.airtable.com/v1/15/15/1638360000000/your-image-url-5.jpg",
+          avatar_url: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=160&h=160&fit=crop&crop=face",
           character_url: "chat.html?char=marie-curie"
         }
       ],
@@ -1532,84 +1542,31 @@
         {
           name: "Sherlock Holmes",
           title: "Detective",
-          avatar_url: "https://cdn.airtable.com/v1/15/15/1638360000000/your-image-url-6.jpg",
+          avatar_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=160&h=160&fit=crop&crop=face",
           character_url: "chat.html?char=sherlock-holmes"
         },
         {
           name: "Gandalf the Grey",
           title: "Wizard",
-          avatar_url: "https://cdn.airtable.com/v1/15/15/1638360000000/your-image-url-7.jpg",
+          avatar_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=160&h=160&fit=crop&crop=face",
           character_url: "chat.html?char=gandalf-the-grey"
         },
         {
           name: "Hermione Granger",
           title: "Witch",
-          avatar_url: "https://cdn.airtable.com/v1/15/15/1638360000000/your-image-url-8.jpg",
-          character_url: "chat.html?char=hermione-granger"
-        },
-    // Update sample data with working placeholder images OR remove them
-    const sampleCharacters = {
-      historical: [
-        { 
-          name: "Napoleon Bonaparte", 
-          title: "French Emperor", 
-          // avatar_url: "https://via.placeholder.com/160x160/14b8a6/ffffff?text=NB", // Use placeholder service
-          character_url: "chat.html?char=napoleon-bonaparte"
-        },
-        { 
-          name: "Cleopatra VII", 
-          title: "Queen of Egypt", 
-          // avatar_url: "https://via.placeholder.com/160x160/f97316/ffffff?text=CV",
-          character_url: "chat.html?char=cleopatra-vii"
-        },
-        {
-          name: "Leonardo da Vinci",
-          title: "Renaissance Genius",
-          // avatar_url: "https://via.placeholder.com/160x160/14b8a6/ffffff?text=LDV",
-          character_url: "chat.html?char=leonardo-da-vinci"
-        },
-        {
-          name: "Albert Einstein",
-          title: "Physicist",
-          // avatar_url: "https://via.placeholder.com/160x160/f97316/ffffff?text=AE",
-          character_url: "chat.html?char=albert-einstein"
-        },
-        {
-          name: "Marie Curie",
-          title: "Scientist",
-          // avatar_url: "https://via.placeholder.com/160x160/14b8a6/ffffff?text=MC",
-          character_url: "chat.html?char=marie-curie"
-        }
-      ],
-      fictional: [
-        {
-          name: "Sherlock Holmes",
-          title: "Detective",
-          // avatar_url: "https://via.placeholder.com/160x160/f97316/ffffff?text=SH",
-          character_url: "chat.html?char=sherlock-holmes"
-        },
-        {
-          name: "Gandalf the Grey",
-          title: "Wizard",
-          // avatar_url: "https://via.placeholder.com/160x160/14b8a6/ffffff?text=GG",
-          character_url: "chat.html?char=gandalf-the-grey"
-        },
-        {
-          name: "Hermione Granger",
-          title: "Witch",
-          // avatar_url: "https://via.placeholder.com/160x160/f97316/ffffff?text=HG",
+          avatar_url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=160&h=160&fit=crop&crop=face",
           character_url: "chat.html?char=hermione-granger"
         },
         {
           name: "Tyrion Lannister",
           title: "The Imp",
-          // avatar_url: "https://via.placeholder.com/160x160/14b8a6/ffffff?text=TL",
+          avatar_url: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=160&h=160&fit=crop&crop=face",
           character_url: "chat.html?char=tyrion-lannister"
         },
         {
           name: "Yoda",
           title: "Jedi Master",
-          // avatar_url: "https://via.placeholder.com/160x160/f97316/ffffff?text=Y",
+          avatar_url: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=160&h=160&fit=crop&crop=face",
           character_url: "chat.html?char=yoda"
         }
       ],
@@ -1617,31 +1574,31 @@
         {
           name: "Elon Musk",
           title: "Tech Entrepreneur",
-          // avatar_url: "https://via.placeholder.com/160x160/14b8a6/ffffff?text=EM",
+          avatar_url: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=160&h=160&fit=crop&crop=face",
           character_url: "chat.html?char=elon-musk"
         },
         {
           name: "Oprah Winfrey",
           title: "Media Mogul",
-          // avatar_url: "https://via.placeholder.com/160x160/f97316/ffffff?text=OW",
+          avatar_url: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=160&h=160&fit=crop&crop=face",
           character_url: "chat.html?char=oprah-winfrey"
         },
         {
           name: "Gordon Ramsay",
           title: "Chef",
-          // avatar_url: "https://via.placeholder.com/160x160/14b8a6/ffffff?text=GR",
+          avatar_url: "https://images.unsplash.com/photo-1566492031773-4f4e44671d66?w=160&h=160&fit=crop&crop=face",
           character_url: "chat.html?char=gordon-ramsay"
         },
         {
           name: "Steve Jobs",
           title: "Apple Founder",
-          // avatar_url: "https://via.placeholder.com/160x160/f97316/ffffff?text=SJ",
+          avatar_url: "https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=160&h=160&fit=crop&crop=face",
           character_url: "chat.html?char=steve-jobs"
         },
         {
           name: "Taylor Swift",
           title: "Singer",
-          // avatar_url: "https://via.placeholder.com/160x160/14b8a6/ffffff?text=TS",
+          avatar_url: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=160&h=160&fit=crop&crop=face",
           character_url: "chat.html?char=taylor-swift"
         }
       ],
@@ -1649,31 +1606,31 @@
         {
           name: "Naruto Uzumaki",
           title: "Ninja Hero",
-          // avatar_url: "https://via.placeholder.com/160x160/f97316/ffffff?text=NU",
+          avatar_url: "https://images.unsplash.com/photo-1539571696557-407d9c4de938?w=160&h=160&fit=crop&crop=face",
           character_url: "chat.html?char=naruto-uzumaki"
         },
         {
           name: "Goku",
           title: "Saiyan Warrior",
-          // avatar_url: "https://via.placeholder.com/160x160/14b8a6/ffffff?text=G",
+          avatar_url: "https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?w=160&h=160&fit=crop&crop=face",
           character_url: "chat.html?char=goku"
         },
         {
           name: "Sailor Moon",
           title: "Magical Girl",
-          // avatar_url: "https://via.placeholder.com/160x160/f97316/ffffff?text=SM",
+          avatar_url: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=160&h=160&fit=crop&crop=face",
           character_url: "chat.html?char=sailor-moon"
         },
         {
           name: "Light Yagami",
           title: "Death Note",
-          // avatar_url: "https://via.placeholder.com/160x160/14b8a6/ffffff?text=LY",
+          avatar_url: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=160&h=160&fit=crop&crop=face",
           character_url: "chat.html?char=light-yagami"
         },
         {
           name: "Edward Elric",
           title: "Alchemist",
-          // avatar_url: "https://via.placeholder.com/160x160/f97316/ffffff?text=EE",
+          avatar_url: "https://images.unsplash.com/photo-1628157588553-5eeea00af15c?w=160&h=160&fit=crop&crop=face",
           character_url: "chat.html?char=edward-elric"
         }
       ],
@@ -1681,31 +1638,31 @@
         {
           name: "Master Chief",
           title: "Spartan",
-          // avatar_url: "https://via.placeholder.com/160x160/14b8a6/ffffff?text=MC",
+          avatar_url: "https://images.unsplash.com/photo-1564564321837-a57b7070ac4f?w=160&h=160&fit=crop&crop=face",
           character_url: "chat.html?char=master-chief"
         },
         {
           name: "Kratos",
           title: "God of War",
-          // avatar_url: "https://via.placeholder.com/160x160/f97316/ffffff?text=K",
+          avatar_url: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=160&h=160&fit=crop&crop=face",
           character_url: "chat.html?char=kratos"
         },
         {
           name: "Lara Croft",
           title: "Tomb Raider",
-          // avatar_url: "https://via.placeholder.com/160x160/14b8a6/ffffff?text=LC",
+          avatar_url: "https://images.unsplash.com/photo-1494790108755-2616c179a6c8?w=160&h=160&fit=crop&crop=face",
           character_url: "chat.html?char=lara-croft"
         },
         {
           name: "Mario",
           title: "Plumber",
-          // avatar_url: "https://via.placeholder.com/160x160/f97316/ffffff?text=M",
+          avatar_url: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=160&h=160&fit=crop&crop=face",
           character_url: "chat.html?char=mario"
         },
         {
           name: "Geralt of Rivia",
           title: "Witcher",
-          // avatar_url: "https://via.placeholder.com/160x160/14b8a6/ffffff?text=GOR",
+          avatar_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=160&h=160&fit=crop&crop=face",
           character_url: "chat.html?char=geralt-of-rivia"
         }
       ]
@@ -1721,7 +1678,7 @@
         return;
       } catch (error) {
         console.error(`❌ Make.com webhook failed for category ${category}:`, error);
-        console.log('🔄 Falling back to sample data (without broken image URLs)');
+        console.log('🔄 Falling back to sample data');
         loadSampleCharacters(category, gridId, limit);
       }
     }
@@ -1776,7 +1733,7 @@
       }
     }
 
-    // Load sample characters (fallback data without avatar URLs to prevent errors)
+    // Load sample characters (fallback data)
     function loadSampleCharacters(category, gridId, limit = 5) {
       const grid = document.getElementById(gridId);
       const characters = sampleCharacters[category] || [];
@@ -1794,20 +1751,7 @@
       console.log(`✅ Successfully loaded ${Math.min(characters.length, limit)} sample characters`);
     }
 
-    // Load sample characters
-    function loadSampleCharacters(category, gridId, limit = 5) {
-      const grid = document.getElementById(gridId);
-      const characters = sampleCharacters[category] || [];
-      
-      grid.innerHTML = '';
-      
-      characters.slice(0, limit).forEach(character => {
-        const card = createCharacterCard(character);
-        grid.appendChild(card);
-      });
-    }
-
-    // ENHANCED: Create character card with comprehensive avatar handling
+    // FIXED: Create character card with proper Airtable avatar handling
     function createCharacterCard(character) {
       const card = document.createElement('a');
       card.className = 'character-card';
@@ -1823,30 +1767,46 @@
       
       card.href = characterUrl;
       
-      // COMPREHENSIVE: Handle all possible avatar field formats
+      // Handle avatar URL extraction specifically for Airtable structure
       let avatarUrl = null;
       const name = character.name || character.Name || 'Unknown';
       
       console.log('🔍 Processing character:', name);
       console.log('📋 Full character data:', JSON.stringify(character, null, 2));
       
-      // Method 1: Airtable attachment field format (array with url property)
-      const attachmentFields = ['Avatar', 'avatar', 'Picture', 'picture', 'Image', 'image', 'Photo', 'photo'];
+      // Method 1: Airtable attachment field format - Avatar_URL as array with URL objects
+      if (character.Avatar_URL && Array.isArray(character.Avatar_URL) && character.Avatar_URL.length > 0) {
+        // Check if it's an array of URL objects
+        if (character.Avatar_URL[0] && typeof character.Avatar_URL[0] === 'object' && character.Avatar_URL[0].url) {
+          avatarUrl = character.Avatar_URL[0].url;
+          console.log('✅ Found Avatar_URL (Airtable attachment format):', avatarUrl);
+        }
+        // Check if it's an array of direct URLs
+        else if (typeof character.Avatar_URL[0] === 'string' && character.Avatar_URL[0].startsWith('http')) {
+          avatarUrl = character.Avatar_URL[0];
+          console.log('✅ Found Avatar_URL (direct URL array):', avatarUrl);
+        }
+      }
       
-      for (const field of attachmentFields) {
-        if (character[field] && Array.isArray(character[field]) && character[field].length > 0) {
-          if (character[field][0] && character[field][0].url) {
-            avatarUrl = character[field][0].url;
-            console.log(`✅ Found ${field} (Airtable attachment format):`, avatarUrl);
-            break;
+      // Method 2: Check other possible Airtable attachment fields
+      if (!avatarUrl) {
+        const attachmentFields = ['Avatar', 'avatar', 'Picture', 'picture', 'Image', 'image', 'Photo', 'photo'];
+        
+        for (const field of attachmentFields) {
+          if (character[field] && Array.isArray(character[field]) && character[field].length > 0) {
+            if (character[field][0] && character[field][0].url) {
+              avatarUrl = character[field][0].url;
+              console.log(`✅ Found ${field} (Airtable attachment format):`, avatarUrl);
+              break;
+            }
           }
         }
       }
       
-      // Method 2: Direct URL fields
+      // Method 3: Direct URL fields (for backwards compatibility)
       if (!avatarUrl) {
         const urlFields = [
-          'avatar_url', 'Avatar_URL', 'avatarUrl', 'AvatarURL',
+          'Avatar_URL', 'avatar_url', 'avatarUrl', 'AvatarURL',
           'image_url', 'Image_URL', 'imageUrl', 'ImageURL', 
           'picture_url', 'Picture_URL', 'pictureUrl', 'PictureURL',
           'photo_url', 'Photo_URL', 'photoUrl', 'PhotoURL',
@@ -1862,12 +1822,11 @@
         }
       }
       
-      // Method 3: Check nested objects
+      // Method 4: Check nested objects (for complex API responses)
       if (!avatarUrl) {
         const nestedFields = ['fields', 'data', 'attributes'];
         for (const nested of nestedFields) {
           if (character[nested] && typeof character[nested] === 'object') {
-            // Recursively check the nested object
             const nestedResult = extractAvatarFromObject(character[nested]);
             if (nestedResult) {
               avatarUrl = nestedResult;
@@ -1878,32 +1837,29 @@
         }
       }
       
-      // Method 4: Check if the character itself is a URL string
-      if (!avatarUrl && typeof character === 'string' && character.startsWith('http')) {
-        avatarUrl = character;
-        console.log('✅ Character itself is a URL:', avatarUrl);
-      }
-      
-      // Debug: Log what fields are available if still no avatar
-      if (!avatarUrl) {
-        console.log('❌ No avatar found for', name);
-        console.log('📝 Available fields:', Object.keys(character));
-        
-        // Log each field type for debugging
-        Object.keys(character).forEach(key => {
-          const value = character[key];
-          const type = Array.isArray(value) ? 'array' : typeof value;
-          console.log(`  - ${key}: ${type}`, value);
-        });
-      }
-      
+      // Get character title/description
       const title = character.title || character.Character_Title || character.character_title || character.Character_title || character.description || character.Description || '';
       
       console.log('🎯 Final result for', name, '- Avatar URL:', avatarUrl || 'None');
       
+      // Create avatar content with proper fallback
+      let avatarContent;
+      if (avatarUrl) {
+        avatarContent = `
+          <img src="${avatarUrl}" 
+               alt="${name}" 
+               loading="lazy" 
+               onerror="console.error('❌ Image load failed for ${name}:', '${avatarUrl}'); this.style.display='none'; this.parentElement.querySelector('.avatar-fallback').style.display='flex';" 
+               style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+          <div class="avatar-fallback" style="display: none; color: var(--color-gray-light); font-size: 4rem;">👤</div>
+        `;
+      } else {
+        avatarContent = `<div class="avatar-fallback" style="color: var(--color-gray-light); font-size: 4rem;">👤</div>`;
+      }
+      
       card.innerHTML = `
         <div class="character-avatar">
-          ${avatarUrl ? `<img src="${avatarUrl}" alt="${name}" loading="lazy" onerror="console.error('❌ Image load failed for ${name}:', '${avatarUrl}'); this.parentElement.innerHTML='👤'; this.style.display='none';">` : '👤'}
+          ${avatarContent}
         </div>
         <div class="character-name">${name}</div>
         <div class="character-title">${title}</div>
@@ -1912,12 +1868,20 @@
       return card;
     }
 
-    // Helper function to extract avatar from nested objects
+    // Helper function to extract avatar from nested objects - Updated for Airtable
     function extractAvatarFromObject(obj) {
-      const avatarFields = ['Avatar', 'avatar', 'Picture', 'picture', 'Image', 'image', 'Photo', 'photo'];
-      const urlFields = ['avatar_url', 'Avatar_URL', 'image_url', 'Image_URL', 'picture_url', 'Picture_URL', 'url', 'URL'];
+      // Check for Avatar_URL first (your Airtable structure)
+      if (obj.Avatar_URL && Array.isArray(obj.Avatar_URL) && obj.Avatar_URL.length > 0) {
+        if (obj.Avatar_URL[0] && typeof obj.Avatar_URL[0] === 'object' && obj.Avatar_URL[0].url) {
+          return obj.Avatar_URL[0].url;
+        }
+        if (typeof obj.Avatar_URL[0] === 'string' && obj.Avatar_URL[0].startsWith('http')) {
+          return obj.Avatar_URL[0];
+        }
+      }
       
-      // Check for attachment fields
+      // Check for other attachment fields
+      const avatarFields = ['Avatar', 'avatar', 'Picture', 'picture', 'Image', 'image', 'Photo', 'photo'];
       for (const field of avatarFields) {
         if (obj[field] && Array.isArray(obj[field]) && obj[field].length > 0 && obj[field][0].url) {
           return obj[field][0].url;
@@ -1925,6 +1889,7 @@
       }
       
       // Check for direct URL fields
+      const urlFields = ['Avatar_URL', 'avatar_url', 'image_url', 'Image_URL', 'picture_url', 'Picture_URL', 'url', 'URL'];
       for (const field of urlFields) {
         if (obj[field] && typeof obj[field] === 'string' && obj[field].startsWith('http')) {
           return obj[field];
