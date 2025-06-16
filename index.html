@@ -1690,65 +1690,90 @@
       
       console.log('📡 Fetching from Make.com:', url);
       
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+      
       console.log('📊 Response status:', response.status, response.statusText);
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
       }
       
       const rawText = await response.text();
-      console.log('📋 Raw response text:', rawText);
+      console.log('📋 Raw response text:', rawText.substring(0, 500) + '...');
       
       let data;
       try {
         data = JSON.parse(rawText);
       } catch (parseError) {
         console.error('❌ JSON parse error:', parseError);
-        throw new Error('Invalid JSON response');
+        console.error('Raw response that failed to parse:', rawText);
+        throw new Error('Invalid JSON response from Make.com');
       }
       
       console.log('✅ Parsed Make.com response:', data);
       
       grid.innerHTML = '';
       
-      if (data.records && data.records.length > 0) {
-        console.log(`📦 Processing ${data.records.length} records from Airtable format`);
-        data.records.forEach((record, index) => {
-          const fields = record.fields || record;
-          console.log(`🔍 Record ${index + 1}:`, fields);
-          const card = createCharacterCard(fields);
-          grid.appendChild(card);
-        });
-      } else if (Array.isArray(data) && data.length > 0) {
-        console.log(`📦 Processing ${data.length} items from direct array format`);
-        data.forEach((character, index) => {
-          console.log(`🔍 Character ${index + 1}:`, character);
-          const card = createCharacterCard(character);
-          grid.appendChild(card);
-        });
+      // Handle different possible response formats from Make.com
+      let characters = [];
+      
+      if (data.records && Array.isArray(data.records)) {
+        // Airtable format with records array
+        characters = data.records.map(record => record.fields || record);
+        console.log(`📦 Processing ${characters.length} records from Airtable format`);
+      } else if (Array.isArray(data)) {
+        // Direct array format
+        characters = data;
+        console.log(`📦 Processing ${characters.length} items from direct array format`);
+      } else if (data.data && Array.isArray(data.data)) {
+        // Nested data format
+        characters = data.data;
+        console.log(`📦 Processing ${characters.length} items from nested data format`);
       } else {
-        console.warn('⚠️ No usable data found in Make.com response');
-        throw new Error('No usable data returned from Make.com');
+        console.warn('⚠️ Unexpected response format:', data);
+        throw new Error('No usable character data found in Make.com response');
       }
-    }
-
-    // Load sample characters (fallback data)
-    function loadSampleCharacters(category, gridId, limit = 5) {
-      const grid = document.getElementById(gridId);
-      const characters = sampleCharacters[category] || [];
       
-      console.log(`📦 Loading ${characters.length} sample characters for category: ${category}`);
+      if (characters.length === 0) {
+        throw new Error('No characters returned from Make.com');
+      }
       
-      grid.innerHTML = '';
-      
+      // Create character cards
       characters.slice(0, limit).forEach((character, index) => {
-        console.log(`🔍 Sample character ${index + 1}:`, character);
+        console.log(`🔍 Processing character ${index + 1}:`, character);
         const card = createCharacterCard(character);
         grid.appendChild(card);
       });
       
-      console.log(`✅ Successfully loaded ${Math.min(characters.length, limit)} sample characters`);
+      console.log(`✅ Successfully loaded ${Math.min(characters.length, limit)} characters from Make.com`);
+    }
+
+    // Load sample characters (fallback data) - Only for debugging
+    function loadSampleCharacters(category, gridId, limit = 5) {
+      const grid = document.getElementById(gridId);
+      
+      console.log(`⚠️ FALLBACK: Loading sample data for category: ${category}`);
+      console.log(`🔧 Make.com webhook appears to be failing. Check:`);
+      console.log(`   1. Make.com webhook URL: ${MAKE_WEBHOOK_URL}`);
+      console.log(`   2. CORS settings on Make.com`);
+      console.log(`   3. Category parameter: ${category}`);
+      
+      // Show error message instead of sample data
+      grid.innerHTML = `
+        <div style="padding: 2rem; text-align: center; color: var(--color-gray); border: 2px dashed var(--color-gray-light); border-radius: var(--radius-lg); min-width: 280px;">
+          <div style="font-size: 2rem; margin-bottom: 1rem;">⚠️</div>
+          <div style="font-weight: 600; margin-bottom: 0.5rem;">Unable to load characters</div>
+          <div style="font-size: 0.875rem;">Check console for Make.com webhook errors</div>
+        </div>
+      `;
+      
+      console.log(`❌ No sample data provided - fix Make.com webhook to see characters`);
     }
 
     // FIXED: Create character card with proper Airtable avatar handling
