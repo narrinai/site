@@ -38,7 +38,7 @@ class SimpleAvatarUploader:
         self.session = requests.Session()
 
     def load_characters(self):
-        """Load ALL characters from Airtable (expecting 186)"""
+        """Load ALL characters from Airtable (expecting 186+)"""
         url = f"https://api.airtable.com/v0/{self.airtable_base}/Characters"
         headers = {'Authorization': f'Bearer {self.airtable_token}'}
         
@@ -46,7 +46,7 @@ class SimpleAvatarUploader:
         offset = None
         page = 1
         
-        # Loop through all pages to get all characters
+        # Loop through ALL pages to get every single character
         while True:
             params = {'maxRecords': 100}
             if offset:
@@ -82,6 +82,7 @@ class SimpleAvatarUploader:
                     page_records += 1
             
             print(f"   ✅ Found {page_records} valid characters on page {page}")
+            print(f"   📊 Running total: {len(all_characters)} characters")
             
             # Check if there are more pages
             offset = data.get('offset')
@@ -92,12 +93,18 @@ class SimpleAvatarUploader:
                 break
             
             page += 1
-            # Safety break to prevent infinite loops
-            if page > 10:
+            # Safety break to prevent infinite loops - increased for 186+ characters
+            if page > 20:  # Allow up to 20 pages (2000 records max)
                 print("⚠️ Too many pages, stopping for safety")
                 break
         
         print(f"📊 Total loaded: {len(all_characters)} characters from Airtable")
+        print(f"🎯 Expected ~186 characters, found {len(all_characters)}")
+        
+        if len(all_characters) < 180:
+            print(f"⚠️ Warning: Found fewer characters than expected (186)")
+            print(f"   This might indicate pagination issues or missing data")
+        
         return all_characters
 
     def search_google(self, character):
