@@ -1715,7 +1715,14 @@
     function createCharacterCard(character) {
       const card = document.createElement('a');
       card.className = 'character-card';
-      card.href = character.character_url || character.Character_URL || `/chat/${character.name?.toLowerCase().replace(/\s+/g, '-')}`;
+      
+      // Priority order for URL: character_url, Character_URL, fallback to generated URL
+      const characterUrl = character.character_url || 
+                          character.Character_URL || 
+                          character.character_url ||
+                          `/chat/${character.name?.toLowerCase().replace(/\s+/g, '-')}`;
+      
+      card.href = characterUrl;
       
       const avatarUrl = character.avatar || character.Avatar_URL || character.avatar_url;
       const name = character.name || character.Name || 'Unknown';
