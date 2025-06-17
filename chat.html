@@ -1591,8 +1591,8 @@
     let currentCharacter = null;
     let characterSlug = null;
     
-    const getCharacterEndpoint = "https://hook.eu2.make.com/c753wxuxgpcu37fol9seri6rdtpz2lju";
-    const chatEndpoint = "https://hook.eu2.make.com/c753wxuxgpcu37fol9seri6rdtpz2lju";
+    // NIEUWE WEBHOOK URL
+    const newWebhookUrl = "https://hook.eu2.make.com/36bygx4a2y4bkl97wkdjdmtn3o9ygjms";
 
     const params = new URLSearchParams(window.location.search);
     characterSlug = params.get("char");
@@ -1613,16 +1613,13 @@
         
         const requestData = {
           action: "get_character",
-          slug: slug
+          Slug: slug,
+          user_uid: uid || "",
+          user_token: token || "",
+          user_email: email || ""
         };
         
-        if (token && uid && email) {
-          requestData.user_token = token;
-          requestData.user_uid = uid;
-          requestData.user_email = email;
-        }
-        
-        const response = await fetch(getCharacterEndpoint, {
+        const response = await fetch(newWebhookUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(requestData)
@@ -1632,28 +1629,14 @@
           throw new Error(`HTTP ${response.status}`);
         }
 
-        const rawText = await response.text();
-        console.log("Character API response:", rawText);
+        const data = await response.json();
+        console.log("Character API response:", data);
 
-        let data;
-        try {
-          data = JSON.parse(rawText);
-        } catch (e) {
-          console.error("Invalid JSON response:", e);
-          throw new Error("Invalid response format");
-        }
-
-        if (!data.character && !data.name) {
+        if (!data.success || !data.character) {
           throw new Error("Character not found");
         }
 
-        currentCharacter = data.character || {
-          name: data.name,
-          character_title: data.character_title,
-          avatar_url: data.avatar_url,
-          character_description: data.character_description
-        };
-        
+        currentCharacter = data.character;
         setupCharacterInterface();
         
       } catch (error) {
@@ -1824,23 +1807,17 @@
       userInput.value = "";
 
       try {
-        const response = await fetch(chatEndpoint, {
+        const response = await fetch(newWebhookUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            action: "chat",
-            content: input,
-            text: input,  
-            slug: characterSlug,
-            character_id: characterSlug,
-            name: currentCharacter?.name,
-            character_title: currentCharacter?.character_title,
-            character_description: currentCharacter?.character_description,
-            avatar_url: currentCharacter?.avatar_url,
-            user_email: email,
+            action: "send_message",
+            text: input,
+            Character_id: characterSlug,
+            Slug: characterSlug,
             user_uid: uid,
             user_token: token,
-            role: "user"
+            user_email: email
           })
         });
 
@@ -1849,18 +1826,14 @@
           throw new Error(`Server returned status ${response.status}`);
         }
 
-        const text = await response.text();
-        console.log("Raw response from Make:", text);
+        const data = await response.json();
+        console.log("Chat response:", data);
 
-        let data;
-        try {
-          data = JSON.parse(text);
-        } catch (e) {
-          console.error("sendMessage → JSON.parse failed:", e);
-          throw new Error("Invalid JSON received from server");
+        if (!data.success) {
+          throw new Error("Chat request failed");
         }
 
-        const reply = data.reply || "⚠️ No reply.";
+        const reply = data.reply || "⚠️ No reply received.";
 
         const divBot = document.createElement("p");
         const avatarHtml = getAvatarHtml();
@@ -1869,8 +1842,9 @@
         chatlog.scrollTop = chatlog.scrollHeight;
         
       } catch (err) {
-        console.error("sendMessage → Error in fetch or parsing:", err);
+        console.error("sendMessage → Error:", err);
         alert("❌ Error sending message: " + err.message);
+        
         const divErr = document.createElement("p");
         divErr.innerHTML = `<strong>${currentCharacter?.name || 'Character'}:</strong> ⚠️ Something went wrong while sending.`;
         chatlog.appendChild(divErr);
