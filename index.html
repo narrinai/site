@@ -1502,7 +1502,7 @@
     });
 
     // ===== CHARACTER DATA =====
-    const MAKE_WEBHOOK_URL = 'https://hook.eu2.make.com/kej/ez9bgc9g1ic7xh55dx13zsp1go1g';
+    const MAKE_WEBHOOK_URL = 'https://hook.eu2.make.com/kej7ez9bgc9tic7';
 
     // Updated sample data with working avatars
     const sampleCharacters = {
@@ -1776,7 +1776,7 @@
       
       // Method 1: Airtable attachment field format - Avatar_URL as array with URL objects
       if (character.Avatar_URL && Array.isArray(character.Avatar_URL) && character.Avatar_URL.length > 0) {
-        // Check if it's an array of URL objects
+        // Check if it's an array of URL objects (Airtable attachment format)
         if (character.Avatar_URL[0] && typeof character.Avatar_URL[0] === 'object' && character.Avatar_URL[0].url) {
           avatarUrl = character.Avatar_URL[0].url;
           console.log('✅ Found Avatar_URL (Airtable attachment format):', avatarUrl);
@@ -1788,7 +1788,13 @@
         }
       }
       
-      // Method 2: Check other possible Airtable attachment fields
+      // Method 2: Check if Avatar_URL is a direct string (in case Make.com flattens it)
+      if (!avatarUrl && character.Avatar_URL && typeof character.Avatar_URL === 'string' && character.Avatar_URL.startsWith('http')) {
+        avatarUrl = character.Avatar_URL;
+        console.log('✅ Found Avatar_URL (direct string):', avatarUrl);
+      }
+      
+      // Method 3: Check other possible Airtable attachment fields
       if (!avatarUrl) {
         const attachmentFields = ['Avatar', 'avatar', 'Picture', 'picture', 'Image', 'image', 'Photo', 'photo'];
         
@@ -1800,13 +1806,19 @@
               break;
             }
           }
+          // Also check if it's a direct string
+          if (character[field] && typeof character[field] === 'string' && character[field].startsWith('http')) {
+            avatarUrl = character[field];
+            console.log(`✅ Found ${field} (direct string):`, avatarUrl);
+            break;
+          }
         }
       }
       
-      // Method 3: Direct URL fields (for backwards compatibility)
+      // Method 4: Direct URL fields (for backwards compatibility)
       if (!avatarUrl) {
         const urlFields = [
-          'Avatar_URL', 'avatar_url', 'avatarUrl', 'AvatarURL',
+          'avatar_url', 'avatarUrl', 'AvatarURL',
           'image_url', 'Image_URL', 'imageUrl', 'ImageURL', 
           'picture_url', 'Picture_URL', 'pictureUrl', 'PictureURL',
           'photo_url', 'Photo_URL', 'photoUrl', 'PhotoURL',
@@ -1822,7 +1834,7 @@
         }
       }
       
-      // Method 4: Check nested objects (for complex API responses)
+      // Method 5: Check nested objects (for complex API responses)
       if (!avatarUrl) {
         const nestedFields = ['fields', 'data', 'attributes'];
         for (const nested of nestedFields) {
@@ -1880,11 +1892,20 @@
         }
       }
       
+      // Check if Avatar_URL is a direct string
+      if (obj.Avatar_URL && typeof obj.Avatar_URL === 'string' && obj.Avatar_URL.startsWith('http')) {
+        return obj.Avatar_URL;
+      }
+      
       // Check for other attachment fields
       const avatarFields = ['Avatar', 'avatar', 'Picture', 'picture', 'Image', 'image', 'Photo', 'photo'];
       for (const field of avatarFields) {
         if (obj[field] && Array.isArray(obj[field]) && obj[field].length > 0 && obj[field][0].url) {
           return obj[field][0].url;
+        }
+        // Also check direct string
+        if (obj[field] && typeof obj[field] === 'string' && obj[field].startsWith('http')) {
+          return obj[field];
         }
       }
       
