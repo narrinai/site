@@ -1710,6 +1710,11 @@
       
       console.log('✅ Parsed Make.com response:', data);
       
+      // Temporary debugging - add this line to see first record structure
+      if (data.records && data.records.length > 0) {
+        console.log('🔧 First record structure:', JSON.stringify(data.records[0], null, 2));
+      }
+      
       grid.innerHTML = '';
       
       if (data.records && data.records.length > 0) {
@@ -1918,6 +1923,39 @@
       }
       
       return null;
+    }
+
+    // Additional debugging function to help identify the exact structure
+    function debugCharacterData(character) {
+      console.log('🔧 DEBUGGING CHARACTER DATA:');
+      console.log('Raw character object:', character);
+      
+      // Check all properties that might contain URLs
+      Object.keys(character).forEach(key => {
+        const value = character[key];
+        console.log(`Property "${key}":`, typeof value, value);
+        
+        // If it's an array, log its contents
+        if (Array.isArray(value)) {
+          console.log(`  Array contents for ${key}:`, value);
+          value.forEach((item, index) => {
+            console.log(`    [${index}]:`, typeof item, item);
+            if (typeof item === 'object' && item !== null) {
+              Object.keys(item).forEach(subKey => {
+                console.log(`      ${subKey}:`, item[subKey]);
+              });
+            }
+          });
+        }
+        
+        // If it's an object, log its properties
+        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+          console.log(`  Object properties for ${key}:`);
+          Object.keys(value).forEach(subKey => {
+            console.log(`    ${subKey}:`, value[subKey]);
+          });
+        }
+      });
     }
 
     // Initialize character grids
