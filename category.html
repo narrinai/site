@@ -1534,20 +1534,23 @@
         console.log('Response data:', data);
 
         // Check if the response has the expected structure
-        if (!data.success) {
+        if (!data.success && !Array.isArray(data.records)) {
           throw new Error(data.error || 'Failed to load characters');
         }
 
+        // Handle both array and object responses
+        const records = Array.isArray(data) ? data : (data.records || []);
+        
         // Process the records from the webhook response
-        allCharacters = data.records.map(record => ({
-          id: record.id || record.Name, // Use Name as fallback ID
+        allCharacters = records.map(record => ({
+          id: record.Character_ID || record.Name || 'unknown', 
           name: record.Name || 'Unknown',
-          title: record.Character_Title || record.character_title || '',
-          description: record.Character_Description || record.description || '',
-          avatarUrl: record.Avatar_URL || record.avatar_url || 
-                    (record.Avatar_File && record.Avatar_File.length > 0 ? record.Avatar_File[0].url : null),
-          characterUrl: record.Character_URL || record.character_url || `/chat/${record.Slug || record.Name}`,
-          category: record.Category || currentCategory
+          title: record.Character_Title || '',
+          description: record.Character_Description || '',
+          avatarUrl: record.Avatar_URL || null,
+          characterUrl: record.Character_URL || `/chat/${record.Slug || record.Name}`,
+          category: record.Category || currentCategory,
+          slug: record.Slug || record.Name
         }));
 
         console.log('Processed characters:', allCharacters);
