@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Narrin AI - AI Character Chat</title>
+  <title>My Profile - Narrin AI</title>
   <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
   
   <!-- Import Modern Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  
+
   <style>
     /* ===== CSS CUSTOM PROPERTIES ===== */
     :root {
@@ -23,7 +23,7 @@
       --color-teal: #14b8a6;
       --color-teal-light: #5eead4;
       --color-teal-dark: #0f766e;
-      --color-teal-alt: #10a394; /* Slightly different green for tags */
+      --color-teal-alt: #10a394;
       --color-coral: #f97316;
       --color-coral-light: #fb923c;
       --color-coral-dark: #ea580c;
@@ -77,12 +77,12 @@
       --radius-xl: 24px;
       --radius-full: 9999px;
       
-      /* Transitions - UX Best Practice: 300ms */
+      /* Transitions */
       --transition-fast: 150ms ease-out;
       --transition-base: 300ms ease-out;
       --transition-slow: 500ms ease-out;
       
-      /* Touch Target Size - WCAG Compliance */
+      /* Touch Target Size */
       --touch-target: 44px;
       
       /* Z-index Scale */
@@ -705,371 +705,421 @@
       }
     }
 
-    /* ===== HERO SECTION ===== */
-    .hero {
+    /* Netlify Identity Modal Positioning - Fixed for mobile and desktop */
+    .netlify-identity-widget,
+    [data-netlify-identity-widget] {
+      z-index: 1001 !important;
+    }
+
+    .netlify-identity-widget iframe,
+    .netlify-identity-widget > div,
+    .netlify-identity-widget .netlify-identity-modal {
+      z-index: 1001 !important;
+    }
+
+    /* Force modal to appear below header on mobile */
+    @media (max-width: 768px) {
+      .netlify-identity-widget {
+        position: fixed !important;
+        top: 80px !important; /* Below header */
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        z-index: 1001 !important;
+      }
+      
+      .netlify-identity-widget > div {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        z-index: 1001 !important;
+        margin: 0 !important;
+        padding: 20px !important;
+        box-sizing: border-box !important;
+      }
+
+      .netlify-identity-widget .netlify-identity-modal {
+        position: relative !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        border-radius: 12px !important;
+        z-index: 1001 !important;
+      }
+
+      /* Ensure header stays on top when modal is open */
+      .header {
+        z-index: 1002 !important;
+        position: relative !important;
+      }
+    }
+
+    /* Desktop modal positioning */
+    @media (min-width: 769px) {
+      .netlify-identity-widget .netlify-identity-modal {
+        margin-top: 100px !important; /* Space for header */
+      }
+    }
+    
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: var(--spacing-xl);
+    }
+    
+    .page-header {
       text-align: center;
-      padding: var(--spacing-2xl) var(--spacing-lg) var(--spacing-sm);
-      background: var(--color-off-white);
+      margin-bottom: var(--spacing-2xl);
     }
-
-    .hero-content {
-      max-width: 900px;
-      margin: 0 auto;
-    }
-
-    .hero h1 {
+    
+    .page-header h1 {
       font-family: var(--font-secondary);
-      font-size: clamp(var(--font-size-2xl), 5vw, var(--font-size-4xl));
-      font-weight: 800;
+      font-size: var(--font-size-4xl);
+      margin: 0 0 var(--spacing-md) 0;
       color: var(--color-navy);
-      margin-bottom: var(--spacing-lg);
+      font-weight: 800;
       letter-spacing: -0.02em;
-      line-height: 1.2;
     }
-
-    .hero p {
-      font-size: clamp(var(--font-size-base), 2vw, var(--font-size-lg));
+    
+    .page-header p {
       color: var(--color-gray);
-      margin-bottom: 4px;
-      max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
+      font-size: var(--font-size-lg);
+      margin: 0;
+      font-weight: 400;
     }
-
-    /* ===== CONTENT SECTIONS ===== */
-    .content {
-      padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-2xl);
-      max-width: 1400px;
-      margin: 0 auto;
-      width: 100%;
-      overflow: hidden;
-    }
-
-    /* Category Navigation */
-    .category-nav {
-      margin-bottom: var(--spacing-3xl);
-      padding-top: var(--spacing-sm);
-    }
-
-    .filters-container {
+    
+    .header-controls {
       display: flex;
-      gap: var(--spacing-sm);
-      justify-content: center;
-      flex-wrap: wrap;
-      overflow-x: auto;
-      overflow-y: visible;
-      padding-bottom: var(--spacing-xs);
-      padding-top: var(--spacing-xs);
-      scroll-snap-type: x mandatory;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: thin;
-      scrollbar-color: var(--color-gray-light) transparent;
+      align-items: center;
+      justify-content: flex-end;
+      margin-bottom: var(--spacing-xl);
+      gap: var(--spacing-md);
     }
-
-    .filters-container::-webkit-scrollbar {
-      height: 4px;
-    }
-
-    .filters-container::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .filters-container::-webkit-scrollbar-thumb {
-      background: var(--color-gray-light);
-      border-radius: var(--radius-full);
-    }
-
-    .filter-section {
-      display: flex;
-      gap: var(--spacing-sm);
-      flex-shrink: 0;
-      position: relative;
-    }
-
-    .category-buttons,
-    .tags-container {
-      display: flex;
-      gap: var(--spacing-sm);
-      flex-shrink: 0;
-      position: relative;
-    }
-
-
-    .category-btn {
-      padding: var(--spacing-xs) var(--spacing-md);
-      background: var(--gradient-primary);
-      color: var(--color-white);
-      text-decoration: none;
-      font-weight: 600;
-      font-size: var(--font-size-sm);
-      border-radius: var(--radius-md);
+    
+    .form-section {
+      background: var(--color-white);
+      padding: var(--spacing-2xl);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--spacing-xl);
+      box-shadow: var(--shadow-md);
+      border: 2px solid var(--color-light-gray);
       transition: all var(--transition-base);
-      box-shadow: var(--shadow-colored);
     }
-
-    .tag-btn {
-      padding: var(--spacing-xs) var(--spacing-md);
-      background: var(--gradient-tags);
-      color: var(--color-white);
-      text-decoration: none;
-      font-weight: 600;
-      font-size: var(--font-size-sm);
-      border-radius: var(--radius-md);
-      transition: all var(--transition-base);
-      box-shadow: 0 4px 15px -3px rgba(16, 163, 148, 0.3);
-    }
-
-    .category-btn:hover,
-    .tag-btn:hover {
-      transform: translateY(-4px);
+    
+    .form-section:hover {
+      border-color: var(--color-teal);
       box-shadow: var(--shadow-lg);
     }
-
-    /* Character Sections */
-    .character-section {
-      margin-bottom: var(--spacing-3xl);
-    }
-
-    .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: var(--spacing-lg);
-    }
-
-    .section-title {
+    
+    .form-section h2 {
+      margin: 0 0 var(--spacing-lg) 0;
       font-family: var(--font-secondary);
       font-size: var(--font-size-2xl);
-      font-weight: 700;
       color: var(--color-navy);
+      font-weight: 700;
+      letter-spacing: -0.01em;
     }
-
-    .view-all {
-      color: var(--color-teal);
-      text-decoration: none;
-      font-weight: 600;
-      font-size: var(--font-size-sm);
+    
+    .profile-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--spacing-lg) 0;
+      border-bottom: 1px solid var(--color-light-gray);
       transition: all var(--transition-base);
-      padding: var(--spacing-xs) var(--spacing-md);
-      border-radius: var(--radius-full);
     }
-
-    .view-all:hover {
+    
+    .profile-item:last-child {
+      border-bottom: none;
+    }
+    
+    .profile-item.editing {
+      background: var(--color-off-white);
+      margin: calc(var(--spacing-lg) * -1) calc(var(--spacing-2xl) * -1);
+      padding: var(--spacing-lg) var(--spacing-2xl);
+      border-radius: var(--radius-md);
+      border-bottom: none;
+    }
+    
+    .label {
+      font-weight: 600;
+      color: var(--color-navy);
+      margin-right: var(--spacing-lg);
+      min-width: 100px;
+      font-size: var(--font-size-sm);
+    }
+    
+    .value {
+      flex: 1;
+      color: var(--color-gray);
+      margin-right: var(--spacing-lg);
+      font-size: var(--font-size-base);
+    }
+    
+    .edit-btn, .save-btn, .cancel-btn {
+      padding: var(--spacing-xs) var(--spacing-md);
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      cursor: pointer;
+      display: none;
+      margin-left: var(--spacing-xs);
+      transition: all var(--transition-base);
+    }
+    
+    .edit-btn {
+      background: var(--color-white);
+      color: var(--color-navy);
+      border: 2px solid var(--color-teal);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .edit-btn:hover {
       background: var(--color-teal);
       color: var(--color-white);
-    }
-
-    /* Character Grid */
-    .character-grid {
-      display: flex;
-      gap: var(--spacing-lg);
-      overflow-x: auto;
-      overflow-y: visible;
-      padding-bottom: var(--spacing-md);
-      padding-top: var(--spacing-md);
-      scroll-snap-type: x mandatory;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: thin;
-      scrollbar-color: var(--color-gray-light) transparent;
-    }
-
-    .character-grid::-webkit-scrollbar {
-      height: 6px;
-    }
-
-    .character-grid::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .character-grid::-webkit-scrollbar-thumb {
-      background: var(--color-gray-light);
-      border-radius: var(--radius-full);
-    }
-
-    .character-card {
-      background: var(--color-white);
-      border: 2px solid var(--color-light-gray);
-      border-radius: var(--radius-lg);
-      padding: var(--spacing-lg);
-      text-decoration: none;
-      color: inherit;
-      transition: all var(--transition-base);
-      text-align: center;
-      min-width: 280px;
-      flex-shrink: 0;
-      scroll-snap-align: start;
-      padding-top: var(--spacing-2xl);
-    }
-
-    .character-card:hover {
-      border-color: var(--color-teal);
-      transform: translateY(-6px);
-      box-shadow: var(--shadow-xl);
-    }
-
-    .character-avatar {
-      width: 160px;
-      height: 160px;
-      border-radius: var(--radius-full);
-      margin: 0 auto var(--spacing-md);
-      background: var(--color-off-white);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: var(--font-size-3xl);
-      border: 3px solid var(--color-light-gray);
-      overflow: hidden;
-      transition: all var(--transition-base);
-      position: relative;
-    }
-
-    .character-card:hover .character-avatar {
-      border-color: var(--color-teal);
-      transform: scale(1.05);
-    }
-
-    .character-avatar img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      position: absolute;
-      top: 0;
-      left: 0;
-    }
-
-    .character-avatar .avatar-fallback {
-      color: var(--color-gray-light);
-      font-size: 4rem;
-      z-index: 1;
-    }
-
-    .character-name {
-      font-weight: 700;
-      font-size: var(--font-size-base);
-      color: var(--color-navy);
-      margin-bottom: var(--spacing-xs);
-    }
-
-    .character-title {
-      font-size: var(--font-size-sm);
-      color: var(--color-gray);
-    }
-
-    /* Loading State */
-    .loading {
-      display: inline-block;
-      width: 32px;
-      height: 32px;
-      border: 3px solid var(--color-light-gray);
-      border-top-color: var(--color-teal);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin: var(--spacing-xl) auto;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    /* Create Character CTA */
-    .create-character-cta {
-      background: var(--gradient-primary);
-      padding: var(--spacing-3xl);
-      border-radius: var(--radius-xl);
-      text-align: center;
-      color: white;
-      margin-top: var(--spacing-3xl);
-    }
-
-    .cta-content {
-      max-width: 600px;
-      margin: 0 auto;
-    }
-
-    .cta-icon {
-      width: 80px;
-      height: 80px;
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: var(--radius-lg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: var(--font-size-3xl);
-      margin: 0 auto var(--spacing-xl);
-      backdrop-filter: blur(10px);
-    }
-
-    .cta-content h2 {
-      font-family: var(--font-secondary);
-      font-size: var(--font-size-3xl);
-      font-weight: 800;
-      margin-bottom: var(--spacing-lg);
-    }
-
-    .cta-content p {
-      font-size: var(--font-size-lg);
-      margin-bottom: var(--spacing-2xl);
-      opacity: 0.9;
-    }
-
-    .btn-cta {
-      background: rgba(255, 255, 255, 0.9);
-      color: var(--color-teal);
-      font-weight: 700;
-      padding: var(--spacing-md) var(--spacing-2xl);
-      font-size: var(--font-size-base);
-    }
-
-    .btn-cta:hover {
-      background: white;
       transform: translateY(-2px);
     }
-
-    /* Mobile Adjustments */
+    
+    .save-btn {
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      box-shadow: var(--shadow-colored);
+    }
+    
+    .save-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .cancel-btn {
+      background: var(--color-light-gray);
+      color: var(--color-gray-dark);
+      border: 1px solid var(--color-gray-light);
+    }
+    
+    .cancel-btn:hover {
+      background: var(--color-gray-light);
+      transform: translateY(-1px);
+    }
+    
+    input.edit-input {
+      flex: 1;
+      padding: var(--spacing-md) var(--spacing-lg);
+      font-size: var(--font-size-base);
+      border: 2px solid var(--color-light-gray);
+      border-radius: var(--radius-md);
+      margin-right: var(--spacing-lg);
+      font-family: var(--font-primary);
+      transition: all var(--transition-base);
+      background: var(--color-white);
+      color: var(--color-navy);
+    }
+    
+    input.edit-input:focus {
+      outline: none;
+      border-color: var(--color-teal);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+    
+    #upgrade-btn {
+      display: none;
+      padding: var(--spacing-lg) var(--spacing-2xl);
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      border: none;
+      border-radius: var(--radius-full);
+      font-size: var(--font-size-lg);
+      font-weight: 700;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      width: 100%;
+      margin-top: var(--spacing-lg);
+      box-shadow: var(--shadow-colored);
+    }
+    
+    #upgrade-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-xl);
+    }
+    
+    .btn-form {
+      padding: var(--spacing-md) var(--spacing-xl);
+      border: none;
+      border-radius: var(--radius-full);
+      font-size: var(--font-size-base);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      font-family: var(--font-primary);
+    }
+    
+    #login-btn {
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      box-shadow: var(--shadow-colored);
+    }
+    
+    #login-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    #logout-btn {
+      background: var(--color-coral);
+      color: var(--color-white);
+      box-shadow: var(--shadow-md);
+    }
+    
+    #logout-btn:hover {
+      background: var(--color-coral-dark);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    #debug-toggle {
+      background: var(--color-light-gray);
+      color: var(--color-gray-dark);
+      padding: var(--spacing-xs) var(--spacing-md);
+      font-size: var(--font-size-sm);
+      border: 1px solid var(--color-gray-light);
+    }
+    
+    #debug-toggle:hover {
+      background: var(--color-gray-light);
+      transform: translateY(-1px);
+    }
+    
+    #error {
+      color: #c53030;
+      margin-top: var(--spacing-xl);
+      padding: var(--spacing-lg);
+      background: #fed7d7;
+      border-radius: var(--radius-md);
+      border-left: 4px solid #c53030;
+      font-size: var(--font-size-sm);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    #success {
+      color: #276749;
+      margin-top: var(--spacing-xl);
+      padding: var(--spacing-lg);
+      background: #c6f6d5;
+      border-radius: var(--radius-md);
+      border-left: 4px solid #38a169;
+      font-size: var(--font-size-sm);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .loading {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+    
+    .usage-display {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+    }
+    
+    .usage-bar {
+      flex: 1;
+      height: 8px;
+      background: var(--color-light-gray);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      max-width: 200px;
+    }
+    
+    .usage-fill {
+      height: 100%;
+      background: var(--gradient-primary);
+      border-radius: var(--radius-full);
+      transition: width 0.5s ease;
+    }
+    
+    .usage-text {
+      font-size: var(--font-size-sm);
+      color: var(--color-gray);
+      font-weight: 500;
+    }
+    
+    /* Mobile Responsive */
     @media (max-width: 768px) {
-      .hero {
-        padding: var(--spacing-xl) var(--spacing-md) var(--spacing-md);
+      .container {
+        padding: var(--spacing-lg);
       }
-
-      .content {
-        padding: var(--spacing-sm) var(--spacing-md) var(--spacing-xl);
+      
+      .page-header h1 {
+        font-size: var(--font-size-3xl);
       }
-
-      .category-nav {
-        margin-bottom: var(--spacing-sm);
+      
+      .form-section {
+        padding: var(--spacing-xl);
       }
-
-      .filters-container {
-        flex-wrap: nowrap;
-        justify-content: flex-start;
+      
+      .header-controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .profile-item {
+        flex-direction: column;
+        align-items: flex-start;
         gap: var(--spacing-xs);
       }
-
-      .filter-section {
-        gap: var(--spacing-xs);
+      
+      .profile-item.editing {
+        margin: calc(var(--spacing-lg) * -1) calc(var(--spacing-xl) * -1);
+        padding: var(--spacing-lg) var(--spacing-xl);
       }
-
-      .category-buttons,
-      .tags-container {
-        gap: var(--spacing-xs);
+      
+      .label {
+        min-width: auto;
       }
-
-
-      .character-card {
-        min-width: 200px;
+      
+      .value {
+        width: 100%;
+        margin-right: 0;
       }
-
-      .character-avatar {
-        width: 140px;
-        height: 140px;
+      
+      .edit-btn, .save-btn, .cancel-btn {
+        width: 100%;
+        margin: var(--spacing-xs) 0 0 0;
+      }
+      
+      input.edit-input {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: var(--spacing-xs);
+      }
+      
+      .btn-form {
+        width: 100%;
+      }
+      
+      #debug-toggle {
+        margin-top: var(--spacing-xs);
+      }
+      
+      .usage-bar {
+        max-width: none;
       }
     }
 
-    /* Accessibility - Reduced Motion */
+    /* Accessibility improvements */
     @media (prefers-reduced-motion: reduce) {
-      *,
-      *::before,
-      *::after {
+      * {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
@@ -1077,8 +1127,9 @@
     }
   </style>
 </head>
+
 <body>
-  <!-- Header Navigation -->
+  <!-- Header -->
   <header class="header" role="banner">
     <div class="header-container">
       <div class="header-content">
@@ -1223,110 +1274,65 @@
     </div>
   </div>
 
-  <!-- Main Content -->
-  <main id="main" role="main">
-    <!-- Hero Section -->
-    <section class="hero">
-      <div class="hero-content">
-        <h1>Chat with AI Characters</h1>
-        <p>Discover thousands of unique AI personalities. Engage in meaningful conversations that inspire and entertain.</p>
-      </div>
-    </section>
-
-    <!-- Content -->
-    <div class="content">
-      <!-- Category Navigation -->
-      <nav class="category-nav" aria-label="Browse by category">
-        <div class="filters-container">
-          <!-- Categories Section -->
-          <div class="filter-section">
-            <div class="category-buttons">
-              <a href="category.html?cat=historical" class="category-btn">Historical</a>
-              <a href="category.html?cat=fictional" class="category-btn">Fiction</a>
-              <a href="category.html?cat=celebrity" class="category-btn">Celebrities</a>
-              <a href="category.html?cat=anime-manga" class="category-btn">Anime & Manga</a>
-              <a href="category.html?cat=gaming" class="category-btn">Gaming</a>
-            </div>
-          </div>
-          
-          <!-- Tags Section -->
-          <div class="filter-section">
-            <div class="tags-container">
-              <a href="category.html?tag=wise" class="tag-btn">Wise</a>
-              <a href="category.html?tag=funny" class="tag-btn">Funny</a>
-              <a href="category.html?tag=helpful" class="tag-btn">Helpful</a>
-              <a href="category.html?tag=mysterious" class="tag-btn">Mysterious</a>
-              <a href="category.html?tag=leader" class="tag-btn">Leader</a>
-              <a href="category.html?tag=creative" class="tag-btn">Creative</a>
-              <a href="category.html?tag=romantic" class="tag-btn">Romantic</a>
-              <a href="category.html?tag=adventure" class="tag-btn">Adventure</a>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      <!-- Character Sections -->
-      <section class="character-section" aria-labelledby="historical-title">
-        <div class="section-header">
-          <h2 class="section-title" id="historical-title">Historical Figures</h2>
-          <a href="category.html?cat=historical" class="view-all">View all →</a>
-        </div>
-        <div class="character-grid" id="historical-grid">
-          <div class="loading" aria-label="Loading characters"></div>
-        </div>
-      </section>
-
-      <section class="character-section" aria-labelledby="fictional-title">
-        <div class="section-header">
-          <h2 class="section-title" id="fictional-title">Fictional Characters</h2>
-          <a href="category.html?cat=fictional" class="view-all">View all →</a>
-        </div>
-        <div class="character-grid" id="fictional-grid">
-          <div class="loading" aria-label="Loading characters"></div>
-        </div>
-      </section>
-
-      <section class="character-section" aria-labelledby="celebrity-title">
-        <div class="section-header">
-          <h2 class="section-title" id="celebrity-title">Celebrities</h2>
-          <a href="category.html?cat=celebrity" class="view-all">View all →</a>
-        </div>
-        <div class="character-grid" id="celebrity-grid">
-          <div class="loading" aria-label="Loading characters"></div>
-        </div>
-      </section>
-
-      <section class="character-section" aria-labelledby="anime-title">
-        <div class="section-header">
-          <h2 class="section-title" id="anime-title">Anime & Manga</h2>
-          <a href="category.html?cat=anime-manga" class="view-all">View all →</a>
-        </div>
-        <div class="character-grid" id="anime-grid">
-          <div class="loading" aria-label="Loading characters"></div>
-        </div>
-      </section>
-
-      <section class="character-section" aria-labelledby="gaming-title">
-        <div class="section-header">
-          <h2 class="section-title" id="gaming-title">Gaming Characters</h2>
-          <a href="category.html?cat=gaming" class="view-all">View all →</a>
-        </div>
-        <div class="character-grid" id="gaming-grid">
-          <div class="loading" aria-label="Loading characters"></div>
-        </div>
-      </section>
-
-      <!-- Create Character CTA -->
-      <section class="create-character-cta">
-        <div class="cta-content">
-          <div class="cta-icon">✨</div>
-          <h2>Create Your Own Character</h2>
-          <p>Bring your imagination to life. Design unique AI personalities with custom traits, backgrounds, and conversation styles.</p>
-          <a href="create-character.html" class="btn btn-cta">Start Creating</a>
-        </div>
-      </section>
+  <div class="container">
+    <div class="page-header">
+      <h1>My Profile</h1>
+      <p>Manage your account settings and view your usage</p>
     </div>
-  </main>
+    
+    <div id="not-logged-in" style="display: none;">
+      <div class="form-section">
+        <h2>⚠️ Not logged in</h2>
+        <p>You must be logged in to view your profile.</p>
+        <button class="btn" onclick="openLogin()" style="background-color: #000; color: white;">
+          👤 Log in
+        </button>
+      </div>
+    </div>
+    
+    <div id="profile" style="display: none;">
+      <div class="form-section">
+        <h2>Account Information</h2>
+        
+        <div class="profile-item" data-field="email">
+          <span class="label">Email:</span>
+          <span class="value" id="email">...</span>
+          <button class="edit-btn" onclick="enableEdit('email')">Edit</button>
+        </div>
+        
+        <div class="profile-item" data-field="plan">
+          <span class="label">Plan:</span>
+          <span class="value" id="plan">...</span>
+          <button class="edit-btn" onclick="enableEdit('plan')">Edit</button>
+        </div>
+        
+        <div class="profile-item" data-field="usage">
+          <span class="label">Usage:</span>
+          <div class="value">
+            <div class="usage-display">
+              <span class="usage-text">
+                <span id="usage">...</span> / <span id="quota">...</span> messages
+              </span>
+              <div class="usage-bar">
+                <div class="usage-fill" id="usage-fill" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <button id="upgrade-btn" onclick="handleUpgrade()">Upgrade to Pro</button>
+        
+        <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center;">
+          <button id="logout-btn" class="btn" onclick="handleLogout()" style="background-color: #dc3545; color: white;">
+            🚪 Log out
+          </button>
+        </div>
+      </div>
+      
+      <div id="error" style="display:none;"></div>
+      <div id="success" style="display:none;"></div>
+    </div>
+  </div>
 
   <script>
     // ===== NAVIGATION FUNCTIONALITY =====
@@ -1485,535 +1491,6 @@
       resizeTimer = setTimeout(handleResize, 250);
     });
 
-    // ===== HEADER SCROLL EFFECT =====
-    const header = document.querySelector('.header');
-    let lastScroll = 0;
-
-    window.addEventListener('scroll', () => {
-      const currentScroll = window.pageYOffset;
-      
-      if (currentScroll > 50) {
-        header.classList.add('scrolled');
-      } else {
-        header.classList.remove('scrolled');
-      }
-      
-      lastScroll = currentScroll;
-    });
-
-    // ===== CHARACTER DATA =====
-    const MAKE_WEBHOOK_URL = 'https://hook.eu2.make.com/kej7ez9bgc9tic7';
-
-    // Updated sample data with working avatars
-    const sampleCharacters = {
-      historical: [
-        { 
-          name: "Napoleon Bonaparte", 
-          title: "French Emperor", 
-          avatar_url: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=napoleon-bonaparte"
-        },
-        { 
-          name: "Cleopatra VII", 
-          title: "Queen of Egypt", 
-          avatar_url: "https://images.unsplash.com/photo-1494790108755-2616c179a6c8?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=cleopatra-vii"
-        },
-        {
-          name: "Leonardo da Vinci",
-          title: "Renaissance Genius",
-          avatar_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=leonardo-da-vinci"
-        },
-        {
-          name: "Albert Einstein",
-          title: "Physicist",
-          avatar_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=albert-einstein"
-        },
-        {
-          name: "Marie Curie",
-          title: "Scientist",
-          avatar_url: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=marie-curie"
-        }
-      ],
-      fictional: [
-        {
-          name: "Sherlock Holmes",
-          title: "Detective",
-          avatar_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=sherlock-holmes"
-        },
-        {
-          name: "Gandalf the Grey",
-          title: "Wizard",
-          avatar_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=gandalf-the-grey"
-        },
-        {
-          name: "Hermione Granger",
-          title: "Witch",
-          avatar_url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=hermione-granger"
-        },
-        {
-          name: "Tyrion Lannister",
-          title: "The Imp",
-          avatar_url: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=tyrion-lannister"
-        },
-        {
-          name: "Yoda",
-          title: "Jedi Master",
-          avatar_url: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=yoda"
-        }
-      ],
-      celebrity: [
-        {
-          name: "Elon Musk",
-          title: "Tech Entrepreneur",
-          avatar_url: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=elon-musk"
-        },
-        {
-          name: "Oprah Winfrey",
-          title: "Media Mogul",
-          avatar_url: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=oprah-winfrey"
-        },
-        {
-          name: "Gordon Ramsay",
-          title: "Chef",
-          avatar_url: "https://images.unsplash.com/photo-1566492031773-4f4e44671d66?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=gordon-ramsay"
-        },
-        {
-          name: "Steve Jobs",
-          title: "Apple Founder",
-          avatar_url: "https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=steve-jobs"
-        },
-        {
-          name: "Taylor Swift",
-          title: "Singer",
-          avatar_url: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=taylor-swift"
-        }
-      ],
-      "anime-manga": [
-        {
-          name: "Naruto Uzumaki",
-          title: "Ninja Hero",
-          avatar_url: "https://images.unsplash.com/photo-1539571696557-407d9c4de938?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=naruto-uzumaki"
-        },
-        {
-          name: "Goku",
-          title: "Saiyan Warrior",
-          avatar_url: "https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=goku"
-        },
-        {
-          name: "Sailor Moon",
-          title: "Magical Girl",
-          avatar_url: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=sailor-moon"
-        },
-        {
-          name: "Light Yagami",
-          title: "Death Note",
-          avatar_url: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=light-yagami"
-        },
-        {
-          name: "Edward Elric",
-          title: "Alchemist",
-          avatar_url: "https://images.unsplash.com/photo-1628157588553-5eeea00af15c?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=edward-elric"
-        }
-      ],
-      gaming: [
-        {
-          name: "Master Chief",
-          title: "Spartan",
-          avatar_url: "https://images.unsplash.com/photo-1564564321837-a57b7070ac4f?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=master-chief"
-        },
-        {
-          name: "Kratos",
-          title: "God of War",
-          avatar_url: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=kratos"
-        },
-        {
-          name: "Lara Croft",
-          title: "Tomb Raider",
-          avatar_url: "https://images.unsplash.com/photo-1494790108755-2616c179a6c8?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=lara-croft"
-        },
-        {
-          name: "Mario",
-          title: "Plumber",
-          avatar_url: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=mario"
-        },
-        {
-          name: "Geralt of Rivia",
-          title: "Witcher",
-          avatar_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=geralt-of-rivia"
-        }
-      ]
-    };
-
-    // Enhanced load characters function with better error handling
-    async function loadCharacters(category, gridId, limit = 5) {
-      const grid = document.getElementById(gridId);
-      
-      try {
-        console.log(`🚀 Loading characters from Make.com for category: ${category}`);
-        await loadCharactersFromMake(category, gridId, limit);
-        return;
-      } catch (error) {
-        console.error(`❌ Make.com webhook failed for category ${category}:`, error);
-        console.log('🔄 Falling back to sample data');
-        loadSampleCharacters(category, gridId, limit);
-      }
-    }
-
-    // Load characters from Make.com with enhanced debugging
-    async function loadCharactersFromMake(category, gridId, limit = 5) {
-      const grid = document.getElementById(gridId);
-      const url = `${MAKE_WEBHOOK_URL}?category=${encodeURIComponent(category)}&limit=${limit}`;
-      
-      console.log('📡 Fetching from Make.com:', url);
-      
-      const response = await fetch(url);
-      console.log('📊 Response status:', response.status, response.statusText);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const rawText = await response.text();
-      console.log('📋 Raw response text:', rawText);
-      
-      let data;
-      try {
-        data = JSON.parse(rawText);
-      } catch (parseError) {
-        console.error('❌ JSON parse error:', parseError);
-        throw new Error('Invalid JSON response');
-      }
-      
-      console.log('✅ Parsed Make.com response:', data);
-      
-      // Temporary debugging - add this line to see first record structure
-      if (data.records && data.records.length > 0) {
-        console.log('🔧 First record structure:', JSON.stringify(data.records[0], null, 2));
-      }
-      
-      grid.innerHTML = '';
-      
-      if (data.records && data.records.length > 0) {
-        console.log(`📦 Processing ${data.records.length} records from Airtable format`);
-        data.records.forEach((record, index) => {
-          const fields = record.fields || record;
-          console.log(`🔍 Record ${index + 1}:`, fields);
-          const card = createCharacterCard(fields);
-          grid.appendChild(card);
-        });
-      } else if (Array.isArray(data) && data.length > 0) {
-        console.log(`📦 Processing ${data.length} items from direct array format`);
-        data.forEach((character, index) => {
-          console.log(`🔍 Character ${index + 1}:`, character);
-          const card = createCharacterCard(character);
-          grid.appendChild(card);
-        });
-      } else {
-        console.warn('⚠️ No usable data found in Make.com response');
-        throw new Error('No usable data returned from Make.com');
-      }
-    }
-
-    // Load sample characters (fallback data)
-    function loadSampleCharacters(category, gridId, limit = 5) {
-      const grid = document.getElementById(gridId);
-      const characters = sampleCharacters[category] || [];
-      
-      console.log(`📦 Loading ${characters.length} sample characters for category: ${category}`);
-      
-      grid.innerHTML = '';
-      
-      characters.slice(0, limit).forEach((character, index) => {
-        console.log(`🔍 Sample character ${index + 1}:`, character);
-        const card = createCharacterCard(character);
-        grid.appendChild(card);
-      });
-      
-      console.log(`✅ Successfully loaded ${Math.min(characters.length, limit)} sample characters`);
-    }
-
-    // FIXED: Create character card with proper Airtable avatar handling
-    function createCharacterCard(character) {
-      const card = document.createElement('a');
-      card.className = 'character-card';
-      
-      // Priority order for URL: character_url from Airtable, or generate fallback URL
-      let characterUrl = character.character_url || character.Character_URL;
-      
-      // If no URL from Airtable, generate fallback URL with correct structure
-      if (!characterUrl) {
-        const charSlug = (character.name || character.Name || 'unknown').toLowerCase().replace(/\s+/g, '-');
-        characterUrl = `chat.html?char=${charSlug}`;
-      }
-      
-      card.href = characterUrl;
-      
-      // Handle avatar URL extraction specifically for Airtable structure
-      let avatarUrl = null;
-      const name = character.name || character.Name || 'Unknown';
-      
-      console.log('🔍 Processing character:', name);
-      console.log('📋 Full character data:', JSON.stringify(character, null, 2));
-      
-      // Method 1: Airtable attachment field format - Avatar_URL as array with URL objects
-      if (character.Avatar_URL && Array.isArray(character.Avatar_URL) && character.Avatar_URL.length > 0) {
-        // Check if it's an array of URL objects (Airtable attachment format)
-        if (character.Avatar_URL[0] && typeof character.Avatar_URL[0] === 'object' && character.Avatar_URL[0].url) {
-          avatarUrl = character.Avatar_URL[0].url;
-          console.log('✅ Found Avatar_URL (Airtable attachment format):', avatarUrl);
-        }
-        // Check if it's an array of direct URLs
-        else if (typeof character.Avatar_URL[0] === 'string' && character.Avatar_URL[0].startsWith('http')) {
-          avatarUrl = character.Avatar_URL[0];
-          console.log('✅ Found Avatar_URL (direct URL array):', avatarUrl);
-        }
-      }
-      
-      // Method 2: Check if Avatar_URL is a direct string (in case Make.com flattens it)
-      if (!avatarUrl && character.Avatar_URL && typeof character.Avatar_URL === 'string' && character.Avatar_URL.startsWith('http')) {
-        avatarUrl = character.Avatar_URL;
-        console.log('✅ Found Avatar_URL (direct string):', avatarUrl);
-      }
-      
-      // Method 3: Check other possible Airtable attachment fields
-      if (!avatarUrl) {
-        const attachmentFields = ['Avatar', 'avatar', 'Picture', 'picture', 'Image', 'image', 'Photo', 'photo'];
-        
-        for (const field of attachmentFields) {
-          if (character[field] && Array.isArray(character[field]) && character[field].length > 0) {
-            if (character[field][0] && character[field][0].url) {
-              avatarUrl = character[field][0].url;
-              console.log(`✅ Found ${field} (Airtable attachment format):`, avatarUrl);
-              break;
-            }
-          }
-          // Also check if it's a direct string
-          if (character[field] && typeof character[field] === 'string' && character[field].startsWith('http')) {
-            avatarUrl = character[field];
-            console.log(`✅ Found ${field} (direct string):`, avatarUrl);
-            break;
-          }
-        }
-      }
-      
-      // Method 4: Direct URL fields (for backwards compatibility)
-      if (!avatarUrl) {
-        const urlFields = [
-          'avatar_url', 'avatarUrl', 'AvatarURL',
-          'image_url', 'Image_URL', 'imageUrl', 'ImageURL', 
-          'picture_url', 'Picture_URL', 'pictureUrl', 'PictureURL',
-          'photo_url', 'Photo_URL', 'photoUrl', 'PhotoURL',
-          'url', 'URL', 'src', 'Src'
-        ];
-        
-        for (const field of urlFields) {
-          if (character[field] && typeof character[field] === 'string' && character[field].startsWith('http')) {
-            avatarUrl = character[field];
-            console.log(`✅ Found direct URL field (${field}):`, avatarUrl);
-            break;
-          }
-        }
-      }
-      
-      // Method 5: Check nested objects (for complex API responses)
-      if (!avatarUrl) {
-        const nestedFields = ['fields', 'data', 'attributes'];
-        for (const nested of nestedFields) {
-          if (character[nested] && typeof character[nested] === 'object') {
-            const nestedResult = extractAvatarFromObject(character[nested]);
-            if (nestedResult) {
-              avatarUrl = nestedResult;
-              console.log(`✅ Found nested avatar in ${nested}:`, avatarUrl);
-              break;
-            }
-          }
-        }
-      }
-      
-      // Get character title/description
-      const title = character.title || character.Character_Title || character.character_title || character.Character_title || character.description || character.Description || '';
-      
-      console.log('🎯 Final result for', name, '- Avatar URL:', avatarUrl || 'None');
-      
-      // Create avatar content with proper fallback
-      let avatarContent;
-      if (avatarUrl) {
-        avatarContent = `
-          <img src="${avatarUrl}" 
-               alt="${name}" 
-               loading="lazy" 
-               onerror="console.error('❌ Image load failed for ${name}:', '${avatarUrl}'); this.style.display='none'; this.parentElement.querySelector('.avatar-fallback').style.display='flex';" 
-               style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
-          <div class="avatar-fallback" style="display: none; color: var(--color-gray-light); font-size: 4rem;">👤</div>
-        `;
-      } else {
-        avatarContent = `<div class="avatar-fallback" style="color: var(--color-gray-light); font-size: 4rem;">👤</div>`;
-      }
-      
-      card.innerHTML = `
-        <div class="character-avatar">
-          ${avatarContent}
-        </div>
-        <div class="character-name">${name}</div>
-        <div class="character-title">${title}</div>
-      `;
-      
-      return card;
-    }
-
-    // Helper function to extract avatar from nested objects - Updated for Airtable
-    function extractAvatarFromObject(obj) {
-      // Check for Avatar_URL first (your Airtable structure)
-      if (obj.Avatar_URL && Array.isArray(obj.Avatar_URL) && obj.Avatar_URL.length > 0) {
-        if (obj.Avatar_URL[0] && typeof obj.Avatar_URL[0] === 'object' && obj.Avatar_URL[0].url) {
-          return obj.Avatar_URL[0].url;
-        }
-        if (typeof obj.Avatar_URL[0] === 'string' && obj.Avatar_URL[0].startsWith('http')) {
-          return obj.Avatar_URL[0];
-        }
-      }
-      
-      // Check if Avatar_URL is a direct string
-      if (obj.Avatar_URL && typeof obj.Avatar_URL === 'string' && obj.Avatar_URL.startsWith('http')) {
-        return obj.Avatar_URL;
-      }
-      
-      // Check for other attachment fields
-      const avatarFields = ['Avatar', 'avatar', 'Picture', 'picture', 'Image', 'image', 'Photo', 'photo'];
-      for (const field of avatarFields) {
-        if (obj[field] && Array.isArray(obj[field]) && obj[field].length > 0 && obj[field][0].url) {
-          return obj[field][0].url;
-        }
-        // Also check direct string
-        if (obj[field] && typeof obj[field] === 'string' && obj[field].startsWith('http')) {
-          return obj[field];
-        }
-      }
-      
-      // Check for direct URL fields
-      const urlFields = ['Avatar_URL', 'avatar_url', 'image_url', 'Image_URL', 'picture_url', 'Picture_URL', 'url', 'URL'];
-      for (const field of urlFields) {
-        if (obj[field] && typeof obj[field] === 'string' && obj[field].startsWith('http')) {
-          return obj[field];
-        }
-      }
-      
-      return null;
-    }
-
-    // Additional debugging function to help identify the exact structure
-    function debugCharacterData(character) {
-      console.log('🔧 DEBUGGING CHARACTER DATA:');
-      console.log('Raw character object:', character);
-      
-      // Check all properties that might contain URLs
-      Object.keys(character).forEach(key => {
-        const value = character[key];
-        console.log(`Property "${key}":`, typeof value, value);
-        
-        // If it's an array, log its contents
-        if (Array.isArray(value)) {
-          console.log(`  Array contents for ${key}:`, value);
-          value.forEach((item, index) => {
-            console.log(`    [${index}]:`, typeof item, item);
-            if (typeof item === 'object' && item !== null) {
-              Object.keys(item).forEach(subKey => {
-                console.log(`      ${subKey}:`, item[subKey]);
-              });
-            }
-          });
-        }
-        
-        // If it's an object, log its properties
-        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-          console.log(`  Object properties for ${key}:`);
-          Object.keys(value).forEach(subKey => {
-            console.log(`    ${subKey}:`, value[subKey]);
-          });
-        }
-      });
-    }
-
-    // Initialize character grids
-    function initializeCharacterGrids() {
-      loadCharacters('historical', 'historical-grid', 5);
-      loadCharacters('fictional', 'fictional-grid', 5);
-      loadCharacters('celebrity', 'celebrity-grid', 5);
-      loadCharacters('anime-manga', 'anime-grid', 5);
-      loadCharacters('gaming', 'gaming-grid', 5);
-    }
-
-    // Initialize on DOM content loaded
-    document.addEventListener('DOMContentLoaded', () => {
-      initializeCharacterGrids();
-      
-      // Initialize scroll indicators for category/tag containers
-      initializeScrollIndicators();
-    });
-
-    // Scroll indicator functionality
-    function initializeScrollIndicators() {
-      const scrollContainers = document.querySelectorAll('.category-buttons, .tags-container');
-      
-      scrollContainers.forEach(container => {
-        const parent = container.parentElement;
-        
-        // Check scroll position and update indicators
-        function updateScrollIndicators() {
-          const scrollLeft = container.scrollLeft;
-          const scrollWidth = container.scrollWidth;
-          const clientWidth = container.clientWidth;
-          
-          // Has content to scroll left
-          if (scrollLeft > 10) {
-            parent.classList.add('has-scroll-start');
-          } else {
-            parent.classList.remove('has-scroll-start');
-          }
-          
-          // Has content to scroll right
-          if (scrollLeft < scrollWidth - clientWidth - 10) {
-            parent.classList.add('has-scroll-end');
-          } else {
-            parent.classList.remove('has-scroll-end');
-          }
-        }
-        
-        // Initial check
-        updateScrollIndicators();
-        
-        // Update on scroll
-        container.addEventListener('scroll', updateScrollIndicators);
-        
-        // Update on resize
-        window.addEventListener('resize', updateScrollIndicators);
-      });
-    }
-
     // ===== SEARCH FUNCTIONALITY =====
     function handleSearch(searchTerm) {
       console.log('Search term:', searchTerm);
@@ -2035,23 +1512,558 @@
       toggleMobileSearch();
     });
 
-    // ===== NETLIFY IDENTITY =====
+    // ===== PROFILE FUNCTIONALITY =====
+    
+    // Global state
+    let isEditing = false;
+    let currentEditingField = null;
+    let originalValue = null;
+    let netlifyUser = null;
+
+    // Utility function to detect mobile
+    function isMobileDevice() {
+      return window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+
+    // Enhanced redirect handling
+    function setupRedirectHandling() {
+      // Store the referring page when coming to profile
+      if (document.referrer && document.referrer !== window.location.href) {
+        const referrer = new URL(document.referrer);
+        // Only store if it's from the same domain and not already the profile page
+        if (referrer.hostname === window.location.hostname && 
+            !referrer.pathname.includes('profile.html')) {
+          localStorage.setItem('login_redirect_url', document.referrer);
+          console.log('🔄 Stored redirect URL:', document.referrer);
+        }
+      }
+    }
+
+    // Enhanced login success handler
+    function handleLoginSuccess(user) {
+      console.log('✅ Login/Registration successful:', user.email);
+      
+      // Store user data
+      localStorage.setItem('user_email', user.email);
+      localStorage.setItem('user_token', user.token.access_token);
+      localStorage.setItem('user_uid', user.id);
+      
+      // Create/update user in Airtable (important for new registrations!)
+      createOrUpdateUser(user);
+      
+      // Update UI
+      showProfileUI();
+      updateLoginButton();
+      
+      // Handle redirect
+      handlePostLoginRedirect();
+    }
+
+    // New function to handle post-login redirect
+    function handlePostLoginRedirect() {
+      const redirectUrl = localStorage.getItem('login_redirect_url');
+      
+      if (redirectUrl && redirectUrl !== window.location.href) {
+        localStorage.removeItem('login_redirect_url');
+        showSuccess('Login successful! Redirecting back...');
+        
+        setTimeout(() => {
+          console.log('🔄 Redirecting to:', redirectUrl);
+          window.location.href = redirectUrl;
+        }, 100); // Very short delay to ensure login is fully processed
+      } else {
+        // No specific redirect, stay on profile page but show success
+        showSuccess('Welcome to your profile!');
+      }
+    }
+
+    // New function to create/update user in Airtable
+    async function createOrUpdateUser(user) {
+      console.log('👤 Creating/updating user in database:', user.email);
+      
+      try {
+        const payload = {
+          user_email: user.email,
+          user_uid: user.id,
+          user_token: user.token.access_token,
+          action: 'create_or_update', // New action for user creation
+          user_metadata: {
+            full_name: user.user_metadata?.full_name || '',
+            avatar_url: user.user_metadata?.avatar_url || '',
+            provider: user.app_metadata?.provider || 'email'
+          }
+        };
+        
+        const resp = await fetch('https://hook.eu2.make.com/lya166veex7oo2wwo8mx4fuhlkssxlog', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        
+        if (!resp.ok) {
+          throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+        }
+        
+        const result = await resp.json();
+        console.log('✅ User created/updated successfully:', result);
+        
+        // Now load the profile
+        loadProfile();
+        
+      } catch (error) {
+        console.error('❌ Error creating/updating user:', error);
+        showError('Failed to set up user account. Please refresh the page.');
+        
+        // Still try to load profile with fallback data
+        loadProfile();
+      }
+    }
+
+    // Enhanced event listeners setup
+    function setupEventListeners() {
+      // Netlify Identity events
+      window.netlifyIdentity.on('init', user => {
+        console.log('🔄 Netlify Identity initialized, user:', user?.email || 'none');
+        updateLoginButton(); // Update immediately after init
+        if (user && !netlifyUser) {
+          netlifyUser = user;
+          handleLoginSuccess(user);
+        }
+      });
+
+      window.netlifyIdentity.on('login', user => {
+        console.log('✅ Login successful:', user.email);
+        netlifyUser = user;
+        handleLoginSuccess(user);
+        window.netlifyIdentity.close();
+        updateLoginButton();
+      });
+
+      // IMPORTANT: Handle signup separately from login
+      window.netlifyIdentity.on('signup', user => {
+        console.log('🎉 New user signup:', user.email);
+        netlifyUser = user;
+        handleLoginSuccess(user); // Same handler, but will create new user
+        window.netlifyIdentity.close();
+        updateLoginButton();
+      });
+
+      window.netlifyIdentity.on('logout', () => {
+        console.log('👋 Logged out');
+        netlifyUser = null;
+        localStorage.clear();
+        showLoginUI();
+        updateLoginButton();
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1000);
+      });
+
+      window.netlifyIdentity.on('error', err => {
+        console.error('❌ Netlify Identity error:', err);
+        showError('Authentication error: ' + err.message);
+      });
+    }
+
+    // Initialize Netlify Identity and check login status
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('🚀 Page loaded, initializing...');
+      
+      // Set up redirect handling FIRST
+      setupRedirectHandling();
+      
+      // Initialize Netlify Identity
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.init();
+        
+        // Check if user is already logged in
+        netlifyUser = window.netlifyIdentity.currentUser();
+        
+        if (netlifyUser) {
+          console.log('✅ User already logged in:', netlifyUser.email);
+          // For existing logged-in users, just load profile (don't redirect)
+          showProfileUI();
+          loadProfile();
+        } else {
+          console.log('❌ No user logged in');
+          checkLocalStorage();
+        }
+        
+        // Set up event listeners
+        setupEventListeners();
+      } else {
+        console.error('❌ Netlify Identity not loaded');
+      }
+    });
+
+    function checkLocalStorage() {
+      // Check if we have stored auth data
+      const token = localStorage.getItem('user_token');
+      const email = localStorage.getItem('user_email');
+      const uid = localStorage.getItem('user_uid');
+      
+      if (token && email && uid) {
+        console.log('✅ Found stored auth data for:', email);
+        showProfileUI();
+        loadProfile();
+      } else {
+        console.log('❌ No stored auth data found');
+        showLoginUI();
+      }
+    }
+
+    function handleLogout() {
+      if (confirm('Are you sure you want to log out?')) {
+        if (window.netlifyIdentity) {
+          window.netlifyIdentity.logout();
+        } else {
+          // Fallback if Netlify Identity is not available
+          localStorage.clear();
+          showLoginUI();
+          window.location.href = 'index.html';
+        }
+      }
+    }
+
+    function showLoginUI() {
+      document.getElementById('not-logged-in').style.display = 'block';
+      document.getElementById('profile').style.display = 'none';
+      hideMessages();
+    }
+
+    function showProfileUI() {
+      document.getElementById('not-logged-in').style.display = 'none';
+      document.getElementById('profile').style.display = 'block';
+      document.querySelectorAll('.edit-btn').forEach(btn => btn.style.display = 'inline-block');
+      document.getElementById('upgrade-btn').style.display = 'block';
+    }
+
+    // Fix 2: Enhanced loadProfile with better error handling for new users
+    async function loadProfile() {
+      const token = localStorage.getItem('user_token');
+      const email = localStorage.getItem('user_email');
+      const uid = localStorage.getItem('user_uid');
+      
+      if (!token || !email || !uid) {
+        console.log('⚠️ No auth data - showing login UI');
+        showLoginUI();
+        return;
+      }
+
+      console.log('📡 Loading profile for:', email);
+      showLoading();
+      
+      try {
+        const payload = { 
+          user_email: email, 
+          user_uid: uid, 
+          user_token: token,
+          action: 'get_profile' // Explicit action for profile loading
+        };
+        
+        console.log('Request payload', payload);
+        
+        const resp = await fetch('https://hook.eu2.make.com/lya166veex7oo2wwo8mx4fuhlkssxlog', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        
+        console.log('📡 Response status:', resp.status);
+        
+        if (!resp.ok) {
+          // If user not found (404), create them
+          if (resp.status === 404) {
+            console.log('🔄 User not found, creating...');
+            const user = {
+              email: email,
+              id: uid,
+              token: { access_token: token },
+              user_metadata: {}
+            };
+            await createOrUpdateUser(user);
+            return; // createOrUpdateUser will call loadProfile again
+          }
+          throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+        }
+        
+        const responseText = await resp.text();
+        console.log('📋 Raw response:', responseText);
+        
+        let data;
+        try {
+          data = JSON.parse(responseText);
+          console.log('📋 Parsed JSON data:', data);
+        } catch (parseError) {
+          console.error('❌ JSON Parse Error:', parseError);
+          throw new Error('Invalid JSON response from server');
+        }
+        
+        // Process the data with fallbacks
+        setField('email', data.email || email);
+        setField('plan', data.plan || 'Free');
+        
+        if (data.usage !== undefined && data.quota !== undefined) {
+          setField('usage', `${data.usage}`);
+          document.getElementById('quota').textContent = data.quota;
+          
+          const percentage = (data.usage / data.quota) * 100;
+          document.getElementById('usage-fill').style.width = `${Math.min(percentage, 100)}%`;
+        } else {
+          setField('usage', '0');
+          document.getElementById('quota').textContent = '100';
+          document.getElementById('usage-fill').style.width = '0%';
+        }
+        
+        showSuccess('Profile loaded successfully!');
+        console.log('✅ Profile loaded and UI updated');
+        
+      } catch (error) {
+        console.error('❌ Error loading profile:', error);
+        showError(`Loading error: ${error.message}`);
+        
+        // Show basic info even if webhook fails
+        setField('email', email);
+        setField('plan', 'Free');
+        setField('usage', '0');
+        document.getElementById('quota').textContent = '100';
+        document.getElementById('usage-fill').style.width = '0%';
+      } finally {
+        hideLoading();
+      }
+    }
+
+    // Edit functionality
+    function enableEdit(field) {
+      if (isEditing) {
+        showError('A field is already being edited. Save or cancel first.');
+        return;
+      }
+      
+      console.log(`✏️ Start editing field: ${field}`);
+      
+      const profileItem = document.querySelector(`.profile-item[data-field="${field}"]`);
+      const valueSpan = profileItem.querySelector('.value');
+      const editBtn = profileItem.querySelector('.edit-btn');
+      
+      // Store original value
+      originalValue = valueSpan.textContent;
+      currentEditingField = field;
+      isEditing = true;
+      
+      // Add editing class
+      profileItem.classList.add('editing');
+      
+      // Create input field
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = originalValue;
+      input.className = 'edit-input';
+      input.setAttribute('data-field', field);
+      
+      // Create save and cancel buttons
+      const saveBtn = document.createElement('button');
+      saveBtn.textContent = 'Save';
+      saveBtn.className = 'save-btn';
+      saveBtn.style.display = 'inline-block';
+      saveBtn.onclick = () => saveField(field);
+      
+      const cancelBtn = document.createElement('button');
+      cancelBtn.textContent = 'Cancel';
+      cancelBtn.className = 'cancel-btn';
+      cancelBtn.style.display = 'inline-block';
+      cancelBtn.onclick = () => cancelEdit(field);
+      
+      // Replace value span with input
+      valueSpan.style.display = 'none';
+      profileItem.insertBefore(input, editBtn);
+      
+      // Hide edit button, show save/cancel
+      editBtn.style.display = 'none';
+      profileItem.appendChild(saveBtn);
+      profileItem.appendChild(cancelBtn);
+      
+      // Focus input
+      input.focus();
+      input.select();
+      
+      // Enter key saves, Escape cancels
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          saveField(field);
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          cancelEdit(field);
+        }
+      });
+    }
+
+    async function saveField(field) {
+      if (!isEditing || currentEditingField !== field) return;
+      
+      const profileItem = document.querySelector(`.profile-item[data-field="${field}"]`);
+      const input = profileItem.querySelector('.edit-input');
+      const newValue = input.value.trim();
+      
+      if (!newValue) {
+        showError('Value cannot be empty');
+        return;
+      }
+      
+      if (newValue === originalValue) {
+        cancelEdit(field);
+        return;
+      }
+      
+      console.log(`💾 Saving field ${field}: "${originalValue}" → "${newValue}"`);
+      showLoading();
+      
+      try {
+        const token = localStorage.getItem('user_token');
+        const email = localStorage.getItem('user_email');
+        const uid = localStorage.getItem('user_uid');
+        
+        const payload = {
+          user_email: email,
+          user_uid: uid,
+          user_token: token,
+          action: 'update',
+          field: field,
+          value: newValue
+        };
+        
+        const resp = await fetch('https://hook.eu2.make.com/lya166veex7oo2wwo8mx4fuhlkssxlog', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        
+        if (!resp.ok) {
+          throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+        }
+        
+        const result = await resp.json();
+        
+        // Update UI
+        finishEdit(field, newValue);
+        showSuccess(`${field} updated successfully!`);
+        console.log(`✅ Field ${field} saved successfully`);
+        
+      } catch (error) {
+        console.error(`❌ Error saving ${field}:`, error);
+        showError(`Save error: ${error.message}`);
+      } finally {
+        hideLoading();
+      }
+    }
+
+    function cancelEdit(field) {
+      console.log(`❌ Cancel editing field: ${field}`);
+      finishEdit(field, originalValue);
+    }
+
+    function finishEdit(field, finalValue) {
+      const profileItem = document.querySelector(`.profile-item[data-field="${field}"]`);
+      const valueSpan = profileItem.querySelector('.value');
+      const editBtn = profileItem.querySelector('.edit-btn');
+      const input = profileItem.querySelector('.edit-input');
+      const saveBtn = profileItem.querySelector('.save-btn');
+      const cancelBtn = profileItem.querySelector('.cancel-btn');
+      
+      // Update value
+      valueSpan.textContent = finalValue;
+      valueSpan.style.display = 'flex';
+      
+      // Remove input and buttons
+      if (input) input.remove();
+      if (saveBtn) saveBtn.remove();
+      if (cancelBtn) cancelBtn.remove();
+      
+      // Show edit button
+      editBtn.style.display = 'inline-block';
+      
+      // Remove editing class
+      profileItem.classList.remove('editing');
+      
+      // Reset state
+      isEditing = false;
+      currentEditingField = null;
+      originalValue = null;
+    }
+
+    // Utility functions
+    function setField(field, text) {
+      const element = document.getElementById(field);
+      if (element) {
+        element.textContent = text;
+      }
+    }
+
+    function showError(msg) {
+      hideMessages();
+      const errorDiv = document.getElementById('error');
+      errorDiv.textContent = msg;
+      errorDiv.style.display = 'block';
+      setTimeout(hideMessages, 5000);
+    }
+
+    function showSuccess(msg) {
+      hideMessages();
+      const successDiv = document.getElementById('success');
+      successDiv.textContent = msg;
+      successDiv.style.display = 'block';
+      setTimeout(hideMessages, 3000);
+    }
+
+    function hideMessages() {
+      document.getElementById('error').style.display = 'none';
+      document.getElementById('success').style.display = 'none';
+    }
+
+    function showLoading() {
+      document.body.classList.add('loading');
+    }
+
+    function hideLoading() {
+      document.body.classList.remove('loading');
+    }
+
+    // Upgrade function (placeholder)
+    function handleUpgrade() {
+      showSuccess('Upgrade functionality coming soon!');
+      console.log('🚀 Upgrade button clicked');
+    }
+
+    // ===== NETLIFY IDENTITY BUTTON UPDATES =====
     function updateLoginButton() {
       const loginBtn = document.getElementById('loginBtn');
       const mobileLoginBtn = document.getElementById('mobileLoginBtn');
-      const user = window.netlifyIdentity && window.netlifyIdentity.currentUser();
       
-      if (user) {
-        const displayName = user.user_metadata.full_name || user.email;
+      // Check both Netlify Identity and local storage for user info
+      const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+      const localEmail = localStorage.getItem("user_email");
+      const localToken = localStorage.getItem("user_token");
+      
+      const isLoggedIn = netlifyUser || (localEmail && localToken);
+      
+      if (isLoggedIn) {
+        // Always show "Profile" for logged in users instead of their name
+        
+        // Update desktop button
         if (loginBtn) {
-          loginBtn.textContent = displayName;
+          loginBtn.textContent = 'Profile';
           loginBtn.href = 'profile.html';
         }
+        
+        // Update mobile button
         if (mobileLoginBtn) {
           const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
-          mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}${displayName}`;
+          mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}Profile`;
+          mobileLoginBtn.href = 'profile.html';
         }
       } else {
+        // User is not logged in
         if (loginBtn) {
           loginBtn.textContent = 'Login/Register';
           loginBtn.href = 'profile.html';
@@ -2059,19 +2071,95 @@
         if (mobileLoginBtn) {
           const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
           mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}Login/Register`;
+          mobileLoginBtn.href = 'profile.html';
         }
       }
     }
 
-    // Initialize Netlify Identity
-    if (window.netlifyIdentity) {
-      window.netlifyIdentity.on('init', updateLoginButton);
-      window.netlifyIdentity.on('login', () => {
-        updateLoginButton();
-        window.netlifyIdentity.close();
-      });
-      window.netlifyIdentity.on('logout', updateLoginButton);
+    // Enhanced click handler for navigation links
+    function setupNavigationClickHandlers() {
+      const loginBtn = document.getElementById('loginBtn');
+      const mobileLoginBtn = document.getElementById('mobileLoginBtn');
+      
+      // Desktop login button click handler
+      if (loginBtn) {
+        loginBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          
+          const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+          const localEmail = localStorage.getItem("user_email");
+          const localToken = localStorage.getItem("user_token");
+          const isLoggedIn = netlifyUser || (localEmail && localToken);
+          
+          if (isLoggedIn) {
+            // User is logged in, go directly to profile page
+            window.location.href = 'profile.html';
+          } else {
+            // User not logged in, store current page for redirect and open login
+            localStorage.setItem('login_redirect_url', window.location.href);
+            openLogin();
+          }
+        });
+      }
+      
+      // Mobile login button click handler
+      if (mobileLoginBtn) {
+        mobileLoginBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          
+          const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+          const localEmail = localStorage.getItem("user_email");
+          const localToken = localStorage.getItem("user_token");
+          const isLoggedIn = netlifyUser || (localEmail && localToken);
+          
+          if (isLoggedIn) {
+            // User is logged in, go directly to profile page
+            window.location.href = 'profile.html';
+          } else {
+            // User not logged in, store current page for redirect and open login
+            localStorage.setItem('login_redirect_url', window.location.href);
+            openLogin();
+          }
+          
+          // Close mobile menu after click
+          closeMobileMenu();
+        });
+      }
     }
+
+    // Function to open login modal
+    function openLogin() {
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.open('login');
+      } else {
+        // Fallback if Netlify Identity is not available
+        window.location.href = 'profile.html';
+      }
+    }
+
+    // Initialize login button on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      // Update immediately on page load
+      updateLoginButton();
+      
+      // Set up click handlers
+      setupNavigationClickHandlers();
+      
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.on('init', user => {
+          updateLoginButton();
+        });
+
+        window.netlifyIdentity.on('login', user => {
+          updateLoginButton();
+          window.netlifyIdentity.close();
+        });
+
+        window.netlifyIdentity.on('logout', () => {
+          updateLoginButton();
+        });
+      }
+    });
   </script>
 </body>
 </html>
