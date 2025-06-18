@@ -18,17 +18,18 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   
   <style>
-    /* Creative & Bold Color Palette with White Primary */
+    /* ===== CSS CUSTOM PROPERTIES ===== */
     :root {
-      /* Primary Colors - White Based */
+      /* Primary Colors */
       --color-white: #ffffff;
       --color-off-white: #fafafa;
       --color-light-gray: #f5f5f5;
       
-      /* Bold Accent Colors - Teal & Coral */
+      /* Accent Colors */
       --color-teal: #14b8a6;
       --color-teal-light: #5eead4;
       --color-teal-dark: #0f766e;
+      --color-teal-alt: #10a394;
       --color-coral: #f97316;
       --color-coral-light: #fb923c;
       --color-coral-dark: #ea580c;
@@ -43,7 +44,7 @@
       /* Gradients */
       --gradient-primary: linear-gradient(135deg, var(--color-teal) 0%, var(--color-coral) 100%);
       --gradient-subtle: linear-gradient(135deg, var(--color-teal-light) 0%, var(--color-coral-light) 100%);
-      --gradient-background: linear-gradient(135deg, var(--color-white) 0%, var(--color-off-white) 100%);
+      --gradient-tags: linear-gradient(135deg, var(--color-teal-alt) 0%, var(--color-coral) 100%);
       
       /* Shadows */
       --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -65,6 +66,7 @@
       --font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       --font-secondary: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
       
+      /* Font Sizes */
       --font-size-xs: 0.75rem;
       --font-size-sm: 0.875rem;
       --font-size-base: 1rem;
@@ -73,8 +75,6 @@
       --font-size-2xl: 1.5rem;
       --font-size-3xl: 1.875rem;
       --font-size-4xl: 2.25rem;
-      --font-size-5xl: 3rem;
-      --font-size-6xl: 3.75rem;
       
       /* Border Radius */
       --radius-sm: 6px;
@@ -84,39 +84,54 @@
       --radius-full: 9999px;
       
       /* Transitions */
-      --transition-fast: 0.15s ease-out;
-      --transition-base: 0.2s ease-out;
-      --transition-slow: 0.3s ease-out;
+      --transition-fast: 150ms ease-out;
+      --transition-base: 300ms ease-out;
+      --transition-slow: 500ms ease-out;
+      
+      /* Touch Target Size */
+      --touch-target: 44px;
+      
+      /* Z-index Scale */
+      --z-dropdown: 100;
+      --z-sticky: 200;
+      --z-overlay: 300;
+      --z-modal: 400;
+      --z-menu-overlay: 500;
     }
 
+    /* ===== RESET & BASE STYLES ===== */
     * {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      overflow-x: hidden;
     }
 
     body {
       font-family: var(--font-primary);
-      margin: 0;
-      padding: 0;
       background: var(--color-off-white);
       color: var(--color-navy);
       line-height: 1.6;
       font-size: var(--font-size-base);
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
-      scroll-behavior: smooth;
-      width: 100%;
       min-height: 100vh;
-      pointer-events: auto;
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
-      -webkit-overflow-scrolling: touch;
+      overflow-x: hidden;
+      position: relative;
+      width: 100%;
     }
 
-    input, button, textarea {
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
-      z-index: 10;
-      position: relative;
+    /* ===== ACCESSIBILITY ===== */
+    :focus {
+      outline: 2px solid var(--color-teal);
+      outline-offset: 2px;
+    }
+
+    :focus:not(:focus-visible) {
+      outline: none;
     }
 
     /* ===== HEADER NAVIGATION ===== */
@@ -292,6 +307,34 @@
 
     .nav-link:hover::after {
       width: 100%;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--spacing-sm) var(--spacing-lg);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      text-decoration: none;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all var(--transition-base);
+      min-height: var(--touch-target);
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      box-shadow: var(--shadow-colored);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
     }
 
     /* Mobile Navigation Container */
@@ -668,113 +711,64 @@
       }
     }
 
-    /* Z-index Scale */
-    :root {
-      --z-dropdown: 100;
-      --z-sticky: 200;
-      --z-overlay: 300;
-      --z-modal: 400;
-      --z-menu-overlay: 500;
-      --touch-target: 44px;
+    /* Netlify Identity Modal Positioning - Fixed for mobile and desktop */
+    .netlify-identity-widget,
+    [data-netlify-identity-widget] {
+      z-index: 1001 !important;
     }
 
-    .btn {
-      padding: calc(var(--spacing-xs) * 0.7) calc(var(--spacing-sm) * 0.9);
-      border-radius: var(--radius-md);
-      text-decoration: none;
-      font-weight: 600;
-      font-size: calc(var(--font-size-xs) * 0.9);
-      transition: all var(--transition-base);
-      cursor: pointer;
-      border: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-      white-space: nowrap;
-      letter-spacing: -0.01em;
+    .netlify-identity-widget iframe,
+    .netlify-identity-widget > div,
+    .netlify-identity-widget .netlify-identity-modal {
+      z-index: 1001 !important;
     }
 
-    .btn-primary {
-      background: var(--gradient-primary);
-      color: var(--color-white);
-      box-shadow: var(--shadow-colored);
-      border: 1px solid transparent;
-    }
-
-    .btn-primary:hover {
-      opacity: 0.9;
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-lg);
-    }
-
-    .btn-secondary {
-      background: var(--color-white);
-      color: var(--color-navy);
-      border: 2px solid var(--color-teal);
-      box-shadow: var(--shadow-sm);
-    }
-
-    .btn-secondary:hover {
-      background: var(--color-teal);
-      color: var(--color-white);
-      transform: translateY(-2px);
-    }
-
-    /* Mobile Optimizations */
+    /* Force modal to appear below header on mobile */
     @media (max-width: 768px) {
+      .netlify-identity-widget {
+        position: fixed !important;
+        top: 80px !important; /* Below header */
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        z-index: 1001 !important;
+      }
+      
+      .netlify-identity-widget > div {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        z-index: 1001 !important;
+        margin: 0 !important;
+        padding: 20px !important;
+        box-sizing: border-box !important;
+      }
+
+      .netlify-identity-widget .netlify-identity-modal {
+        position: relative !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        border-radius: 12px !important;
+        z-index: 1001 !important;
+      }
+
+      /* Ensure header stays on top when modal is open */
       .header {
-        padding: calc(var(--spacing-sm) * 1.0) var(--spacing-sm);
+        z-index: 1002 !important;
+        position: relative !important;
       }
+    }
 
-      .header-content {
-        flex-direction: column;
-        gap: calc(var(--spacing-sm) * 0.8);
-        align-items: stretch;
-      }
-
-      .logo {
-        font-size: calc(var(--font-size-base) * 0.9);
-        text-align: center;
-      }
-
-      .nav-center {
-        flex-direction: column;
-        gap: calc(var(--spacing-sm) * 0.8);
-        max-width: none;
-      }
-
-      .nav-search-input {
-        width: 100%;
-        max-width: 280px;
-        padding: calc(var(--spacing-xs) * 0.6) calc(var(--spacing-xs) * 0.8);
-        font-size: calc(var(--font-size-xs) * 0.9);
-      }
-
-      .nav-usps {
-        justify-content: center;
-        gap: var(--spacing-lg);
-        flex-wrap: wrap;
-      }
-
-      .nav-usps .usp-item {
-        font-size: calc(var(--font-size-xs) * 0.85);
-      }
-
-      .nav-buttons {
-        gap: calc(var(--spacing-xs) * 0.8);
-        justify-content: center;
-      }
-
-      .nav-link {
-        font-size: calc(var(--font-size-xs) * 0.95);
-      }
-
-      .btn {
-        padding: calc(var(--spacing-xs) * 0.6) calc(var(--spacing-sm) * 0.8);
-        font-size: calc(var(--font-size-xs) * 0.85);
+    /* Desktop modal positioning */
+    @media (min-width: 769px) {
+      .netlify-identity-widget .netlify-identity-modal {
+        margin-top: 100px !important; /* Space for header */
       }
     }
 
@@ -1132,7 +1126,7 @@
 </head>
 
 <body>
-  <!-- Header Navigation -->
+  <!-- Header -->
   <header class="header" role="banner">
     <div class="header-container">
       <div class="header-content">
@@ -1159,10 +1153,10 @@
 
           <!-- Search Bar - Always visible on desktop -->
           <form class="nav-search" role="search">
-            <input
-              type="search"
-              class="nav-search-input"
-              placeholder="Search characters..."
+            <input 
+              type="search" 
+              class="nav-search-input" 
+              placeholder="Search characters..." 
               aria-label="Search characters"
             />
             <button type="submit" class="search-submit" aria-label="Submit search">
@@ -1203,8 +1197,8 @@
           </div>
 
           <!-- Mobile Search Button -->
-          <button
-            class="mobile-search-btn"
+          <button 
+            class="mobile-search-btn" 
             id="mobileSearchBtn"
             aria-label="Open search"
             aria-expanded="false"
@@ -1235,10 +1229,10 @@
     <!-- Mobile Search Overlay -->
     <div class="mobile-search-overlay" id="mobileSearchOverlay">
       <form class="mobile-search-form" role="search">
-        <input
-          type="search"
-          class="mobile-search-input"
-          placeholder="Search characters..."
+        <input 
+          type="search" 
+          class="mobile-search-input" 
+          placeholder="Search characters..." 
           aria-label="Search characters"
           id="mobileSearchInput"
         />
@@ -1363,7 +1357,9 @@
         mobileSearchOverlay.classList.remove('active');
         mobileSearchBtn.setAttribute('aria-expanded', 'false');
       } else {
+        // Close mobile menu if open
         closeMobileMenu();
+        
         mobileSearchOverlay.classList.add('active');
         mobileSearchBtn.setAttribute('aria-expanded', 'true');
         mobileSearchInput.focus();
@@ -1384,6 +1380,7 @@
     }
 
     function openMobileMenu() {
+      // Close search overlay if open
       if (mobileSearchOverlay.classList.contains('active')) {
         mobileSearchOverlay.classList.remove('active');
         mobileSearchBtn.setAttribute('aria-expanded', 'false');
@@ -1392,6 +1389,8 @@
       mobileMenuOverlay.classList.add('active');
       mobileMenuBtn.classList.add('active');
       mobileMenuBtn.setAttribute('aria-expanded', 'true');
+      
+      // Prevent body scroll
       document.body.style.overflow = 'hidden';
     }
 
@@ -1399,22 +1398,28 @@
       mobileMenuOverlay.classList.remove('active');
       mobileMenuBtn.classList.remove('active');
       mobileMenuBtn.setAttribute('aria-expanded', 'false');
+      
+      // Restore body scroll
       document.body.style.overflow = '';
     }
 
     mobileMenuBtn?.addEventListener('click', toggleMobileMenu);
 
+    // Close menu when clicking on overlay background
     mobileMenuOverlay?.addEventListener('click', (e) => {
       if (e.target === mobileMenuOverlay) {
         closeMobileMenu();
       }
     });
 
+    // Close menu when clicking on a menu item
     document.querySelectorAll('.mobile-menu-link').forEach(link => {
       link.addEventListener('click', closeMobileMenu);
     });
 
+    // Close search and menu on outside click
     document.addEventListener('click', (e) => {
+      // Close search overlay
       if (!mobileSearchOverlay?.contains(e.target) &&
           !mobileSearchBtn?.contains(e.target) &&
           mobileSearchOverlay?.classList.contains('active')) {
@@ -1423,6 +1428,7 @@
       }
     });
 
+    // Close menu on escape key
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         if (mobileMenuOverlay.classList.contains('active')) {
@@ -1452,6 +1458,7 @@
       }
     }
 
+    // Handle responsive behavior
     function handleResize() {
       if (window.innerWidth > 768) {
         stopUspCarousel();
@@ -1470,10 +1477,12 @@
       }
     }
 
+    // Initialize on load
     window.addEventListener('load', () => {
       handleResize();
     });
 
+    // Handle window resize
     let resizeTimer;
     window.addEventListener('resize', () => {
       clearTimeout(resizeTimer);
@@ -1546,22 +1555,35 @@
       }
     }
 
+    // ===== NETLIFY IDENTITY BUTTON UPDATES =====
     function updateLoginButton() {
       const loginBtn = document.getElementById('loginBtn');
       const mobileLoginBtn = document.getElementById('mobileLoginBtn');
-      const user = window.netlifyIdentity && window.netlifyIdentity.currentUser();
       
-      if (user) {
-        const displayName = user.user_metadata.full_name || user.email;
+      // Check both Netlify Identity and local storage for user info
+      const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+      const localEmail = localStorage.getItem("user_email");
+      const localToken = localStorage.getItem("user_token");
+      
+      const isLoggedIn = netlifyUser || (localEmail && localToken);
+      
+      if (isLoggedIn) {
+        // Always show "Profile" for logged in users instead of their name
+        
+        // Update desktop button
         if (loginBtn) {
-          loginBtn.textContent = displayName;
+          loginBtn.textContent = 'Profile';
           loginBtn.href = 'profile.html';
         }
+        
+        // Update mobile button
         if (mobileLoginBtn) {
           const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
-          mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}${displayName}`;
+          mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}Profile`;
+          mobileLoginBtn.href = 'profile.html';
         }
       } else {
+        // User is not logged in
         if (loginBtn) {
           loginBtn.textContent = 'Login/Register';
           loginBtn.href = 'profile.html';
@@ -1569,9 +1591,95 @@
         if (mobileLoginBtn) {
           const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
           mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}Login/Register`;
+          mobileLoginBtn.href = 'profile.html';
         }
       }
     }
+
+    // Enhanced click handler for navigation links
+    function setupNavigationClickHandlers() {
+      const loginBtn = document.getElementById('loginBtn');
+      const mobileLoginBtn = document.getElementById('mobileLoginBtn');
+      
+      // Desktop login button click handler
+      if (loginBtn) {
+        loginBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          
+          const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+          const localEmail = localStorage.getItem("user_email");
+          const localToken = localStorage.getItem("user_token");
+          const isLoggedIn = netlifyUser || (localEmail && localToken);
+          
+          if (isLoggedIn) {
+            // User is logged in, go directly to profile page
+            window.location.href = 'profile.html';
+          } else {
+            // User not logged in, store current page for redirect and open login
+            localStorage.setItem('login_redirect_url', window.location.href);
+            openLogin();
+          }
+        });
+      }
+      
+      // Mobile login button click handler
+      if (mobileLoginBtn) {
+        mobileLoginBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          
+          const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+          const localEmail = localStorage.getItem("user_email");
+          const localToken = localStorage.getItem("user_token");
+          const isLoggedIn = netlifyUser || (localEmail && localToken);
+          
+          if (isLoggedIn) {
+            // User is logged in, go directly to profile page
+            window.location.href = 'profile.html';
+          } else {
+            // User not logged in, store current page for redirect and open login
+            localStorage.setItem('login_redirect_url', window.location.href);
+            openLogin();
+          }
+          
+          // Close mobile menu after click
+          closeMobileMenu();
+        });
+      }
+    }
+
+    // Function to open login modal
+    function openLogin() {
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.open('login');
+      } else {
+        // Fallback if Netlify Identity is not available
+        window.location.href = 'profile.html';
+      }
+    }
+
+    // Initialize login button on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      // Update immediately on page load
+      updateLoginButton();
+      
+      // Set up click handlers
+      setupNavigationClickHandlers();
+      
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.on('init', user => {
+          updateLoginButton();
+        });
+
+        window.netlifyIdentity.on('login', user => {
+          updateLoginButton();
+          window.netlifyIdentity.close();
+        });
+
+        window.netlifyIdentity.on('logout', () => {
+          updateLoginButton();
+        });
+      }
+    });
 
     function checkAuthAndLoadChats() {
       const token = localStorage.getItem('user_token');
