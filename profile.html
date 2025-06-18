@@ -1303,7 +1303,7 @@
         <div class="profile-item" data-field="plan">
           <span class="label">Plan:</span>
           <span class="value" id="plan">...</span>
-          <button class="edit-btn" onclick="enableEdit('plan')">Edit</button>
+          <!-- No edit button for plan - will be replaced with upgrade/manage link later -->
         </div>
         
         <div class="profile-item" data-field="usage">
@@ -1734,7 +1734,18 @@
     function showProfileUI() {
       document.getElementById('not-logged-in').style.display = 'none';
       document.getElementById('profile').style.display = 'block';
-      document.querySelectorAll('.edit-btn').forEach(btn => btn.style.display = 'inline-block');
+      
+      // Show edit buttons for editable fields only (exclude plan)
+      document.querySelectorAll('.edit-btn').forEach(btn => {
+        const profileItem = btn.closest('.profile-item');
+        const field = profileItem.getAttribute('data-field');
+        
+        // Only show edit button for email field, not for plan
+        if (field !== 'plan') {
+          btn.style.display = 'inline-block';
+        }
+      });
+      
       document.getElementById('upgrade-btn').style.display = 'block';
     }
 
@@ -1835,6 +1846,12 @@
 
     // Edit functionality
     function enableEdit(field) {
+      // Prevent editing of plan field
+      if (field === 'plan') {
+        showError('Plan cannot be edited directly. Use the upgrade/manage options instead.');
+        return;
+      }
+      
       if (isEditing) {
         showError('A field is already being edited. Save or cancel first.');
         return;
