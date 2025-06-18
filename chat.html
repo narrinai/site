@@ -796,6 +796,7 @@
       flex-shrink: 0;
       border: 3px solid var(--color-light-gray);
       transition: all var(--transition-base);
+      position: relative;
     }
 
     .character-avatar img {
@@ -803,6 +804,31 @@
       height: 100%;
       border-radius: var(--radius-full);
       object-fit: cover;
+    }
+
+    /* Online indicator for character avatar */
+    .online-indicator {
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
+      width: 16px;
+      height: 16px;
+      background: #22c55e;
+      border: 2px solid var(--color-white);
+      border-radius: var(--radius-full);
+      box-shadow: var(--shadow-sm);
+      animation: onlinePulse 2s infinite;
+    }
+
+    @keyframes onlinePulse {
+      0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+      50% {
+        opacity: 0.8;
+        transform: scale(1.1);
+      }
     }
 
     .character-info {
@@ -1008,6 +1034,28 @@
       margin-right: var(--spacing-xs);
       object-fit: cover;
       border: 2px solid var(--color-light-gray);
+      position: relative;
+      display: inline-block;
+    }
+
+    /* Online indicator for message avatars */
+    .avatar-container {
+      position: relative;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: var(--spacing-xs);
+    }
+
+    .avatar-container .online-indicator {
+      position: absolute;
+      bottom: -1px;
+      right: -1px;
+      width: 10px;
+      height: 10px;
+      background: #22c55e;
+      border: 1px solid var(--color-white);
+      border-radius: var(--radius-full);
+      box-shadow: var(--shadow-sm);
     }
 
     .message-avatar {
@@ -1157,6 +1205,10 @@
       .typing-dots span {
         animation: none;
         opacity: 0.7;
+      }
+
+      .online-indicator {
+        animation: none !important;
       }
     }
   </style>
@@ -2007,9 +2059,15 @@
     }
 
     function hideTypingIndicator() {
+      console.log("🚫 hideTypingIndicator() called");
       const typingIndicator = document.getElementById("typingIndicator");
+      console.log("🔍 Found typing indicator:", !!typingIndicator);
       if (typingIndicator) {
+        console.log("🗑️ Removing typing indicator");
         typingIndicator.remove();
+        console.log("✅ Typing indicator removed");
+      } else {
+        console.log("⚠️ No typing indicator found to remove");
       }
     }
 
@@ -2040,8 +2098,13 @@
       chatlog.scrollTop = chatlog.scrollHeight;
       userInput.value = "";
 
-      // Show typing indicator immediately
-      const typingIndicator = showTypingIndicator();
+      // Show typing indicator after 1 second delay
+      console.log("🚀 About to show typing indicator after 1 second delay");
+      setTimeout(() => {
+        console.log("⏰ 1 second delay completed, showing typing indicator now");
+        const typingIndicator = showTypingIndicator();
+        console.log("📊 Typing indicator returned:", !!typingIndicator);
+      }, 1000);
 
       try {
         const response = await fetch(newWebhookUrl, {
@@ -2085,9 +2148,12 @@
         const reply = data.reply || "⚠️ No reply received.";
 
         // Wait for 1 second before showing the response to make it more realistic
+        console.log("⏳ Waiting 1 second before showing response...");
         await new Promise(resolve => setTimeout(resolve, 1000));
+        console.log("⏰ 1 second wait completed");
 
         // Hide typing indicator and show the actual response
+        console.log("🎯 About to hide typing indicator and show response");
         hideTypingIndicator();
 
         const divBot = document.createElement("p");
@@ -2100,6 +2166,7 @@
         console.error("sendMessage → Error:", err);
         
         // Hide typing indicator on error
+        console.log("❌ Error occurred, hiding typing indicator");
         hideTypingIndicator();
         
         alert("❌ Error sending message: " + err.message);
