@@ -1094,11 +1094,15 @@
         if (user) {
           handleLogin(user);
         }
+        // Update login buttons immediately after init
+        updateLoginButton();
       });
 
       netlifyIdentity.on("login", (user) => {
         handleLogin(user);
         netlifyIdentity.close();
+        // Check for redirect URL after successful login
+        handlePostLoginRedirect();
       });
 
       netlifyIdentity.on("logout", () => {
@@ -1151,11 +1155,29 @@
         console.error("Error in registration-webhook call:", err);
       }
 
+      // Update login buttons after successful login
+      updateLoginButton();
+
       if (
         document.readyState === "interactive" ||
         document.readyState === "complete"
       ) {
         fetchHistory();
+      }
+    }
+
+    function handlePostLoginRedirect() {
+      // Get the stored redirect URL
+      const redirectUrl = localStorage.getItem('login_redirect_url');
+      
+      if (redirectUrl) {
+        // Clear the stored redirect URL
+        localStorage.removeItem('login_redirect_url');
+        
+        // Redirect immediately without showing profile page
+        setTimeout(() => {
+          window.location.href = redirectUrl;
+        }, 100); // Very short delay to ensure login is fully processed
       }
     }
 
@@ -1545,19 +1567,37 @@
     function updateLoginButton() {
       const loginBtn = document.getElementById('loginBtn');
       const mobileLoginBtn = document.getElementById('mobileLoginBtn');
-      const user = window.netlifyIdentity && window.netlifyIdentity.currentUser();
       
-      if (user) {
-        const displayName = user.user_metadata.full_name || user.email;
+      // Check both Netlify Identity and local storage for user info
+      const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+      const localEmail = localStorage.getItem("user_email");
+      const localToken = localStorage.getItem("user_token");
+      
+      const isLoggedIn = netlifyUser || (localEmail && localToken);
+      
+      if (isLoggedIn) {
+        // Determine display name
+        let displayName = 'Profile';
+        if (netlifyUser) {
+          displayName = netlifyUser.user_metadata?.full_name || netlifyUser.email?.split('@')[0] || 'Profile';
+        } else if (localEmail) {
+          displayName = localEmail.split('@')[0] || 'Profile';
+        }
+        
+        // Update desktop button
         if (loginBtn) {
           loginBtn.textContent = displayName;
           loginBtn.href = 'profile.html';
         }
+        
+        // Update mobile button
         if (mobileLoginBtn) {
           const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
           mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}${displayName}`;
+          mobileLoginBtn.href = 'profile.html';
         }
       } else {
+        // User is not logged in
         if (loginBtn) {
           loginBtn.textContent = 'Login/Register';
           loginBtn.href = 'profile.html';
@@ -1565,12 +1605,16 @@
         if (mobileLoginBtn) {
           const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
           mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}Login/Register`;
+          mobileLoginBtn.href = 'profile.html';
         }
       }
     }
 
     // Initialize login button on page load
     document.addEventListener('DOMContentLoaded', () => {
+      // Update immediately on page load
+      updateLoginButton();
+      
       if (window.netlifyIdentity) {
         window.netlifyIdentity.on('init', user => {
           updateLoginButton();
@@ -1827,18 +1871,18 @@
         }
 
         const rawText = await response.text();
-console.log("Chat response raw:", rawText);
+        console.log("Chat response raw:", rawText);
 
-let data;
-try {
-  data = JSON.parse(rawText);
-} catch (e) {
-  console.warn("JSON parse error, using fallback:", e);
-  data = { 
-    success: true, 
-    reply: "Whoopsie! 🙈 I just had a bit of a brain fart (do AIs have brains?). Let's pretend that never happened and try again!" 
-  };
-}
+        let data;
+        try {
+          data = JSON.parse(rawText);
+        } catch (e) {
+          console.warn("JSON parse error, using fallback:", e);
+          data = { 
+            success: true, 
+            reply: "Whoopsie! 🙈 I just had a bit of a brain fart (do AIs have brains?). Let's pretend that never happened and try again!" 
+          };
+        }
         console.log("Chat response:", data);
 
         if (!data.success) {
