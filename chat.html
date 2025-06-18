@@ -1961,7 +1961,17 @@
     });
 
     function showTypingIndicator() {
+      console.log("🔄 showTypingIndicator() called");
       const chatlog = document.getElementById("chatlog");
+      console.log("📋 chatlog element:", chatlog);
+      
+      // Check if typing indicator already exists
+      const existingIndicator = document.getElementById("typingIndicator");
+      if (existingIndicator) {
+        console.log("⚠️ Typing indicator already exists, removing it first");
+        existingIndicator.remove();
+      }
+      
       const typingIndicator = document.createElement("div");
       typingIndicator.className = "typing-indicator";
       typingIndicator.id = "typingIndicator";
@@ -1976,8 +1986,22 @@
         </div>
       `;
       
+      console.log("✅ Created typing indicator:", typingIndicator);
+      console.log("📝 Typing indicator HTML:", typingIndicator.outerHTML);
+      
       chatlog.appendChild(typingIndicator);
+      console.log("➕ Appended typing indicator to chatlog");
+      
+      // Force a reflow to ensure the element is rendered
+      typingIndicator.offsetHeight;
+      
       chatlog.scrollTop = chatlog.scrollHeight;
+      console.log("📜 Scrolled chatlog to bottom");
+      
+      // Verify the element is actually in the DOM
+      const verifyElement = document.getElementById("typingIndicator");
+      console.log("🔍 Verification - element in DOM:", !!verifyElement);
+      console.log("👁️ Element visible:", verifyElement ? getComputedStyle(verifyElement).display : 'not found');
       
       return typingIndicator;
     }
