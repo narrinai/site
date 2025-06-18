@@ -122,105 +122,563 @@
       position: relative;
     }
 
-    /* Header - Ultra Compact */
+    /* ===== HEADER NAVIGATION ===== */
     .header {
-      background:
-        linear-gradient(135deg, rgba(20, 184, 166, 0.08) 0%, rgba(249, 115, 22, 0.08) 100%),
-        linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.02) 50%, transparent 60%),
-        rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      padding: calc(var(--spacing-sm) * 1.2) var(--spacing-lg);
       position: sticky;
       top: 0;
-      z-index: 100;
+      z-index: var(--z-sticky);
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
       transition: all var(--transition-base);
-      position: relative;
+    }
+
+    .header-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 var(--spacing-lg);
+      width: 100%;
       overflow: hidden;
     }
 
-    /* Playful geometric accent for header */
-    .header::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background:
-        radial-gradient(circle at 15% 50%, rgba(20, 184, 166, 0.03) 0%, transparent 30%),
-        radial-gradient(circle at 85% 50%, rgba(249, 115, 22, 0.03) 0%, transparent 30%);
-      pointer-events: none;
-    }
-
-    /* Subtle animated dots pattern */
-    .header::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-image:
-        radial-gradient(circle at 20% 20%, rgba(20, 184, 166, 0.1) 1px, transparent 1px),
-        radial-gradient(circle at 80% 80%, rgba(249, 115, 22, 0.1) 1px, transparent 1px);
-      background-size: 40px 40px, 60px 60px;
-      opacity: 0.3;
-      pointer-events: none;
-    }
-
     .header-content {
-      width: 100%;
-      margin: 0;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
-      gap: calc(var(--spacing-xs) * 0.8);
-      padding: 0 var(--spacing-lg);
+      justify-content: space-between;
+      min-height: 72px;
+      gap: var(--spacing-lg);
+      width: 100%;
     }
 
+    /* Logo */
     .logo {
       font-family: var(--font-secondary);
-      font-size: calc(var(--font-size-lg) * 0.9);
+      font-size: var(--font-size-xl);
       font-weight: 800;
-      color: var(--color-navy);
       text-decoration: none;
       letter-spacing: -0.02em;
-      transition: all var(--transition-base);
       background: var(--gradient-primary);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      position: relative;
-      z-index: 10;
+      transition: transform var(--transition-base);
+      flex-shrink: 0;
     }
 
     .logo:hover {
-      opacity: 0.8;
-      transform: scale(1.02);
+      transform: scale(1.05);
     }
 
-    .nav-buttons {
-      display: flex;
-      gap: calc(var(--spacing-md) * 1.2);
+    /* Desktop Navigation Center */
+    .nav-center {
+      display: none;
       align-items: center;
-      flex-wrap: wrap;
+      gap: var(--spacing-2xl);
+      flex: 1;
+      justify-content: center;
+    }
+
+    /* USPs Container - Desktop */
+    .nav-usps {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xl);
+    }
+
+    .usp-item {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+      color: var(--color-gray-dark);
+      font-size: var(--font-size-xs);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .usp-icon {
+      font-size: var(--font-size-lg);
+      color: var(--color-teal);
+    }
+
+    /* Search Bar - Desktop */
+    .nav-search {
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .nav-search-input {
+      width: 100%;
+      padding: var(--spacing-sm) var(--spacing-lg);
+      padding-right: calc(var(--spacing-lg) * 2.5);
+      font-size: var(--font-size-sm);
+      font-family: inherit;
+      border: 2px solid var(--color-light-gray);
+      border-radius: var(--radius-full);
+      background: var(--color-white);
+      color: var(--color-navy);
+      transition: all var(--transition-base);
+    }
+
+    .nav-search-input:hover {
+      border-color: var(--color-gray-light);
+    }
+
+    .nav-search-input:focus {
+      border-color: var(--color-teal);
+      box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+    }
+
+    .nav-search-input::placeholder {
+      color: var(--color-gray-light);
+    }
+
+    .search-submit {
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--gradient-primary);
+      border: none;
+      border-radius: var(--radius-full);
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all var(--transition-base);
+    }
+
+    .search-submit:hover {
+      transform: translateY(-50%) scale(1.1);
+    }
+
+    .search-submit svg {
+      width: 18px;
+      height: 18px;
+      color: var(--color-white);
+    }
+
+    /* Navigation Links - Desktop */
+    .nav-links {
+      display: none;
+      align-items: center;
+      gap: var(--spacing-xl);
     }
 
     .nav-link {
       color: var(--color-navy);
       text-decoration: none;
       font-weight: 500;
-      font-size: calc(var(--font-size-sm) * 0.95);
-      transition: all var(--transition-base);
+      font-size: var(--font-size-sm);
+      transition: color var(--transition-base);
       position: relative;
-      padding: calc(var(--spacing-xs) * 0.8) 0;
+      padding: var(--spacing-xs) 0;
+    }
+
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--gradient-primary);
+      transition: width var(--transition-base);
     }
 
     .nav-link:hover {
       color: var(--color-teal);
-      opacity: 0.8;
+    }
+
+    .nav-link:hover::after {
+      width: 100%;
+    }
+
+    /* Mobile Navigation Container */
+    .mobile-nav-container {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      flex-shrink: 0;
+    }
+
+    /* Mobile USP Carousel */
+    .mobile-usp-carousel {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      height: 24px;
+      overflow: hidden;
+      position: relative;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .mobile-usp-track {
+      display: flex;
+      flex-direction: column;
+      transition: transform var(--transition-slow);
+      height: 300%;
+    }
+
+    .mobile-usp-item {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+      color: var(--color-gray-dark);
+      font-size: var(--font-size-xs);
+      font-weight: 500;
+      white-space: nowrap;
+      min-height: 100%;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* Mobile Search Button */
+    .mobile-search-btn {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: var(--touch-target);
+      height: var(--touch-target);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--color-navy);
+      transition: all var(--transition-base);
+      border-radius: var(--radius-md);
+      flex-shrink: 0;
+    }
+
+    .mobile-search-btn:hover {
+      background: var(--color-light-gray);
+    }
+
+    .mobile-search-btn svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    /* Mobile Hamburger Menu */
+    .mobile-menu-btn {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: var(--touch-target);
+      height: var(--touch-target);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--color-navy);
+      transition: all var(--transition-base);
+      border-radius: var(--radius-md);
+      position: relative;
+      flex-shrink: 0;
+      z-index: var(--z-menu-overlay);
+    }
+
+    .mobile-menu-btn:hover {
+      background: var(--color-light-gray);
+    }
+
+    .hamburger {
+      width: 24px;
+      height: 18px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .hamburger span {
+      display: block;
+      height: 2px;
+      width: 100%;
+      background: var(--color-navy);
+      border-radius: 1px;
+      transition: all var(--transition-base);
+    }
+
+    .mobile-menu-btn.active .hamburger span:nth-child(1) {
+      transform: rotate(45deg) translate(6px, 6px);
+    }
+
+    .mobile-menu-btn.active .hamburger span:nth-child(2) {
+      opacity: 0;
+    }
+
+    .mobile-menu-btn.active .hamburger span:nth-child(3) {
+      transform: rotate(-45deg) translate(6px, -6px);
+    }
+
+    /* Mobile Menu Overlay - Full Screen */
+    .mobile-menu-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(30, 41, 59, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      z-index: var(--z-overlay);
+      opacity: 0;
+      visibility: hidden;
+      transition: all var(--transition-base);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .mobile-menu-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .mobile-menu-content {
+      background: var(--color-white);
+      border-radius: var(--radius-xl);
+      padding: var(--spacing-3xl) var(--spacing-xl);
+      box-shadow: var(--shadow-xl);
+      max-width: 90vw;
+      width: 100%;
+      max-width: 400px;
+      transform: scale(0.9) translateY(20px);
+      transition: all var(--transition-base);
+    }
+
+    .mobile-menu-overlay.active .mobile-menu-content {
+      transform: scale(1) translateY(0);
+    }
+
+    .mobile-menu-header {
+      text-align: center;
+      margin-bottom: var(--spacing-2xl);
+    }
+
+    .mobile-menu-logo {
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-2xl);
+      font-weight: 800;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .mobile-menu-subtitle {
+      color: var(--color-gray);
+      font-size: var(--font-size-sm);
+    }
+
+    .mobile-menu-nav {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+    }
+
+    .mobile-menu-link {
+      display: flex;
+      align-items: center;
+      padding: var(--spacing-md) var(--spacing-lg);
+      color: var(--color-navy);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: var(--font-size-base);
+      transition: all var(--transition-base);
+      border-radius: var(--radius-md);
+      background: var(--color-off-white);
+    }
+
+    .mobile-menu-link:hover {
+      background: var(--color-light-gray);
+      color: var(--color-teal);
+      transform: translateX(4px);
+    }
+
+    .mobile-menu-link.btn-primary {
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      justify-content: center;
+      font-weight: 700;
+      margin-top: var(--spacing-lg);
+    }
+
+    .mobile-menu-link.btn-primary:hover {
+      background: var(--gradient-primary);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .mobile-menu-link-icon {
+      margin-right: var(--spacing-sm);
+      font-size: var(--font-size-lg);
+    }
+
+    /* Mobile Search Overlay */
+    .mobile-search-overlay {
+      position: fixed;
+      top: 72px;
+      left: 0;
+      right: 0;
+      background: var(--color-white);
+      padding: var(--spacing-lg);
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-100%);
+      opacity: 0;
+      visibility: hidden;
+      transition: all var(--transition-base);
+      z-index: var(--z-dropdown);
+    }
+
+    .mobile-search-overlay.active {
+      transform: translateY(0);
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .mobile-search-form {
+      display: flex;
+      gap: var(--spacing-sm);
+    }
+
+    .mobile-search-input {
+      flex: 1;
+      padding: var(--spacing-md);
+      font-size: var(--font-size-base);
+      font-family: inherit;
+      border: 2px solid var(--color-light-gray);
+      border-radius: var(--radius-md);
+      background: var(--color-white);
+      color: var(--color-navy);
+      transition: all var(--transition-base);
+    }
+
+    .mobile-search-input:focus {
+      border-color: var(--color-teal);
+      box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+    }
+
+    /* Desktop Styles */
+    @media (min-width: 769px) {
+      .nav-center {
+        display: flex;
+      }
+
+      .nav-links {
+        display: flex;
+      }
+
+      .mobile-nav-container {
+        display: none;
+      }
+
+      .mobile-usp-carousel {
+        display: none !important;
+      }
+
+      .mobile-search-btn {
+        display: none !important;
+      }
+
+      .mobile-menu-btn {
+        display: none !important;
+      }
+
+      .mobile-menu-overlay {
+        display: none !important;
+      }
+    }
+
+    /* Mobile Styles */
+    @media (max-width: 768px) {
+      .header-container {
+        padding: 0 var(--spacing-md);
+      }
+
+      .header-content {
+        min-height: 60px;
+        gap: var(--spacing-sm);
+        padding: 0;
+        display: grid;
+        grid-template-columns: auto 1fr auto auto;
+        align-items: center;
+      }
+
+      .logo {
+        font-size: var(--font-size-lg);
+        flex-shrink: 0;
+        min-width: fit-content;
+        grid-column: 1;
+      }
+
+      .mobile-usp-carousel {
+        display: flex;
+        height: 24px;
+        overflow: hidden;
+        position: relative;
+        grid-column: 2;
+        justify-self: center;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .mobile-nav-container {
+        flex-shrink: 0;
+        min-width: fit-content;
+        display: flex !important;
+        gap: var(--spacing-xs);
+        grid-column: 3 / 5;
+        justify-self: end;
+      }
+
+      .nav-center {
+        display: none !important;
+      }
+
+      .nav-links {
+        display: none !important;
+      }
+
+      .mobile-search-btn {
+        display: flex;
+        flex-shrink: 0;
+      }
+
+      .mobile-menu-btn {
+        display: flex;
+        flex-shrink: 0;
+      }
+
+      .mobile-search-overlay {
+        top: 60px;
+      }
+    }
+
+    /* Extra small mobile devices */
+    @media (max-width: 480px) {
+      .header-content {
+        gap: var(--spacing-xs);
+        grid-template-columns: auto 1fr auto auto;
+      }
+      
+      .logo {
+        font-size: var(--font-size-base);
+      }
+    }
+
+    /* Z-index Scale */
+    :root {
+      --z-dropdown: 100;
+      --z-sticky: 200;
+      --z-overlay: 300;
+      --z-modal: 400;
+      --z-menu-overlay: 500;
+      --touch-target: 44px;
     }
 
     .btn {
@@ -948,18 +1406,150 @@
   </style>
 </head>
 <body>
-  <!-- Header -->
-  <header class="header">
-    <div class="header-content">
-      <a href="index.html" class="logo">Narrin AI</a>
-      <nav class="nav-buttons">
-        <a href="index.html" class="nav-link">Characters</a>
-        <a href="chat-overview.html" class="nav-link">Chats</a>
-        <a href="profile.html" class="nav-link" id="loginBtn">Login/Register</a>
-        <a href="create-character.html" class="btn btn-primary">✨ Create Character</a>
-      </nav>
+  <!-- Header Navigation -->
+  <header class="header" role="banner">
+    <div class="header-container">
+      <div class="header-content">
+        <!-- Logo -->
+        <a href="index.html" class="logo" aria-label="Narrin AI Home">Narrin AI</a>
+
+        <!-- Desktop Navigation Center -->
+        <nav class="nav-center" role="navigation" aria-label="Main navigation">
+          <!-- USPs - All visible on desktop -->
+          <div class="nav-usps" aria-label="Key features">
+            <div class="usp-item">
+              <span class="usp-icon" aria-hidden="true">🔒</span>
+              <span>100% Safe</span>
+            </div>
+            <div class="usp-item">
+              <span class="usp-icon" aria-hidden="true">🧠</span>
+              <span>Character Memory</span>
+            </div>
+            <div class="usp-item">
+              <span class="usp-icon" aria-hidden="true">🔐</span>
+              <span>Private Data</span>
+            </div>
+          </div>
+
+          <!-- Search Bar - Always visible on desktop -->
+          <form class="nav-search" role="search">
+            <input
+              type="search"
+              class="nav-search-input"
+              placeholder="Search characters..."
+              aria-label="Search characters"
+            />
+            <button type="submit" class="search-submit" aria-label="Submit search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+              </svg>
+            </button>
+          </form>
+        </nav>
+
+        <!-- Desktop Navigation Links -->
+        <nav class="nav-links" role="navigation" aria-label="Secondary navigation">
+          <a href="index.html" class="nav-link">Characters</a>
+          <a href="chat-overview.html" class="nav-link">Chats</a>
+          <a href="profile.html" class="nav-link" id="loginBtn">Login/Register</a>
+          <a href="create-character.html" class="btn btn-primary">✨ Create Character</a>
+        </nav>
+
+        <!-- Mobile Navigation Container -->
+        <div class="mobile-nav-container">
+          <!-- Mobile USP Carousel -->
+          <div class="mobile-usp-carousel" aria-label="Key features carousel">
+            <div class="mobile-usp-track" id="uspTrack">
+              <div class="mobile-usp-item">
+                <span class="usp-icon" aria-hidden="true">🔒</span>
+                <span>100% Safe</span>
+              </div>
+              <div class="mobile-usp-item">
+                <span class="usp-icon" aria-hidden="true">🧠</span>
+                <span>Character Memory</span>
+              </div>
+              <div class="mobile-usp-item">
+                <span class="usp-icon" aria-hidden="true">🔐</span>
+                <span>Private Data</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mobile Search Button -->
+          <button
+            class="mobile-search-btn"
+            id="mobileSearchBtn"
+            aria-label="Open search"
+            aria-expanded="false"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+          </button>
+
+          <!-- Mobile Hamburger Menu -->
+          <button
+            class="mobile-menu-btn"
+            id="mobileMenuBtn"
+            aria-label="Open navigation menu"
+            aria-expanded="false"
+          >
+            <div class="hamburger">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Search Overlay -->
+    <div class="mobile-search-overlay" id="mobileSearchOverlay">
+      <form class="mobile-search-form" role="search">
+        <input
+          type="search"
+          class="mobile-search-input"
+          placeholder="Search characters..."
+          aria-label="Search characters"
+          id="mobileSearchInput"
+        />
+        <button type="submit" class="btn btn-primary" aria-label="Submit search">
+          Search
+        </button>
+      </form>
     </div>
   </header>
+
+  <!-- Mobile Menu Overlay -->
+  <div class="mobile-menu-overlay" id="mobileMenuOverlay">
+    <div class="mobile-menu-content">
+      <div class="mobile-menu-header">
+        <div class="mobile-menu-logo">Narrin AI</div>
+        <div class="mobile-menu-subtitle">AI Character Chat</div>
+      </div>
+      <nav class="mobile-menu-nav" role="navigation" aria-label="Mobile navigation">
+        <a href="index.html" class="mobile-menu-link">
+          <span class="mobile-menu-link-icon">🏠</span>
+          Characters
+        </a>
+        <a href="chat-overview.html" class="mobile-menu-link">
+          <span class="mobile-menu-link-icon">💬</span>
+          Chats
+        </a>
+        <a href="profile.html" class="mobile-menu-link" id="mobileLoginBtn">
+          <span class="mobile-menu-link-icon">👤</span>
+          Login/Register
+        </a>
+        <a href="create-character.html" class="mobile-menu-link btn-primary">
+          <span class="mobile-menu-link-icon">✨</span>
+          Create Character
+        </a>
+      </nav>
+    </div>
+  </div>
 
   <!-- Login Overlay -->
   <div class="login-overlay" id="loginOverlay">
@@ -1177,6 +1767,169 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
     let currentAvatarUrl = '';
     let pendingCharacterData = null; // Store form data for after login
 
+    // ===== NAVIGATION FUNCTIONALITY =====
+    
+    // Mobile Search Elements
+    const mobileSearchBtn = document.getElementById('mobileSearchBtn');
+    const mobileSearchOverlay = document.getElementById('mobileSearchOverlay');
+    const mobileSearchInput = document.getElementById('mobileSearchInput');
+    
+    // Mobile Menu Elements
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+    
+    // USP Carousel Elements
+    const uspTrack = document.getElementById('uspTrack');
+    let currentUspIndex = 0;
+    let uspInterval;
+
+    // ===== MOBILE SEARCH FUNCTIONALITY =====
+    function toggleMobileSearch() {
+      const isActive = mobileSearchOverlay.classList.contains('active');
+      
+      if (isActive) {
+        mobileSearchOverlay.classList.remove('active');
+        mobileSearchBtn.setAttribute('aria-expanded', 'false');
+      } else {
+        closeMobileMenu();
+        mobileSearchOverlay.classList.add('active');
+        mobileSearchBtn.setAttribute('aria-expanded', 'true');
+        mobileSearchInput.focus();
+      }
+    }
+
+    mobileSearchBtn?.addEventListener('click', toggleMobileSearch);
+
+    // ===== MOBILE MENU FUNCTIONALITY =====
+    function toggleMobileMenu() {
+      const isActive = mobileMenuOverlay.classList.contains('active');
+      
+      if (isActive) {
+        closeMobileMenu();
+      } else {
+        openMobileMenu();
+      }
+    }
+
+    function openMobileMenu() {
+      if (mobileSearchOverlay.classList.contains('active')) {
+        mobileSearchOverlay.classList.remove('active');
+        mobileSearchBtn.setAttribute('aria-expanded', 'false');
+      }
+      
+      mobileMenuOverlay.classList.add('active');
+      mobileMenuBtn.classList.add('active');
+      mobileMenuBtn.setAttribute('aria-expanded', 'true');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeMobileMenu() {
+      mobileMenuOverlay.classList.remove('active');
+      mobileMenuBtn.classList.remove('active');
+      mobileMenuBtn.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+    }
+
+    mobileMenuBtn?.addEventListener('click', toggleMobileMenu);
+
+    mobileMenuOverlay?.addEventListener('click', (e) => {
+      if (e.target === mobileMenuOverlay) {
+        closeMobileMenu();
+      }
+    });
+
+    document.querySelectorAll('.mobile-menu-link').forEach(link => {
+      link.addEventListener('click', closeMobileMenu);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!mobileSearchOverlay?.contains(e.target) &&
+          !mobileSearchBtn?.contains(e.target) &&
+          mobileSearchOverlay?.classList.contains('active')) {
+        mobileSearchOverlay.classList.remove('active');
+        mobileSearchBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (mobileMenuOverlay.classList.contains('active')) {
+          closeMobileMenu();
+        }
+        if (mobileSearchOverlay.classList.contains('active')) {
+          mobileSearchOverlay.classList.remove('active');
+          mobileSearchBtn.setAttribute('aria-expanded', 'false');
+        }
+      }
+    });
+
+    // ===== USP CAROUSEL FUNCTIONALITY =====
+    function startUspCarousel() {
+      if (window.innerWidth <= 768 && uspTrack) {
+        uspInterval = setInterval(() => {
+          currentUspIndex = (currentUspIndex + 1) % 3;
+          uspTrack.style.transform = `translateY(-${currentUspIndex * 33.333}%)`;
+        }, 3000);
+      }
+    }
+
+    function stopUspCarousel() {
+      if (uspInterval) {
+        clearInterval(uspInterval);
+        uspInterval = null;
+      }
+    }
+
+    function handleResize() {
+      if (window.innerWidth > 768) {
+        stopUspCarousel();
+        if (uspTrack) {
+          uspTrack.style.transform = '';
+        }
+        if (mobileSearchOverlay?.classList.contains('active')) {
+          mobileSearchOverlay.classList.remove('active');
+          mobileSearchBtn?.setAttribute('aria-expanded', 'false');
+        }
+        if (mobileMenuOverlay?.classList.contains('active')) {
+          closeMobileMenu();
+        }
+      } else {
+        startUspCarousel();
+      }
+    }
+
+    window.addEventListener('load', () => {
+      handleResize();
+    });
+
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(handleResize, 250);
+    });
+
+    // ===== SEARCH FUNCTIONALITY =====
+    function handleSearch(searchTerm) {
+      console.log('Search term:', searchTerm);
+      // Redirect to index.html with search parameter
+      window.location.href = `index.html?search=${encodeURIComponent(searchTerm)}`;
+    }
+
+    // Desktop search
+    document.querySelector('.nav-search')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const searchInput = e.target.querySelector('.nav-search-input');
+      handleSearch(searchInput.value);
+    });
+
+    // Mobile search
+    document.querySelector('.mobile-search-form')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const searchInput = e.target.querySelector('.mobile-search-input');
+      handleSearch(searchInput.value);
+      toggleMobileSearch();
+    });
+
     // Initialize Netlify Identity
     window.addEventListener('DOMContentLoaded', () => {
       if (window.netlifyIdentity) {
@@ -1241,14 +1994,28 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
 
     function updateLoginButton() {
       const loginBtn = document.getElementById('loginBtn');
+      const mobileLoginBtn = document.getElementById('mobileLoginBtn');
       const user = window.netlifyIdentity && window.netlifyIdentity.currentUser();
       
       if (user) {
-        loginBtn.innerHTML = (user.user_metadata.full_name || user.email);
-        loginBtn.href = 'profile.html';
+        const displayName = user.user_metadata.full_name || user.email;
+        if (loginBtn) {
+          loginBtn.textContent = displayName;
+          loginBtn.href = 'profile.html';
+        }
+        if (mobileLoginBtn) {
+          const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
+          mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}${displayName}`;
+        }
       } else {
-        loginBtn.innerHTML = 'Login/Register';
-        loginBtn.href = 'profile.html';
+        if (loginBtn) {
+          loginBtn.textContent = 'Login/Register';
+          loginBtn.href = 'profile.html';
+        }
+        if (mobileLoginBtn) {
+          const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
+          mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}Login/Register`;
+        }
       }
     }
 
