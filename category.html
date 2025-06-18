@@ -979,6 +979,45 @@
       margin: 0;
     }
 
+    /* Error State */
+    .error-state {
+      text-align: center;
+      padding: 80px 20px;
+      grid-column: 1 / -1;
+    }
+
+    .error-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    .error-state h3 {
+      font-size: 20px;
+      margin: 0 0 8px 0;
+      color: #dc2626;
+    }
+
+    .error-state p {
+      color: #666;
+      margin: 0 0 16px 0;
+    }
+
+    .retry-btn {
+      background: var(--color-teal);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s ease;
+    }
+
+    .retry-btn:hover {
+      background: var(--color-teal-dark);
+    }
+
     /* Mobile Optimizations */
     @media (max-width: 768px) {
       .page-header h1 {
@@ -1369,10 +1408,8 @@
 
     // ===== CATEGORY PAGE FUNCTIONALITY =====
     
-    // Configuration
-    const AIRTABLE_API_KEY = 'your-api-key'; // Will be replaced in production
-    const AIRTABLE_BASE_ID = 'your-base-id'; // Will be replaced in production
-    const AIRTABLE_TABLE_NAME = 'Characters';
+    // Configuration - UPDATED TO USE MAKE WEBHOOK
+    const MAKE_WEBHOOK_URL = 'https://hook.eu2.make.com/kej7ez9bgc9g1ic7xh55dx13zsp1go1g';
 
     // Category configurations
     const categoryConfig = {
@@ -1417,55 +1454,17 @@
       const urlParams = new URLSearchParams(window.location.search);
       currentCategory = urlParams.get('cat') || 'historical';
       
-      loadAllCategories();
       initializePage();
       loadCharacters();
       setupEventListeners();
     });
 
-    async function loadAllCategories() {
-      try {
-        // Load all characters to get unique categories
-        const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_NAME}?fields[]=Category&maxRecords=1000`;
-        
-        const response = await fetch(url, {
-          headers: {
-            'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          data.records.forEach(record => {
-            if (record.fields.Category) {
-              allCategories.add(record.fields.Category);
-            }
-          });
-
-          // Auto-generate category configs for categories not in predefined list
-          Array.from(allCategories).forEach(category => {
-            if (!categoryConfig[category]) {
-              categoryConfig[category] = {
-                title: category.charAt(0).toUpperCase() + category.slice(1).replace('-', ' & '),
-                icon: '📁',
-                description: `Discover amazing ${category} characters`
-              };
-            }
-          });
-        }
-      } catch (error) {
-        console.error('Error loading categories:', error);
-      }
-    }
-
     function initializePage() {
-      const config = categoryConfig[currentCategory];
-      if (!config) {
-        // Default to historical if category not found
-        currentCategory = 'historical';
-        config = categoryConfig.historical;
-      }
+      const config = categoryConfig[currentCategory] || {
+        title: currentCategory.charAt(0).toUpperCase() + currentCategory.slice(1).replace('-', ' & '),
+        icon: '📁',
+        description: `Discover amazing ${currentCategory} characters`
+      };
 
       // Update page elements
       document.getElementById('page-title').textContent = `${config.title} - Narrin AI`;
@@ -1512,31 +1511,46 @@
 
     async function loadCharacters() {
       try {
-        const filterFormula = `{Category} = "${currentCategory}"`;
-        const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_NAME}?filterByFormula=${encodeURIComponent(filterFormula)}&maxRecords=100`;
+        console.log('Loading characters for category:', currentCategory);
         
-        const response = await fetch(url, {
+        // Make POST request to webhook with category filter
+        const response = await fetch(MAKE_WEBHOOK_URL, {
+          method: 'POST',
           headers: {
-            'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
             'Content-Type': 'application/json'
-          }
+          },
+          body: JSON.stringify({
+            category: currentCategory
+          })
         });
+
+        console.log('Response status:', response.status);
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const data = await response.json();
+        console.log('Response data:', data);
+
+        // Check if the response has the expected structure
+        if (!data.success) {
+          throw new Error(data.error || 'Failed to load characters');
+        }
+
+        // Process the records from the webhook response
         allCharacters = data.records.map(record => ({
-          id: record.id,
-          name: record.fields.Name || 'Unknown',
-          title: record.fields.Character_Title || record.fields.character_title || '',
-          description: record.fields.Character_Description || record.fields.description || '',
-          avatarUrl: record.fields.Avatar_URL || record.fields.avatar_url || 
-                    (record.fields.Avatar && record.fields.Avatar.length > 0 ? record.fields.Avatar[0].url : null),
-          characterUrl: record.fields.Character_URL || record.fields.character_url || `/chat/${record.fields.Slug || record.id}`,
-          category: record.fields.Category || currentCategory
+          id: record.id || record.Name, // Use Name as fallback ID
+          name: record.Name || 'Unknown',
+          title: record.Character_Title || record.character_title || '',
+          description: record.Character_Description || record.description || '',
+          avatarUrl: record.Avatar_URL || record.avatar_url || 
+                    (record.Avatar_File && record.Avatar_File.length > 0 ? record.Avatar_File[0].url : null),
+          characterUrl: record.Character_URL || record.character_url || `/chat/${record.Slug || record.Name}`,
+          category: record.Category || currentCategory
         }));
+
+        console.log('Processed characters:', allCharacters);
 
         filteredCharacters = [...allCharacters];
         // Sort alphabetically by default
@@ -1546,7 +1560,7 @@
 
       } catch (error) {
         console.error('Error loading characters:', error);
-        showEmptyState('Error loading characters. Please try again later.');
+        showErrorState('Failed to load characters. Please try again.', error.message);
       }
     }
 
@@ -1568,7 +1582,7 @@
 
     function updateResultsCount() {
       const count = filteredCharacters.length;
-      const config = categoryConfig[currentCategory];
+      const config = categoryConfig[currentCategory] || { title: currentCategory };
       document.getElementById('resultsCount').textContent = 
         `${count} ${config.title.toLowerCase()} found`;
     }
@@ -1667,6 +1681,21 @@
       document.getElementById('pagination').innerHTML = '';
     }
 
+    function showErrorState(message, details = '') {
+      const grid = document.getElementById('characterGrid');
+      grid.innerHTML = `
+        <div class="error-state">
+          <div class="error-state-icon">⚠️</div>
+          <h3>Error Loading Characters</h3>
+          <p>${message}</p>
+          ${details ? `<p style="font-size: 12px; color: #999; margin-top: 8px;">Details: ${details}</p>` : ''}
+          <button class="retry-btn" onclick="loadCharacters()">Try Again</button>
+        </div>
+      `;
+      
+      document.getElementById('pagination').innerHTML = '';
+    }
+
     // Utility function to detect mobile
     function isMobileDevice() {
       return window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -1730,6 +1759,9 @@
         updateLoginButton();
       });
     }
+
+    // Make changePage function globally available
+    window.changePage = changePage;
   </script>
 </body>
 </html>
