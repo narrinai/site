@@ -1826,7 +1826,19 @@
           throw new Error(`Server returned status ${response.status}`);
         }
 
-        const data = await response.json();
+        const rawText = await response.text();
+console.log("Chat response raw:", rawText);
+
+let data;
+try {
+  data = JSON.parse(rawText);
+} catch (e) {
+  console.warn("JSON parse error, using fallback:", e);
+  data = { 
+    success: true, 
+    reply: "Whoopsie! 🙈 I just had a bit of a brain fart (do AIs have brains?). Let's pretend that never happened and try again!" 
+  };
+}
         console.log("Chat response:", data);
 
         if (!data.success) {
