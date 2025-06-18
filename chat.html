@@ -1576,24 +1576,18 @@
       const isLoggedIn = netlifyUser || (localEmail && localToken);
       
       if (isLoggedIn) {
-        // Determine display name
-        let displayName = 'Profile';
-        if (netlifyUser) {
-          displayName = netlifyUser.user_metadata?.full_name || netlifyUser.email?.split('@')[0] || 'Profile';
-        } else if (localEmail) {
-          displayName = localEmail.split('@')[0] || 'Profile';
-        }
+        // Always show "Profile" for logged in users instead of their name
         
         // Update desktop button
         if (loginBtn) {
-          loginBtn.textContent = displayName;
+          loginBtn.textContent = 'Profile';
           loginBtn.href = 'profile.html';
         }
         
         // Update mobile button
         if (mobileLoginBtn) {
           const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
-          mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}${displayName}`;
+          mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}Profile`;
           mobileLoginBtn.href = 'profile.html';
         }
       } else {
@@ -1610,10 +1604,74 @@
       }
     }
 
+    // Enhanced click handler for navigation links
+    function setupNavigationClickHandlers() {
+      const loginBtn = document.getElementById('loginBtn');
+      const mobileLoginBtn = document.getElementById('mobileLoginBtn');
+      
+      // Desktop login button click handler
+      if (loginBtn) {
+        loginBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          
+          const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+          const localEmail = localStorage.getItem("user_email");
+          const localToken = localStorage.getItem("user_token");
+          const isLoggedIn = netlifyUser || (localEmail && localToken);
+          
+          if (isLoggedIn) {
+            // User is logged in, go directly to profile page
+            window.location.href = 'profile.html';
+          } else {
+            // User not logged in, store current page for redirect and open login
+            localStorage.setItem('login_redirect_url', window.location.href);
+            openLogin();
+          }
+        });
+      }
+      
+      // Mobile login button click handler
+      if (mobileLoginBtn) {
+        mobileLoginBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          
+          const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+          const localEmail = localStorage.getItem("user_email");
+          const localToken = localStorage.getItem("user_token");
+          const isLoggedIn = netlifyUser || (localEmail && localToken);
+          
+          if (isLoggedIn) {
+            // User is logged in, go directly to profile page
+            window.location.href = 'profile.html';
+          } else {
+            // User not logged in, store current page for redirect and open login
+            localStorage.setItem('login_redirect_url', window.location.href);
+            openLogin();
+          }
+          
+          // Close mobile menu after click
+          closeMobileMenu();
+        });
+      }
+    }
+
+    // Function to open login modal
+    function openLogin() {
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.open('login');
+      } else {
+        // Fallback if Netlify Identity is not available
+        window.location.href = 'profile.html';
+      }
+    }
+
     // Initialize login button on page load
     document.addEventListener('DOMContentLoaded', () => {
       // Update immediately on page load
       updateLoginButton();
+      
+      // Set up click handlers
+      setupNavigationClickHandlers();
       
       if (window.netlifyIdentity) {
         window.netlifyIdentity.on('init', user => {
