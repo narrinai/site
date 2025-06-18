@@ -6,6 +6,12 @@
   <title>Narrin AI - AI Character Chat</title>
   <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
   
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  
   <!-- Import Modern Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1540,23 +1546,24 @@
 
     // ===== CHARACTER LOADING FUNCTIONS =====
 
-    // Enhanced load characters function - NO FALLBACK TO SAMPLE DATA
+    // FIXED: Enhanced load characters function - NO SAMPLE DATA FALLBACK
     async function loadCharacters(category, gridId, limit = 5) {
       const grid = document.getElementById(gridId);
       
+      console.log(`🚀 Loading characters from Make.com for category: ${category}`);
+      
       try {
-        console.log(`🚀 Loading characters from Make.com for category: ${category}`);
         await loadCharactersFromMake(category, gridId, limit);
-        return;
+        console.log(`✅ Successfully loaded ${category} from Make.com`);
       } catch (error) {
         console.error(`❌ Make.com webhook failed for category ${category}:`, error);
         
-        // SHOW ERROR INSTEAD OF FALLBACK
+        // SHOW ERROR - NO SAMPLE DATA FALLBACK
         grid.innerHTML = `
           <div class="error-card webhook-error">
             <span class="error-icon">⚠️</span>
             <div class="error-title">Failed to load ${category}</div>
-            <div class="error-message">Check console for details</div>
+            <div class="error-message">Webhook error: ${error.message}</div>
           </div>
         `;
       }
@@ -1642,7 +1649,7 @@
       }
     }
 
-    // SIMPLIFIED CHARACTER CARD - Focus on real Airtable data
+    // FIXED: Character card creation - Focus on real Airtable avatars only
     function createCharacterCard(character) {
       const card = document.createElement('a');
       card.className = 'character-card';
@@ -1659,45 +1666,35 @@
       const name = character.name || character.Name || 'Unknown';
       const title = character.title || character.Character_Title || character.description || character.Description || '';
       
-      // FOCUS ON AIRTABLE AVATAR_URL FIELD
+      // FOCUS ON AIRTABLE AVATAR_URL FIELD ONLY
       let avatarUrl = null;
       
-      // Method 1: Airtable attachment field (most likely)
+      // Method 1: Airtable attachment field (most likely for your setup)
       if (character.Avatar_URL && Array.isArray(character.Avatar_URL) && character.Avatar_URL.length > 0) {
         if (character.Avatar_URL[0] && character.Avatar_URL[0].url) {
           avatarUrl = character.Avatar_URL[0].url;
-          console.log(`✅ Using Airtable Avatar_URL for ${name}:`, avatarUrl);
+          console.log(`✅ Using Airtable Avatar_URL attachment for ${name}:`, avatarUrl);
         }
       }
       
-      // Method 2: Direct string Avatar_URL
-      if (!avatarUrl && character.Avatar_URL && typeof character.Avatar_URL === 'string') {
+      // Method 2: Direct string Avatar_URL (if Make.com flattens it)
+      if (!avatarUrl && character.Avatar_URL && typeof character.Avatar_URL === 'string' && character.Avatar_URL.startsWith('http')) {
         avatarUrl = character.Avatar_URL;
-        console.log(`✅ Using direct Avatar_URL for ${name}:`, avatarUrl);
+        console.log(`✅ Using direct Avatar_URL string for ${name}:`, avatarUrl);
       }
       
-      // Method 3: Other possible fields
-      if (!avatarUrl) {
-        const possibleFields = ['avatar_url', 'image_url', 'Image_URL', 'picture_url'];
-        for (const field of possibleFields) {
-          if (character[field]) {
-            avatarUrl = character[field];
-            console.log(`✅ Using ${field} for ${name}:`, avatarUrl);
-            break;
-          }
-        }
-      }
+      // REMOVED: All sample data and fallback avatar_url fields to prevent mixing
       
-      console.log(`🎯 Final avatar for ${name}:`, avatarUrl || 'NO AVATAR FOUND');
+      console.log(`🎯 Final avatar for ${name}:`, avatarUrl || 'NO AVATAR - WILL USE FALLBACK ICON');
       
-      // Create card HTML
+      // Create card HTML - Only use real avatars or fallback icon
       if (avatarUrl && avatarUrl.startsWith('http')) {
         card.innerHTML = `
           <div class="character-avatar">
             <img src="${avatarUrl}" 
                  alt="${name}" 
                  style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;"
-                 onload="console.log('✅ Real avatar loaded for ${name}');"
+                 onload="console.log('✅ Real Airtable avatar loaded for ${name}');"
                  onerror="console.error('❌ Real avatar failed for ${name}:', '${avatarUrl}'); this.style.display='none'; this.parentNode.innerHTML='<div style=\\"display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 4rem; color: #94a3b8;\\">👤</div>';">
           </div>
           <div class="character-name">${name}</div>
@@ -1711,10 +1708,38 @@
           <div class="character-name">${name}</div>
           <div class="character-title">${title}</div>
         `;
-        console.log(`⚠️ No valid avatar URL found for ${name}, using fallback icon`);
+        console.log(`⚠️ No valid Airtable avatar URL found for ${name}, using fallback icon`);
       }
       
       return card;
+    }
+
+    // DEBUG: Function to check what gets loaded
+    function debugLoadProcess() {
+      console.log('🔧 DEBUG: Checking what gets loaded...');
+      
+      // Check grids after 3 seconds
+      setTimeout(() => {
+        CONFIG.CATEGORIES.forEach(category => {
+          const grid = document.getElementById(`${category.id}-grid`);
+          const cards = grid.querySelectorAll('.character-card');
+          console.log(`📊 ${category.id}: ${cards.length} cards loaded`);
+          
+          cards.forEach((card, index) => {
+            const img = card.querySelector('img');
+            if (img) {
+              console.log(`  Card ${index + 1}: ${img.src}`);
+              if (img.src.includes('unsplash.com') || img.src.includes('images.unsplash.com')) {
+                console.error(`  ❌❌❌ SAMPLE DATA DETECTED: ${img.src}`);
+              } else {
+                console.log(`  ✅ Real avatar: ${img.src}`);
+              }
+            } else {
+              console.log(`  Card ${index + 1}: No image (using fallback icon)`);
+            }
+          });
+        });
+      }, 3000);
     }
 
     // Initialize character grids
@@ -1759,6 +1784,15 @@
         }
         if (mobileLoginBtn) {
           const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
+          mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}${displayName}`;
+        }
+      } else {
+        if (loginBtn) {
+          loginBtn.textContent = 'Login/Register';
+          loginBtn.href = 'profile.html';
+        }
+        if (mobileLoginBtn) {
+          const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
           mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}Login/Register`;
         }
       }
@@ -1786,17 +1820,11 @@
       // Load character data
       initializeCharacterGrids();
       
+      // Debug what gets loaded
+      debugLoadProcess();
+      
       console.log('✅ Initialization complete');
     });
   </script>
 </body>
-</html>="mobile-menu-link-icon">👤</span>'}${displayName}`;
-        }
-      } else {
-        if (loginBtn) {
-          loginBtn.textContent = 'Login/Register';
-          loginBtn.href = 'profile.html';
-        }
-        if (mobileLoginBtn) {
-          const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
-          mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class
+</html>
