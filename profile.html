@@ -6,6 +6,9 @@
   <title>My Profile - Narrin AI</title>
   <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
   
+  <!-- Stripe.js -->
+  <script src="https://js.stripe.com/v3/"></script>
+  
   <!-- Favicon -->
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -961,6 +964,12 @@
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
     }
 
+    .upgrade-button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
     .upgrade-button::after {
       content: '✨';
       font-size: 14px;
@@ -1620,6 +1629,11 @@
   </div>
 
   <script>
+    // ===== STRIPE CONFIGURATION =====
+    // Vervang deze waarden met je echte Stripe keys
+    const stripe = Stripe('pk_live_jz2dXpzmEDUahXkKkyUe36Zt'); // Vervang met jouw echte publishable key
+    const PRICE_ID = 'prod_SWrbnoc0ywWqOL'; // Vervang met jouw echte Price ID
+
     // ===== NAVIGATION FUNCTIONALITY =====
     
     // Mobile Search Elements
@@ -1635,6 +1649,79 @@
     const uspTrack = document.getElementById('uspTrack');
     let currentUspIndex = 0;
     let uspInterval;
+
+    // ===== STRIPE UPGRADE FUNCTIONALITY =====
+    async function handleUpgrade() {
+      console.log('🚀 Upgrade button clicked');
+      
+      // Check of gebruiker ingelogd is
+      const email = localStorage.getItem('user_email');
+      const uid = localStorage.getItem('user_uid');
+      
+      if (!email || !uid) {
+        showError('Je moet ingelogd zijn om te upgraden');
+        openLogin();
+        return;
+      }
+      
+      try {
+        // Toon loading state
+        const upgradeButton = document.querySelector('.upgrade-button');
+        const originalText = upgradeButton.innerHTML;
+        upgradeButton.innerHTML = 'Processing...';
+        upgradeButton.disabled = true;
+        
+        console.log('📡 Creating checkout session...');
+        
+        // Redirect direct naar Stripe Checkout
+        const { error } = await stripe.redirectToCheckout({
+          lineItems: [{
+            price: PRICE_ID,
+            quantity: 1,
+          }],
+          mode: 'subscription',
+          successUrl: `${window.location.origin}/profile.html?upgrade=success`,
+          cancelUrl: `${window.location.origin}/profile.html?upgrade=cancelled`,
+          customerEmail: email,
+          clientReferenceId: uid, // Om later de user te kunnen identificeren
+        });
+        
+        if (error) {
+          throw new Error(error.message);
+        }
+        
+      } catch (error) {
+        console.error('❌ Error creating checkout session:', error);
+        showError(`Upgrade error: ${error.message}`);
+        
+        // Reset button
+        const upgradeButton = document.querySelector('.upgrade-button');
+        upgradeButton.innerHTML = originalText;
+        upgradeButton.disabled = false;
+      }
+    }
+
+    // Functie om upgrade status te checken bij page load
+    function checkUpgradeStatus() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const upgradeStatus = urlParams.get('upgrade');
+      
+      if (upgradeStatus === 'success') {
+        showSuccess('🎉 Upgrade successful! Welcome to Narrin AI Premium!');
+        // Reload profile data om nieuwe plan status te tonen
+        setTimeout(() => {
+          loadProfile();
+        }, 1000);
+        
+        // Clean URL
+        window.history.replaceState({}, document.title, 'profile.html');
+      } else if (upgradeStatus === 'cancelled') {
+        showError('Upgrade was cancelled. You can try again anytime.');
+        
+        // Clean URL
+        window.history.replaceState({}, document.title, 'profile.html');
+      }
+    }
 
     // ===== MOBILE SEARCH FUNCTIONALITY =====
     function toggleMobileSearch() {
@@ -1956,6 +2043,9 @@
       
       // Set up redirect handling FIRST
       setupRedirectHandling();
+      
+      // Check upgrade status
+      checkUpgradeStatus();
       
       // Initialize Netlify Identity
       if (window.netlifyIdentity) {
@@ -2327,12 +2417,6 @@
 
     function hideLoading() {
       document.body.classList.remove('loading');
-    }
-
-    // Upgrade function (placeholder)
-    function handleUpgrade() {
-      showSuccess('Upgrade functionality coming soon!');
-      console.log('🚀 Upgrade button clicked');
     }
 
     // ===== NETLIFY IDENTITY BUTTON UPDATES =====
