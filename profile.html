@@ -773,7 +773,7 @@
     }
     
     .container {
-      max-width: 700px;
+      max-width: 1200px;
       margin: 0 auto;
       padding: var(--spacing-xl);
     }
@@ -805,6 +805,206 @@
       justify-content: flex-end;
       margin-bottom: var(--spacing-xl);
       gap: var(--spacing-md);
+    }
+
+    /* ===== PROFILE CONTENT LAYOUT ===== */
+    .profile-content {
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: var(--spacing-xl);
+      align-items: start;
+    }
+
+    /* ===== PREMIUM UPGRADE CARD ===== */
+    .premium-card {
+      width: 100%;
+      height: 360px;
+      background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%);
+      border-radius: 20px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 32px 32px;
+      box-sizing: border-box;
+      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
+      margin-bottom: var(--spacing-lg);
+    }
+
+    /* Background decorative elements */
+    .premium-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                  radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
+      animation: float 20s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: rotate(0deg) scale(1); }
+      50% { transform: rotate(180deg) scale(1.1); }
+    }
+
+    /* Premium crown icon */
+    .crown-icon {
+      position: absolute;
+      top: 16px;
+      right: 24px;
+      font-size: 28px;
+      opacity: 0.3;
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+    }
+
+    /* Main content */
+    .premium-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      color: white;
+      width: 100%;
+    }
+
+    .premium-badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      padding: 10px 24px;
+      border-radius: 50px;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      text-shadow: none;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      letter-spacing: 0.5px;
+    }
+
+    .benefits-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 20px 0;
+      text-align: left;
+      max-width: 320px;
+    }
+
+    .benefit-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.3;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .benefit-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .checkmark {
+      width: 20px;
+      height: 20px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 10px;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .checkmark::after {
+      content: '✓';
+      color: #14b8a6;
+      font-weight: 800;
+      font-size: 12px;
+    }
+
+    .benefit-text {
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Upgrade Button */
+    .upgrade-button {
+      background: white;
+      color: #14b8a6;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      padding: 14px 28px;
+      border: none;
+      border-radius: 14px;
+      margin-top: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      letter-spacing: -0.01em;
+      width: 100%;
+    }
+
+    .upgrade-button:hover {
+      background: #f8f9fa;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .upgrade-button::after {
+      content: '✨';
+      font-size: 14px;
+    }
+
+    /* Subtle sparkle animation */
+    .sparkle {
+      position: absolute;
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 10px;
+      animation: sparkle 3s ease-in-out infinite;
+    }
+
+    .sparkle:nth-child(1) { top: 12%; left: 12%; animation-delay: 0s; }
+    .sparkle:nth-child(2) { top: 20%; right: 15%; animation-delay: 1s; }
+    .sparkle:nth-child(3) { bottom: 15%; left: 15%; animation-delay: 2s; }
+    .sparkle:nth-child(4) { bottom: 25%; right: 12%; animation-delay: 0.5s; }
+
+    @keyframes sparkle {
+      0%, 100% { 
+        opacity: 0.3; 
+        transform: scale(1) rotate(0deg); 
+      }
+      50% { 
+        opacity: 1; 
+        transform: scale(1.2) rotate(180deg); 
+      }
+    }
+
+    /* Subtle gradient overlay for depth */
+    .gradient-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(
+        135deg, 
+        rgba(255, 255, 255, 0.1) 0%, 
+        transparent 30%, 
+        transparent 70%, 
+        rgba(0, 0, 0, 0.1) 100%
+      );
+      pointer-events: none;
     }
     
     .form-section {
@@ -1061,6 +1261,21 @@
     }
     
     /* Mobile Responsive */
+    @media (max-width: 1024px) {
+      .profile-content {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
+      }
+      
+      .premium-card {
+        width: 100%;
+        max-width: 600px;
+        height: auto;
+        min-height: 360px;
+        margin: 0 auto var(--spacing-lg);
+      }
+    }
+
     @media (max-width: 768px) {
       .container {
         padding: var(--spacing-lg);
@@ -1120,6 +1335,26 @@
       
       .usage-bar {
         max-width: none;
+      }
+
+      .premium-card {
+        height: auto;
+        min-height: 320px;
+        padding: 24px 20px;
+      }
+
+      .premium-badge {
+        font-size: 16px;
+        padding: 8px 20px;
+      }
+
+      .benefit-item {
+        font-size: 13px;
+      }
+
+      .upgrade-button {
+        font-size: 14px;
+        padding: 12px 24px;
       }
     }
 
@@ -1297,41 +1532,85 @@
     </div>
     
     <div id="profile" style="display: none;">
-      <div class="form-section">
-        <h2>Account Information</h2>
-        
-        <div class="profile-item" data-field="email">
-          <span class="label">Email:</span>
-          <span class="value" id="email">...</span>
-          <button class="edit-btn" onclick="enableEdit('email')">Edit</button>
-        </div>
-        
-        <div class="profile-item" data-field="plan">
-          <span class="label">Plan:</span>
-          <span class="value" id="plan">...</span>
-          <!-- No edit button for plan - will be replaced with upgrade/manage link later -->
-        </div>
-        
-        <div class="profile-item" data-field="usage">
-          <span class="label">Usage:</span>
-          <div class="value">
-            <div class="usage-display">
-              <span class="usage-text">
-                <span id="usage">...</span> / <span id="quota">...</span> messages
-              </span>
-              <div class="usage-bar">
-                <div class="usage-fill" id="usage-fill" style="width: 0%"></div>
+      <div class="profile-content">
+        <!-- Account Information -->
+        <div class="form-section">
+          <h2>Account Information</h2>
+          
+          <div class="profile-item" data-field="email">
+            <span class="label">Email:</span>
+            <span class="value" id="email">...</span>
+            <button class="edit-btn" onclick="enableEdit('email')">Edit</button>
+          </div>
+          
+          <div class="profile-item" data-field="plan">
+            <span class="label">Plan:</span>
+            <span class="value" id="plan">...</span>
+            <!-- No edit button for plan - will be replaced with upgrade/manage link later -->
+          </div>
+          
+          <div class="profile-item" data-field="usage">
+            <span class="label">Usage:</span>
+            <div class="value">
+              <div class="usage-display">
+                <span class="usage-text">
+                  <span id="usage">...</span> / <span id="quota">...</span> messages
+                </span>
+                <div class="usage-bar">
+                  <div class="usage-fill" id="usage-fill" style="width: 0%"></div>
+                </div>
               </div>
             </div>
           </div>
+          
+          <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center;">
+            <button id="logout-btn" class="btn" onclick="handleLogout()" style="background-color: #dc3545; color: white;">
+              🚪 Log out
+            </button>
+          </div>
         </div>
-        
-        <button id="upgrade-btn" onclick="handleUpgrade()">Upgrade to Pro</button>
-        
-        <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center;">
-          <button id="logout-btn" class="btn" onclick="handleLogout()" style="background-color: #dc3545; color: white;">
-            🚪 Log out
-          </button>
+
+        <!-- Premium Upgrade Card -->
+        <div class="premium-card">
+          <!-- Background sparkles -->
+          <div class="sparkle">✨</div>
+          <div class="sparkle">⭐</div>
+          <div class="sparkle">✨</div>
+          <div class="sparkle">⭐</div>
+          
+          <!-- Crown icon -->
+          <div class="crown-icon">👑</div>
+          
+          <!-- Gradient overlay -->
+          <div class="gradient-overlay"></div>
+          
+          <!-- Main content -->
+          <div class="premium-content">
+            <div class="premium-badge">PREMIUM</div>
+            
+            <ul class="benefits-list">
+              <li class="benefit-item">
+                <div class="checkmark"></div>
+                <div class="benefit-text">Unlimited Chat Messages</div>
+              </li>
+              <li class="benefit-item">
+                <div class="checkmark"></div>
+                <div class="benefit-text">Extensive Character Memory</div>
+              </li>
+              <li class="benefit-item">
+                <div class="checkmark"></div>
+                <div class="benefit-text">Early Access to New Features</div>
+              </li>
+              <li class="benefit-item">
+                <div class="checkmark"></div>
+                <div class="benefit-text">Early Access to New Characters</div>
+              </li>
+            </ul>
+            
+            <button class="upgrade-button" onclick="handleUpgrade()">
+              Upgrade to Narrin AI Premium
+            </button>
+          </div>
         </div>
       </div>
       
@@ -1751,8 +2030,6 @@
           btn.style.display = 'inline-block';
         }
       });
-      
-      document.getElementById('upgrade-btn').style.display = 'block';
     }
 
     // Fix 2: Enhanced loadProfile with better error handling for new users
