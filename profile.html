@@ -975,6 +975,45 @@
       font-size: 14px;
     }
 
+    /* Premium Active State */
+    .premium-active {
+      text-align: center;
+      width: 100%;
+    }
+
+    .premium-status-button {
+      background: rgba(255, 255, 255, 0.9);
+      color: #22c55e;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      padding: 14px 28px;
+      border-radius: 14px;
+      margin-bottom: 16px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      letter-spacing: -0.01em;
+      width: 100%;
+      border: 2px solid rgba(34, 197, 94, 0.3);
+    }
+
+    .downgrade-link {
+      color: var(--color-gray);
+      text-decoration: none;
+      font-size: var(--font-size-sm);
+      cursor: pointer;
+      transition: color var(--transition-base);
+      font-weight: 500;
+    }
+
+    .downgrade-link:hover {
+      color: var(--color-teal);
+      text-decoration: underline;
+    }
+
     /* Subtle sparkle animation */
     .sparkle {
       position: absolute;
@@ -1572,8 +1611,8 @@
             </div>
           </div>
           
-          <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center;">
-            <a href="#" id="logout-btn" onclick="handleLogout(); return false;" style="color: var(--color-gray); text-decoration: none; font-size: var(--font-size-sm); cursor: pointer;">
+          <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--color-light-gray); text-align: center;">
+            <a href="#" id="logout-btn" onclick="handleLogout(); return false;" style="color: var(--color-gray); text-decoration: none; font-size: var(--font-size-sm); cursor: pointer; transition: color var(--transition-base);" onmouseover="this.style.color='var(--color-teal)'" onmouseout="this.style.color='var(--color-gray)'">
               Log out
             </a>
           </div>
@@ -1616,9 +1655,17 @@
               </li>
             </ul>
             
-            <button class="upgrade-button" onclick="handleUpgrade()">
+            <button class="upgrade-button" id="upgradeButton" onclick="handleUpgrade()">
               Upgrade to Narrin AI Premium
             </button>
+            <div class="premium-active" id="premiumActive" style="display: none;">
+              <div class="premium-status-button">
+                ✓ Narrin AI Premium
+              </div>
+              <a href="#" class="downgrade-link" onclick="handleDowngrade(); return false;">
+                Downgrade to free plan and a maximum of 50 messages
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -2185,7 +2232,11 @@
         
         // Process the data with fallbacks
         setField('email', data.email || email);
-        setField('plan', data.plan || 'Free');
+        const userPlan = data.plan || 'Free';
+        setField('plan', userPlan);
+        
+        // Update premium card based on plan
+        updatePremiumCard(userPlan);
         
         if (data.usage !== undefined && data.quota !== undefined) {
           setField('usage', `${data.usage}`);
@@ -2544,6 +2595,84 @@
         });
       }
     });
+
+    // ===== PREMIUM CARD STATE MANAGEMENT =====
+    function updatePremiumCard(plan) {
+      const upgradeButton = document.getElementById('upgradeButton');
+      const premiumActive = document.getElementById('premiumActive');
+      
+      console.log('🎯 Updating premium card for plan:', plan);
+      
+      if (plan && (plan.toLowerCase() === 'premium' || plan.toLowerCase() === 'pro' || plan.toLowerCase() === 'paid')) {
+        // User has premium - show premium status
+        if (upgradeButton) upgradeButton.style.display = 'none';
+        if (premiumActive) premiumActive.style.display = 'block';
+        console.log('✅ Showing premium active state');
+      } else {
+        // User has free plan - show upgrade button
+        if (upgradeButton) upgradeButton.style.display = 'block';
+        if (premiumActive) premiumActive.style.display = 'none';
+        console.log('📦 Showing upgrade button');
+      }
+    }
+
+    // ===== DOWNGRADE FUNCTIONALITY =====
+    async function handleDowngrade() {
+      console.log('⬇️ Downgrade button clicked');
+      
+      if (!confirm('Are you sure you want to downgrade to the free plan? You will lose access to premium features and be limited to 50 messages.')) {
+        return;
+      }
+      
+      const email = localStorage.getItem('user_email');
+      const uid = localStorage.getItem('user_uid');
+      const token = localStorage.getItem('user_token');
+      
+      if (!email || !uid || !token) {
+        showError('You must be logged in to manage your subscription');
+        return;
+      }
+      
+      try {
+        showLoading();
+        
+        // Call webhook to handle downgrade
+        const payload = {
+          user_email: email,
+          user_uid: uid,
+          user_token: token,
+          action: 'downgrade_plan'
+        };
+        
+        console.log('📡 Sending downgrade request...');
+        
+        const resp = await fetch('https://hook.eu2.make.com/lya166veex7oo2wwo8mx4fuhlkssxlog', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        
+        if (!resp.ok) {
+          throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+        }
+        
+        const result = await resp.json();
+        console.log('✅ Downgrade response:', result);
+        
+        showSuccess('Successfully downgraded to free plan. You now have a limit of 50 messages.');
+        
+        // Reload profile to update UI
+        setTimeout(() => {
+          loadProfile();
+        }, 1000);
+        
+      } catch (error) {
+        console.error('❌ Error downgrading plan:', error);
+        showError(`Downgrade error: ${error.message}`);
+      } finally {
+        hideLoading();
+      }
+    }
   </script>
 </body>
 </html>
