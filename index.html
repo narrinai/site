@@ -1310,6 +1310,8 @@
     // ===== CONFIGURATION =====
     const CONFIG = {
       MAKE_WEBHOOK_URL: 'https://hook.eu2.make.com/kej7ez9bgc9g1ic7xh55dx13zsp1go1g',
+      // CHANGED: Maximum characters per category on homepage for faster loading
+      MAX_CHARACTERS_PER_CATEGORY: 10,
       CATEGORIES: [
         { id: 'historical', name: 'Historical', title: 'Historical Figures' },
         { id: 'fictional', name: 'Fiction', title: 'Fictional Characters' },
@@ -1540,15 +1542,15 @@
 
     // ===== CHARACTER LOADING FUNCTIONS =====
 
-    // FIXED: Enhanced load characters function - NO SAMPLE DATA FALLBACK
-    async function loadCharacters(category, gridId, limit = 5) {
+    // UPDATED: Load characters function with enforced 10 character limit
+    async function loadCharacters(category, gridId, limit = CONFIG.MAX_CHARACTERS_PER_CATEGORY) {
       const grid = document.getElementById(gridId);
       
-      console.log(`🚀 Loading characters from Make.com for category: ${category}`);
+      console.log(`🚀 Loading maximum ${limit} characters from Make.com for category: ${category}`);
       
       try {
         await loadCharactersFromMake(category, gridId, limit);
-        console.log(`✅ Successfully loaded ${category} from Make.com`);
+        console.log(`✅ Successfully loaded ${category} from Make.com (max ${limit} characters)`);
       } catch (error) {
         console.error(`❌ Make.com webhook failed for category ${category}:`, error);
         
@@ -1563,12 +1565,12 @@
       }
     }
 
-    // Load characters from Make.com with enhanced debugging
-    async function loadCharactersFromMake(category, gridId, limit = 5) {
+    // UPDATED: Load characters from Make.com with enforced limit
+    async function loadCharactersFromMake(category, gridId, limit = CONFIG.MAX_CHARACTERS_PER_CATEGORY) {
       const grid = document.getElementById(gridId);
       const url = `${CONFIG.MAKE_WEBHOOK_URL}?category=${encodeURIComponent(category)}&limit=${limit}`;
       
-      console.log('📡 Fetching from Make.com:', url);
+      console.log(`📡 Fetching from Make.com (max ${limit} characters):`, url);
       
       const response = await fetch(url);
       console.log('📊 Response status:', response.status, response.statusText);
@@ -1601,8 +1603,11 @@
       grid.innerHTML = '';
       
       if (data.records && data.records.length > 0) {
-        console.log(`📦 Processing ${data.records.length} records from Airtable format`);
-        data.records.forEach((record, index) => {
+        // ENFORCE LIMIT: Slice the records to maximum limit
+        const limitedRecords = data.records.slice(0, limit);
+        console.log(`📦 Processing ${limitedRecords.length} records from Airtable format (limited from ${data.records.length} total)`);
+        
+        limitedRecords.forEach((record, index) => {
           const fields = record.fields || record;
           console.log(`🔍 Record ${index + 1}:`, fields);
           
@@ -1617,8 +1622,11 @@
           grid.appendChild(card);
         });
       } else if (Array.isArray(data) && data.length > 0) {
-        console.log(`📦 Processing ${data.length} items from direct array format`);
-        data.forEach((character, index) => {
+        // ENFORCE LIMIT: Slice the array to maximum limit
+        const limitedData = data.slice(0, limit);
+        console.log(`📦 Processing ${limitedData.length} items from direct array format (limited from ${data.length} total)`);
+        
+        limitedData.forEach((character, index) => {
           console.log(`🔍 Character ${index + 1}:`, character);
           
           // DEBUG: Check if Avatar_URL exists
@@ -1643,7 +1651,7 @@
       }
     }
 
-    // FIXED: Character card creation - Focus on real Airtable avatars only
+    // Character card creation - Focus on real Airtable avatars only
     function createCharacterCard(character) {
       const card = document.createElement('a');
       card.className = 'character-card';
@@ -1677,8 +1685,6 @@
         console.log(`✅ Using direct Avatar_URL string for ${name}:`, avatarUrl);
       }
       
-      // REMOVED: All sample data and fallback avatar_url fields to prevent mixing
-      
       console.log(`🎯 Final avatar for ${name}:`, avatarUrl || 'NO AVATAR - WILL USE FALLBACK ICON');
       
       // Create card HTML - Only use real avatars or fallback icon
@@ -1710,14 +1716,18 @@
 
     // DEBUG: Function to check what gets loaded
     function debugLoadProcess() {
-      console.log('🔧 DEBUG: Checking what gets loaded...');
+      console.log(`🔧 DEBUG: Checking what gets loaded (max ${CONFIG.MAX_CHARACTERS_PER_CATEGORY} per category)...`);
       
       // Check grids after 3 seconds
       setTimeout(() => {
         CONFIG.CATEGORIES.forEach(category => {
           const grid = document.getElementById(`${category.id}-grid`);
           const cards = grid.querySelectorAll('.character-card');
-          console.log(`📊 ${category.id}: ${cards.length} cards loaded`);
+          console.log(`📊 ${category.id}: ${cards.length} cards loaded (max allowed: ${CONFIG.MAX_CHARACTERS_PER_CATEGORY})`);
+          
+          if (cards.length > CONFIG.MAX_CHARACTERS_PER_CATEGORY) {
+            console.warn(`⚠️ WARNING: ${category.id} has ${cards.length} cards, which exceeds the limit of ${CONFIG.MAX_CHARACTERS_PER_CATEGORY}!`);
+          }
           
           cards.forEach((card, index) => {
             const img = card.querySelector('img');
@@ -1736,10 +1746,10 @@
       }, 3000);
     }
 
-    // Initialize character grids
+    // UPDATED: Initialize character grids with enforced 10 character limit
     function initializeCharacterGrids() {
       CONFIG.CATEGORIES.forEach(category => {
-        loadCharacters(category.id, `${category.id}-grid`, 5);
+        loadCharacters(category.id, `${category.id}-grid`, CONFIG.MAX_CHARACTERS_PER_CATEGORY);
       });
     }
 
@@ -1804,14 +1814,14 @@
 
     // ===== INITIALIZATION =====
     document.addEventListener('DOMContentLoaded', () => {
-      console.log('🚀 Initializing Narrin AI...');
+      console.log(`🚀 Initializing Narrin AI with max ${CONFIG.MAX_CHARACTERS_PER_CATEGORY} characters per category...`);
       
       // Generate dynamic content
       generateCategoryButtons();
       generateTagButtons();
       generateCharacterSections();
       
-      // Load character data
+      // Load character data with enforced limit
       initializeCharacterGrids();
       
       // Debug what gets loaded
