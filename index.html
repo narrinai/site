@@ -794,7 +794,6 @@
       position: relative;
     }
 
-
     .category-btn {
       padding: var(--spacing-xs) var(--spacing-md);
       background: var(--gradient-primary);
@@ -971,6 +970,43 @@
       to { transform: rotate(360deg); }
     }
 
+    /* Error States */
+    .error-card {
+      padding: var(--spacing-lg);
+      text-align: center;
+      border-radius: var(--radius-md);
+      min-width: 280px;
+      flex-shrink: 0;
+    }
+
+    .error-card.webhook-error {
+      color: #e11d48;
+      background: #fef2f2;
+      border: 2px solid #fecaca;
+    }
+
+    .error-card.no-data {
+      color: #f59e0b;
+      background: #fffbeb;
+      border: 2px solid #fed7aa;
+    }
+
+    .error-icon {
+      font-size: 2rem;
+      margin-bottom: var(--spacing-xs);
+      display: block;
+    }
+
+    .error-title {
+      font-weight: 600;
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .error-message {
+      font-size: var(--font-size-sm);
+      opacity: 0.8;
+    }
+
     /* Create Character CTA */
     .create-character-cta {
       background: var(--gradient-primary);
@@ -1053,7 +1089,6 @@
       .tags-container {
         gap: var(--spacing-xs);
       }
-
 
       .character-card {
         min-width: 200px;
@@ -1235,86 +1270,29 @@
 
     <!-- Content -->
     <div class="content">
-      <!-- Category Navigation -->
+      <!-- Category Navigation - Dynamic Buttons -->
       <nav class="category-nav" aria-label="Browse by category">
         <div class="filters-container">
           <!-- Categories Section -->
           <div class="filter-section">
-            <div class="category-buttons">
-              <a href="category.html?cat=historical" class="category-btn">Historical</a>
-              <a href="category.html?cat=fictional" class="category-btn">Fiction</a>
-              <a href="category.html?cat=celebrity" class="category-btn">Celebrities</a>
-              <a href="category.html?cat=anime-manga" class="category-btn">Anime & Manga</a>
-              <a href="category.html?cat=gaming" class="category-btn">Gaming</a>
+            <div class="category-buttons" id="categoryButtons">
+              <!-- Dynamic category buttons will be inserted here -->
             </div>
           </div>
           
           <!-- Tags Section -->
           <div class="filter-section">
-            <div class="tags-container">
-              <a href="category.html?tag=wise" class="tag-btn">Wise</a>
-              <a href="category.html?tag=funny" class="tag-btn">Funny</a>
-              <a href="category.html?tag=helpful" class="tag-btn">Helpful</a>
-              <a href="category.html?tag=mysterious" class="tag-btn">Mysterious</a>
-              <a href="category.html?tag=leader" class="tag-btn">Leader</a>
-              <a href="category.html?tag=creative" class="tag-btn">Creative</a>
-              <a href="category.html?tag=romantic" class="tag-btn">Romantic</a>
-              <a href="category.html?tag=adventure" class="tag-btn">Adventure</a>
+            <div class="tags-container" id="tagsContainer">
+              <!-- Dynamic tag buttons will be inserted here -->
             </div>
           </div>
         </div>
       </nav>
 
-      <!-- Character Sections -->
-      <section class="character-section" aria-labelledby="historical-title">
-        <div class="section-header">
-          <h2 class="section-title" id="historical-title">Historical Figures</h2>
-          <a href="category.html?cat=historical" class="view-all">View all →</a>
-        </div>
-        <div class="character-grid" id="historical-grid">
-          <div class="loading" aria-label="Loading characters"></div>
-        </div>
-      </section>
-
-      <section class="character-section" aria-labelledby="fictional-title">
-        <div class="section-header">
-          <h2 class="section-title" id="fictional-title">Fictional Characters</h2>
-          <a href="category.html?cat=fictional" class="view-all">View all →</a>
-        </div>
-        <div class="character-grid" id="fictional-grid">
-          <div class="loading" aria-label="Loading characters"></div>
-        </div>
-      </section>
-
-      <section class="character-section" aria-labelledby="celebrity-title">
-        <div class="section-header">
-          <h2 class="section-title" id="celebrity-title">Celebrities</h2>
-          <a href="category.html?cat=celebrity" class="view-all">View all →</a>
-        </div>
-        <div class="character-grid" id="celebrity-grid">
-          <div class="loading" aria-label="Loading characters"></div>
-        </div>
-      </section>
-
-      <section class="character-section" aria-labelledby="anime-title">
-        <div class="section-header">
-          <h2 class="section-title" id="anime-title">Anime & Manga</h2>
-          <a href="category.html?cat=anime-manga" class="view-all">View all →</a>
-        </div>
-        <div class="character-grid" id="anime-grid">
-          <div class="loading" aria-label="Loading characters"></div>
-        </div>
-      </section>
-
-      <section class="character-section" aria-labelledby="gaming-title">
-        <div class="section-header">
-          <h2 class="section-title" id="gaming-title">Gaming Characters</h2>
-          <a href="category.html?cat=gaming" class="view-all">View all →</a>
-        </div>
-        <div class="character-grid" id="gaming-grid">
-          <div class="loading" aria-label="Loading characters"></div>
-        </div>
-      </section>
+      <!-- Character Sections - Will be dynamically populated -->
+      <div id="characterSections">
+        <!-- Dynamic character sections will be inserted here -->
+      </div>
 
       <!-- Create Character CTA -->
       <section class="create-character-cta">
@@ -1329,6 +1307,26 @@
   </main>
 
   <script>
+    // ===== CONFIGURATION =====
+    const CONFIG = {
+      MAKE_WEBHOOK_URL: 'https://hook.eu2.make.com/kej7ez9bgc9tic7',
+      CATEGORIES: [
+        { id: 'historical', name: 'Historical', title: 'Historical Figures' },
+        { id: 'fictional', name: 'Fiction', title: 'Fictional Characters' },
+        { id: 'celebrity', name: 'Celebrities', title: 'Celebrities' },
+        { id: 'anime-manga', name: 'Anime & Manga', title: 'Anime & Manga' },
+        { id: 'gaming', name: 'Gaming', title: 'Gaming Characters' },
+        { id: 'movies-tv', name: 'Movies & TV', title: 'Movies & TV' },
+        { id: 'books', name: 'Books', title: 'Book Characters' },
+        { id: 'mythology', name: 'Mythology', title: 'Mythological Figures' }
+      ],
+      TAGS: [
+        'wise', 'funny', 'helpful', 'mysterious', 'leader', 
+        'creative', 'romantic', 'adventure', 'teacher', 'mentor',
+        'villain', 'hero', 'scientist', 'artist', 'warrior'
+      ]
+    };
+
     // ===== NAVIGATION FUNCTIONALITY =====
     
     // Mobile Search Elements
@@ -1353,9 +1351,7 @@
         mobileSearchOverlay.classList.remove('active');
         mobileSearchBtn.setAttribute('aria-expanded', 'false');
       } else {
-        // Close mobile menu if open
         closeMobileMenu();
-        
         mobileSearchOverlay.classList.add('active');
         mobileSearchBtn.setAttribute('aria-expanded', 'true');
         mobileSearchInput.focus();
@@ -1376,7 +1372,6 @@
     }
 
     function openMobileMenu() {
-      // Close search overlay if open
       if (mobileSearchOverlay.classList.contains('active')) {
         mobileSearchOverlay.classList.remove('active');
         mobileSearchBtn.setAttribute('aria-expanded', 'false');
@@ -1385,8 +1380,6 @@
       mobileMenuOverlay.classList.add('active');
       mobileMenuBtn.classList.add('active');
       mobileMenuBtn.setAttribute('aria-expanded', 'true');
-      
-      // Prevent body scroll
       document.body.style.overflow = 'hidden';
     }
 
@@ -1394,28 +1387,22 @@
       mobileMenuOverlay.classList.remove('active');
       mobileMenuBtn.classList.remove('active');
       mobileMenuBtn.setAttribute('aria-expanded', 'false');
-      
-      // Restore body scroll
       document.body.style.overflow = '';
     }
 
     mobileMenuBtn?.addEventListener('click', toggleMobileMenu);
 
-    // Close menu when clicking on overlay background
     mobileMenuOverlay?.addEventListener('click', (e) => {
       if (e.target === mobileMenuOverlay) {
         closeMobileMenu();
       }
     });
 
-    // Close menu when clicking on a menu item
     document.querySelectorAll('.mobile-menu-link').forEach(link => {
       link.addEventListener('click', closeMobileMenu);
     });
 
-    // Close search and menu on outside click
     document.addEventListener('click', (e) => {
-      // Close search overlay
       if (!mobileSearchOverlay?.contains(e.target) &&
           !mobileSearchBtn?.contains(e.target) &&
           mobileSearchOverlay?.classList.contains('active')) {
@@ -1424,7 +1411,6 @@
       }
     });
 
-    // Close menu on escape key
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         if (mobileMenuOverlay.classList.contains('active')) {
@@ -1454,7 +1440,6 @@
       }
     }
 
-    // Handle responsive behavior
     function handleResize() {
       if (window.innerWidth > 768) {
         stopUspCarousel();
@@ -1473,12 +1458,10 @@
       }
     }
 
-    // Initialize on load
     window.addEventListener('load', () => {
       handleResize();
     });
 
-    // Handle window resize
     let resizeTimer;
     window.addEventListener('resize', () => {
       clearTimeout(resizeTimer);
@@ -1501,192 +1484,89 @@
       lastScroll = currentScroll;
     });
 
-    // ===== CHARACTER DATA =====
-    const MAKE_WEBHOOK_URL = 'https://hook.eu2.make.com/kej7ez9bgc9tic7';
+    // ===== DYNAMIC CONTENT GENERATION =====
 
-    // Updated sample data with working avatars
-    const sampleCharacters = {
-      historical: [
-        { 
-          name: "Napoleon Bonaparte", 
-          title: "French Emperor", 
-          avatar_url: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=napoleon-bonaparte"
-        },
-        { 
-          name: "Cleopatra VII", 
-          title: "Queen of Egypt", 
-          avatar_url: "https://images.unsplash.com/photo-1494790108755-2616c179a6c8?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=cleopatra-vii"
-        },
-        {
-          name: "Leonardo da Vinci",
-          title: "Renaissance Genius",
-          avatar_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=leonardo-da-vinci"
-        },
-        {
-          name: "Albert Einstein",
-          title: "Physicist",
-          avatar_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=albert-einstein"
-        },
-        {
-          name: "Marie Curie",
-          title: "Scientist",
-          avatar_url: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=marie-curie"
-        }
-      ],
-      fictional: [
-        {
-          name: "Sherlock Holmes",
-          title: "Detective",
-          avatar_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=sherlock-holmes"
-        },
-        {
-          name: "Gandalf the Grey",
-          title: "Wizard",
-          avatar_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=gandalf-the-grey"
-        },
-        {
-          name: "Hermione Granger",
-          title: "Witch",
-          avatar_url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=hermione-granger"
-        },
-        {
-          name: "Tyrion Lannister",
-          title: "The Imp",
-          avatar_url: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=tyrion-lannister"
-        },
-        {
-          name: "Yoda",
-          title: "Jedi Master",
-          avatar_url: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=yoda"
-        }
-      ],
-      celebrity: [
-        {
-          name: "Elon Musk",
-          title: "Tech Entrepreneur",
-          avatar_url: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=elon-musk"
-        },
-        {
-          name: "Oprah Winfrey",
-          title: "Media Mogul",
-          avatar_url: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=oprah-winfrey"
-        },
-        {
-          name: "Gordon Ramsay",
-          title: "Chef",
-          avatar_url: "https://images.unsplash.com/photo-1566492031773-4f4e44671d66?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=gordon-ramsay"
-        },
-        {
-          name: "Steve Jobs",
-          title: "Apple Founder",
-          avatar_url: "https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=steve-jobs"
-        },
-        {
-          name: "Taylor Swift",
-          title: "Singer",
-          avatar_url: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=taylor-swift"
-        }
-      ],
-      "anime-manga": [
-        {
-          name: "Naruto Uzumaki",
-          title: "Ninja Hero",
-          avatar_url: "https://images.unsplash.com/photo-1539571696557-407d9c4de938?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=naruto-uzumaki"
-        },
-        {
-          name: "Goku",
-          title: "Saiyan Warrior",
-          avatar_url: "https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=goku"
-        },
-        {
-          name: "Sailor Moon",
-          title: "Magical Girl",
-          avatar_url: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=sailor-moon"
-        },
-        {
-          name: "Light Yagami",
-          title: "Death Note",
-          avatar_url: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=light-yagami"
-        },
-        {
-          name: "Edward Elric",
-          title: "Alchemist",
-          avatar_url: "https://images.unsplash.com/photo-1628157588553-5eeea00af15c?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=edward-elric"
-        }
-      ],
-      gaming: [
-        {
-          name: "Master Chief",
-          title: "Spartan",
-          avatar_url: "https://images.unsplash.com/photo-1564564321837-a57b7070ac4f?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=master-chief"
-        },
-        {
-          name: "Kratos",
-          title: "God of War",
-          avatar_url: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=kratos"
-        },
-        {
-          name: "Lara Croft",
-          title: "Tomb Raider",
-          avatar_url: "https://images.unsplash.com/photo-1494790108755-2616c179a6c8?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=lara-croft"
-        },
-        {
-          name: "Mario",
-          title: "Plumber",
-          avatar_url: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=mario"
-        },
-        {
-          name: "Geralt of Rivia",
-          title: "Witcher",
-          avatar_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=160&h=160&fit=crop&crop=face",
-          character_url: "chat.html?char=geralt-of-rivia"
-        }
-      ]
-    };
+    // Generate category buttons
+    function generateCategoryButtons() {
+      const categoryButtons = document.getElementById('categoryButtons');
+      categoryButtons.innerHTML = '';
 
-    // Enhanced load characters function with better error handling
+      CONFIG.CATEGORIES.forEach(category => {
+        const button = document.createElement('a');
+        button.href = `category.html?cat=${category.id}`;
+        button.className = 'category-btn';
+        button.textContent = category.name;
+        categoryButtons.appendChild(button);
+      });
+    }
+
+    // Generate tag buttons
+    function generateTagButtons() {
+      const tagsContainer = document.getElementById('tagsContainer');
+      tagsContainer.innerHTML = '';
+
+      CONFIG.TAGS.forEach(tag => {
+        const button = document.createElement('a');
+        button.href = `category.html?tag=${tag}`;
+        button.className = 'tag-btn';
+        button.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
+        tagsContainer.appendChild(button);
+      });
+    }
+
+    // Generate character sections
+    function generateCharacterSections() {
+      const sectionsContainer = document.getElementById('characterSections');
+      sectionsContainer.innerHTML = '';
+
+      CONFIG.CATEGORIES.forEach(category => {
+        const section = document.createElement('section');
+        section.className = 'character-section';
+        section.setAttribute('aria-labelledby', `${category.id}-title`);
+
+        section.innerHTML = `
+          <div class="section-header">
+            <h2 class="section-title" id="${category.id}-title">${category.title}</h2>
+            <a href="category.html?cat=${category.id}" class="view-all">View all →</a>
+          </div>
+          <div class="character-grid" id="${category.id}-grid">
+            <div class="loading" aria-label="Loading characters"></div>
+          </div>
+        `;
+
+        sectionsContainer.appendChild(section);
+      });
+    }
+
+    // ===== CHARACTER LOADING FUNCTIONS =====
+
+    // FIXED: Enhanced load characters function - NO SAMPLE DATA FALLBACK
     async function loadCharacters(category, gridId, limit = 5) {
       const grid = document.getElementById(gridId);
       
+      console.log(`🚀 Loading characters from Make.com for category: ${category}`);
+      
       try {
-        console.log(`🚀 Loading characters from Make.com for category: ${category}`);
         await loadCharactersFromMake(category, gridId, limit);
-        return;
+        console.log(`✅ Successfully loaded ${category} from Make.com`);
       } catch (error) {
         console.error(`❌ Make.com webhook failed for category ${category}:`, error);
-        console.log('🔄 Falling back to sample data');
-        loadSampleCharacters(category, gridId, limit);
+        
+        // SHOW ERROR - NO SAMPLE DATA FALLBACK
+        grid.innerHTML = `
+          <div class="error-card webhook-error">
+            <span class="error-icon">⚠️</span>
+            <div class="error-title">Failed to load ${category}</div>
+            <div class="error-message">Webhook error: ${error.message}</div>
+          </div>
+        `;
       }
     }
 
     // Load characters from Make.com with enhanced debugging
     async function loadCharactersFromMake(category, gridId, limit = 5) {
       const grid = document.getElementById(gridId);
-      const url = `${MAKE_WEBHOOK_URL}?category=${encodeURIComponent(category)}&limit=${limit}`;
+      const url = `${CONFIG.MAKE_WEBHOOK_URL}?category=${encodeURIComponent(category)}&limit=${limit}`;
       
       console.log('📡 Fetching from Make.com:', url);
       
@@ -1698,21 +1578,24 @@
       }
       
       const rawText = await response.text();
-      console.log('📋 Raw response text:', rawText);
+      console.log('📋 Raw response text (first 500 chars):', rawText.substring(0, 500));
       
       let data;
       try {
         data = JSON.parse(rawText);
       } catch (parseError) {
         console.error('❌ JSON parse error:', parseError);
-        throw new Error('Invalid JSON response');
+        console.error('❌ Raw response that failed to parse:', rawText);
+        throw new Error('Invalid JSON response from Make.com');
       }
       
       console.log('✅ Parsed Make.com response:', data);
       
-      // Temporary debugging - add this line to see first record structure
+      // Debugging - show first record structure
       if (data.records && data.records.length > 0) {
         console.log('🔧 First record structure:', JSON.stringify(data.records[0], null, 2));
+      } else if (Array.isArray(data) && data.length > 0) {
+        console.log('🔧 First item structure:', JSON.stringify(data[0], null, 2));
       }
       
       grid.innerHTML = '';
@@ -1722,6 +1605,14 @@
         data.records.forEach((record, index) => {
           const fields = record.fields || record;
           console.log(`🔍 Record ${index + 1}:`, fields);
+          
+          // DEBUG: Check if Avatar_URL exists
+          if (fields.Avatar_URL) {
+            console.log(`🖼️ Avatar_URL found for ${fields.Name || fields.name}:`, fields.Avatar_URL);
+          } else {
+            console.log(`⚠️ No Avatar_URL found for ${fields.Name || fields.name}`);
+          }
+          
           const card = createCharacterCard(fields);
           grid.appendChild(card);
         });
@@ -1729,298 +1620,133 @@
         console.log(`📦 Processing ${data.length} items from direct array format`);
         data.forEach((character, index) => {
           console.log(`🔍 Character ${index + 1}:`, character);
+          
+          // DEBUG: Check if Avatar_URL exists
+          if (character.Avatar_URL || character.avatar_url) {
+            console.log(`🖼️ Avatar URL found for ${character.Name || character.name}:`, character.Avatar_URL || character.avatar_url);
+          } else {
+            console.log(`⚠️ No Avatar URL found for ${character.Name || character.name}`);
+          }
+          
           const card = createCharacterCard(character);
           grid.appendChild(card);
         });
       } else {
         console.warn('⚠️ No usable data found in Make.com response');
-        throw new Error('No usable data returned from Make.com');
+        grid.innerHTML = `
+          <div class="error-card no-data">
+            <span class="error-icon">📭</span>
+            <div class="error-title">No ${category} characters found</div>
+            <div class="error-message">Check your Airtable data</div>
+          </div>
+        `;
       }
     }
 
-    // Load sample characters (fallback data)
-    function loadSampleCharacters(category, gridId, limit = 5) {
-      const grid = document.getElementById(gridId);
-      const characters = sampleCharacters[category] || [];
-      
-      console.log(`📦 Loading ${characters.length} sample characters for category: ${category}`);
-      
-      grid.innerHTML = '';
-      
-      characters.slice(0, limit).forEach((character, index) => {
-        console.log(`🔍 Sample character ${index + 1}:`, character);
-        const card = createCharacterCard(character);
-        grid.appendChild(card);
-      });
-      
-      console.log(`✅ Successfully loaded ${Math.min(characters.length, limit)} sample characters`);
-    }
-
-    // FIXED: Create character card with proper Airtable avatar handling
+    // FIXED: Character card creation - Focus on real Airtable avatars only
     function createCharacterCard(character) {
       const card = document.createElement('a');
       card.className = 'character-card';
       
-      // Priority order for URL: character_url from Airtable, or generate fallback URL
+      // URL handling
       let characterUrl = character.character_url || character.Character_URL;
-      
-      // If no URL from Airtable, generate fallback URL with correct structure
       if (!characterUrl) {
         const charSlug = (character.name || character.Name || 'unknown').toLowerCase().replace(/\s+/g, '-');
         characterUrl = `chat.html?char=${charSlug}`;
       }
-      
       card.href = characterUrl;
       
-      // Handle avatar URL extraction specifically for Airtable structure
-      let avatarUrl = null;
+      // Get basic data
       const name = character.name || character.Name || 'Unknown';
+      const title = character.title || character.Character_Title || character.description || character.Description || '';
       
-      console.log('🔍 Processing character:', name);
-      console.log('📋 Full character data:', JSON.stringify(character, null, 2));
+      // FOCUS ON AIRTABLE AVATAR_URL FIELD ONLY
+      let avatarUrl = null;
       
-      // Method 1: Airtable attachment field format - Avatar_URL as array with URL objects
+      // Method 1: Airtable attachment field (most likely for your setup)
       if (character.Avatar_URL && Array.isArray(character.Avatar_URL) && character.Avatar_URL.length > 0) {
-        // Check if it's an array of URL objects (Airtable attachment format)
-        if (character.Avatar_URL[0] && typeof character.Avatar_URL[0] === 'object' && character.Avatar_URL[0].url) {
+        if (character.Avatar_URL[0] && character.Avatar_URL[0].url) {
           avatarUrl = character.Avatar_URL[0].url;
-          console.log('✅ Found Avatar_URL (Airtable attachment format):', avatarUrl);
-        }
-        // Check if it's an array of direct URLs
-        else if (typeof character.Avatar_URL[0] === 'string' && character.Avatar_URL[0].startsWith('http')) {
-          avatarUrl = character.Avatar_URL[0];
-          console.log('✅ Found Avatar_URL (direct URL array):', avatarUrl);
+          console.log(`✅ Using Airtable Avatar_URL attachment for ${name}:`, avatarUrl);
         }
       }
       
-      // Method 2: Check if Avatar_URL is a direct string (in case Make.com flattens it)
+      // Method 2: Direct string Avatar_URL (if Make.com flattens it)
       if (!avatarUrl && character.Avatar_URL && typeof character.Avatar_URL === 'string' && character.Avatar_URL.startsWith('http')) {
         avatarUrl = character.Avatar_URL;
-        console.log('✅ Found Avatar_URL (direct string):', avatarUrl);
+        console.log(`✅ Using direct Avatar_URL string for ${name}:`, avatarUrl);
       }
       
-      // Method 3: Check other possible Airtable attachment fields
-      if (!avatarUrl) {
-        const attachmentFields = ['Avatar', 'avatar', 'Picture', 'picture', 'Image', 'image', 'Photo', 'photo'];
-        
-        for (const field of attachmentFields) {
-          if (character[field] && Array.isArray(character[field]) && character[field].length > 0) {
-            if (character[field][0] && character[field][0].url) {
-              avatarUrl = character[field][0].url;
-              console.log(`✅ Found ${field} (Airtable attachment format):`, avatarUrl);
-              break;
-            }
-          }
-          // Also check if it's a direct string
-          if (character[field] && typeof character[field] === 'string' && character[field].startsWith('http')) {
-            avatarUrl = character[field];
-            console.log(`✅ Found ${field} (direct string):`, avatarUrl);
-            break;
-          }
-        }
-      }
+      // REMOVED: All sample data and fallback avatar_url fields to prevent mixing
       
-      // Method 4: Direct URL fields (for backwards compatibility)
-      if (!avatarUrl) {
-        const urlFields = [
-          'avatar_url', 'avatarUrl', 'AvatarURL',
-          'image_url', 'Image_URL', 'imageUrl', 'ImageURL', 
-          'picture_url', 'Picture_URL', 'pictureUrl', 'PictureURL',
-          'photo_url', 'Photo_URL', 'photoUrl', 'PhotoURL',
-          'url', 'URL', 'src', 'Src'
-        ];
-        
-        for (const field of urlFields) {
-          if (character[field] && typeof character[field] === 'string' && character[field].startsWith('http')) {
-            avatarUrl = character[field];
-            console.log(`✅ Found direct URL field (${field}):`, avatarUrl);
-            break;
-          }
-        }
-      }
+      console.log(`🎯 Final avatar for ${name}:`, avatarUrl || 'NO AVATAR - WILL USE FALLBACK ICON');
       
-      // Method 5: Check nested objects (for complex API responses)
-      if (!avatarUrl) {
-        const nestedFields = ['fields', 'data', 'attributes'];
-        for (const nested of nestedFields) {
-          if (character[nested] && typeof character[nested] === 'object') {
-            const nestedResult = extractAvatarFromObject(character[nested]);
-            if (nestedResult) {
-              avatarUrl = nestedResult;
-              console.log(`✅ Found nested avatar in ${nested}:`, avatarUrl);
-              break;
-            }
-          }
-        }
-      }
-      
-      // Get character title/description
-      const title = character.title || character.Character_Title || character.character_title || character.Character_title || character.description || character.Description || '';
-      
-      console.log('🎯 Final result for', name, '- Avatar URL:', avatarUrl || 'None');
-      
-      // Create avatar content with proper fallback
-      let avatarContent;
-      if (avatarUrl) {
-        avatarContent = `
-          <img src="${avatarUrl}" 
-               alt="${name}" 
-               loading="lazy" 
-               onerror="console.error('❌ Image load failed for ${name}:', '${avatarUrl}'); this.style.display='none'; this.parentElement.querySelector('.avatar-fallback').style.display='flex';" 
-               style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
-          <div class="avatar-fallback" style="display: none; color: var(--color-gray-light); font-size: 4rem;">👤</div>
+      // Create card HTML - Only use real avatars or fallback icon
+      if (avatarUrl && avatarUrl.startsWith('http')) {
+        card.innerHTML = `
+          <div class="character-avatar">
+            <img src="${avatarUrl}" 
+                 alt="${name}" 
+                 style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;"
+                 onload="console.log('✅ Real Airtable avatar loaded for ${name}');"
+                 onerror="console.error('❌ Real avatar failed for ${name}:', '${avatarUrl}'); this.style.display='none'; this.parentNode.innerHTML='<div style=\\"display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 4rem; color: #94a3b8;\\">👤</div>';">
+          </div>
+          <div class="character-name">${name}</div>
+          <div class="character-title">${title}</div>
         `;
       } else {
-        avatarContent = `<div class="avatar-fallback" style="color: var(--color-gray-light); font-size: 4rem;">👤</div>`;
+        card.innerHTML = `
+          <div class="character-avatar">
+            <div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 4rem; color: #94a3b8;">👤</div>
+          </div>
+          <div class="character-name">${name}</div>
+          <div class="character-title">${title}</div>
+        `;
+        console.log(`⚠️ No valid Airtable avatar URL found for ${name}, using fallback icon`);
       }
-      
-      card.innerHTML = `
-        <div class="character-avatar">
-          ${avatarContent}
-        </div>
-        <div class="character-name">${name}</div>
-        <div class="character-title">${title}</div>
-      `;
       
       return card;
     }
 
-    // Helper function to extract avatar from nested objects - Updated for Airtable
-    function extractAvatarFromObject(obj) {
-      // Check for Avatar_URL first (your Airtable structure)
-      if (obj.Avatar_URL && Array.isArray(obj.Avatar_URL) && obj.Avatar_URL.length > 0) {
-        if (obj.Avatar_URL[0] && typeof obj.Avatar_URL[0] === 'object' && obj.Avatar_URL[0].url) {
-          return obj.Avatar_URL[0].url;
-        }
-        if (typeof obj.Avatar_URL[0] === 'string' && obj.Avatar_URL[0].startsWith('http')) {
-          return obj.Avatar_URL[0];
-        }
-      }
+    // DEBUG: Function to check what gets loaded
+    function debugLoadProcess() {
+      console.log('🔧 DEBUG: Checking what gets loaded...');
       
-      // Check if Avatar_URL is a direct string
-      if (obj.Avatar_URL && typeof obj.Avatar_URL === 'string' && obj.Avatar_URL.startsWith('http')) {
-        return obj.Avatar_URL;
-      }
-      
-      // Check for other attachment fields
-      const avatarFields = ['Avatar', 'avatar', 'Picture', 'picture', 'Image', 'image', 'Photo', 'photo'];
-      for (const field of avatarFields) {
-        if (obj[field] && Array.isArray(obj[field]) && obj[field].length > 0 && obj[field][0].url) {
-          return obj[field][0].url;
-        }
-        // Also check direct string
-        if (obj[field] && typeof obj[field] === 'string' && obj[field].startsWith('http')) {
-          return obj[field];
-        }
-      }
-      
-      // Check for direct URL fields
-      const urlFields = ['Avatar_URL', 'avatar_url', 'image_url', 'Image_URL', 'picture_url', 'Picture_URL', 'url', 'URL'];
-      for (const field of urlFields) {
-        if (obj[field] && typeof obj[field] === 'string' && obj[field].startsWith('http')) {
-          return obj[field];
-        }
-      }
-      
-      return null;
-    }
-
-    // Additional debugging function to help identify the exact structure
-    function debugCharacterData(character) {
-      console.log('🔧 DEBUGGING CHARACTER DATA:');
-      console.log('Raw character object:', character);
-      
-      // Check all properties that might contain URLs
-      Object.keys(character).forEach(key => {
-        const value = character[key];
-        console.log(`Property "${key}":`, typeof value, value);
-        
-        // If it's an array, log its contents
-        if (Array.isArray(value)) {
-          console.log(`  Array contents for ${key}:`, value);
-          value.forEach((item, index) => {
-            console.log(`    [${index}]:`, typeof item, item);
-            if (typeof item === 'object' && item !== null) {
-              Object.keys(item).forEach(subKey => {
-                console.log(`      ${subKey}:`, item[subKey]);
-              });
+      // Check grids after 3 seconds
+      setTimeout(() => {
+        CONFIG.CATEGORIES.forEach(category => {
+          const grid = document.getElementById(`${category.id}-grid`);
+          const cards = grid.querySelectorAll('.character-card');
+          console.log(`📊 ${category.id}: ${cards.length} cards loaded`);
+          
+          cards.forEach((card, index) => {
+            const img = card.querySelector('img');
+            if (img) {
+              console.log(`  Card ${index + 1}: ${img.src}`);
+              if (img.src.includes('unsplash.com') || img.src.includes('images.unsplash.com')) {
+                console.error(`  ❌❌❌ SAMPLE DATA DETECTED: ${img.src}`);
+              } else {
+                console.log(`  ✅ Real avatar: ${img.src}`);
+              }
+            } else {
+              console.log(`  Card ${index + 1}: No image (using fallback icon)`);
             }
           });
-        }
-        
-        // If it's an object, log its properties
-        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-          console.log(`  Object properties for ${key}:`);
-          Object.keys(value).forEach(subKey => {
-            console.log(`    ${subKey}:`, value[subKey]);
-          });
-        }
-      });
+        });
+      }, 3000);
     }
 
     // Initialize character grids
     function initializeCharacterGrids() {
-      loadCharacters('historical', 'historical-grid', 5);
-      loadCharacters('fictional', 'fictional-grid', 5);
-      loadCharacters('celebrity', 'celebrity-grid', 5);
-      loadCharacters('anime-manga', 'anime-grid', 5);
-      loadCharacters('gaming', 'gaming-grid', 5);
-    }
-
-    // Initialize on DOM content loaded
-    document.addEventListener('DOMContentLoaded', () => {
-      initializeCharacterGrids();
-      
-      // Initialize scroll indicators for category/tag containers
-      initializeScrollIndicators();
-    });
-
-    // Scroll indicator functionality
-    function initializeScrollIndicators() {
-      const scrollContainers = document.querySelectorAll('.category-buttons, .tags-container');
-      
-      scrollContainers.forEach(container => {
-        const parent = container.parentElement;
-        
-        // Check scroll position and update indicators
-        function updateScrollIndicators() {
-          const scrollLeft = container.scrollLeft;
-          const scrollWidth = container.scrollWidth;
-          const clientWidth = container.clientWidth;
-          
-          // Has content to scroll left
-          if (scrollLeft > 10) {
-            parent.classList.add('has-scroll-start');
-          } else {
-            parent.classList.remove('has-scroll-start');
-          }
-          
-          // Has content to scroll right
-          if (scrollLeft < scrollWidth - clientWidth - 10) {
-            parent.classList.add('has-scroll-end');
-          } else {
-            parent.classList.remove('has-scroll-end');
-          }
-        }
-        
-        // Initial check
-        updateScrollIndicators();
-        
-        // Update on scroll
-        container.addEventListener('scroll', updateScrollIndicators);
-        
-        // Update on resize
-        window.addEventListener('resize', updateScrollIndicators);
+      CONFIG.CATEGORIES.forEach(category => {
+        loadCharacters(category.id, `${category.id}-grid`, 5);
       });
     }
 
     // ===== SEARCH FUNCTIONALITY =====
     function handleSearch(searchTerm) {
-      const query = searchTerm.trim();
-      if (query) {
-        console.log('Redirecting to search results for:', query);
-        window.location.href = `search-results.html?q=${encodeURIComponent(query)}`;
-      }
+      console.log('Search term:', searchTerm);
+      // Implement search functionality here
     }
 
     // Desktop search
@@ -2075,6 +1801,24 @@
       });
       window.netlifyIdentity.on('logout', updateLoginButton);
     }
+
+    // ===== INITIALIZATION =====
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('🚀 Initializing Narrin AI...');
+      
+      // Generate dynamic content
+      generateCategoryButtons();
+      generateTagButtons();
+      generateCharacterSections();
+      
+      // Load character data
+      initializeCharacterGrids();
+      
+      // Debug what gets loaded
+      debugLoadProcess();
+      
+      console.log('✅ Initialization complete');
+    });
   </script>
 </body>
 </html>
