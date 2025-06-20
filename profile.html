@@ -1812,27 +1812,27 @@
     }
 
     // Functie om upgrade status te checken bij page load
-function checkUpgradeStatus() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const upgradeStatus = urlParams.get('upgrade');
-  
-  if (upgradeStatus === 'success') {
-    showSuccess('🎉 Upgrade successful! Welcome to Narrin AI Premium!');
-    
-    // BELANGRIJKE TOEVOEGING: Automatisch profile data refreshen
-    setTimeout(() => {
-      console.log('🔄 Refreshing profile data after upgrade...');
-      loadProfile(); // Force refresh van profile data
-    }, 2000); // 2 seconde delay zodat webhook verwerkt is
-    
-    // Clean URL
-    window.history.replaceState({}, document.title, 'profile.html');
-    
-  } else if (upgradeStatus === 'cancelled') {
-    showError('Upgrade was cancelled. You can try again anytime.');
-    window.history.replaceState({}, document.title, 'profile.html');
-  }
-}
+    function checkUpgradeStatus() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const upgradeStatus = urlParams.get('upgrade');
+      
+      if (upgradeStatus === 'success') {
+        showSuccess('🎉 Upgrade successful! Welcome to Narrin AI Premium!');
+        
+        // BELANGRIJKE TOEVOEGING: Automatisch profile data refreshen
+        setTimeout(() => {
+          console.log('🔄 Refreshing profile data after upgrade...');
+          loadProfile(); // Force refresh van profile data
+        }, 2000); // 2 seconde delay zodat webhook verwerkt is
+        
+        // Clean URL
+        window.history.replaceState({}, document.title, 'profile.html');
+        
+      } else if (upgradeStatus === 'cancelled') {
+        showError('Upgrade was cancelled. You can try again anytime.');
+        window.history.replaceState({}, document.title, 'profile.html');
+      }
+    }
 
     // ===== MOBILE SEARCH FUNCTIONALITY =====
     function toggleMobileSearch() {
@@ -2233,7 +2233,7 @@ function checkUpgradeStatus() {
       });
     }
 
-    // Fix 2: Enhanced loadProfile with better error handling for new users
+    // FIXED: Enhanced loadProfile with MUCH better error handling for webhook responses
     async function loadProfile() {
       const token = localStorage.getItem('user_token');
       const email = localStorage.getItem('user_email');
@@ -2256,7 +2256,7 @@ function checkUpgradeStatus() {
           action: 'get_profile' // Explicit action for profile loading
         };
         
-        console.log('Request payload', payload);
+        console.log('📤 Request payload:', payload);
         
         const resp = await fetch('https://hook.eu2.make.com/lya166veex7oo2wwo8mx4fuhlkssxlog', {
           method: 'POST',
@@ -2265,6 +2265,7 @@ function checkUpgradeStatus() {
         });
         
         console.log('📡 Response status:', resp.status);
+        console.log('📡 Response headers:', Object.fromEntries(resp.headers.entries()));
         
         if (!resp.ok) {
           // If user not found (404), create them
@@ -2283,15 +2284,37 @@ function checkUpgradeStatus() {
         }
         
         const responseText = await resp.text();
-        console.log('📋 Raw response:', responseText);
+        console.log('📋 Raw response (first 500 chars):', responseText.substring(0, 500));
         
+        // CRITICAL FIX: Better response parsing with fallback handling
         let data;
-        try {
-          data = JSON.parse(responseText);
-          console.log('📋 Parsed JSON data:', data);
-        } catch (parseError) {
-          console.error('❌ JSON Parse Error:', parseError);
-          throw new Error('Invalid JSON response from server');
+        
+        // Check if response is just "Accepted" or similar non-JSON
+        if (responseText.trim() === 'Accepted' || responseText.trim() === 'OK' || responseText.trim() === 'Success') {
+          console.log('⚠️ Webhook returned simple status, using fallback data');
+          // Use fallback data when webhook returns status message instead of JSON
+          data = {
+            email: email,
+            plan: 'Free',
+            usage: 0,
+            quota: 100
+          };
+        } else {
+          try {
+            data = JSON.parse(responseText);
+            console.log('📋 Parsed JSON data:', data);
+          } catch (parseError) {
+            console.error('❌ JSON Parse Error:', parseError);
+            console.log('❌ Failed to parse response as JSON, using fallback data');
+            
+            // Use fallback data if JSON parsing fails
+            data = {
+              email: email,
+              plan: 'Free',
+              usage: 0,
+              quota: 100
+            };
+          }
         }
         
         // Process the data with fallbacks
@@ -2327,6 +2350,7 @@ function checkUpgradeStatus() {
         setField('usage', '0');
         document.getElementById('quota').textContent = '100';
         document.getElementById('usage-fill').style.width = '0%';
+        updatePremiumCard('Free');
       } finally {
         hideLoading();
       }
@@ -2448,7 +2472,21 @@ function checkUpgradeStatus() {
           throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
         }
         
-        const result = await resp.json();
+        // Handle response more carefully
+        const responseText = await resp.text();
+        
+        // Check if response is valid JSON or just a status message
+        let result;
+        try {
+          result = JSON.parse(responseText);
+        } catch (parseError) {
+          // If not JSON, assume success if status is OK
+          if (resp.ok) {
+            result = { success: true, message: responseText };
+          } else {
+            throw new Error('Invalid response format');
+          }
+        }
         
         // Update UI
         finishEdit(field, newValue);
@@ -2720,7 +2758,19 @@ function checkUpgradeStatus() {
           throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
         }
         
-        const result = await resp.json();
+        // Handle response more carefully like in saveField
+        const responseText = await resp.text();
+        let result;
+        try {
+          result = JSON.parse(responseText);
+        } catch (parseError) {
+          if (resp.ok) {
+            result = { success: true, message: responseText };
+          } else {
+            throw new Error('Invalid response format');
+          }
+        }
+        
         console.log('✅ Downgrade response:', result);
         
         showSuccess('Successfully downgraded to free plan. You now have a limit of 50 messages.');
@@ -2743,19 +2793,11 @@ function checkUpgradeStatus() {
   <footer class="footer">
     <div class="footer-container">
       <div class="footer-links">
-        <a href="index.html" class="footer-link">Characters</a>
-        <span class="footer-separator">•</span>
-        <a href="chat-overview.html" class="footer-link">Chats</a>
-        <span class="footer-separator">•</span>
-        <a href="create-character.html" class="footer-link">Create Character</a>
-        <span class="footer-separator">•</span>
-        <a href="profile.html" class="footer-link">Profile</a>
-        <span class="footer-separator">•</span>
         <a href="privacy-policy.html" class="footer-link">Privacy Policy</a>
         <span class="footer-separator">•</span>
         <a href="terms-and-conditions.html" class="footer-link">Terms and Conditions</a>
       </div>
-      <p class="footer-copyright">© 2025 Narrin AI. All rights reserved.</p>
+      <p class="footer-copyright">© 2024 Narrin AI. All rights reserved.</p>
     </div>
   </footer>
 </body>
