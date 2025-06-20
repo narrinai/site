@@ -446,12 +446,11 @@
 
     .hamburger span {
       display: block;
-      height: 3px;
+      height: 2px;
       width: 100%;
       background: var(--color-navy);
       border-radius: 1px;
       transition: all var(--transition-base);
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
 
     .mobile-menu-btn.active .hamburger span:nth-child(1) {
@@ -2076,6 +2075,153 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
     window.addEventListener('resize', () => {
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(handleResize, 250);
+    });
+
+    // ===== SEARCH FUNCTIONALITY =====
+    function handleSearch(searchTerm) {
+      console.log('Search term:', searchTerm);
+      // Implement search functionality here
+    }
+
+    // Desktop search
+    document.querySelector('.nav-search')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const searchInput = e.target.querySelector('.nav-search-input');
+      handleSearch(searchInput.value);
+    });
+
+    // Mobile search
+    document.querySelector('.mobile-search-form')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const searchInput = e.target.querySelector('.mobile-search-input');
+      handleSearch(searchInput.value);
+      toggleMobileSearch();
+    });
+
+    // ===== NETLIFY IDENTITY BUTTON UPDATES =====
+    function updateLoginButton() {
+      const loginBtn = document.getElementById('loginBtn');
+      const mobileLoginBtn = document.getElementById('mobileLoginBtn');
+      
+      // Check both Netlify Identity and local storage for user info
+      const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+      const localEmail = localStorage.getItem("user_email");
+      const localToken = localStorage.getItem("user_token");
+      
+      const isLoggedIn = netlifyUser || (localEmail && localToken);
+      
+      if (isLoggedIn) {
+        // Always show "Profile" for logged in users instead of their name
+        
+        // Update desktop button
+        if (loginBtn) {
+          loginBtn.textContent = 'Profile';
+          loginBtn.href = 'profile.html';
+        }
+        
+        // Update mobile button
+        if (mobileLoginBtn) {
+          const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
+          mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}Profile`;
+          mobileLoginBtn.href = 'profile.html';
+        }
+      } else {
+        // User is not logged in
+        if (loginBtn) {
+          loginBtn.textContent = 'Login/Register';
+          loginBtn.href = 'profile.html';
+        }
+        if (mobileLoginBtn) {
+          const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
+          mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}Login/Register`;
+          mobileLoginBtn.href = 'profile.html';
+        }
+      }
+    }
+
+    // Enhanced click handler for navigation links
+    function setupNavigationClickHandlers() {
+      const loginBtn = document.getElementById('loginBtn');
+      const mobileLoginBtn = document.getElementById('mobileLoginBtn');
+      
+      // Desktop login button click handler
+      if (loginBtn) {
+        loginBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          
+          const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+          const localEmail = localStorage.getItem("user_email");
+          const localToken = localStorage.getItem("user_token");
+          const isLoggedIn = netlifyUser || (localEmail && localToken);
+          
+          if (isLoggedIn) {
+            // User is logged in, go directly to profile page
+            window.location.href = 'profile.html';
+          } else {
+            // User not logged in, store current page for redirect and open login
+            localStorage.setItem('login_redirect_url', window.location.href);
+            openLogin();
+          }
+        });
+      }
+      
+      // Mobile login button click handler
+      if (mobileLoginBtn) {
+        mobileLoginBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          
+          const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+          const localEmail = localStorage.getItem("user_email");
+          const localToken = localStorage.getItem("user_token");
+          const isLoggedIn = netlifyUser || (localEmail && localToken);
+          
+          if (isLoggedIn) {
+            // User is logged in, go directly to profile page
+            window.location.href = 'profile.html';
+          } else {
+            // User not logged in, store current page for redirect and open login
+            localStorage.setItem('login_redirect_url', window.location.href);
+            openLogin();
+          }
+          
+          // Close mobile menu after click
+          closeMobileMenu();
+        });
+      }
+    }
+
+    // Function to open login modal
+    function openLogin() {
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.open('login');
+      } else {
+        // Fallback if Netlify Identity is not available
+        window.location.href = 'profile.html';
+      }
+    }
+
+    // Initialize login button on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      // Update immediately on page load
+      updateLoginButton();
+      
+      // Set up click handlers
+      setupNavigationClickHandlers();
+      
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.on('init', user => {
+          updateLoginButton();
+        });
+
+        window.netlifyIdentity.on('login', user => {
+          updateLoginButton();
+          window.netlifyIdentity.close();
+        });
+
+        window.netlifyIdentity.on('logout', () => {
+          updateLoginButton();
+        });
+      }
     });
 
     // ===== TAGS FUNCTIONALITY =====
