@@ -1855,14 +1855,14 @@
       const user = window.netlifyIdentity && window.netlifyIdentity.currentUser();
       
       if (user) {
-        const displayName = user.user_metadata.full_name || user.email;
+        // Always show "Profile" for logged in users instead of their name
         if (loginBtn) {
-          loginBtn.textContent = displayName;
+          loginBtn.textContent = 'Profile';
           loginBtn.href = 'profile.html';
         }
         if (mobileLoginBtn) {
           const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
-          mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}${displayName}`;
+          mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}Profile`;
         }
       } else {
         if (loginBtn) {
