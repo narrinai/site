@@ -1307,6 +1307,61 @@
       color: var(--color-gray);
       font-weight: 500;
     }
+
+    /* Debug Panel Styles */
+    .debug-panel {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      background: var(--color-white);
+      border: 2px solid var(--color-teal);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-md);
+      max-width: 300px;
+      max-height: 400px;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+      z-index: 1000;
+      font-size: var(--font-size-xs);
+      display: none;
+    }
+
+    .debug-panel.active {
+      display: block;
+    }
+
+    .debug-panel h3 {
+      margin: 0 0 var(--spacing-sm) 0;
+      color: var(--color-navy);
+      font-size: var(--font-size-sm);
+    }
+
+    .debug-panel pre {
+      background: var(--color-off-white);
+      padding: var(--spacing-xs);
+      border-radius: var(--radius-sm);
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .debug-panel .debug-item {
+      margin-bottom: var(--spacing-sm);
+      padding-bottom: var(--spacing-sm);
+      border-bottom: 1px solid var(--color-light-gray);
+    }
+
+    .debug-panel .debug-item:last-child {
+      border-bottom: none;
+    }
+
+    .debug-panel .debug-label {
+      font-weight: 600;
+      color: var(--color-teal);
+      display: block;
+      margin-bottom: var(--spacing-xs);
+    }
     
     /* Mobile Responsive */
     @media (max-width: 1024px) {
@@ -1321,6 +1376,14 @@
         height: auto;
         min-height: 360px;
         margin: 0 auto var(--spacing-lg);
+      }
+
+      .debug-panel {
+        position: relative;
+        top: auto;
+        right: auto;
+        max-width: none;
+        margin-top: var(--spacing-lg);
       }
     }
 
@@ -1632,6 +1695,14 @@
       <p>Manage your account settings and view your usage</p>
     </div>
     
+    <!-- Debug Panel -->
+    <div class="debug-panel" id="debugPanel">
+      <h3>🔧 Debug Information</h3>
+      <div id="debugContent">
+        <!-- Debug content will be populated by JavaScript -->
+      </div>
+    </div>
+    
     <div id="not-logged-in" style="display: none;">
       <div class="form-section">
         <h2>⚠️ Not logged in</h2>
@@ -1643,6 +1714,10 @@
     </div>
     
     <div id="profile" style="display: none;">
+      <div class="header-controls">
+        <button id="debug-toggle" class="btn-form" onclick="toggleDebug()">🔧 Debug</button>
+      </div>
+
       <div class="profile-content">
         <!-- Account Information -->
         <div class="form-section">
@@ -1675,7 +1750,7 @@
           </div>
           
           <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--color-light-gray); text-align: center;">
-            <a href="#" id="logout-btn" onclick="handleLogout(); return false;" class="footer-link">
+            <a href="#" id="logout-btn" onclick="handleLogout(); return false;" class="nav-link">
               Log out
             </a>
           </div>
@@ -1744,6 +1819,66 @@
     const stripe = Stripe('pk_live_jz2dXpzmEDUahXkKkyUe36Zt'); // Vervang met jouw echte publishable key
     const PRICE_ID = 'price_1Rc9oTDU567HpUYxl1sLu71A'; // Vervang met jouw echte Price ID
 
+    // ===== DEBUG FUNCTIONALITY =====
+    let debugMode = false;
+    let debugData = {};
+
+    function toggleDebug() {
+      debugMode = !debugMode;
+      const debugPanel = document.getElementById('debugPanel');
+      
+      if (debugMode) {
+        debugPanel.classList.add('active');
+        updateDebugPanel();
+      } else {
+        debugPanel.classList.remove('active');
+      }
+    }
+
+    function updateDebugPanel() {
+      if (!debugMode) return;
+      
+      const debugContent = document.getElementById('debugContent');
+      const email = localStorage.getItem('user_email');
+      const uid = localStorage.getItem('user_uid');
+      const token = localStorage.getItem('user_token');
+      
+      debugContent.innerHTML = `
+        <div class="debug-item">
+          <span class="debug-label">Email:</span>
+          <pre>${email || 'None'}</pre>
+        </div>
+        <div class="debug-item">
+          <span class="debug-label">UID:</span>
+          <pre>${uid || 'None'}</pre>
+        </div>
+        <div class="debug-item">
+          <span class="debug-label">Token (first 20 chars):</span>
+          <pre>${token ? token.substring(0, 20) + '...' : 'None'}</pre>
+        </div>
+        <div class="debug-item">
+          <span class="debug-label">Last Response:</span>
+          <pre>${JSON.stringify(debugData.lastResponse || 'None', null, 2)}</pre>
+        </div>
+        <div class="debug-item">
+          <span class="debug-label">Last Error:</span>
+          <pre>${debugData.lastError || 'None'}</pre>
+        </div>
+        <div class="debug-item">
+          <span class="debug-label">Plan:</span>
+          <pre>${document.getElementById('plan')?.textContent || 'Not loaded'}</pre>
+        </div>
+        <div class="debug-item">
+          <span class="debug-label">Usage:</span>
+          <pre>${document.getElementById('usage')?.textContent || 'Not loaded'}</pre>
+        </div>
+        <div class="debug-item">
+          <span class="debug-label">Quota:</span>
+          <pre>${document.getElementById('quota')?.textContent || 'Not loaded'}</pre>
+        </div>
+      `;
+    }
+
     // ===== NAVIGATION FUNCTIONALITY =====
     
     // Mobile Search Elements
@@ -1763,6 +1898,7 @@
     // ===== STRIPE UPGRADE FUNCTIONALITY =====
     async function handleUpgrade() {
       console.log('🚀 Upgrade button clicked');
+      debugData.lastAction = 'handleUpgrade';
       
       // Check of gebruiker ingelogd is
       const email = localStorage.getItem('user_email');
@@ -1802,6 +1938,7 @@
         
       } catch (error) {
         console.error('❌ Error creating checkout session:', error);
+        debugData.lastError = error.message;
         showError(`Upgrade error: ${error.message}`);
         
         // Reset button
@@ -1809,6 +1946,8 @@
         upgradeButton.innerHTML = originalText;
         upgradeButton.disabled = false;
       }
+      
+      updateDebugPanel();
     }
 
     // Functie om upgrade status te checken bij page load
@@ -2063,6 +2202,7 @@
     // New function to create/update user in Airtable
     async function createOrUpdateUser(user) {
       console.log('👤 Creating/updating user in database:', user.email);
+      debugData.lastAction = 'createOrUpdateUser';
       
       try {
         const payload = {
@@ -2077,6 +2217,8 @@
           }
         };
         
+        debugData.lastRequest = payload;
+        
         const resp = await fetch('https://hook.eu2.make.com/lya166veex7oo2wwo8mx4fuhlkssxlog', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -2087,7 +2229,15 @@
           throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
         }
         
-        const result = await resp.json();
+        const responseText = await resp.text();
+        let result;
+        try {
+          result = JSON.parse(responseText);
+        } catch (parseError) {
+          result = { raw: responseText };
+        }
+        
+        debugData.lastResponse = result;
         console.log('✅ User created/updated successfully:', result);
         
         // Now load the profile
@@ -2095,11 +2245,14 @@
         
       } catch (error) {
         console.error('❌ Error creating/updating user:', error);
+        debugData.lastError = error.message;
         showError('Failed to set up user account. Please refresh the page.');
         
         // Still try to load profile with fallback data
         loadProfile();
       }
+      
+      updateDebugPanel();
     }
 
     // Enhanced event listeners setup
@@ -2233,15 +2386,19 @@
       });
     }
 
-    // FIXED: Enhanced loadProfile with MUCH better error handling for webhook responses
+    // ENHANCED: Better loadProfile with improved error handling and debugging
     async function loadProfile() {
       const token = localStorage.getItem('user_token');
       const email = localStorage.getItem('user_email');
       const uid = localStorage.getItem('user_uid');
       
+      debugData.lastAction = 'loadProfile';
+      debugData.credentials = { hasToken: !!token, hasEmail: !!email, hasUid: !!uid };
+      
       if (!token || !email || !uid) {
         console.log('⚠️ No auth data - showing login UI');
         showLoginUI();
+        updateDebugPanel();
         return;
       }
 
@@ -2249,18 +2406,24 @@
       showLoading();
       
       try {
+        // CRITICAL: Use a more specific action to get usage data
         const payload = { 
           user_email: email, 
           user_uid: uid, 
           user_token: token,
-          action: 'get_profile' // Explicit action for profile loading
+          action: 'get_usage_data', // Specific action for usage data
+          timestamp: Date.now() // Add timestamp to prevent caching
         };
         
+        debugData.lastRequest = payload;
         console.log('📤 Request payload:', payload);
         
         const resp = await fetch('https://hook.eu2.make.com/lya166veex7oo2wwo8mx4fuhlkssxlog', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache' // Prevent caching
+          },
           body: JSON.stringify(payload)
         });
         
@@ -2268,9 +2431,10 @@
         console.log('📡 Response headers:', Object.fromEntries(resp.headers.entries()));
         
         if (!resp.ok) {
-          // If user not found (404), create them
+          // If user not found (404), try to create them
           if (resp.status === 404) {
             console.log('🔄 User not found, creating...');
+            debugData.userNotFound = true;
             const user = {
               email: email,
               id: uid,
@@ -2286,74 +2450,147 @@
         const responseText = await resp.text();
         console.log('📋 Raw response (first 500 chars):', responseText.substring(0, 500));
         
-        // CRITICAL FIX: Better response parsing with fallback handling
         let data;
         
-        // Check if response is just "Accepted" or similar non-JSON
+        // Enhanced response parsing with better fallback handling
         if (responseText.trim() === 'Accepted' || responseText.trim() === 'OK' || responseText.trim() === 'Success') {
-          console.log('⚠️ Webhook returned simple status, using fallback data');
-          // Use fallback data when webhook returns status message instead of JSON
-          data = {
-            email: email,
-            plan: 'Free',
-            usage: 0,
-            quota: 100
-          };
+          console.log('⚠️ Webhook returned simple status instead of data');
+          debugData.simpleResponse = responseText.trim();
+          
+          // Try a fallback request with different action
+          console.log('🔄 Trying fallback request...');
+          return await loadProfileFallback();
+          
         } else {
           try {
             data = JSON.parse(responseText);
             console.log('📋 Parsed JSON data:', data);
+            debugData.lastResponse = data;
           } catch (parseError) {
             console.error('❌ JSON Parse Error:', parseError);
-            console.log('❌ Failed to parse response as JSON, using fallback data');
+            debugData.parseError = parseError.message;
             
-            // Use fallback data if JSON parsing fails
-            data = {
-              email: email,
-              plan: 'Free',
-              usage: 0,
-              quota: 100
-            };
+            // Try fallback request
+            console.log('🔄 JSON parse failed, trying fallback request...');
+            return await loadProfileFallback();
           }
         }
         
-        // Process the data with fallbacks
-        setField('email', data.email || email);
-        const userPlan = data.plan || 'Free';
-        setField('plan', userPlan);
-        
-        // Update premium card based on plan
-        updatePremiumCard(userPlan);
-        
-        if (data.usage !== undefined && data.quota !== undefined) {
-          setField('usage', `${data.usage}`);
-          document.getElementById('quota').textContent = data.quota;
-          
-          const percentage = (data.usage / data.quota) * 100;
-          document.getElementById('usage-fill').style.width = `${Math.min(percentage, 100)}%`;
-        } else {
-          setField('usage', '0');
-          document.getElementById('quota').textContent = '100';
-          document.getElementById('usage-fill').style.width = '0%';
-        }
-        
-        showSuccess('Profile loaded successfully!');
-        console.log('✅ Profile loaded and UI updated');
+        // Process the successful data
+        processProfileData(data, email);
         
       } catch (error) {
         console.error('❌ Error loading profile:', error);
+        debugData.lastError = error.message;
         showError(`Loading error: ${error.message}`);
         
         // Show basic info even if webhook fails
-        setField('email', email);
-        setField('plan', 'Free');
-        setField('usage', '0');
-        document.getElementById('quota').textContent = '100';
-        document.getElementById('usage-fill').style.width = '0%';
-        updatePremiumCard('Free');
+        setBasicProfileData(email);
       } finally {
         hideLoading();
+        updateDebugPanel();
       }
+    }
+
+    // NEW: Fallback function with different request approach
+    async function loadProfileFallback() {
+      console.log('🔄 Executing fallback profile load...');
+      
+      const token = localStorage.getItem('user_token');
+      const email = localStorage.getItem('user_email');
+      const uid = localStorage.getItem('user_uid');
+      
+      try {
+        // Try with different action
+        const payload = { 
+          user_email: email, 
+          user_uid: uid, 
+          user_token: token,
+          action: 'get_profile', // Different action
+          force_refresh: true,
+          timestamp: Date.now()
+        };
+        
+        debugData.fallbackRequest = payload;
+        console.log('📤 Fallback request payload:', payload);
+        
+        const resp = await fetch('https://hook.eu2.make.com/lya166veex7oo2wwo8mx4fuhlkssxlog', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache'
+          },
+          body: JSON.stringify(payload)
+        });
+        
+        console.log('📡 Fallback response status:', resp.status);
+        
+        if (resp.ok) {
+          const responseText = await resp.text();
+          console.log('📋 Fallback raw response:', responseText.substring(0, 500));
+          
+          try {
+            const data = JSON.parse(responseText);
+            debugData.fallbackResponse = data;
+            processProfileData(data, email);
+            return;
+          } catch (parseError) {
+            console.log('⚠️ Fallback also returned non-JSON, using basic data');
+          }
+        }
+        
+        // If fallback also fails, use basic data
+        setBasicProfileData(email);
+        
+      } catch (error) {
+        console.error('❌ Fallback request failed:', error);
+        debugData.fallbackError = error.message;
+        setBasicProfileData(email);
+      }
+    }
+
+    // NEW: Function to process successful profile data
+    function processProfileData(data, email) {
+      console.log('✅ Processing profile data:', data);
+      
+      // Set email
+      setField('email', data.email || email);
+      
+      // Set plan with proper capitalization
+      const userPlan = data.plan || data.Plan || 'Free';
+      setField('plan', userPlan);
+      
+      // Update premium card based on plan
+      updatePremiumCard(userPlan);
+      
+      // CRITICAL: Set usage data with proper fallbacks
+      const usage = data.usage !== undefined ? data.usage : (data.Usage || 0);
+      const quota = data.quota !== undefined ? data.quota : (data.Quota || 100);
+      
+      console.log(`📊 Usage data - Used: ${usage}, Quota: ${quota}`);
+      
+      setField('usage', `${usage}`);
+      document.getElementById('quota').textContent = quota;
+      
+      const percentage = (usage / quota) * 100;
+      document.getElementById('usage-fill').style.width = `${Math.min(percentage, 100)}%`;
+      
+      showSuccess('Profile loaded successfully!');
+      console.log('✅ Profile loaded and UI updated');
+    }
+
+    // NEW: Function to set basic profile data when webhook fails
+    function setBasicProfileData(email) {
+      console.log('📦 Setting basic profile data for:', email);
+      
+      setField('email', email);
+      setField('plan', 'Free');
+      setField('usage', '0');
+      document.getElementById('quota').textContent = '100';
+      document.getElementById('usage-fill').style.width = '0%';
+      updatePremiumCard('Free');
+      
+      showError('Could not load usage data from server. Showing basic profile information.');
     }
 
     // Edit functionality
@@ -2446,6 +2683,9 @@
       }
       
       console.log(`💾 Saving field ${field}: "${originalValue}" → "${newValue}"`);
+      debugData.lastAction = 'saveField';
+      debugData.fieldUpdate = { field, oldValue: originalValue, newValue };
+      
       showLoading();
       
       try {
@@ -2457,11 +2697,13 @@
           user_email: email,
           user_uid: uid,
           user_token: token,
-          action: 'update',
+          action: 'update_field',
           field: field,
-          value: newValue
+          new_value: newValue,
+          old_value: originalValue
         };
         
+        debugData.lastRequest = payload;
         console.log('📤 Sending payload:', payload);
         
         const resp = await fetch('https://hook.eu2.make.com/lya166veex7oo2wwo8mx4fuhlkssxlog', {
@@ -2500,6 +2742,8 @@
           }
         }
         
+        debugData.lastResponse = result;
+        
         // CRITICAL: Update localStorage if email was changed successfully
         if (field === 'email' && resp.ok) {
           console.log(`🔄 Updating localStorage email: "${email}" → "${newValue}"`);
@@ -2511,9 +2755,11 @@
         
       } catch (error) {
         console.error(`❌ Error saving ${field}:`, error);
+        debugData.lastError = error.message;
         showError(`Save error: ${error.message}`);
       } finally {
         hideLoading();
+        updateDebugPanel();
       }
     }
 
@@ -2737,6 +2983,7 @@
     // ===== DOWNGRADE FUNCTIONALITY =====
     async function handleDowngrade() {
       console.log('⬇️ Downgrade button clicked');
+      debugData.lastAction = 'handleDowngrade';
       
       if (!confirm('Are you sure you want to downgrade to the free plan? You will lose access to premium features and be limited to 50 messages.')) {
         return;
@@ -2762,6 +3009,7 @@
           action: 'downgrade_plan'
         };
         
+        debugData.lastRequest = payload;
         console.log('📡 Sending downgrade request...');
         
         const resp = await fetch('https://hook.eu2.make.com/lya166veex7oo2wwo8mx4fuhlkssxlog', {
@@ -2787,6 +3035,7 @@
           }
         }
         
+        debugData.lastResponse = result;
         console.log('✅ Downgrade response:', result);
         
         showSuccess('Successfully downgraded to free plan. You now have a limit of 50 messages.');
@@ -2798,9 +3047,11 @@
         
       } catch (error) {
         console.error('❌ Error downgrading plan:', error);
+        debugData.lastError = error.message;
         showError(`Downgrade error: ${error.message}`);
       } finally {
         hideLoading();
+        updateDebugPanel();
       }
     }
   </script>
