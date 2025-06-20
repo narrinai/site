@@ -748,35 +748,163 @@
       font-weight: 500;
     }
 
-    /* Page Header */
+    /* Creative Page Header */
     .page-header {
-      padding: 20px 20px;
+      position: relative;
+      padding: var(--spacing-3xl) var(--spacing-lg);
       text-align: center;
-      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    }
-
-    .page-header h1 {
-      font-size: 28px;
-      margin: 0 0 8px 0;
-      font-weight: 700;
-      color: #000;
+      background: var(--gradient-primary);
+      overflow: hidden;
+      min-height: 200px;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 12px;
     }
 
-    .page-header p {
-      font-size: 14px;
-      color: #666;
-      margin: 0;
-      max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
+    /* Animated background elements */
+    .page-header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                  radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
+      animation: float 20s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: rotate(0deg) scale(1); }
+      50% { transform: rotate(180deg) scale(1.1); }
+    }
+
+    /* Floating particles */
+    .header-particle {
+      position: absolute;
+      color: rgba(255, 255, 255, 0.3);
+      font-size: 12px;
+      animation: particle-float 8s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    .header-particle:nth-child(1) { top: 20%; left: 15%; animation-delay: 0s; }
+    .header-particle:nth-child(2) { top: 30%; right: 20%; animation-delay: 2s; }
+    .header-particle:nth-child(3) { bottom: 25%; left: 20%; animation-delay: 4s; }
+    .header-particle:nth-child(4) { bottom: 35%; right: 15%; animation-delay: 6s; }
+
+    @keyframes particle-float {
+      0%, 100% {
+        opacity: 0.3;
+        transform: translateY(0px) scale(1);
+      }
+      50% {
+        opacity: 0.8;
+        transform: translateY(-20px) scale(1.2);
+      }
+    }
+
+    .page-header-content {
+      position: relative;
+      z-index: 2;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .category-icon-container {
+      position: relative;
+      display: inline-block;
+      margin-bottom: var(--spacing-lg);
     }
 
     .category-icon {
-      font-size: 32px;
+      font-size: 4rem;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: var(--radius-full);
+      width: 100px;
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-xl);
+      animation: icon-pulse 3s ease-in-out infinite;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+
+    @keyframes icon-pulse {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow: var(--shadow-xl);
+      }
+      50% {
+        transform: scale(1.05);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      }
+    }
+
+    .page-header h1 {
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-4xl);
+      font-weight: 800;
+      color: var(--color-white);
+      margin: 0 0 var(--spacing-md) 0;
+      text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    .page-header p {
+      font-size: var(--font-size-lg);
+      color: rgba(255, 255, 255, 0.9);
+      margin: 0;
+      font-weight: 400;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      line-height: 1.5;
+    }
+
+    /* Category stats badge */
+    .category-stats {
+      position: absolute;
+      top: var(--spacing-lg);
+      right: var(--spacing-lg);
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-sm) var(--spacing-md);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: var(--color-white);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      opacity: 0;
+      animation: fade-in 1s ease-out 0.5s forwards;
+    }
+
+    @keyframes fade-in {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Decorative gradient overlay */
+    .gradient-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.1) 0%,
+        transparent 30%,
+        transparent 70%,
+        rgba(0, 0, 0, 0.1) 100%
+      );
+      pointer-events: none;
     }
 
     /* Search Section */
@@ -1020,14 +1148,34 @@
 
     /* Mobile Optimizations */
     @media (max-width: 768px) {
+      .page-header {
+        min-height: 160px;
+        padding: var(--spacing-2xl) var(--spacing-md);
+      }
+
       .page-header h1 {
-        font-size: 24px;
-        flex-direction: column;
-        gap: 8px;
+        font-size: var(--font-size-3xl);
+      }
+
+      .page-header p {
+        font-size: var(--font-size-base);
       }
 
       .category-icon {
-        font-size: 28px;
+        width: 80px;
+        height: 80px;
+        font-size: 3rem;
+      }
+
+      .category-stats {
+        top: var(--spacing-md);
+        right: var(--spacing-md);
+        font-size: var(--font-size-xs);
+        padding: var(--spacing-xs) var(--spacing-sm);
+      }
+
+      .header-particle {
+        font-size: 10px;
       }
 
       .results-header {
@@ -1283,11 +1431,28 @@
 
   <!-- Page Header -->
   <div class="page-header">
-    <h1 id="category-header">
-      <span class="category-icon" id="category-icon">📚</span>
-      <span id="category-title">Loading Characters...</span>
-    </h1>
-    <p id="category-description">Discover amazing characters in this category</p>
+    <!-- Floating particles -->
+    <div class="header-particle">✨</div>
+    <div class="header-particle">⭐</div>
+    <div class="header-particle">💫</div>
+    <div class="header-particle">🌟</div>
+    
+    <!-- Category stats badge -->
+    <div class="category-stats" id="categoryStats">
+      Loading...
+    </div>
+    
+    <!-- Gradient overlay -->
+    <div class="gradient-overlay"></div>
+    
+    <!-- Main content -->
+    <div class="page-header-content">
+      <div class="category-icon-container">
+        <div class="category-icon" id="category-icon">📚</div>
+      </div>
+      <h1 id="category-title">Loading Characters...</h1>
+      <p id="category-description">Discover amazing characters in this category</p>
+    </div>
   </div>
 
   <!-- Search Section -->
@@ -1715,8 +1880,14 @@
       const count = filteredCharacters.length;
       const config = CONFIG.CATEGORIES[currentCategory];
       const categoryTitle = config ? config.title.toLowerCase() : currentCategory;
-      document.getElementById('resultsCount').textContent = 
+      document.getElementById('resultsCount').textContent =
         `${count} ${categoryTitle} found`;
+      
+      // Update category stats badge
+      const statsElement = document.getElementById('categoryStats');
+      if (statsElement) {
+        statsElement.textContent = `${allCharacters.length} Characters`;
+      }
     }
 
     // ===== RENDERING FUNCTIONS =====
