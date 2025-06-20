@@ -1812,26 +1812,27 @@
     }
 
     // Functie om upgrade status te checken bij page load
-    function checkUpgradeStatus() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const upgradeStatus = urlParams.get('upgrade');
-      
-      if (upgradeStatus === 'success') {
-        showSuccess('🎉 Upgrade successful! Welcome to Narrin AI Premium!');
-        // Reload profile data om nieuwe plan status te tonen
-        setTimeout(() => {
-          loadProfile();
-        }, 1000);
-        
-        // Clean URL
-        window.history.replaceState({}, document.title, 'profile.html');
-      } else if (upgradeStatus === 'cancelled') {
-        showError('Upgrade was cancelled. You can try again anytime.');
-        
-        // Clean URL
-        window.history.replaceState({}, document.title, 'profile.html');
-      }
-    }
+function checkUpgradeStatus() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const upgradeStatus = urlParams.get('upgrade');
+  
+  if (upgradeStatus === 'success') {
+    showSuccess('🎉 Upgrade successful! Welcome to Narrin AI Premium!');
+    
+    // BELANGRIJKE TOEVOEGING: Automatisch profile data refreshen
+    setTimeout(() => {
+      console.log('🔄 Refreshing profile data after upgrade...');
+      loadProfile(); // Force refresh van profile data
+    }, 2000); // 2 seconde delay zodat webhook verwerkt is
+    
+    // Clean URL
+    window.history.replaceState({}, document.title, 'profile.html');
+    
+  } else if (upgradeStatus === 'cancelled') {
+    showError('Upgrade was cancelled. You can try again anytime.');
+    window.history.replaceState({}, document.title, 'profile.html');
+  }
+}
 
     // ===== MOBILE SEARCH FUNCTIONALITY =====
     function toggleMobileSearch() {
