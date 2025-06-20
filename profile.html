@@ -2330,16 +2330,29 @@
         // Update premium card based on plan
         updatePremiumCard(userPlan);
         
-        if (data.usage !== undefined && data.quota !== undefined) {
-          setField('usage', `${data.usage}`);
-          document.getElementById('quota').textContent = data.quota;
-          
-          const percentage = (data.usage / data.quota) * 100;
-          document.getElementById('usage-fill').style.width = `${Math.min(percentage, 100)}%`;
+        // Handle usage display based on plan type
+        const isPremium = userPlan && (userPlan.toLowerCase() === 'premium' || userPlan.toLowerCase() === 'pro' || userPlan.toLowerCase() === 'paid');
+        
+        if (isPremium) {
+          // Premium users get unlimited messages
+          document.getElementById('usage').textContent = 'Unlimited';
+          document.getElementById('quota').textContent = 'messages';
+          document.getElementById('usage-fill').style.width = '100%';
+          document.getElementById('usage-fill').style.background = 'var(--gradient-primary)';
         } else {
-          setField('usage', '0');
-          document.getElementById('quota').textContent = '100';
-          document.getElementById('usage-fill').style.width = '0%';
+          // Free users see actual usage counts
+          if (data.usage !== undefined && data.quota !== undefined) {
+            setField('usage', `${data.usage}`);
+            document.getElementById('quota').textContent = data.quota;
+            
+            const percentage = (data.usage / data.quota) * 100;
+            document.getElementById('usage-fill').style.width = `${Math.min(percentage, 100)}%`;
+          } else {
+            setField('usage', '0');
+            document.getElementById('quota').textContent = '100';
+            document.getElementById('usage-fill').style.width = '0%';
+          }
+          document.getElementById('usage-fill').style.background = 'var(--gradient-primary)';
         }
         
         showSuccess('Profile loaded successfully!');
@@ -2355,6 +2368,7 @@
         setField('usage', '0');
         document.getElementById('quota').textContent = '100';
         document.getElementById('usage-fill').style.width = '0%';
+        document.getElementById('usage-fill').style.background = 'var(--gradient-primary)';
         updatePremiumCard('Free');
       } finally {
         hideLoading();
