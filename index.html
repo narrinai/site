@@ -1725,7 +1725,7 @@
       }
     }
 
-    // Character card creation - Focus on real Airtable avatars only
+    // FIXED: Character card creation with proper error handling
     function createCharacterCard(character) {
       const card = document.createElement('a');
       card.className = 'character-card';
@@ -1761,29 +1761,48 @@
       
       console.log(`🎯 Final avatar for ${name}:`, avatarUrl || 'NO AVATAR - WILL USE FALLBACK ICON');
       
-      // Create card HTML - Only use real avatars or fallback icon
+      // Create avatar container
+      const avatarContainer = document.createElement('div');
+      avatarContainer.className = 'character-avatar';
+      
+      // Create card HTML structure first
+      const nameDiv = document.createElement('div');
+      nameDiv.className = 'character-name';
+      nameDiv.textContent = name;
+      
+      const titleDiv = document.createElement('div');
+      titleDiv.className = 'character-title';
+      titleDiv.textContent = title;
+      
+      // Handle avatar - either real image or fallback icon
       if (avatarUrl && avatarUrl.startsWith('http')) {
-        card.innerHTML = `
-          <div class="character-avatar">
-            <img src="${avatarUrl}" 
-                 alt="${name}" 
-                 style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;"
-                 onload="console.log('✅ Real Airtable avatar loaded for ${name}');"
-                 onerror="console.error('❌ Real avatar failed for ${name}:', '${avatarUrl}'); this.style.display='none'; this.parentNode.innerHTML='<div style=\\"display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 4rem; color: #94a3b8;\\">👤</div>';">
-          </div>
-          <div class="character-name">${name}</div>
-          <div class="character-title">${title}</div>
-        `;
+        const img = document.createElement('img');
+        img.src = avatarUrl;
+        img.alt = name;
+        img.style.cssText = 'width: 100%; height: 100%; object-fit: cover; border-radius: 50%;';
+        
+        // Handle successful load
+        img.onload = function() {
+          console.log(`✅ Real Airtable avatar loaded for ${name}`);
+        };
+        
+        // Handle load error - replace with fallback icon
+        img.onerror = function() {
+          console.error(`❌ Real avatar failed for ${name}:`, avatarUrl);
+          avatarContainer.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 4rem; color: #94a3b8;">👤</div>';
+        };
+        
+        avatarContainer.appendChild(img);
       } else {
-        card.innerHTML = `
-          <div class="character-avatar">
-            <div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 4rem; color: #94a3b8;">👤</div>
-          </div>
-          <div class="character-name">${name}</div>
-          <div class="character-title">${title}</div>
-        `;
+        // No valid avatar URL - use fallback icon
+        avatarContainer.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 4rem; color: #94a3b8;">👤</div>';
         console.log(`⚠️ No valid Airtable avatar URL found for ${name}, using fallback icon`);
       }
+      
+      // Append elements to card
+      card.appendChild(avatarContainer);
+      card.appendChild(nameDiv);
+      card.appendChild(titleDiv);
       
       return card;
     }
