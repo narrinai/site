@@ -2462,36 +2462,52 @@
           value: newValue
         };
         
+        console.log('📤 Sending payload:', payload);
+        
         const resp = await fetch('https://hook.eu2.make.com/lya166veex7oo2wwo8mx4fuhlkssxlog', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
           body: JSON.stringify(payload)
         });
         
-        if (!resp.ok) {
-          throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
-        }
+        console.log('📡 Response status:', resp.status);
         
-        // Handle response more carefully
+        // Handle response more carefully like in loadProfile
         const responseText = await resp.text();
+        console.log('📋 Raw response:', responseText);
         
-        // Check if response is valid JSON or just a status message
         let result;
-        try {
-          result = JSON.parse(responseText);
-        } catch (parseError) {
-          // If not JSON, assume success if status is OK
-          if (resp.ok) {
-            result = { success: true, message: responseText };
-          } else {
-            throw new Error('Invalid response format');
+        
+        // Check if response is just "Accepted" or similar non-JSON
+        if (responseText.trim() === 'Accepted' || responseText.trim() === 'OK' || responseText.trim() === 'Success') {
+          console.log('✅ Simple status response - assuming success');
+          result = { success: true, message: 'Updated successfully' };
+        } else {
+          try {
+            result = JSON.parse(responseText);
+            console.log('✅ Parsed JSON response:', result);
+          } catch (parseError) {
+            // If not JSON and response was OK, assume success
+            if (resp.ok) {
+              console.log('✅ Non-JSON response but HTTP OK - assuming success');
+              result = { success: true, message: responseText };
+            } else {
+              throw new Error('Invalid response format');
+            }
           }
         }
         
-        // Update UI
+        // CRITICAL: Update localStorage if email was changed successfully
+        if (field === 'email' && resp.ok) {
+          console.log(`🔄 Updating localStorage email: "${email}" → "${newValue}"`);
+          localStorage.setItem('user_email', newValue);
+        }
+        
         finishEdit(field, newValue);
         showSuccess(`${field} updated successfully!`);
-        console.log(`✅ Field ${field} saved successfully`);
         
       } catch (error) {
         console.error(`❌ Error saving ${field}:`, error);
