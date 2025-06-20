@@ -655,18 +655,18 @@
 
       .header-content {
         min-height: 60px;
-        gap: var(--spacing-sm);
+        gap: var(--spacing-xs);
         padding: 0;
-        display: flex;
+        display: grid;
+        grid-template-columns: auto 1fr auto auto;
         align-items: center;
-        justify-content: space-between;
         width: 100%;
       }
 
       .logo {
         font-size: var(--font-size-lg);
         flex-shrink: 0;
-        order: 1;
+        grid-column: 1;
       }
 
       .mobile-usp-carousel {
@@ -674,18 +674,19 @@
         height: 24px;
         overflow: hidden;
         position: relative;
-        flex: 1;
         align-items: center;
         justify-content: center;
-        order: 2;
-        margin: 0 var(--spacing-md);
+        margin: 0 var(--spacing-xs);
+        min-width: 0;
+        grid-column: 2;
       }
 
       .mobile-nav-container {
         flex-shrink: 0;
         display: flex !important;
         gap: var(--spacing-xs);
-        order: 3;
+        grid-column: 3 / 5;
+        justify-self: end;
       }
 
       .nav-center {
@@ -715,12 +716,20 @@
     /* Extra small mobile devices */
     @media (max-width: 480px) {
       .header-content {
-        gap: var(--spacing-xs);
+        gap: 4px;
         grid-template-columns: auto 1fr auto auto;
       }
       
       .logo {
         font-size: var(--font-size-base);
+      }
+
+      .mobile-usp-carousel {
+        margin: 0 4px;
+      }
+
+      .mobile-nav-container {
+        gap: 4px;
       }
     }
 
@@ -1204,9 +1213,9 @@
       background-color: #e8f4f8;
       border: 2px solid #2c5282;
       color: #2c5282;
-      padding: 6px 12px;
-      border-radius: 16px;
-      font-size: 14px;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 12px;
       cursor: pointer;
       transition: all 0.2s ease;
       user-select: none;
@@ -2148,8 +2157,8 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
       suggested = suggested.filter(tag => allTags.includes(tag));
       
       // Add some random popular tags
-      const popularTags = allTags.filter(tag => !suggested.includes(tag)).slice(0, 4);
-      suggested = [...suggested, ...popularTags].slice(0, 8);
+      const popularTags = allTags.filter(tag => !suggested.includes(tag)).slice(0, 2);
+      suggested = [...suggested, ...popularTags].slice(0, 6);
       
       displaySuggestedTags(suggested);
     }
