@@ -2811,166 +2811,150 @@
       });
     }
 
-    // FIXED: Enhanced loadProfile with MUCH better error handling for webhook responses
-    async function loadProfile() {
-      const token = localStorage.getItem('user_token');
-      const email = localStorage.getItem('user_email');
-      const uid = localStorage.getItem('user_uid');
-      
-      if (!token || !email || !uid) {
-        console.log('⚠️ No auth data - showing login UI');
-        showLoginUI();
-        return;
-      }
+    // GEFIXTE versie van loadProfile() functie
+async function loadProfile() {
+  const token = localStorage.getItem('user_token');
+  const email = localStorage.getItem('user_email');
+  const uid = localStorage.getItem('user_uid');
+  
+  if (!token || !email || !uid) {
+    console.log('⚠️ No auth data - showing login UI');
+    showLoginUI();
+    return;
+  }
 
-      console.log('📡 Loading profile for:', email);
-      showLoading();
-      
-      try {
-        const payload = { 
-          user_email: email, 
-          user_uid: uid, 
-          user_token: token,
-          action: 'get_profile' // Explicit action for profile loading
+  console.log('📡 Loading profile for:', email);
+  showLoading();
+  
+  try {
+    const payload = { 
+      user_email: email, 
+      user_uid: uid, 
+      user_token: token,
+      action: 'get_profile' // Explicit action for profile loading
+    };
+    
+    console.log('📤 Request payload:', payload);
+    
+    const resp = await fetch('https://hook.eu2.make.com/lya166veex7oo2wwo8mx4fuhlkssxlog', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    
+    console.log('📡 Response status:', resp.status);
+    
+    if (!resp.ok) {
+      // If user not found (404), create them
+      if (resp.status === 404) {
+        console.log('🔄 User not found, creating...');
+        const user = {
+          email: email,
+          id: uid,
+          token: { access_token: token },
+          user_metadata: {}
         };
-        
-        console.log('📤 Request payload:', payload);
-        
-        const resp = await fetch('https://hook.eu2.make.com/lya166veex7oo2wwo8mx4fuhlkssxlog', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        
-        console.log('📡 Response status:', resp.status);
-        console.log('📡 Response headers:', Object.fromEntries(resp.headers.entries()));
-        
-        if (!resp.ok) {
-          // If user not found (404), create them
-          if (resp.status === 404) {
-            console.log('🔄 User not found, creating...');
-            const user = {
-              email: email,
-              id: uid,
-              token: { access_token: token },
-              user_metadata: {}
-            };
-            await createOrUpdateUser(user);
-            return; // createOrUpdateUser will call loadProfile again
-          }
-          throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
-        }
-        
-        const responseText = await resp.text();
-        console.log('📋 Raw response (first 500 chars):', responseText.substring(0, 500));
-        console.log('📋 FULL RAW RESPONSE FOR DEBUGGING:', responseText);
-        
-        // CRITICAL FIX: Better response parsing with fallback handling
-        let data;
-        
-        // Check if response is just "Accepted" or similar non-JSON
-        if (responseText.trim() === 'Accepted' || responseText.trim() === 'OK' || responseText.trim() === 'Success') {
-          console.log('⚠️ Webhook returned simple status, using fallback data');
-          // Use fallback data when webhook returns status message instead of JSON
-          data = {
-            email: email,
-            plan: 'Free',
-            usage: 0,
-            quota: 100
-          };
-        } else {
-          try {
-            data = JSON.parse(responseText);
-            console.log('📋 Parsed JSON data:', data);
-            
-            // EXTRA DEBUG: Log specific fields we care about
-            console.log('📊 USAGE DEBUG - Email:', data.email);
-            console.log('📊 USAGE DEBUG - Plan:', data.plan);
-            console.log('📊 USAGE DEBUG - Usage:', data.usage, '(type:', typeof data.usage, ')');
-            console.log('📊 USAGE DEBUG - Quota:', data.quota, '(type:', typeof data.quota, ')');
-            
-            // Handle case where usage might be passed as string from Airtable
-            if (data.usage && typeof data.usage === 'string') {
-              data.usage = parseInt(data.usage, 10);
-              console.log('📊 USAGE DEBUG - Converted usage to number:', data.usage);
-            }
-            
-            if (data.quota && typeof data.quota === 'string') {
-              data.quota = parseInt(data.quota, 10);
-              console.log('📊 USAGE DEBUG - Converted quota to number:', data.quota);
-            }
-            
-          } catch (parseError) {
-            console.error('❌ JSON Parse Error:', parseError);
-            console.log('❌ Failed to parse response as JSON, using fallback data');
-            
-            // Use fallback data if JSON parsing fails
-            data = {
-              email: email,
-              plan: 'Free',
-              usage: 0,
-              quota: 100
-            };
-          }
-        }
-        
-        // Process the data with fallbacks and better error handling
-        setField('email', data.email || email);
-        const userPlan = data.plan || 'Free';
-        setField('plan', userPlan);
-        
-        // Update premium card based on plan
-        updatePremiumCard(userPlan);
-        
-        // IMPROVED: Better usage/quota handling with more logging
-        console.log('📊 PROCESSING USAGE DATA:');
-        console.log('📊 Raw data.usage:', data.usage, '(type:', typeof data.usage, ')');
-        console.log('📊 Raw data.quota:', data.quota, '(type:', typeof data.quota, ')');
-        
-        // Ensure usage and quota are numbers
-        let usage = 0;
-        let quota = 100; // Default quota
-        
-        if (data.usage !== undefined && data.usage !== null && data.usage !== '') {
-          usage = typeof data.usage === 'number' ? data.usage : parseInt(data.usage, 10) || 0;
-        }
-        
-        if (data.quota !== undefined && data.quota !== null && data.quota !== '') {
-          quota = typeof data.quota === 'number' ? data.quota : parseInt(data.quota, 10) || 100;
-        }
-        
-        console.log('📊 FINAL PROCESSED VALUES:');
-        console.log('📊 Final usage:', usage, '(type:', typeof usage, ')');
-        console.log('📊 Final quota:', quota, '(type:', typeof quota, ')');
-        
-        // Update UI with processed values
-        setField('usage', usage.toString());
-        document.getElementById('quota').textContent = quota.toString();
-        
-        const percentage = quota > 0 ? (usage / quota) * 100 : 0;
-        console.log('📊 Calculated percentage:', percentage, '%');
-        document.getElementById('usage-fill').style.width = `${Math.min(percentage, 100)}%`;
-        
-        console.log('📊 FINAL UI UPDATE COMPLETED ✅');
-        
-        showSuccess('Profile loaded successfully!');
-        console.log('✅ Profile loaded and UI updated');
-        
-      } catch (error) {
-        console.error('❌ Error loading profile:', error);
-        showError(`Loading error: ${error.message}`);
-        
-        // Show basic info even if webhook fails
-        setField('email', email);
-        setField('plan', 'Free');
-        setField('usage', '0');
-        document.getElementById('quota').textContent = '100';
-        document.getElementById('usage-fill').style.width = '0%';
-        updatePremiumCard('Free');
-      } finally {
-        hideLoading();
+        await createOrUpdateUser(user);
+        return; // createOrUpdateUser will call loadProfile again
+      }
+      throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+    }
+    
+    const responseText = await resp.text();
+    console.log('📋 Raw response (first 500 chars):', responseText.substring(0, 500));
+    
+    // CRITICAL FIX: Better response parsing
+    let data;
+    
+    try {
+      data = JSON.parse(responseText);
+      console.log('📋 Parsed JSON data:', data);
+      
+      // EXTRA DEBUG: Log specific fields we care about
+      console.log('📊 USAGE DEBUG - Email:', data.email);
+      console.log('📊 USAGE DEBUG - Plan:', data.plan);
+      console.log('📊 USAGE DEBUG - Usage:', data.usage, '(type:', typeof data.usage, ')');
+      console.log('📊 USAGE DEBUG - Quota:', data.quota, '(type:', typeof data.quota, ')');
+      
+    } catch (parseError) {
+      console.error('❌ JSON Parse Error:', parseError);
+      console.log('❌ Failed to parse response as JSON, using fallback data');
+      
+      // Use fallback data if JSON parsing fails
+      data = {
+        email: email,
+        plan: 'Free',
+        usage: 0,
+        quota: 100
+      };
+    }
+    
+    // Process the data with fallbacks and better error handling
+    setField('email', data.email || email);
+    const userPlan = data.plan || 'Free';
+    setField('plan', userPlan);
+    
+    // Update premium card based on plan
+    updatePremiumCard(userPlan);
+    
+    // CRITICAL FIX: Better usage/quota handling
+    console.log('📊 PROCESSING USAGE DATA:');
+    console.log('📊 Raw data.usage:', data.usage, '(type:', typeof data.usage, ')');
+    console.log('📊 Raw data.quota:', data.quota, '(type:', typeof data.quota, ')');
+    
+    // Ensure usage and quota are numbers with proper conversion
+    let usage = 0;
+    let quota = 100; // Default quota
+    
+    // IMPROVED: More robust number parsing
+    if (data.usage !== undefined && data.usage !== null && data.usage !== '') {
+      if (typeof data.usage === 'string') {
+        usage = parseInt(data.usage.replace(/[^0-9]/g, ''), 10) || 0;
+      } else {
+        usage = Number(data.usage) || 0;
       }
     }
+    
+    if (data.quota !== undefined && data.quota !== null && data.quota !== '') {
+      if (typeof data.quota === 'string') {
+        quota = parseInt(data.quota.replace(/[^0-9]/g, ''), 10) || 100;
+      } else {
+        quota = Number(data.quota) || 100;
+      }
+    }
+    
+    console.log('📊 FINAL PROCESSED VALUES:');
+    console.log('📊 Final usage:', usage, '(type:', typeof usage, ')');
+    console.log('📊 Final quota:', quota, '(type:', typeof quota, ')');
+    
+    // Update UI with processed values
+    setField('usage', usage.toString());
+    document.getElementById('quota').textContent = quota.toString();
+    
+    const percentage = quota > 0 ? (usage / quota) * 100 : 0;
+    console.log('📊 Calculated percentage:', percentage, '%');
+    document.getElementById('usage-fill').style.width = `${Math.min(percentage, 100)}%`;
+    
+    console.log('📊 FINAL UI UPDATE COMPLETED ✅');
+    
+    // REMOVED: Don't show success message every time profile loads
+    console.log('✅ Profile loaded and UI updated');
+    
+  } catch (error) {
+    console.error('❌ Error loading profile:', error);
+    showError(`Loading error: ${error.message}`);
+    
+    // Show basic info even if webhook fails
+    setField('email', email);
+    setField('plan', 'Free');
+    setField('usage', '0');
+    document.getElementById('quota').textContent = '100';
+    document.getElementById('usage-fill').style.width = '0%';
+    updatePremiumCard('Free');
+  } finally {
+    hideLoading();
+  }
+}
 
     // Edit functionality
     function enableEdit(field) {
