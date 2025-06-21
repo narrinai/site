@@ -1484,6 +1484,162 @@
         gap: var(--spacing-md);
       }
     }
+
+    /* ===== LOGIN FORM STYLES ===== */
+    .login-form-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 60vh;
+      padding: var(--spacing-xl);
+    }
+
+    .login-form-section {
+      background: var(--color-white);
+      padding: var(--spacing-3xl);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-xl);
+      border: 2px solid var(--color-light-gray);
+      transition: all var(--transition-base);
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .login-form-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--gradient-primary);
+    }
+
+    .login-form-section:hover {
+      border-color: var(--color-teal);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-xl);
+    }
+
+    .login-icon-header {
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .login-icon-circle {
+      width: 64px;
+      height: 64px;
+      background: var(--gradient-primary);
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+      box-shadow: var(--shadow-colored);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .login-icon-emoji {
+      font-size: var(--font-size-2xl);
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    }
+
+    .login-form-title {
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-2xl);
+      font-weight: 700;
+      color: var(--color-navy);
+      margin: 0 0 var(--spacing-lg) 0;
+      letter-spacing: -0.01em;
+    }
+
+    .login-form-text {
+      font-size: var(--font-size-base);
+      color: var(--color-gray);
+      margin: 0 0 var(--spacing-2xl) 0;
+      line-height: 1.6;
+    }
+
+    .login-form-button {
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      border: none;
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-lg) var(--spacing-2xl);
+      font-size: var(--font-size-base);
+      font-weight: 600;
+      font-family: var(--font-primary);
+      cursor: pointer;
+      transition: all var(--transition-base);
+      box-shadow: var(--shadow-colored);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-sm);
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .login-form-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .login-form-button:hover::before {
+      left: 100%;
+    }
+
+    .login-form-button:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-xl);
+    }
+
+    .login-form-button:active {
+      transform: translateY(0);
+    }
+
+    .login-form-button .button-icon {
+      font-size: var(--font-size-lg);
+    }
+
+    /* Mobile responsive adjustments for login form */
+    @media (max-width: 768px) {
+      .login-form-container {
+        padding: var(--spacing-lg);
+        min-height: 50vh;
+      }
+
+      .login-form-section {
+        padding: var(--spacing-2xl);
+        max-width: none;
+      }
+
+      .login-icon-circle {
+        width: 56px;
+        height: 56px;
+      }
+
+      .login-icon-emoji {
+        font-size: var(--font-size-xl);
+      }
+
+      .login-form-title {
+        font-size: var(--font-size-xl);
+      }
+
+      .login-form-button {
+        padding: var(--spacing-md) var(--spacing-xl);
+      }
+    }
   </style>
 </head>
 
@@ -1640,25 +1796,19 @@
     </div>
     
     <div id="not-logged-in" style="display: none;">
-      <div class="login-hero-section">
-        <div class="login-hero-content">
-          <div class="login-icon">
-            <div class="icon-circle">
-              <span class="icon-emoji">👤</span>
+      <div class="login-form-container">
+        <div class="login-form-section">
+          <div class="login-icon-header">
+            <div class="login-icon-circle">
+              <span class="login-icon-emoji">🔐</span>
             </div>
           </div>
-          <h2 class="login-hero-title">Welcome to Your Profile</h2>
-          <p class="login-hero-subtitle">Sign in to access your account settings, view your usage, and manage your subscription.</p>
-          
-          <button class="login-cta-button" onclick="openLogin()">
-            <span class="button-icon">🔐</span>
-            <span class="button-text">Login / Register</span>
-            <span class="button-arrow">→</span>
+          <h2 class="login-form-title">Login/Register</h2>
+          <p class="login-form-text">You must be logged in to view your profile.</p>
+          <button class="login-form-button" onclick="openLogin()">
+            <span class="button-icon">👤</span>
+            <span>Login/Register</span>
           </button>
-          
-          <p class="login-help-text">
-            New to Narrin AI? <span class="highlight-text">Registration is free</span> and takes just a few seconds.
-          </p>
         </div>
       </div>
     </div>
