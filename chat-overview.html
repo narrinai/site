@@ -1921,6 +1921,7 @@
       }
     }
 
+    // BIJGEWERKTE LOADUSERCHATS FUNCTIE
     async function loadUserChats() {
       showLoading();
       
@@ -1940,7 +1941,6 @@
           action: 'get_user_chats'
         });
 
-        // Make API call to fetch user's chat history
         const response = await fetch('https://hook.eu2.make.com/8ftepe6e6mmfqffae4jlbtfeako4m0sy', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1970,15 +1970,100 @@
           throw new Error('Invalid JSON received from server');
         }
 
-        userChats = data.chats || [];
+        // BELANGRIJKE WIJZIGING: Geen groepering meer nodig!
+        // Make.com stuurt al 1 record per character terug
+        const rawChats = data.chats || data.data || data || [];
+        console.log('📋 Raw chats from API:', rawChats);
+
+        if (!Array.isArray(rawChats)) {
+          console.log('⚠️ Expected array, got:', typeof rawChats);
+          userChats = [];
+          displayChats();
+          return;
+        }
+
+        // Directe mapping zonder groepering
+        userChats = rawChats.map(chat => ({
+          character_name: chat.character_name || 'Unknown Character',
+          character_title: chat.character_title || 'AI Character',
+          character_slug: chat.character_slug || 'unknown',
+          avatar_url: chat.avatar_url || '',
+          last_message: chat.last_message || 'Start a new conversation...',
+          last_message_date: formatChatDate(chat.last_message_date),
+          message_count: chat.message_count || 1,
+          chat_id: chat.record_id || `${email}_${chat.character_slug}`
+        }));
+
+        // Sorteer op laatste bericht datum (nieuwste eerst)
+        userChats.sort((a, b) => {
+          const dateA = parseDateForSorting(a.last_message_date);
+          const dateB = parseDateForSorting(b.last_message_date);
+          return dateB - dateA;
+        });
         
-        console.log('📋 Loaded chats:', userChats);
+        console.log('✅ Final processed chats:', userChats.length, 'chats found');
+        console.log('Chats:', userChats);
         displayChats();
         
       } catch (error) {
         console.error('❌ Error loading chats:', error);
-        // For demo purposes, show sample data when API fails
         showSampleChats();
+      }
+    }
+
+    // Behoud de helper functies
+    function parseDateForSorting(dateString) {
+      if (!dateString || dateString === 'Never') return new Date(0);
+      
+      if (dateString.includes('ago')) {
+        const now = new Date();
+        if (dateString.includes('minutes')) {
+          const minutes = parseInt(dateString);
+          return new Date(now.getTime() - (minutes * 60 * 1000));
+        }
+        if (dateString.includes('hours')) {
+          const hours = parseInt(dateString);
+          return new Date(now.getTime() - (hours * 60 * 60 * 1000));
+        }
+        if (dateString.includes('days')) {
+          const days = parseInt(dateString);
+          return new Date(now.getTime() - (days * 24 * 60 * 60 * 1000));
+        }
+      }
+      
+      try {
+        return new Date(dateString);
+      } catch (e) {
+        return new Date(0);
+      }
+    }
+
+    function formatChatDate(timestamp) {
+      if (!timestamp) return 'Never';
+      
+      try {
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diffTime = Math.abs(now - date);
+        const diffMinutes = Math.floor(diffTime / (1000 * 60));
+        const diffHours = Math.floor(diffMinutes / 60);
+        const diffDays = Math.floor(diffHours / 24);
+        
+        if (diffMinutes < 1) return 'Just now';
+        if (diffMinutes < 60) return `${diffMinutes} minutes ago`;
+        if (diffHours < 24) return `${diffHours} hours ago`;
+        if (diffDays === 1) return 'Yesterday';
+        if (diffDays < 7) return `${diffDays} days ago`;
+        if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
+        
+        return date.toLocaleDateString('en-US', { 
+          month: 'short', 
+          day: 'numeric',
+          year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+        });
+      } catch (e) {
+        console.error('Date formatting error:', e);
+        return timestamp.toString();
       }
     }
 
