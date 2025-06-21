@@ -717,23 +717,55 @@
 
     /* ===== NETLIFY IDENTITY MODAL Z-INDEX FIX ===== */
     
-    /* Force highest z-index for ALL Netlify Identity elements */
+    /* EXTREME Z-INDEX FIX - Force ALL Netlify elements to highest possible z-index */
     .netlify-identity-widget,
+    .netlify-identity-widget *,
     [data-netlify-identity-widget],
+    [data-netlify-identity-widget] *,
     .netlify-identity-widget iframe,
     .netlify-identity-widget > div,
     .netlify-identity-widget .netlify-identity-modal,
+    .netlify-identity-widget .netlify-identity-modal *,
     .netlify-identity-widget .netlify-identity-modal > *,
     .netlify-identity-widget .netlify-identity-modal div,
     .netlify-identity-modal,
-    div[data-netlify-identity-modal] {
-      z-index: var(--z-netlify-modal) !important;
+    .netlify-identity-modal *,
+    div[data-netlify-identity-modal],
+    div[data-netlify-identity-modal] * {
+      z-index: 999999999 !important;
       position: relative !important;
     }
 
-    /* Special handling for mobile devices */
+    /* Force body to have lower z-index when modal is open */
+    body:has(.netlify-identity-widget) .header,
+    body:has(.netlify-identity-widget) .mobile-menu-overlay,
+    body:has(.netlify-identity-widget) .mobile-search-overlay,
+    body:has(.netlify-identity-widget) nav,
+    body:has(.netlify-identity-widget) header {
+      z-index: 1 !important;
+      position: relative !important;
+    }
+
+    /* Universal Netlify modal override */
+    div[class*="netlify"],
+    iframe[src*="netlify"],
+    div[id*="netlify"],
+    *[class*="identity"],
+    *[data-netlify-identity-widget],
+    *[data-netlify-identity-modal] {
+      z-index: 999999999 !important;
+      position: fixed !important;
+    }
+
+    /* Extra aggressive approach for mobile */
     @media (max-width: 768px) {
-      /* Force modal container to be full screen */
+      /* When modal is open, hide navigation completely */
+      body:has(.netlify-identity-widget) .header {
+        visibility: hidden !important;
+        z-index: -1 !important;
+      }
+      
+      /* Force modal container to be absolutely on top */
       .netlify-identity-widget {
         position: fixed !important;
         top: 0 !important;
@@ -742,67 +774,78 @@
         bottom: 0 !important;
         width: 100vw !important;
         height: 100vh !important;
-        z-index: var(--z-netlify-modal) !important;
+        z-index: 999999999 !important;
         background: rgba(0, 0, 0, 0.8) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
       }
       
-      /* Style the modal wrapper */
+      /* Modal wrapper */
       .netlify-identity-widget > div {
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        bottom: 0 !important;
+        position: relative !important;
         width: 100% !important;
-        height: 100% !important;
-        z-index: var(--z-netlify-modal) !important;
+        max-width: 400px !important;
+        height: auto !important;
+        max-height: 90vh !important;
+        z-index: 999999999 !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
         padding: 20px !important;
         box-sizing: border-box !important;
-        background: rgba(0, 0, 0, 0.8) !important;
       }
 
-      /* Style the actual modal */
+      /* Actual modal */
       .netlify-identity-widget .netlify-identity-modal {
         position: relative !important;
-        top: auto !important;
-        left: auto !important;
-        right: auto !important;
-        bottom: auto !important;
         width: 100% !important;
         max-width: 400px !important;
         max-height: 90vh !important;
         margin: 0 !important;
         border-radius: 16px !important;
-        z-index: var(--z-netlify-modal) !important;
+        z-index: 999999999 !important;
         overflow-y: auto !important;
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
-      }
-
-      /* Ensure header doesn't interfere */
-      .header {
-        z-index: var(--z-sticky) !important;
+        background: white !important;
       }
       
-      /* Hide mobile menu when modal is open */
-      .netlify-identity-widget ~ .mobile-menu-overlay,
+      /* Hide mobile menu completely when modal is open */
       body:has(.netlify-identity-widget) .mobile-menu-overlay {
-        z-index: calc(var(--z-netlify-modal) - 1) !important;
+        display: none !important;
+      }
+      
+      /* Hide hamburger menu */
+      body:has(.netlify-identity-widget) .mobile-menu-btn {
+        visibility: hidden !important;
       }
     }
 
     /* Desktop modal positioning */
     @media (min-width: 769px) {
       .netlify-identity-widget {
-        z-index: var(--z-netlify-modal) !important;
+        z-index: 999999999 !important;
+        position: fixed !important;
       }
       
       .netlify-identity-widget .netlify-identity-modal {
         margin-top: 100px !important;
-        z-index: var(--z-netlify-modal) !important;
+        z-index: 999999999 !important;
       }
+    }
+
+    /* JavaScript-based fix as backup */
+    .modal-open {
+      overflow: hidden !important;
+    }
+    
+    .modal-open .header {
+      z-index: 1 !important;
+    }
+    
+    .modal-open .mobile-menu-overlay,
+    .modal-open .mobile-search-overlay {
+      display: none !important;
     }
     
     .container {
@@ -2339,6 +2382,20 @@
         }
       });
 
+      window.netlifyIdentity.on('open', () => {
+        console.log('🔓 Netlify Identity modal opened');
+        // Force modal to be on top
+        forceModalToTop();
+        // Add class to body to help with CSS
+        document.body.classList.add('modal-open');
+      });
+
+      window.netlifyIdentity.on('close', () => {
+        console.log('🔒 Netlify Identity modal closed');
+        // Remove class from body
+        document.body.classList.remove('modal-open');
+      });
+
       window.netlifyIdentity.on('login', user => {
         console.log('✅ Login successful:', user.email);
         netlifyUser = user;
@@ -2371,6 +2428,55 @@
         console.error('❌ Netlify Identity error:', err);
         showError('Authentication error: ' + err.message);
       });
+    }
+
+    // Function to force modal to top with JavaScript
+    function forceModalToTop() {
+      setTimeout(() => {
+        // Find all Netlify modal elements
+        const modalElements = [
+          ...document.querySelectorAll('.netlify-identity-widget'),
+          ...document.querySelectorAll('[data-netlify-identity-widget]'),
+          ...document.querySelectorAll('.netlify-identity-modal'),
+          ...document.querySelectorAll('iframe[src*="netlify"]'),
+          ...document.querySelectorAll('div[class*="netlify"]')
+        ];
+
+        modalElements.forEach(element => {
+          if (element) {
+            element.style.zIndex = '999999999';
+            element.style.position = 'fixed';
+            console.log('🔧 Forced z-index on:', element.className || element.tagName);
+          }
+        });
+
+        // Hide navigation on mobile when modal is open
+        if (window.innerWidth <= 768) {
+          const header = document.querySelector('.header');
+          const mobileMenu = document.querySelector('.mobile-menu-overlay');
+          const mobileSearch = document.querySelector('.mobile-search-overlay');
+          
+          if (header) header.style.visibility = 'hidden';
+          if (mobileMenu) mobileMenu.style.display = 'none';
+          if (mobileSearch) mobileSearch.style.display = 'none';
+        }
+      }, 100);
+
+      // Keep checking and forcing for 3 seconds
+      let forceCounter = 0;
+      const forceInterval = setInterval(() => {
+        forceCounter++;
+        
+        const widget = document.querySelector('.netlify-identity-widget');
+        if (widget) {
+          widget.style.zIndex = '999999999';
+          widget.style.position = 'fixed';
+        }
+
+        if (forceCounter > 30) { // Stop after 3 seconds
+          clearInterval(forceInterval);
+        }
+      }, 100);
     }
 
     // Initialize Netlify Identity and check login status
@@ -2908,9 +3014,29 @@
     // Function to open login modal
     function openLogin() {
       if (window.netlifyIdentity) {
+        console.log('🔓 Opening Netlify Identity modal...');
+        
+        // Close mobile menu first if open
+        closeMobileMenu();
+        
+        // Add modal-open class preemptively
+        document.body.classList.add('modal-open');
+        
+        // Force modal styling before opening
+        setTimeout(() => {
+          forceModalToTop();
+        }, 50);
+        
         window.netlifyIdentity.open('login');
+        
+        // Additional force after opening
+        setTimeout(() => {
+          forceModalToTop();
+        }, 200);
+        
       } else {
         // Fallback if Netlify Identity is not available
+        console.log('❌ Netlify Identity not available, redirecting to profile page');
         window.location.href = 'profile.html';
       }
     }
