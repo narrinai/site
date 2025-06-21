@@ -1711,10 +1711,159 @@
         padding: var(--spacing-md) var(--spacing-xl);
       }
     }
+
+    /* ===== CUSTOM NOTIFICATION SYSTEM ===== */
+    .notification-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(30, 41, 59, 0.8);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 999999999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: all var(--transition-base);
+    }
+
+    .notification-overlay.active {
+      display: flex;
+      opacity: 1;
+    }
+
+    .notification-modal {
+      background: var(--color-white);
+      border-radius: var(--radius-xl);
+      padding: var(--spacing-2xl);
+      box-shadow: var(--shadow-xl);
+      max-width: 90vw;
+      width: 100%;
+      max-width: 400px;
+      transform: scale(0.9) translateY(20px);
+      transition: all var(--transition-base);
+      text-align: center;
+    }
+
+    .notification-overlay.active .notification-modal {
+      transform: scale(1) translateY(0);
+    }
+
+    .notification-icon {
+      font-size: var(--font-size-4xl);
+      margin-bottom: var(--spacing-lg);
+      display: block;
+    }
+
+    .notification-icon.success {
+      color: var(--color-teal);
+    }
+
+    .notification-icon.error {
+      color: var(--color-coral);
+    }
+
+    .notification-icon.warning {
+      color: #f59e0b;
+    }
+
+    .notification-icon.info {
+      color: #3b82f6;
+    }
+
+    .notification-icon.question {
+      color: #8b5cf6;
+    }
+
+    .notification-title {
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-xl);
+      font-weight: 700;
+      color: var(--color-navy);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .notification-message {
+      color: var(--color-gray-dark);
+      font-size: var(--font-size-base);
+      line-height: 1.6;
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .notification-buttons {
+      display: flex;
+      gap: var(--spacing-md);
+      justify-content: center;
+    }
+
+    .notification-btn {
+      padding: var(--spacing-sm) var(--spacing-lg);
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      min-width: 100px;
+      font-family: var(--font-primary);
+    }
+
+    .notification-btn.primary {
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      box-shadow: var(--shadow-colored);
+    }
+
+    .notification-btn.primary:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .notification-btn.secondary {
+      background: var(--color-white);
+      color: var(--color-navy);
+      border: 2px solid var(--color-light-gray);
+    }
+
+    .notification-btn.secondary:hover {
+      border-color: var(--color-teal);
+      color: var(--color-teal);
+    }
+
+    /* Mobile adjustments */
+    @media (max-width: 768px) {
+      .notification-modal {
+        margin: var(--spacing-lg);
+        padding: var(--spacing-xl);
+      }
+
+      .notification-buttons {
+        flex-direction: column;
+      }
+
+      .notification-btn {
+        width: 100%;
+      }
+    }
   </style>
 </head>
 
 <body>
+  <!-- Custom Notification System -->
+  <div class="notification-overlay" id="notificationOverlay">
+    <div class="notification-modal">
+      <span class="notification-icon" id="notificationIcon">✓</span>
+      <h3 class="notification-title" id="notificationTitle">Success</h3>
+      <p class="notification-message" id="notificationMessage">Operation completed successfully!</p>
+      <div class="notification-buttons" id="notificationButtons">
+        <button class="notification-btn primary" id="notificationOkBtn">OK</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Header -->
   <header class="header" role="banner">
     <div class="header-container">
@@ -1985,6 +2134,84 @@
     // Vervang deze waarden met je echte Stripe keys
     const stripe = Stripe('pk_live_jz2dXpzmEDUahXkKkyUe36Zt'); // Vervang met jouw echte publishable key
     const PRICE_ID = 'price_1Rc9oTDU567HpUYxl1sLu71A'; // Vervang met jouw echte Price ID
+
+    // ===== CUSTOM NOTIFICATION SYSTEM =====
+    function showNotification(type, title, message, buttons = null) {
+      const overlay = document.getElementById('notificationOverlay');
+      const icon = document.getElementById('notificationIcon');
+      const titleEl = document.getElementById('notificationTitle');
+      const messageEl = document.getElementById('notificationMessage');
+      const buttonsEl = document.getElementById('notificationButtons');
+      
+      // Set icon based on type
+      const icons = {
+        success: '✅',
+        error: '❌',
+        warning: '⚠️',
+        info: 'ℹ️',
+        question: '❓'
+      };
+      
+      icon.textContent = icons[type] || icons.info;
+      icon.className = `notification-icon ${type}`;
+      titleEl.textContent = title;
+      messageEl.textContent = message;
+      
+      // Set up buttons
+      if (buttons) {
+        buttonsEl.innerHTML = '';
+        buttons.forEach(button => {
+          const btn = document.createElement('button');
+          btn.className = `notification-btn ${button.type || 'secondary'}`;
+          btn.textContent = button.text;
+          btn.onclick = () => {
+            hideNotification();
+            if (button.callback) button.callback();
+          };
+          buttonsEl.appendChild(btn);
+        });
+      } else {
+        // Default OK button
+        buttonsEl.innerHTML = '<button class="notification-btn primary" onclick="hideNotification()">OK</button>';
+      }
+      
+      // Show notification
+      overlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+    
+    function hideNotification() {
+      const overlay = document.getElementById('notificationOverlay');
+      overlay.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+    
+    // Custom confirm replacement
+    function customConfirm(message, title = 'Confirm', onConfirm = null, onCancel = null) {
+      const buttons = [
+        {
+          text: 'Cancel',
+          type: 'secondary',
+          callback: onCancel
+        },
+        {
+          text: 'Confirm',
+          type: 'primary',
+          callback: onConfirm
+        }
+      ];
+      showNotification('question', title, message, buttons);
+    }
+    
+    // Success notification
+    function showSuccess(message, title = 'Success') {
+      showNotification('success', title, message);
+    }
+    
+    // Error notification
+    function showError(message, title = 'Error') {
+      showNotification('error', title, message);
+    }
 
     // ===== NAVIGATION FUNCTIONALITY =====
     
@@ -2530,7 +2757,7 @@
     }
 
     function handleLogout() {
-      if (confirm('Are you sure you want to log out?')) {
+      customConfirm('Are you sure you want to log out?', 'Confirm Logout', () => {
         if (window.netlifyIdentity) {
           window.netlifyIdentity.logout();
         } else {
@@ -2539,7 +2766,7 @@
           showLoginUI();
           window.location.href = 'index.html';
         }
-      }
+      });
     }
 
     function showLoginUI() {
@@ -3089,9 +3316,14 @@
     async function handleDowngrade() {
       console.log('⬇️ Downgrade button clicked');
       
-      if (!confirm('Are you sure you want to downgrade to the free plan? You will lose access to premium features and be limited to 50 messages.')) {
-        return;
-      }
+      customConfirm('Are you sure you want to downgrade to the free plan? You will lose access to premium features and be limited to 50 messages.', 'Confirm Downgrade', () => {
+        // Continue with downgrade logic
+        performDowngrade();
+      });
+      return;
+    }
+    
+    async function performDowngrade() {
       
       const email = localStorage.getItem('user_email');
       const uid = localStorage.getItem('user_uid');
