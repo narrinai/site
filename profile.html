@@ -2863,6 +2863,7 @@
         
         const responseText = await resp.text();
         console.log('📋 Raw response (first 500 chars):', responseText.substring(0, 500));
+        console.log('📋 FULL RAW RESPONSE FOR DEBUGGING:', responseText);
         
         // CRITICAL FIX: Better response parsing with fallback handling
         let data;
@@ -2881,6 +2882,24 @@
           try {
             data = JSON.parse(responseText);
             console.log('📋 Parsed JSON data:', data);
+            
+            // EXTRA DEBUG: Log specific fields we care about
+            console.log('📊 USAGE DEBUG - Email:', data.email);
+            console.log('📊 USAGE DEBUG - Plan:', data.plan);
+            console.log('📊 USAGE DEBUG - Usage:', data.usage, '(type:', typeof data.usage, ')');
+            console.log('📊 USAGE DEBUG - Quota:', data.quota, '(type:', typeof data.quota, ')');
+            
+            // Handle case where usage might be passed as string from Airtable
+            if (data.usage && typeof data.usage === 'string') {
+              data.usage = parseInt(data.usage, 10);
+              console.log('📊 USAGE DEBUG - Converted usage to number:', data.usage);
+            }
+            
+            if (data.quota && typeof data.quota === 'string') {
+              data.quota = parseInt(data.quota, 10);
+              console.log('📊 USAGE DEBUG - Converted quota to number:', data.quota);
+            }
+            
           } catch (parseError) {
             console.error('❌ JSON Parse Error:', parseError);
             console.log('❌ Failed to parse response as JSON, using fallback data');
@@ -2895,7 +2914,7 @@
           }
         }
         
-        // Process the data with fallbacks
+        // Process the data with fallbacks and better error handling
         setField('email', data.email || email);
         const userPlan = data.plan || 'Free';
         setField('plan', userPlan);
@@ -2903,17 +2922,36 @@
         // Update premium card based on plan
         updatePremiumCard(userPlan);
         
-        if (data.usage !== undefined && data.quota !== undefined) {
-          setField('usage', `${data.usage}`);
-          document.getElementById('quota').textContent = data.quota;
-          
-          const percentage = (data.usage / data.quota) * 100;
-          document.getElementById('usage-fill').style.width = `${Math.min(percentage, 100)}%`;
-        } else {
-          setField('usage', '0');
-          document.getElementById('quota').textContent = '100';
-          document.getElementById('usage-fill').style.width = '0%';
+        // IMPROVED: Better usage/quota handling with more logging
+        console.log('📊 PROCESSING USAGE DATA:');
+        console.log('📊 Raw data.usage:', data.usage, '(type:', typeof data.usage, ')');
+        console.log('📊 Raw data.quota:', data.quota, '(type:', typeof data.quota, ')');
+        
+        // Ensure usage and quota are numbers
+        let usage = 0;
+        let quota = 100; // Default quota
+        
+        if (data.usage !== undefined && data.usage !== null && data.usage !== '') {
+          usage = typeof data.usage === 'number' ? data.usage : parseInt(data.usage, 10) || 0;
         }
+        
+        if (data.quota !== undefined && data.quota !== null && data.quota !== '') {
+          quota = typeof data.quota === 'number' ? data.quota : parseInt(data.quota, 10) || 100;
+        }
+        
+        console.log('📊 FINAL PROCESSED VALUES:');
+        console.log('📊 Final usage:', usage, '(type:', typeof usage, ')');
+        console.log('📊 Final quota:', quota, '(type:', typeof quota, ')');
+        
+        // Update UI with processed values
+        setField('usage', usage.toString());
+        document.getElementById('quota').textContent = quota.toString();
+        
+        const percentage = quota > 0 ? (usage / quota) * 100 : 0;
+        console.log('📊 Calculated percentage:', percentage, '%');
+        document.getElementById('usage-fill').style.width = `${Math.min(percentage, 100)}%`;
+        
+        console.log('📊 FINAL UI UPDATE COMPLETED ✅');
         
         showSuccess('Profile loaded successfully!');
         console.log('✅ Profile loaded and UI updated');
