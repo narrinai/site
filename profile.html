@@ -730,11 +730,11 @@
     @media (max-width: 768px) {
       .netlify-identity-widget {
         position: fixed !important;
-        top: 80px !important; /* Below header */
+        top: 0 !important; /* Start from top to cover navigation */
         left: 0 !important;
         right: 0 !important;
         bottom: 0 !important;
-        z-index: 1001 !important;
+        z-index: 1003 !important; /* Higher than header z-index */
       }
       
       .netlify-identity-widget > div {
@@ -743,7 +743,7 @@
         left: 0 !important;
         right: 0 !important;
         bottom: 0 !important;
-        z-index: 1001 !important;
+        z-index: 1003 !important;
         margin: 0 !important;
         padding: 20px !important;
         box-sizing: border-box !important;
@@ -758,10 +758,12 @@
         max-width: none !important;
         margin: 0 !important;
         border-radius: 12px !important;
-        z-index: 1001 !important;
+        z-index: 1003 !important;
+        max-height: calc(100vh - 40px) !important;
+        overflow-y: auto !important;
       }
 
-      /* Ensure header stays on top when modal is open */
+      /* Header stays below modal when modal is open */
       .header {
         z-index: 1002 !important;
         position: relative !important;
@@ -1638,12 +1640,26 @@
     </div>
     
     <div id="not-logged-in" style="display: none;">
-      <div class="form-section">
-        <h2>⚠️ Not logged in</h2>
-        <p>You must be logged in to view your profile.</p>
-        <button class="btn" onclick="openLogin()" style="background-color: #000; color: white;">
-          👤 Log in
-        </button>
+      <div class="login-hero-section">
+        <div class="login-hero-content">
+          <div class="login-icon">
+            <div class="icon-circle">
+              <span class="icon-emoji">👤</span>
+            </div>
+          </div>
+          <h2 class="login-hero-title">Welcome to Your Profile</h2>
+          <p class="login-hero-subtitle">Sign in to access your account settings, view your usage, and manage your subscription.</p>
+          
+          <button class="login-cta-button" onclick="openLogin()">
+            <span class="button-icon">🔐</span>
+            <span class="button-text">Login / Register</span>
+            <span class="button-arrow">→</span>
+          </button>
+          
+          <p class="login-help-text">
+            New to Narrin AI? <span class="highlight-text">Registration is free</span> and takes just a few seconds.
+          </p>
+        </div>
       </div>
     </div>
     
