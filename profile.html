@@ -736,7 +736,7 @@
       position: relative !important;
     }
 
-    /* Force body to have lower z-index when modal is open */
+    /* GEFIXTE VERSIE: Alleen z-index verlagen, NIET visibility verbergen */
     body:has(.netlify-identity-widget) .header,
     body:has(.netlify-identity-widget) .mobile-menu-overlay,
     body:has(.netlify-identity-widget) .mobile-search-overlay,
@@ -744,6 +744,7 @@
     body:has(.netlify-identity-widget) header {
       z-index: 1 !important;
       position: relative !important;
+      /* VERWIJDERD: visibility: hidden !important; */
     }
 
     /* Universal Netlify modal override */
@@ -757,15 +758,9 @@
       position: fixed !important;
     }
 
-    /* Extra aggressive approach for mobile */
+    /* GEFIXTE mobiele modal behandeling */
     @media (max-width: 768px) {
-      /* When modal is open, hide navigation completely */
-      body:has(.netlify-identity-widget) .header {
-        visibility: hidden !important;
-        z-index: -1 !important;
-      }
-      
-      /* Force modal container to be absolutely on top */
+      /* Zorgt ervoor dat modal OVER de navigatie komt zonder deze te verbergen */
       .netlify-identity-widget {
         position: fixed !important;
         top: 0 !important;
@@ -810,15 +805,15 @@
         background: white !important;
       }
       
-      /* Hide mobile menu completely when modal is open */
-      body:has(.netlify-identity-widget) .mobile-menu-overlay {
+      /* VERWIJDERD: Verberg NIET de mobile menu als modal open is */
+      /* body:has(.netlify-identity-widget) .mobile-menu-overlay {
         display: none !important;
-      }
+      } */
       
-      /* Hide hamburger menu */
-      body:has(.netlify-identity-widget) .mobile-menu-btn {
+      /* VERWIJDERD: Verberg NIET de hamburger menu */
+      /* body:has(.netlify-identity-widget) .mobile-menu-btn {
         visibility: hidden !important;
-      }
+      } */
     }
 
     /* Desktop modal positioning */
@@ -834,18 +829,20 @@
       }
     }
 
-    /* JavaScript-based fix as backup */
+    /* AANGEPASTE JavaScript-based fix */
     .modal-open {
       overflow: hidden !important;
     }
     
     .modal-open .header {
       z-index: 1 !important;
+      /* VERWIJDERD: visibility: hidden !important; */
     }
     
     .modal-open .mobile-menu-overlay,
     .modal-open .mobile-search-overlay {
-      display: none !important;
+      z-index: 1 !important;
+      /* VERWIJDERD: display: none !important; */
     }
     
     .container {
@@ -2597,7 +2594,7 @@
       }
     }
 
-    // Enhanced event listeners setup
+    // GEFIXTE versie van setupEventListeners met verbeterde modal close handling
     function setupEventListeners() {
       // Netlify Identity events
       window.netlifyIdentity.on('init', user => {
@@ -2617,10 +2614,21 @@
         document.body.classList.add('modal-open');
       });
 
+      // GEFIXTE versie van close event handler
       window.netlifyIdentity.on('close', () => {
         console.log('🔒 Netlify Identity modal closed');
         // Remove class from body
         document.body.classList.remove('modal-open');
+        
+        // BELANGRIJKE FIX: Herstel navigatie zichtbaarheid op mobiel
+        if (window.innerWidth <= 768) {
+          const header = document.querySelector('.header');
+          if (header) {
+            header.style.visibility = 'visible';
+            header.style.display = '';
+          }
+          console.log('📱 Restored mobile navigation visibility');
+        }
       });
 
       window.netlifyIdentity.on('login', user => {
@@ -2657,7 +2665,7 @@
       });
     }
 
-    // Function to force modal to top with JavaScript
+    // GEFIXTE versie van forceModalToTop met minder agressieve hiding
     function forceModalToTop() {
       setTimeout(() => {
         // Find all Netlify modal elements
@@ -2677,15 +2685,27 @@
           }
         });
 
-        // Hide navigation on mobile when modal is open
+        // GEFIXTE versie: Alleen z-index aanpassen, NIET visibility verbergen
         if (window.innerWidth <= 768) {
           const header = document.querySelector('.header');
           const mobileMenu = document.querySelector('.mobile-menu-overlay');
           const mobileSearch = document.querySelector('.mobile-search-overlay');
           
-          if (header) header.style.visibility = 'hidden';
-          if (mobileMenu) mobileMenu.style.display = 'none';
-          if (mobileSearch) mobileSearch.style.display = 'none';
+          // Sluit eventueel geopende menu's, maar verberg header NIET
+          if (mobileMenu && mobileMenu.classList.contains('active')) {
+            closeMobileMenu();
+          }
+          if (mobileSearch && mobileSearch.classList.contains('active')) {
+            mobileSearchOverlay.classList.remove('active');
+            mobileSearchBtn.setAttribute('aria-expanded', 'false');
+          }
+          
+          // Verlaag alleen z-index van header, verberg het NIET
+          if (header) {
+            header.style.zIndex = '1';
+          }
+          
+          console.log('📱 Adjusted mobile navigation z-index (without hiding)');
         }
       }, 100);
 
