@@ -2132,6 +2132,46 @@
     const stripe = Stripe('pk_live_jz2dXpzmEDUahXkKkyUe36Zt'); // Vervang met jouw echte publishable key
     const PRICE_ID = 'price_1Rc9oTDU567HpUYxl1sLu71A'; // Vervang met jouw echte Price ID
 
+    // ===== GLOBAL STATE - AANGEPAST VOOR DUBBELE CALL PREVENTIE =====
+    let isEditing = false;
+    let currentEditingField = null;
+    let originalValue = null;
+    let netlifyUser = null;
+
+    // Global state om dubbele calls te voorkomen
+    let isProcessingAuth = false;
+    let authProcessTimeout = null;
+
+    // Webhook call cache voor debouncing
+    const webhookCallCache = new Map();
+    const CACHE_DURATION = 5000; // 5 seconden
+
+    // ===== DEBOUNCING FUNCTIE =====
+    function shouldAllowWebhookCall(type, email) {
+      const key = `${type}_${email}`;
+      const lastCall = webhookCallCache.get(key);
+      const now = Date.now();
+      
+      if (lastCall && (now - lastCall) < CACHE_DURATION) {
+        console.log(`🚫 Blocking duplicate ${type} call for ${email}`);
+        return false;
+      }
+      
+      webhookCallCache.set(key, now);
+      return true;
+    }
+
+    // ===== WEBHOOK CALL LOGGING =====
+    function logWebhookCall(type, email, payload) {
+      const timestamp = new Date().toISOString();
+      console.log(`📊 WEBHOOK CALL LOG [${timestamp}]:`, {
+        type,
+        email,
+        isProcessingAuth,
+        payload: JSON.stringify(payload, null, 2)
+      });
+    }
+
     // ===== CUSTOM NOTIFICATION SYSTEM =====
     function showNotification(type, title, message, buttons = null) {
       const overlay = document.getElementById('notificationOverlay');
@@ -2462,12 +2502,6 @@
     });
 
     // ===== PROFILE FUNCTIONALITY =====
-    
-    // Global state
-    let isEditing = false;
-    let currentEditingField = null;
-    let originalValue = null;
-    let netlifyUser = null;
 
     // Utility function to detect mobile
     function isMobileDevice() {
@@ -2488,24 +2522,72 @@
       }
     }
 
-    // Enhanced login success handler
-    function handleLoginSuccess(user) {
-      console.log('✅ Login/Registration successful:', user.email);
+    // ===== GEFIXTE AUTH EVENT HANDLING =====
+    function handleAuthEvent(user, eventType) {
+      // Voorkom dubbele processing
+      if (isProcessingAuth) {
+        console.log(`⚠️ Auth already being processed, ignoring ${eventType} event`);
+        return;
+      }
+
+      // Clear eventuele vorige timeout
+      if (authProcessTimeout) {
+        clearTimeout(authProcessTimeout);
+      }
+
+      // Set processing flag
+      isProcessingAuth = true;
+      netlifyUser = user;
+
+      console.log(`🔄 Processing ${eventType} for user:`, user.email);
+
+      // Process de auth success
+      handleLoginSuccess(user, eventType);
+
+      // Close modal
+      window.netlifyIdentity.close();
+      updateLoginButton();
+
+      // Reset flag na timeout (safety net)
+      authProcessTimeout = setTimeout(() => {
+        console.log('🔄 Resetting auth processing flag after timeout');
+        isProcessingAuth = false;
+      }, 10000); // 10 seconden timeout
+    }
+
+    // ===== AANGEPASTE handleLoginSuccess functie =====
+    function handleLoginSuccess(user, eventType = 'unknown') {
+      console.log(`✅ ${eventType} successful for:`, user.email);
       
       // Store user data
       localStorage.setItem('user_email', user.email);
       localStorage.setItem('user_token', user.token.access_token);
       localStorage.setItem('user_uid', user.id);
       
-      // Create/update user in Airtable (important for new registrations!)
-      createOrUpdateUser(user);
+      // Voor NIEUWE registraties, maak user aan in Airtable
+      if (eventType === 'signup') {
+        console.log('🆕 New user signup detected - creating in Airtable');
+        createOrUpdateUser(user, true); // true = nieuwe user
+      } else {
+        console.log('🔄 Existing user login - loading profile normally');
+        // Voor bestaande users, gewoon profile laden
+        showProfileUI();
+        loadProfile();
+      }
       
       // Update UI
-      showProfileUI();
       updateLoginButton();
       
-      // Handle redirect
-      handlePostLoginRedirect();
+      // Handle redirect (alleen voor bestaande users die al een profiel hebben)
+      if (eventType !== 'signup') {
+        handlePostLoginRedirect();
+      }
+      
+      // Reset processing flag
+      setTimeout(() => {
+        isProcessingAuth = false;
+        console.log('✅ Auth processing completed');
+      }, 1000);
     }
 
     // New function to handle post-login redirect
@@ -2526,25 +2608,36 @@
       }
     }
 
-    // New function to create/update user in Airtable using the REGISTER USER webhook
-    async function createOrUpdateUser(user) {
-      console.log('👤 Creating new user in Airtable via Register User webhook:', user.email);
+    // ===== AANGEPASTE createOrUpdateUser functie =====
+    async function createOrUpdateUser(user, isNewUser = false) {
+      const email = user.email;
+      
+      // Check debouncing
+      if (!shouldAllowWebhookCall('register', email)) {
+        console.log('🚫 Duplicate register call blocked by debouncing');
+        return;
+      }
+      
+      console.log(`👤 ${isNewUser ? 'Creating new' : 'Updating existing'} user in Airtable:`, email);
       
       try {
         const payload = {
-          user_email: user.email,
+          user_email: email,
           user_uid: user.id,
           user_token: user.token.access_token,
           user_metadata: {
             full_name: user.user_metadata?.full_name || '',
             avatar_url: user.user_metadata?.avatar_url || '',
             provider: user.app_metadata?.provider || 'email'
-          }
+          },
+          is_new_user: isNewUser // Extra vlag voor webhook
         };
+        
+        // Log webhook call
+        logWebhookCall('register', email, payload);
         
         console.log('📤 SENDING to Register User webhook:', payload);
         
-        // Use the dedicated Register User webhook
         const REGISTER_WEBHOOK_URL = 'https://hook.eu2.make.com/03ug6qzucda4ksrkcc06nu3bu3vetj15';
         
         const resp = await fetch(REGISTER_WEBHOOK_URL, {
@@ -2562,45 +2655,57 @@
         const responseText = await resp.text();
         console.log('📋 Register webhook raw response:', responseText);
         
-        // Parse response
         let result;
         try {
           result = JSON.parse(responseText);
           console.log('✅ Registration successful, parsed response:', result);
         } catch (parseError) {
           console.log('⚠️ Non-JSON response from registration webhook:', responseText);
-          // If it's not JSON but status was OK, assume it worked
           result = { success: true, message: responseText };
         }
         
-        console.log('✅ User successfully created in Airtable via Register webhook');
-        showSuccess('Account created successfully! Welcome to Narrin AI!');
+        console.log('✅ User successfully created in Airtable');
         
-        // Wait a bit and then load profile via the normal webhook
-        setTimeout(() => {
-          console.log('📡 Loading profile data for newly registered user...');
-          loadProfile();
-        }, 2000); // 2 seconds to allow Airtable to process the new record
+        if (isNewUser) {
+          showSuccess('Account created successfully! Welcome to Narrin AI!');
+          showProfileUI();
+          
+          // Voor nieuwe users: wacht langer en laad dan profile
+          setTimeout(() => {
+            console.log('📡 Loading profile data for newly registered user...');
+            loadProfile();
+            // Handle redirect NA profile load
+            setTimeout(() => {
+              handlePostLoginRedirect();
+            }, 1000);
+          }, 3000); // 3 seconden wachttijd voor Airtable processing
+        }
         
       } catch (error) {
         console.error('❌ Error creating user in Airtable:', error);
         showError(`Account creation failed: ${error.message}`);
         
-        // Try loading profile anyway in case user was created but response failed
-        setTimeout(() => {
-          console.log('🔄 Attempting fallback profile load...');
-          loadProfile();
-        }, 3000);
+        // Reset processing flag on error
+        isProcessingAuth = false;
+        
+        // Fallback: probeer alsnog profile te laden
+        if (isNewUser) {
+          setTimeout(() => {
+            console.log('🔄 Attempting fallback profile load...');
+            showProfileUI();
+            loadProfile();
+          }, 2000);
+        }
       }
     }
 
-    // GEFIXTE versie van setupEventListeners met verbeterde modal close handling
+    // ===== GEFIXTE NETLIFY EVENT LISTENERS =====
     function setupEventListeners() {
       // Netlify Identity events
       window.netlifyIdentity.on('init', user => {
         console.log('🔄 Netlify Identity initialized, user:', user?.email || 'none');
         updateLoginButton(); // Update immediately after init
-        if (user && !netlifyUser) {
+        if (user && !netlifyUser && !isProcessingAuth) {
           netlifyUser = user;
           handleLoginSuccess(user);
         }
@@ -2631,26 +2736,20 @@
         }
       });
 
+      // ===== GEFIXTE VERSIE: Combineer login/signup events =====
       window.netlifyIdentity.on('login', user => {
-        console.log('✅ Login successful:', user.email);
-        netlifyUser = user;
-        handleLoginSuccess(user);
-        window.netlifyIdentity.close();
-        updateLoginButton();
+        console.log('✅ Login event fired for:', user.email);
+        handleAuthEvent(user, 'login');
       });
 
-      // IMPORTANT: Handle signup separately from login
       window.netlifyIdentity.on('signup', user => {
-        console.log('🎉 New user signup:', user.email);
-        netlifyUser = user;
-        handleLoginSuccess(user); // Same handler, but will create new user
-        window.netlifyIdentity.close();
-        updateLoginButton();
+        console.log('🎉 Signup event fired for:', user.email);
+        handleAuthEvent(user, 'signup');
       });
 
       window.netlifyIdentity.on('logout', () => {
         console.log('👋 Logged out');
-        netlifyUser = null;
+        resetAuthState();
         localStorage.clear();
         showLoginUI();
         updateLoginButton();
@@ -2661,8 +2760,19 @@
 
       window.netlifyIdentity.on('error', err => {
         console.error('❌ Netlify Identity error:', err);
+        resetAuthState();
         showError('Authentication error: ' + err.message);
       });
+    }
+
+    // ===== UTILITY FUNCTIE: Reset auth state =====
+    function resetAuthState() {
+      isProcessingAuth = false;
+      netlifyUser = null;
+      if (authProcessTimeout) {
+        clearTimeout(authProcessTimeout);
+        authProcessTimeout = null;
+      }
     }
 
     // GEFIXTE versie van forceModalToTop met minder agressieve hiding
