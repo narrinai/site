@@ -2848,28 +2848,51 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
        return;
      }
      
-     // Collect form data - FINAL CORRECT MAPPING BASED ON MAKE.COM ERROR
+     // Collect form data - ADD CHARACTERDATA BACK AS REQUIRED FIELD
      const characterName = document.getElementById('characterName').value;
      const characterSlug = characterName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+     const promptText = document.getElementById('characterPrompt').value;
+     const descriptionText = document.getElementById('characterDescription').value;
+     const categoryValue = document.getElementById('characterCategory').value;
+     const visibilityValue = document.querySelector('input[name="visibility"]:checked').value;
+     const characterId = `char_${Date.now()}`;
      
      const formData = {
        action: 'create_character',
+       
+       // Required field that Make.com expects (even if not in Airtable)
+       characterData: promptText,
+       
+       // Format 1: Airtable PascalCase (from screenshots)
+       Name: characterName,
+       Character_ID: characterId,
+       Slug: characterSlug,
+       Prompt: promptText,
+       Avatar_URL: currentAvatarUrl,
+       Category: categoryValue,
+       Character_Description: descriptionText,
+       Tags: selectedTags.join(','),
+       Visibility: visibilityValue,
+       Character_URL: `https://narrin.ai/chat.html?character=${characterSlug}`,
+       Created_By: userEmail,
+       
+       // Format 2: Make.com expected lowercase/underscore (from error messages)
        name: characterName,
+       character_id: characterId,
        slug: characterSlug,
-       prompt: document.getElementById('characterPrompt').value,
-       characterData: document.getElementById('characterPrompt').value, // Make.com expects this field
-       character_description: document.getElementById('characterDescription').value,
-       character_title: document.getElementById('characterTitle').value,
-       category: document.getElementById('characterCategory').value,
-       tags: selectedTags.join(','), // Convert array to comma-separated string for Airtable
-       visibility: document.querySelector('input[name="visibility"]:checked').value,
+       prompt: promptText,
        avatar_url: currentAvatarUrl,
+       category: categoryValue,
+       character_description: descriptionText,
+       tags: selectedTags.join(','),
+       visibility: visibilityValue,
        character_url: `https://narrin.ai/chat.html?character=${characterSlug}`,
-       character_id: `char_${Date.now()}`, // Generate unique character ID
+       created_by: userEmail,
+       
+       // Authentication
+       Email: userEmail,
        user_email: userEmail,
-       Email: userEmail, // Make.com expects this field name
-       user_token: userToken,
-       created_by: userEmail
+       user_token: userToken
      };
      
      console.log('📤 Sending character data:', formData);
@@ -2913,6 +2936,7 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
                           data.status === 'success' || 
                           data.characterId || 
                           data.slug ||
+                          data.id ||
                           response.status === 200;
          
          if (isSuccess) {
@@ -2943,7 +2967,16 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
              }, 2000);
            }
          } else {
-           throw new Error(data.message || data.error || 'Character creation failed');
+           // Handle specific error cases
+           if (data.error === 'User not found' || data.message?.includes('login')) {
+             showError('Please make sure you are logged in with a valid account.', 'Authentication Required');
+             // Optionally redirect to login
+             setTimeout(() => {
+               window.location.href = 'profile.html';
+             }, 3000);
+           } else {
+             throw new Error(data.message || data.error || 'Character creation failed');
+           }
          }
        } else {
          // Response is not OK
