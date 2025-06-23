@@ -1928,987 +1928,1014 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
             <div class="avatar-option">
               <input type="radio" id="avatarUrl" name="avatarMethod" value="url">
               <label for="avatarUrl">Image URL</label>
-              <input type="url" id="avatarUrlInput" name="avatarUrlInput" 
-                     placeholder="https://example.com/image.jpg">
-            </div>
-          </div>
-          
-          <div class="avatar-preview" id="avatarPreview">
-            <img id="avatarImg" src="" alt="Avatar preview">
-          </div>
-        </div>
-      </div>
-
-      <!-- Tags & Categorization -->
-      <div class="form-section">
-        <h2>Tags & Category</h2>
-        
-        <div class="form-group">
-          <label for="characterCategory">Primary Category</label>
-          <select id="characterCategory" name="characterCategory">
-            <option value="">Select a category...</option>
-            <option value="historical">🏛️ Historical Figures</option>
-            <option value="fictional">📚 Fictional Characters</option>
-            <option value="celebrity">⭐ Celebrities</option>
-            <option value="anime-manga">🎌 Anime & Manga</option>
-            <option value="gaming">🎮 Gaming</option>
-            <option value="movies-tv">🎬 Movies & TV</option>
-            <option value="mythology">⚡ Mythology</option>
-            <option value="original">✨ Original Characters</option>
-            <option value="ai-assistant">🤖 AI Assistants</option>
-            <option value="educational">📖 Educational</option>
-            <option value="fitness-coach">💪 Fitness Coach</option>
-            <option value="business-coach">💼 Business Coach</option>
-            <option value="life-coach">🌟 Life Coach</option>
-            <option value="language-coach">🗣️ Language Coach</option>
-            <option value="career-coach">📈 Career Coach</option>
-            <option value="creativity-coach">🎨 Creativity Coach</option>
-            <option value="study-coach">📚 Study Coach</option>
-            <option value="relationship-coach">💝 Relationship Coach</option>
-            <option value="mindfulness-coach">🧘 Mindfulness Coach</option>
-            <option value="cooking-coach">👨‍🍳 Cooking Coach</option>
-            <option value="other">🔹 Other</option>
-          </select>
-        </div>
-        
-        <div class="form-group">
-          <label>Tags</label>
-          <div class="suggested-tags-section">
-            <div class="suggested-tags" id="suggestedTags">
-              <!-- Suggested tags will be generated here -->
-            </div>
-            <button type="button" class="more-tags-button" id="moreTagsButton">
-              Browse More Tags
-            </button>
-          </div>
-          <div class="tags-help">
-            Select up to 6 tags that best describe your character. These help others discover your character.
-          </div>
-          <div class="tags-preview" id="tagsPreview"></div>
-        </div>
-      </div>
-
-      <!-- Tags Modal -->
-      <div class="tags-modal" id="tagsModal">
-        <div class="tags-modal-content">
-          <div class="tags-modal-header">
-            <h3>Browse Tags</h3>
-            <button type="button" class="close-modal" id="closeModalBtn">×</button>
-          </div>
-          
-          <div class="tags-modal-body">
-            <div class="common-tags-section">
-              <h4>🏷️ Available Tags</h4>
-              <div class="common-tags" id="commonTags"></div>
-            </div>
-          </div>
-          
-          <div class="tags-modal-footer">
-            <div class="selected-tags-preview">
-              <strong>Selected:</strong> <span id="selectedTagsPreview">None</span>
-            </div>
-            <div class="modal-buttons">
-              <button type="button" class="btn-secondary" id="cancelTagsBtn">Cancel</button>
-              <button type="button" class="btn-primary" id="applyTagsBtn">Apply Tags</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Visibility -->
-      <div class="form-section">
-        <h2>Privacy Settings</h2>
-        
-        <div class="form-group">
-          <label>Who can use this character?</label>
-          <div class="visibility-options">
-            <div class="radio-option selected" onclick="selectVisibility('public')">
-              <input type="radio" name="visibility" value="public" checked>
-              <div class="radio-option-content">
-                <div class="radio-option-title">🌍 Public</div>
-                <div class="radio-option-desc">Anyone can chat with this character, while your chats remain private</div>
-              </div>
-            </div>
-            <div class="radio-option" onclick="selectVisibility('private')">
-              <input type="radio" name="visibility" value="private">
-              <div class="radio-option-content">
-                <div class="radio-option-title">🔒 Private</div>
-                <div class="radio-option-desc">Only you can chat with this character</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Preview -->
-      <div class="preview-section" id="previewSection" style="display: none;">
-        <h2>Preview</h2>
-        <div class="preview-character">
-          <div class="preview-avatar" id="previewAvatar">
-            👤
-          </div>
-          <div class="preview-info">
-            <h3 id="previewName">Character Name</h3>
-            <p id="previewTitle">Character title will appear here</p>
-            <div class="preview-tags" id="previewTags"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Buttons -->
-      <div class="button-group">
-        <button type="submit" class="btn-primary-form">Create Character</button>
-      </div>
-    </form>
-  </div>
-
-  <script>
-    // Global variables
-    let selectedTags = [];
-    let currentAvatarUrl = '';
-    let pendingCharacterData = null; // Store form data for after login
-
-    // ===== NAVIGATION FUNCTIONALITY =====
-    
-    // Mobile Search Elements
-    const mobileSearchBtn = document.getElementById('mobileSearchBtn');
-    const mobileSearchOverlay = document.getElementById('mobileSearchOverlay');
-    const mobileSearchInput = document.getElementById('mobileSearchInput');
-    
-    // Mobile Menu Elements
-    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-    const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
-    
-    // USP Carousel Elements
-    const uspTrack = document.getElementById('uspTrack');
-    let currentUspIndex = 0;
-    let uspInterval;
-
-    // ===== MOBILE SEARCH FUNCTIONALITY =====
-    function toggleMobileSearch() {
-      const isActive = mobileSearchOverlay.classList.contains('active');
-      
-      if (isActive) {
-        mobileSearchOverlay.classList.remove('active');
-        mobileSearchBtn.setAttribute('aria-expanded', 'false');
-      } else {
-        // Close mobile menu if open
-        closeMobileMenu();
-        
-        mobileSearchOverlay.classList.add('active');
-        mobileSearchBtn.setAttribute('aria-expanded', 'true');
-        mobileSearchInput.focus();
-      }
-    }
-
-    mobileSearchBtn?.addEventListener('click', toggleMobileSearch);
-
-    // Desktop search button
-    const desktopSearchBtn = document.getElementById('desktopSearchBtn');
-    desktopSearchBtn?.addEventListener('click', toggleMobileSearch);
-
-    // ===== MOBILE MENU FUNCTIONALITY =====
-    function toggleMobileMenu() {
-      const isActive = mobileMenuOverlay.classList.contains('active');
-      
-      if (isActive) {
-        closeMobileMenu();
-      } else {
-        openMobileMenu();
-      }
-    }
-
-    function openMobileMenu() {
-      // Close search overlay if open
-      if (mobileSearchOverlay.classList.contains('active')) {
-        mobileSearchOverlay.classList.remove('active');
-        mobileSearchBtn.setAttribute('aria-expanded', 'false');
-      }
-      
-      mobileMenuOverlay.classList.add('active');
-      mobileMenuBtn.classList.add('active');
-      mobileMenuBtn.setAttribute('aria-expanded', 'true');
-      
-      // Prevent body scroll
-      document.body.style.overflow = 'hidden';
-    }
-
-    function closeMobileMenu() {
-      mobileMenuOverlay.classList.remove('active');
-      mobileMenuBtn.classList.remove('active');
-      mobileMenuBtn.setAttribute('aria-expanded', 'false');
-      
-      // Restore body scroll
-      document.body.style.overflow = '';
-    }
-
-    mobileMenuBtn?.addEventListener('click', toggleMobileMenu);
-
-    // Close menu when clicking on overlay background
-    mobileMenuOverlay?.addEventListener('click', (e) => {
-      if (e.target === mobileMenuOverlay) {
-        closeMobileMenu();
-      }
-    });
-
-    // Close menu when clicking on a menu item
-    document.querySelectorAll('.mobile-menu-link').forEach(link => {
-      link.addEventListener('click', closeMobileMenu);
-    });
-
-    // Close search and menu on outside click
-    document.addEventListener('click', (e) => {
-      // Close search overlay
-      if (!mobileSearchOverlay?.contains(e.target) &&
-          !mobileSearchBtn?.contains(e.target) &&
-          mobileSearchOverlay?.classList.contains('active')) {
-        mobileSearchOverlay.classList.remove('active');
-        mobileSearchBtn.setAttribute('aria-expanded', 'false');
-      }
-    });
-
-    // Close menu on escape key
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        if (mobileMenuOverlay.classList.contains('active')) {
-          closeMobileMenu();
-        }
-        if (mobileSearchOverlay.classList.contains('active')) {
-          mobileSearchOverlay.classList.remove('active');
-          mobileSearchBtn.setAttribute('aria-expanded', 'false');
-        }
-      }
-    });
-
-    // ===== USP CAROUSEL FUNCTIONALITY =====
-    function startUspCarousel() {
-      if (window.innerWidth <= 768 && uspTrack) {
-        uspInterval = setInterval(() => {
-          currentUspIndex = (currentUspIndex + 1) % 3;
-          uspTrack.style.transform = `translateY(-${currentUspIndex * 33.333}%)`;
-        }, 3000);
-      }
-    }
-
-    function stopUspCarousel() {
-      if (uspInterval) {
-        clearInterval(uspInterval);
-        uspInterval = null;
-      }
-    }
-
-    // Handle responsive behavior
-    function handleResize() {
-      if (window.innerWidth > 768) {
-        stopUspCarousel();
-        if (uspTrack) {
-          uspTrack.style.transform = '';
-        }
-        if (mobileSearchOverlay?.classList.contains('active')) {
-          mobileSearchOverlay.classList.remove('active');
-          mobileSearchBtn?.setAttribute('aria-expanded', 'false');
-        }
-        if (mobileMenuOverlay?.classList.contains('active')) {
-          closeMobileMenu();
-        }
-      } else {
-        startUspCarousel();
-      }
-    }
-
-    // Initialize on load
-    window.addEventListener('load', () => {
-      handleResize();
-    });
-
-    // Handle window resize
-    let resizeTimer;
-    window.addEventListener('resize', () => {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(handleResize, 250);
-    });
-
-    // ===== SEARCH FUNCTIONALITY =====
-    function handleSearch(searchTerm) {
-      console.log('Search term:', searchTerm);
-      // Implement search functionality here
-    }
-
-    // Desktop search
-    document.querySelector('.nav-search')?.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const searchInput = e.target.querySelector('.nav-search-input');
-      handleSearch(searchInput.value);
-    });
-
-    // Mobile search
-    document.querySelector('.mobile-search-form')?.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const searchInput = e.target.querySelector('.mobile-search-input');
-      handleSearch(searchInput.value);
-      toggleMobileSearch();
-    });
-
-    // ===== NETLIFY IDENTITY BUTTON UPDATES =====
-    function updateLoginButton() {
-      const loginBtn = document.getElementById('loginBtn');
-      const mobileLoginBtn = document.getElementById('mobileLoginBtn');
-      
-      // Check both Netlify Identity and local storage for user info
-      const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
-      const localEmail = localStorage.getItem("user_email");
-      const localToken = localStorage.getItem("user_token");
-      
-      const isLoggedIn = netlifyUser || (localEmail && localToken);
-      
-      if (isLoggedIn) {
-        // Always show "Profile" for logged in users instead of their name
-        
-        // Update desktop button
-        if (loginBtn) {
-          loginBtn.textContent = 'Profile';
-          loginBtn.href = 'profile.html';
-        }
-        
-        // Update mobile button
-        if (mobileLoginBtn) {
-          const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
-          mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}Profile`;
-          mobileLoginBtn.href = 'profile.html';
-        }
-      } else {
-        // User is not logged in
-        if (loginBtn) {
-          loginBtn.textContent = 'Login/Register';
-          loginBtn.href = 'profile.html';
-        }
-        if (mobileLoginBtn) {
-          const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
-          mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}Login/Register`;
-          mobileLoginBtn.href = 'profile.html';
-        }
-      }
-    }
-
-    // Enhanced click handler for navigation links
-    function setupNavigationClickHandlers() {
-      const loginBtn = document.getElementById('loginBtn');
-      const mobileLoginBtn = document.getElementById('mobileLoginBtn');
-      
-      // Desktop login button click handler
-      if (loginBtn) {
-        loginBtn.addEventListener('click', (e) => {
-          e.preventDefault();
-          
-          const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
-          const localEmail = localStorage.getItem("user_email");
-          const localToken = localStorage.getItem("user_token");
-          const isLoggedIn = netlifyUser || (localEmail && localToken);
-          
-          if (isLoggedIn) {
-            // User is logged in, go directly to profile page
-            window.location.href = 'profile.html';
-          } else {
-            // User not logged in, store current page for redirect and open login
-            localStorage.setItem('login_redirect_url', window.location.href);
-            openLogin();
-          }
-        });
-      }
-      
-      // Mobile login button click handler
-      if (mobileLoginBtn) {
-        mobileLoginBtn.addEventListener('click', (e) => {
-          e.preventDefault();
-          
-          const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
-          const localEmail = localStorage.getItem("user_email");
-          const localToken = localStorage.getItem("user_token");
-          const isLoggedIn = netlifyUser || (localEmail && localToken);
-          
-          if (isLoggedIn) {
-            // User is logged in, go directly to profile page
-            window.location.href = 'profile.html';
-          } else {
-            // User not logged in, store current page for redirect and open login
-            localStorage.setItem('login_redirect_url', window.location.href);
-            openLogin();
-          }
-          
-          // Close mobile menu after click
-          closeMobileMenu();
-        });
-      }
-    }
-
-    // Function to open login modal
-    function openLogin() {
-      if (window.netlifyIdentity) {
-        window.netlifyIdentity.open('login');
-      } else {
-        // Fallback if Netlify Identity is not available
-        window.location.href = 'profile.html';
-      }
-    }
-
-    // Initialize login button on page load
-    document.addEventListener('DOMContentLoaded', () => {
-      // Update immediately on page load
-      updateLoginButton();
-      
-      // Set up click handlers
-      setupNavigationClickHandlers();
-      
-      if (window.netlifyIdentity) {
-        window.netlifyIdentity.on('init', user => {
-          updateLoginButton();
-        });
-
-        window.netlifyIdentity.on('login', user => {
-          updateLoginButton();
-          window.netlifyIdentity.close();
-        });
-
-        window.netlifyIdentity.on('logout', () => {
-          updateLoginButton();
-        });
-      }
-    });
-
-    // ===== CUSTOM NOTIFICATION SYSTEM =====
-    function showNotification(type, title, message, buttons = null) {
-      const overlay = document.getElementById('notificationOverlay');
-      const icon = document.getElementById('notificationIcon');
-      const titleEl = document.getElementById('notificationTitle');
-      const messageEl = document.getElementById('notificationMessage');
-      const buttonsEl = document.getElementById('notificationButtons');
-      
-      // Set icon based on type
-      const icons = {
-        success: '✅',
-        error: '❌',
-        warning: '⚠️',
-        info: 'ℹ️',
-        question: '❓'
-      };
-      
-      icon.textContent = icons[type] || icons.info;
-      icon.className = `notification-icon ${type}`;
-      titleEl.textContent = title;
-      messageEl.textContent = message;
-      
-      // Set up buttons
-      if (buttons) {
-        buttonsEl.innerHTML = '';
-        buttons.forEach(button => {
-          const btn = document.createElement('button');
-          btn.className = `notification-btn ${button.type || 'secondary'}`;
-          btn.textContent = button.text;
-          btn.onclick = () => {
-            hideNotification();
-            if (button.callback) button.callback();
-          };
-          buttonsEl.appendChild(btn);
-        });
-      } else {
-        // Default OK button
-        buttonsEl.innerHTML = '<button class="notification-btn primary" onclick="hideNotification()">OK</button>';
-      }
-      
-      // Show notification
-      overlay.classList.add('active');
-      document.body.style.overflow = 'hidden';
-    }
-    
-    function hideNotification() {
-      const overlay = document.getElementById('notificationOverlay');
-      overlay.classList.remove('active');
-      document.body.style.overflow = '';
-    }
-    
-    // Custom alert replacement
-    function customAlert(message, title = 'Notification') {
-      showNotification('info', title, message);
-    }
-    
-    // Custom confirm replacement
-    function customConfirm(message, title = 'Confirm', onConfirm = null, onCancel = null) {
-      const buttons = [
-        {
-          text: 'Cancel',
-          type: 'secondary',
-          callback: onCancel
-        },
-        {
-          text: 'Confirm',
-          type: 'primary',
-          callback: onConfirm
-        }
-      ];
-      showNotification('question', title, message, buttons);
-    }
-    
-    // Success notification
-    function showSuccess(message, title = 'Success') {
-      showNotification('success', title, message);
-    }
-    
-    // Error notification
-    function showError(message, title = 'Error') {
-      showNotification('error', title, message);
-    }
-    
-    // Warning notification
-    function showWarning(message, title = 'Warning') {
-      showNotification('warning', title, message);
-    }
-
-    // ===== TAGS FUNCTIONALITY =====
-    let allTags = [];
-    let modalSelectedTags = [];
-
-    // Load tags from Airtable
-    async function loadTags() {
-      try {
-        console.log('🏷️ Loading tags from Airtable...');
-        
-        const response = await fetch('https://hook.eu2.make.com/lya166veex7oo2wwo8mx4fuhlkssxlog', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            action: 'get_tags'
-          })
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        console.log('✅ Tags loaded:', data);
-        
-        if (data.tags && Array.isArray(data.tags)) {
-          allTags = data.tags;
-          generateSuggestedTags();
-          populateTagsModal();
-        } else {
-          console.warn('⚠️ No tags found in response, using fallback');
-          useFallbackTags();
-        }
-      } catch (error) {
-        console.error('❌ Error loading tags:', error);
-        useFallbackTags();
-      }
-    }
-
-    // Fallback tags if Airtable fails
-    function useFallbackTags() {
-      allTags = [
-        'Funny', 'Serious', 'Romantic', 'Adventure', 'Mystery', 'Fantasy', 'Sci-Fi',
-        'Historical', 'Modern', 'Anime', 'Gaming', 'Movies', 'Books', 'TV Shows',
-        'Helpful', 'Educational', 'Creative', 'Philosophical', 'Emotional', 'Logical'
-      ];
-      generateSuggestedTags();
-      populateTagsModal();
-    }
-
-    // Generate suggested tags based on category
-    function generateSuggestedTags() {
-      const category = document.getElementById('characterCategory').value;
-      let suggested = [];
-      
-      // Category-based suggestions
-      const categoryTags = {
-        'historical': ['Historical', 'Educational', 'Serious', 'Wise'],
-        'fictional': ['Fantasy', 'Adventure', 'Creative', 'Imaginative'],
-        'anime-manga': ['Anime', 'Japanese', 'Adventure', 'Fantasy'],
-        'gaming': ['Gaming', 'Adventure', 'Action', 'Strategy'],
-        'movies-tv': ['Movies', 'TV Shows', 'Entertainment', 'Drama'],
-        'educational': ['Educational', 'Helpful', 'Informative', 'Patient'],
-        'ai-assistant': ['Helpful', 'Logical', 'Efficient', 'Knowledgeable']
-      };
-      
-      if (category && categoryTags[category]) {
-        suggested = categoryTags[category];
-      } else {
-        // Default suggestions
-        suggested = ['Friendly', 'Helpful', 'Creative', 'Funny'];
-      }
-      
-      // Filter to only include tags that exist in allTags
-      suggested = suggested.filter(tag => allTags.includes(tag));
-      
-      // Add some random popular tags
-      const popularTags = allTags.filter(tag => !suggested.includes(tag)).slice(0, 2);
-      suggested = [...suggested, ...popularTags].slice(0, 6);
-      
-      displaySuggestedTags(suggested);
-    }
-
-    // Display suggested tags
-    function displaySuggestedTags(tags) {
-      const container = document.getElementById('suggestedTags');
-      container.innerHTML = '';
-      
-      tags.forEach(tag => {
-        const tagElement = document.createElement('div');
-        tagElement.className = 'suggested-tag';
-        tagElement.textContent = tag;
-        tagElement.onclick = () => toggleSuggestedTag(tagElement, tag);
-        
-        if (selectedTags.includes(tag)) {
-          tagElement.classList.add('selected');
-        }
-        
-        container.appendChild(tagElement);
-      });
-    }
-
-    // Toggle suggested tag
-    function toggleSuggestedTag(element, tag) {
-      if (selectedTags.includes(tag)) {
-        selectedTags = selectedTags.filter(t => t !== tag);
-        element.classList.remove('selected');
-      } else {
-        if (selectedTags.length < 6) {
-          selectedTags.push(tag);
-          element.classList.add('selected');
-        } else {
-          showWarning('You can select up to 6 tags maximum.', 'Tag Limit Reached');
-          return;
-        }
-      }
-      updateTagsPreview();
-      updatePreview();
-    }
-
-    // Populate tags modal
-    function populateTagsModal() {
-      const container = document.getElementById('commonTags');
-      container.innerHTML = '';
-      
-      allTags.forEach(tag => {
-        const tagElement = document.createElement('div');
-        tagElement.className = 'tag-option';
-        tagElement.textContent = tag;
-        tagElement.onclick = () => toggleModalTag(tagElement, tag);
-        container.appendChild(tagElement);
-      });
-    }
-
-    // Toggle modal tag
-    function toggleModalTag(element, tag) {
-      if (modalSelectedTags.includes(tag)) {
-        modalSelectedTags = modalSelectedTags.filter(t => t !== tag);
-        element.classList.remove('selected');
-      } else {
-        if (modalSelectedTags.length < 6) {
-          modalSelectedTags.push(tag);
-          element.classList.add('selected');
-        } else {
-          showWarning('You can select up to 6 tags maximum.', 'Tag Limit Reached');
-          return;
-        }
-      }
-      updateModalPreview();
-    }
-
-    // Update modal preview
-    function updateModalPreview() {
-      const preview = document.getElementById('selectedTagsPreview');
-      preview.textContent = modalSelectedTags.length > 0 ? modalSelectedTags.join(', ') : 'None';
-    }
-
-    // Update tags preview
-    function updateTagsPreview() {
-      const container = document.getElementById('tagsPreview');
-      container.innerHTML = '';
-      
-      selectedTags.forEach(tag => {
-        const tagElement = document.createElement('div');
-        tagElement.className = 'tag';
-        tagElement.textContent = tag;
-        container.appendChild(tagElement);
-      });
-    }
-
-    // Modal functionality
-    document.getElementById('moreTagsButton').onclick = () => {
-      modalSelectedTags = [...selectedTags];
-      updateModalTagsSelection();
-      updateModalPreview();
-      document.getElementById('tagsModal').style.display = 'block';
-    };
-
-    document.getElementById('closeModalBtn').onclick = () => {
-      document.getElementById('tagsModal').style.display = 'none';
-    };
-
-    document.getElementById('cancelTagsBtn').onclick = () => {
-      document.getElementById('tagsModal').style.display = 'none';
-    };
-
-    document.getElementById('applyTagsBtn').onclick = () => {
-      selectedTags = [...modalSelectedTags];
-      updateTagsPreview();
-      updateSuggestedTagsSelection();
-      updatePreview();
-      document.getElementById('tagsModal').style.display = 'none';
-    };
-
-    // Update modal tags selection
-    function updateModalTagsSelection() {
-      document.querySelectorAll('.tag-option').forEach(element => {
-        const tag = element.textContent;
-        if (modalSelectedTags.includes(tag)) {
-          element.classList.add('selected');
-        } else {
-          element.classList.remove('selected');
-        }
-      });
-    }
-
-    // Update suggested tags selection
-    function updateSuggestedTagsSelection() {
-      document.querySelectorAll('.suggested-tag').forEach(element => {
-        const tag = element.textContent;
-        if (selectedTags.includes(tag)) {
-          element.classList.add('selected');
-        } else {
-          element.classList.remove('selected');
-        }
-      });
-    }
-
-    // Category change handler
-    document.getElementById('characterCategory').addEventListener('change', generateSuggestedTags);
-
-    // ===== CHARACTER FORM FUNCTIONALITY =====
-    
-    // Character counters
-    function setupCharacterCounters() {
-      const fields = [
-        { id: 'characterName', counter: 'nameCounter', max: 50 },
-        { id: 'characterTitle', counter: 'titleCounter', max: 100 },
-        { id: 'characterDescription', counter: 'descCounter', max: 1000 },
-        { id: 'characterPrompt', counter: 'promptCounter', max: 2000 }
-      ];
-      
-      fields.forEach(field => {
-        const input = document.getElementById(field.id);
-        const counter = document.getElementById(field.counter);
-        
-        input.addEventListener('input', () => {
-          const length = input.value.length;
-          counter.textContent = length;
-          
-          if (length > field.max * 0.9) {
-            counter.style.color = '#f97316';
-          } else {
-            counter.style.color = '#999';
-          }
-          
-          updatePreview();
-        });
-      });
-    }
-
-    // Avatar functionality
-    function setupAvatarFunctionality() {
-      const avatarOptions = document.querySelectorAll('input[name="avatarMethod"]');
-      const avatarFileInput = document.getElementById('avatarFileInput');
-      const avatarUrlInput = document.getElementById('avatarUrlInput');
-      const avatarPreview = document.getElementById('avatarPreview');
-      const avatarImg = document.getElementById('avatarImg');
-      const fileName = document.getElementById('fileName');
-      
-      avatarOptions.forEach(option => {
-        option.addEventListener('change', () => {
-          document.querySelectorAll('.avatar-option').forEach(opt => opt.classList.remove('active'));
-          option.closest('.avatar-option').classList.add('active');
-        });
-      });
-      
-      avatarFileInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-          fileName.textContent = file.name;
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            currentAvatarUrl = e.target.result;
-            avatarImg.src = currentAvatarUrl;
-            avatarPreview.style.display = 'block';
-            updatePreview();
-          };
-          reader.readAsDataURL(file);
-        }
-      });
-      
-      avatarUrlInput.addEventListener('input', () => {
-        const url = avatarUrlInput.value.trim();
-        if (url) {
-          currentAvatarUrl = url;
-          avatarImg.src = url;
-          avatarPreview.style.display = 'block';
-          updatePreview();
-        } else {
-          avatarPreview.style.display = 'none';
-          currentAvatarUrl = '';
-          updatePreview();
-        }
-      });
-    }
-
-    // Trigger file upload
-    function triggerFileUpload() {
-      document.getElementById('avatarFileInput').click();
-    }
-
-    // Visibility selection
-    function selectVisibility(type) {
-      document.querySelectorAll('.radio-option').forEach(option => {
-        option.classList.remove('selected');
-      });
-      
-      event.target.closest('.radio-option').classList.add('selected');
-      document.querySelector(`input[value="${type}"]`).checked = true;
-    }
-
-    // Update preview
-    function updatePreview() {
-      const name = document.getElementById('characterName').value || 'Character Name';
-      const title = document.getElementById('characterTitle').value || 'Character title will appear here';
-      
-      document.getElementById('previewName').textContent = name;
-      document.getElementById('previewTitle').textContent = title;
-      
-      // Update avatar
-      const previewAvatar = document.getElementById('previewAvatar');
-      if (currentAvatarUrl) {
-        previewAvatar.innerHTML = `<img src="${currentAvatarUrl}" alt="Avatar">`;
-      } else {
-        previewAvatar.innerHTML = '👤';
-      }
-      
-      // Update tags
-      const previewTags = document.getElementById('previewTags');
-      previewTags.innerHTML = '';
-      selectedTags.forEach(tag => {
-        const tagElement = document.createElement('div');
-        tagElement.className = 'preview-tag';
-        tagElement.textContent = tag;
-        previewTags.appendChild(tagElement);
-      });
-      
-      // Show preview if there's content
-      const hasContent = name !== 'Character Name' || title !== 'Character title will appear here' || selectedTags.length > 0;
-      document.getElementById('previewSection').style.display = hasContent ? 'block' : 'none';
-    }
-
-    // Form submission
-    document.getElementById('characterForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      // Check if user is logged in
-      const userEmail = localStorage.getItem('user_email');
-      const userToken = localStorage.getItem('user_token');
-      
-      if (!userEmail || !userToken) {
-        showLoginOverlay();
-        return;
-      }
-      
-      // Collect form data
-      const formData = {
-        name: document.getElementById('characterName').value,
-        title: document.getElementById('characterTitle').value,
-        description: document.getElementById('characterDescription').value,
-        prompt: document.getElementById('characterPrompt').value,
-        category: document.getElementById('characterCategory').value,
-        tags: selectedTags,
-        visibility: document.querySelector('input[name="visibility"]:checked').value,
-        avatar: currentAvatarUrl,
-        user_email: userEmail,
-        user_token: userToken,
-        action: 'create_character'
-      };
-      
-      try {
-        const response = await fetch('https://hook.eu2.make.com/lya166veex7oo2wwo8mx4fuhlkssxlog', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(formData)
-        });
-        
-        if (response.ok) {
-          showSuccess('Your character has been created and is now available for chat!', 'Character Created');
-          window.location.href = 'index.html';
-        } else {
-          throw new Error('Failed to create character');
-        }
-      } catch (error) {
-        console.error('Error creating character:', error);
-        showError('There was an issue creating your character. Please check your information and try again.', 'Creation Failed');
-      }
-    });
-
-    // Login overlay functions
-    function showLoginOverlay() {
-      document.getElementById('loginOverlay').style.display = 'flex';
-    }
-
-    function hideLoginOverlay() {
-      document.getElementById('loginOverlay').style.display = 'none';
-    }
-
-    function showLoginModal() {
-      if (window.netlifyIdentity) {
-        window.netlifyIdentity.open('login');
-      }
-    }
-
-    // Go back function
-    function goBack() {
-      window.history.back();
-    }
-
-    // Initialize everything
-    document.addEventListener('DOMContentLoaded', () => {
-      console.log('🚀 Create Character page initializing...');
-      
-      setupCharacterCounters();
-      setupAvatarFunctionality();
-      loadTags();
-      
-      // Initialize preview
-      updatePreview();
-      
-      console.log('✅ Create Character page initialization complete');
-    });
-  </script>
-
-  <!-- Footer -->
-  <footer class="footer">
-    <div class="footer-container">
-      <div class="footer-links">
-        <a href="index.html" class="footer-link">Characters</a>
-        <span class="footer-separator">•</span>
-        <a href="chat-overview.html" class="footer-link">Chats</a>
-        <span class="footer-separator">•</span>
-        <a href="create-character.html" class="footer-link">Create Character</a>
-        <span class="footer-separator">•</span>
-        <a href="profile.html" class="footer-link">Profile</a>
-        <span class="footer-separator">•</span>
-        <a href="privacy-policy.html" class="footer-link">Privacy Policy</a>
-        <span class="footer-separator">•</span>
-        <a href="terms-and-conditions.html" class="footer-link">Terms and Conditions</a>
-      </div>
-      <p class="footer-copyright">© 2025 Narrin AI. All rights reserved.</p>
-    </div>
-  </footer>
+             <input type="url" id="avatarUrlInput" name="avatarUrlInput" 
+                    placeholder="https://example.com/image.jpg">
+           </div>
+         </div>
+         
+         <div class="avatar-preview" id="avatarPreview">
+           <img id="avatarImg" src="" alt="Avatar preview">
+         </div>
+       </div>
+     </div>
+
+     <!-- Tags & Categorization -->
+     <div class="form-section">
+       <h2>Tags & Category</h2>
+       
+       <div class="form-group">
+         <label for="characterCategory">Primary Category</label>
+         <select id="characterCategory" name="characterCategory">
+           <option value="">Select a category...</option>
+           <option value="historical">🏛️ Historical Figures</option>
+           <option value="fictional">📚 Fictional Characters</option>
+           <option value="celebrity">⭐ Celebrities</option>
+           <option value="anime-manga">🎌 Anime & Manga</option>
+           <option value="gaming">🎮 Gaming</option>
+           <option value="movies-tv">🎬 Movies & TV</option>
+           <option value="mythology">⚡ Mythology</option>
+           <option value="original">✨ Original Characters</option>
+           <option value="ai-assistant">🤖 AI Assistants</option>
+           <option value="educational">📖 Educational</option>
+           <option value="fitness-coach">💪 Fitness Coach</option>
+           <option value="business-coach">💼 Business Coach</option>
+           <option value="life-coach">🌟 Life Coach</option>
+           <option value="language-coach">🗣️ Language Coach</option>
+           <option value="career-coach">📈 Career Coach</option>
+           <option value="creativity-coach">🎨 Creativity Coach</option>
+           <option value="study-coach">📚 Study Coach</option>
+           <option value="relationship-coach">💝 Relationship Coach</option>
+           <option value="mindfulness-coach">🧘 Mindfulness Coach</option>
+           <option value="cooking-coach">👨‍🍳 Cooking Coach</option>
+           <option value="other">🔹 Other</option>
+         </select>
+       </div>
+       
+       <div class="form-group">
+         <label>Tags</label>
+         <div class="suggested-tags-section">
+           <div class="suggested-tags" id="suggestedTags">
+             <!-- Suggested tags will be generated here -->
+           </div>
+           <button type="button" class="more-tags-button" id="moreTagsButton">
+             Browse More Tags
+           </button>
+         </div>
+         <div class="tags-help">
+           Select up to 6 tags that best describe your character. These help others discover your character.
+         </div>
+         <div class="tags-preview" id="tagsPreview"></div>
+       </div>
+     </div>
+
+     <!-- Tags Modal -->
+     <div class="tags-modal" id="tagsModal">
+       <div class="tags-modal-content">
+         <div class="tags-modal-header">
+           <h3>Browse Tags</h3>
+           <button type="button" class="close-modal" id="closeModalBtn">×</button>
+         </div>
+         
+         <div class="tags-modal-body">
+           <div class="common-tags-section">
+             <h4>🏷️ Available Tags</h4>
+             <div class="common-tags" id="commonTags"></div>
+           </div>
+         </div>
+         
+         <div class="tags-modal-footer">
+           <div class="selected-tags-preview">
+             <strong>Selected:</strong> <span id="selectedTagsPreview">None</span>
+           </div>
+           <div class="modal-buttons">
+             <button type="button" class="btn-secondary" id="cancelTagsBtn">Cancel</button>
+             <button type="button" class="btn-primary" id="applyTagsBtn">Apply Tags</button>
+           </div>
+         </div>
+       </div>
+     </div>
+
+     <!-- Visibility -->
+     <div class="form-section">
+       <h2>Privacy Settings</h2>
+       
+       <div class="form-group">
+         <label>Who can use this character?</label>
+         <div class="visibility-options">
+           <div class="radio-option selected" onclick="selectVisibility('public')">
+             <input type="radio" name="visibility" value="public" checked>
+             <div class="radio-option-content">
+               <div class="radio-option-title">🌍 Public</div>
+               <div class="radio-option-desc">Anyone can chat with this character, while your chats remain private</div>
+             </div>
+           </div>
+           <div class="radio-option" onclick="selectVisibility('private')">
+             <input type="radio" name="visibility" value="private">
+             <div class="radio-option-content">
+               <div class="radio-option-title">🔒 Private</div>
+               <div class="radio-option-desc">Only you can chat with this character</div>
+             </div>
+           </div>
+         </div>
+       </div>
+     </div>
+
+     <!-- Preview -->
+     <div class="preview-section" id="previewSection" style="display: none;">
+       <h2>Preview</h2>
+       <div class="preview-character">
+         <div class="preview-avatar" id="previewAvatar">
+           👤
+         </div>
+         <div class="preview-info">
+           <h3 id="previewName">Character Name</h3>
+           <p id="previewTitle">Character title will appear here</p>
+           <div class="preview-tags" id="previewTags"></div>
+         </div>
+       </div>
+     </div>
+
+     <!-- Buttons -->
+     <div class="button-group">
+       <button type="submit" class="btn-primary-form">Create Character</button>
+     </div>
+   </form>
+ </div>
+
+ <script>
+   // Global variables
+   let selectedTags = [];
+   let currentAvatarUrl = '';
+   let pendingCharacterData = null; // Store form data for after login
+
+   // ===== NAVIGATION FUNCTIONALITY =====
+   
+   // Mobile Search Elements
+   const mobileSearchBtn = document.getElementById('mobileSearchBtn');
+   const mobileSearchOverlay = document.getElementById('mobileSearchOverlay');
+   const mobileSearchInput = document.getElementById('mobileSearchInput');
+   
+   // Mobile Menu Elements
+   const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+   const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+   
+   // USP Carousel Elements
+   const uspTrack = document.getElementById('uspTrack');
+   let currentUspIndex = 0;
+   let uspInterval;
+
+   // ===== MOBILE SEARCH FUNCTIONALITY =====
+   function toggleMobileSearch() {
+     const isActive = mobileSearchOverlay.classList.contains('active');
+     
+     if (isActive) {
+       mobileSearchOverlay.classList.remove('active');
+       mobileSearchBtn.setAttribute('aria-expanded', 'false');
+     } else {
+       // Close mobile menu if open
+       closeMobileMenu();
+       
+       mobileSearchOverlay.classList.add('active');
+       mobileSearchBtn.setAttribute('aria-expanded', 'true');
+       mobileSearchInput.focus();
+     }
+   }
+
+   mobileSearchBtn?.addEventListener('click', toggleMobileSearch);
+
+   // Desktop search button
+   const desktopSearchBtn = document.getElementById('desktopSearchBtn');
+   desktopSearchBtn?.addEventListener('click', toggleMobileSearch);
+
+   // ===== MOBILE MENU FUNCTIONALITY =====
+   function toggleMobileMenu() {
+     const isActive = mobileMenuOverlay.classList.contains('active');
+     
+     if (isActive) {
+       closeMobileMenu();
+     } else {
+       openMobileMenu();
+     }
+   }
+
+   function openMobileMenu() {
+     // Close search overlay if open
+     if (mobileSearchOverlay.classList.contains('active')) {
+       mobileSearchOverlay.classList.remove('active');
+       mobileSearchBtn.setAttribute('aria-expanded', 'false');
+     }
+     
+     mobileMenuOverlay.classList.add('active');
+     mobileMenuBtn.classList.add('active');
+     mobileMenuBtn.setAttribute('aria-expanded', 'true');
+     
+     // Prevent body scroll
+     document.body.style.overflow = 'hidden';
+   }
+
+   function closeMobileMenu() {
+     mobileMenuOverlay.classList.remove('active');
+     mobileMenuBtn.classList.remove('active');
+     mobileMenuBtn.setAttribute('aria-expanded', 'false');
+     
+     // Restore body scroll
+     document.body.style.overflow = '';
+   }
+
+   mobileMenuBtn?.addEventListener('click', toggleMobileMenu);
+
+   // Close menu when clicking on overlay background
+   mobileMenuOverlay?.addEventListener('click', (e) => {
+     if (e.target === mobileMenuOverlay) {
+       closeMobileMenu();
+     }
+   });
+
+   // Close menu when clicking on a menu item
+   document.querySelectorAll('.mobile-menu-link').forEach(link => {
+     link.addEventListener('click', closeMobileMenu);
+   });
+
+   // Close search and menu on outside click
+   document.addEventListener('click', (e) => {
+     // Close search overlay
+     if (!mobileSearchOverlay?.contains(e.target) &&
+         !mobileSearchBtn?.contains(e.target) &&
+         mobileSearchOverlay?.classList.contains('active')) {
+       mobileSearchOverlay.classList.remove('active');
+       mobileSearchBtn.setAttribute('aria-expanded', 'false');
+     }
+   });
+
+   // Close menu on escape key
+   document.addEventListener('keydown', (e) => {
+     if (e.key === 'Escape') {
+       if (mobileMenuOverlay.classList.contains('active')) {
+         closeMobileMenu();
+       }
+       if (mobileSearchOverlay.classList.contains('active')) {
+         mobileSearchOverlay.classList.remove('active');
+         mobileSearchBtn.setAttribute('aria-expanded', 'false');
+       }
+     }
+   });
+
+   // ===== USP CAROUSEL FUNCTIONALITY =====
+   function startUspCarousel() {
+     if (window.innerWidth <= 768 && uspTrack) {
+       uspInterval = setInterval(() => {
+         currentUspIndex = (currentUspIndex + 1) % 3;
+         uspTrack.style.transform = `translateY(-${currentUspIndex * 33.333}%)`;
+       }, 3000);
+     }
+   }
+
+   function stopUspCarousel() {
+     if (uspInterval) {
+       clearInterval(uspInterval);
+       uspInterval = null;
+     }
+   }
+
+   // Handle responsive behavior
+   function handleResize() {
+     if (window.innerWidth > 768) {
+       stopUspCarousel();
+       if (uspTrack) {
+         uspTrack.style.transform = '';
+       }
+       if (mobileSearchOverlay?.classList.contains('active')) {
+         mobileSearchOverlay.classList.remove('active');
+         mobileSearchBtn?.setAttribute('aria-expanded', 'false');
+       }
+       if (mobileMenuOverlay?.classList.contains('active')) {
+         closeMobileMenu();
+       }
+     } else {
+       startUspCarousel();
+     }
+   }
+
+   // Initialize on load
+   window.addEventListener('load', () => {
+     handleResize();
+   });
+
+   // Handle window resize
+   let resizeTimer;
+   window.addEventListener('resize', () => {
+     clearTimeout(resizeTimer);
+     resizeTimer = setTimeout(handleResize, 250);
+   });
+
+   // ===== SEARCH FUNCTIONALITY =====
+   function handleSearch(searchTerm) {
+     console.log('Search term:', searchTerm);
+     // Implement search functionality here
+   }
+
+   // Desktop search
+   document.querySelector('.nav-search')?.addEventListener('submit', (e) => {
+     e.preventDefault();
+     const searchInput = e.target.querySelector('.nav-search-input');
+     handleSearch(searchInput.value);
+   });
+
+   // Mobile search
+   document.querySelector('.mobile-search-form')?.addEventListener('submit', (e) => {
+     e.preventDefault();
+     const searchInput = e.target.querySelector('.mobile-search-input');
+     handleSearch(searchInput.value);
+     toggleMobileSearch();
+   });
+
+   // ===== NETLIFY IDENTITY BUTTON UPDATES =====
+   function updateLoginButton() {
+     const loginBtn = document.getElementById('loginBtn');
+     const mobileLoginBtn = document.getElementById('mobileLoginBtn');
+     
+     // Check both Netlify Identity and local storage for user info
+     const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+     const localEmail = localStorage.getItem("user_email");
+     const localToken = localStorage.getItem("user_token");
+     
+     const isLoggedIn = netlifyUser || (localEmail && localToken);
+     
+     if (isLoggedIn) {
+       // Always show "Profile" for logged in users instead of their name
+       
+       // Update desktop button
+       if (loginBtn) {
+         loginBtn.textContent = 'Profile';
+         loginBtn.href = 'profile.html';
+       }
+       
+       // Update mobile button
+       if (mobileLoginBtn) {
+         const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
+         mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}Profile`;
+         mobileLoginBtn.href = 'profile.html';
+       }
+     } else {
+       // User is not logged in
+       if (loginBtn) {
+         loginBtn.textContent = 'Login/Register';
+         loginBtn.href = 'profile.html';
+       }
+       if (mobileLoginBtn) {
+         const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
+         mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}Login/Register`;
+         mobileLoginBtn.href = 'profile.html';
+       }
+     }
+   }
+
+   // Enhanced click handler for navigation links
+   function setupNavigationClickHandlers() {
+     const loginBtn = document.getElementById('loginBtn');
+     const mobileLoginBtn = document.getElementById('mobileLoginBtn');
+     
+     // Desktop login button click handler
+     if (loginBtn) {
+       loginBtn.addEventListener('click', (e) => {
+         e.preventDefault();
+         
+         const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+         const localEmail = localStorage.getItem("user_email");
+         const localToken = localStorage.getItem("user_token");
+         const isLoggedIn = netlifyUser || (localEmail && localToken);
+         
+         if (isLoggedIn) {
+           // User is logged in, go directly to profile page
+           window.location.href = 'profile.html';
+         } else {
+           // User not logged in, store current page for redirect and open login
+           localStorage.setItem('login_redirect_url', window.location.href);
+           openLogin();
+         }
+       });
+     }
+     
+     // Mobile login button click handler
+     if (mobileLoginBtn) {
+       mobileLoginBtn.addEventListener('click', (e) => {
+         e.preventDefault();
+         
+         const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+         const localEmail = localStorage.getItem("user_email");
+         const localToken = localStorage.getItem("user_token");
+         const isLoggedIn = netlifyUser || (localEmail && localToken);
+         
+         if (isLoggedIn) {
+           // User is logged in, go directly to profile page
+           window.location.href = 'profile.html';
+         } else {
+           // User not logged in, store current page for redirect and open login
+           localStorage.setItem('login_redirect_url', window.location.href);
+           openLogin();
+         }
+         
+         // Close mobile menu after click
+         closeMobileMenu();
+       });
+     }
+   }
+
+   // Function to open login modal
+   function openLogin() {
+     if (window.netlifyIdentity) {
+       window.netlifyIdentity.open('login');
+     } else {
+       // Fallback if Netlify Identity is not available
+       window.location.href = 'profile.html';
+     }
+   }
+
+   // Initialize login button on page load
+   document.addEventListener('DOMContentLoaded', () => {
+     // Update immediately on page load
+     updateLoginButton();
+     
+     // Set up click handlers
+     setupNavigationClickHandlers();
+     
+     if (window.netlifyIdentity) {
+       window.netlifyIdentity.on('init', user => {
+         updateLoginButton();
+       });
+
+       window.netlifyIdentity.on('login', user => {
+         updateLoginButton();
+         window.netlifyIdentity.close();
+       });
+
+       window.netlifyIdentity.on('logout', () => {
+         updateLoginButton();
+       });
+     }
+   });
+
+   // ===== CUSTOM NOTIFICATION SYSTEM =====
+   function showNotification(type, title, message, buttons = null) {
+     const overlay = document.getElementById('notificationOverlay');
+     const icon = document.getElementById('notificationIcon');
+     const titleEl = document.getElementById('notificationTitle');
+     const messageEl = document.getElementById('notificationMessage');
+     const buttonsEl = document.getElementById('notificationButtons');
+     
+     // Set icon based on type
+     const icons = {
+       success: '✅',
+       error: '❌',
+       warning: '⚠️',
+       info: 'ℹ️',
+       question: '❓'
+     };
+     
+     icon.textContent = icons[type] || icons.info;
+     icon.className = `notification-icon ${type}`;
+     titleEl.textContent = title;
+     messageEl.textContent = message;
+     
+     // Set up buttons
+     if (buttons) {
+       buttonsEl.innerHTML = '';
+       buttons.forEach(button => {
+         const btn = document.createElement('button');
+         btn.className = `notification-btn ${button.type || 'secondary'}`;
+         btn.textContent = button.text;
+         btn.onclick = () => {
+           hideNotification();
+           if (button.callback) button.callback();
+         };
+         buttonsEl.appendChild(btn);
+       });
+     } else {
+       // Default OK button
+       buttonsEl.innerHTML = '<button class="notification-btn primary" onclick="hideNotification()">OK</button>';
+     }
+     
+     // Show notification
+     overlay.classList.add('active');
+     document.body.style.overflow = 'hidden';
+   }
+   
+   function hideNotification() {
+     const overlay = document.getElementById('notificationOverlay');
+     overlay.classList.remove('active');
+     document.body.style.overflow = '';
+   }
+   
+   // Custom alert replacement
+   function customAlert(message, title = 'Notification') {
+     showNotification('info', title, message);
+   }
+   
+   // Custom confirm replacement
+   function customConfirm(message, title = 'Confirm', onConfirm = null, onCancel = null) {
+     const buttons = [
+       {
+         text: 'Cancel',
+         type: 'secondary',
+         callback: onCancel
+       },
+       {
+         text: 'Confirm',
+         type: 'primary',
+         callback: onConfirm
+       }
+     ];
+     showNotification('question', title, message, buttons);
+   }
+   
+   // Success notification
+   function showSuccess(message, title = 'Success') {
+     showNotification('success', title, message);
+   }
+   
+   // Error notification
+   function showError(message, title = 'Error') {
+     showNotification('error', title, message);
+   }
+   
+   // Warning notification
+   function showWarning(message, title = 'Warning') {
+     showNotification('warning', title, message);
+   }
+
+   // ===== TAGS FUNCTIONALITY =====
+   let allTags = [];
+   let modalSelectedTags = [];
+
+   // Load tags from Airtable
+   async function loadTags() {
+     try {
+       console.log('🏷️ Loading tags from Airtable...');
+       
+       const response = await fetch('https://hook.eu2.make.com/lya166veex7oo2wwo8mx4fuhlkssxlog', {
+         method: 'POST',
+         headers: {
+           'Content-Type': 'application/json'
+         },
+         body: JSON.stringify({
+           action: 'get_tags'
+         })
+       });
+
+       if (!response.ok) {
+         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+       }
+
+       const data = await response.json();
+       console.log('✅ Tags loaded:', data);
+       
+       if (data.tags && Array.isArray(data.tags)) {
+         allTags = data.tags;
+         generateSuggestedTags();
+         populateTagsModal();
+       } else {
+         console.warn('⚠️ No tags found in response, using fallback');
+         useFallbackTags();
+       }
+     } catch (error) {
+       console.error('❌ Error loading tags:', error);
+       useFallbackTags();
+     }
+   }
+
+   // Fallback tags if Airtable fails
+   function useFallbackTags() {
+     allTags = [
+       'Funny', 'Serious', 'Romantic', 'Adventure', 'Mystery', 'Fantasy', 'Sci-Fi',
+       'Historical', 'Modern', 'Anime', 'Gaming', 'Movies', 'Books', 'TV Shows',
+       'Helpful', 'Educational', 'Creative', 'Philosophical', 'Emotional', 'Logical'
+     ];
+     generateSuggestedTags();
+     populateTagsModal();
+   }
+
+   // Generate suggested tags based on category
+   function generateSuggestedTags() {
+     const category = document.getElementById('characterCategory').value;
+     let suggested = [];
+     
+     // Category-based suggestions
+     const categoryTags = {
+       'historical': ['Historical', 'Educational', 'Serious', 'Wise'],
+       'fictional': ['Fantasy', 'Adventure', 'Creative', 'Imaginative'],
+       'anime-manga': ['Anime', 'Japanese', 'Adventure', 'Fantasy'],
+       'gaming': ['Gaming', 'Adventure', 'Action', 'Strategy'],
+       'movies-tv': ['Movies', 'TV Shows', 'Entertainment', 'Drama'],
+       'educational': ['Educational', 'Helpful', 'Informative', 'Patient'],
+       'ai-assistant': ['Helpful', 'Logical', 'Efficient', 'Knowledgeable']
+     };
+     
+     if (category && categoryTags[category]) {
+       suggested = categoryTags[category];
+     } else {
+       // Default suggestions
+       suggested = ['Friendly', 'Helpful', 'Creative', 'Funny'];
+     }
+     
+     // Filter to only include tags that exist in allTags
+     suggested = suggested.filter(tag => allTags.includes(tag));
+     
+     // Add some random popular tags
+     const popularTags = allTags.filter(tag => !suggested.includes(tag)).slice(0, 2);
+     suggested = [...suggested, ...popularTags].slice(0, 6);
+     
+     displaySuggestedTags(suggested);
+   }
+
+   // Display suggested tags
+   function displaySuggestedTags(tags) {
+     const container = document.getElementById('suggestedTags');
+     container.innerHTML = '';
+     
+     tags.forEach(tag => {
+       const tagElement = document.createElement('div');
+       tagElement.className = 'suggested-tag';
+       tagElement.textContent = tag;
+       tagElement.onclick = () => toggleSuggestedTag(tagElement, tag);
+       
+       if (selectedTags.includes(tag)) {
+         tagElement.classList.add('selected');
+       }
+       
+       container.appendChild(tagElement);
+     });
+   }
+
+   // Toggle suggested tag
+   function toggleSuggestedTag(element, tag) {
+     if (selectedTags.includes(tag)) {
+       selectedTags = selectedTags.filter(t => t !== tag);
+       element.classList.remove('selected');
+     } else {
+       if (selectedTags.length < 6) {
+         selectedTags.push(tag);
+         element.classList.add('selected');
+       } else {
+         showWarning('You can select up to 6 tags maximum.', 'Tag Limit Reached');
+         return;
+       }
+     }
+     updateTagsPreview();
+     updatePreview();
+   }
+
+   // Populate tags modal
+   function populateTagsModal() {
+     const container = document.getElementById('commonTags');
+     container.innerHTML = '';
+     
+     allTags.forEach(tag => {
+       const tagElement = document.createElement('div');
+       tagElement.className = 'tag-option';
+       tagElement.textContent = tag;
+       tagElement.onclick = () => toggleModalTag(tagElement, tag);
+       container.appendChild(tagElement);
+     });
+   }
+
+   // Toggle modal tag
+   function toggleModalTag(element, tag) {
+     if (modalSelectedTags.includes(tag)) {
+       modalSelectedTags = modalSelectedTags.filter(t => t !== tag);
+       element.classList.remove('selected');
+     } else {
+       if (modalSelectedTags.length < 6) {
+         modalSelectedTags.push(tag);
+         element.classList.add('selected');
+       } else {
+         showWarning('You can select up to 6 tags maximum.', 'Tag Limit Reached');
+         return;
+       }
+     }
+     updateModalPreview();
+   }
+
+   // Update modal preview
+   function updateModalPreview() {
+     const preview = document.getElementById('selectedTagsPreview');
+     preview.textContent = modalSelectedTags.length > 0 ? modalSelectedTags.join(', ') : 'None';
+   }
+
+   // Update tags preview
+   function updateTagsPreview() {
+     const container = document.getElementById('tagsPreview');
+     container.innerHTML = '';
+     
+     selectedTags.forEach(tag => {
+       const tagElement = document.createElement('div');
+       tagElement.className = 'tag';
+       tagElement.textContent = tag;
+       container.appendChild(tagElement);
+     });
+   }
+
+   // Modal functionality
+   document.getElementById('moreTagsButton').onclick = () => {
+     modalSelectedTags = [...selectedTags];
+     updateModalTagsSelection();
+     updateModalPreview();
+     document.getElementById('tagsModal').style.display = 'block';
+   };
+
+   document.getElementById('closeModalBtn').onclick = () => {
+     document.getElementById('tagsModal').style.display = 'none';
+   };
+
+   document.getElementById('cancelTagsBtn').onclick = () => {
+     document.getElementById('tagsModal').style.display = 'none';
+   };
+
+   document.getElementById('applyTagsBtn').onclick = () => {
+     selectedTags = [...modalSelectedTags];
+     updateTagsPreview();
+     updateSuggestedTagsSelection();
+     updatePreview();
+     document.getElementById('tagsModal').style.display = 'none';
+   };
+
+   // Update modal tags selection
+   function updateModalTagsSelection() {
+     document.querySelectorAll('.tag-option').forEach(element => {
+       const tag = element.textContent;
+       if (modalSelectedTags.includes(tag)) {
+         element.classList.add('selected');
+       } else {
+         element.classList.remove('selected');
+       }
+     });
+   }
+
+   // Update suggested tags selection
+   function updateSuggestedTagsSelection() {
+     document.querySelectorAll('.suggested-tag').forEach(element => {
+       const tag = element.textContent;
+       if (selectedTags.includes(tag)) {
+         element.classList.add('selected');
+       } else {
+         element.classList.remove('selected');
+       }
+     });
+   }
+
+   // Category change handler
+   document.getElementById('characterCategory').addEventListener('change', generateSuggestedTags);
+
+   // ===== CHARACTER FORM FUNCTIONALITY =====
+   
+   // Character counters
+   function setupCharacterCounters() {
+     const fields = [
+       { id: 'characterName', counter: 'nameCounter', max: 50 },
+       { id: 'characterTitle', counter: 'titleCounter', max: 100 },
+       { id: 'characterDescription', counter: 'descCounter', max: 1000 },
+       { id: 'characterPrompt', counter: 'promptCounter', max: 2000 }
+     ];
+     
+     fields.forEach(field => {
+       const input = document.getElementById(field.id);
+       const counter = document.getElementById(field.counter);
+       
+       input.addEventListener('input', () => {
+         const length = input.value.length;
+         counter.textContent = length;
+         
+         if (length > field.max * 0.9) {
+           counter.style.color = '#f97316';
+         } else {
+           counter.style.color = '#999';
+         }
+         
+         updatePreview();
+       });
+     });
+   }
+
+   // Avatar functionality
+   function setupAvatarFunctionality() {
+     const avatarOptions = document.querySelectorAll('input[name="avatarMethod"]');
+     const avatarFileInput = document.getElementById('avatarFileInput');
+     const avatarUrlInput = document.getElementById('avatarUrlInput');
+     const avatarPreview = document.getElementById('avatarPreview');
+     const avatarImg = document.getElementById('avatarImg');
+     const fileName = document.getElementById('fileName');
+     
+     avatarOptions.forEach(option => {
+       option.addEventListener('change', () => {
+         document.querySelectorAll('.avatar-option').forEach(opt => opt.classList.remove('active'));
+         option.closest('.avatar-option').classList.add('active');
+       });
+     });
+     
+     avatarFileInput.addEventListener('change', (e) => {
+       const file = e.target.files[0];
+       if (file) {
+         fileName.textContent = file.name;
+         const reader = new FileReader();
+         reader.onload = (e) => {
+           currentAvatarUrl = e.target.result;
+           avatarImg.src = currentAvatarUrl;
+           avatarPreview.style.display = 'block';
+           updatePreview();
+         };
+         reader.readAsDataURL(file);
+       }
+     });
+     
+     avatarUrlInput.addEventListener('input', () => {
+       const url = avatarUrlInput.value.trim();
+       if (url) {
+         currentAvatarUrl = url;
+         avatarImg.src = url;
+         avatarPreview.style.display = 'block';
+         updatePreview();
+       } else {
+         avatarPreview.style.display = 'none';
+         currentAvatarUrl = '';
+         updatePreview();
+       }
+     });
+   }
+
+   // Trigger file upload
+   function triggerFileUpload() {
+     document.getElementById('avatarFileInput').click();
+   }
+
+   // Visibility selection
+   function selectVisibility(type) {
+     document.querySelectorAll('.radio-option').forEach(option => {
+       option.classList.remove('selected');
+     });
+     
+     event.target.closest('.radio-option').classList.add('selected');
+     document.querySelector(`input[value="${type}"]`).checked = true;
+   }
+
+   // Update preview
+   function updatePreview() {
+     const name = document.getElementById('characterName').value || 'Character Name';
+     const title = document.getElementById('characterTitle').value || 'Character title will appear here';
+     
+     document.getElementById('previewName').textContent = name;
+     document.getElementById('previewTitle').textContent = title;
+     
+     // Update avatar
+     const previewAvatar = document.getElementById('previewAvatar');
+     if (currentAvatarUrl) {
+       previewAvatar.innerHTML = `<img src="${currentAvatarUrl}" alt="Avatar">`;
+     } else {
+       previewAvatar.innerHTML = '👤';
+     }
+     
+     // Update tags
+     const previewTags = document.getElementById('previewTags');
+     previewTags.innerHTML = '';
+     selectedTags.forEach(tag => {
+       const tagElement = document.createElement('div');
+       tagElement.className = 'preview-tag';
+       tagElement.textContent = tag;
+       previewTags.appendChild(tagElement);
+     });
+     
+     // Show preview if there's content
+     const hasContent = name !== 'Character Name' || title !== 'Character title will appear here' || selectedTags.length > 0;
+     document.getElementById('previewSection').style.display = hasContent ? 'block' : 'none';
+   }
+
+   // Form submission - UPDATED WITH BOTH REDIRECT FIXES
+   document.getElementById('characterForm').addEventListener('submit', async (e) => {
+     e.preventDefault();
+     
+     // Check if user is logged in
+     const userEmail = localStorage.getItem('user_email');
+     const userToken = localStorage.getItem('user_token');
+     
+     if (!userEmail || !userToken) {
+       showLoginOverlay();
+       return;
+     }
+     
+     // Collect form data
+     const formData = {
+       name: document.getElementById('characterName').value,
+       title: document.getElementById('characterTitle').value,
+       description: document.getElementById('characterDescription').value,
+       prompt: document.getElementById('characterPrompt').value,
+       category: document.getElementById('characterCategory').value,
+       tags: selectedTags,
+       visibility: document.querySelector('input[name="visibility"]:checked').value,
+       avatar: currentAvatarUrl,
+       user_email: userEmail,
+       user_token: userToken,
+       action: 'create_character'
+     };
+     
+     try {
+       const response = await fetch('https://hook.eu2.make.com/lya166veex7oo2wwo8mx4fuhlkssxlog', {
+         method: 'POST',
+         headers: {
+           'Content-Type': 'application/json'
+         },
+         body: JSON.stringify(formData)
+       });
+       
+       if (response.ok) {
+         const data = await response.json();
+         console.log('Character created:', data);
+         
+         // Check if we have a character ID or slug from the response
+         if (data.characterId || data.slug) {
+           // Show success notification with options
+           const identifier = data.slug || data.characterId;
+           showNotification('success', 'Character Created!', 
+             'Your character has been created successfully.', 
+             [
+               {
+                 text: 'View Characters',
+                 type: 'secondary',
+                 callback: () => window.location.href = 'index.html'
+               },
+               {
+                 text: 'Start Chatting',
+                 type: 'primary',
+                 callback: () => window.location.href = `chat.html?character=${identifier}`
+               }
+             ]
+           );
+         } else {
+           // Fallback: show success and redirect after a delay
+           showSuccess('Your character has been created and is now available for chat!', 'Character Created');
+           setTimeout(() => {
+             window.location.href = 'index.html';
+           }, 2000);
+         }
+       } else {
+         throw new Error('Failed to create character');
+       }
+     } catch (error) {
+       console.error('Error creating character:', error);
+       showError('There was an issue creating your character. Please check your information and try again.', 'Creation Failed');
+     }
+   });
+
+   // Login overlay functions
+   function showLoginOverlay() {
+     document.getElementById('loginOverlay').style.display = 'flex';
+   }
+
+   function hideLoginOverlay() {
+     document.getElementById('loginOverlay').style.display = 'none';
+   }
+
+   function showLoginModal() {
+     if (window.netlifyIdentity) {
+       window.netlifyIdentity.open('login');
+     }
+   }
+
+   // Go back function
+   function goBack() {
+     window.history.back();
+   }
+
+   // Initialize everything
+   document.addEventListener('DOMContentLoaded', () => {
+     console.log('🚀 Create Character page initializing...');
+     
+     setupCharacterCounters();
+     setupAvatarFunctionality();
+     loadTags();
+     
+     // Initialize preview
+     updatePreview();
+     
+     console.log('✅ Create Character page initialization complete');
+   });
+ </script>
+
+ <!-- Footer -->
+ <footer class="footer">
+   <div class="footer-container">
+     <div class="footer-links">
+       <a href="index.html" class="footer-link">Characters</a>
+       <span class="footer-separator">•</span>
+       <a href="chat-overview.html" class="footer-link">Chats</a>
+       <span class="footer-separator">•</span>
+       <a href="create-character.html" class="footer-link">Create Character</a>
+       <span class="footer-separator">•</span>
+       <a href="profile.html" class="footer-link">Profile</a>
+       <span class="footer-separator">•</span>
+       <a href="privacy-policy.html" class="footer-link">Privacy Policy</a>
+       <span class="footer-separator">•</span>
+       <a href="terms-and-conditions.html" class="footer-link">Terms and Conditions</a>
+     </div>
+     <p class="footer-copyright">© 2025 Narrin AI. All rights reserved.</p>
+   </div>
+ </footer>
 </body>
 </html>
