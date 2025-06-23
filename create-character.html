@@ -2807,15 +2807,18 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
      document.getElementById('previewSection').style.display = hasContent ? 'block' : 'none';
    }
 
-   // Form submission - UPDATED WITH BOTH REDIRECT FIXES
+   // Form submission - GEFIXT EN GEOPTIMALISEERD
    document.getElementById('characterForm').addEventListener('submit', async (e) => {
      e.preventDefault();
+     
+     console.log('🚀 Character form submitted');
      
      // Check if user is logged in
      const userEmail = localStorage.getItem('user_email');
      const userToken = localStorage.getItem('user_token');
      
      if (!userEmail || !userToken) {
+       console.log('❌ User not logged in, showing login overlay');
        showLoginOverlay();
        return;
      }
@@ -2835,6 +2838,8 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
        action: 'create_character'
      };
      
+     console.log('📤 Sending character data:', formData);
+     
      try {
        const response = await fetch('https://hook.eu2.make.com/c36jubkn9rbbqg0ovgfbx2ca1iwgf16q', {
          method: 'POST',
@@ -2843,87 +2848,111 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
          },
          body: JSON.stringify(formData)
        });
-       try {
-  const response = await fetch('https://hook.eu2.make.com/c36jubkn9rbbqg0ovgfbx2ca1iwgf16q', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(formData)
-  });
-  
-  // Log de response voor debugging
-  console.log('Response status:', response.status);
-  
-  // Lees eerst de response als text
-  const responseText = await response.text();
-  console.log('Response text:', responseText);
-  
-  if (response.ok) {
-    let data = {};
-    
-    // Probeer JSON te parsen als er content is
-    if (responseText && responseText.trim() !== '') {
-      try {
-        data = JSON.parse(responseText);
-        console.log('Parsed response data:', data);
-      } catch (e) {
-        console.log('Response is not JSON, treating as success');
-        data = { success: true };
-      }
-    } else {
-      console.log('Empty response, treating as success');
-      data = { success: true };
-    }
-    
-    // Check if we have a character ID or slug from the response
-    if (data.characterId || data.slug) {
-      // Show success notification with options
-      const identifier = data.slug || data.characterId;
-      showNotification('success', 'Character Created!', 
-        'Your character has been created successfully.', 
-        [
-          {
-            text: 'View Characters',
-            type: 'secondary',
-            callback: () => window.location.href = 'index.html'
-          },
-          {
-            text: 'Start Chatting',
-            type: 'primary',
-            callback: () => window.location.href = `chat.html?character=${identifier}`
-          }
-        ]
-      );
-    } else {
-      // Fallback: show success and redirect after a delay
-      showSuccess('Your character has been created and is now available for chat!', 'Character Created');
-      setTimeout(() => {
-        window.location.href = 'index.html';
-      }, 2000);
-    }
-  } else {
-    // Response is not OK
-    console.error('Response not OK:', response.status, responseText);
-    
-    // Check if Make returned a specific error message
-    let errorMessage = 'Failed to create character';
-    if (responseText) {
-      try {
-        const errorData = JSON.parse(responseText);
-        errorMessage = errorData.message || errorData.error || errorMessage;
-      } catch (e) {
-        errorMessage = responseText || errorMessage;
-      }
-    }
-    
-    throw new Error(errorMessage);
-  }
-} catch (error) {
-  console.error('Error creating character:', error);
-  showError('There was an issue creating your character. Please check your information and try again.', 'Creation Failed');
-}
-});
+       
+       // Log de response voor debugging
+       console.log('📥 Response status:', response.status);
+       console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
+       
+       // Lees eerst de response als text
+       const responseText = await response.text();
+       console.log('📥 Response text:', responseText);
+       
+       if (response.ok) {
+         let data = {};
+         
+         // Probeer JSON te parsen als er content is
+         if (responseText && responseText.trim() !== '') {
+           try {
+             data = JSON.parse(responseText);
+             console.log('✅ Parsed response data:', data);
+           } catch (parseError) {
+             console.log('⚠️ Response is not JSON, treating as success:', parseError.message);
+             data = { success: true };
+           }
+         } else {
+           console.log('⚠️ Empty response, treating as success');
+           data = { success: true };
+         }
+         
+         // Check for specific success indicators
+         const isSuccess = data.success === true || 
+                          data.status === 'success' || 
+                          data.characterId || 
+                          data.slug ||
+                          response.status === 200;
+         
+         if (isSuccess) {
+           // Show success notification with options
+           const identifier = data.slug || data.characterId || data.id;
+           
+           if (identifier) {
+             showNotification('success', 'Character Created!', 
+               'Your character has been created successfully.', 
+               [
+                 {
+                   text: 'View Characters',
+                   type: 'secondary',
+                   callback: () => window.location.href = 'index.html'
+                 },
+                 {
+                   text: 'Start Chatting',
+                   type: 'primary',
+                   callback: () => window.location.href = `chat.html?character=${identifier}`
+                 }
+               ]
+             );
+           } else {
+             // Fallback: show success and redirect after a delay
+             showSuccess('Your character has been created and is now available for chat!', 'Character Created');
+             setTimeout(() => {
+               window.location.href = 'index.html';
+             }, 2000);
+           }
+         } else {
+           throw new Error(data.message || data.error || 'Character creation failed');
+         }
+       } else {
+         // Response is not OK
+         console.error('❌ Response not OK:', response.status, response.statusText, responseText);
+         
+         // Check if Make returned a specific error message
+         let errorMessage = 'Failed to create character';
+         if (responseText) {
+           try {
+             const errorData = JSON.parse(responseText);
+             errorMessage = errorData.message || errorData.error || errorMessage;
+           } catch (parseError) {
+             // If parsing fails, use the raw response or status text
+             errorMessage = responseText.length > 100 ? 
+               `${response.status}: ${response.statusText}` : 
+               responseText || errorMessage;
+           }
+         }
+         
+         throw new Error(errorMessage);
+       }
+     } catch (error) {
+       console.error('❌ Error creating character:', error);
+       
+       // Show detailed error information
+       let errorMessage = 'There was an issue creating your character. Please check your information and try again.';
+       
+       if (error.message) {
+         // If it's a specific error message, show it
+         if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+           errorMessage = 'Network error. Please check your internet connection and try again.';
+         } else if (error.message.includes('timeout')) {
+           errorMessage = 'Request timed out. Please try again.';
+         } else if (error.message.length < 200) {
+           // Only show custom error messages if they're reasonable length
+           errorMessage = error.message;
+         }
+       }
+       
+       showError(errorMessage, 'Creation Failed');
+     }
+   });
+
    // Login overlay functions
    function showLoginOverlay() {
      document.getElementById('loginOverlay').style.display = 'flex';
