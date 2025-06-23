@@ -2467,38 +2467,63 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
    let allTags = [];
    let modalSelectedTags = [];
 
-   // Load tags from Airtable
+   // Load tags from Airtable - IMPROVED ERROR HANDLING
    async function loadTags() {
      try {
        console.log('🏷️ Loading tags from Airtable...');
+       
+       const requestData = {
+         action: 'get_tags'
+       };
+       
+       console.log('📤 Sending tags request:', requestData);
        
        const response = await fetch('https://hook.eu2.make.com/c36jubkn9rbbqg0ovgfbx2ca1iwgf16q', {
          method: 'POST',
          headers: {
            'Content-Type': 'application/json'
          },
-         body: JSON.stringify({
-           action: 'get_tags'
-         })
+         body: JSON.stringify(requestData)
        });
 
+       console.log('📥 Tags response status:', response.status);
+       console.log('📥 Tags response headers:', Object.fromEntries(response.headers.entries()));
+
+       const responseText = await response.text();
+       console.log('📥 Tags response text:', responseText);
+
        if (!response.ok) {
+         console.warn(`⚠️ Tags API returned ${response.status}: ${response.statusText}`);
+         console.warn('📥 Response body:', responseText);
          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
        }
 
-       const data = await response.json();
-       console.log('✅ Tags loaded:', data);
+       let data = {};
+       if (responseText && responseText.trim() !== '') {
+         try {
+           data = JSON.parse(responseText);
+           console.log('✅ Tags loaded successfully:', data);
+         } catch (parseError) {
+           console.warn('⚠️ Could not parse tags response as JSON:', parseError.message);
+           throw new Error('Invalid JSON response from tags API');
+         }
+       } else {
+         console.warn('⚠️ Empty response from tags API');
+         throw new Error('Empty response from tags API');
+       }
        
        if (data.tags && Array.isArray(data.tags)) {
          allTags = data.tags;
          generateSuggestedTags();
          populateTagsModal();
+         console.log('✅ Tags successfully loaded and populated');
        } else {
-         console.warn('⚠️ No tags found in response, using fallback');
+         console.warn('⚠️ No valid tags array found in response, using fallback');
          useFallbackTags();
        }
      } catch (error) {
        console.error('❌ Error loading tags:', error);
+       console.log('🔄 Using fallback tags instead');
        useFallbackTags();
      }
    }
