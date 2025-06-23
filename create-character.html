@@ -2848,19 +2848,26 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
        return;
      }
      
-     // Collect form data
+     // Collect form data - CORRECT MAPPING BASED ON AIRTABLE SCHEMA
+     const characterName = document.getElementById('characterName').value;
+     const characterSlug = characterName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+     
      const formData = {
-       name: document.getElementById('characterName').value,
-       title: document.getElementById('characterTitle').value,
-       description: document.getElementById('characterDescription').value,
+       action: 'create_character',
+       name: characterName,
+       slug: characterSlug,
        prompt: document.getElementById('characterPrompt').value,
+       character_description: document.getElementById('characterDescription').value,
+       character_title: document.getElementById('characterTitle').value,
        category: document.getElementById('characterCategory').value,
-       tags: selectedTags,
+       tags: selectedTags.join(','), // Convert array to comma-separated string for Airtable
        visibility: document.querySelector('input[name="visibility"]:checked').value,
-       avatar: currentAvatarUrl,
+       avatar_url: currentAvatarUrl,
+       character_url: `https://narrin.ai/chat.html?character=${characterSlug}`,
+       character_id: `char_${Date.now()}`, // Generate unique character ID
        user_email: userEmail,
        user_token: userToken,
-       action: 'create_character'
+       created_by: userEmail
      };
      
      console.log('📤 Sending character data:', formData);
