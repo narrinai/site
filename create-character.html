@@ -2832,193 +2832,218 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
      document.getElementById('previewSection').style.display = hasContent ? 'block' : 'none';
    }
 
-   // Form submission - GEFIXT EN GEOPTIMALISEERD
-   document.getElementById('characterForm').addEventListener('submit', async (e) => {
-     e.preventDefault();
-     
-     console.log('🚀 Character form submitted');
-     
-     // Check if user is logged in
-     const userEmail = localStorage.getItem('user_email');
-     const userToken = localStorage.getItem('user_token');
-     
-     if (!userEmail || !userToken) {
-       console.log('❌ User not logged in, showing login overlay');
-       showLoginOverlay();
-       return;
-     }
-     
-     // Collect form data - ADD CHARACTERDATA BACK AS REQUIRED FIELD
-     const characterName = document.getElementById('characterName').value;
-     const characterSlug = characterName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-     const promptText = document.getElementById('characterPrompt').value;
-     const descriptionText = document.getElementById('characterDescription').value;
-     const categoryValue = document.getElementById('characterCategory').value;
-     const visibilityValue = document.querySelector('input[name="visibility"]:checked').value;
-     const characterId = `char_${Date.now()}`;
-     
-     const formData = {
-       action: 'create_character',
-       
-       // Required field that Make.com expects (even if not in Airtable)
-       characterData: promptText,
-       
-       // Format 1: Airtable PascalCase (from screenshots)
-       Name: characterName,
-       Character_ID: characterId,
-       Slug: characterSlug,
-       Prompt: promptText,
-       Avatar_URL: currentAvatarUrl,
-       Category: categoryValue,
-       Character_Description: descriptionText,
-       Tags: selectedTags.join(','),
-       Visibility: visibilityValue,
-       Character_URL: `https://narrin.ai/chat.html?character=${characterSlug}`,
-       Created_By: userEmail,
-       
-       // Format 2: Make.com expected lowercase/underscore (from error messages)
-       name: characterName,
-       character_id: characterId,
-       slug: characterSlug,
-       prompt: promptText,
-       avatar_url: currentAvatarUrl,
-       category: categoryValue,
-       character_description: descriptionText,
-       tags: selectedTags.join(','),
-       visibility: visibilityValue,
-       character_url: `https://narrin.ai/chat.html?character=${characterSlug}`,
-       created_by: userEmail,
-       
-       // Authentication
-       Email: userEmail,
-       user_email: userEmail,
-       user_token: userToken
-     };
-     
-     console.log('📤 Sending character data:', formData);
-     
-     try {
-       const response = await fetch('https://hook.eu2.make.com/c36jubkn9rbbqg0ovgfbx2ca1iwgf16q', {
-         method: 'POST',
-         headers: {
-           'Content-Type': 'application/json'
-         },
-         body: JSON.stringify(formData)
-       });
-       
-       // Log de response voor debugging
-       console.log('📥 Response status:', response.status);
-       console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
-       
-       // Lees eerst de response als text
-       const responseText = await response.text();
-       console.log('📥 Response text:', responseText);
-       
-       if (response.ok) {
-         let data = {};
-         
-         // Probeer JSON te parsen als er content is
-         if (responseText && responseText.trim() !== '') {
-           try {
-             data = JSON.parse(responseText);
-             console.log('✅ Parsed response data:', data);
-           } catch (parseError) {
-             console.log('⚠️ Response is not JSON, treating as success:', parseError.message);
-             data = { success: true };
-           }
-         } else {
-           console.log('⚠️ Empty response, treating as success');
-           data = { success: true };
-         }
-         
-         // Check for specific success indicators
-         const isSuccess = data.success === true || 
-                          data.status === 'success' || 
-                          data.characterId || 
-                          data.slug ||
-                          data.id ||
-                          response.status === 200;
-         
-         if (isSuccess) {
-           // Show success notification with options
-           const identifier = data.slug || data.characterId || data.id;
-           
-           if (identifier) {
-             showNotification('success', 'Character Created!', 
-               'Your character has been created successfully.', 
-               [
-                 {
-                   text: 'View Characters',
-                   type: 'secondary',
-                   callback: () => window.location.href = 'index.html'
-                 },
-                 {
-                   text: 'Start Chatting',
-                   type: 'primary',
-                   callback: () => window.location.href = `chat.html?character=${identifier}`
-                 }
-               ]
-             );
-           } else {
-             // Fallback: show success and redirect after a delay
-             showSuccess('Your character has been created and is now available for chat!', 'Character Created');
-             setTimeout(() => {
-               window.location.href = 'index.html';
-             }, 2000);
-           }
-         } else {
-           // Handle specific error cases
-           if (data.error === 'User not found' || data.message?.includes('login')) {
-             showError('Please make sure you are logged in with a valid account.', 'Authentication Required');
-             // Optionally redirect to login
-             setTimeout(() => {
-               window.location.href = 'profile.html';
-             }, 3000);
-           } else {
-             throw new Error(data.message || data.error || 'Character creation failed');
-           }
-         }
-       } else {
-         // Response is not OK
-         console.error('❌ Response not OK:', response.status, response.statusText, responseText);
-         
-         // Check if Make returned a specific error message
-         let errorMessage = 'Failed to create character';
-         if (responseText) {
-           try {
-             const errorData = JSON.parse(responseText);
-             errorMessage = errorData.message || errorData.error || errorMessage;
-           } catch (parseError) {
-             // If parsing fails, use the raw response or status text
-             errorMessage = responseText.length > 100 ? 
-               `${response.status}: ${response.statusText}` : 
-               responseText || errorMessage;
-           }
-         }
-         
-         throw new Error(errorMessage);
-       }
-     } catch (error) {
-       console.error('❌ Error creating character:', error);
-       
-       // Show detailed error information
-       let errorMessage = 'There was an issue creating your character. Please check your information and try again.';
-       
-       if (error.message) {
-         // If it's a specific error message, show it
-         if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-           errorMessage = 'Network error. Please check your internet connection and try again.';
-         } else if (error.message.includes('timeout')) {
-           errorMessage = 'Request timed out. Please try again.';
-         } else if (error.message.length < 200) {
-           // Only show custom error messages if they're reasonable length
-           errorMessage = error.message;
-         }
-       }
-       
-       showError(errorMessage, 'Creation Failed');
-     }
-   });
+  // Form submission - GEFIXT EN GEOPTIMALISEERD + AVATAR URL VALIDATION
+document.getElementById('characterForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  console.log('🚀 Character form submitted');
+  
+  // Check if user is logged in
+  const userEmail = localStorage.getItem('user_email');
+  const userToken = localStorage.getItem('user_token');
+  
+  if (!userEmail || !userToken) {
+    console.log('❌ User not logged in, showing login overlay');
+    showLoginOverlay();
+    return;
+  }
+  
+  // Collect form data - ADD CHARACTERDATA BACK AS REQUIRED FIELD
+  const characterName = document.getElementById('characterName').value;
+  const characterSlug = characterName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  const promptText = document.getElementById('characterPrompt').value;
+  const descriptionText = document.getElementById('characterDescription').value;
+  const categoryValue = document.getElementById('characterCategory').value;
+  const visibilityValue = document.querySelector('input[name="visibility"]:checked').value;
+  const characterId = `char_${Date.now()}`;
+  
+  // 🔧 AVATAR URL VALIDATION FIX
+  let avatarUrl = currentAvatarUrl?.trim() || '';
+  
+  // Als avatar URL leeg is, gebruik default
+  if (!avatarUrl || avatarUrl === '') {
+    avatarUrl = "https://narrin.ai/default-avatar.png";
+    console.log('🖼️ Using default avatar URL:', avatarUrl);
+  }
+  
+  // Valideer URL format - voeg https:// toe als het ontbreekt
+  if (avatarUrl && !avatarUrl.match(/^https?:\/\/.+/)) {
+    avatarUrl = "https://" + avatarUrl;
+    console.log('🔗 Fixed avatar URL format:', avatarUrl);
+  }
+  
+  // Extra validatie: check of URL een geldig format heeft
+  try {
+    new URL(avatarUrl);
+    console.log('✅ Avatar URL is valid:', avatarUrl);
+  } catch (urlError) {
+    console.log('⚠️ Invalid avatar URL, using default:', urlError.message);
+    avatarUrl = "https://narrin.ai/default-avatar.png";
+  }
+  
+  const formData = {
+    action: 'create_character',
+    
+    // Required field that Make.com expects (even if not in Airtable)
+    characterData: promptText,
+    
+    // Format 1: Airtable PascalCase (from screenshots)
+    Name: characterName,
+    Character_ID: characterId,
+    Slug: characterSlug,
+    Prompt: promptText,
+    Avatar_URL: avatarUrl, // 🔧 GEBRUIKT GEVALIDEERDE URL
+    Category: categoryValue,
+    Character_Description: descriptionText,
+    Tags: selectedTags.join(','),
+    Visibility: visibilityValue,
+    Character_URL: `https://narrin.ai/chat.html?character=${characterSlug}`,
+    Created_By: userEmail,
+    
+    // Format 2: Make.com expected lowercase/underscore (from error messages)
+    name: characterName,
+    character_id: characterId,
+    slug: characterSlug,
+    prompt: promptText,
+    avatar_url: avatarUrl, // 🔧 GEBRUIKT GEVALIDEERDE URL
+    category: categoryValue,
+    character_description: descriptionText,
+    tags: selectedTags.join(','),
+    visibility: visibilityValue,
+    character_url: `https://narrin.ai/chat.html?character=${characterSlug}`,
+    created_by: userEmail,
+    
+    // Authentication
+    Email: userEmail,
+    user_email: userEmail,
+    user_token: userToken
+  };
+  
+  console.log('📤 Sending character data:', formData);
+  console.log('🖼️ Final avatar URL being sent:', avatarUrl);
+  
+  try {
+    const response = await fetch('https://hook.eu2.make.com/c36jubkn9rbbqg0ovgfbx2ca1iwgf16q', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(formData)
+    });
+    
+    // Log de response voor debugging
+    console.log('📥 Response status:', response.status);
+    console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
+    
+    // Lees eerst de response als text
+    const responseText = await response.text();
+    console.log('📥 Response text:', responseText);
+    
+    if (response.ok) {
+      let data = {};
+      
+      // Probeer JSON te parsen als er content is
+      if (responseText && responseText.trim() !== '') {
+        try {
+          data = JSON.parse(responseText);
+          console.log('✅ Parsed response data:', data);
+        } catch (parseError) {
+          console.log('⚠️ Response is not JSON, treating as success:', parseError.message);
+          data = { success: true };
+        }
+      } else {
+        console.log('⚠️ Empty response, treating as success');
+        data = { success: true };
+      }
+      
+      // Check for specific success indicators
+      const isSuccess = data.success === true || 
+                       data.status === 'success' || 
+                       data.characterId || 
+                       data.slug ||
+                       data.id ||
+                       response.status === 200;
+      
+      if (isSuccess) {
+        // Show success notification with options
+        const identifier = data.slug || data.characterId || data.id;
+        
+        if (identifier) {
+          showNotification('success', 'Character Created!', 
+            'Your character has been created successfully.', 
+            [
+              {
+                text: 'View Characters',
+                type: 'secondary',
+                callback: () => window.location.href = 'index.html'
+              },
+              {
+                text: 'Start Chatting',
+                type: 'primary',
+                callback: () => window.location.href = `chat.html?character=${identifier}`
+              }
+            ]
+          );
+        } else {
+          // Fallback: show success and redirect after a delay
+          showSuccess('Your character has been created and is now available for chat!', 'Character Created');
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 2000);
+        }
+      } else {
+        // Handle specific error cases
+        if (data.error === 'User not found' || data.message?.includes('login')) {
+          showError('Please make sure you are logged in with a valid account.', 'Authentication Required');
+          // Optionally redirect to login
+          setTimeout(() => {
+            window.location.href = 'profile.html';
+          }, 3000);
+        } else {
+          throw new Error(data.message || data.error || 'Character creation failed');
+        }
+      }
+    } else {
+      // Response is not OK
+      console.error('❌ Response not OK:', response.status, response.statusText, responseText);
+      
+      // Check if Make returned a specific error message
+      let errorMessage = 'Failed to create character';
+      if (responseText) {
+        try {
+          const errorData = JSON.parse(responseText);
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch (parseError) {
+          // If parsing fails, use the raw response or status text
+          errorMessage = responseText.length > 100 ? 
+            `${response.status}: ${response.statusText}` : 
+            responseText || errorMessage;
+        }
+      }
+      
+      throw new Error(errorMessage);
+    }
+  } catch (error) {
+    console.error('❌ Error creating character:', error);
+    
+    // Show detailed error information
+    let errorMessage = 'There was an issue creating your character. Please check your information and try again.';
+    
+    if (error.message) {
+      // If it's a specific error message, show it
+      if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+        errorMessage = 'Network error. Please check your internet connection and try again.';
+      } else if (error.message.includes('timeout')) {
+        errorMessage = 'Request timed out. Please try again.';
+      } else if (error.message.length < 200) {
+        // Only show custom error messages if they're reasonable length
+        errorMessage = error.message;
+      }
+    }
+    
+    showError(errorMessage, 'Creation Failed');
+  }
+});
 
    // Login overlay functions
    function showLoginOverlay() {
