@@ -1162,6 +1162,82 @@
         transition-duration: 0.01ms !important;
       }
     }
+
+/* ===== REFERRAL BANNER STYLES ===== */
+.referral-banner {
+  background: linear-gradient(90deg, #4CAF50, #45a049);
+  color: white;
+  padding: 15px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  transform: translateY(-100%);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.referral-banner.active {
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+}
+
+.banner-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.banner-text {
+  font-weight: 500;
+  font-size: 16px;
+}
+
+.close-banner {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0 10px;
+  line-height: 1;
+}
+
+.close-banner:hover {
+  opacity: 0.8;
+}
+
+/* Zorg dat content niet achter banner verdwijnt */
+body.has-referral-banner {
+  padding-top: 60px;
+}
+
+/* Mobile aanpassingen */
+@media (max-width: 768px) {
+  .referral-banner {
+    padding: 12px;
+  }
+  
+  .banner-content {
+    padding: 0 15px;
+  }
+  
+  .banner-text {
+    font-size: 14px;
+  }
+  
+  body.has-referral-banner {
+    padding-top: 50px;
+  }
+}
+
   </style>
 </head>
 <body>
@@ -1895,15 +1971,44 @@
       }
     }
 
-    // Initialize Netlify Identity
-    if (window.netlifyIdentity) {
-      window.netlifyIdentity.on('init', updateLoginButton);
-      window.netlifyIdentity.on('login', () => {
-        updateLoginButton();
-        window.netlifyIdentity.close();
-      });
-      window.netlifyIdentity.on('logout', updateLoginButton);
-    }
+   // Initialize Netlify Identity
+if (window.netlifyIdentity) {
+  window.netlifyIdentity.on('init', updateLoginButton);
+  window.netlifyIdentity.on('login', () => {
+    updateLoginButton();
+    window.netlifyIdentity.close();
+  });
+  window.netlifyIdentity.on('logout', updateLoginButton);
+  
+  // Update bestaande signup event om referral te verwerken
+  window.netlifyIdentity.on('signup', user => {
+    console.log('🎉 New user signup:', user.email);
+    
+    // Check voor referral code
+    const referralCode = localStorage.getItem('referralCode');
+    
+    const payload = {
+      email: user.email,
+      name: user.user_metadata?.full_name || '',
+      netlify_uid: user.id,
+      referral_code: referralCode || null
+    };
+
+    fetch('https://hook.eu2.make.com/03ug6qzucda4ksrkcc06nu3bu3vetj15', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(() => {
+      console.log('✅ User registered with referral processing');
+      // Clear referral code na gebruik
+      if (referralCode) {
+        localStorage.removeItem('referralCode');
+      }
+    }).catch(error => {
+      console.error('❌ Registration error:', error);
+    });
+  });
+}
 
     // ===== INITIALIZATION =====
     document.addEventListener('DOMContentLoaded', () => {
@@ -1921,7 +2026,116 @@
       debugLoadProcess();
       
       console.log('✅ Initialization complete');
+      // Check voor referral parameter bij pagina load
+const urlParams = new URLSearchParams(window.location.search);
+const referralCode = urlParams.get('ref');
+if (referralCode) {
+  localStorage.setItem('referralCode', referralCode);
+  console.log('📌 Referral code opgeslagen:', referralCode);
+}
     });
+
+// ===== REFERRAL FLOW DETECTION =====
+
+// Detecteer referral parameter
+function checkReferralCode() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const referralCode = urlParams.get('ref');
+  
+  if (referralCode) {
+    console.log('🎁 Referral code detected:', referralCode);
+    
+    // Sla referral code op in localStorage voor later gebruik
+    localStorage.setItem('referralCode', referralCode);
+    
+    // Toon referral banner
+    showReferralBanner();
+    
+    // Clean URL (verwijder ?ref= parameter)
+    const cleanUrl = window.location.pathname;
+    window.history.replaceState({}, document.title, cleanUrl);
+  }
+}
+
+// Toon referral banner
+function showReferralBanner() {
+  const banner = document.createElement('div');
+  banner.className = 'referral-banner';
+  banner.innerHTML = `
+    <div class="banner-content">
+      <span class="banner-text">🎉 Je bent uitgenodigd! Registreer je nu en ontvang 100 gratis chat messages!</span>
+      <button onclick="closeReferralBanner()" class="close-banner">×</button>
+    </div>
+  `;
+  
+  // Voeg banner toe aan begin van body
+  document.body.insertBefore(banner, document.body.firstChild);
+  document.body.classList.add('has-referral-banner');
+  
+  // Toon banner met animatie
+  setTimeout(() => {
+    banner.classList.add('active');
+  }, 100);
+  
+  console.log('✅ Referral banner shown');
+}
+
+// Sluit referral banner
+function closeReferralBanner() {
+  const banner = document.querySelector('.referral-banner');
+  if (banner) {
+    banner.classList.remove('active');
+    document.body.classList.remove('has-referral-banner');
+    
+    setTimeout(() => {
+      banner.remove();
+    }, 300);
+  }
+}
+
+// Update registration functie om referral code mee te sturen
+function updateRegistrationWithReferral(originalRegistrationFunction) {
+  return function(user) {
+    // Haal referral code op
+    const referralCode = localStorage.getItem('referralCode');
+    
+    if (referralCode) {
+      console.log('📤 Sending referral code with registration:', referralCode);
+      
+      // Voeg referral code toe aan user data
+      const payload = {
+        email: user.email,
+        name: user.user_metadata?.full_name || '',
+        netlify_uid: user.id,
+        referral_code: referralCode
+      };
+      
+      // Verstuur naar webhook
+      fetch('https://hook.eu2.make.com/03ug6qzucda4ksrkcc06nu3bu3vetj15', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).then(() => {
+        console.log('✅ Registration with referral sent successfully');
+        // Clear referral code na gebruik
+        localStorage.removeItem('referralCode');
+      }).catch(error => {
+        console.error('❌ Error sending referral registration:', error);
+      });
+    }
+    
+    // Roep originele registratie functie aan
+    if (originalRegistrationFunction) {
+      originalRegistrationFunction(user);
+    }
+  };
+}
+
+// Initialiseer referral detection bij page load
+document.addEventListener('DOMContentLoaded', function() {
+  checkReferralCode();
+});
+
   </script>
 </body>
 </html>

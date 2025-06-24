@@ -1835,6 +1835,167 @@
         width: 100%;
       }
     }
+
+/* ===== REFERRAL SECTION STYLES ===== */
+.referral-section {
+  margin-top: var(--spacing-2xl);
+  padding: var(--spacing-2xl);
+  border: 2px solid var(--color-light-gray);
+  border-radius: var(--radius-lg);
+  background: var(--color-white);
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-base);
+}
+
+.referral-section:hover {
+  border-color: var(--color-teal);
+  box-shadow: var(--shadow-lg);
+}
+
+.referral-section h3 {
+  font-family: var(--font-secondary);
+  font-size: var(--font-size-2xl);
+  color: var(--color-navy);
+  font-weight: 700;
+  margin: 0 0 var(--spacing-lg) 0;
+  letter-spacing: -0.01em;
+}
+
+.referral-card {
+  background: linear-gradient(135deg, var(--color-teal-light) 10%, var(--color-white) 100%);
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(20, 184, 166, 0.2);
+}
+
+.referral-card p {
+  color: var(--color-gray-dark);
+  font-size: var(--font-size-base);
+  margin-bottom: var(--spacing-lg);
+  font-weight: 500;
+}
+
+.referral-code-container {
+  margin-bottom: var(--spacing-xl);
+}
+
+.referral-code-container label {
+  display: block;
+  font-weight: 600;
+  color: var(--color-navy);
+  margin-bottom: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+}
+
+.referral-input-group {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin: var(--spacing-sm) 0;
+}
+
+.referral-input-group input {
+  flex: 1;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: 2px solid var(--color-light-gray);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-family: var(--font-primary);
+  background: var(--color-white);
+  color: var(--color-navy);
+  transition: all var(--transition-base);
+}
+
+.referral-input-group input:focus {
+  outline: none;
+  border-color: var(--color-teal);
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+}
+
+.copy-btn {
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--gradient-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-colored);
+  white-space: nowrap;
+}
+
+.copy-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.referral-stats {
+  display: flex;
+  gap: var(--spacing-2xl);
+  justify-content: center;
+}
+
+.stat-item {
+  text-align: center;
+  padding: var(--spacing-lg);
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  flex: 1;
+  max-width: 150px;
+}
+
+.stat-number {
+  display: block;
+  font-size: var(--font-size-3xl);
+  font-weight: 800;
+  color: var(--color-teal);
+  font-family: var(--font-secondary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.stat-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray);
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+/* Mobile responsive voor referral section */
+@media (max-width: 768px) {
+  .referral-section {
+    padding: var(--spacing-xl);
+    margin-top: var(--spacing-xl);
+  }
+  
+  .referral-section h3 {
+    font-size: var(--font-size-xl);
+  }
+  
+  .referral-card {
+    padding: var(--spacing-lg);
+  }
+  
+  .referral-input-group {
+    flex-direction: column;
+  }
+  
+  .copy-btn {
+    width: 100%;
+  }
+  
+  .referral-stats {
+    flex-direction: column;
+    gap: var(--spacing-lg);
+  }
+  
+  .stat-item {
+    max-width: none;
+  }
+}
+
     /* ===== NETLIFY IDENTITY NAME FIELD VERBERGEN ===== */
     
     /* Verberg name field in Netlify Identity modal */
@@ -2087,6 +2248,33 @@
             <a href="#" id="logout-btn" onclick="handleLogout(); return false;">
               Log out
             </a>
+          </div>
+        </div>
+
+</div>
+
+        <!-- Referral Section -->
+        <div class="referral-section">
+          <h3>🎁 Vrienden Uitnodigen</h3>
+          <div class="referral-card">
+            <p>Nodig vrienden uit en ontvang beide 100 gratis chat messages!</p>
+            <div class="referral-code-container">
+              <label>Jouw referral link:</label>
+              <div class="referral-input-group">
+                <input type="text" id="referralLink" readonly>
+                <button onclick="copyReferralLink()" class="copy-btn">Kopiëren</button>
+              </div>
+            </div>
+            <div class="referral-stats">
+              <div class="stat-item">
+                <span class="stat-number" id="successfulReferrals">0</span>
+                <span class="stat-label">Succesvolle Referrals</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number" id="referralBonus">0</span>
+                <span class="stat-label">Bonus Messages</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -3089,6 +3277,8 @@
         console.log('📊 FINAL UI UPDATE COMPLETED ✅');
         
         console.log('✅ Profile loaded and UI updated');
+        // Load referral data
+        loadReferralData();
         
       } catch (error) {
         console.error('❌ Error loading profile:', error);
@@ -3578,6 +3768,120 @@
         hideLoading();
       }
     }
+
+    // ===== REFERRAL FUNCTIONALITY =====
+    
+    // Generate unique referral code
+    function generateReferralCode() {
+      const email = localStorage.getItem('user_email');
+      if (email) {
+        // Create a simple hash from email + random string
+        const hash = btoa(email + Math.random().toString(36).substring(2, 8)).substring(0, 8).toUpperCase();
+        return hash;
+      }
+      return Math.random().toString(36).substring(2, 8).toUpperCase();
+    }
+
+    // Load referral data
+    async function loadReferralData() {
+      try {
+        const email = localStorage.getItem('user_email');
+        const uid = localStorage.getItem('user_uid');
+        const token = localStorage.getItem('user_token');
+        
+        if (!email || !uid || !token) return;
+
+        console.log('📡 Loading referral data for:', email);
+        
+        // Haal user data op inclusief referral info
+        const payload = {
+          user_email: email,
+          user_uid: uid,
+          user_token: token,
+          action: 'get_referral_data'
+        };
+        
+        const response = await fetch('https://hook.eu2.make.com/lya166veex7oo2wwo8mx4fuhlkssxlog', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        let data = {};
+        
+        if (response.ok) {
+          const responseText = await response.text();
+          try {
+            data = JSON.parse(responseText);
+          } catch (parseError) {
+            console.log('⚠️ Could not parse referral data, using defaults');
+          }
+        }
+        
+        // Generate referral code if not exists
+        const referralCode = data.referral_code || generateReferralCode();
+        
+        // Update referral link
+        const referralLink = `${window.location.origin}/index.html?ref=${referralCode}`;
+        document.getElementById('referralLink').value = referralLink;
+        
+        // Update stats
+        document.getElementById('successfulReferrals').textContent = data.successful_referrals || 0;
+        document.getElementById('referralBonus').textContent = data.total_referral_bonus || 0;
+
+        console.log('✅ Referral data loaded');
+
+      } catch (error) {
+        console.error('❌ Error loading referral data:', error);
+        
+        // Fallback: still generate referral link
+        const referralCode = generateReferralCode();
+        const referralLink = `${window.location.origin}/index.html?ref=${referralCode}`;
+        document.getElementById('referralLink').value = referralLink;
+      }
+    }
+
+    // Copy referral link to clipboard
+    function copyReferralLink() {
+      const referralLink = document.getElementById('referralLink');
+      
+      // Select and copy
+      referralLink.select();
+      referralLink.setSelectionRange(0, 99999); // For mobile devices
+      
+      try {
+        // Modern way
+        navigator.clipboard.writeText(referralLink.value).then(() => {
+          showCopyFeedback();
+        }).catch(() => {
+          // Fallback
+          document.execCommand('copy');
+          showCopyFeedback();
+        });
+      } catch (err) {
+        // Fallback for older browsers
+        document.execCommand('copy');
+        showCopyFeedback();
+      }
+    }
+    
+    // Show copy feedback
+    function showCopyFeedback() {
+      const copyBtn = document.querySelector('.copy-btn');
+      const originalText = copyBtn.textContent;
+      
+      copyBtn.textContent = 'Gekopieerd! ✅';
+      copyBtn.style.background = '#22c55e';
+      
+      setTimeout(() => {
+        copyBtn.textContent = originalText;
+        copyBtn.style.background = '';
+      }, 2000);
+      
+      // Also show success notification
+      showSuccess('Referral link gekopieerd! Deel hem met je vrienden.');
+    }
+
   </script>
   <!-- Footer -->
   <footer class="footer">
