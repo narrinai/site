@@ -3362,7 +3362,18 @@ try {
   if (generateResponse.ok) {
     console.log('✅ Referral code generated, reloading data...');
     // Wait and reload data
-    setTimeout(() => loadReferralDataWithGeneration(), 3000);
+   // Stop after 3 attempts
+if (!window.referralAttempts) window.referralAttempts = 0;
+window.referralAttempts++;
+
+if (window.referralAttempts < 3) {
+  setTimeout(() => loadReferralDataWithGeneration(), 3000);
+} else {
+  console.log('⚠️ Max referral generation attempts reached, using fallback');
+  const referralCode = generateReferralCode();
+  const referralLink = `${window.location.origin}/index.html?ref=${referralCode}`;
+  document.getElementById('referralLink').value = referralLink;
+}
     return;
   } else {
     console.error('❌ Failed to generate referral code');
