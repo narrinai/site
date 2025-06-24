@@ -3341,7 +3341,7 @@ loadReferralData();
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               email: email,
-              user_id: uid
+              user_uid: uid
             })
           });
           
@@ -3853,14 +3853,19 @@ loadReferralData();
     
     // Generate unique referral code
     function generateReferralCode() {
-      const email = localStorage.getItem('user_email');
-      if (email) {
-        // Create a simple hash from email + random string
-        const hash = btoa(email + Math.random().toString(36).substring(2, 8)).substring(0, 8).toUpperCase();
-        return hash;
-      }
-      return Math.random().toString(36).substring(2, 8).toUpperCase();
-    }
+  const email = localStorage.getItem('user_email');
+  const uid = localStorage.getItem('user_uid');
+  
+  if (email && uid) {
+    // Neem eerste 3 chars van email + laatste 6 chars van UID
+    const emailPart = email.substring(0, 3).toUpperCase();
+    const uidPart = uid.substring(uid.length - 6);
+    return emailPart + uidPart;
+  }
+  
+  // Laatste fallback
+  return 'REF' + Math.random().toString(36).substring(2, 8).toUpperCase();
+}
 
     // Load referral data
     async function loadReferralData() {
