@@ -3336,14 +3336,41 @@ loadReferralData();
         if (!data.referral_code) {
           console.log('🔧 No referral code found, generating via webhook...');
           
-          const generateResponse = await fetch('https://hook.eu2.make.com/tllj5vs4qr91whpwfyrprc9efs63r1xh', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              email: email,
-              user_uid: uid
-            })
-          });
+         console.log('🔧 Testing webhook with real data...');
+const webhookUrl = 'https://hook.eu2.make.com/tllj5vs4qr91whpwfyrprc9efs63r1xh';
+const payload = {
+  user_email: email,
+  user_uid: uid
+};
+
+console.log('📤 Sending to webhook:', webhookUrl);
+console.log('📦 Real payload:', payload);
+
+try {
+  const generateResponse = await fetch(webhookUrl, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  console.log('📡 Status:', generateResponse.status);
+  const responseText = await generateResponse.text();
+  console.log('📋 Response:', responseText);
+  
+  if (generateResponse.ok) {
+    console.log('✅ Referral code generated, reloading data...');
+    // Wait and reload data
+    setTimeout(() => loadReferralDataWithGeneration(), 3000);
+    return;
+  } else {
+    console.error('❌ Failed to generate referral code');
+  }
+  
+} catch (error) {
+  console.error('💥 Error:', error);
+}
           
           if (generateResponse.ok) {
             console.log('✅ Referral code generated, reloading data...');
