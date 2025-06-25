@@ -909,18 +909,18 @@
 
     /* Category Navigation */
     .category-nav {
-      margin-bottom: var(--spacing-3xl);
-      padding-top: var(--spacing-sm);
+      margin-bottom: var(--spacing-lg);
+      padding: var(--spacing-sm) 0;
     }
 
     .filters-container {
       display: flex;
       gap: var(--spacing-sm);
-      justify-content: center;
-      flex-wrap: wrap;
-      padding-bottom: var(--spacing-xs);
-      padding-top: var(--spacing-xs);
-      width: 100%;
+      justify-content: flex-start;
+      padding: 0 var(--spacing-lg);
+      overflow-x: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-gray-light) transparent;
     }
 
     .filters-container::-webkit-scrollbar {
@@ -962,6 +962,8 @@
       box-shadow: var(--shadow-colored);
       border: none;
       cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
 
     .category-btn:hover {
@@ -978,14 +980,16 @@
     /* Mobile Adjustments */
     @media (max-width: 768px) {
       .category-nav {
-        margin-bottom: var(--spacing-sm);
+        margin-bottom: var(--spacing-md);
+        padding: var(--spacing-xs) 0;
       }
 
       .filters-container {
-        flex-wrap: wrap;
-        justify-content: center;
+        justify-content: flex-start;
+        padding: 0 var(--spacing-md);
         gap: var(--spacing-xs);
-        overflow-x: visible;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
       }
 
       .filter-section {
@@ -994,6 +998,11 @@
 
       .category-buttons {
         gap: var(--spacing-xs);
+      }
+
+      .category-btn {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: var(--font-size-xs);
       }
     }
 
@@ -1519,17 +1528,6 @@
     </div>
   </div>
 
-  <!-- Category Navigation -->
-  <nav class="category-nav" aria-label="Browse by category">
-    <div class="filters-container">
-      <div class="filter-section">
-        <div class="category-buttons" id="categoryButtons">
-          <!-- Dynamic category buttons will be inserted here -->
-        </div>
-      </div>
-    </div>
-  </nav>
-
   <!-- Page Header -->
   <div class="page-header">
     <!-- Floating particles -->
@@ -1562,6 +1560,17 @@
       <input type="text" class="search-input" placeholder="Search characters..." id="searchInput">
     </div>
   </section>
+
+  <!-- Category Navigation -->
+  <nav class="category-nav" aria-label="Browse by category">
+    <div class="filters-container">
+      <div class="filter-section">
+        <div class="category-buttons" id="categoryButtons">
+          <!-- Dynamic category buttons will be inserted here -->
+        </div>
+      </div>
+    </div>
+  </nav>
 
   <!-- Content -->
   <div class="content">
@@ -2151,11 +2160,23 @@
       const urlParams = new URLSearchParams(window.location.search);
       const currentCategory = urlParams.get('category');
       
-      Object.entries(CONFIG.CATEGORIES).forEach(([key, category]) => {
+      // Use the same categories as index.html
+      const categories = [
+        { id: 'historical', name: 'Historical', title: 'Historical Figures' },
+        { id: 'fictional', name: 'Fiction', title: 'Fictional Characters' },
+        { id: 'celebrity', name: 'Celebrities', title: 'Celebrities' },
+        { id: 'anime-manga', name: 'Anime & Manga', title: 'Anime & Manga' },
+        { id: 'gaming', name: 'Gaming', title: 'Gaming Characters' },
+        { id: 'movies-tv', name: 'Movies & TV', title: 'Movies & TV' },
+        { id: 'books', name: 'Books', title: 'Book Characters' },
+        { id: 'mythology', name: 'Mythology', title: 'Mythological Figures' }
+      ];
+      
+      categories.forEach(category => {
         const link = document.createElement('a');
-        link.href = `category.html?category=${key}`;
-        link.className = `category-btn ${currentCategory === key ? 'active' : ''}`;
-        link.textContent = category.title;
+        link.href = `category.html?category=${category.id}`;
+        link.className = `category-btn ${currentCategory === category.id ? 'active' : ''}`;
+        link.textContent = category.name; // Use 'name' like index.html does
         container.appendChild(link);
       });
     }
