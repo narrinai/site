@@ -916,11 +916,10 @@
     .filters-container {
       display: flex;
       gap: var(--spacing-sm);
-      justify-content: flex-start;
+      justify-content: center;
+      flex-wrap: wrap;
       padding: 0 var(--spacing-lg);
-      overflow-x: auto;
-      scrollbar-width: thin;
-      scrollbar-color: var(--color-gray-light) transparent;
+      width: 100%;
     }
 
     .filters-container::-webkit-scrollbar {
@@ -943,7 +942,8 @@
       position: relative;
     }
 
-    .category-buttons {
+    .category-buttons,
+    .tags-container {
       display: flex;
       gap: var(--spacing-sm);
       flex-shrink: 0;
@@ -966,13 +966,36 @@
       flex-shrink: 0;
     }
 
-    .category-btn:hover {
+    .tag-btn {
+      padding: var(--spacing-xs) var(--spacing-md);
+      background: var(--gradient-tags);
+      color: var(--color-white);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: var(--font-size-sm);
+      border-radius: var(--radius-md);
+      transition: all var(--transition-base);
+      box-shadow: 0 4px 15px -3px rgba(16, 163, 148, 0.3);
+      border: none;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .category-btn:hover,
+    .tag-btn:hover {
       transform: translateY(-4px);
       box-shadow: var(--shadow-lg);
     }
 
     .category-btn.active {
       background: var(--color-navy);
+      color: var(--color-white);
+      transform: translateY(-2px);
+    }
+
+    .tag-btn.active {
+      background: var(--color-teal-dark);
       color: var(--color-white);
       transform: translateY(-2px);
     }
@@ -990,17 +1013,22 @@
         gap: var(--spacing-xs);
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+        flex-wrap: nowrap;
+        scrollbar-width: thin;
+        scrollbar-color: var(--color-gray-light) transparent;
       }
 
       .filter-section {
         gap: var(--spacing-xs);
       }
 
-      .category-buttons {
+      .category-buttons,
+      .tags-container {
         gap: var(--spacing-xs);
       }
 
-      .category-btn {
+      .category-btn,
+      .tag-btn {
         padding: var(--spacing-xs) var(--spacing-sm);
         font-size: var(--font-size-xs);
       }
@@ -1245,36 +1273,64 @@
       background: var(--color-teal-dark);
     }
 
+    /* Page Header Desktop */
+    .page-header {
+      min-height: 120px;
+      padding: var(--spacing-lg) var(--spacing-lg);
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .page-header h1 {
+      font-size: var(--font-size-xl);
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .page-header p {
+      font-size: var(--font-size-sm);
+    }
+
+    .category-icon {
+      width: 60px;
+      height: 60px;
+      font-size: var(--font-size-xl);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .category-stats {
+      top: var(--spacing-sm);
+      right: var(--spacing-sm);
+      font-size: var(--font-size-xs);
+      padding: 4px var(--spacing-xs);
+    }
+
     /* Mobile Optimizations */
     @media (max-width: 768px) {
       .page-header {
-        min-height: 160px;
-        padding: var(--spacing-2xl) var(--spacing-md);
+        min-height: 100px;
+        padding: var(--spacing-md) var(--spacing-md);
+        margin-bottom: var(--spacing-md);
       }
 
       .page-header h1 {
-        font-size: var(--font-size-3xl);
+        font-size: var(--font-size-lg);
       }
 
       .page-header p {
-        font-size: var(--font-size-base);
+        font-size: var(--font-size-xs);
       }
 
       .category-icon {
-        width: 80px;
-        height: 80px;
-        font-size: 3rem;
+        width: 50px;
+        height: 50px;
+        font-size: var(--font-size-lg);
+        margin-bottom: var(--spacing-xs);
       }
 
       .category-stats {
-        top: var(--spacing-md);
-        right: var(--spacing-md);
+        top: var(--spacing-xs);
+        right: var(--spacing-xs);
         font-size: var(--font-size-xs);
-        padding: var(--spacing-xs) var(--spacing-sm);
-      }
-
-      .header-particle {
-        font-size: 10px;
+        padding: 2px var(--spacing-xs);
       }
 
       .results-header {
@@ -1530,19 +1586,10 @@
 
   <!-- Page Header -->
   <div class="page-header">
-    <!-- Floating particles -->
-    <div class="header-particle">✨</div>
-    <div class="header-particle">⭐</div>
-    <div class="header-particle">💫</div>
-    <div class="header-particle">🌟</div>
-    
     <!-- Category stats badge -->
     <div class="category-stats" id="categoryStats">
       Loading...
     </div>
-    
-    <!-- Gradient overlay -->
-    <div class="gradient-overlay"></div>
     
     <!-- Main content -->
     <div class="page-header-content">
@@ -1567,6 +1614,13 @@
       <div class="filter-section">
         <div class="category-buttons" id="categoryButtons">
           <!-- Dynamic category buttons will be inserted here -->
+        </div>
+      </div>
+      
+      <!-- Tags Section -->
+      <div class="filter-section">
+        <div class="tags-container" id="tagsContainer">
+          <!-- Dynamic tag buttons will be inserted here -->
         </div>
       </div>
     </div>
@@ -2181,16 +2235,42 @@
       });
     }
 
+    // Generate tag buttons
+    function generateTagButtons() {
+      const tagsContainer = document.getElementById('tagsContainer');
+      if (!tagsContainer) return;
+
+      tagsContainer.innerHTML = '';
+
+      // Use the same tags as index.html
+      const tags = [
+        'wise', 'funny', 'helpful', 'mysterious', 'leader',
+        'creative', 'romantic', 'adventure', 'teacher', 'mentor',
+        'villain', 'hero', 'scientist', 'artist', 'warrior'
+      ];
+
+      tags.forEach(tag => {
+        const button = document.createElement('a');
+        button.href = `tags.html?tag=${tag}`;
+        button.className = 'tag-btn';
+        button.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
+        tagsContainer.appendChild(button);
+      });
+    }
+
     // ===== INITIALIZATION =====
     document.addEventListener('DOMContentLoaded', function() {
       console.log('🚀 Category page initializing...');
 
       initializePage();
-      setupEventListeners(); 
+      setupEventListeners();
       loadCharacters();
       
       // Generate category navigation
       generateCategoryNavigation();
+      
+      // Generate tag buttons
+      generateTagButtons();
       
       console.log('✅ Category page initialization complete');
     });
