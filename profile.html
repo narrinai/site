@@ -2433,6 +2433,20 @@
   </div>
 
   <script>
+// In profile.html of waar je user registratie afhandelt:
+window.netlifyIdentity.on('signup', async (user) => {
+  await safeFetch(CONFIG.MAKE_WEBHOOK_URL, {
+    method: 'POST', 
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: "create_referral",
+      NetlifyUID: user.id,
+      Email: user.email,
+      // ... rest van de JSON
+    })
+  });
+});
+
     // ===== STRIPE CONFIGURATION =====
     const stripe = Stripe('pk_live_jz2dXpzmEDUahXkKkyUe36Zt');
     const PRICE_ID = 'price_1Rc9oTDU567HpUYxl1sLu71A';
