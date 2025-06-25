@@ -3987,15 +3987,12 @@ if (window.referralAttempts < 3) {
     // ===== REFERRAL FUNCTIONALITY =====
     
     // Generate unique referral code
-    function generateReferralCode() {
-  const email = localStorage.getItem('user_email');
+ function generateReferralCode() {
   const uid = localStorage.getItem('user_uid');
   
-  if (email && uid) {
-    // Neem eerste 3 chars van email + laatste 6 chars van UID
-    const emailPart = email.substring(0, 3).toUpperCase();
-    const uidPart = uid.substring(uid.length - 6);
-    return emailPart + uidPart;
+  if (uid) {
+    // Gebruik eerste 8 karakters van user_uid (zelfde als Make.com)
+    return uid.substring(0, 8);
   }
   
   // Laatste fallback
