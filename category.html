@@ -908,98 +908,92 @@
     }
 
     /* Category Navigation */
-    .category-navigation {
-      background: var(--color-white);
-      border-bottom: 1px solid var(--color-light-gray);
-      padding: var(--spacing-lg) 0;
+    .category-nav {
+      margin-bottom: var(--spacing-3xl);
+      padding-top: var(--spacing-sm);
     }
 
-    .category-nav-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 var(--spacing-lg);
-    }
-
-    .category-nav-title {
-      font-family: var(--font-secondary);
-      font-size: var(--font-size-lg);
-      font-weight: 600;
-      color: var(--color-navy);
-      margin-bottom: var(--spacing-md);
-      text-align: center;
-    }
-
-    .category-nav-buttons {
+    .filters-container {
       display: flex;
-      flex-wrap: wrap;
       gap: var(--spacing-sm);
       justify-content: center;
-      align-items: center;
+      flex-wrap: wrap;
+      padding-bottom: var(--spacing-xs);
+      padding-top: var(--spacing-xs);
+      width: 100%;
     }
 
-    .category-nav-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: var(--spacing-xs);
-      padding: var(--spacing-sm) var(--spacing-lg);
-      background: var(--color-light-gray);
-      color: var(--color-navy);
-      text-decoration: none;
-      font-weight: 500;
-      font-size: var(--font-size-sm);
-      border-radius: var(--radius-full);
-      transition: all var(--transition-base);
-      border: 2px solid transparent;
-      white-space: nowrap;
+    .filters-container::-webkit-scrollbar {
+      height: 4px;
     }
 
-    .category-nav-btn:hover {
+    .filters-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .filters-container::-webkit-scrollbar-thumb {
       background: var(--color-gray-light);
-      color: var(--color-navy);
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
+      border-radius: var(--radius-full);
     }
 
-    .category-nav-btn.active {
+    .filter-section {
+      display: flex;
+      gap: var(--spacing-sm);
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .category-buttons {
+      display: flex;
+      gap: var(--spacing-sm);
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .category-btn {
+      padding: var(--spacing-xs) var(--spacing-md);
       background: var(--gradient-primary);
       color: var(--color-white);
-      border-color: var(--color-teal);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: var(--font-size-sm);
+      border-radius: var(--radius-md);
+      transition: all var(--transition-base);
       box-shadow: var(--shadow-colored);
+      border: none;
+      cursor: pointer;
     }
 
-    .category-nav-btn.active:hover {
-      background: var(--gradient-primary);
-      color: var(--color-white);
-      transform: translateY(-2px);
+    .category-btn:hover {
+      transform: translateY(-4px);
       box-shadow: var(--shadow-lg);
     }
 
-    .category-nav-icon {
-      font-size: var(--font-size-base);
+    .category-btn.active {
+      background: var(--color-navy);
+      color: var(--color-white);
+      transform: translateY(-2px);
     }
 
-    /* Mobile category navigation */
+    /* Mobile Adjustments */
     @media (max-width: 768px) {
-      .category-navigation {
-        padding: var(--spacing-md) 0;
-      }
-
-      .category-nav-container {
-        padding: 0 var(--spacing-md);
-      }
-
-      .category-nav-title {
-        font-size: var(--font-size-base);
+      .category-nav {
         margin-bottom: var(--spacing-sm);
       }
 
-      .category-nav-buttons {
+      .filters-container {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: var(--spacing-xs);
+        overflow-x: visible;
+      }
+
+      .filter-section {
         gap: var(--spacing-xs);
       }
 
-      .category-nav-btn {
-        padding: var(--spacing-xs) var(--spacing-md);
-        font-size: var(--font-size-xs);
+      .category-buttons {
+        gap: var(--spacing-xs);
       }
     }
 
@@ -1526,14 +1520,15 @@
   </div>
 
   <!-- Category Navigation -->
-  <section class="category-navigation">
-    <div class="category-nav-container">
-      <h3 class="category-nav-title">Browse Categories</h3>
-      <div class="category-nav-buttons" id="categoryNavButtons">
-        <!-- Category buttons will be generated dynamically -->
+  <nav class="category-nav" aria-label="Browse by category">
+    <div class="filters-container">
+      <div class="filter-section">
+        <div class="category-buttons" id="categoryButtons">
+          <!-- Dynamic category buttons will be inserted here -->
+        </div>
       </div>
     </div>
-  </section>
+  </nav>
 
   <!-- Page Header -->
   <div class="page-header">
@@ -2147,19 +2142,20 @@
 
     // ===== CATEGORY NAVIGATION =====
     function generateCategoryNavigation() {
-      const container = document.getElementById('categoryNavButtons');
+      const container = document.getElementById('categoryButtons');
       if (!container) return;
 
       container.innerHTML = '';
       
+      // Get current category from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const currentCategory = urlParams.get('category');
+      
       Object.entries(CONFIG.CATEGORIES).forEach(([key, category]) => {
         const link = document.createElement('a');
         link.href = `category.html?category=${key}`;
-        link.className = `category-nav-btn ${currentCategory === key ? 'active' : ''}`;
-        link.innerHTML = `
-          <span class="category-nav-icon">${category.icon}</span>
-          <span>${category.title}</span>
-        `;
+        link.className = `category-btn ${currentCategory === key ? 'active' : ''}`;
+        link.textContent = category.title;
         container.appendChild(link);
       });
     }
