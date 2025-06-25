@@ -1631,7 +1631,7 @@
   <script>
     // ===== CONFIGURATION =====
     const CONFIG = {
-      MAKE_WEBHOOK_URL: 'https://hook.eu2.make.com/icbbdkt7wk2gm3p13xyk568mxwwh3ti2'
+      MAKE_WEBHOOK_URL: 'https://hook.eu2.make.com/kej7ez9bgc9g1ic7xh55dx13zsp1go1g'
     };
 
     // ===== GLOBAL VARIABLES =====
@@ -1808,6 +1808,7 @@
     async function loadCharacters() {
       try {
         console.log('🚀 Loading all characters for tags page...');
+        console.log('🔗 Using webhook URL:', CONFIG.MAKE_WEBHOOK_URL);
         
         // Make request to Make.com webhook without category filter
         const response = await fetch(CONFIG.MAKE_WEBHOOK_URL, {
@@ -1816,18 +1817,21 @@
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            tags: true // Signal we want all characters for tags page
+            limit: "100"
           })
         });
 
         console.log('📊 Response status:', response.status);
 
         if (!response.ok) {
+          console.error('❌ HTTP Error:', response.status, response.statusText);
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const data = await response.json();
         console.log('✅ Make.com response received:', data);
+        console.log('📊 Data type:', typeof data);
+        console.log('📊 Is array:', Array.isArray(data));
 
         // Handle response data structure
         let records = [];
