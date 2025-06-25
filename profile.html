@@ -2963,21 +2963,17 @@
       }
       
       console.log(`👤 ${isNewUser ? 'Creating NEW' : 'Updating EXISTING'} user: ${email}`);
-      
+
       try {
-        const payload = {
-          user_email: email,
-          user_uid: userId,
-          user_token: user.token.access_token,
-          user_metadata: {
-            full_name: user.user_metadata?.full_name || '',
-            avatar_url: user.user_metadata?.avatar_url || '',
-            provider: user.app_metadata?.provider || 'email'
-          },
-          is_new_user: isNewUser,
-          timestamp: new Date().toISOString(),
-          source: 'profile_page_auth'
-        };
+       const payload = {
+  user_email: email,
+  user_uid: userId,
+  user_token: user.token.access_token,
+  auth_provider: user.app_metadata?.provider || 'email',
+  is_new_user: isNewUser,
+  referral_code: '',
+  source: 'profile_page_auth'
+};
         
         // Log webhook call
         logWebhookCall('register', email, payload);
