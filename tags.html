@@ -1628,6 +1628,21 @@
     <div class="pagination" id="pagination"></div>
   </div>
 
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-links">
+        <a href="contact.html" class="footer-link">Contact</a>
+        <span class="footer-separator">•</span>
+        <a href="#" class="footer-link">Privacy</a>
+        <span class="footer-separator">•</span>
+        <a href="#" class="footer-link">Terms</a>
+        <span class="footer-separator">•</span>
+        <a href="#" class="footer-link">Help</a>
+      </div>
+      <p class="footer-copyright">© 2024 Narrin AI. All rights reserved.</p>
+    </div>
+  </footer>
+
   <script>
     console.log('🔥 TAGS.HTML SCRIPT LOADED!');
 
@@ -1636,7 +1651,7 @@
       MAKE_WEBHOOK_URL: 'https://hook.eu2.make.com/kej7ez9bgc9g1ic7xh55dx13zsp1go1g'
     };
 
-console.log('🔗 CONFIG LOADED:', CONFIG);
+    console.log('🔗 CONFIG LOADED:', CONFIG);
 
     // ===== GLOBAL VARIABLES =====
     let currentPage = 1;
@@ -1677,7 +1692,9 @@ console.log('🔗 CONFIG LOADED:', CONFIG);
       }
     }
 
-    mobileSearchBtn?.addEventListener('click', toggleMobileSearch);
+    if (mobileSearchBtn) {
+      mobileSearchBtn.addEventListener('click', toggleMobileSearch);
+    }
 
     // ===== MOBILE MENU FUNCTIONALITY =====
     function toggleMobileMenu() {
@@ -1709,13 +1726,17 @@ console.log('🔗 CONFIG LOADED:', CONFIG);
       document.body.style.overflow = '';
     }
 
-    mobileMenuBtn?.addEventListener('click', toggleMobileMenu);
+    if (mobileMenuBtn) {
+      mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+    }
 
-    mobileMenuOverlay?.addEventListener('click', (e) => {
-      if (e.target === mobileMenuOverlay) {
-        closeMobileMenu();
-      }
-    });
+    if (mobileMenuOverlay) {
+      mobileMenuOverlay.addEventListener('click', (e) => {
+        if (e.target === mobileMenuOverlay) {
+          closeMobileMenu();
+        }
+      });
+    }
 
     document.querySelectorAll('.mobile-menu-link').forEach(link => {
       link.addEventListener('click', closeMobileMenu);
@@ -2091,38 +2112,66 @@ console.log('🔗 CONFIG LOADED:', CONFIG);
     // ===== SEARCH FUNCTIONALITY =====
     function setupEventListeners() {
       // Search functionality for main search input
-      document.getElementById('searchInput').addEventListener('input', function(e) {
-        const searchTerm = e.target.value.toLowerCase();
-        filterCharacters(searchTerm);
-      });
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+          const searchTerm = e.target.value.toLowerCase();
+          filterCharacters(searchTerm);
+        });
+      }
 
       // Search functionality for navigation search input
-      document.getElementById('navSearchInput').addEventListener('input', function(e) {
-        const searchTerm = e.target.value.toLowerCase();
-        document.getElementById('searchInput').value = e.target.value;
-        filterCharacters(searchTerm);
-      });
+      const navSearchInput = document.getElementById('navSearchInput');
+      if (navSearchInput) {
+        navSearchInput.addEventListener('input', function(e) {
+          const searchTerm = e.target.value.toLowerCase();
+          const mainSearchInput = document.getElementById('searchInput');
+          if (mainSearchInput) {
+            mainSearchInput.value = e.target.value;
+          }
+          filterCharacters(searchTerm);
+        });
+      }
 
       // Mobile search functionality
-      document.getElementById('mobileSearchInput').addEventListener('input', function(e) {
-        const searchTerm = e.target.value.toLowerCase();
-        document.getElementById('searchInput').value = e.target.value;
-        document.getElementById('navSearchInput').value = e.target.value;
-        filterCharacters(searchTerm);
-      });
+      const mobileSearchInput = document.getElementById('mobileSearchInput');
+      if (mobileSearchInput) {
+        mobileSearchInput.addEventListener('input', function(e) {
+          const searchTerm = e.target.value.toLowerCase();
+          const mainSearchInput = document.getElementById('searchInput');
+          const navSearchInput = document.getElementById('navSearchInput');
+          
+          if (mainSearchInput) {
+            mainSearchInput.value = e.target.value;
+          }
+          if (navSearchInput) {
+            navSearchInput.value = e.target.value;
+          }
+          filterCharacters(searchTerm);
+        });
+      }
 
       // Clear filters button
-      document.getElementById('clearFiltersBtn').addEventListener('click', clearAllFilters);
+      const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+      if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', clearAllFilters);
+      }
 
       // Prevent search form submissions
-      document.querySelector('.nav-search').addEventListener('submit', function(e) {
-        e.preventDefault();
-      });
+      const navSearchForm = document.querySelector('.nav-search');
+      if (navSearchForm) {
+        navSearchForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+        });
+      }
 
-      document.querySelector('.mobile-search-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        toggleMobileSearch();
-      });
+      const mobileSearchForm = document.querySelector('.mobile-search-form');
+      if (mobileSearchForm) {
+        mobileSearchForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          toggleMobileSearch();
+        });
+      }
     }
 
     function filterCharacters(searchTerm) {
@@ -2155,7 +2204,10 @@ console.log('🔗 CONFIG LOADED:', CONFIG);
         countText = `${count} characters found`;
       }
       
-      document.getElementById('resultsCount').textContent = countText;
+      const resultsCountElement = document.getElementById('resultsCount');
+      if (resultsCountElement) {
+        resultsCountElement.textContent = countText;
+      }
       
       // Update tag stats badge
       const statsElement = document.getElementById('tagStats');
@@ -2234,7 +2286,10 @@ console.log('🔗 CONFIG LOADED:', CONFIG);
     function changePage(page) {
       currentPage = page;
       renderCharacters();
-      document.querySelector('.content').scrollIntoView({ behavior: 'smooth' });
+      const contentElement = document.querySelector('.content');
+      if (contentElement) {
+        contentElement.scrollIntoView({ behavior: 'smooth' });
+      }
     }
 
     // Make functions globally available
@@ -2252,7 +2307,10 @@ console.log('🔗 CONFIG LOADED:', CONFIG);
         </div>
       `;
       
-      document.getElementById('pagination').innerHTML = '';
+      const paginationElement = document.getElementById('pagination');
+      if (paginationElement) {
+        paginationElement.innerHTML = '';
+      }
     }
 
     function showErrorState(message, details = '') {
@@ -2267,7 +2325,10 @@ console.log('🔗 CONFIG LOADED:', CONFIG);
         </div>
       `;
       
-      document.getElementById('pagination').innerHTML = '';
+      const paginationElement = document.getElementById('pagination');
+      if (paginationElement) {
+        paginationElement.innerHTML = '';
+      }
     }
 
     // ===== NETLIFY IDENTITY =====
@@ -2324,3 +2385,6 @@ console.log('🔗 CONFIG LOADED:', CONFIG);
       
       console.log('✅ Tags page initialization complete');
     });
+  </script>
+</body>
+</html>

@@ -907,6 +907,102 @@
       pointer-events: none;
     }
 
+    /* Category Navigation */
+    .category-navigation {
+      background: var(--color-white);
+      border-bottom: 1px solid var(--color-light-gray);
+      padding: var(--spacing-lg) 0;
+    }
+
+    .category-nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 var(--spacing-lg);
+    }
+
+    .category-nav-title {
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-lg);
+      font-weight: 600;
+      color: var(--color-navy);
+      margin-bottom: var(--spacing-md);
+      text-align: center;
+    }
+
+    .category-nav-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-sm);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .category-nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+      padding: var(--spacing-sm) var(--spacing-lg);
+      background: var(--color-light-gray);
+      color: var(--color-navy);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: var(--font-size-sm);
+      border-radius: var(--radius-full);
+      transition: all var(--transition-base);
+      border: 2px solid transparent;
+      white-space: nowrap;
+    }
+
+    .category-nav-btn:hover {
+      background: var(--color-gray-light);
+      color: var(--color-navy);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .category-nav-btn.active {
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      border-color: var(--color-teal);
+      box-shadow: var(--shadow-colored);
+    }
+
+    .category-nav-btn.active:hover {
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .category-nav-icon {
+      font-size: var(--font-size-base);
+    }
+
+    /* Mobile category navigation */
+    @media (max-width: 768px) {
+      .category-navigation {
+        padding: var(--spacing-md) 0;
+      }
+
+      .category-nav-container {
+        padding: 0 var(--spacing-md);
+      }
+
+      .category-nav-title {
+        font-size: var(--font-size-base);
+        margin-bottom: var(--spacing-sm);
+      }
+
+      .category-nav-buttons {
+        gap: var(--spacing-xs);
+      }
+
+      .category-nav-btn {
+        padding: var(--spacing-xs) var(--spacing-md);
+        font-size: var(--font-size-xs);
+      }
+    }
+
     /* Search Section */
     .search-section {
       padding: 30px 20px;
@@ -1428,6 +1524,16 @@
       <span class="breadcrumb-current" id="breadcrumb-category">Loading...</span>
     </div>
   </div>
+
+  <!-- Category Navigation -->
+  <section class="category-navigation">
+    <div class="category-nav-container">
+      <h3 class="category-nav-title">Browse Categories</h3>
+      <div class="category-nav-buttons" id="categoryNavButtons">
+        <!-- Category buttons will be generated dynamically -->
+      </div>
+    </div>
+  </section>
 
   <!-- Page Header -->
   <div class="page-header">
@@ -2039,13 +2145,35 @@
       });
     }
 
+    // ===== CATEGORY NAVIGATION =====
+    function generateCategoryNavigation() {
+      const container = document.getElementById('categoryNavButtons');
+      if (!container) return;
+
+      container.innerHTML = '';
+      
+      Object.entries(CONFIG.CATEGORIES).forEach(([key, category]) => {
+        const link = document.createElement('a');
+        link.href = `category.html?category=${key}`;
+        link.className = `category-nav-btn ${currentCategory === key ? 'active' : ''}`;
+        link.innerHTML = `
+          <span class="category-nav-icon">${category.icon}</span>
+          <span>${category.title}</span>
+        `;
+        container.appendChild(link);
+      });
+    }
+
     // ===== INITIALIZATION =====
     document.addEventListener('DOMContentLoaded', function() {
       console.log('🚀 Category page initializing...');
-      
+
       initializePage();
       setupEventListeners(); 
       loadCharacters();
+      
+      // Generate category navigation
+      generateCategoryNavigation();
       
       console.log('✅ Category page initialization complete');
     });
