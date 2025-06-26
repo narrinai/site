@@ -2321,183 +2321,179 @@
       window.location.href = 'profile.html';
     }
 
-    async function fetchHistory() {
-      console.log("🚨 NEW VERSION: fetchHistory() aangeroepen met DEBUGGING");
-      console.log("🔍 fetchHistory() aangeroepen");
-      
-      const token = localStorage.getItem("user_token");
-      const uid   = localStorage.getItem("user_uid");
-      const email = localStorage.getItem("user_email");
-      let user_id = localStorage.getItem("user_id");
-      
-      console.log("📋 User data:", { 
-        token: !!token, 
-        uid: !!uid, 
-        email, 
-        user_id,
-        characterSlug 
-      });
-      
-      console.log("🔍 DEBUG: user_id type:", typeof user_id);
-      console.log("🔍 DEBUG: user_id value:", user_id);
-      console.log("🔍 DEBUG: user_id === null:", user_id === null);
-      console.log("🔍 DEBUG: user_id === 'null':", user_id === 'null');
-      
-      if (!token || !uid || !characterSlug || !email) {
-        console.warn("⚠️ fetchHistory: missing data", { 
-          hasToken: !!token, 
-          hasUid: !!uid, 
-          hasEmail: !!email,
-          hasUserId: !!user_id,
-          hasCharacterSlug: !!characterSlug 
-        });
-        return;
-      }
+   async function fetchHistory() {
+  console.log("🚨 NEW VERSION: fetchHistory() aangeroepen met DEBUGGING");
+  console.log("🔍 fetchHistory() aangeroepen");
+  
+  const token = localStorage.getItem("user_token");
+  const uid   = localStorage.getItem("user_uid");
+  const email = localStorage.getItem("user_email");
+  let user_id = localStorage.getItem("user_id");
+  
+  console.log("📋 User data:", { 
+    token: !!token, 
+    uid: !!uid, 
+    email, 
+    user_id,
+    characterSlug 
+  });
+  
+  if (!token || !uid || !characterSlug || !email) {
+    console.warn("⚠️ fetchHistory: missing data", { 
+      hasToken: !!token, 
+      hasUid: !!uid, 
+      hasEmail: !!email,
+      hasUserId: !!user_id,
+      hasCharacterSlug: !!characterSlug 
+    });
+    return;
+  }
 
-      console.log("🚀 Sending request to chat history webhook...");
+  console.log("🚀 Sending request to chat history webhook...");
+  
+  try {
+    const requestPayload = {
+      user_email: email,
+      user_uid: uid,
+      user_token: token,
+      user_id: user_id || null,
+      char: characterSlug
+    };
+    
+    console.log("📤 Request payload:", requestPayload);
+    
+    const resp = await fetch("https://hook.eu2.make.com/fjpapor4lkj9mpypaqx8no68d64bxe19", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestPayload)
+    });
+
+    console.log("📨 Response status:", resp.status, resp.statusText);
+
+    if (!resp.ok) {
+      console.error("❌ fetchHistory response not ok:", resp.status, resp.statusText);
+      return;
+    }
+
+    const rawText = await resp.text();
+    console.log("📄 Raw response (first 200 chars):", rawText.substring(0, 200));
+
+    let data;
+    try {
+      data = JSON.parse(rawText);
+      console.log("✅ Parsed response:", data);
+    } catch (e) {
+      console.warn("⚠️ JSON parse failed, trying to fix malformed JSON:", e.message);
       
       try {
-        const requestPayload = {
-          user_email: email,
-          user_uid: uid,
-          user_token: token,
-          user_id: user_id || null,
-          char: characterSlug
-        };
+        // Fix common JSON issues from Make.com
+        let cleanedText = rawText;
         
-        console.log("📤 Request payload:", requestPayload);
-        console.log("📤 Request payload JSON:", JSON.stringify(requestPayload, null, 2));
+        // Remove potential BOM or whitespace
+        cleanedText = cleanedText.trim();
         
-        const resp = await fetch("https://hook.eu2.make.com/fjpapor4lkj9mpypaqx8no68d64bxe19", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(requestPayload)
-        });
-
-        console.log("📨 Response status:", resp.status, resp.statusText);
-
-        if (!resp.ok) {
-          console.error("❌ fetchHistory response not ok:", resp.status, resp.statusText);
-          return;
+        // Fix double-quoted strings in JSON (common Make.com issue)
+        cleanedText = cleanedText.replace(/"([^"]+)":"([^"]*)"([^"]*)"([^"]*)"/g, '"$1":"$2$3$4"');
+        
+        // Try to find JSON boundaries
+        const jsonStart = cleanedText.indexOf('{');
+        const jsonEnd = cleanedText.lastIndexOf('}') + 1;
+        
+        if (jsonStart >= 0 && jsonEnd > jsonStart) {
+          const jsonPart = cleanedText.substring(jsonStart, jsonEnd);
+          console.log("🔧 Trying cleaned JSON...");
+          data = JSON.parse(jsonPart);
+          console.log("✅ Cleaned JSON parsed successfully");
+        } else {
+          throw new Error("No valid JSON boundaries found");
         }
-
-        const rawText = await resp.text();
-        console.log("📄 Raw response:", rawText);
-        console.log("📄 Raw response length:", rawText.length);
-
-       let data;
+      } catch (e2) {
+        console.error("❌ JSON cleaning failed:", e2.message);
+        console.error("❌ Raw response sample:", rawText.substring(0, 500));
+        
+        // Fallback: try to extract history array manually
         try {
-          data = JSON.parse(rawText);
-          console.log("✅ Parsed response:", data);
-        } catch (e) {
-          console.warn("⚠️ Initial JSON parse failed, trying to clean:", e.message);
-          
-          // Probeer een eenvoudige fix voor malformed JSON
-          try {
-            // Soms heeft Make.com extra tekst voor/na de JSON
-            const jsonStart = rawText.indexOf('{');
-            const jsonEnd = rawText.lastIndexOf('}') + 1;
-            if (jsonStart >= 0 && jsonEnd > jsonStart) {
-              const cleanJson = rawText.substring(jsonStart, jsonEnd);
-              console.log("🔧 Trying to parse cleaned JSON...");
-              data = JSON.parse(cleanJson);
-              console.log("✅ Cleaned JSON parsed successfully:", data);
-              console.log("🔍 ALL data keys:", Object.keys(data));
-              console.log("🔍 Full data object:", data);
-            } else {
-              throw new Error("No valid JSON found in response");
-            }
-          } catch (e2) {
-            console.error("❌ JSON cleaning failed:", e2.message);
-            console.error("❌ Raw response (first 500 chars):", rawText.substring(0, 500));
-            return;
+          const historyMatch = rawText.match(/"history":\s*(\[.*?\])/s);
+          if (historyMatch) {
+            const historyArray = JSON.parse(historyMatch[1]);
+            data = { success: true, history: historyArray };
+            console.log("🔧 Extracted history array as fallback:", data);
+          } else {
+            throw new Error("Could not extract history array");
           }
-        }
-
-        if (!data.success) {
-          console.error("❌ API returned success: false", data);
-          console.error("❌ Error message:", data.error || "No error message provided");
+        } catch (e3) {
+          console.error("❌ Fallback extraction failed:", e3.message);
           return;
         }
+      }
+    }
 
-     // De history komt binnen als genest object, niet als array
-      let history = [];
+    if (!data || !data.success) {
+      console.error("❌ API returned success: false or no data", data);
+      return;
+    }
+
+    // Process history data
+    let history = [];
+    
+    if (Array.isArray(data.history)) {
+      history = data.history;
+      console.log("✅ History is array with", history.length, "items");
+    } else if (data.history && typeof data.history === 'object') {
+      // Convert object to array
+      history = Object.values(data.history);
+      console.log("🔧 Converted object to array with", history.length, "items");
+    } else {
+      console.error("❌ No valid history data found");
+      return;
+    }
+
+    console.log(`📚 Processing ${history.length} chat messages`);
+
+    const chatlog = document.getElementById("chatlog");
+    chatlog.innerHTML = ''; // Clear existing content
+    
+    // Sort by CreatedTime if available
+    history.sort((a, b) => {
+      const timeA = a.CreatedTime || a.createdTime || 0;
+      const timeB = b.CreatedTime || b.createdTime || 0;
+      return new Date(timeA) - new Date(timeB);
+    });
+
+    history.forEach((record, index) => {
+      console.log(`💬 Processing message ${index + 1}:`, record);
       
-      if (Array.isArray(data.history)) {
-        // Als het al een array is, gebruik het direct
-        history = data.history;
-        console.log("✅ History is already an array");
-      } else if (data.history && typeof data.history === 'object') {
-        // Convert object values naar array - dit is ons geval!
-        history = Object.values(data.history);
-        console.log("🔧 Converted nested object to array:", history);
-      } else {
-        console.error("❌ No valid history data found");
+      // Extract role and message from various possible structures
+      const role = record.Role || record.role || 
+                   (record.fields && (record.fields.Role || record.fields.role));
+      
+      const message = record.Message || record.message || 
+                      (record.fields && (record.fields.Message || record.fields.message));
+      
+      console.log(`📝 Extracted: role="${role}", message="${message ? message.substring(0, 50) : 'null'}..."`);
+      
+      if (!role || !message) {
+        console.warn("⚠️ Skipping incomplete record:", record);
         return;
       }
       
-      // Update de data.history referentie
-      data.history = history;
-
-        // Continue alleen als we geldige data hebben
-        if (!data) {
-          console.error("❌ No valid data after parsing attempts");
-          return;
-        }
-
-       console.log(`📚 Found ${data.history.length} chat messages`);
-        console.log(`🔍 DEBUG: data.history array:`, data.history);
-
-        const chatlog = document.getElementById("chatlog");
-        
-        // Clear existing content first
-        chatlog.innerHTML = '';
-        
-        console.log(`🔄 Starting forEach loop for ${data.history.length} items...`);
-        console.log(`🔍 First item in history:`, data.history[0]);
-
-        data.history.forEach((record, index) => {
-          console.log(`💬 Processing message ${index + 1}:`, record);
-          console.log(`🔍 Record keys:`, Object.keys(record));
-          
-          // Probeer verschillende manieren om Role en Message te vinden
-          const role = record.Role || record.role || 
-                       (record.fields && record.fields.Role) || 
-                       (record.fields && record.fields.role);
-          
-          const message = record.Message || record.message || 
-                          (record.fields && record.fields.Message) || 
-                          (record.fields && record.fields.message);
-          
-          const createdTime = record.CreatedTime || record.createdTime || 
-                              (record.fields && record.fields.CreatedTime) || 
-                              (record.fields && record.fields.createdTime);
-
-          console.log(`📝 Extracted: role="${role}", message="${message}"`);
-          
-          if (!role || !message) {
-            console.warn("⚠️ Skipping incomplete record:", { role, message, record });
-            return;
-          }
-          
-          const p = document.createElement("p");
-          if (role === "user") {
-            p.innerHTML = `<strong>You:</strong> ${message}`;
-          } else {
-            const avatarHtml = getAvatarHtml();
-            p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${message}`;
-          }
-          chatlog.appendChild(p);
-          console.log(`✅ Added message to chat: ${role} - ${message.substring(0, 50)}...`);
-        });
-
-        chatlog.scrollTop = chatlog.scrollHeight;
-        console.log("📜 Scrolled to bottom, chat history loaded successfully");
-        
-      } catch (err) {
-        console.error("❌ Exception in fetchHistory:", err);
+      const p = document.createElement("p");
+      if (role === "user") {
+        p.innerHTML = `<strong>You:</strong> ${message}`;
+      } else {
+        const avatarHtml = getAvatarHtml();
+        p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${message}`;
       }
-    }
+      chatlog.appendChild(p);
+    });
+
+    chatlog.scrollTop = chatlog.scrollHeight;
+    console.log("📜 Chat history loaded successfully");
+    
+  } catch (err) {
+    console.error("❌ Exception in fetchHistory:", err);
+  }
+}
 
     function getAvatarHtml() {
       if (currentCharacter?.avatar_url) {
