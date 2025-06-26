@@ -2418,10 +2418,24 @@
           return;
         }
 
-        if (!Array.isArray(data.history)) {
+      if (!Array.isArray(data.history)) {
           console.warn("⚠️ Expected data.history[] but got:", data);
           console.warn("⚠️ data.history type:", typeof data.history);
           console.warn("⚠️ data.history value:", data.history);
+          
+          // Als data.history geen array is, probeer het als object te behandelen
+          if (data.history && typeof data.history === 'object') {
+            // Converteer object naar array
+            data.history = Object.values(data.history);
+            console.log("🔧 Converted history object to array:", data.history);
+          } else {
+            return;
+          }
+        }
+
+        // Continue alleen als we geldige data hebben
+        if (!data) {
+          console.error("❌ No valid data after parsing attempts");
           return;
         }
 
