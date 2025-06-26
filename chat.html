@@ -2313,14 +2313,22 @@ async function fetchHistory() {
   const token = localStorage.getItem("user_token");
   const uid   = localStorage.getItem("user_uid");
   const email = localStorage.getItem("user_email");
+  const user_id = localStorage.getItem("user_id"); // ← Expliciet ophalen
   
-  console.log("📋 User data:", { token: !!token, uid: !!uid, email, characterSlug });
+  console.log("📋 User data:", { 
+    token: !!token, 
+    uid: !!uid, 
+    email, 
+    user_id, // ← Loggen voor debug
+    characterSlug 
+  });
   
   if (!token || !uid || !characterSlug || !email) {
     console.warn("⚠️ fetchHistory: missing data", { 
       hasToken: !!token, 
       hasUid: !!uid, 
       hasEmail: !!email,
+      hasUserId: !!user_id, // ← Debug info
       hasCharacterSlug: !!characterSlug 
     });
     return;
@@ -2333,7 +2341,7 @@ async function fetchHistory() {
       user_email: email,
       user_uid: uid,
       user_token: token,
-      user_id: localStorage.getItem("user_id"), // ← Dynamisch uit localStorage
+      user_id: user_id || null, // ← Zorg dat het null is ipv undefined
       char: characterSlug
     };
     
