@@ -2504,115 +2504,123 @@ async function fetchHistory() {
       }
     }
 
-    async function sendMessage(event) {
-      event?.preventDefault();
-      const userInput = document.getElementById("userInput");
-      const input = userInput.value.trim();
-      if (!input) return;
+   async function sendMessage(event) {
+  event?.preventDefault();
+  const userInput = document.getElementById("userInput");
+  const input = userInput.value.trim();
+  if (!input) return;
 
-      const token = localStorage.getItem("user_token");
-      const uid   = localStorage.getItem("user_uid");
-      const email = localStorage.getItem("user_email");
-      if (!token || !uid || !email) {
-        console.error("sendMessage: missing token, uid or email");
-        localStorage.setItem('login_redirect_url', window.location.href);
-        window.location.href = 'profile.html';
-        return;
-      }
+  const token = localStorage.getItem("user_token");
+  const uid   = localStorage.getItem("user_uid");
+  const email = localStorage.getItem("user_email");
+  const user_id = localStorage.getItem("user_id"); // ← Ook user_id ophalen
+  
+  if (!token || !uid || !email) {
+    console.error("sendMessage: missing token, uid or email");
+    localStorage.setItem('login_redirect_url', window.location.href);
+    window.location.href = 'profile.html';
+    return;
+  }
 
-      const sendButton = document.getElementById("sendButton");
-      sendButton.disabled = true;
-      sendButton.textContent = "Sending...";
+  const sendButton = document.getElementById("sendButton");
+  sendButton.disabled = true;
+  sendButton.textContent = "Sending...";
 
-      const chatlog = document.getElementById("chatlog");
-      const divUser = document.createElement("p");
-      divUser.innerHTML = `<strong>You:</strong> ${input}`;
-      chatlog.appendChild(divUser);
-      chatlog.scrollTop = chatlog.scrollHeight;
-      userInput.value = "";
+  const chatlog = document.getElementById("chatlog");
+  const divUser = document.createElement("p");
+  divUser.innerHTML = `<strong>You:</strong> ${input}`;
+  chatlog.appendChild(divUser);
+  chatlog.scrollTop = chatlog.scrollHeight;
+  userInput.value = "";
 
-      // Show typing indicator after 1 second delay
-      console.log("🚀 About to show typing indicator after 1 second delay");
-      setTimeout(() => {
-        console.log("⏰ 1 second delay completed, showing typing indicator now");
-        const typingIndicator = showTypingIndicator();
-        console.log("📊 Typing indicator returned:", !!typingIndicator);
-      }, 1000);
+  // Show typing indicator after 1 second delay
+  console.log("🚀 About to show typing indicator after 1 second delay");
+  setTimeout(() => {
+    console.log("⏰ 1 second delay completed, showing typing indicator now");
+    const typingIndicator = showTypingIndicator();
+    console.log("📊 Typing indicator returned:", !!typingIndicator);
+  }, 1000);
 
-      try {
-        const response = await fetch(newWebhookUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "send_message",
-            text: input,
-            Character_id: characterSlug,
-            Slug: characterSlug,
-            user_uid: uid,
-            user_token: token,
-            user_email: email
-          })
-        });
+  try {
+    // FIXED: Include user_id in the request payload
+    const requestPayload = {
+      action: "send_message",
+      text: input,
+      Character_id: characterSlug,
+      Slug: characterSlug,
+      user_uid: uid,
+      user_token: token,
+      user_email: email,
+      user_id: user_id || null // ← user_id toevoegen
+    };
+    
+    console.log("📤 sendMessage payload:", requestPayload);
 
-        if (!response.ok) {
-          console.error("sendMessage → response.ok false:", response.status, response.statusText);
-          throw new Error(`Server returned status ${response.status}`);
-        }
+    const response = await fetch(newWebhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestPayload)
+    });
 
-        const rawText = await response.text();
-        console.log("Chat response raw:", rawText);
-
-        let data;
-        try {
-          data = JSON.parse(rawText);
-        } catch (e) {
-          console.warn("JSON parse error, using fallback:", e);
-          data = { 
-            success: true, 
-            reply: "Whoopsie! 🙈 I just had a bit of a brain fart (do AIs have brains?). Let's pretend that never happened and try again!" 
-          };
-        }
-        console.log("Chat response:", data);
-
-        if (!data.success) {
-          throw new Error("Chat request failed");
-        }
-
-        const reply = data.reply || "⚠️ No reply received.";
-
-        // Wait for 1 second before showing the response to make it more realistic
-        console.log("⏳ Waiting 1 second before showing response...");
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        console.log("⏰ 1 second wait completed");
-
-        // Hide typing indicator and show the actual response
-        console.log("🎯 About to hide typing indicator and show response");
-        hideTypingIndicator();
-
-        const divBot = document.createElement("p");
-        const avatarHtml = getAvatarHtml();
-        divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${reply}`;
-        chatlog.appendChild(divBot);
-        chatlog.scrollTop = chatlog.scrollHeight;
-        
-      } catch (err) {
-        console.error("sendMessage → Error:", err);
-        
-        // Hide typing indicator on error
-        console.log("❌ Error occurred, hiding typing indicator");
-        hideTypingIndicator();
-        
-        showError("Failed to send your message. Please check your connection and try again.", "Message Send Failed");
-        
-        const divErr = document.createElement("p");
-        divErr.innerHTML = `<strong>${currentCharacter?.name || 'Character'}:</strong> ⚠️ Something went wrong while sending.`;
-        chatlog.appendChild(divErr);
-        chatlog.scrollTop = chatlog.scrollHeight;
-      } finally {
-        sendButton.disabled = false;
-        sendButton.textContent = "Send";
-      }
+    if (!response.ok) {
+      console.error("sendMessage → response.ok false:", response.status, response.statusText);
+      throw new Error(`Server returned status ${response.status}`);
     }
+
+    const rawText = await response.text();
+    console.log("Chat response raw:", rawText);
+
+    let data;
+    try {
+      data = JSON.parse(rawText);
+    } catch (e) {
+      console.warn("JSON parse error, using fallback:", e);
+      data = { 
+        success: true, 
+        reply: "Whoopsie! 🙈 I just had a bit of a brain fart (do AIs have brains?). Let's pretend that never happened and try again!" 
+      };
+    }
+    console.log("Chat response:", data);
+
+    if (!data.success) {
+      throw new Error("Chat request failed");
+    }
+
+    const reply = data.reply || "⚠️ No reply received.";
+
+    // Wait for 1 second before showing the response to make it more realistic
+    console.log("⏳ Waiting 1 second before showing response...");
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    console.log("⏰ 1 second wait completed");
+
+    // Hide typing indicator and show the actual response
+    console.log("🎯 About to hide typing indicator and show response");
+    hideTypingIndicator();
+
+    const divBot = document.createElement("p");
+    const avatarHtml = getAvatarHtml();
+    divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${reply}`;
+    chatlog.appendChild(divBot);
+    chatlog.scrollTop = chatlog.scrollHeight;
+    
+  } catch (err) {
+    console.error("sendMessage → Error:", err);
+    
+    // Hide typing indicator on error
+    console.log("❌ Error occurred, hiding typing indicator");
+    hideTypingIndicator();
+    
+    showError("Failed to send your message. Please check your connection and try again.", "Message Send Failed");
+    
+    const divErr = document.createElement("p");
+    divErr.innerHTML = `<strong>${currentCharacter?.name || 'Character'}:</strong> ⚠️ Something went wrong while sending.`;
+    chatlog.appendChild(divErr);
+    chatlog.scrollTop = chatlog.scrollHeight;
+  } finally {
+    sendButton.disabled = false;
+    sendButton.textContent = "Send";
+  }
+}
 
     // ===== DISCLAIMER TOGGLE FUNCTIONALITY =====
     document.addEventListener('DOMContentLoaded', () => {
