@@ -2323,13 +2323,13 @@ async function fetchHistory() {
   const token = localStorage.getItem("user_token");
   const uid   = localStorage.getItem("user_uid");
   const email = localStorage.getItem("user_email");
-  const user_id = localStorage.getItem("user_id"); // ← Expliciet ophalen
+  let user_id = localStorage.getItem("user_id");
   
   console.log("📋 User data:", { 
     token: !!token, 
     uid: !!uid, 
     email, 
-    user_id, // ← Loggen voor debug
+    user_id,
     characterSlug 
   });
   
@@ -2338,10 +2338,38 @@ async function fetchHistory() {
       hasToken: !!token, 
       hasUid: !!uid, 
       hasEmail: !!email,
-      hasUserId: !!user_id, // ← Debug info
+      hasUserId: !!user_id,
       hasCharacterSlug: !!characterSlug 
     });
     return;
+  }
+
+  // FALLBACK: Als user_id leeg is, gebruik user_uid om user_id op te halen
+  if (!user_id || user_id === "" || user_id === "null") {
+    console.log("🔄 user_id is empty, trying to get it from registration webhook...");
+    
+    try {
+      const response = await fetch("https://hook.eu2.make.com/03ug6qzucda4ksrkcc06nu3bu3vetj15", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_email: email,
+          user_uid: uid,
+          user_token: token
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.user_id && data.user_id !== "") {
+          user_id = data.user_id;
+          localStorage.setItem("user_id", user_id);
+          console.log("✅ Retrieved and saved user_id:", user_id);
+        }
+      }
+    } catch (err) {
+      console.warn("⚠️ Failed to retrieve user_id:", err);
+    }
   }
 
   console.log("🚀 Sending request to chat history webhook...");
@@ -2351,7 +2379,7 @@ async function fetchHistory() {
       user_email: email,
       user_uid: uid,
       user_token: token,
-      user_id: user_id || null, // ← Zorg dat het null is ipv undefined
+      user_id: user_id || null,
       char: characterSlug
     };
     
