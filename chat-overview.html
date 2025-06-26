@@ -2497,63 +2497,82 @@ line-clamp: 3;
           return;
         }
 
-        // Directe mapping zonder groepering - behoud alle chat records
-        userChats = rawChats.map((chat, index) => {
-          console.log(`Processing chat ${index + 1}:`, chat);
-          
-          return {
-            character_name: chat.character_name || chat.Character_Name || 'Unknown Character',
-            character_title: chat.character_title || chat.Character_Title || 'AI Character',
-            character_slug: chat.character_slug || chat.Character_Slug || 'unknown',
-            avatar_url: extractAvatarUrl(chat),
-            last_message: chat.last_message || chat.Last_Message || 'Start a new conversation...',
-            last_message_date: formatChatDate(chat.last_message_date || chat.Last_Message_Date),
-            message_count: parseInt(chat.message_count || chat.Message_Count || 1),
-            chat_id: chat.record_id || chat.Record_ID || `${email}_${chat.character_slug || index}`,
-            conversation_id: chat.conversation_id || chat.Conversation_ID || null
-          };
-        }).filter(chat => chat.character_name !== 'Unknown Character'); // Filter out invalid entries
+        // VERBETERDE PROCESSING - Alle chat records verwerken
+const chatMap = new Map();
+rawChats.forEach((chat, index) => {
+  console.log(`Processing chat ${index + 1}:`, chat);
+  
+  const characterName = chat.character_name || chat['Name (from Character)'] || chat.Character_Name || 'Unknown Character';
+  const characterSlug = chat.character_slug || chat['Slug (from Character)'] || chat.Character_Slug || 'unknown';
+  
+  if (characterName === 'Unknown Character') return;
+  
+  const chatKey = characterSlug;
+  const lastMessageDate = chat.CreatedTime || chat.Last_Message_Date || new Date().toISOString();
+  
+  if (!chatMap.has(chatKey) || 
+      new Date(lastMessageDate) > new Date(chatMap.get(chatKey).last_message_date)) {
+    
+    chatMap.set(chatKey, {
+      character_name: characterName,
+      character_title: chat.character_title || chat['Character_Title (from Character)'] || 'AI Character',
+      character_slug: characterSlug,
+      avatar_url: extractAvatarUrl(chat),
+      last_message: chat.Message || chat.last_message || 'Start a new conversation...',
+      last_message_date: lastMessageDate,
+      message_count: 1,
+      chat_id: chat.record_id || `${email}_${characterSlug}`,
+      conversation_id: chat.conversation_id || null
+    });
+  } else {
+    // Update message count
+    const existing = chatMap.get(chatKey);
+    existing.message_count = (existing.message_count || 1) + 1;
+  }
+});
 
-        // Sorteer op laatste bericht datum (nieuwste eerst)
-        userChats.sort((a, b) => {
-          const dateA = parseDateForSorting(a.last_message_date);
-          const dateB = parseDateForSorting(b.last_message_date);
-          return dateB - dateA;
-        });
-        
-        console.log('✅ Final processed chats:', userChats.length, 'chats found');
-        console.log('📊 Sample chats:', userChats.slice(0, 3));
-        displayChats();
-        
-      } catch (error) {
-        console.error('❌ Error loading chats:', error);
-        showError(`Failed to load chats: ${error.message}`);
-        showSampleChats(); // Fallback voor demo
-      }
-    }
+userChats = Array.from(chatMap.values());
 
-    // Helper functie voor avatar URL extractie
-    function extractAvatarUrl(chat) {
-      // Airtable attachment format
-      if (chat.avatar_url && Array.isArray(chat.avatar_url) && chat.avatar_url.length > 0) {
-        return chat.avatar_url[0].url || null;
-      }
-      
-      if (chat.Avatar_URL && Array.isArray(chat.Avatar_URL) && chat.Avatar_URL.length > 0) {
-        return chat.Avatar_URL[0].url || null;
-      }
-      
-      // Direct string format
-      if (chat.avatar_url && typeof chat.avatar_url === 'string' && chat.avatar_url.startsWith('http')) {
-        return chat.avatar_url;
-      }
-      
-      if (chat.Avatar_URL && typeof chat.Avatar_URL === 'string' && chat.Avatar_URL.startsWith('http')) {
-        return chat.Avatar_URL;
-      }
-      
-      return null;
-    }
+// Sorteer op laatste bericht datum (nieuwste eerst)
+userChats.sort((a, b) => {
+  const dateA = parseDateForSorting(a.last_message_date);
+  const dateB = parseDateForSorting(b.last_message_date);
+  return dateB - dateA;
+});
+
+console.log('✅ Final processed chats:', userChats.length, 'chats found');
+console.log('📊 Sample chats:', userChats.slice(0, 3));
+displayChats();
+
+} catch (error) {
+  console.error('❌ Error loading chats:', error);
+  showError(`Failed to load chats: ${error.message}`);
+  showSampleChats(); // Fallback voor demo
+}
+}
+
+// Helper functie voor avatar URL extractie
+function extractAvatarUrl(chat) {
+  // Airtable attachment format
+  if (chat.avatar_url && Array.isArray(chat.avatar_url) && chat.avatar_url.length > 0) {
+    return chat.avatar_url[0].url || null;
+  }
+  
+  if (chat.Avatar_URL && Array.isArray(chat.Avatar_URL) && chat.Avatar_URL.length > 0) {
+    return chat.Avatar_URL[0].url || null;
+  }
+  
+  // Direct string format
+  if (chat.avatar_url && typeof chat.avatar_url === 'string' && chat.avatar_url.startsWith('http')) {
+    return chat.avatar_url;
+  }
+  
+  if (chat.Avatar_URL && typeof chat.Avatar_URL === 'string' && chat.Avatar_URL.startsWith('http')) {
+    return chat.Avatar_URL;
+  }
+  
+  return null;
+}
 
     // Retry functie voor netwerkverzoeken
     async function fetchWithRetry(url, options, retries = 3) {
