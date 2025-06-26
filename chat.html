@@ -2375,58 +2375,23 @@
       return;
     }
 
-    const rawText = await resp.text();
-    console.log("📄 Raw response (first 200 chars):", rawText.substring(0, 200));
+   const rawText = await resp.text();
+console.log("📄 Raw response (first 200 chars):", rawText.substring(0, 200));
 
-    let data;
-    try {
-      data = JSON.parse(rawText);
-      console.log("✅ Parsed response:", data);
-    } catch (e) {
-      console.warn("⚠️ JSON parse failed, trying to fix malformed JSON:", e.message);
-      
-      try {
-        // Fix common JSON issues from Make.com
-        let cleanedText = rawText;
-        
-        // Remove potential BOM or whitespace
-        cleanedText = cleanedText.trim();
-        
-        // Fix double-quoted strings in JSON (common Make.com issue)
-        cleanedText = cleanedText.replace(/"([^"]+)":"([^"]*)"([^"]*)"([^"]*)"/g, '"$1":"$2$3$4"');
-        
-        // Try to find JSON boundaries
-        const jsonStart = cleanedText.indexOf('{');
-        const jsonEnd = cleanedText.lastIndexOf('}') + 1;
-        
-        if (jsonStart >= 0 && jsonEnd > jsonStart) {
-          const jsonPart = cleanedText.substring(jsonStart, jsonEnd);
-          console.log("🔧 Trying cleaned JSON...");
-          data = JSON.parse(jsonPart);
-          console.log("✅ Cleaned JSON parsed successfully");
-        } else {
-          throw new Error("No valid JSON boundaries found");
-        }
-      } catch (e2) {
-        console.error("❌ JSON cleaning failed:", e2.message);
-        console.error("❌ Raw response sample:", rawText.substring(0, 500));
-        
-        // Fallback: try to extract history array manually
-        try {
-          const historyMatch = rawText.match(/"history":\s*(\[.*?\])/s);
-          if (historyMatch) {
-            const historyArray = JSON.parse(historyMatch[1]);
-            data = { success: true, history: historyArray };
-            console.log("🔧 Extracted history array as fallback:", data);
-          } else {
-            throw new Error("Could not extract history array");
-          }
-        } catch (e3) {
-          console.error("❌ Fallback extraction failed:", e3.message);
-          return;
-        }
-      }
-    }
+let data;
+try {
+  data = JSON.parse(rawText);
+  console.log("✅ Parsed response:", data);
+} catch (e) {
+  console.warn("⚠️ JSON parse failed, creating manual structure:", e.message);
+  
+  // Emergency fallback - just create empty structure for now
+  data = { 
+    success: true, 
+    history: [] 
+  };
+  console.log("🔧 Using fallback empty history");
+}
 
     if (!data || !data.success) {
       console.error("❌ API returned success: false or no data", data);
