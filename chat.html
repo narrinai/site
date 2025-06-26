@@ -1493,7 +1493,7 @@
       });
     });
 
-    async function handleLogin(user) {
+  async function handleLogin(user) {
   const email = user.email;
   const uid   = user.id;
   const token = user.token.access_token;
@@ -1523,6 +1523,11 @@
       }
     );
 
+    if (!res.ok) {
+      console.error("❌ Registration webhook failed:", res.status, res.statusText);
+      return;
+    }
+
     const rawText = await res.text();
     console.log("Webhook1 raw response:", rawText);
 
@@ -1531,32 +1536,32 @@
       data = JSON.parse(rawText);
       console.log("Webhook1 parsed JSON:", data);
       
-      // FIXED: Check for both user_id formats and ensure it's saved correctly
-      const userId = data.user_id || data.User_ID || data.id;
-      if (userId && userId !== "" && userId !== null) {
-        localStorage.setItem("user_id", userId.toString());
-        console.log("✅ Saved user_id:", userId);
-      } else {
-        console.warn("⚠️ No valid user_id received from webhook:", data);
-        // Fallback: use a generated ID or handle gracefully
-        console.log("🔄 Will retry to get user_id on next login...");
+      // FIXED: Better user_id handling
+      if (data && typeof data === 'object') {
+        const userId = data.user_id || data.User_ID || data.id || data.userId;
+        if (userId && userId !== "" && userId !== "null") {
+          localStorage.setItem("user_id", String(userId));
+          console.log("✅ Successfully saved user_id:", userId);
+          
+          // IMPORTANT: Only call fetchHistory AFTER user_id is saved
+          if (currentCharacter && 
+              (document.readyState === "interactive" || document.readyState === "complete")) {
+            console.log("🔄 Calling fetchHistory after user_id is saved...");
+            fetchHistory();
+          }
+        } else {
+          console.warn("⚠️ No valid user_id in response:", data);
+        }
       }
     } catch (e) {
-      console.warn("Webhook1: response is not JSON, skipping:", e);
+      console.error("❌ JSON parse failed:", e, "Raw text:", rawText);
     }
   } catch (err) {
-    console.error("Error in registration-webhook call:", err);
+    console.error("❌ Error in registration-webhook call:", err);
   }
 
   // Update login buttons after successful login
   updateLoginButton();
-
-  if (
-    document.readyState === "interactive" ||
-    document.readyState === "complete"
-  ) {
-    fetchHistory();
-  }
 }
 
     function handlePostLoginRedirect() {
