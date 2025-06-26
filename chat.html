@@ -2321,7 +2321,7 @@
       window.location.href = 'profile.html';
     }
 
-   async function fetchHistory() {
+ async function fetchHistory() {
   console.log("🚨 NEW VERSION: fetchHistory() aangeroepen met DEBUGGING");
   console.log("🔍 fetchHistory() aangeroepen");
   
@@ -2375,23 +2375,23 @@
       return;
     }
 
-   const rawText = await resp.text();
-console.log("📄 Raw response (first 200 chars):", rawText.substring(0, 200));
+    const rawText = await resp.text();
+    console.log("📄 Raw response (first 200 chars):", rawText.substring(0, 200));
 
-let data;
-try {
-  data = JSON.parse(rawText);
-  console.log("✅ Parsed response:", data);
-} catch (e) {
-  console.warn("⚠️ JSON parse failed, creating manual structure:", e.message);
-  
-  // Emergency fallback - just create empty structure for now
-  data = { 
-    success: true, 
-    history: [] 
-  };
-  console.log("🔧 Using fallback empty history");
-}
+    let data;
+    try {
+      data = JSON.parse(rawText);
+      console.log("✅ Parsed response:", data);
+    } catch (e) {
+      console.warn("⚠️ JSON parse failed, creating manual structure:", e.message);
+      
+      // Emergency fallback - just create empty structure for now
+      data = { 
+        success: true, 
+        history: [] 
+      };
+      console.log("🔧 Using fallback empty history");
+    }
 
     if (!data || !data.success) {
       console.error("❌ API returned success: false or no data", data);
@@ -2409,7 +2409,7 @@ try {
       history = Object.values(data.history);
       console.log("🔧 Converted object to array with", history.length, "items");
     } else {
-      console.error("❌ No valid history data found");
+      console.log("ℹ️ No history data found - starting fresh chat");
       return;
     }
 
@@ -2420,8 +2420,8 @@ try {
     
     // Sort by CreatedTime if available
     history.sort((a, b) => {
-      const timeA = a.CreatedTime || a.createdTime || 0;
-      const timeB = b.CreatedTime || b.createdTime || 0;
+      const timeA = a.CreatedTime || a.createdTime || a.created_time || 0;
+      const timeB = b.CreatedTime || b.createdTime || b.created_time || 0;
       return new Date(timeA) - new Date(timeB);
     });
 
@@ -2429,16 +2429,19 @@ try {
       console.log(`💬 Processing message ${index + 1}:`, record);
       
       // Extract role and message from various possible structures
-      const role = record.Role || record.role || 
-                   (record.fields && (record.fields.Role || record.fields.role));
+      const role = record.Role || record.role || 'user';
       
-      const message = record.Message || record.message || 
-                      (record.fields && (record.fields.Message || record.fields.message));
+      let message = record.Message || record.message || record.content;
+      
+      // Check nested fields structure (Airtable often nests data)
+      if (!message && record.fields) {
+        message = record.fields.Message || record.fields.message || record.fields.content;
+      }
       
       console.log(`📝 Extracted: role="${role}", message="${message ? message.substring(0, 50) : 'null'}..."`);
       
-      if (!role || !message) {
-        console.warn("⚠️ Skipping incomplete record:", record);
+      if (!message) {
+        console.warn("⚠️ Skipping record without message:", record);
         return;
       }
       
