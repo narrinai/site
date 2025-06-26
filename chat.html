@@ -1531,10 +1531,15 @@
       data = JSON.parse(rawText);
       console.log("Webhook1 parsed JSON:", data);
       
-      // NEW: Save user_id if available
-      if (data.user_id) {
-        localStorage.setItem("user_id", data.user_id);
-        console.log("✅ Saved user_id:", data.user_id);
+      // FIXED: Check for both user_id formats and ensure it's saved correctly
+      const userId = data.user_id || data.User_ID || data.id;
+      if (userId && userId !== "" && userId !== null) {
+        localStorage.setItem("user_id", userId.toString());
+        console.log("✅ Saved user_id:", userId);
+      } else {
+        console.warn("⚠️ No valid user_id received from webhook:", data);
+        // Fallback: use a generated ID or handle gracefully
+        console.log("🔄 Will retry to get user_id on next login...");
       }
     } catch (e) {
       console.warn("Webhook1: response is not JSON, skipping:", e);
