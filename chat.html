@@ -1493,74 +1493,52 @@
       });
     });
 
- async function handleLogin(user) {
-  const email = user.email;
-  const uid   = user.id;
-  const token = user.token.access_token;
+    async function handleLogin(user) {
+      const email = user.email;
+      const uid   = user.id;
+      const token = user.token.access_token;
 
-  localStorage.setItem("user_email", email);
-  localStorage.setItem("user_token", token);
-  localStorage.setItem("user_uid", uid);
-  window.isRegistered = true;
+      localStorage.setItem("user_email", email);
+      localStorage.setItem("user_token", token);
+      localStorage.setItem("user_uid", uid);
+      window.isRegistered = true;
 
-  console.log("🔍 DEBUG: handleLogin → verstuur Webhook1:", {
-    user_email: email,
-    user_uid: uid,
-    user_token: token
-  });
+      console.log("🔍 DEBUG: handleLogin → verstuur Webhook1:", {
+        user_email: email,
+        user_uid: uid,
+        user_token: token
+      });
 
-  try {
-    const res = await fetch(
-      "https://hook.eu2.make.com/03ug6qzucda4ksrkcc06nu3bu3vetj15",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          user_email: email,
-          user_uid: uid,
-          user_token: token
-        })
-      }
-    );
+      try {
+        const res = await fetch(
+          "https://hook.eu2.make.com/03ug6qzucda4ksrkcc06nu3bu3vetj15",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              user_email: email,
+              user_uid: uid,
+              user_token: token
+            })
+          }
+        );
 
-    console.log("🔍 DEBUG: Response status:", res.status, res.statusText);
+        console.log("🔍 DEBUG: Response status:", res.status, res.statusText);
 
-    if (!res.ok) {
-      console.error("❌ Registration webhook failed:", res.status, res.statusText);
-      return;
-    }
+        if (!res.ok) {
+          console.error("❌ Registration webhook failed:", res.status, res.statusText);
+          return;
+        }
 
-    const rawText = await res.text();
-    console.log("🔍 DEBUG: Raw response text:", rawText);
-    console.log("🔍 DEBUG: Raw response type:", typeof rawText);
-    console.log("🔍 DEBUG: Raw response length:", rawText.length);
+        const data = await res.json();
+        console.log("🔍 DEBUG: Registration response:", data);
 
-    let data;
-    try {
-      data = JSON.parse(rawText);
-      console.log("🔍 DEBUG: Parsed JSON data:", data);
-      console.log("🔍 DEBUG: Data type:", typeof data);
-      console.log("🔍 DEBUG: Data keys:", Object.keys(data));
-      
-      // SUPER DETAILED DEBUG
-      console.log("🔍 DEBUG: data.user_id =", data.user_id, "(type:", typeof data.user_id, ")");
-      console.log("🔍 DEBUG: data.User_ID =", data.User_ID, "(type:", typeof data.User_ID, ")");
-      console.log("🔍 DEBUG: data.id =", data.id, "(type:", typeof data.id, ")");
-      console.log("🔍 DEBUG: data.userId =", data.userId, "(type:", typeof data.userId, ")");
-      
-      // Check if the data object actually exists and has properties
-      if (data && typeof data === 'object') {
-        const userId = data.user_id || data.User_ID || data.id || data.userId;
-        console.log("🔍 DEBUG: Extracted userId =", userId, "(type:", typeof userId, ")");
+        // Zoek user_id in verschillende mogelijke velden
+        const userId = data.user_id || data.User_ID || data.id || data.record_id;
         
-        if (userId && userId !== "" && userId !== "null" && userId !== null) {
-          const userIdString = String(userId);
-          localStorage.setItem("user_id", userIdString);
-          console.log("✅ DEBUG: Successfully saved user_id:", userIdString);
-          
-          // Verify it was saved
-          const savedUserId = localStorage.getItem("user_id");
-          console.log("🔍 DEBUG: Verified saved user_id:", savedUserId);
+        if (userId) {
+          localStorage.setItem("user_id", String(userId));
+          console.log("✅ DEBUG: Successfully saved user_id:", userId);
           
           // Call fetchHistory if conditions are met
           if (currentCharacter && 
@@ -1569,21 +1547,14 @@
             fetchHistory();
           }
         } else {
-          console.warn("⚠️ DEBUG: No valid user_id found. userId value:", userId);
+          console.warn("⚠️ DEBUG: No user_id found in response:", data);
         }
-      } else {
-        console.error("❌ DEBUG: Data is not a valid object:", data);
+      } catch (err) {
+        console.error("❌ DEBUG: Error in registration-webhook call:", err);
       }
-    } catch (e) {
-      console.error("❌ DEBUG: JSON parse failed:", e, "Raw text:", rawText);
-    }
-  } catch (err) {
-    console.error("❌ DEBUG: Error in registration-webhook call:", err);
-  }
 
-  // Update login buttons after successful login
-  updateLoginButton();
-}
+      updateLoginButton();
+    }
 
     function handlePostLoginRedirect() {
       // Get the stored redirect URL
@@ -1604,6 +1575,7 @@
       localStorage.removeItem("user_email");
       localStorage.removeItem("user_token");
       localStorage.removeItem("user_uid");
+      localStorage.removeItem("user_id");
       window.isRegistered = false;
     }
 
@@ -2282,31 +2254,26 @@
         if (e.key === "Enter") handleSendClick(e);
       });
 
-      if (window.isRegistered) {
+      // Debug: Check isRegistered status
+      console.log("🔍 setupCharacterInterface - checking user status");
+      console.log("window.isRegistered:", window.isRegistered);
+      console.log("localStorage token:", !!localStorage.getItem("user_token"));
+      console.log("localStorage email:", localStorage.getItem("user_email"));
+
+      // Check multiple conditions for user login
+      const token = localStorage.getItem("user_token");
+      const email = localStorage.getItem("user_email");
+      const uid = localStorage.getItem("user_uid");
+      const isLoggedIn = window.isRegistered || (token && email && uid);
+
+      console.log("isLoggedIn calculated:", isLoggedIn);
+
+      if (isLoggedIn) {
+        console.log("✅ User is logged in, calling fetchHistory()");
         fetchHistory();
+      } else {
+        console.log("❌ User not logged in, skipping fetchHistory()");
       }
-
-// Debug: Check isRegistered status
-console.log("🔍 setupCharacterInterface - checking user status");
-console.log("window.isRegistered:", window.isRegistered);
-console.log("localStorage token:", !!localStorage.getItem("user_token"));
-console.log("localStorage email:", localStorage.getItem("user_email"));
-
-// Check multiple conditions for user login
-const token = localStorage.getItem("user_token");
-const email = localStorage.getItem("user_email");
-const uid = localStorage.getItem("user_uid");
-const isLoggedIn = window.isRegistered || (token && email && uid);
-
-console.log("isLoggedIn calculated:", isLoggedIn);
-
-if (isLoggedIn) {
-  console.log("✅ User is logged in, calling fetchHistory()");
-  fetchHistory();
-} else {
-  console.log("❌ User not logged in, skipping fetchHistory()");
-}
-
     }
 
     function showError(message) {
@@ -2338,146 +2305,119 @@ if (isLoggedIn) {
       localStorage.setItem('login_redirect_url', window.location.href);
       window.location.href = 'profile.html';
     }
-async function fetchHistory() {
-  console.log("🔍 fetchHistory() aangeroepen");
-  
-  const token = localStorage.getItem("user_token");
-  const uid   = localStorage.getItem("user_uid");
-  const email = localStorage.getItem("user_email");
-  let user_id = localStorage.getItem("user_id");
-  
-  console.log("📋 User data:", { 
-    token: !!token, 
-    uid: !!uid, 
-    email, 
-    user_id,
-    characterSlug 
-  });
-  
-  if (!token || !uid || !characterSlug || !email) {
-    console.warn("⚠️ fetchHistory: missing data", { 
-      hasToken: !!token, 
-      hasUid: !!uid, 
-      hasEmail: !!email,
-      hasUserId: !!user_id,
-      hasCharacterSlug: !!characterSlug 
-    });
-    return;
-  }
 
-  // FALLBACK: Als user_id leeg is, gebruik user_uid om user_id op te halen
-  if (!user_id || user_id === "" || user_id === "null") {
-    console.log("🔄 user_id is empty, trying to get it from registration webhook...");
-    
-    try {
-      const response = await fetch("https://hook.eu2.make.com/03ug6qzucda4ksrkcc06nu3bu3vetj15", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          user_email: email,
-          user_uid: uid,
-          user_token: token
-        })
+    async function fetchHistory() {
+      console.log("🔍 fetchHistory() aangeroepen");
+      
+      const token = localStorage.getItem("user_token");
+      const uid   = localStorage.getItem("user_uid");
+      const email = localStorage.getItem("user_email");
+      let user_id = localStorage.getItem("user_id");
+      
+      console.log("📋 User data:", { 
+        token: !!token, 
+        uid: !!uid, 
+        email, 
+        user_id,
+        characterSlug 
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.user_id && data.user_id !== "") {
-          user_id = data.user_id;
-          localStorage.setItem("user_id", user_id);
-          console.log("✅ Retrieved and saved user_id:", user_id);
-        }
-      }
-    } catch (err) {
-      console.warn("⚠️ Failed to retrieve user_id:", err);
-    }
-  }
-
-  console.log("🚀 Sending request to chat history webhook...");
-  
-  try {
-    const requestPayload = {
-      user_email: email,
-      user_uid: uid,
-      user_token: token,
-      user_id: user_id || null,
-      char: characterSlug
-    };
-    
-    console.log("📤 Request payload:", requestPayload);
-    
-    const resp = await fetch("https://hook.eu2.make.com/fjpapor4lkj9mpypaqx8no68d64bxe19", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(requestPayload)
-    });
-
-    console.log("📨 Response status:", resp.status, resp.statusText);
-
-    if (!resp.ok) {
-      console.error("❌ fetchHistory response not ok:", resp.status, resp.statusText);
-      return;
-    }
-
-    const rawText = await resp.text();
-    console.log("📄 Raw response:", rawText);
-
-    let data;
-    try {
-      data = JSON.parse(rawText);
-      console.log("✅ Parsed response:", data);
-    } catch (e) {
-      console.error("❌ JSON parse failed:", e, "Raw data:", rawText);
-      return;
-    }
-
-    if (!data.success) {
-      console.error("❌ API returned success: false", data);
-      return;
-    }
-
-    if (!Array.isArray(data.history)) {
-      console.warn("⚠️ Expected data.history[] but got:", data);
-      return;
-    }
-
-    console.log(`📚 Found ${data.history.length} chat messages`);
-
-    const chatlog = document.getElementById("chatlog");
-    
-    // Clear existing content first
-    chatlog.innerHTML = '';
-    
-    data.history.forEach((record, index) => {
-      console.log(`💬 Processing message ${index + 1}:`, record);
       
-      const role = record.fields?.Role;
-      const message = record.fields?.Message;
-      const createdTime = record.fields?.CreatedTime;
-      
-      if (!role || !message) {
-        console.warn("⚠️ Skipping incomplete record:", record);
+      if (!token || !uid || !characterSlug || !email) {
+        console.warn("⚠️ fetchHistory: missing data", { 
+          hasToken: !!token, 
+          hasUid: !!uid, 
+          hasEmail: !!email,
+          hasUserId: !!user_id,
+          hasCharacterSlug: !!characterSlug 
+        });
         return;
       }
-      
-      const p = document.createElement("p");
-      if (role === "user") {
-        p.innerHTML = `<strong>You:</strong> ${message}`;
-      } else {
-        const avatarHtml = getAvatarHtml();
-        p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${message}`;
-      }
-      chatlog.appendChild(p);
-      console.log(`✅ Added message to chat: ${role} - ${message.substring(0, 50)}...`);
-    });
 
-    chatlog.scrollTop = chatlog.scrollHeight;
-    console.log("📜 Scrolled to bottom, chat history loaded successfully");
-    
-  } catch (err) {
-    console.error("❌ Exception in fetchHistory:", err);
-  }
-}
+      console.log("🚀 Sending request to chat history webhook...");
+      
+      try {
+        const requestPayload = {
+          user_email: email,
+          user_uid: uid,
+          user_token: token,
+          user_id: user_id || null,
+          char: characterSlug
+        };
+        
+        console.log("📤 Request payload:", requestPayload);
+        
+        const resp = await fetch("https://hook.eu2.make.com/fjpapor4lkj9mpypaqx8no68d64bxe19", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(requestPayload)
+        });
+
+        console.log("📨 Response status:", resp.status, resp.statusText);
+
+        if (!resp.ok) {
+          console.error("❌ fetchHistory response not ok:", resp.status, resp.statusText);
+          return;
+        }
+
+        const rawText = await resp.text();
+        console.log("📄 Raw response:", rawText);
+
+        let data;
+        try {
+          data = JSON.parse(rawText);
+          console.log("✅ Parsed response:", data);
+        } catch (e) {
+          console.error("❌ JSON parse failed:", e, "Raw data:", rawText);
+          return;
+        }
+
+        if (!data.success) {
+          console.error("❌ API returned success: false", data);
+          return;
+        }
+
+        if (!Array.isArray(data.history)) {
+          console.warn("⚠️ Expected data.history[] but got:", data);
+          return;
+        }
+
+        console.log(`📚 Found ${data.history.length} chat messages`);
+
+        const chatlog = document.getElementById("chatlog");
+        
+        // Clear existing content first
+        chatlog.innerHTML = '';
+        
+        data.history.forEach((record, index) => {
+          console.log(`💬 Processing message ${index + 1}:`, record);
+          
+          const role = record.fields?.Role;
+          const message = record.fields?.Message;
+          const createdTime = record.fields?.CreatedTime;
+          
+          if (!role || !message) {
+            console.warn("⚠️ Skipping incomplete record:", record);
+            return;
+          }
+          
+          const p = document.createElement("p");
+          if (role === "user") {
+            p.innerHTML = `<strong>You:</strong> ${message}`;
+          } else {
+            const avatarHtml = getAvatarHtml();
+            p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${message}`;
+          }
+          chatlog.appendChild(p);
+          console.log(`✅ Added message to chat: ${role} - ${message.substring(0, 50)}...`);
+        });
+
+        chatlog.scrollTop = chatlog.scrollHeight;
+        console.log("📜 Scrolled to bottom, chat history loaded successfully");
+        
+      } catch (err) {
+        console.error("❌ Exception in fetchHistory:", err);
+      }
+    }
 
     function getAvatarHtml() {
       if (currentCharacter?.avatar_url) {
@@ -2521,7 +2461,6 @@ async function fetchHistory() {
       `;
       
       console.log("✅ Created typing indicator:", typingIndicator);
-      console.log("📝 Typing indicator HTML:", typingIndicator.outerHTML);
       
       chatlog.appendChild(typingIndicator);
       console.log("➕ Appended typing indicator to chatlog");
@@ -2531,11 +2470,6 @@ async function fetchHistory() {
       
       chatlog.scrollTop = chatlog.scrollHeight;
       console.log("📜 Scrolled chatlog to bottom");
-      
-      // Verify the element is actually in the DOM
-      const verifyElement = document.getElementById("typingIndicator");
-      console.log("🔍 Verification - element in DOM:", !!verifyElement);
-      console.log("👁️ Element visible:", verifyElement ? getComputedStyle(verifyElement).display : 'not found');
       
       return typingIndicator;
     }
@@ -2553,108 +2487,109 @@ async function fetchHistory() {
       }
     }
 
-   async function sendMessage(event) {
-  event?.preventDefault();
-  const userInput = document.getElementById("userInput");
-  const input = userInput.value.trim();
-  if (!input) return;
+    async function sendMessage(event) {
+      event?.preventDefault();
+      const userInput = document.getElementById("userInput");
+      const input = userInput.value.trim();
+      if (!input) return;
 
-  const token = localStorage.getItem("user_token");
-  const uid   = localStorage.getItem("user_uid");
-  const email = localStorage.getItem("user_email");
-  const user_id = localStorage.getItem("user_id");
-  
-  console.log("🚀 sendMessage debug:", { token: !!token, uid: !!uid, email, user_id, characterSlug });
-  
-  if (!token || !uid || !email) {
-    console.error("sendMessage: missing token, uid or email");
-    localStorage.setItem('login_redirect_url', window.location.href);
-    window.location.href = 'profile.html';
-    return;
-  }
+      const token = localStorage.getItem("user_token");
+      const uid   = localStorage.getItem("user_uid");
+      const email = localStorage.getItem("user_email");
+      const user_id = localStorage.getItem("user_id");
+      
+      console.log("🚀 sendMessage debug:", { token: !!token, uid: !!uid, email, user_id, characterSlug });
+      
+      if (!token || !uid || !email) {
+        console.error("sendMessage: missing token, uid or email");
+        localStorage.setItem('login_redirect_url', window.location.href);
+        window.location.href = 'profile.html';
+        return;
+      }
 
-  const sendButton = document.getElementById("sendButton");
-  sendButton.disabled = true;
-  sendButton.textContent = "Sending...";
+      const sendButton = document.getElementById("sendButton");
+      sendButton.disabled = true;
+      sendButton.textContent = "Sending...";
 
-  const chatlog = document.getElementById("chatlog");
-  const divUser = document.createElement("p");
-  divUser.innerHTML = `<strong>You:</strong> ${input}`;
-  chatlog.appendChild(divUser);
-  chatlog.scrollTop = chatlog.scrollHeight;
-  userInput.value = "";
+      const chatlog = document.getElementById("chatlog");
+      const divUser = document.createElement("p");
+      divUser.innerHTML = `<strong>You:</strong> ${input}`;
+      chatlog.appendChild(divUser);
+      chatlog.scrollTop = chatlog.scrollHeight;
+      userInput.value = "";
 
-  // Show typing indicator after 1 second delay
-  setTimeout(() => {
-    showTypingIndicator();
-  }, 1000);
+      // Show typing indicator after 1 second delay
+      setTimeout(() => {
+        showTypingIndicator();
+      }, 1000);
 
-  try {
-    const requestPayload = {
-      action: "send_message",
-      text: input,
-      Character_id: characterSlug,
-      Slug: characterSlug,
-      user_uid: uid,
-      user_token: token,
-      user_email: email,
-      user_id: user_id || "34" // ← FALLBACK: gebruik een vaste user_id voor test
-    };
-    
-    console.log("📤 sendMessage FULL payload:", requestPayload);
+      try {
+        const requestPayload = {
+          action: "send_message",
+          text: input,
+          Character_id: characterSlug,
+          Slug: characterSlug,
+          user_uid: uid,
+          user_token: token,
+          user_email: email,
+          user_id: user_id || null
+        };
+        
+        console.log("📤 sendMessage FULL payload:", requestPayload);
 
-    const response = await fetch(newWebhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(requestPayload)
-    });
+        const response = await fetch(newWebhookUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(requestPayload)
+        });
 
-    console.log("📨 sendMessage response status:", response.status, response.statusText);
+        console.log("📨 sendMessage response status:", response.status, response.statusText);
 
-    const rawText = await response.text();
-    console.log("📄 sendMessage raw response:", rawText);
+        const rawText = await response.text();
+        console.log("📄 sendMessage raw response:", rawText);
 
-    let data;
-    try {
-      data = JSON.parse(rawText);
-      console.log("✅ sendMessage parsed response:", data);
-    } catch (e) {
-      console.warn("JSON parse error, using fallback:", e);
-      data = { 
-        success: true, 
-        reply: "Whoopsie! 🙈 I just had a bit of a brain fart (do AIs have brains?). Let's pretend that never happened and try again!" 
-      };
+        let data;
+        try {
+          data = JSON.parse(rawText);
+          console.log("✅ sendMessage parsed response:", data);
+        } catch (e) {
+          console.warn("JSON parse error, using fallback:", e);
+          data = { 
+            success: true, 
+            reply: "Whoopsie! 🙈 I just had a bit of a brain fart (do AIs have brains?). Let's pretend that never happened and try again!" 
+          };
+        }
+
+        if (!data.success) {
+          throw new Error("Chat request failed");
+        }
+
+        const reply = data.reply || "⚠️ No reply received.";
+
+        // Wait and show response
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        hideTypingIndicator();
+
+        const divBot = document.createElement("p");
+        const avatarHtml = getAvatarHtml();
+        divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${reply}`;
+        chatlog.appendChild(divBot);
+        chatlog.scrollTop = chatlog.scrollHeight;
+        
+      } catch (err) {
+        console.error("❌ sendMessage Error:", err);
+        hideTypingIndicator();
+        
+        const divErr = document.createElement("p");
+        divErr.innerHTML = `<strong>${currentCharacter?.name || 'Character'}:</strong> ⚠️ Something went wrong while sending.`;
+        chatlog.appendChild(divErr);
+        chatlog.scrollTop = chatlog.scrollHeight;
+      } finally {
+        sendButton.disabled = false;
+        sendButton.textContent = "Send";
+      }
     }
 
-    if (!data.success) {
-      throw new Error("Chat request failed");
-    }
-
-    const reply = data.reply || "⚠️ No reply received.";
-
-    // Wait and show response
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    hideTypingIndicator();
-
-    const divBot = document.createElement("p");
-    const avatarHtml = getAvatarHtml();
-    divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${reply}`;
-    chatlog.appendChild(divBot);
-    chatlog.scrollTop = chatlog.scrollHeight;
-    
-  } catch (err) {
-    console.error("❌ sendMessage Error:", err);
-    hideTypingIndicator();
-    
-    const divErr = document.createElement("p");
-    divErr.innerHTML = `<strong>${currentCharacter?.name || 'Character'}:</strong> ⚠️ Something went wrong while sending.`;
-    chatlog.appendChild(divErr);
-    chatlog.scrollTop = chatlog.scrollHeight;
-  } finally {
-    sendButton.disabled = false;
-    sendButton.textContent = "Send";
-  }
-}
     // ===== DISCLAIMER TOGGLE FUNCTIONALITY =====
     document.addEventListener('DOMContentLoaded', () => {
       const disclaimerToggle = document.getElementById('disclaimerToggle');
