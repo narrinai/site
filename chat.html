@@ -2384,14 +2384,12 @@
         console.log("📄 Raw response:", rawText);
         console.log("📄 Raw response length:", rawText.length);
 
-        let data;
+       let data;
         try {
           data = JSON.parse(rawText);
           console.log("✅ Parsed response:", data);
         } catch (e) {
-          console.error("❌ JSON parse failed:", e);
-          console.error("❌ Raw response (first 500 chars):", rawText.substring(0, 500));
-          console.error("❌ Raw response (full length):", rawText.length);
+          console.warn("⚠️ Initial JSON parse failed, trying to clean:", e.message);
           
           // Probeer een eenvoudige fix voor malformed JSON
           try {
@@ -2400,14 +2398,15 @@
             const jsonEnd = rawText.lastIndexOf('}') + 1;
             if (jsonStart >= 0 && jsonEnd > jsonStart) {
               const cleanJson = rawText.substring(jsonStart, jsonEnd);
-              console.log("🔧 Trying to parse cleaned JSON:", cleanJson.substring(0, 200) + "...");
+              console.log("🔧 Trying to parse cleaned JSON...");
               data = JSON.parse(cleanJson);
               console.log("✅ Cleaned JSON parsed successfully:", data);
             } else {
               throw new Error("No valid JSON found in response");
             }
           } catch (e2) {
-            console.error("❌ Even cleaned JSON failed:", e2);
+            console.error("❌ JSON cleaning failed:", e2.message);
+            console.error("❌ Raw response (first 500 chars):", rawText.substring(0, 500));
             return;
           }
         }
