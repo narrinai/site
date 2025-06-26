@@ -2474,19 +2474,25 @@ line-clamp: 3;
         // VERBETERDE DATA PROCESSING
         let rawChats = [];
         
-        // Verschillende response formaten ondersteunen
-        if (data.chats && Array.isArray(data.chats)) {
-          rawChats = data.chats;
-        } else if (data.data && Array.isArray(data.data)) {
-          rawChats = data.data;
-        } else if (Array.isArray(data)) {
-          rawChats = data;
-        } else if (data.records && Array.isArray(data.records)) {
-          rawChats = data.records.map(record => record.fields || record);
-        } else {
-          console.log('⚠️ Unexpected data format:', data);
-          rawChats = [];
-        }
+       // Ondersteuning voor Array Aggregator format
+if (data.chats && Array.isArray(data.chats)) {
+  rawChats = data.chats.map(chat => ({
+    // Map de basis velden van Array Aggregator
+    character_name: chat.Name || 'Unknown Character',
+    character_slug: (chat.Name || '').toLowerCase().replace(/\s+/g, '-'),
+    last_message: 'Continue your conversation...',
+    last_message_date: chat.CreatedTime,
+    message_count: 1,
+    record_id: chat.ID
+  }));
+} else if (data.data && Array.isArray(data.data)) {
+  rawChats = data.data;
+} else if (Array.isArray(data)) {
+  rawChats = data;
+} else {
+  console.log('⚠️ Unexpected data format:', data);
+  rawChats = [];
+}
 
         console.log('📋 Raw chats from API:', rawChats.length, 'items found');
 // EXTRA DEBUG INFO
