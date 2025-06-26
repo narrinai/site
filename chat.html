@@ -2408,10 +2408,146 @@ if (isLoggedIn) {
     chatlog.scrollTop = chatlog.scrollHeight;
     console.log("📜 Scrolled to bottom, chat history loaded successfully");
     
+  const resp = await fetch("https://hook.eu2.make.com/fjpapor4lkj9mpypaqx8no68d64bxe19", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestPayload)
+    });
+
+    console.log("📨 Response status:", resp.status, resp.statusText);
+
+    if (!resp.ok) {
+      console.error("❌ fetchHistory response not ok:", resp.status, resp.statusText);
+      return;
+    }
+
+    const rawText = await resp.text();
+    console.log("📄 Raw response:", rawText);
+
+    let data;
+    try {
+      data = JSON.parse(rawText);
+      console.log("✅ Parsed response:", data);
+    } catch (e) {
+      console.error("❌ JSON parse failed:", e, "Raw data:", rawText);
+      return;
+    }
+
+    if (!data.success) {
+      console.error("❌ API returned success: false", data);
+      return;
+    }
+
+    if (!Array.isArray(data.history)) {
+      console.warn("⚠️ Expected data.history[] but got:", data);
+      return;
+    }
+
+    console.log(`📚 Found ${data.history.length} chat messages`);
+
+    const chatlog = document.getElementById("chatlog");
+    
+    // Clear existing content first
+    chatlog.innerHTML = '';
+    
+    data.history.forEach((record, index) => {
+      console.log(`💬 Processing message ${index + 1}:`, record);
+      
+      const role = record.fields?.Role;
+      const message = record.fields?.Message;
+      const createdTime = record.fields?.CreatedTime;
+      
+      if (!role || !message) {
+        console.warn("⚠️ Skipping incomplete record:", record);
+        return;
+      }
+      
+      const p = document.createElement("p");
+      if (role === "user") {
+        p.innerHTML = `<strong>You:</strong> ${message}`;
+      } else {
+        const avatarHtml = getAvatarHtml();
+        p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${message}`;
+      }
+      chatlog.appendChild(p);
+      console.log(`✅ Added message to chat: ${role} - ${message.substring(0, 50)}...`);
+    });
+
+    chatlog.scrollTop = chatlog.scrollHeight;
+    console.log("📜 Scrolled to bottom, chat history loaded successfully");
+    
   } catch (err) {
     console.error("❌ Exception in fetchHistory:", err);
   }
 }
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestPayload)
+    });
+
+    console.log("📨 Response status:", resp.status, resp.statusText);
+
+    if (!resp.ok) {
+      console.error("❌ fetchHistory response not ok:", resp.status, resp.statusText);
+      return;
+    }
+
+    const rawText = await resp.text();
+    console.log("📄 Raw response:", rawText);
+
+    let data;
+    try {
+      data = JSON.parse(rawText);
+      console.log("✅ Parsed response:", data);
+    } catch (e) {
+      console.error("❌ JSON parse failed:", e, "Raw data:", rawText);
+      return;
+    }
+
+    if (!data.success) {
+      console.error("❌ API returned success: false", data);
+      return;
+    }
+
+    if (!Array.isArray(data.history)) {
+      console.warn("⚠️ Expected data.history[] but got:", data);
+      return;
+    }
+
+    console.log(`📚 Found ${data.history.length} chat messages`);
+
+    const chatlog = document.getElementById("chatlog");
+    
+    // Clear existing content first
+    chatlog.innerHTML = '';
+    
+    data.history.forEach((record, index) => {
+      console.log(`💬 Processing message ${index + 1}:`, record);
+      
+      const role = record.fields?.Role;
+      const message = record.fields?.Message;
+      const createdTime = record.fields?.CreatedTime;
+      
+      if (!role || !message) {
+        console.warn("⚠️ Skipping incomplete record:", record);
+        return;
+      }
+      
+      const p = document.createElement("p");
+      if (role === "user") {
+        p.innerHTML = `<strong>You:</strong> ${message}`;
+      } else {
+        const avatarHtml = getAvatarHtml();
+        p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${message}`;
+      }
+      chatlog.appendChild(p);
+      console.log(`✅ Added message to chat: ${role} - ${message.substring(0, 50)}...`);
+    });
+
+    chatlog.scrollTop = chatlog.scrollHeight;
+    console.log("📜 Scrolled to bottom, chat history loaded successfully");
+    
+   
 
     function getAvatarHtml() {
       if (currentCharacter?.avatar_url) {
