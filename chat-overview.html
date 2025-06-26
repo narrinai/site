@@ -2494,7 +2494,7 @@ if (data.chats && Array.isArray(data.chats)) {
   rawChats = [];
 }
 
-        console.log('📋 Raw chats from API:', rawChats.length, 'items found');
+   console.log('📋 Raw chats from API:', rawChats.length, 'items found');
 // EXTRA DEBUG INFO
 console.log('🔍 FULL RAW RESPONSE:', JSON.stringify(data, null, 2));
 console.log('🔍 RAW CHATS DETAILS:', rawChats);
@@ -2503,6 +2503,21 @@ console.log('🔍 User credentials being sent:', {
   uid: uid,
   token: token ? 'present' : 'missing'
 });
+
+// NIEUWE DEBUG CODE HIERONDER:
+console.log('🔍 DEBUGGING FLOW:');
+console.log('🔍 rawChats array:', rawChats);
+console.log('🔍 About to start VERBETERDE PROCESSING...');
+
+if (rawChats.length === 0) {
+  console.log('⚠️ No chats found in response - showing empty state');
+  userChats = [];
+  displayChats();
+  return;
+}
+
+// VERBETERDE PROCESSING - Alle chat records verwerken
+console.log('🔄 Starting VERBETERDE PROCESSING with', rawChats.length, 'chats');
         if (rawChats.length === 0) {
           console.log('⚠️ No chats found in response');
           userChats = [];
@@ -2524,7 +2539,9 @@ rawChats.forEach((chat, index) => {
   console.log('⚠️ Skipping chat with invalid name:', characterName);
   return;
 }
-  
+
+ console.log(`✅ Adding chat to chatMap with key: "${characterSlug}"`);
+
   const chatKey = characterSlug;
   const lastMessageDate = chat.CreatedTime || chat.Last_Message_Date || new Date().toISOString();
   
