@@ -2322,7 +2322,7 @@
     }
 
  async function fetchHistory() {
-  console.log("🚨 IMPROVED VERSION: fetchHistory() aangeroepen");
+  console.log("🚨 JSON DEBUGGING VERSION: fetchHistory() aangeroepen");
   
   const token = localStorage.getItem("user_token");
   const uid   = localStorage.getItem("user_uid");
@@ -2375,16 +2375,64 @@
     }
 
     const rawText = await resp.text();
-    console.log("📄 Raw response text:", rawText);
+    console.log("📄 Raw response length:", rawText.length);
+    console.log("📄 Raw response (first 500 chars):", rawText.substring(0, 500));
+    console.log("📄 Raw response (last 100 chars):", rawText.substring(Math.max(0, rawText.length - 100)));
+
+    // Try to fix common JSON issues before parsing
+    let cleanedText = rawText;
+    
+    // Remove potential BOM (Byte Order Mark)
+    cleanedText = cleanedText.replace(/^\uFEFF/, '');
+    
+    // Remove any trailing commas before closing brackets/braces
+    cleanedText = cleanedText.replace(/,(\s*[}\]])/g, '$1');
+    
+    // Remove any control characters that might break JSON
+    cleanedText = cleanedText.replace(/[\x00-\x1F\x7F]/g, '');
+    
+    console.log("🧹 Cleaned text length:", cleanedText.length);
+    if (cleanedText !== rawText) {
+      console.log("🧹 Text was cleaned, showing changes:");
+      console.log("📄 Cleaned text (first 500 chars):", cleanedText.substring(0, 500));
+    }
 
     let data;
     try {
-      data = JSON.parse(rawText);
-      console.log("✅ Parsed response:", data);
-      console.log("🔍 All data keys:", Object.keys(data));
-    } catch (e) {
-      console.warn("⚠️ JSON parse failed:", e.message);
-      return;
+      data = JSON.parse(cleanedText);
+      console.log("✅ JSON parsed successfully!");
+      console.log("🔍 Parsed data keys:", Object.keys(data));
+      console.log("🔍 Parsed data:", data);
+    } catch (parseError) {
+      console.error("❌ JSON parse still failed after cleaning:", parseError);
+      console.log("🔍 Error position:", parseError.message);
+      
+      // Try to find the problematic part
+      const errorMatch = parseError.message.match(/position (\d+)/);
+      if (errorMatch) {
+        const position = parseInt(errorMatch[1]);
+        const start = Math.max(0, position - 50);
+        const end = Math.min(cleanedText.length, position + 50);
+        console.log("🔍 Problematic section:", cleanedText.substring(start, end));
+        console.log("🔍 Error position marker:", ' '.repeat(Math.min(50, position - start)) + '^');
+      }
+      
+      // Emergency fallback - try to extract just the history array
+      try {
+        const historyMatch = cleanedText.match(/"history":\s*(\[.*?\])/);
+        if (historyMatch) {
+          console.log("🔧 Attempting to parse just the history array...");
+          const historyArray = JSON.parse(historyMatch[1]);
+          data = { success: true, history: historyArray };
+          console.log("✅ Successfully extracted history from partial JSON!");
+        } else {
+          console.error("❌ Could not extract history array from response");
+          return;
+        }
+      } catch (fallbackError) {
+        console.error("❌ Fallback parsing also failed:", fallbackError);
+        return;
+      }
     }
 
     if (!data || !data.success) {
@@ -2392,42 +2440,16 @@
       return;
     }
 
-    // Debug: Log ALL possible history locations
-    console.log("🔍 Checking for history in different locations:");
-    console.log("- data.history:", data.history);
-    console.log("- data.records:", data.records);
-    console.log("- data.messages:", data.messages);
-    console.log("- data.chatHistory:", data.chatHistory);
-    console.log("- data.chat_history:", data.chat_history);
-
-    // Try to find history data in multiple possible locations
+    // Process history data
     let history = [];
     
-    const possibleHistoryFields = [
-      data.history,
-      data.records, 
-      data.messages,
-      data.chatHistory,
-      data.chat_history,
-      data.data
-    ];
-
-    for (const field of possibleHistoryFields) {
-      if (Array.isArray(field)) {
-        history = field;
-        console.log("✅ Found history array with", field.length, "items");
-        break;
-      } else if (field && typeof field === 'object') {
-        const values = Object.values(field);
-        if (values.length > 0) {
-          history = values;
-          console.log("🔧 Converted object to array with", values.length, "items");
-          break;
-        }
-      }
-    }
-
-    if (!history || history.length === 0) {
+    if (Array.isArray(data.history)) {
+      history = data.history;
+      console.log("✅ Found history array with", history.length, "items");
+    } else if (data.history && typeof data.history === 'object') {
+      history = Object.values(data.history);
+      console.log("🔧 Converted history object to array with", history.length, "items");
+    } else {
       console.log("ℹ️ No history data found - starting fresh chat");
       return;
     }
