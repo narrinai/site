@@ -2445,16 +2445,27 @@
         // Clear existing content first
         chatlog.innerHTML = '';
         
-        data.history.forEach((record, index) => {
+       data.history.forEach((record, index) => {
           console.log(`💬 Processing message ${index + 1}:`, record);
+          console.log(`🔍 Record keys:`, Object.keys(record));
           
-         // API geeft directe properties terug, niet genest in 'fields'
-const role = record.Role;
-const message = record.Message;
-const createdTime = record.CreatedTime;
+          // Probeer verschillende manieren om Role en Message te vinden
+          const role = record.Role || record.role || 
+                       (record.fields && record.fields.Role) || 
+                       (record.fields && record.fields.role);
+          
+          const message = record.Message || record.message || 
+                          (record.fields && record.fields.Message) || 
+                          (record.fields && record.fields.message);
+          
+          const createdTime = record.CreatedTime || record.createdTime || 
+                              (record.fields && record.fields.CreatedTime) || 
+                              (record.fields && record.fields.createdTime);
+
+          console.log(`📝 Extracted: role="${role}", message="${message}"`);
           
           if (!role || !message) {
-            console.warn("⚠️ Skipping incomplete record:", record);
+            console.warn("⚠️ Skipping incomplete record:", { role, message, record });
             return;
           }
           
