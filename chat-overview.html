@@ -2518,7 +2518,10 @@ rawChats.forEach((chat, index) => {
   const characterName = chat.character_name || chat['Name (from Character)'] || chat.Character_Name || 'Unknown Character';
   const characterSlug = chat.character_slug || chat['Slug (from Character)'] || chat.Character_Slug || 'unknown';
   
-  if (characterName === 'Unknown Character') return;
+ if (!characterName || characterName === 'Unknown Character') {
+  console.log('⚠️ Skipping chat with invalid name:', characterName);
+  return;
+}
   
   const chatKey = characterSlug;
   const lastMessageDate = chat.CreatedTime || chat.Last_Message_Date || new Date().toISOString();
