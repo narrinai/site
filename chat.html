@@ -2541,7 +2541,9 @@ async function fetchHistory() {
   const token = localStorage.getItem("user_token");
   const uid   = localStorage.getItem("user_uid");
   const email = localStorage.getItem("user_email");
-  const user_id = localStorage.getItem("user_id"); // ← Ook user_id ophalen
+  const user_id = localStorage.getItem("user_id");
+  
+  console.log("🚀 sendMessage debug:", { token: !!token, uid: !!uid, email, user_id, characterSlug });
   
   if (!token || !uid || !email) {
     console.error("sendMessage: missing token, uid or email");
@@ -2562,15 +2564,11 @@ async function fetchHistory() {
   userInput.value = "";
 
   // Show typing indicator after 1 second delay
-  console.log("🚀 About to show typing indicator after 1 second delay");
   setTimeout(() => {
-    console.log("⏰ 1 second delay completed, showing typing indicator now");
-    const typingIndicator = showTypingIndicator();
-    console.log("📊 Typing indicator returned:", !!typingIndicator);
+    showTypingIndicator();
   }, 1000);
 
   try {
-    // FIXED: Include user_id in the request payload
     const requestPayload = {
       action: "send_message",
       text: input,
@@ -2579,10 +2577,10 @@ async function fetchHistory() {
       user_uid: uid,
       user_token: token,
       user_email: email,
-      user_id: user_id || null // ← user_id toevoegen
+      user_id: user_id || "34" // ← FALLBACK: gebruik een vaste user_id voor test
     };
     
-    console.log("📤 sendMessage payload:", requestPayload);
+    console.log("📤 sendMessage FULL payload:", requestPayload);
 
     const response = await fetch(newWebhookUrl, {
       method: "POST",
@@ -2590,17 +2588,15 @@ async function fetchHistory() {
       body: JSON.stringify(requestPayload)
     });
 
-    if (!response.ok) {
-      console.error("sendMessage → response.ok false:", response.status, response.statusText);
-      throw new Error(`Server returned status ${response.status}`);
-    }
+    console.log("📨 sendMessage response status:", response.status, response.statusText);
 
     const rawText = await response.text();
-    console.log("Chat response raw:", rawText);
+    console.log("📄 sendMessage raw response:", rawText);
 
     let data;
     try {
       data = JSON.parse(rawText);
+      console.log("✅ sendMessage parsed response:", data);
     } catch (e) {
       console.warn("JSON parse error, using fallback:", e);
       data = { 
@@ -2608,7 +2604,6 @@ async function fetchHistory() {
         reply: "Whoopsie! 🙈 I just had a bit of a brain fart (do AIs have brains?). Let's pretend that never happened and try again!" 
       };
     }
-    console.log("Chat response:", data);
 
     if (!data.success) {
       throw new Error("Chat request failed");
@@ -2616,13 +2611,8 @@ async function fetchHistory() {
 
     const reply = data.reply || "⚠️ No reply received.";
 
-    // Wait for 1 second before showing the response to make it more realistic
-    console.log("⏳ Waiting 1 second before showing response...");
+    // Wait and show response
     await new Promise(resolve => setTimeout(resolve, 1000));
-    console.log("⏰ 1 second wait completed");
-
-    // Hide typing indicator and show the actual response
-    console.log("🎯 About to hide typing indicator and show response");
     hideTypingIndicator();
 
     const divBot = document.createElement("p");
@@ -2632,13 +2622,8 @@ async function fetchHistory() {
     chatlog.scrollTop = chatlog.scrollHeight;
     
   } catch (err) {
-    console.error("sendMessage → Error:", err);
-    
-    // Hide typing indicator on error
-    console.log("❌ Error occurred, hiding typing indicator");
+    console.error("❌ sendMessage Error:", err);
     hideTypingIndicator();
-    
-    showError("Failed to send your message. Please check your connection and try again.", "Message Send Failed");
     
     const divErr = document.createElement("p");
     divErr.innerHTML = `<strong>${currentCharacter?.name || 'Character'}:</strong> ⚠️ Something went wrong while sending.`;
@@ -2649,7 +2634,6 @@ async function fetchHistory() {
     sendButton.textContent = "Send";
   }
 }
-
     // ===== DISCLAIMER TOGGLE FUNCTIONALITY =====
     document.addEventListener('DOMContentLoaded', () => {
       const disclaimerToggle = document.getElementById('disclaimerToggle');
