@@ -2383,14 +2383,8 @@ try {
   data = JSON.parse(rawText);
   console.log("✅ Parsed response:", data);
 } catch (e) {
-  console.warn("⚠️ JSON parse failed, creating manual structure:", e.message);
-  
-  // Emergency fallback - just create empty structure for now
-  data = { 
-    success: true, 
-    history: [] 
-  };
-  console.log("🔧 Using fallback empty history");
+  console.warn("⚠️ JSON parse failed:", e.message);
+  return;
 }
 
     if (!data || !data.success) {
