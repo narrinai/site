@@ -2416,9 +2416,9 @@
         data.history.forEach((record, index) => {
           console.log(`💬 Processing message ${index + 1}:`, record);
           
-          const role = record.fields?.Role;
-          const message = record.fields?.Message;
-          const createdTime = record.fields?.CreatedTime;
+          const role = record.Role || record.fields?.Role;
+const message = record.Message || record.fields?.Message;  
+const createdTime = record.CreatedTime || record.fields?.CreatedTime;
           
           if (!role || !message) {
             console.warn("⚠️ Skipping incomplete record:", record);
