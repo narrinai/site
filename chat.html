@@ -2389,8 +2389,27 @@
           data = JSON.parse(rawText);
           console.log("✅ Parsed response:", data);
         } catch (e) {
-          console.error("❌ JSON parse failed:", e, "Raw data:", rawText);
-          return;
+          console.error("❌ JSON parse failed:", e);
+          console.error("❌ Raw response (first 500 chars):", rawText.substring(0, 500));
+          console.error("❌ Raw response (full length):", rawText.length);
+          
+          // Probeer een eenvoudige fix voor malformed JSON
+          try {
+            // Soms heeft Make.com extra tekst voor/na de JSON
+            const jsonStart = rawText.indexOf('{');
+            const jsonEnd = rawText.lastIndexOf('}') + 1;
+            if (jsonStart >= 0 && jsonEnd > jsonStart) {
+              const cleanJson = rawText.substring(jsonStart, jsonEnd);
+              console.log("🔧 Trying to parse cleaned JSON:", cleanJson.substring(0, 200) + "...");
+              data = JSON.parse(cleanJson);
+              console.log("✅ Cleaned JSON parsed successfully:", data);
+            } else {
+              throw new Error("No valid JSON found in response");
+            }
+          } catch (e2) {
+            console.error("❌ Even cleaned JSON failed:", e2);
+            return;
+          }
         }
 
         if (!data.success) {
