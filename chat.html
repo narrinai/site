@@ -2420,20 +2420,24 @@
           return;
         }
 
-      if (!Array.isArray(data.history)) {
-          console.warn("⚠️ Expected data.history[] but got:", data);
-          console.warn("⚠️ data.history type:", typeof data.history);
-          console.warn("⚠️ data.history value:", data.history);
-          
-          // Als data.history geen array is, probeer het als object te behandelen
-          if (data.history && typeof data.history === 'object') {
-            // Converteer object naar array
-            data.history = Object.values(data.history);
-            console.log("🔧 Converted history object to array:", data.history);
-          } else {
-            return;
-          }
-        }
+     // De history komt binnen als genest object, niet als array
+      let history = [];
+      
+      if (Array.isArray(data.history)) {
+        // Als het al een array is, gebruik het direct
+        history = data.history;
+        console.log("✅ History is already an array");
+      } else if (data.history && typeof data.history === 'object') {
+        // Convert object values naar array - dit is ons geval!
+        history = Object.values(data.history);
+        console.log("🔧 Converted nested object to array:", history);
+      } else {
+        console.error("❌ No valid history data found");
+        return;
+      }
+      
+      // Update de data.history referentie
+      data.history = history;
 
         // Continue alleen als we geldige data hebben
         if (!data) {
