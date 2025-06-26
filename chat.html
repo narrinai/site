@@ -2416,9 +2416,10 @@
         data.history.forEach((record, index) => {
           console.log(`💬 Processing message ${index + 1}:`, record);
           
-          const role = record.Role || record.fields?.Role;
-const message = record.Message || record.fields?.Message;  
-const createdTime = record.CreatedTime || record.fields?.CreatedTime;
+         // API geeft directe properties terug, niet genest in 'fields'
+const role = record.Role;
+const message = record.Message;
+const createdTime = record.CreatedTime;
           
           if (!role || !message) {
             console.warn("⚠️ Skipping incomplete record:", record);
