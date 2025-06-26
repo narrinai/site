@@ -1493,7 +1493,7 @@
       });
     });
 
-   async function handleLogin(user) {
+    async function handleLogin(user) {
   const email = user.email;
   const uid   = user.id;
   const token = user.token.access_token;
@@ -1531,16 +1531,10 @@
       data = JSON.parse(rawText);
       console.log("Webhook1 parsed JSON:", data);
       
-      // VERBETERD: Save user_id met betere error handling
-      if (data && data.user_id) {
+      // NEW: Save user_id if available
+      if (data.user_id) {
         localStorage.setItem("user_id", data.user_id);
-        console.log("✅ Saved user_id to localStorage:", data.user_id);
-        
-        // NIEUW: Verifieer dat het echt is opgeslagen
-        const savedUserId = localStorage.getItem("user_id");
-        console.log("🔍 Verification - user_id in localStorage:", savedUserId);
-      } else {
-        console.warn("⚠️ No user_id in webhook response:", data);
+        console.log("✅ Saved user_id:", data.user_id);
       }
     } catch (e) {
       console.warn("Webhook1: response is not JSON, skipping:", e);
@@ -1556,11 +1550,7 @@
     document.readyState === "interactive" ||
     document.readyState === "complete"
   ) {
-    // VERBETERD: Wacht kort zodat user_id zeker is opgeslagen
-    setTimeout(() => {
-      console.log("🔄 Calling fetchHistory after 500ms delay");
-      fetchHistory();
-    }, 500);
+    fetchHistory();
   }
 }
 
@@ -2096,18 +2086,6 @@
       }
     }
 
-// DEBUG: Functie om localStorage status te controleren
-function debugLocalStorage() {
-  console.log("🔍 DEBUG localStorage status:");
-  console.log("- user_email:", localStorage.getItem("user_email"));
-  console.log("- user_token:", !!localStorage.getItem("user_token"));
-  console.log("- user_uid:", localStorage.getItem("user_uid"));
-  console.log("- user_id:", localStorage.getItem("user_id"));
-}
-
-// Roep deze functie aan in de browser console om status te checken
-window.debugLocalStorage = debugLocalStorage;
-
     // Enhanced click handler for navigation links
     function setupNavigationClickHandlers() {
       const loginBtn = document.getElementById('loginBtn');
@@ -2336,18 +2314,11 @@ if (isLoggedIn) {
   const token = localStorage.getItem("user_token");
   const uid   = localStorage.getItem("user_uid");
   const email = localStorage.getItem("user_email");
-  const user_id = localStorage.getItem("user_id"); // EXPLICIET ophalen
   
-  console.log("📋 User data:", { 
-    token: !!token, 
-    uid: !!uid, 
-    email, 
-    user_id: user_id, // EXPLICIET loggen
-    characterSlug 
-  });
+  console.log("📋 User data:", { token: !!token, uid: !!uid, email, characterSlug });
   
   if (!token || !uid || !characterSlug || !email) {
-    console.warn("⚠️ fetchHistory: missing basic data", { 
+    console.warn("⚠️ fetchHistory: missing data", { 
       hasToken: !!token, 
       hasUid: !!uid, 
       hasEmail: !!email,
@@ -2356,51 +2327,16 @@ if (isLoggedIn) {
     return;
   }
 
-  // NIEUW: Extra check voor user_id
-  if (!user_id) {
-    console.warn("⚠️ fetchHistory: user_id is missing, trying to get it first");
-    
-    // Probeer user_id opnieuw op te halen via de registratie webhook
-    try {
-      const res = await fetch(
-        "https://hook.eu2.make.com/03ug6qzucda4ksrkcc06nu3bu3vetj15",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            user_email: email,
-            user_uid: uid,
-            user_token: token
-          })
-        }
-      );
-
-      const rawText = await res.text();
-      const data = JSON.parse(rawText);
-      
-      if (data && data.user_id) {
-        localStorage.setItem("user_id", data.user_id);
-        console.log("✅ Retrieved and saved user_id:", data.user_id);
-      } else {
-        console.error("❌ Still no user_id available, cannot fetch history");
-        return;
-      }
-    } catch (err) {
-      console.error("❌ Failed to get user_id:", err);
-      return;
-    }
-  }
-
   console.log("🚀 Sending request to chat history webhook...");
   
   try {
-    const requestPayload = {
-      user_email: email,
-      user_uid: uid,
-      user_token: token,
-      user_id: localStorage.getItem("user_id"), // FRESH uit localStorage
-      char: characterSlug
-    };
+  const requestPayload = {
+  user_email: email,
+  user_uid: uid,
+  user_token: token,
+  user_id: localStorage.getItem("user_id"), // ← Dynamisch uit localStorage
+  char: characterSlug
+};
     
     console.log("📤 Request payload:", requestPayload);
     
