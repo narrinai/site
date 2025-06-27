@@ -2872,13 +2872,29 @@ if (selectedTags && selectedTags.length > 0) {
 }
   
   // 🔧 AVATAR URL VALIDATION FIX
-  let avatarUrl = currentAvatarUrl?.trim() || '';
-  
-  // Als avatar URL leeg is, gebruik default
-  if (!avatarUrl || avatarUrl === '') {
-    avatarUrl = "https://narrin.ai/default-avatar.png";
-    console.log('🖼️ Using default avatar URL:', avatarUrl);
+  // 🔧 AVATAR URL AUTOMATIC GENERATION
+let avatarUrl = currentAvatarUrl?.trim() || '';
+
+// Als avatar URL leeg is, genereer automatisch op basis van slug
+if (!avatarUrl || avatarUrl === '') {
+  avatarUrl = `https://narrin.ai/avatars/${characterSlug}.png`;
+  console.log('🖼️ Generated avatar URL from slug:', avatarUrl);
+} else {
+  // Valideer URL format - voeg https:// toe als het ontbreekt
+  if (!avatarUrl.match(/^https?:\/\/.+/)) {
+    avatarUrl = "https://" + avatarUrl;
+    console.log('🔗 Fixed avatar URL format:', avatarUrl);
   }
+  
+  // Extra validatie: check of URL een geldig format heeft
+  try {
+    new URL(avatarUrl);
+    console.log('✅ Avatar URL is valid:', avatarUrl);
+  } catch (urlError) {
+    console.log('⚠️ Invalid avatar URL, generating from slug:', urlError.message);
+    avatarUrl = `https://narrin.ai/avatars/${characterSlug}.png`;
+  }
+}
   
   // Valideer URL format - voeg https:// toe als het ontbreekt
   if (avatarUrl && !avatarUrl.match(/^https?:\/\/.+/)) {
