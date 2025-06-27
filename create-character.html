@@ -2999,28 +2999,40 @@ if (!avatarUrl || avatarUrl === '') {
         const identifier = data.slug || data.characterId || data.id;
         
         if (identifier) {
-          showNotification('success', 'Character Created!', 
-            'Your character has been created successfully.', 
-            [
-              {
-                text: 'View Characters',
-                type: 'secondary',
-                callback: () => window.location.href = 'index.html'
-              },
-              {
-                text: 'Start Chatting',
-                type: 'primary',
-                callback: () => window.location.href = `chat.html?character=${identifier}`
-              }
-            ]
-          );
-        } else {
-          // Fallback: show success and redirect after a delay
-          showSuccess('Your character has been created and is now available for chat!', 'Character Created');
-          setTimeout(() => {
-            window.location.href = 'index.html';
-          }, 2000);
-        }
+  showNotification('success', 'Character Created!', 
+    'Your character has been created successfully.', 
+    [
+      {
+        text: 'View Characters',
+        type: 'secondary',
+        callback: () => window.location.href = 'index.html'
+      },
+      {
+        text: 'Start Chatting',
+        type: 'primary',
+        callback: () => window.location.href = `chat.html?character=${identifier}`
+      }
+    ]
+  );
+} else {
+  // Gebruik de character slug als fallback
+  const fallbackSlug = characterSlug;
+  showNotification('success', 'Character Created!', 
+    'Your character has been created successfully.', 
+    [
+      {
+        text: 'View Characters',
+        type: 'secondary',
+        callback: () => window.location.href = 'index.html'
+      },
+      {
+        text: 'Start Chatting',
+        type: 'primary',
+        callback: () => window.location.href = `chat.html?character=${fallbackSlug}`
+      }
+    ]
+  );
+}
       } else {
         // Handle specific error cases
         if (data.error === 'User not found' || data.message?.includes('login')) {
