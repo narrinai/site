@@ -1902,27 +1902,89 @@
     });
 
     // ===== TAGS PAGE INITIALIZATION =====
-    function initializePage() {
-      console.log('🏷️ Tags page loading...');
-      
-      // Update page elements based on URL parameters
-      const urlParams = new URLSearchParams(window.location.search);
-      const tagParam = urlParams.get('tag');
-      
-      if (tagParam) {
-        // If specific tag is in URL, set it as active
-        activeTags = [tagParam];
-        document.getElementById('breadcrumb-tag').textContent = `Tag: ${tagParam}`;
-        document.getElementById('tag-title').textContent = `Characters tagged: ${tagParam}`;
-        document.getElementById('tag-description').textContent = `Discover all characters with the "${tagParam}" tag`;
-        updateTagIcon(tagParam);
-      } else {
-        document.getElementById('breadcrumb-tag').textContent = 'All Tags';
-        document.getElementById('tag-title').textContent = 'Character Tags';
-        document.getElementById('tag-description').textContent = 'Find characters by their unique tags and traits';
-        updateTagIcon();
-      }
-    }
+function initializePage() {
+  console.log('🏷️ Tags page loading...');
+  
+  // Update page elements based on URL parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const tagParam = urlParams.get('tag');
+  
+  if (tagParam) {
+    // If specific tag is in URL, set it as active
+    activeTags = [tagParam];
+    const capitalizedTag = tagParam.charAt(0).toUpperCase() + tagParam.slice(1);
+    document.getElementById('breadcrumb-tag').textContent = `Tag: ${capitalizedTag}`;
+    document.getElementById('tag-title').textContent = capitalizedTag;
+    document.getElementById('tag-description').textContent = getTagDescription(tagParam);
+    updateTagIcon(tagParam);
+  } else {
+    document.getElementById('breadcrumb-tag').textContent = 'All Tags';
+    document.getElementById('tag-title').textContent = 'Character Tags';
+    document.getElementById('tag-description').textContent = 'Find characters by their unique tags and traits';
+    updateTagIcon();
+  }
+}
+
+// ===== TAG DESCRIPTIONS =====
+function getTagDescription(tagName) {
+  const tagDescriptions = {
+    // Personality traits
+    'wise': 'Discover characters known for their wisdom, knowledge, and sage advice',
+    'funny': 'Meet characters who bring humor, wit, and laughter to every conversation',
+    'helpful': 'Chat with characters who are always ready to assist and support others',
+    'mysterious': 'Explore enigmatic characters with secrets, intrigue, and hidden depths',
+    'romantic': 'Connect with characters who embody love, passion, and romantic ideals',
+    'creative': 'Engage with imaginative characters who inspire artistic expression',
+    'leader': 'Meet natural-born leaders who command respect and inspire others',
+    'mentor': 'Learn from wise guides who share knowledge and life lessons',
+    'teacher': 'Discover educators who inspire learning and personal growth',
+    'villain': 'Encounter complex antagonists with compelling motivations',
+    'hero': 'Chat with brave champions who fight for justice and righteousness',
+    
+    // Professions & Roles
+    'scientist': 'Explore the minds of brilliant researchers and innovators',
+    'artist': 'Connect with creative souls who express beauty through their art',
+    'warrior': 'Meet fierce fighters who defend what they believe in',
+    'inventor': 'Discover ingenious minds who create solutions and innovations',
+    'writer': 'Engage with storytellers who craft worlds with their words',
+    'poet': 'Connect with lyrical souls who express emotions through verse',
+    'playwright': 'Meet theatrical minds who bring stories to life on stage',
+    'physicist': 'Explore the universe with brilliant scientific minds',
+    'politician': 'Engage with leaders who shape the course of history',
+    'activist': 'Meet passionate advocates fighting for change and justice',
+    
+    // Attributes & Qualities
+    'genius': 'Chat with extraordinarily intelligent minds throughout history',
+    'nobel': 'Meet Nobel Prize winners and other distinguished achievers',
+    'determined': 'Connect with unwavering spirits who never give up',
+    'inspiring': 'Discover characters who motivate and uplift others',
+    'adventure': 'Join bold explorers on thrilling journeys and quests',
+    'military': 'Meet strategic minds from the world of warfare and tactics',
+    'emperor': 'Chat with powerful rulers who shaped civilizations',
+    'emporer': 'Chat with powerful rulers who shaped civilizations',
+    'queen': 'Meet regal figures who ruled with grace and strength',
+    'ancient': 'Discover timeless characters from bygone eras',
+    'legendary': 'Meet mythical figures whose stories echo through time',
+    'noble': 'Connect with characters of honor, dignity, and moral courage',
+    'brave': 'Chat with fearless souls who face danger head-on',
+    'clever': 'Engage with quick-witted characters who solve problems creatively',
+    'charming': 'Meet charismatic personalities who captivate everyone they meet',
+    'powerful': 'Connect with influential figures who changed the world',
+    
+    // Categories
+    'historical': 'Journey through time with real figures from history',
+    'fictional': 'Enter the worlds of beloved literary and fictional characters',
+    'fantasy': 'Explore magical realms with mystical beings and creatures',
+    'anime': 'Connect with iconic characters from Japanese animation',
+    'gaming': 'Meet legendary heroes and characters from video games',
+    'movies': 'Chat with memorable characters from the silver screen',
+    'tv': 'Connect with beloved personalities from television',
+    'books': 'Meet unforgettable characters from literature',
+    'mythology': 'Discover gods, heroes, and legends from world mythology'
+  };
+  
+  return tagDescriptions[tagName.toLowerCase()] || `Discover amazing characters with the "${tagName}" trait`;
+}
 
     // ===== CHARACTER LOADING FUNCTIONS =====
     async function loadCharacters() {
