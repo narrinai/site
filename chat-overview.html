@@ -2681,31 +2681,18 @@ function extractAvatarUrl(chat) {
     }
 
    function formatChatDate(timestamp) {
-  if (!timestamp) return 'Nooit';
+  if (!timestamp) return 'Never';
   
   try {
     const date = new Date(timestamp);
-    const now = new Date();
-    const diffTime = Math.abs(now - date);
-    const diffMinutes = Math.floor(diffTime / (1000 * 60));
-    const diffHours = Math.floor(diffMinutes / 60);
-    const diffDays = Math.floor(diffHours / 24);
-    
-    if (diffMinutes < 1) return 'Zojuist';
-    if (diffMinutes < 60) return `${diffMinutes} minuten geleden`;
-    if (diffHours < 24) return `${diffHours} uur geleden`;
-    if (diffDays === 1) return 'Gisteren';
-    if (diffDays < 7) return `${diffDays} dagen geleden`;
-    if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weken geleden`;
-    
-    return date.toLocaleDateString('nl-NL', { 
-      day: 'numeric',
-      month: 'short',
-      year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+    return date.toLocaleDateString('en-GB', { 
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
     });
   } catch (e) {
     console.error('Date formatting error:', e);
-    return timestamp.toString();
+    return 'Unknown';
   }
 }
 
