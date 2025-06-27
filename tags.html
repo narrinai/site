@@ -1026,33 +1026,7 @@
       }
     }
 
-    /* Search Section */
-    .search-section {
-      padding: 30px 20px;
-      background: #ffffff;
-      border-bottom: 1px solid #f0f0f0;
-    }
-
-    .search-container {
-      max-width: 600px;
-      margin: 0 auto;
-      position: relative;
-    }
-
-    .search-input {
-      width: 100%;
-      padding: 12px 16px;
-      font-size: 16px;
-      border: 2px solid #e0e0e0;
-      border-radius: 8px;
-      box-sizing: border-box;
-      transition: border-color 0.2s ease;
-    }
-
-    .search-input:focus {
-      border-color: var(--color-teal);
-      box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
-    }
+   
 
     /* Content */
     .content {
@@ -1628,12 +1602,7 @@
     </div>
   </nav>
 
-  <!-- Search Section -->
-  <section class="search-section">
-    <div class="search-container">
-      <input type="text" class="search-input" placeholder="Search characters..." id="searchInput">
-    </div>
-  </section>
+ 
 
   <!-- Content -->
   <div class="content">
@@ -2234,62 +2203,45 @@ function getTagDescription(tagName) {
 
     // ===== SEARCH FUNCTIONALITY =====
     function setupEventListeners() {
-      // Search functionality for main search input
-      const searchInput = document.getElementById('searchInput');
-      if (searchInput) {
-        searchInput.addEventListener('input', function(e) {
-          const searchTerm = e.target.value.toLowerCase();
-          filterCharacters(searchTerm);
-        });
-      }
+  // Search functionality for navigation search input
+  const navSearchInput = document.getElementById('navSearchInput');
+  if (navSearchInput) {
+    navSearchInput.addEventListener('input', function(e) {
+      const searchTerm = e.target.value.toLowerCase();
+      filterCharacters(searchTerm);
+    });
+  }
 
-      // Search functionality for navigation search input
+  // Mobile search functionality
+  const mobileSearchInput = document.getElementById('mobileSearchInput');
+  if (mobileSearchInput) {
+    mobileSearchInput.addEventListener('input', function(e) {
+      const searchTerm = e.target.value.toLowerCase();
       const navSearchInput = document.getElementById('navSearchInput');
+      
       if (navSearchInput) {
-        navSearchInput.addEventListener('input', function(e) {
-          const searchTerm = e.target.value.toLowerCase();
-          const mainSearchInput = document.getElementById('searchInput');
-          if (mainSearchInput) {
-            mainSearchInput.value = e.target.value;
-          }
-          filterCharacters(searchTerm);
-        });
+        navSearchInput.value = e.target.value;
       }
+      filterCharacters(searchTerm);
+    });
+  }
 
-      // Mobile search functionality
-      const mobileSearchInput = document.getElementById('mobileSearchInput');
-      if (mobileSearchInput) {
-        mobileSearchInput.addEventListener('input', function(e) {
-          const searchTerm = e.target.value.toLowerCase();
-          const mainSearchInput = document.getElementById('searchInput');
-          const navSearchInput = document.getElementById('navSearchInput');
-          
-          if (mainSearchInput) {
-            mainSearchInput.value = e.target.value;
-          }
-          if (navSearchInput) {
-            navSearchInput.value = e.target.value;
-          }
-          filterCharacters(searchTerm);
-        });
-      }
+  // Prevent search form submissions
+  const navSearchForm = document.querySelector('.nav-search');
+  if (navSearchForm) {
+    navSearchForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+    });
+  }
 
-      // Prevent search form submissions
-      const navSearchForm = document.querySelector('.nav-search');
-      if (navSearchForm) {
-        navSearchForm.addEventListener('submit', function(e) {
-          e.preventDefault();
-        });
-      }
-
-      const mobileSearchForm = document.querySelector('.mobile-search-form');
-      if (mobileSearchForm) {
-        mobileSearchForm.addEventListener('submit', function(e) {
-          e.preventDefault();
-          toggleMobileSearch();
-        });
-      }
-    }
+  const mobileSearchForm = document.querySelector('.mobile-search-form');
+  if (mobileSearchForm) {
+    mobileSearchForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      toggleMobileSearch();
+    });
+  }
+}
 
     function filterCharacters(searchTerm) {
       // First apply tag filters
