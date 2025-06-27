@@ -1057,45 +1057,73 @@
       transform: translateY(-2px);
     }
 
-    /* Mobile Adjustments */
-    @media (max-width: 768px) {
-      .hero {
-        padding: var(--spacing-xl) var(--spacing-md) var(--spacing-md);
-      }
+   /* Mobile category navigation improvements */
+@media (max-width: 768px) {
+  .hero {
+    padding: var(--spacing-xl) var(--spacing-md) var(--spacing-md);
+  }
 
-      .content {
-        padding: var(--spacing-sm) var(--spacing-md) var(--spacing-xl);
-      }
+  .content {
+    padding: var(--spacing-sm) var(--spacing-md) var(--spacing-xl);
+  }
 
-      .category-nav {
-        margin-bottom: var(--spacing-sm);
-      }
+  .category-nav {
+    margin-bottom: var(--spacing-sm);
+  }
 
-      .filters-container {
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: var(--spacing-xs);
-        overflow-x: visible;
-      }
+  .filters-container {
+    overflow-x: auto;
+    overflow-y: visible;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    padding: 0 var(--spacing-md);
+    gap: var(--spacing-xs);
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-gray-light) transparent;
+  }
 
-      .filter-section {
-        gap: var(--spacing-xs);
-      }
+  .filters-container::-webkit-scrollbar {
+    height: 4px;
+  }
 
-      .category-buttons,
-      .tags-container {
-        gap: var(--spacing-xs);
-      }
+  .filters-container::-webkit-scrollbar-track {
+    background: transparent;
+  }
 
-      .character-card {
-        min-width: 200px;
-      }
+  .filters-container::-webkit-scrollbar-thumb {
+    background: var(--color-gray-light);
+    border-radius: var(--radius-full);
+  }
 
-      .character-avatar {
-        width: 140px;
-        height: 140px;
-      }
-    }
+  .filter-section {
+    gap: var(--spacing-xs);
+  }
+
+  .category-buttons,
+  .tags-container {
+    display: flex;
+    gap: var(--spacing-xs);
+    flex-shrink: 0;
+  }
+
+  .category-btn,
+  .tag-btn {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-xs);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .character-card {
+    min-width: 200px;
+  }
+
+  .character-avatar {
+    width: 140px;
+    height: 140px;
+  }
+}
 
     /* ===== FOOTER ===== */
     .footer {
@@ -1464,15 +1492,22 @@ body.has-referral-banner {
       // CHANGED: Maximum characters per category on homepage for faster loading
       MAX_CHARACTERS_PER_CATEGORY: 10,
       CATEGORIES: [
-        { id: 'historical', name: 'Historical', title: 'Historical Figures' },
-        { id: 'fictional', name: 'Fiction', title: 'Fictional Characters' },
-        { id: 'celebrity', name: 'Celebrities', title: 'Celebrities' },
-        { id: 'anime-manga', name: 'Anime & Manga', title: 'Anime & Manga' },
-        { id: 'gaming', name: 'Gaming', title: 'Gaming Characters' },
-        { id: 'movies-tv', name: 'Movies & TV', title: 'Movies & TV' },
-        { id: 'books', name: 'Books', title: 'Book Characters' },
-        { id: 'mythology', name: 'Mythology', title: 'Mythological Figures' }
-      ],
+  { id: 'historical', name: 'Historical', title: 'Historical Figures' },
+  { id: 'fictional', name: 'Fiction', title: 'Fictional Characters' },
+  { id: 'celebrity', name: 'Celebrities', title: 'Celebrities' },
+  { id: 'anime-manga', name: 'Anime & Manga', title: 'Anime & Manga' },
+  { id: 'gaming', name: 'Gaming', title: 'Gaming Characters' },
+  { id: 'movies-tv', name: 'Movies & TV', title: 'Movies & TV' },
+  { id: 'books', name: 'Books', title: 'Book Characters' },
+  { id: 'mythology', name: 'Mythology', title: 'Mythological Figures' },
+  { id: 'career-coach', name: 'Career Coach', title: 'Career Coaches' },
+  { id: 'creativity-coach', name: 'Creativity Coach', title: 'Creativity Coaches' },
+  { id: 'fitness-coach', name: 'Fitness Coach', title: 'Fitness Coaches' },
+  { id: 'mindfulness-coach', name: 'Mindfulness Coach', title: 'Mindfulness Coaches' },
+  { id: 'cooking-coach', name: 'Cooking Coach', title: 'Cooking Coaches' },
+  { id: 'business-coach', name: 'Business Coach', title: 'Business Coaches' },
+  { id: 'relationship-coach', name: 'Relationship Coach', title: 'Relationship Coaches' }
+],
       TAGS: [
         'wise', 'funny', 'helpful', 'mysterious', 'leader', 
         'creative', 'romantic', 'adventure', 'teacher', 'mentor',
@@ -1593,23 +1628,26 @@ body.has-referral-banner {
       }
     }
 
-    function handleResize() {
-      if (window.innerWidth > 768) {
-        stopUspCarousel();
-        if (uspTrack) {
-          uspTrack.style.transform = '';
-        }
-        if (mobileSearchOverlay?.classList.contains('active')) {
-          mobileSearchOverlay.classList.remove('active');
-          mobileSearchBtn?.setAttribute('aria-expanded', 'false');
-        }
-        if (mobileMenuOverlay?.classList.contains('active')) {
-          closeMobileMenu();
-        }
-      } else {
-        startUspCarousel();
-      }
+   function handleResize() {
+  if (window.innerWidth > 768) {
+    stopUspCarousel();
+    if (uspTrack) {
+      uspTrack.style.transform = '';
     }
+    if (mobileSearchOverlay?.classList.contains('active')) {
+      mobileSearchOverlay.classList.remove('active');
+      mobileSearchBtn?.setAttribute('aria-expanded', 'false');
+    }
+    if (mobileMenuOverlay?.classList.contains('active')) {
+      closeMobileMenu();
+    }
+  } else {
+    startUspCarousel();
+  }
+  
+  // Regenerate category buttons for new screen size
+  generateCategoryButtons();
+}
 
     window.addEventListener('load', () => {
       handleResize();
@@ -1639,19 +1677,33 @@ body.has-referral-banner {
 
     // ===== DYNAMIC CONTENT GENERATION =====
 
-    // Generate category buttons
-    function generateCategoryButtons() {
-      const categoryButtons = document.getElementById('categoryButtons');
-      categoryButtons.innerHTML = '';
+   // Generate category buttons - Show first 8 on mobile, all on desktop
+function generateCategoryButtons() {
+  const categoryButtons = document.getElementById('categoryButtons');
+  categoryButtons.innerHTML = '';
 
-      CONFIG.CATEGORIES.forEach(category => {
-        const button = document.createElement('a');
-        button.href = `category.html?cat=${category.id}`;
-        button.className = 'category-btn';
-        button.textContent = category.name;
-        categoryButtons.appendChild(button);
-      });
-    }
+  // Determine how many to show based on screen size
+  const isMobile = window.innerWidth <= 768;
+  const categoriesToShow = isMobile ? CONFIG.CATEGORIES.slice(0, 8) : CONFIG.CATEGORIES;
+
+  categoriesToShow.forEach(category => {
+    const button = document.createElement('a');
+    button.href = `category.html?cat=${category.id}`;
+    button.className = 'category-btn';
+    button.textContent = category.name;
+    categoryButtons.appendChild(button);
+  });
+
+  // Add "More..." button on mobile if there are more categories
+  if (isMobile && CONFIG.CATEGORIES.length > 8) {
+    const moreButton = document.createElement('a');
+    moreButton.href = 'category.html';
+    moreButton.className = 'category-btn';
+    moreButton.style.background = 'var(--color-gray)';
+    moreButton.textContent = `+${CONFIG.CATEGORIES.length - 8} More...`;
+    categoryButtons.appendChild(moreButton);
+  }
+}
 
     // Generate tag buttons
     function generateTagButtons() {
