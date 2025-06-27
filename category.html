@@ -1954,38 +1954,50 @@
     }
 
     // ===== SEARCH FUNCTIONALITY =====
-    function setupEventListeners() {
-      // No main search input on category page - only nav search
-      document.getElementById('searchInput').addEventListener('input', function(e) {
-        const searchTerm = e.target.value.toLowerCase();
-        filterCharacters(searchTerm);
-      });
+    // ===== SEARCH FUNCTIONALITY =====
+function setupEventListeners() {
+  // Search functionality for navigation search input
+  const navSearchInput = document.getElementById('navSearchInput');
+  if (navSearchInput) {
+    navSearchInput.addEventListener('input', function(e) {
+      const searchTerm = e.target.value.toLowerCase();
+      const mobileSearchInput = document.getElementById('mobileSearchInput');
+      if (mobileSearchInput) {
+        mobileSearchInput.value = e.target.value;
+      }
+      filterCharacters(searchTerm);
+    });
+  }
 
-      // Search functionality for navigation search input
-      document.getElementById('navSearchInput').addEventListener('input', function(e) {
-        const searchTerm = e.target.value.toLowerCase();
-        document.getElementById('searchInput').value = e.target.value;
-        filterCharacters(searchTerm);
-      });
+  // Mobile search functionality
+  const mobileSearchInput = document.getElementById('mobileSearchInput');
+  if (mobileSearchInput) {
+    mobileSearchInput.addEventListener('input', function(e) {
+      const searchTerm = e.target.value.toLowerCase();
+      const navSearchInput = document.getElementById('navSearchInput');
+      if (navSearchInput) {
+        navSearchInput.value = e.target.value;
+      }
+      filterCharacters(searchTerm);
+    });
+  }
 
-      // Mobile search functionality
-      document.getElementById('mobileSearchInput').addEventListener('input', function(e) {
-        const searchTerm = e.target.value.toLowerCase();
-        document.getElementById('searchInput').value = e.target.value;
-        document.getElementById('navSearchInput').value = e.target.value;
-        filterCharacters(searchTerm);
-      });
+  // Prevent search form submissions
+  const navSearchForm = document.querySelector('.nav-search');
+  if (navSearchForm) {
+    navSearchForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+    });
+  }
 
-      // Prevent search form submissions
-      document.querySelector('.nav-search').addEventListener('submit', function(e) {
-        e.preventDefault();
-      });
-
-      document.querySelector('.mobile-search-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        toggleMobileSearch();
-      });
-    }
+  const mobileSearchForm = document.querySelector('.mobile-search-form');
+  if (mobileSearchForm) {
+    mobileSearchForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      toggleMobileSearch();
+    });
+  }
+}
 
     function filterCharacters(searchTerm) {
       if (!searchTerm) {
