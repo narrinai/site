@@ -2836,10 +2836,11 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
    }
 
 // 🔧 CLOUDINARY AVATAR UPLOAD FUNCTION
+// Vervang rond regel 1095 deze sectie:
 async function uploadToCloudinary(file, slug) {
   const formData = new FormData();
   formData.append('file', file);
-  formData.append('upload_preset', 'ml_default');
+  formData.append('upload_preset', 'ml_default'); // ✅ Klopt dit preset?
   formData.append('public_id', `avatars/${slug}`);
   formData.append('quality', 'auto');
   formData.append('fetch_format', 'auto');
@@ -2850,7 +2851,9 @@ async function uploadToCloudinary(file, slug) {
   });
   
   if (!response.ok) {
-    throw new Error('Cloudinary upload failed');
+    const errorData = await response.json();
+    console.error('Cloudinary error:', errorData);
+    throw new Error(`Cloudinary upload failed: ${errorData.error?.message || response.statusText}`);
   }
   
   const result = await response.json();
@@ -2907,10 +2910,12 @@ if (avatarMethod === 'upload' && document.getElementById('avatarFileInput').file
     const file = document.getElementById('avatarFileInput').files[0];
     avatarUrl = await uploadToCloudinary(file, characterSlug);
     console.log('🖼️ Cloudinary avatar URL:', avatarUrl);
-  } catch (uploadError) {
-    console.log('⚠️ Cloudinary upload failed, using default:', uploadError.message);
-    avatarUrl = "https://narrin.ai/default-avatar.png";
-  }
+  // Voeg toe na regel 1100 voor betere error feedback:
+} catch (uploadError) {
+  console.log('⚠️ Cloudinary upload failed:', uploadError.message);
+  showWarning('Avatar upload failed. Using default avatar instead.', 'Upload Warning');
+  avatarUrl = "https://narrin.ai/default-avatar.png";
+}
 } else if (avatarMethod === 'url' && currentAvatarUrl?.trim()) {
   // Use provided URL
   avatarUrl = currentAvatarUrl.trim();
