@@ -2835,6 +2835,28 @@ You are Napoleon Bonaparte, the famous French Emperor. You speak with confidence
      document.getElementById('previewSection').style.display = hasContent ? 'block' : 'none';
    }
 
+// 🔧 CLOUDINARY AVATAR UPLOAD FUNCTION
+async function uploadToCloudinary(file, slug) {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', 'ml_default');
+  formData.append('public_id', `avatars/${slug}`);
+  formData.append('quality', 'auto');
+  formData.append('fetch_format', 'auto');
+  
+  const response = await fetch('https://api.cloudinary.com/v1_1/dqrmopzes/image/upload', {
+    method: 'POST',
+    body: formData
+  });
+  
+  if (!response.ok) {
+    throw new Error('Cloudinary upload failed');
+  }
+  
+  const result = await response.json();
+  return result.secure_url;
+}
+
   // Form submission - GEFIXT EN GEOPTIMALISEERD + AVATAR URL VALIDATION
 document.getElementById('characterForm').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -2874,28 +2896,38 @@ if (selectedTags && selectedTags.length > 0) {
 }
   
   // 🔧 AVATAR URL VALIDATION FIX
-  // 🔧 AVATAR URL AUTOMATIC GENERATION
-let avatarUrl = currentAvatarUrl?.trim() || '';
+ // 🔧 CLOUDINARY AVATAR HANDLING
+let avatarUrl = '';
+const avatarMethod = document.querySelector('input[name="avatarMethod"]:checked').value;
 
-// Als avatar URL leeg is, genereer automatisch op basis van slug
-if (!avatarUrl || avatarUrl === '') {
-  avatarUrl = `https://narrin.ai/avatars/${characterSlug}.png`;
-  console.log('🖼️ Generated avatar URL from slug:', avatarUrl);
-} else {
-  // Valideer URL format - voeg https:// toe als het ontbreekt
+if (avatarMethod === 'upload' && document.getElementById('avatarFileInput').files[0]) {
+  // Upload to Cloudinary
+  try {
+    console.log('📤 Uploading avatar to Cloudinary...');
+    const file = document.getElementById('avatarFileInput').files[0];
+    avatarUrl = await uploadToCloudinary(file, characterSlug);
+    console.log('🖼️ Cloudinary avatar URL:', avatarUrl);
+  } catch (uploadError) {
+    console.log('⚠️ Cloudinary upload failed, using default:', uploadError.message);
+    avatarUrl = "https://narrin.ai/default-avatar.png";
+  }
+} else if (avatarMethod === 'url' && currentAvatarUrl?.trim()) {
+  // Use provided URL
+  avatarUrl = currentAvatarUrl.trim();
   if (!avatarUrl.match(/^https?:\/\/.+/)) {
     avatarUrl = "https://" + avatarUrl;
-    console.log('🔗 Fixed avatar URL format:', avatarUrl);
   }
-  
-  // Extra validatie: check of URL een geldig format heeft
   try {
     new URL(avatarUrl);
     console.log('✅ Avatar URL is valid:', avatarUrl);
   } catch (urlError) {
-    console.log('⚠️ Invalid avatar URL, generating from slug:', urlError.message);
-    avatarUrl = `https://narrin.ai/avatars/${characterSlug}.png`;
+    console.log('⚠️ Invalid avatar URL, using default:', urlError.message);
+    avatarUrl = "https://narrin.ai/default-avatar.png";
   }
+} else {
+  // No avatar provided, use default
+  avatarUrl = "https://narrin.ai/default-avatar.png";
+  console.log('🖼️ Using default avatar URL:', avatarUrl);
 }
   
   // Valideer URL format - voeg https:// toe als het ontbreekt
