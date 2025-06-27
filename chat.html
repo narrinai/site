@@ -1462,10 +1462,223 @@
         width: 100%;
       }
     }
+
+/* ===== UPGRADE OVERLAY STYLES ===== */
+.upgrade-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(30, 41, 59, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 999999999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all var(--transition-base);
+}
+
+.upgrade-overlay.active {
+  display: flex;
+  opacity: 1;
+}
+
+.upgrade-modal {
+  background: var(--color-white);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-3xl);
+  box-shadow: var(--shadow-xl);
+  max-width: 90vw;
+  width: 100%;
+  max-width: 480px;
+  transform: scale(0.9) translateY(20px);
+  transition: all var(--transition-base);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.upgrade-overlay.active .upgrade-modal {
+  transform: scale(1) translateY(0);
+}
+
+.upgrade-modal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--gradient-primary);
+}
+
+.upgrade-header {
+  margin-bottom: var(--spacing-xl);
+}
+
+.upgrade-icon {
+  font-size: var(--font-size-4xl);
+  margin-bottom: var(--spacing-md);
+  display: block;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+}
+
+.upgrade-title {
+  font-family: var(--font-secondary);
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-navy);
+  margin: 0 0 var(--spacing-sm) 0;
+  letter-spacing: -0.01em;
+}
+
+.upgrade-subtitle {
+  color: var(--color-gray);
+  font-size: var(--font-size-base);
+  margin: 0 0 var(--spacing-xl) 0;
+  line-height: 1.5;
+}
+
+.upgrade-benefits {
+  background: var(--color-off-white);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  margin-bottom: var(--spacing-xl);
+  text-align: left;
+}
+
+.benefit-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-navy);
+}
+
+.benefit-item:last-child {
+  margin-bottom: 0;
+}
+
+.benefit-icon {
+  width: 24px;
+  height: 24px;
+  background: var(--gradient-primary);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: var(--spacing-sm);
+  flex-shrink: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-white);
+}
+
+.benefit-text {
+  flex: 1;
+  line-height: 1.4;
+}
+
+.upgrade-pricing {
+  margin-bottom: var(--spacing-xl);
+}
+
+.price-tag {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  background: var(--gradient-primary);
+  color: var(--color-white);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-full);
+  font-weight: 700;
+  box-shadow: var(--shadow-colored);
+}
+
+.currency {
+  font-size: var(--font-size-sm);
+}
+
+.amount {
+  font-size: var(--font-size-2xl);
+  font-family: var(--font-secondary);
+}
+
+.period {
+  font-size: var(--font-size-sm);
+  opacity: 0.9;
+}
+
+.upgrade-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.upgrade-btn {
+  padding: var(--spacing-md) var(--spacing-xl);
+  border: none;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  font-family: var(--font-primary);
+  position: relative;
+  overflow: hidden;
+}
+
+.upgrade-btn.primary {
+  background: var(--gradient-primary);
+  color: var(--color-white);
+  box-shadow: var(--shadow-colored);
+}
+
+.upgrade-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl);
+}
+
+.upgrade-btn.primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.upgrade-btn.secondary {
+  background: var(--color-white);
+  color: var(--color-gray);
+  border: 2px solid var(--color-light-gray);
+}
+
+.upgrade-btn.secondary:hover {
+  border-color: var(--color-teal);
+  color: var(--color-teal);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .upgrade-modal {
+    margin: var(--spacing-lg);
+    padding: var(--spacing-2xl);
+    max-width: none;
+  }
+  
+  .upgrade-title {
+    font-size: var(--font-size-xl);
+  }
+}
+
   </style>
 
   <!-- Netlify Identity Widget -->
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+
+<!-- Stripe.js for upgrade functionality -->
+<script src="https://js.stripe.com/v3/"></script>
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
@@ -2166,9 +2379,12 @@
     }
 
     // Initialize login button on page load
-    document.addEventListener('DOMContentLoaded', () => {
-      // Update immediately on page load
-      updateLoginButton();
+document.addEventListener('DOMContentLoaded', () => {
+  // Check upgrade status
+  checkUpgradeStatus();
+  
+  // Update immediately on page load
+  updateLoginButton();
       
       // Set up click handlers
       setupNavigationClickHandlers();
@@ -2301,25 +2517,31 @@
     }
 
     // ===== CHAT FUNCTIONALITY =====
-    function handleSendClick(event) {
-      if (!currentCharacter) {
-        showWarning("Please wait while the character loads...", "Character Loading");
-        return;
-      }
-      
-      const token = localStorage.getItem("user_token");
-      const uid = localStorage.getItem("user_uid");
-      const email = localStorage.getItem("user_email");
-      const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
-      
-      if ((token && uid && email) || netlifyUser) {
-        sendMessage(event);
-        return;
-      }
-      
-      localStorage.setItem('login_redirect_url', window.location.href);
-      window.location.href = 'profile.html';
-    }
+    async function handleSendClick(event) {
+  if (!currentCharacter) {
+    showWarning("Please wait while the character loads...", "Character Loading");
+    return;
+  }
+  
+  const token = localStorage.getItem("user_token");
+  const uid = localStorage.getItem("user_uid");
+  const email = localStorage.getItem("user_email");
+  const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+  
+  if (!((token && uid && email) || netlifyUser)) {
+    localStorage.setItem('login_redirect_url', window.location.href);
+    window.location.href = 'profile.html';
+    return;
+  }
+
+  // Check usage limit before sending message
+  const canSend = await checkUsageLimit();
+  if (!canSend) {
+    return; // Usage limit reached, upgrade prompt already shown
+  }
+  
+  sendMessage(event);
+}
 
  async function fetchHistory() {
   console.log("🚨 ULTRA ROBUST VERSION: fetchHistory() aangeroepen");
@@ -2741,6 +2963,212 @@
         });
       }
     });
+
+// ===== USAGE LIMIT CHECK =====
+async function checkUsageLimit() {
+  const token = localStorage.getItem("user_token");
+  const uid = localStorage.getItem("user_uid");
+  const email = localStorage.getItem("user_email");
+  
+  if (!token || !uid || !email) {
+    return false;
+  }
+
+  try {
+    console.log('🔍 Checking usage limit for:', email);
+    
+    const payload = {
+      user_email: email,
+      user_uid: uid,
+      user_token: token,
+      action: 'get_profile'
+    };
+
+    const resp = await fetch('https://hook.eu2.make.com/lya166veex7oo2wwo8mx4fuhlkssxlog', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!resp.ok) {
+      console.warn('⚠️ Could not check usage limit, allowing message');
+      return true;
+    }
+
+    const responseText = await resp.text();
+    let data;
+
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      console.warn('⚠️ Could not parse usage response, allowing message');
+      return true;
+    }
+
+    const plan = data.plan || 'Free';
+    const usage = parseInt(data.usage) || 0;
+    const quota = parseInt(data.quota) || 100;
+
+    console.log('📊 Usage check:', { plan, usage, quota });
+
+    // If premium user, always allow
+    if (plan.toLowerCase() === 'premium' || plan.toLowerCase() === 'pro' || plan.toLowerCase() === 'paid') {
+      console.log('✅ Premium user - unlimited messages');
+      return true;
+    }
+
+    // If usage >= quota, show upgrade prompt
+    if (usage >= quota) {
+      console.log('🚫 Usage limit reached');
+      showUpgradePrompt(usage, quota);
+      return false;
+    }
+
+    console.log('✅ Usage within limit');
+    return true;
+
+  } catch (error) {
+    console.error('❌ Error checking usage limit:', error);
+    return true;
+  }
+}
+
+// ===== UPGRADE PROMPT =====
+function showUpgradePrompt(usage, quota) {
+  let upgradeOverlay = document.getElementById('upgradeOverlay');
+  
+  if (!upgradeOverlay) {
+    upgradeOverlay = document.createElement('div');
+    upgradeOverlay.id = 'upgradeOverlay';
+    upgradeOverlay.className = 'upgrade-overlay';
+    upgradeOverlay.innerHTML = `
+      <div class="upgrade-modal">
+        <div class="upgrade-header">
+          <div class="upgrade-icon">💎</div>
+          <h3 class="upgrade-title">Message Limit Reached</h3>
+          <p class="upgrade-subtitle">You've used all ${quota} of your free messages this month</p>
+        </div>
+        
+        <div class="upgrade-benefits">
+          <div class="benefit-item">
+            <span class="benefit-icon">✨</span>
+            <span class="benefit-text">Unlimited messages</span>
+          </div>
+          <div class="benefit-item">
+            <span class="benefit-icon">🧠</span>
+            <span class="benefit-text">Extended character memory</span>
+          </div>
+          <div class="benefit-item">
+            <span class="benefit-icon">🎯</span>
+            <span class="benefit-text">Early access to new features</span>
+          </div>
+          <div class="benefit-item">
+            <span class="benefit-icon">👑</span>
+            <span class="benefit-text">Priority support</span>
+          </div>
+        </div>
+
+        <div class="upgrade-pricing">
+          <div class="price-tag">
+            <span class="currency">€</span>
+            <span class="amount">7.99</span>
+            <span class="period">/month</span>
+          </div>
+        </div>
+
+        <div class="upgrade-buttons">
+          <button class="upgrade-btn primary" onclick="handleUpgradeFromChat()">
+            Upgrade to Premium
+          </button>
+          <button class="upgrade-btn secondary" onclick="closeUpgradePrompt()">
+            Maybe Later
+          </button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(upgradeOverlay);
+  }
+  
+  upgradeOverlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeUpgradePrompt() {
+  const upgradeOverlay = document.getElementById('upgradeOverlay');
+  if (upgradeOverlay) {
+    upgradeOverlay.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+}
+
+// ===== STRIPE UPGRADE FROM CHAT =====
+async function handleUpgradeFromChat() {
+  console.log('🚀 Upgrade from chat clicked');
+  
+  const email = localStorage.getItem('user_email');
+  const uid = localStorage.getItem('user_uid');
+  
+  if (!email || !uid) {
+    showError('Please log in to upgrade your account');
+    return;
+  }
+  
+  try {
+    const stripe = Stripe('pk_live_jz2dXpzmEDUahXkKkyUe36Zt');
+    const PRICE_ID = 'price_1Rc9oTDU567HpUYxl1sLu71A';
+    
+    const upgradeButton = document.querySelector('.upgrade-btn.primary');
+    const originalText = upgradeButton.innerHTML;
+    upgradeButton.innerHTML = 'Processing...';
+    upgradeButton.disabled = true;
+    
+    console.log('📡 Redirecting to Stripe Checkout...');
+    
+    const { error } = await stripe.redirectToCheckout({
+      lineItems: [{
+        price: PRICE_ID,
+        quantity: 1,
+      }],
+      mode: 'subscription',
+      successUrl: `${window.location.origin}/chat.html?char=${characterSlug}&upgrade=success`,
+      cancelUrl: `${window.location.origin}/chat.html?char=${characterSlug}&upgrade=cancelled`,
+      customerEmail: email,
+      clientReferenceId: uid,
+    });
+    
+    if (error) {
+      throw new Error(error.message);
+    }
+    
+  } catch (error) {
+    console.error('❌ Error processing upgrade:', error);
+    showError(`Upgrade error: ${error.message}`);
+    
+    const upgradeButton = document.querySelector('.upgrade-btn.primary');
+    if (upgradeButton) {
+      upgradeButton.innerHTML = 'Upgrade to Premium';
+      upgradeButton.disabled = false;
+    }
+  }
+}
+
+// Check upgrade status on page load
+function checkUpgradeStatus() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const upgradeStatus = urlParams.get('upgrade');
+  
+  if (upgradeStatus === 'success') {
+    showSuccess('🎉 Upgrade successful! You now have unlimited messages!');
+    const newUrl = window.location.pathname + '?char=' + characterSlug;
+    window.history.replaceState({}, document.title, newUrl);
+  } else if (upgradeStatus === 'cancelled') {
+    showWarning('Upgrade was cancelled. You can try again anytime.');
+    const newUrl = window.location.pathname + '?char=' + characterSlug;
+    window.history.replaceState({}, document.title, newUrl);
+  }
+}
+
   </script>
 
   <!-- Footer -->
