@@ -2474,17 +2474,9 @@ line-clamp: 3;
         // VERBETERDE DATA PROCESSING
         let rawChats = [];
         
-       // Ondersteuning voor Array Aggregator format
+      // Array Aggregator format met alle character data
 if (data.chats && Array.isArray(data.chats)) {
-  rawChats = data.chats.map(chat => ({
-    // Map de basis velden van Array Aggregator
-    character_name: chat.Name || 'Unknown Character',
-    character_slug: (chat.Name || '').toLowerCase().replace(/\s+/g, '-'),
-    last_message: 'Continue your conversation...',
-    last_message_date: chat.CreatedTime,
-    message_count: 1,
-    record_id: chat.ID
-  }));
+  rawChats = data.chats; // Gebruik direct de Array Aggregator data
 } else if (data.data && Array.isArray(data.data)) {
   rawChats = data.data;
 } else if (Array.isArray(data)) {
