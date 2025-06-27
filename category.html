@@ -907,6 +907,124 @@
       pointer-events: none;
     }
 
+    /* Category Navigation - Single Row */
+    .category-nav {
+      background: var(--color-white);
+      border-bottom: 1px solid var(--color-light-gray);
+      padding: var(--spacing-md) 0;
+    }
+
+    .filters-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      gap: var(--spacing-sm);
+      align-items: center;
+      padding: 0 var(--spacing-lg);
+      overflow-x: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-gray-light) transparent;
+    }
+
+    .filters-container::-webkit-scrollbar {
+      height: 4px;
+    }
+
+    .filters-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .filters-container::-webkit-scrollbar-thumb {
+      background: var(--color-gray-light);
+      border-radius: var(--radius-full);
+    }
+
+    .filter-section {
+      display: flex;
+      gap: var(--spacing-sm);
+      flex-shrink: 0;
+      align-items: center;
+    }
+
+    .category-buttons,
+    .tags-container {
+      display: flex;
+      gap: var(--spacing-sm);
+      flex-shrink: 0;
+    }
+
+    .category-btn {
+      padding: var(--spacing-xs) var(--spacing-md);
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: var(--font-size-sm);
+      border-radius: var(--radius-md);
+      transition: all var(--transition-base);
+      box-shadow: var(--shadow-colored);
+      border: none;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .tag-btn {
+      padding: var(--spacing-xs) var(--spacing-md);
+      background: var(--gradient-tags);
+      color: var(--color-white);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: var(--font-size-sm);
+      border-radius: var(--radius-md);
+      transition: all var(--transition-base);
+      box-shadow: 0 4px 15px -3px rgba(16, 163, 148, 0.3);
+      border: none;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .category-btn:hover,
+    .tag-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .category-btn.active {
+      background: var(--color-navy);
+      color: var(--color-white);
+    }
+
+    .tag-btn.active {
+      background: var(--color-teal-dark);
+      color: var(--color-white);
+    }
+
+    /* Mobile Navigation Adjustments */
+    @media (max-width: 768px) {
+      .category-nav {
+        padding: var(--spacing-sm) 0;
+      }
+
+      .filters-container {
+        padding: 0 var(--spacing-md);
+        gap: var(--spacing-sm);
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .category-buttons,
+      .tags-container {
+        gap: var(--spacing-xs);
+      }
+
+      .category-btn,
+      .tag-btn {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: var(--font-size-xs);
+      }
+    }
+
     /* Search Section */
     .search-section {
       padding: 30px 20px;
@@ -1454,6 +1572,25 @@
       <p id="category-description">Discover amazing characters in this category</p>
     </div>
   </div>
+
+  <!-- Category Navigation - Single Row -->
+  <nav class="category-nav" aria-label="Browse by category and tags">
+    <div class="filters-container">
+      <!-- Categories Section -->
+      <div class="filter-section">
+        <div class="category-buttons" id="categoryButtons">
+          <!-- Dynamic category buttons will be inserted here -->
+        </div>
+      </div>
+      
+      <!-- Tags Section -->
+      <div class="filter-section">
+        <div class="tags-container" id="tagsContainer">
+          <!-- Dynamic tag buttons will be inserted here -->
+        </div>
+      </div>
+    </div>
+  </nav>
 
   <!-- Search Section -->
   <section class="search-section">
@@ -2039,6 +2176,71 @@
       });
     }
 
+    // ===== CATEGORY NAVIGATION =====
+    function generateCategoryNavigation() {
+      const container = document.getElementById('categoryButtons');
+      if (!container) return;
+
+      container.innerHTML = '';
+      
+      // Get current category from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const currentCategoryParam = urlParams.get('cat');
+      
+      // Use the same categories as tags.html
+      const allCategories = [
+        { id: 'historical', name: 'Historical', title: 'Historical Figures' },
+        { id: 'fictional', name: 'Fiction', title: 'Fictional Characters' },
+        { id: 'celebrity', name: 'Celebrities', title: 'Celebrities' },
+        { id: 'anime-manga', name: 'Anime & Manga', title: 'Anime & Manga' },
+        { id: 'gaming', name: 'Gaming', title: 'Gaming Characters' },
+        { id: 'movies-tv', name: 'Movies & TV', title: 'Movies & TV' },
+        { id: 'books', name: 'Books', title: 'Book Characters' },
+        { id: 'mythology', name: 'Mythology', title: 'Mythological Figures' }
+      ];
+      
+      // Shuffle and take 5 random categories
+      const shuffledCategories = [...allCategories].sort(() => Math.random() - 0.5);
+      const selectedCategories = shuffledCategories.slice(0, 5);
+      
+      selectedCategories.forEach(category => {
+        const link = document.createElement('a');
+        link.href = `category.html?cat=${category.id}`;
+        link.className = `category-btn ${currentCategoryParam === category.id ? 'active' : ''}`;
+        link.textContent = category.name;
+        container.appendChild(link);
+      });
+    }
+
+    // Generate tag buttons
+    function generateTagButtons() {
+      const tagsContainer = document.getElementById('tagsContainer');
+      if (!tagsContainer) return;
+
+      tagsContainer.innerHTML = '';
+
+      // Use the same tags as tags.html
+      const allTags = [
+        'wise', 'funny', 'helpful', 'mysterious', 'leader',
+        'creative', 'romantic', 'adventure', 'teacher', 'mentor',
+        'villain', 'hero', 'scientist', 'artist', 'warrior',
+        'genius', 'inspiring', 'determined', 'noble', 'brave',
+        'clever', 'charming', 'powerful', 'ancient', 'legendary'
+      ];
+
+      // Shuffle and take 15 random tags
+      const shuffledTags = [...allTags].sort(() => Math.random() - 0.5);
+      const selectedTags = shuffledTags.slice(0, 15);
+
+      selectedTags.forEach(tag => {
+        const button = document.createElement('a');
+        button.href = `tags.html?tag=${tag}`;
+        button.className = 'tag-btn';
+        button.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
+        tagsContainer.appendChild(button);
+      });
+    }
+
     // ===== INITIALIZATION =====
     document.addEventListener('DOMContentLoaded', function() {
       console.log('🚀 Category page initializing...');
@@ -2046,6 +2248,12 @@
       initializePage();
       setupEventListeners(); 
       loadCharacters();
+      
+      // Generate category navigation
+      generateCategoryNavigation();
+      
+      // Generate tag buttons
+      generateTagButtons();
       
       console.log('✅ Category page initialization complete');
     });
