@@ -138,7 +138,7 @@ class MissingAvatarUploader:
                 searchType='image',
                 num=10,  # Get more options
                 safe='active',
-                imgSize='medium',  # Prefer medium-sized images
+                imgSize='MEDIUM',  # Use uppercase - valid values: HUGE, ICON, LARGE, MEDIUM, SMALL, XLARGE, XXLARGE
                 imgType='face'     # Prefer face/portrait images
             ).execute()
             
