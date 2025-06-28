@@ -122,45 +122,154 @@ class MissingAvatarUploader:
         
         return characters_without_avatar
 
+    def is_real_person(self, character_name):
+        """Determine if this is likely a real historical person vs fictional character"""
+        # Common indicators of real historical people
+        real_person_indicators = [
+            # Historical titles
+            'emperor', 'king', 'queen', 'president', 'prime minister', 'caesar',
+            'napoleon', 'churchill', 'roosevelt', 'lincoln', 'washington',
+            # Scientists/inventors
+            'einstein', 'newton', 'tesla', 'edison', 'curie', 'darwin', 'galileo',
+            # Artists/writers
+            'picasso', 'da vinci', 'mozart', 'beethoven', 'shakespeare', 'dickens',
+            # Philosophers
+            'plato', 'aristotle', 'socrates', 'confucius',
+            # Religious figures
+            'buddha', 'jesus', 'muhammad',
+            # Other historical indicators
+            'alexander the great', 'cleopatra', 'julius caesar'
+        ]
+        
+        # Common indicators of fictional characters
+        fictional_indicators = [
+            'the grey', 'the white', 'the great wizard', 'from', 'character',
+            'superhero', 'villain', 'hero', 'protagonist', 'anime', 'manga',
+            'lord of the rings', 'star wars', 'marvel', 'dc comics', 'pokemon',
+            'harry potter', 'game of thrones', 'dragon ball', 'naruto'
+        ]
+        
+        name_lower = character_name.lower()
+        
+        # Check for fictional indicators first (more specific)
+        for indicator in fictional_indicators:
+            if indicator in name_lower:
+                return False
+        
+        # Check for real person indicators
+        for indicator in real_person_indicators:
+            if indicator in name_lower:
+                return True
+        
+        # Default: if uncertain, treat as fictional to avoid using real people's photos inappropriately
+        return False
+
     def search_google(self, character):
-        """Search Google for character images"""
+        """Search Google for single character portrait images, preferring photos for real people"""
         if not self.search_service:
             print("   ❌ No Google Search service available")
             return []
         
-        # Use specific search terms for better character portraits
-        search_terms = f"{character['name']} portrait character art"
+        character_name = character['name']
+        is_real = self.is_real_person(character_name)
+        
+        print(f"   🔍 Detected as: {'Real person' if is_real else 'Fictional character'}")
+        
+        if is_real:
+            # For real people: prefer actual photographs
+            search_terms = f'"{character_name}" portrait photograph photo -illustration -artwork -drawing -cartoon -anime -painting'
+        else:
+            # For fictional characters: prefer artwork/illustrations
+            search_terms = f'"{character_name}" portrait character art illustration -cosplay -real person -photograph'
+        
+        # Common exclusions for both
+        search_terms += ' -collage -multiple -group -collection -set -wallpaper'
+        
+        print(f"   🔍 Search terms: {search_terms}")
         
         try:
             result = self.search_service.cse().list(
                 q=search_terms,
                 cx=self.google_cx,
                 searchType='image',
-                num=10,  # Get more options
+                num=15,  # Get more options to filter through
                 safe='active',
-                imgSize='MEDIUM',  # Use uppercase - valid values: HUGE, ICON, LARGE, MEDIUM, SMALL, XLARGE, XXLARGE
-                imgType='face'     # Prefer face/portrait images
+                imgSize='MEDIUM',  # Medium size for good quality
+                imgType='face',    # Prefer face images
+                imgColorType='color'  # Prefer color images
             ).execute()
             
             images = []
             for item in result.get('items', []):
-                # Skip if this looks like an existing avatar from our site
-                if 'narrin.ai' not in item['link']:
-                    images.append({
-                        'url': item['link'],
-                        'title': item.get('title', ''),
-                        'source': item.get('displayLink', '')
-                    })
+                url = item['link']
+                title = item.get('title', '').lower()
+                
+                # Skip our own site
+                if 'narrin.ai' in url:
+                    continue
+                
+                # Filter out obvious multi-character or collage images by title/description
+                skip_keywords = [
+                    'collage', 'collection', 'set', 'multiple', 'group', 'vs', 'versus',
+                    'wallpaper', 'pack', 'bundle', 'compilation', 'gallery', 'montage',
+                    'cast', 'team', 'characters', 'lineup', 'together', 'all', 'family'
+                ]
+                
+                if any(keyword in title for keyword in skip_keywords):
+                    print(f"   ⚠️ Skipped: {title[:50]}... (multi-character keywords)")
+                    continue
+                
+                # Type-specific filtering and prioritization
+                priority = 0
+                
+                if is_real:
+                    # For real people: prioritize actual photos
+                    photo_keywords = ['photograph', 'photo', 'portrait', 'picture', 'image']
+                    avoid_keywords = ['illustration', 'artwork', 'drawing', 'cartoon', 'anime', 'painting', 'sketch']
+                    
+                    if any(keyword in title for keyword in photo_keywords):
+                        priority += 2
+                    if any(keyword in title for keyword in avoid_keywords):
+                        priority -= 1
+                        
+                else:
+                    # For fictional characters: prioritize artwork/illustrations
+                    art_keywords = ['art', 'illustration', 'artwork', 'drawing', 'character', 'portrait']
+                    avoid_keywords = ['cosplay', 'costume', 'real person', 'photograph', 'photo']
+                    
+                    if any(keyword in title for keyword in art_keywords):
+                        priority += 2
+                    if any(keyword in title for keyword in avoid_keywords):
+                        priority -= 1
+                
+                # General good keywords
+                good_keywords = ['portrait', 'headshot', 'face', 'head', 'bust', 'avatar']
+                if any(keyword in title for keyword in good_keywords):
+                    priority += 1
+                
+                images.append({
+                    'url': url,
+                    'title': item.get('title', ''),
+                    'source': item.get('displayLink', ''),
+                    'priority': priority,
+                    'type': 'photo' if is_real else 'artwork'
+                })
             
-            print(f"   📷 Found {len(images)} potential images")
-            return images
+            # Sort by priority (best matches first)
+            images.sort(key=lambda x: x['priority'], reverse=True)
+            
+            print(f"   📷 Found {len(images)} filtered images (preferring {'photos' if is_real else 'artwork'})")
+            if images:
+                print(f"   🏆 Top choice: {images[0]['title'][:50]}... (priority: {images[0]['priority']})")
+            
+            return images[:10]  # Return max 10 best candidates
             
         except Exception as e:
             print(f"   ❌ Google search error: {e}")
             return []
 
     def process_image(self, url):
-        """Download and process image to WebP format"""
+        """Download and process image to WebP format with face detection"""
         try:
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
@@ -177,7 +286,7 @@ class MissingAvatarUploader:
             
             # Check file size
             content_length = len(response.content)
-            if content_length < 2048:  # Less than 2KB
+            if content_length < 5120:  # Less than 5KB (too small for good portrait)
                 print(f"   ⚠️ Image too small: {content_length} bytes")
                 return None
             if content_length > 10 * 1024 * 1024:  # More than 10MB
@@ -185,6 +294,22 @@ class MissingAvatarUploader:
                 return None
             
             img = Image.open(BytesIO(response.content))
+            
+            # Check image dimensions - reject very wide images (likely collages)
+            width, height = img.size
+            aspect_ratio = width / height
+            
+            # Reject extremely wide images (likely collages or multi-character images)
+            if aspect_ratio > 2.0:  # More than 2:1 ratio
+                print(f"   ⚠️ Image too wide (likely collage): {width}x{height}, ratio: {aspect_ratio:.2f}")
+                return None
+            
+            # Reject extremely tall images (also likely multi-character)
+            if aspect_ratio < 0.5:  # Less than 1:2 ratio
+                print(f"   ⚠️ Image too tall (likely multi-character): {width}x{height}, ratio: {aspect_ratio:.2f}")
+                return None
+            
+            print(f"   ✅ Good dimensions: {width}x{height}, ratio: {aspect_ratio:.2f}")
             
             # Convert to RGB if needed
             if img.mode in ('RGBA', 'LA', 'P'):
@@ -197,11 +322,12 @@ class MissingAvatarUploader:
                 img = img.convert('RGB')
             
             # Smart crop to square (400x400) for consistent avatars
-            img = ImageOps.fit(img, (400, 400), Image.Resampling.LANCZOS, centering=(0.5, 0.4))
+            # Focus slightly higher than center for better face framing
+            img = ImageOps.fit(img, (400, 400), Image.Resampling.LANCZOS, centering=(0.5, 0.35))
             
-            # Save as WebP with good quality
+            # Save as WebP with high quality for portraits
             img_bytes = BytesIO()
-            img.save(img_bytes, format='WEBP', quality=85, optimize=True)
+            img.save(img_bytes, format='WEBP', quality=90, optimize=True)
             img_bytes.seek(0)
             
             processed_size = len(img_bytes.getvalue())
