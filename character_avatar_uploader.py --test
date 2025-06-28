@@ -38,26 +38,19 @@ class MissingAvatarUploader:
         self.session = requests.Session()
 
     def load_characters_without_avatar(self):
-        """Load ONLY characters that have NO Avatar_URL"""
+        """Load ALL characters and filter in Python for missing Avatar_URL"""
         url = f"https://api.airtable.com/v0/{self.airtable_base}/Characters"
         headers = {'Authorization': f'Bearer {self.airtable_token}'}
         
-        # Airtable formula to find records WHERE Avatar_URL is empty or blank
-        formula = "{Avatar_URL}=BLANK()"
-        
-        all_characters = []
+        all_records = []
         offset = None
         page = 1
         
-        print(f"🔍 Loading characters WITHOUT Avatar_URL...")
-        print(f"📄 Using formula: {formula}")
+        print(f"🔍 Loading ALL characters first...")
         
+        # First, load ALL characters
         while True:
-            params = {
-                'maxRecords': 100,
-                'filterByFormula': formula
-            }
-                
+            params = {'maxRecords': 100}
             if offset:
                 params['offset'] = offset
             
@@ -72,29 +65,9 @@ class MissingAvatarUploader:
                     
                 data = response.json()
                 records = data.get('records', [])
-                print(f"   📋 Records in response: {len(records)}")
-                
-                page_records = 0
-                for record in records:
-                    fields = record.get('fields', {})
-                    character_name = fields.get('Name')
-                    avatar_url = fields.get('Avatar_URL', '')
-                    
-                    # Double-check that Avatar_URL is really empty/blank
-                    if character_name and not avatar_url.strip():
-                        all_characters.append({
-                            'name': character_name,
-                            'id': record['id'],
-                            'search_terms': f"{character_name} portrait",
-                            'current_avatar': ''
-                        })
-                        page_records += 1
-                        print(f"   ✅ Added: {character_name} (no avatar)")
-                    elif character_name and avatar_url.strip():
-                        print(f"   ⚠️ Skipped: {character_name} (has avatar: {avatar_url[:50]}...)")
-                
-                print(f"   ✅ Found {page_records} characters without avatars on page {page}")
-                print(f"   📊 Running total: {len(all_characters)} characters")
+                all_records.extend(records)
+                print(f"   📋 Records on page {page}: {len(records)}")
+                print(f"   📊 Total loaded: {len(all_records)}")
                 
                 offset = data.get('offset')
                 if not offset:
@@ -110,15 +83,44 @@ class MissingAvatarUploader:
                 print(f"❌ API request error: {e}")
                 break
         
+        print(f"\n📋 Now filtering characters WITHOUT Avatar_URL...")
+        
+        # Now filter for characters without Avatar_URL
+        characters_without_avatar = []
+        characters_with_avatar = []
+        
+        for record in all_records:
+            fields = record.get('fields', {})
+            character_name = fields.get('Name')
+            avatar_url = fields.get('Avatar_URL', '')
+            
+            if character_name:
+                # Check if Avatar_URL is empty, None, or just whitespace
+                if not avatar_url or not avatar_url.strip():
+                    characters_without_avatar.append({
+                        'name': character_name,
+                        'id': record['id'],
+                        'search_terms': f"{character_name} portrait",
+                        'current_avatar': ''
+                    })
+                    print(f"   ❌ NO AVATAR: {character_name}")
+                else:
+                    characters_with_avatar.append(character_name)
+                    print(f"   ✅ HAS AVATAR: {character_name} → {avatar_url[:30]}...")
+        
         print(f"\n📊 Final Results:")
-        print(f"   🎯 Characters without avatars: {len(all_characters)}")
+        print(f"   📋 Total characters loaded: {len(all_records)}")
+        print(f"   ❌ WITHOUT Avatar_URL: {len(characters_without_avatar)}")
+        print(f"   ✅ WITH Avatar_URL: {len(characters_with_avatar)}")
         
-        if len(all_characters) > 0:
-            print(f"   📝 First 5: {[c['name'] for c in all_characters[:5]]}")
-            if len(all_characters) > 5:
-                print(f"   📝 Last 5: {[c['name'] for c in all_characters[-5:]]}")
+        if len(characters_without_avatar) > 0:
+            print(f"\n📝 Characters WITHOUT avatars:")
+            for i, char in enumerate(characters_without_avatar[:10], 1):
+                print(f"   {i:2d}. {char['name']}")
+            if len(characters_without_avatar) > 10:
+                print(f"   ... and {len(characters_without_avatar) - 10} more")
         
-        return all_characters
+        return characters_without_avatar
 
     def search_google(self, character):
         """Search Google for character images"""
