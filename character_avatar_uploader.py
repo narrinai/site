@@ -175,28 +175,24 @@ class MissingAvatarUploader:
         
         print(f"   🔍 Detected as: {'Real person' if is_real else 'Fictional character'}")
         
+        # Simplified search terms to avoid API errors
         if is_real:
             # For real people: prefer actual photographs
-            search_terms = f'"{character_name}" portrait photograph photo -illustration -artwork -drawing -cartoon -anime -painting'
+            search_terms = f'"{character_name}" portrait photograph'
         else:
             # For fictional characters: prefer artwork/illustrations
-            search_terms = f'"{character_name}" portrait character art illustration -cosplay -real person -photograph'
-        
-        # Common exclusions for both
-        search_terms += ' -collage -multiple -group -collection -set -wallpaper'
+            search_terms = f'"{character_name}" portrait art'
         
         print(f"   🔍 Search terms: {search_terms}")
         
         try:
+            # Simplified API call to avoid quota/parameter issues
             result = self.search_service.cse().list(
                 q=search_terms,
                 cx=self.google_cx,
                 searchType='image',
-                num=15,  # Get more options to filter through
-                safe='active',
-                imgSize='MEDIUM',  # Medium size for good quality
-                imgType='face',    # Prefer face images
-                imgColorType='color'  # Prefer color images
+                num=10,  # Reduced to save quota
+                safe='active'
             ).execute()
             
             images = []
@@ -208,64 +204,42 @@ class MissingAvatarUploader:
                 if 'narrin.ai' in url:
                     continue
                 
-                # Filter out obvious multi-character or collage images by title/description
-                skip_keywords = [
-                    'collage', 'collection', 'set', 'multiple', 'group', 'vs', 'versus',
-                    'wallpaper', 'pack', 'bundle', 'compilation', 'gallery', 'montage',
-                    'cast', 'team', 'characters', 'lineup', 'together', 'all', 'family'
-                ]
-                
+                # Basic filtering only
+                skip_keywords = ['collage', 'multiple', 'group', 'vs']
                 if any(keyword in title for keyword in skip_keywords):
-                    print(f"   ⚠️ Skipped: {title[:50]}... (multi-character keywords)")
                     continue
                 
-                # Type-specific filtering and prioritization
-                priority = 0
-                
-                if is_real:
-                    # For real people: prioritize actual photos
-                    photo_keywords = ['photograph', 'photo', 'portrait', 'picture', 'image']
-                    avoid_keywords = ['illustration', 'artwork', 'drawing', 'cartoon', 'anime', 'painting', 'sketch']
-                    
-                    if any(keyword in title for keyword in photo_keywords):
-                        priority += 2
-                    if any(keyword in title for keyword in avoid_keywords):
-                        priority -= 1
-                        
-                else:
-                    # For fictional characters: prioritize artwork/illustrations
-                    art_keywords = ['art', 'illustration', 'artwork', 'drawing', 'character', 'portrait']
-                    avoid_keywords = ['cosplay', 'costume', 'real person', 'photograph', 'photo']
-                    
-                    if any(keyword in title for keyword in art_keywords):
-                        priority += 2
-                    if any(keyword in title for keyword in avoid_keywords):
-                        priority -= 1
-                
-                # General good keywords
-                good_keywords = ['portrait', 'headshot', 'face', 'head', 'bust', 'avatar']
-                if any(keyword in title for keyword in good_keywords):
-                    priority += 1
+                # Simple prioritization
+                priority = 1
+                if is_real and any(word in title for word in ['photo', 'photograph']):
+                    priority = 2
+                elif not is_real and any(word in title for word in ['art', 'illustration']):
+                    priority = 2
                 
                 images.append({
                     'url': url,
                     'title': item.get('title', ''),
                     'source': item.get('displayLink', ''),
-                    'priority': priority,
-                    'type': 'photo' if is_real else 'artwork'
+                    'priority': priority
                 })
             
-            # Sort by priority (best matches first)
+            # Sort by priority
             images.sort(key=lambda x: x['priority'], reverse=True)
             
-            print(f"   📷 Found {len(images)} filtered images (preferring {'photos' if is_real else 'artwork'})")
-            if images:
-                print(f"   🏆 Top choice: {images[0]['title'][:50]}... (priority: {images[0]['priority']})")
-            
-            return images[:10]  # Return max 10 best candidates
+            print(f"   📷 Found {len(images)} images")
+            return images[:5]  # Return max 5 to save quota
             
         except Exception as e:
-            print(f"   ❌ Google search error: {e}")
+            error_msg = str(e)
+            print(f"   ❌ Google search error: {error_msg}")
+            
+            # Check for quota error
+            if 'quota' in error_msg.lower() or 'limit' in error_msg.lower():
+                print(f"   ⚠️ Google API quota exceeded. Consider:")
+                print(f"       1. Wait until tomorrow for quota reset")
+                print(f"       2. Check your Google Cloud Console quotas")
+                print(f"       3. Enable billing for higher limits")
+                
             return []
 
     def process_image(self, url):
