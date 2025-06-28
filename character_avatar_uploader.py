@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Simple Avatar Uploader - API Key Only with Cache-Busting
+Character Avatar Uploader - Only for characters WITHOUT Avatar_URL
 """
 
 import requests
@@ -13,7 +13,7 @@ from googleapiclient.discovery import build
 
 load_dotenv()
 
-class SimpleAvatarUploader:
+class MissingAvatarUploader:
     def __init__(self):
         # Google API credentials
         self.google_api_key = os.getenv('GOOGLE_API_KEY')
@@ -37,28 +37,24 @@ class SimpleAvatarUploader:
         
         self.session = requests.Session()
 
-    def load_characters_with_formula(self, formula=None):
-        """Load characters with Airtable formula filter"""
+    def load_characters_without_avatar(self):
+        """Load ALL characters and filter in Python for missing Avatar_URL"""
         url = f"https://api.airtable.com/v0/{self.airtable_base}/Characters"
         headers = {'Authorization': f'Bearer {self.airtable_token}'}
         
-        all_characters = []
+        all_records = []
         offset = None
         page = 1
         
-        print(f"📄 Loading with formula: {formula or 'None'}")
+        print(f"🔍 Loading ALL characters first...")
         
+        # First, load ALL characters
         while True:
             params = {'maxRecords': 100}
-            
-            if formula:
-                params['filterByFormula'] = formula
-                
             if offset:
                 params['offset'] = offset
             
             print(f"📄 Loading page {page}...")
-            print(f"   Params: {params}")
             
             try:
                 response = self.session.get(url, headers=headers, params=params)
@@ -69,95 +65,70 @@ class SimpleAvatarUploader:
                     
                 data = response.json()
                 records = data.get('records', [])
-                print(f"   📋 Records in response: {len(records)}")
-                
-                page_records = 0
-                for record in records:
-                    fields = record.get('fields', {})
-                    if fields.get('Name'):
-                        all_characters.append({
-                            'name': fields['Name'],
-                            'id': record['id'],
-                            'search_terms': f"{fields['Name']} portrait",
-                            'current_avatar': fields.get('Avatar_URL', '')
-                        })
-                        page_records += 1
-                
-                print(f"   ✅ Found {page_records} valid characters on page {page}")
-                print(f"   📊 Running total: {len(all_characters)} characters")
+                all_records.extend(records)
+                print(f"   📋 Records on page {page}: {len(records)}")
+                print(f"   📊 Total loaded: {len(all_records)}")
                 
                 offset = data.get('offset')
                 if not offset:
                     break
                 
                 page += 1
-                if page > 10:
+                if page > 20:  # Safety limit
                     break
                     
-                import time
-                time.sleep(0.5)
+                time.sleep(0.5)  # Rate limiting
                 
             except Exception as e:
                 print(f"❌ API request error: {e}")
                 break
         
-        return all_characters
-
-    def load_characters(self):
-        """Load ALL characters using multiple strategies"""
-        print("🔍 Strategy 1: Loading first 100 characters (A-M)")
+        print(f"\n📋 Now filtering characters WITHOUT Avatar_URL...")
         
-        # Try to get characters starting with A-M
-        formula1 = "OR(LEFT(Name,1)='A',LEFT(Name,1)='B',LEFT(Name,1)='C',LEFT(Name,1)='D',LEFT(Name,1)='E',LEFT(Name,1)='F',LEFT(Name,1)='G',LEFT(Name,1)='H',LEFT(Name,1)='I',LEFT(Name,1)='J',LEFT(Name,1)='K',LEFT(Name,1)='L',LEFT(Name,1)='M')"
+        # Now filter for characters without Avatar_URL
+        characters_without_avatar = []
+        characters_with_avatar = []
         
-        chars_1 = self.load_characters_with_formula(formula1)
-        
-        print(f"\n🔍 Strategy 2: Loading remaining characters (N-Z + numbers)")
-        
-        # Try to get characters starting with N-Z and numbers
-        formula2 = "OR(LEFT(Name,1)='N',LEFT(Name,1)='O',LEFT(Name,1)='P',LEFT(Name,1)='Q',LEFT(Name,1)='R',LEFT(Name,1)='S',LEFT(Name,1)='T',LEFT(Name,1)='U',LEFT(Name,1)='V',LEFT(Name,1)='W',LEFT(Name,1)='X',LEFT(Name,1)='Y',LEFT(Name,1)='Z',LEFT(Name,1)='0',LEFT(Name,1)='1',LEFT(Name,1)='2',LEFT(Name,1)='3',LEFT(Name,1)='4',LEFT(Name,1)='5',LEFT(Name,1)='6',LEFT(Name,1)='7',LEFT(Name,1)='8',LEFT(Name,1)='9')"
-        
-        chars_2 = self.load_characters_with_formula(formula2)
-        
-        # Combine results
-        all_characters = chars_1 + chars_2
-        
-        # Remove duplicates (just in case)
-        seen_ids = set()
-        unique_characters = []
-        for char in all_characters:
-            if char['id'] not in seen_ids:
-                unique_characters.append(char)
-                seen_ids.add(char['id'])
-        
-        print(f"\n📊 Combined Results:")
-        print(f"   Strategy 1 (A-M): {len(chars_1)} characters")
-        print(f"   Strategy 2 (N-Z): {len(chars_2)} characters")
-        print(f"   Total unique: {len(unique_characters)} characters")
-        print(f"   Expected: ~186 characters")
-        
-        if len(unique_characters) > 0:
-            print(f"   First 3: {[c['name'] for c in unique_characters[:3]]}")
-            print(f"   Last 3: {[c['name'] for c in unique_characters[-3:]]}")
-        
-        # If still not enough, try one more strategy
-        if len(unique_characters) < 150:
-            print(f"\n🔍 Strategy 3: Loading ALL records (no filter)")
-            chars_3 = self.load_characters_with_formula(None)
-            print(f"   Strategy 3 result: {len(chars_3)} characters")
+        for record in all_records:
+            fields = record.get('fields', {})
+            character_name = fields.get('Name')
+            avatar_url = fields.get('Avatar_URL', '')
             
-            # Use the best result
-            if len(chars_3) > len(unique_characters):
-                unique_characters = chars_3
+            if character_name:
+                # Check if Avatar_URL is empty, None, or just whitespace
+                if not avatar_url or not avatar_url.strip():
+                    characters_without_avatar.append({
+                        'name': character_name,
+                        'id': record['id'],
+                        'search_terms': f"{character_name} portrait",
+                        'current_avatar': ''
+                    })
+                    print(f"   ❌ NO AVATAR: {character_name}")
+                else:
+                    characters_with_avatar.append(character_name)
+                    print(f"   ✅ HAS AVATAR: {character_name} → {avatar_url[:30]}...")
         
-        return unique_characters
+        print(f"\n📊 Final Results:")
+        print(f"   📋 Total characters loaded: {len(all_records)}")
+        print(f"   ❌ WITHOUT Avatar_URL: {len(characters_without_avatar)}")
+        print(f"   ✅ WITH Avatar_URL: {len(characters_with_avatar)}")
+        
+        if len(characters_without_avatar) > 0:
+            print(f"\n📝 Characters WITHOUT avatars:")
+            for i, char in enumerate(characters_without_avatar[:10], 1):
+                print(f"   {i:2d}. {char['name']}")
+            if len(characters_without_avatar) > 10:
+                print(f"   ... and {len(characters_without_avatar) - 10} more")
+        
+        return characters_without_avatar
 
     def search_google(self, character):
-        """Search Google for NEW images (not existing avatars)"""
+        """Search Google for character images"""
         if not self.search_service:
+            print("   ❌ No Google Search service available")
             return []
         
-        # Use more specific search terms to get better results
+        # Use specific search terms for better character portraits
         search_terms = f"{character['name']} portrait character art"
         
         try:
@@ -165,8 +136,10 @@ class SimpleAvatarUploader:
                 q=search_terms,
                 cx=self.google_cx,
                 searchType='image',
-                num=5,  # Get more options
-                safe='active'
+                num=10,  # Get more options
+                safe='active',
+                imgSize='medium',  # Prefer medium-sized images
+                imgType='face'     # Prefer face/portrait images
             ).execute()
             
             images = []
@@ -179,17 +152,16 @@ class SimpleAvatarUploader:
                         'source': item.get('displayLink', '')
                     })
             
-            print(f"  📷 Found {len(images)} new images (excluding existing)")
+            print(f"   📷 Found {len(images)} potential images")
             return images
             
         except Exception as e:
-            print(f"❌ Google search error: {e}")
+            print(f"   ❌ Google search error: {e}")
             return []
 
     def process_image(self, url):
-        """Download and process image to WebP format with better error handling"""
+        """Download and process image to WebP format"""
         try:
-            # Set proper headers to avoid being blocked
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
             }
@@ -197,18 +169,18 @@ class SimpleAvatarUploader:
             response = self.session.get(url, timeout=15, headers=headers)
             response.raise_for_status()
             
-            # Check if we actually got image data
+            # Check content type
             content_type = response.headers.get('content-type', '').lower()
             if not any(img_type in content_type for img_type in ['image/', 'jpeg', 'jpg', 'png', 'webp', 'gif']):
                 print(f"   ⚠️ Not an image file: {content_type}")
                 return None
             
-            # Check file size (skip if too small or too large)
+            # Check file size
             content_length = len(response.content)
-            if content_length < 1024:  # Less than 1KB
+            if content_length < 2048:  # Less than 2KB
                 print(f"   ⚠️ Image too small: {content_length} bytes")
                 return None
-            if content_length > 5 * 1024 * 1024:  # More than 5MB
+            if content_length > 10 * 1024 * 1024:  # More than 10MB
                 print(f"   ⚠️ Image too large: {content_length} bytes")
                 return None
             
@@ -216,7 +188,6 @@ class SimpleAvatarUploader:
             
             # Convert to RGB if needed
             if img.mode in ('RGBA', 'LA', 'P'):
-                # Create white background for transparency
                 background = Image.new('RGB', img.size, (255, 255, 255))
                 if img.mode == 'P':
                     img = img.convert('RGBA')
@@ -225,16 +196,16 @@ class SimpleAvatarUploader:
             elif img.mode != 'RGB':
                 img = img.convert('RGB')
             
-            # Smart crop to square, focusing on center/face area
+            # Smart crop to square (400x400) for consistent avatars
             img = ImageOps.fit(img, (400, 400), Image.Resampling.LANCZOS, centering=(0.5, 0.4))
             
-            # Save as WebP for better compression and quality
+            # Save as WebP with good quality
             img_bytes = BytesIO()
             img.save(img_bytes, format='WEBP', quality=85, optimize=True)
             img_bytes.seek(0)
             
             processed_size = len(img_bytes.getvalue())
-            print(f"   ✅ Image processed: {content_length} → {processed_size} bytes")
+            print(f"   ✅ Processed: {content_length} → {processed_size} bytes")
             
             return img_bytes.getvalue()
             
@@ -242,360 +213,140 @@ class SimpleAvatarUploader:
             print(f"   ❌ Image processing error: {e}")
             return None
 
-    def clear_netlify_cache(self):
-        """Clear Netlify cache for the site"""
-        cache_url = f"https://api.netlify.com/api/v1/sites/{self.netlify_site_id}/cache"
-        headers = {'Authorization': f'Bearer {self.netlify_token}'}
-        
-        try:
-            response = requests.delete(cache_url, headers=headers)
-            if response.ok:
-                print("✅ Netlify cache cleared")
-                return True
-            else:
-                print(f"⚠️ Cache clear failed: {response.status_code}")
-                return False
-        except Exception as e:
-            print(f"❌ Cache clear error: {e}")
-            return False
-
-    def test_netlify_connection(self):
-        """Test Netlify API connection and permissions"""
-        print("🔧 Testing Netlify API connection...")
-        
-        # Test 1: Get site info
-        try:
-            site_url = f"https://api.netlify.com/api/v1/sites/{self.netlify_site_id}"
-            headers = {'Authorization': f'Bearer {self.netlify_token}'}
-            
-            response = requests.get(site_url, headers=headers)
-            if response.ok:
-                site_info = response.json()
-                print(f"✅ Site connection OK: {site_info.get('name', 'unknown')}")
-                print(f"   Site URL: {site_info.get('url', 'unknown')}")
-                print(f"   Published: {site_info.get('published_deploy', {}).get('id', 'unknown')}")
-            else:
-                print(f"❌ Site connection failed: {response.status_code}")
-                return False
-        except Exception as e:
-            print(f"❌ Site connection error: {e}")
-            return False
-        
-        # Test 2: List existing files 
-        try:
-            files_url = f"https://api.netlify.com/api/v1/sites/{self.netlify_site_id}/files"
-            response = requests.get(files_url, headers=headers)
-            if response.ok:
-                files = response.json()
-                print(f"✅ Files API OK: {len(files)} files found")
-                # Check if avatars directory exists
-                avatar_files = [f for f in files if f.get('path', '').startswith('avatars/')]
-                print(f"   Avatar files: {len(avatar_files)}")
-            else:
-                print(f"⚠️ Files API failed: {response.status_code}")
-        except Exception as e:
-            print(f"⚠️ Files API error: {e}")
-        
-        return True
-
-    def save_file_locally(self, image_data, filename):
-        """Save file directly to avatars/ directory (not local_avatars/avatars/)"""
-        import os
-        
-        # Create avatars directory directly (for Git upload)
+    def save_to_avatars_folder(self, image_data, filename):
+        """Save image to avatars/ folder"""
+        # Create avatars directory if it doesn't exist
         avatars_dir = "avatars"
         os.makedirs(avatars_dir, exist_ok=True)
         
-        # Save file directly in avatars/ directory
-        local_path = os.path.join(avatars_dir, os.path.basename(filename))
+        # Full path for the file
+        file_path = os.path.join(avatars_dir, filename)
+        
         try:
-            with open(local_path, 'wb') as f:
+            with open(file_path, 'wb') as f:
                 f.write(image_data)
-            print(f"   💾 Saved to: {local_path}")
-            return local_path
+            print(f"   💾 Saved: {file_path}")
+            return file_path
         except Exception as e:
             print(f"   ❌ Save error: {e}")
             return None
 
-    def upload_via_netlify_cli(self, local_path, remote_filename):
-        """Try uploading via Netlify CLI if available"""
-        import subprocess
-        import os
-        
-        try:
-            # Check if Netlify CLI is available
-            result = subprocess.run(['netlify', '--version'], 
-                                  capture_output=True, text=True, timeout=5)
-            if result.returncode != 0:
-                print(f"   ⚠️ Netlify CLI not available")
-                return None
-                
-            print(f"   🚀 Trying Netlify CLI upload...")
-            
-            # Use netlify deploy to upload single file
-            cmd = [
-                'netlify', 'deploy', 
-                '--site', self.netlify_site_id,
-                '--auth', self.netlify_token,
-                '--dir', os.path.dirname(local_path),
-                '--prod'
-            ]
-            
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
-            
-            if result.returncode == 0:
-                print(f"   ✅ CLI upload successful")
-                return f"https://narrin.ai/{remote_filename}"
-            else:
-                print(f"   ❌ CLI upload failed: {result.stderr}")
-                return None
-                
-        except FileNotFoundError:
-            print(f"   ⚠️ Netlify CLI not installed")
-            return None
-        except Exception as e:
-            print(f"   ❌ CLI upload error: {e}")
-            return None
-
-    def upload_to_netlify(self, image_data, filename):
-        """Save locally and skip Netlify API (too unreliable)"""
-        print(f"   📤 Processing: {filename}")
-        print(f"   📊 File size: {len(image_data)} bytes")
-        
-        # Save locally for manual/batch upload
-        local_path = self.save_file_locally(image_data, filename)
-        
-        if local_path:
-            print(f"   ✅ Saved locally for upload: {local_path}")
-            # Return the expected Netlify URL
-            return f"https://narrin.ai/{filename}"
-        else:
-            print(f"   ❌ Failed to save locally")
-            return None
-
-    def auto_upload_to_git(self, success_count):
-        """Automatically upload avatar files to Git/Netlify"""
-        if success_count == 0:
-            print("⚠️ No files to upload")
-            return False
-            
-        try:
-            import subprocess
-            import os
-            
-            # Check if we're in a Git repository
-            result = subprocess.run(['git', 'rev-parse', '--git-dir'], 
-                                  capture_output=True, text=True)
-            if result.returncode != 0:
-                print("⚠️ Not in a Git repository - skipping auto upload")
-                return False
-            
-            # Check if avatars directory exists and has files
-            if not os.path.exists('avatars') or not os.listdir('avatars'):
-                print("⚠️ No avatar files found - skipping upload")
-                return False
-            
-            print(f"\n🚀 Auto-uploading {success_count} avatar files to Git/Netlify...")
-            
-            # Add avatar files
-            result = subprocess.run(['git', 'add', 'avatars/'], 
-                                  capture_output=True, text=True)
-            if result.returncode != 0:
-                print(f"❌ Git add failed: {result.stderr}")
-                return False
-            
-            # Commit with timestamp
-            from datetime import datetime
-            timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-            commit_msg = f"Auto-upload {success_count} character avatars - {timestamp}"
-            
-            result = subprocess.run(['git', 'commit', '-m', commit_msg], 
-                                  capture_output=True, text=True)
-            if result.returncode != 0:
-                if "nothing to commit" in result.stdout:
-                    print("ℹ️ No changes to commit")
-                    return True
-                else:
-                    print(f"❌ Git commit failed: {result.stderr}")
-                    return False
-            
-            print(f"✅ Committed: {commit_msg}")
-            
-            # Push to trigger Netlify deployment
-            result = subprocess.run(['git', 'push'], 
-                                  capture_output=True, text=True, timeout=60)
-            if result.returncode != 0:
-                print(f"❌ Git push failed: {result.stderr}")
-                return False
-            
-            print(f"🚀 Pushed to Git - Netlify deployment starting...")
-            print(f"⏱️ Wait 1-2 minutes for deployment to complete")
-            print(f"🌐 Avatars will be available at: https://narrin.ai/avatars/")
-            
-            return True
-            
-        except subprocess.TimeoutExpired:
-            print("⏰ Git push timeout - try manually")
-            return False
-        except Exception as e:
-            print(f"❌ Auto-upload error: {e}")
-            return False
-
-    def create_netlify_toml(self):
-        """Create netlify.toml configuration if needed"""
-        # Check if netlify.toml already exists
-        if os.path.exists('netlify.toml'):
-            print("⚙️ netlify.toml already exists, skipping")
-            return True
-            
-        toml_content = '''# Netlify configuration for avatar hosting
-[build]
-  publish = "."
-
-# Optional: Add headers for better caching of avatars
-[[headers]]
-  for = "/avatars/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000"
-    Content-Type = "image/webp"
-'''
-        
-        try:
-            with open('netlify.toml', 'w') as f:
-                f.write(toml_content)
-            print("⚙️ Created netlify.toml configuration")
-            return True
-        except Exception as e:
-            print(f"⚠️ Failed to create netlify.toml: {e}")
-            return False
-
-    def verify_upload(self, url, max_retries=3):
-        """Verify that the uploaded image is accessible with retries"""
-        for attempt in range(max_retries):
-            try:
-                # Wait a bit for Netlify to propagate the file
-                if attempt > 0:
-                    wait_time = attempt * 2
-                    print(f"   ⏳ Waiting {wait_time}s for Netlify propagation...")
-                    time.sleep(wait_time)
-                
-                response = requests.head(url, timeout=15)
-                print(f"   🔍 Verification attempt {attempt + 1}: {response.status_code}")
-                
-                if response.status_code == 200:
-                    print(f"   ✅ Upload verified successfully")
-                    return True
-                elif response.status_code == 404 and attempt < max_retries - 1:
-                    print(f"   ⏳ File not yet available, retrying...")
-                    continue
-                else:
-                    print(f"   ❌ Verification failed with status: {response.status_code}")
-                    
-            except Exception as e:
-                print(f"   ❌ Verification attempt {attempt + 1} failed: {e}")
-                if attempt < max_retries - 1:
-                    time.sleep(2)
-                    continue
-        
-        return False
-
-    def update_airtable(self, character_id, avatar_url, original_timestamp):
-        """Update Airtable with avatar URL using consistent timestamp"""
+    def update_airtable_avatar_url(self, character_id, filename):
+        """Update Airtable with the new Avatar_URL"""
         url = f"https://api.airtable.com/v0/{self.airtable_base}/Characters/{character_id}"
         headers = {
             'Authorization': f'Bearer {self.airtable_token}',
             'Content-Type': 'application/json'
         }
         
-        # Use the same timestamp that was used for the filename
-        avatar_url_with_cache_buster = f"{avatar_url}?v={original_timestamp}"
+        # Create the full URL for the avatar
+        avatar_url = f"https://narrin.ai/avatars/{filename}"
         
-        data = {"fields": {"Avatar_URL": avatar_url_with_cache_buster}}
+        # Add cache-busting timestamp
+        timestamp = int(time.time())
+        avatar_url_with_cache = f"{avatar_url}?v={timestamp}"
+        
+        data = {
+            "fields": {
+                "Avatar_URL": avatar_url_with_cache
+            }
+        }
         
         try:
             response = requests.patch(url, json=data, headers=headers)
             response.raise_for_status()
-            print(f"   📝 Airtable updated with cache-buster: ?v={original_timestamp}")
+            print(f"   📝 Airtable updated: {avatar_url_with_cache}")
             return True
         except Exception as e:
-            print(f"❌ Airtable update error: {e}")
+            print(f"   ❌ Airtable update failed: {e}")
             return False
 
     def process_character(self, character):
-        """Process one character with enhanced cache-busting"""
-        print(f"\n🔄 Processing: {character['name']}")
+        """Process one character: find image, save to avatars/, update Airtable"""
+        print(f"\n🎯 Processing: {character['name']}")
         
         # Search for images
         images = self.search_google(character)
         if not images:
-            print("❌ No images found")
+            print("   ❌ No images found")
             return False
         
-        # Generate unique filename with timestamp for cache-busting
+        # Create safe filename
+        safe_name = character['name'].lower()
+        safe_name = safe_name.replace(' ', '-').replace('/', '-').replace('\\', '-')
+        safe_name = ''.join(c for c in safe_name if c.isalnum() or c in '-_')
         timestamp = int(time.time())
-        safe_name = character['name'].lower().replace(' ', '-').replace('/', '-').replace('\\', '-')
-        filename = f"avatars/{safe_name}-{timestamp}.webp"
+        filename = f"{safe_name}-{timestamp}.webp"
         
         print(f"   📁 Target filename: {filename}")
-        print(f"   🕒 Using timestamp: {timestamp}")
         
-        # Try each image
+        # Try each image until one works
         for i, img in enumerate(images, 1):
-            print(f"   🖼️  Trying image {i}/{len(images)}: {img['source']}")
+            print(f"   🖼️  Trying image {i}/{len(images)} from: {img['source']}")
             
-            processed = self.process_image(img['url'])
-            if not processed:
-                print(f"   ❌ Image {i} processing failed")
+            # Process the image
+            processed_data = self.process_image(img['url'])
+            if not processed_data:
                 continue
             
-            avatar_url = self.upload_to_netlify(processed, filename)
-            if not avatar_url:
-                print(f"   ❌ Image {i} upload failed")
+            # Save to avatars folder
+            local_path = self.save_to_avatars_folder(processed_data, filename)
+            if not local_path:
                 continue
             
-            # Verify upload worked before updating Airtable
-            print(f"   🔍 Verifying upload...")
-            if not self.verify_upload(avatar_url):
-                print(f"   ⚠️ Upload verification failed, but continuing anyway...")
-                # Don't skip - sometimes verification fails but upload worked
-                # We'll let Airtable update proceed
-            
-            # Update Airtable with cache-busting URL using the same timestamp
-            if self.update_airtable(character['id'], avatar_url, timestamp):
-                print(f"✅ Success: {avatar_url}?v={timestamp}")
+            # Update Airtable with the new Avatar_URL
+            if self.update_airtable_avatar_url(character['id'], filename):
+                print(f"   ✅ SUCCESS: {character['name']} → avatars/{filename}")
                 return True
             else:
-                print(f"   ❌ Airtable update failed")
+                print(f"   ❌ Failed to update Airtable")
         
-        print("❌ All images failed")
+        print(f"   ❌ All images failed for {character['name']}")
         return False
 
-    def run(self, skip_existing=False, start_from=1, clear_cache=False, auto_upload=True):
-        """Run the uploader with automatic Git upload"""
-        print("🚀 Starting Enhanced Avatar Uploader (Auto-Upload Mode)")
-        print("📁 Files will be saved to avatars/ and auto-uploaded to Git/Netlify")
+    def run(self, test_limit=None):
+        """Main execution function"""
+        print("🚀 Character Avatar Uploader - Missing Avatars Only")
+        print("🎯 Processing characters that have NO Avatar_URL")
+        print("💾 Saving to avatars/ folder + updating Airtable")
         
-        print("📊 Loading ALL characters from Airtable...")
+        # Load characters without avatars
+        characters = self.load_characters_without_avatar()
         
-        characters = self.load_characters()
+        if not characters:
+            print("\n🎉 All characters already have avatars!")
+            return 0, 0
         
-        # Optionally skip characters that already have avatars
-        if skip_existing:
-            characters = [c for c in characters if not c.get('current_avatar')]
-            print(f"📋 Processing {len(characters)} characters without avatars")
+        # Apply test limit if specified
+        if test_limit:
+            total_available = len(characters)
+            characters = characters[:test_limit]
+            print(f"\n🧪 TEST MODE: Processing first {len(characters)} of {total_available} characters")
         else:
-            print(f"📋 Processing ALL {len(characters)} characters (overwriting existing)")
+            print(f"\n▶️ FULL MODE: Processing all {len(characters)} characters")
         
-        # Start from specific character number
-        if start_from > 1:
-            characters = characters[start_from-1:]
-            print(f"▶️ Starting from character #{start_from}")
+        # Show which characters will be processed
+        print(f"\n📋 Characters to process:")
+        for i, char in enumerate(characters, 1):
+            print(f"  {i:2d}. {char['name']}")
+        
+        # Confirmation prompt
+        if test_limit:
+            response = input(f"\n✅ Process these {len(characters)} characters? (y/N): ")
+        else:
+            response = input(f"\n⚠️  Process ALL {len(characters)} characters? (y/N): ")
+            
+        if response.lower() != 'y':
+            print("❌ Cancelled by user")
+            return 0, 0
+        
+        print(f"\n▶️ Starting processing...")
         
         success = 0
         failed = 0
         
-        for i, char in enumerate(characters, start_from):
-            print(f"\n[{i}/{len(characters)+start_from-1}] {char['name']}")
+        for i, char in enumerate(characters, 1):
+            print(f"\n[{i}/{len(characters)}] Processing: {char['name']}")
             
             try:
                 if self.process_character(char):
@@ -603,14 +354,14 @@ class SimpleAvatarUploader:
                 else:
                     failed += 1
                 
-                # Shorter delay since we're not hitting Netlify API
-                time.sleep(0.5)
+                # Small delay to be nice to APIs
+                time.sleep(1)
                 
             except KeyboardInterrupt:
-                print(f"\n⏹️  Process stopped by user at {i}")
+                print(f"\n⏹️ Stopped by user at character {i}")
                 break
             except Exception as e:
-                print(f"❌ Unexpected error: {e}")
+                print(f"   ❌ Unexpected error: {e}")
                 failed += 1
                 continue
         
@@ -618,57 +369,35 @@ class SimpleAvatarUploader:
         print(f"✅ Successful: {success}")
         print(f"❌ Failed: {failed}")
         print(f"📊 Total processed: {success + failed}")
+        print(f"📁 Avatar files saved in: ./avatars/")
         
-        # Auto-upload to Git/Netlify
-        if auto_upload and success > 0:
-            upload_success = self.auto_upload_to_git(success)
-            if upload_success:
-                print(f"\n🎯 All Done! Avatars are being deployed to Netlify automatically.")
-                print(f"🌐 Check your avatars at: https://narrin.ai/avatars/")
-            else:
-                print(f"\n⚠️ Auto-upload failed. Upload manually with:")
-                print(f"   git add avatars/")
-                print(f"   git commit -m 'Add character avatars'")
-                print(f"   git push")
-        else:
-            print(f"\n📁 Avatar files saved in: ./avatars/")
-            print(f"🔧 Upload manually if needed")
+        if success > 0:
+            print(f"\n📋 Next steps:")
+            print(f"1. Upload avatars folder to your website/Netlify")
+            print(f"2. Avatars will be available at: https://narrin.ai/avatars/")
+            print(f"3. Airtable is already updated with Avatar_URLs")
         
         return success, failed
 
 if __name__ == "__main__":
     import sys
     
-    print("🚀 Character Avatar Uploader for 186+ characters")
-    print("📸 Using WebP format with automatic Git deployment")
-    print("📁 Script: character_avatar_uploader.py")
+    print("🎯 Character Avatar Uploader for Missing Avatars")
+    print("📸 Only processes characters WITHOUT Avatar_URL")
+    print("💾 Saves to avatars/ + updates Airtable")
     
-    # Parse command line arguments
-    skip_existing = '--skip-existing' in sys.argv
-    clear_cache = '--clear-cache' in sys.argv
-    no_auto_upload = '--no-auto-upload' in sys.argv
-    start_from = 1
+    # Check for test mode
+    test_mode = '--test' in sys.argv or '--test-15' in sys.argv
     
-    # Check for --start-from argument
-    for i, arg in enumerate(sys.argv):
-        if arg == '--start-from' and i + 1 < len(sys.argv):
-            try:
-                start_from = int(sys.argv[i + 1])
-            except ValueError:
-                print("❌ Invalid start number")
-                exit(1)
+    if test_mode:
+        print("\n🧪 TEST MODE: Processing first 15 characters only")
+        print("💡 Usage:")
+        print("   python script.py --test     # Test with first 15")
+        print("   python script.py           # Process all characters")
     
-    print(f"🔧 Options:")
-    print(f"   Skip existing: {skip_existing}")
-    print(f"   Clear cache: {clear_cache}")
-    print(f"   Start from: {start_from}")
-    print(f"   Auto upload: {not no_auto_upload}")
-    print(f"\n💡 Usage examples:")
-    print(f"   python character_avatar_uploader.py")
-    print(f"   python character_avatar_uploader.py --skip-existing")
-    print(f"   python character_avatar_uploader.py --no-auto-upload")
-    print(f"   python character_avatar_uploader.py --clear-cache --start-from 50")
+    uploader = MissingAvatarUploader()
     
-    uploader = SimpleAvatarUploader()
-    uploader.run(skip_existing=skip_existing, start_from=start_from, 
-                clear_cache=clear_cache, auto_upload=not no_auto_upload)
+    if test_mode:
+        uploader.run(test_limit=15)
+    else:
+        uploader.run()
