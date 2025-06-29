@@ -1451,6 +1451,25 @@ body.has-referral-banner {
         <!-- Dynamic character sections will be inserted here -->
       </div>
 
+<!-- Extra Category/Tags Navigation - Before CTA -->
+      <nav class="category-nav" aria-label="Explore more categories">
+        <div class="filters-container">
+          <!-- Categories Section -->
+          <div class="filter-section">
+            <div class="category-buttons" id="extraCategoryButtons">
+              <!-- Extra category buttons will be inserted here -->
+            </div>
+          </div>
+          
+          <!-- Tags Section -->
+          <div class="filter-section">
+            <div class="tags-container" id="extraTagsContainer">
+              <!-- Extra tag buttons will be inserted here -->
+            </div>
+          </div>
+        </div>
+      </nav>
+
       <!-- Create Character CTA -->
       <section class="create-character-cta">
         <div class="cta-content">
@@ -1492,20 +1511,10 @@ body.has-referral-banner {
       // CHANGED: Maximum characters per category on homepage for faster loading
       MAX_CHARACTERS_PER_CATEGORY: 6,
       CATEGORIES: [
-  { id: 'historical', name: 'Historical', title: 'Historical Figures' },
-  { id: 'fictional', name: 'Fiction', title: 'Fictional Characters' },
-  { id: 'celebrity', name: 'Celebrities', title: 'Celebrities' },
-  { id: 'anime-manga', name: 'Anime & Manga', title: 'Anime & Manga' },
-  { id: 'gaming', name: 'Gaming', title: 'Gaming Characters' },
   { id: 'movies-tv', name: 'Movies & TV', title: 'Movies & TV' },
-  { id: 'books', name: 'Books', title: 'Book Characters' },
   { id: 'mythology', name: 'Mythology', title: 'Mythological Figures' },
+  { id: 'historical', name: 'Historical', title: 'Historical Figures' },
   { id: 'career-coach', name: 'Career Coach', title: 'Career Coaches' },
-  { id: 'creativity-coach', name: 'Creativity Coach', title: 'Creativity Coaches' },
-  { id: 'fitness-coach', name: 'Fitness Coach', title: 'Fitness Coaches' },
-  { id: 'mindfulness-coach', name: 'Mindfulness Coach', title: 'Mindfulness Coaches' },
-  { id: 'cooking-coach', name: 'Cooking Coach', title: 'Cooking Coaches' },
-  { id: 'business-coach', name: 'Business Coach', title: 'Business Coaches' },
   { id: 'relationship-coach', name: 'Relationship Coach', title: 'Relationship Coaches' }
 ],
       TAGS: [
@@ -1717,15 +1726,21 @@ function clearCharactersCache() {
 
     // ===== DYNAMIC CONTENT GENERATION =====
 
-   // Generate category buttons - Show first 8 on mobile, all on desktop
+
+
+   // Generate category buttons - Show first 4 on mobile, all on desktop
 function generateCategoryButtons() {
   const categoryButtons = document.getElementById('categoryButtons');
+  const extraCategoryButtons = document.getElementById('extraCategoryButtons');
+  
   categoryButtons.innerHTML = '';
+  if (extraCategoryButtons) extraCategoryButtons.innerHTML = '';
 
   // Determine how many to show based on screen size
   const isMobile = window.innerWidth <= 768;
-  const categoriesToShow = isMobile ? CONFIG.CATEGORIES.slice(0, 8) : CONFIG.CATEGORIES;
+  const categoriesToShow = isMobile ? CONFIG.CATEGORIES.slice(0, 4) : CONFIG.CATEGORIES;
 
+  // Top navigation
   categoriesToShow.forEach(category => {
     const button = document.createElement('a');
     button.href = `category.html?cat=${category.id}`;
@@ -1735,29 +1750,76 @@ function generateCategoryButtons() {
   });
 
   // Add "More..." button on mobile if there are more categories
-  if (isMobile && CONFIG.CATEGORIES.length > 8) {
+  if (isMobile && CONFIG.CATEGORIES.length > 4) {
     const moreButton = document.createElement('a');
     moreButton.href = 'category.html';
     moreButton.className = 'category-btn';
     moreButton.style.background = 'var(--color-gray)';
-    moreButton.textContent = `+${CONFIG.CATEGORIES.length - 8} More...`;
+    moreButton.textContent = `+${CONFIG.CATEGORIES.length - 4} More...`;
     categoryButtons.appendChild(moreButton);
+  }
+
+  // Extra navigation before CTA (all other categories)
+  if (extraCategoryButtons) {
+    const allOtherCategories = [
+      { id: 'fictional', name: 'Fiction', title: 'Fictional Characters' },
+      { id: 'celebrity', name: 'Celebrities', title: 'Celebrities' },
+      { id: 'anime-manga', name: 'Anime & Manga', title: 'Anime & Manga' },
+      { id: 'gaming', name: 'Gaming', title: 'Gaming Characters' },
+      { id: 'books', name: 'Books', title: 'Book Characters' },
+      { id: 'creativity-coach', name: 'Creativity Coach', title: 'Creativity Coaches' },
+      { id: 'fitness-coach', name: 'Fitness Coach', title: 'Fitness Coaches' },
+      { id: 'mindfulness-coach', name: 'Mindfulness Coach', title: 'Mindfulness Coaches' },
+      { id: 'cooking-coach', name: 'Cooking Coach', title: 'Cooking Coaches' },
+      { id: 'business-coach', name: 'Business Coach', title: 'Business Coaches' }
+    ];
+
+    allOtherCategories.forEach(category => {
+      const button = document.createElement('a');
+      button.href = `category.html?cat=${category.id}`;
+      button.className = 'category-btn';
+      button.textContent = category.name;
+      extraCategoryButtons.appendChild(button);
+    });
   }
 }
 
-    // Generate tag buttons
-    function generateTagButtons() {
-      const tagsContainer = document.getElementById('tagsContainer');
-      tagsContainer.innerHTML = '';
+// Generate tag buttons
+function generateTagButtons() {
+  const tagsContainer = document.getElementById('tagsContainer');
+  tagsContainer.innerHTML = '';
 
-      CONFIG.TAGS.forEach(tag => {
-        const button = document.createElement('a');
-        button.href = `tags.html?tag=${tag}`;
-        button.className = 'tag-btn';
-        button.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
-        tagsContainer.appendChild(button);
-      });
-    }
+  CONFIG.TAGS.forEach(tag => {
+    const button = document.createElement('a');
+    button.href = `tags.html?tag=${tag}`;
+    button.className = 'tag-btn';
+    button.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
+    tagsContainer.appendChild(button);
+  });
+}
+
+
+    // Generate extra tag buttons for bottom navigation
+function generateExtraTagButtons() {
+  const extraTagsContainer = document.getElementById('extraTagsContainer');
+  if (!extraTagsContainer) return;
+
+  extraTagsContainer.innerHTML = '';
+
+  const extraTags = [
+    'genius', 'inspiring', 'determined', 'noble', 'brave',
+    'clever', 'charming', 'powerful', 'ancient', 'legendary',
+    'philosopher', 'strategist', 'innovator', 'explorer', 'diplomat'
+  ];
+
+  extraTags.forEach(tag => {
+    const button = document.createElement('a');
+    button.href = `tags.html?tag=${tag}`;
+    button.className = 'tag-btn';
+    button.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
+    extraTagsContainer.appendChild(button);
+  });
+}
 
     // Generate character sections
     function generateCharacterSections() {
@@ -2123,6 +2185,7 @@ if (window.netlifyIdentity) {
       // Generate dynamic content
       generateCategoryButtons();
       generateTagButtons();
+      generateExtraTagButtons();
       generateCharacterSections();
       
       // Load character data with enforced limit
