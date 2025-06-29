@@ -2235,9 +2235,14 @@ line-clamp: 3;
       toggleMobileSearch();
     });
 
-    // Initialize page
+   // Initialize page
     document.addEventListener('DOMContentLoaded', () => {
       console.log('🚀 Chat overview page loaded');
+      
+      // Run Safari compatibility checks first
+      checkLocalStorageSupport();
+      setupSafariFixes();
+      runSafariCompatibilityTest();
       
       if (window.netlifyIdentity) {
         window.netlifyIdentity.init();
@@ -2422,16 +2427,32 @@ line-clamp: 3;
 
     // VERBETERDE LOADUSERCHATS FUNCTIE MET ALLE CHATS
     async function loadUserChats() {
-      showLoading();
-      
-      try {
-        const token = localStorage.getItem('user_token');
-        const email = localStorage.getItem('user_email');
-        const uid = localStorage.getItem('user_uid');
+  showLoading();
+  
+  try {
+    const token = localStorage.getItem('user_token');
+    const email = localStorage.getItem('user_email');
+    const uid = localStorage.getItem('user_uid');
 
-        if (!token || !email || !uid) {
-          throw new Error('Missing authentication data');
-        }
+    // SAFARI DEBUG SECTIE
+    console.log('🔍 SAFARI DEBUG - Browser info:', {
+      userAgent: navigator.userAgent,
+      isSafari: /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent),
+      cookieEnabled: navigator.cookieEnabled,
+      localStorageAvailable: typeof(Storage) !== "undefined"
+    });
+
+    console.log('🔍 SAFARI AUTH DEBUG:', {
+      hasToken: !!token,
+      hasEmail: !!email,
+      hasUid: !!uid,
+      tokenLength: token ? token.length : 0,
+      email: email // Voor debugging - verwijder later
+    });
+
+    if (!token || !email || !uid) {
+      throw new Error('Missing authentication data');
+    }
 
         console.log('🔍 Request data:', {
           user_email: email,
@@ -2852,6 +2873,88 @@ function extractAvatarUrl(chat) {
       document.getElementById('notLoggedIn').style.display = 'none';
       document.getElementById('mainContent').style.display = 'block';
     }
+
+// ===== SAFARI COMPATIBILITY CHECK =====
+    function checkLocalStorageSupport() {
+      try {
+        const test = 'localStorage-test';
+        localStorage.setItem(test, test);
+        localStorage.removeItem(test);
+        console.log('✅ localStorage werkt normaal');
+        return true;
+      } catch (e) {
+        console.error('❌ localStorage NIET beschikbaar:', e);
+        showError('Safari privacy instellingen blokkeren lokale opslag. Schakel "Prevent Cross-Site Tracking" uit in Safari instellingen.', 'Safari Compatibility Issue');
+        return false;
+      }
+    }
+
+    // Safari iOS fix voor cross-site requests
+    function setupSafariFixes() {
+      if (/Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent)) {
+        console.log('🍎 Safari detected, applying fixes...');
+        
+        // Force credentials for all requests
+        const originalFetch = window.fetch;
+        window.fetch = function(url, options = {}) {
+          options.credentials = options.credentials || 'same-origin';
+          options.mode = options.mode || 'cors';
+          return originalFetch(url, options);
+        };
+        
+        // Check private browsing
+        try {
+          localStorage.setItem('safari-test', '1');
+          localStorage.removeItem('safari-test');
+        } catch (e) {
+          if (e.name === 'QuotaExceededError') {
+            showError('Safari Private Browsing detected. Some features may not work properly. Please use regular browsing mode.', 'Safari Compatibility');
+          }
+        }
+      }
+    }
+
+    function runSafariCompatibilityTest() {
+      const results = {
+        localStorage: false,
+        sessionStorage: false,
+        cookies: false,
+        fetch: false
+      };
+      
+      // Test localStorage
+      try {
+        localStorage.setItem('test', 'value');
+        localStorage.removeItem('test');
+        results.localStorage = true;
+      } catch (e) {
+        console.error('localStorage test failed:', e);
+      }
+      
+      // Test sessionStorage
+      try {
+        sessionStorage.setItem('test', 'value');
+        sessionStorage.removeItem('test');
+        results.sessionStorage = true;
+      } catch (e) {
+        console.error('sessionStorage test failed:', e);
+      }
+      
+      // Test cookies
+      results.cookies = navigator.cookieEnabled;
+      
+      // Test fetch
+      results.fetch = typeof fetch !== 'undefined';
+      
+      console.log('🔍 Safari Compatibility Results:', results);
+      
+      if (!results.localStorage || !results.sessionStorage) {
+        showError(`Safari compatibility issue detected. Please check your Safari privacy settings and disable "Prevent Cross-Site Tracking".`, 'Browser Compatibility');
+      }
+      
+      return results;
+    }
+
   </script>
 
   <!-- Footer -->
