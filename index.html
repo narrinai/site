@@ -1507,22 +1507,22 @@ body.has-referral-banner {
   <script>
     // ===== CONFIGURATION =====
     const CONFIG = {
-      MAKE_WEBHOOK_URL: 'https://hook.eu2.make.com/kej7ez9bgc9g1ic7xh55dx13zsp1go1g',
-      // CHANGED: Maximum characters per category on homepage for faster loading
-      MAX_CHARACTERS_PER_CATEGORY: 6,
-      CATEGORIES: [
-  { id: 'movies-tv', name: 'Movies & TV', title: 'Movies & TV' },
-  { id: 'mythology', name: 'Mythology', title: 'Mythological Figures' },
-  { id: 'historical', name: 'Historical', title: 'Historical Figures' },
-  { id: 'career-coach', name: 'Career Coach', title: 'Career Coaches' },
-  { id: 'relationship-coach', name: 'Relationship Coach', title: 'Relationship Coaches' }
-],
-      TAGS: [
-        'wise', 'funny', 'helpful', 'mysterious', 'leader', 
-        'creative', 'romantic', 'adventure', 'teacher', 'mentor',
-        'villain', 'hero', 'scientist', 'artist', 'warrior'
-      ]
-    };
+  // Netlify Function endpoint
+  CHARACTERS_API: '/.netlify/functions/characters',
+  MAX_CHARACTERS_PER_CATEGORY: 6,
+  CATEGORIES: [
+    { id: 'historical', name: 'Historical', title: 'Historical Figures' },
+    { id: 'movies-tv', name: 'Movies & TV', title: 'Movies & TV' },
+    { id: 'mythology', name: 'Mythology', title: 'Mythological Figures' },
+    { id: 'career-coach', name: 'Career Coach', title: 'Career Coaches' },
+    { id: 'relationship-coach', name: 'Relationship Coach', title: 'Relationship Coaches' }
+  ],
+  TAGS: [
+    'wise', 'funny', 'helpful', 'mysterious', 'leader', 
+    'creative', 'romantic', 'adventure', 'teacher', 'mentor',
+    'villain', 'hero', 'scientist', 'artist', 'warrior'
+  ]
+};
 
 // ===== CACHING SYSTEM =====
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minuten
@@ -1851,13 +1851,12 @@ function generateExtraTagButtons() {
     async function loadCharacters(category, gridId, limit = CONFIG.MAX_CHARACTERS_PER_CATEGORY) {
       const grid = document.getElementById(gridId);
       
-      console.log(`🚀 Loading maximum ${limit} characters from Make.com for category: ${category}`);
-      
+console.log(`🚀 Loading ${limit} characters from Netlify Function for category: ${category}`);      
       try {
-        await loadCharactersFromMake(category, gridId, limit);
-        console.log(`✅ Successfully loaded ${category} from Make.com (max ${limit} characters)`);
+        await loadCharactersFromNetlify(category, gridId, limit);
+        console.log(`✅ Successfully loaded ${category} from Netlify Function`);
       } catch (error) {
-        console.error(`❌ Make.com webhook failed for category ${category}:`, error);
+        console.error(`❌ Netlify Function failed for category ${category}:`, error);
         
         // SHOW ERROR - NO SAMPLE DATA FALLBACK
         grid.innerHTML = `
@@ -1870,100 +1869,83 @@ function generateExtraTagButtons() {
       }
     }
 
-    // UPDATED: Load characters from Make.com with enforced limit
-    // UPDATED: Load characters from Make.com with caching
-async function loadCharactersFromMake(category, gridId, limit = CONFIG.MAX_CHARACTERS_PER_CATEGORY) {
+// NIEUWE: Load characters van Netlify Function
+async function loadCharactersFromNetlify(category, gridId, limit = CONFIG.MAX_CHARACTERS_PER_CATEGORY) {
   const grid = document.getElementById(gridId);
   
   // Check cache first
   let cachedData = getCachedCharacters();
   if (cachedData) {
     console.log('📦 Using cached data for category:', category);
-    processCharacterData(cachedData, category, gridId, limit);
+    processNetlifyData(cachedData, category, gridId, limit);
     return;
   }
   
-  const url = `${CONFIG.MAKE_WEBHOOK_URL}?category=${encodeURIComponent(category)}&limit=${limit}`;
+  // Build API URL
+  const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
+  url.searchParams.set('category', category);
+  url.searchParams.set('limit', limit.toString());
   
-  console.log(`📡 Fetching from Make.com (max ${limit} characters):`, url);
+  console.log(`📡 Fetching from Netlify Function:`, url.toString());
   
-  const response = await fetch(url);
-  console.log('📊 Response status:', response.status, response.statusText);
+  const response = await fetch(url.toString());
   
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
   }
   
-  const rawText = await response.text();
-  console.log('📋 Raw response text (first 500 chars):', rawText.substring(0, 500));
+  const data = await response.json();
+  console.log('✅ Netlify Function response:', data);
   
-  let data;
-  try {
-    data = JSON.parse(rawText);
-  } catch (parseError) {
-    console.error('❌ JSON parse error:', parseError);
-    console.error('❌ Raw response that failed to parse:', rawText);
-    throw new Error('Invalid JSON response from Make.com');
+  if (!data.success) {
+    throw new Error(data.error || 'Unknown API error');
   }
   
-  console.log('✅ Parsed Make.com response:', data);
-  
-  // Cache the data
-  setCachedCharacters(data);
+  // Cache the characters
+  setCachedCharacters(data.characters);
   
   // Process the data
-  processCharacterData(data, category, gridId, limit);
+  processNetlifyData(data.characters, category, gridId, limit);
 }
 
-function processCharacterData(data, category, gridId, limit) {
+function processNetlifyData(characters, category, gridId, limit) {
   const grid = document.getElementById(gridId);
   
-  // Debugging - show first record structure
-  if (data.records && data.records.length > 0) {
-    console.log('🔧 First record structure:', JSON.stringify(data.records[0], null, 2));
-  } else if (Array.isArray(data) && data.length > 0) {
-    console.log('🔧 First item structure:', JSON.stringify(data[0], null, 2));
-  }
+  console.log(`📦 Processing ${characters.length} characters for ${category}`);
   
   grid.innerHTML = '';
   
-  if (data.records && data.records.length > 0) {
-    // Filter for this category and enforce limit
-    const categoryRecords = data.records.filter(record => {
-      const fields = record.fields || record;
-      return fields.Category === category || !fields.Category; // Include items without category
-    }).slice(0, limit);
+  if (characters && characters.length > 0) {
+    // Filter for this category and apply limit
+    const categoryCharacters = characters.filter(char => 
+      char.Category && char.Category.toLowerCase() === category.toLowerCase()
+    ).slice(0, limit);
     
-    console.log(`📦 Processing ${categoryRecords.length} records for ${category} (limited from ${data.records.length} total)`);
+    console.log(`📋 Showing ${categoryCharacters.length} characters for ${category}`);
     
-    categoryRecords.forEach((record, index) => {
-      const fields = record.fields || record;
-      console.log(`🔍 Record ${index + 1}:`, fields);
-      
-      const card = createCharacterCard(fields);
-      grid.appendChild(card);
-    });
-  } else if (Array.isArray(data) && data.length > 0) {
-    // Filter for this category and enforce limit
-    const categoryData = data.filter(character => {
-      return character.Category === category || !character.Category;
-    }).slice(0, limit);
-    
-    console.log(`📦 Processing ${categoryData.length} items for ${category} (limited from ${data.length} total)`);
-    
-    categoryData.forEach((character, index) => {
-      console.log(`🔍 Character ${index + 1}:`, character);
+    categoryCharacters.forEach((character, index) => {
+      console.log(`🔍 Character ${index + 1}:`, character.Name, character.Avatar_URL);
       
       const card = createCharacterCard(character);
       grid.appendChild(card);
     });
+    
+    if (categoryCharacters.length === 0) {
+      grid.innerHTML = `
+        <div class="error-card no-data">
+          <span class="error-icon">📭</span>
+          <div class="error-title">No ${category} characters found</div>
+          <div class="error-message">Check your Airtable categories</div>
+        </div>
+      `;
+    }
   } else {
-    console.warn('⚠️ No usable data found in response');
+    console.warn('⚠️ No characters data found');
     grid.innerHTML = `
       <div class="error-card no-data">
         <span class="error-icon">📭</span>
-        <div class="error-title">No ${category} characters found</div>
-        <div class="error-message">Check your Airtable data</div>
+        <div class="error-title">No characters available</div>
+        <div class="error-message">Please check your data source</div>
       </div>
     `;
   }
