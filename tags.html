@@ -1647,6 +1647,46 @@
 
     console.log('🔗 CONFIG LOADED:', CONFIG);
 
+// ===== CACHING SYSTEM =====
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minuten
+const CACHE_KEYS = {
+    characters: 'narrin_characters',
+    timestamp: 'narrin_characters_timestamp'
+};
+
+function getCachedCharacters() {
+    try {
+        const cached = localStorage.getItem(CACHE_KEYS.characters);
+        const timestamp = localStorage.getItem(CACHE_KEYS.timestamp);
+        
+        if (cached && timestamp) {
+            const age = Date.now() - parseInt(timestamp);
+            if (age < CACHE_DURATION) {
+                console.log('Using cached characters');
+                return JSON.parse(cached);
+            }
+        }
+    } catch (error) {
+        console.log('Cache error:', error);
+    }
+    return null;
+}
+
+function setCachedCharacters(data) {
+    try {
+        localStorage.setItem(CACHE_KEYS.characters, JSON.stringify(data));
+        localStorage.setItem(CACHE_KEYS.timestamp, Date.now().toString());
+        console.log('Characters cached');
+    } catch (error) {
+        console.log('Cache save error:', error);
+    }
+}
+
+function clearCharactersCache() {
+    localStorage.removeItem(CACHE_KEYS.characters);
+    localStorage.removeItem(CACHE_KEYS.timestamp);
+}
+
     // ===== GLOBAL VARIABLES =====
     let currentPage = 1;
     let allCharacters = [];
@@ -1956,83 +1996,102 @@ function getTagDescription(tagName) {
 }
 
     // ===== CHARACTER LOADING FUNCTIONS =====
-    async function loadCharacters() {
-      try {
-        console.log('🚀 Loading all characters for tags page...');
-        console.log('🔗 Using webhook URL:', CONFIG.MAKE_WEBHOOK_URL);
-        
-        // Make request to Make.com webhook without category filter
-        const response = await fetch(CONFIG.MAKE_WEBHOOK_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            limit: "100"
-          })
-        });
-
-        console.log('📊 Response status:', response.status);
-
-        if (!response.ok) {
-          console.error('❌ HTTP Error:', response.status, response.statusText);
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('✅ Make.com response received:', data);
-        console.log('📊 Data type:', typeof data);
-        console.log('📊 Is array:', Array.isArray(data));
-
-        // Handle response data structure
-        let records = [];
-        if (data.success && Array.isArray(data.records)) {
-          records = data.records;
-        } else if (Array.isArray(data)) {
-          records = data;
-        } else if (data.records && Array.isArray(data.records)) {
-          records = data.records;
-        } else {
-          throw new Error('Invalid response format from Make.com');
-        }
-
-        console.log('📦 Processing records:', records.length);
-
-        // Process the records
-        allCharacters = records.map(record => {
-          // Handle both Airtable format (with fields) and direct format
-          const fields = record.fields || record;
-          
-          return {
-            id: fields.Character_ID || fields.Name || 'unknown',
-            name: fields.Name || 'Unknown',
-            title: fields.Character_Title || fields.title || '',
-            description: fields.Character_Description || fields.description || '',
-            avatarUrl: getAvatarUrl(fields),
-            characterUrl: getCharacterUrl(fields),
-            category: fields.Category || 'unknown',
-            slug: fields.Slug || fields.Name,
-            tags: processTags(fields.Tags)
-          };
-        });
-
-        console.log('✅ Processed characters:', allCharacters.length);
-
-        // Extract all unique tags
-        extractAvailableTags();
-        
-        // Apply initial filters if tag is in URL
-        applyTagFilters();
-        
-        // Update results and render
-        updateResultsCount();
-        renderCharacters();
-
-      } catch (error) {
-        console.error('❌ Error loading characters:', error);
-        showErrorState('Failed to load characters. Please try again.', error.message);
-      }
+    // ===== CHARACTER LOADING FUNCTIONS WITH CACHING =====
+async function loadCharacters() {
+  try {
+    console.log('🚀 Loading all characters for tags page...');
+    
+    // Check cache first
+    let cachedData = getCachedCharacters();
+    if (cachedData) {
+      console.log('📦 Using cached data for tags page');
+      processCharacterData(cachedData);
+      return;
     }
+    
+    console.log('🔗 Using webhook URL:', CONFIG.MAKE_WEBHOOK_URL);
+    
+    // Make request to Make.com webhook without category filter
+    const response = await fetch(CONFIG.MAKE_WEBHOOK_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        limit: "100"
+      })
+    });
+
+    console.log('📊 Response status:', response.status);
+
+    if (!response.ok) {
+      console.error('❌ HTTP Error:', response.status, response.statusText);
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('✅ Make.com response received:', data);
+    
+    // Cache the data
+    setCachedCharacters(data);
+    
+    // Process the data
+    processCharacterData(data);
+
+  } catch (error) {
+    console.error('❌ Error loading characters:', error);
+    showErrorState('Failed to load characters. Please try again.', error.message);
+  }
+}
+
+function processCharacterData(data) {
+  console.log('📊 Data type:', typeof data);
+  console.log('📊 Is array:', Array.isArray(data));
+
+  // Handle response data structure
+  let records = [];
+  if (data.success && Array.isArray(data.records)) {
+    records = data.records;
+  } else if (Array.isArray(data)) {
+    records = data;
+  } else if (data.records && Array.isArray(data.records)) {
+    records = data.records;
+  } else {
+    throw new Error('Invalid response format from Make.com');
+  }
+
+  console.log('📦 Processing records:', records.length);
+
+  // Process the records
+  allCharacters = records.map(record => {
+    // Handle both Airtable format (with fields) and direct format
+    const fields = record.fields || record;
+    
+    return {
+      id: fields.Character_ID || fields.Name || 'unknown',
+      name: fields.Name || 'Unknown',
+      title: fields.Character_Title || fields.title || '',
+      description: fields.Character_Description || fields.description || '',
+      avatarUrl: getAvatarUrl(fields),
+      characterUrl: getCharacterUrl(fields),
+      category: fields.Category || 'unknown',
+      slug: fields.Slug || fields.Name,
+      tags: processTags(fields.Tags)
+    };
+  });
+
+  console.log('✅ Processed characters:', allCharacters.length);
+
+  // Extract all unique tags
+  extractAvailableTags();
+  
+  // Apply initial filters if tag is in URL
+  applyTagFilters();
+  
+  // Update results and render
+  updateResultsCount();
+  renderCharacters();
+}
 
     // ===== TAG PROCESSING FUNCTIONS =====
     function processTags(tagsField) {
