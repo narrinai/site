@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 Character Avatar Uploader - Only for characters WITHOUT Avatar_URL
+Improved face detection and better search terms
 """
 
 import requests
@@ -10,6 +11,8 @@ from PIL import Image, ImageOps
 from io import BytesIO
 from dotenv import load_dotenv
 from googleapiclient.discovery import build
+import cv2
+import numpy as np
 
 load_dotenv()
 
@@ -36,9 +39,17 @@ class MissingAvatarUploader:
             self.search_service = None
         
         self.session = requests.Session()
+        
+        # Initialize OpenCV face detector
+        try:
+            self.face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+            print("✅ Face detection initialized")
+        except Exception as e:
+            print(f"⚠️ Face detection not available: {e}")
+            self.face_cascade = None
 
-    def load_characters_without_avatar(self):
-        """Load ALL characters and filter in Python for missing Avatar_URL"""
+    def load_characters_without_avatar(self, limit=50):
+        """Load characters WITHOUT Avatar_URL, limit to first 50"""
         url = f"https://api.airtable.com/v0/{self.airtable_base}/Characters"
         headers = {'Authorization': f'Bearer {self.airtable_token}'}
         
@@ -46,9 +57,9 @@ class MissingAvatarUploader:
         offset = None
         page = 1
         
-        print(f"🔍 Loading ALL characters first...")
+        print(f"🔍 Loading characters (first {limit} without avatars)...")
         
-        # First, load ALL characters
+        # Load all characters first
         while True:
             params = {'maxRecords': 100}
             if offset:
@@ -66,8 +77,6 @@ class MissingAvatarUploader:
                 data = response.json()
                 records = data.get('records', [])
                 all_records.extend(records)
-                print(f"   📋 Records on page {page}: {len(records)}")
-                print(f"   📊 Total loaded: {len(all_records)}")
                 
                 offset = data.get('offset')
                 if not offset:
@@ -83,11 +92,10 @@ class MissingAvatarUploader:
                 print(f"❌ API request error: {e}")
                 break
         
-        print(f"\n📋 Now filtering characters WITHOUT Avatar_URL...")
+        print(f"\n📋 Filtering characters WITHOUT Avatar_URL...")
         
-        # Now filter for characters without Avatar_URL
+        # Filter for characters without Avatar_URL
         characters_without_avatar = []
-        characters_with_avatar = []
         
         for record in all_records:
             fields = record.get('fields', {})
@@ -100,72 +108,67 @@ class MissingAvatarUploader:
                     characters_without_avatar.append({
                         'name': character_name,
                         'id': record['id'],
-                        'search_terms': f"{character_name} portrait",
+                        'search_terms': f"{character_name} portrait face",
                         'current_avatar': ''
                     })
-                    print(f"   ❌ NO AVATAR: {character_name}")
-                else:
-                    characters_with_avatar.append(character_name)
-                    print(f"   ✅ HAS AVATAR: {character_name} → {avatar_url[:30]}...")
+                    
+                    # Stop when we have enough
+                    if len(characters_without_avatar) >= limit:
+                        break
         
-        print(f"\n📊 Final Results:")
-        print(f"   📋 Total characters loaded: {len(all_records)}")
-        print(f"   ❌ WITHOUT Avatar_URL: {len(characters_without_avatar)}")
-        print(f"   ✅ WITH Avatar_URL: {len(characters_with_avatar)}")
+        print(f"\n📊 Results:")
+        print(f"   ❌ WITHOUT Avatar_URL (first {limit}): {len(characters_without_avatar)}")
         
         if len(characters_without_avatar) > 0:
-            print(f"\n📝 Characters WITHOUT avatars:")
-            for i, char in enumerate(characters_without_avatar[:10], 1):
+            print(f"\n📝 Characters to process:")
+            for i, char in enumerate(characters_without_avatar, 1):
                 print(f"   {i:2d}. {char['name']}")
-            if len(characters_without_avatar) > 10:
-                print(f"   ... and {len(characters_without_avatar) - 10} more")
         
         return characters_without_avatar
 
     def is_real_person(self, character_name):
         """Determine if this is likely a real historical person vs fictional character"""
-        # Common indicators of real historical people
-        real_person_indicators = [
-            # Historical titles
-            'emperor', 'king', 'queen', 'president', 'prime minister', 'caesar',
-            'napoleon', 'churchill', 'roosevelt', 'lincoln', 'washington',
-            # Scientists/inventors
-            'einstein', 'newton', 'tesla', 'edison', 'curie', 'darwin', 'galileo',
-            # Artists/writers
-            'picasso', 'da vinci', 'mozart', 'beethoven', 'shakespeare', 'dickens',
-            # Philosophers
-            'plato', 'aristotle', 'socrates', 'confucius',
-            # Religious figures
-            'buddha', 'jesus', 'muhammad',
-            # Other historical indicators
-            'alexander the great', 'cleopatra', 'julius caesar'
+        # Real historical people (scientists, leaders, artists, etc.)
+        real_person_names = [
+            'albert einstein', 'nikola tesla', 'leonardo da vinci', 'marie curie',
+            'isaac newton', 'thomas edison', 'charles darwin', 'galileo galilei',
+            'wolfgang amadeus mozart', 'ludwig van beethoven', 'william shakespeare',
+            'pablo picasso', 'vincent van gogh', 'michelangelo', 'plato', 'aristotle',
+            'socrates', 'confucius', 'napoleon bonaparte', 'winston churchill',
+            'abraham lincoln', 'george washington', 'julius caesar', 'cleopatra',
+            'alexander the great', 'buddha', 'jesus', 'mahatma gandhi', 'nelson mandela',
+            'martin luther king', 'benjamin franklin', 'alexander hamilton',
+            'franklin d roosevelt', 'john f kennedy', 'queen elizabeth',
+            'steve jobs', 'bill gates', 'walt disney', 'henry ford'
         ]
         
-        # Common indicators of fictional characters
+        # Fictional character indicators
         fictional_indicators = [
-            'the grey', 'the white', 'the great wizard', 'from', 'character',
-            'superhero', 'villain', 'hero', 'protagonist', 'anime', 'manga',
-            'lord of the rings', 'star wars', 'marvel', 'dc comics', 'pokemon',
-            'harry potter', 'game of thrones', 'dragon ball', 'naruto'
+            'the grey', 'the white', 'jedi', 'sith', 'lord', 'master chief',
+            'spider-man', 'batman', 'superman', 'iron man', 'captain america',
+            'gandalf', 'aragorn', 'legolas', 'gimli', 'frodo', 'harry potter',
+            'hermione', 'naruto', 'goku', 'luffy', 'vegeta', 'sonic', 'mario',
+            'link', 'zelda', 'pikachu', 'ash ketchum', 'sailor moon',
+            'coach', 'instructor', 'master', 'sensei', 'professor', 'dr.',
+            'aria', 'codex', 'sage', 'mentor', 'navigator', 'harmony', 'spark'
         ]
         
         name_lower = character_name.lower()
         
-        # Check for fictional indicators first (more specific)
+        # Check if it's a known real person
+        if name_lower in real_person_names:
+            return True
+        
+        # Check for fictional indicators
         for indicator in fictional_indicators:
             if indicator in name_lower:
                 return False
         
-        # Check for real person indicators
-        for indicator in real_person_indicators:
-            if indicator in name_lower:
-                return True
-        
-        # Default: if uncertain, treat as fictional to avoid using real people's photos inappropriately
+        # Default to fictional to be safe
         return False
 
     def search_google(self, character):
-        """Search Google for single character portrait images, preferring photos for real people"""
+        """Enhanced Google search with better face-focused terms"""
         if not self.search_service:
             print("   ❌ No Google Search service available")
             return []
@@ -175,75 +178,134 @@ class MissingAvatarUploader:
         
         print(f"   🔍 Detected as: {'Real person' if is_real else 'Fictional character'}")
         
-        # Simplified search terms to avoid API errors
+        # Create highly specific search terms for faces
         if is_real:
-            # For real people: prefer actual photographs
-            search_terms = f'"{character_name}" portrait photograph'
+            # For real people: focus on portrait photographs with face visible
+            search_queries = [
+                f'"{character_name}" portrait photograph face headshot',
+                f'"{character_name}" official portrait photo face',
+                f'"{character_name}" headshot photograph portrait'
+            ]
         else:
-            # For fictional characters: prefer artwork/illustrations
-            search_terms = f'"{character_name}" portrait art'
+            # For fictional characters: focus on character art/illustrations with face
+            search_queries = [
+                f'"{character_name}" character portrait art face illustration',
+                f'"{character_name}" character headshot art face drawing',
+                f'"{character_name}" portrait illustration face artwork'
+            ]
         
-        print(f"   🔍 Search terms: {search_terms}")
+        all_images = []
+        
+        for query in search_queries:
+            print(f"   🔍 Search: {query}")
+            
+            try:
+                result = self.search_service.cse().list(
+                    q=query,
+                    cx=self.google_cx,
+                    searchType='image',
+                    num=8,  # More results per query
+                    safe='active',
+                    imgSize='medium',  # Medium to large images
+                    imgType='face',    # Focus on faces
+                    imgColorType='color'  # Prefer color images
+                ).execute()
+                
+                for item in result.get('items', []):
+                    url = item['link']
+                    title = item.get('title', '').lower()
+                    
+                    # Skip our own site and common problematic sources
+                    skip_domains = ['narrin.ai', 'pinterest.com', 'tumblr.com', 'reddit.com']
+                    if any(domain in url.lower() for domain in skip_domains):
+                        continue
+                    
+                    # Enhanced filtering for better face images
+                    skip_keywords = [
+                        'collage', 'multiple', 'group', 'vs', 'comparison', 'collection',
+                        'wallpaper', 'logo', 'text', 'quote', 'meme', 'comic', 'strip',
+                        'poster', 'banner', 'cover', 'thumbnail', 'icon', 'emoji',
+                        'silhouette', 'shadow', 'back', 'behind', 'crowd', 'team'
+                    ]
+                    
+                    if any(keyword in title for keyword in skip_keywords):
+                        continue
+                    
+                    # Prioritize images with face-related terms
+                    priority = 1
+                    face_terms = ['portrait', 'headshot', 'face', 'close-up', 'closeup']
+                    if any(term in title for term in face_terms):
+                        priority = 3
+                    
+                    # Boost priority for real people photos vs fictional art
+                    if is_real and any(word in title for word in ['photo', 'photograph', 'picture']):
+                        priority += 1
+                    elif not is_real and any(word in title for word in ['art', 'illustration', 'drawing', 'artwork']):
+                        priority += 1
+                    
+                    all_images.append({
+                        'url': url,
+                        'title': item.get('title', ''),
+                        'source': item.get('displayLink', ''),
+                        'priority': priority,
+                        'query': query
+                    })
+                
+                time.sleep(0.5)  # Rate limiting between queries
+                
+            except Exception as e:
+                print(f"   ❌ Search error for '{query}': {e}")
+                continue
+        
+        # Remove duplicates and sort by priority
+        seen_urls = set()
+        unique_images = []
+        for img in all_images:
+            if img['url'] not in seen_urls:
+                seen_urls.add(img['url'])
+                unique_images.append(img)
+        
+        unique_images.sort(key=lambda x: x['priority'], reverse=True)
+        
+        print(f"   📷 Found {len(unique_images)} unique images")
+        return unique_images[:10]  # Return top 10
+
+    def has_face(self, image_data):
+        """Check if image contains a detectable face using OpenCV"""
+        if not self.face_cascade:
+            return True  # If face detection not available, assume it's okay
         
         try:
-            # Simplified API call to avoid quota/parameter issues
-            result = self.search_service.cse().list(
-                q=search_terms,
-                cx=self.google_cx,
-                searchType='image',
-                num=10,  # Reduced to save quota
-                safe='active'
-            ).execute()
+            # Convert image data to OpenCV format
+            nparr = np.frombuffer(image_data, np.uint8)
+            img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
             
-            images = []
-            for item in result.get('items', []):
-                url = item['link']
-                title = item.get('title', '').lower()
-                
-                # Skip our own site
-                if 'narrin.ai' in url:
-                    continue
-                
-                # Basic filtering only
-                skip_keywords = ['collage', 'multiple', 'group', 'vs']
-                if any(keyword in title for keyword in skip_keywords):
-                    continue
-                
-                # Simple prioritization
-                priority = 1
-                if is_real and any(word in title for word in ['photo', 'photograph']):
-                    priority = 2
-                elif not is_real and any(word in title for word in ['art', 'illustration']):
-                    priority = 2
-                
-                images.append({
-                    'url': url,
-                    'title': item.get('title', ''),
-                    'source': item.get('displayLink', ''),
-                    'priority': priority
-                })
+            if img is None:
+                return False
             
-            # Sort by priority
-            images.sort(key=lambda x: x['priority'], reverse=True)
+            # Convert to grayscale for face detection
+            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             
-            print(f"   📷 Found {len(images)} images")
-            return images[:5]  # Return max 5 to save quota
+            # Detect faces
+            faces = self.face_cascade.detectMultiScale(
+                gray,
+                scaleFactor=1.1,
+                minNeighbors=5,
+                minSize=(30, 30)
+            )
+            
+            num_faces = len(faces)
+            print(f"   👤 Detected {num_faces} face(s)")
+            
+            # We want exactly 1 face for a good portrait
+            return num_faces == 1
             
         except Exception as e:
-            error_msg = str(e)
-            print(f"   ❌ Google search error: {error_msg}")
-            
-            # Check for quota error
-            if 'quota' in error_msg.lower() or 'limit' in error_msg.lower():
-                print(f"   ⚠️ Google API quota exceeded. Consider:")
-                print(f"       1. Wait until tomorrow for quota reset")
-                print(f"       2. Check your Google Cloud Console quotas")
-                print(f"       3. Enable billing for higher limits")
-                
-            return []
+            print(f"   ⚠️ Face detection error: {e}")
+            return True  # If detection fails, allow the image
 
-    def process_image(self, url):
-        """Download and process image to WebP format with face detection"""
+    def process_image(self, url, character_name):
+        """Enhanced image processing with face detection and better filtering"""
         try:
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
@@ -254,36 +316,46 @@ class MissingAvatarUploader:
             
             # Check content type
             content_type = response.headers.get('content-type', '').lower()
-            if not any(img_type in content_type for img_type in ['image/', 'jpeg', 'jpg', 'png', 'webp', 'gif']):
+            if not any(img_type in content_type for img_type in ['image/', 'jpeg', 'jpg', 'png', 'webp']):
                 print(f"   ⚠️ Not an image file: {content_type}")
                 return None
             
             # Check file size
             content_length = len(response.content)
-            if content_length < 5120:  # Less than 5KB (too small for good portrait)
+            if content_length < 10240:  # Less than 10KB
                 print(f"   ⚠️ Image too small: {content_length} bytes")
                 return None
-            if content_length > 10 * 1024 * 1024:  # More than 10MB
+            if content_length > 15 * 1024 * 1024:  # More than 15MB
                 print(f"   ⚠️ Image too large: {content_length} bytes")
+                return None
+            
+            # Check for face detection BEFORE processing
+            if not self.has_face(response.content):
+                print(f"   ❌ No single face detected in image")
                 return None
             
             img = Image.open(BytesIO(response.content))
             
-            # Check image dimensions - reject very wide images (likely collages)
+            # Enhanced dimension checks
             width, height = img.size
             aspect_ratio = width / height
             
-            # Reject extremely wide images (likely collages or multi-character images)
-            if aspect_ratio > 2.0:  # More than 2:1 ratio
-                print(f"   ⚠️ Image too wide (likely collage): {width}x{height}, ratio: {aspect_ratio:.2f}")
+            # Reject images that are too wide (likely collages or banners)
+            if aspect_ratio > 1.8:
+                print(f"   ❌ Too wide (likely banner/collage): {width}x{height}, ratio: {aspect_ratio:.2f}")
                 return None
             
-            # Reject extremely tall images (also likely multi-character)
-            if aspect_ratio < 0.5:  # Less than 1:2 ratio
-                print(f"   ⚠️ Image too tall (likely multi-character): {width}x{height}, ratio: {aspect_ratio:.2f}")
+            # Reject images that are too tall (likely full-body or multi-character)
+            if aspect_ratio < 0.6:
+                print(f"   ❌ Too tall (likely full-body): {width}x{height}, ratio: {aspect_ratio:.2f}")
                 return None
             
-            print(f"   ✅ Good dimensions: {width}x{height}, ratio: {aspect_ratio:.2f}")
+            # Check minimum resolution for good quality
+            if width < 150 or height < 150:
+                print(f"   ❌ Resolution too low: {width}x{height}")
+                return None
+            
+            print(f"   ✅ Good image: {width}x{height}, ratio: {aspect_ratio:.2f}")
             
             # Convert to RGB if needed
             if img.mode in ('RGBA', 'LA', 'P'):
@@ -295,17 +367,17 @@ class MissingAvatarUploader:
             elif img.mode != 'RGB':
                 img = img.convert('RGB')
             
-            # Smart crop to square (400x400) for consistent avatars
-            # Focus slightly higher than center for better face framing
-            img = ImageOps.fit(img, (400, 400), Image.Resampling.LANCZOS, centering=(0.5, 0.35))
+            # Smart crop to square (512x512) for high-quality avatars
+            # Focus on upper portion for better face framing
+            img = ImageOps.fit(img, (512, 512), Image.Resampling.LANCZOS, centering=(0.5, 0.3))
             
-            # Save as WebP with high quality for portraits
+            # Save as WebP with high quality
             img_bytes = BytesIO()
-            img.save(img_bytes, format='WEBP', quality=90, optimize=True)
+            img.save(img_bytes, format='WEBP', quality=92, optimize=True)
             img_bytes.seek(0)
             
             processed_size = len(img_bytes.getvalue())
-            print(f"   ✅ Processed: {content_length} → {processed_size} bytes")
+            print(f"   ✅ Processed: {content_length} → {processed_size} bytes (512x512 WebP)")
             
             return img_bytes.getvalue()
             
@@ -315,11 +387,9 @@ class MissingAvatarUploader:
 
     def save_to_avatars_folder(self, image_data, filename):
         """Save image to avatars/ folder"""
-        # Create avatars directory if it doesn't exist
         avatars_dir = "avatars"
         os.makedirs(avatars_dir, exist_ok=True)
         
-        # Full path for the file
         file_path = os.path.join(avatars_dir, filename)
         
         try:
@@ -339,10 +409,7 @@ class MissingAvatarUploader:
             'Content-Type': 'application/json'
         }
         
-        # Create the full URL for the avatar
         avatar_url = f"https://narrin.ai/avatars/{filename}"
-        
-        # Add cache-busting timestamp
         timestamp = int(time.time())
         avatar_url_with_cache = f"{avatar_url}?v={timestamp}"
         
@@ -362,7 +429,7 @@ class MissingAvatarUploader:
             return False
 
     def process_character(self, character):
-        """Process one character: find image, save to avatars/, update Airtable"""
+        """Process one character with enhanced face detection"""
         print(f"\n🎯 Processing: {character['name']}")
         
         # Search for images
@@ -383,9 +450,10 @@ class MissingAvatarUploader:
         # Try each image until one works
         for i, img in enumerate(images, 1):
             print(f"   🖼️  Trying image {i}/{len(images)} from: {img['source']}")
+            print(f"        Priority: {img['priority']}, Query: {img['query'][:40]}...")
             
-            # Process the image
-            processed_data = self.process_image(img['url'])
+            # Process the image with face detection
+            processed_data = self.process_image(img['url'], character['name'])
             if not processed_data:
                 continue
             
@@ -394,7 +462,7 @@ class MissingAvatarUploader:
             if not local_path:
                 continue
             
-            # Update Airtable with the new Avatar_URL
+            # Update Airtable
             if self.update_airtable_avatar_url(character['id'], filename):
                 print(f"   ✅ SUCCESS: {character['name']} → avatars/{filename}")
                 return True
@@ -404,43 +472,31 @@ class MissingAvatarUploader:
         print(f"   ❌ All images failed for {character['name']}")
         return False
 
-    def run(self, test_limit=None):
-        """Main execution function"""
-        print("🚀 Character Avatar Uploader - Missing Avatars Only")
-        print("🎯 Processing characters that have NO Avatar_URL")
+    def run(self):
+        """Main execution function for 50 characters"""
+        print("🚀 Character Avatar Uploader - Face-Focused Processing")
+        print("🎯 Processing FIRST 50 characters without Avatar_URL")
+        print("👤 Enhanced face detection for better portraits")
         print("💾 Saving to avatars/ folder + updating Airtable")
         
-        # Load characters without avatars
-        characters = self.load_characters_without_avatar()
+        # Load first 50 characters without avatars
+        characters = self.load_characters_without_avatar(limit=50)
         
         if not characters:
-            print("\n🎉 All characters already have avatars!")
+            print("\n🎉 No characters found without avatars!")
             return 0, 0
         
-        # Apply test limit if specified
-        if test_limit:
-            total_available = len(characters)
-            characters = characters[:test_limit]
-            print(f"\n🧪 TEST MODE: Processing first {len(characters)} of {total_available} characters")
-        else:
-            print(f"\n▶️ FULL MODE: Processing all {len(characters)} characters")
-        
-        # Show which characters will be processed
-        print(f"\n📋 Characters to process:")
+        print(f"\n📋 Will process {len(characters)} characters:")
         for i, char in enumerate(characters, 1):
             print(f"  {i:2d}. {char['name']}")
         
-        # Confirmation prompt
-        if test_limit:
-            response = input(f"\n✅ Process these {len(characters)} characters? (y/N): ")
-        else:
-            response = input(f"\n⚠️  Process ALL {len(characters)} characters? (y/N): ")
-            
+        # Confirmation
+        response = input(f"\n✅ Process these {len(characters)} characters? (y/N): ")
         if response.lower() != 'y':
             print("❌ Cancelled by user")
             return 0, 0
         
-        print(f"\n▶️ Starting processing...")
+        print(f"\n▶️ Starting enhanced processing...")
         
         success = 0
         failed = 0
@@ -451,11 +507,19 @@ class MissingAvatarUploader:
             try:
                 if self.process_character(char):
                     success += 1
+                    print(f"   🎉 Success! ({success}/{i} so far)")
                 else:
                     failed += 1
+                    print(f"   😞 Failed. ({failed}/{i} failed so far)")
                 
-                # Small delay to be nice to APIs
-                time.sleep(1)
+                # Progress update
+                if i % 10 == 0:
+                    print(f"\n📊 Progress update: {i}/{len(characters)} processed")
+                    print(f"   ✅ Successful: {success}")
+                    print(f"   ❌ Failed: {failed}")
+                
+                # Delay between characters
+                time.sleep(2)
                 
             except KeyboardInterrupt:
                 print(f"\n⏹️ Stopped by user at character {i}")
@@ -468,36 +532,21 @@ class MissingAvatarUploader:
         print(f"\n🎉 Processing Complete!")
         print(f"✅ Successful: {success}")
         print(f"❌ Failed: {failed}")
-        print(f"📊 Total processed: {success + failed}")
+        print(f"📊 Success rate: {(success/(success+failed)*100):.1f}%")
         print(f"📁 Avatar files saved in: ./avatars/")
         
         if success > 0:
             print(f"\n📋 Next steps:")
-            print(f"1. Upload avatars folder to your website/Netlify")
-            print(f"2. Avatars will be available at: https://narrin.ai/avatars/")
-            print(f"3. Airtable is already updated with Avatar_URLs")
+            print(f"1. Upload avatars folder to your website")
+            print(f"2. Avatars available at: https://narrin.ai/avatars/")
+            print(f"3. Airtable already updated with Avatar_URLs")
         
         return success, failed
 
 if __name__ == "__main__":
-    import sys
-    
-    print("🎯 Character Avatar Uploader for Missing Avatars")
-    print("📸 Only processes characters WITHOUT Avatar_URL")
-    print("💾 Saves to avatars/ + updates Airtable")
-    
-    # Check for test mode
-    test_mode = '--test' in sys.argv or '--test-15' in sys.argv
-    
-    if test_mode:
-        print("\n🧪 TEST MODE: Processing first 15 characters only")
-        print("💡 Usage:")
-        print("   python script.py --test     # Test with first 15")
-        print("   python script.py           # Process all characters")
+    print("🎯 Enhanced Character Avatar Uploader")
+    print("👤 Face detection + Better search terms")
+    print("📸 Processing first 50 characters without avatars")
     
     uploader = MissingAvatarUploader()
-    
-    if test_mode:
-        uploader.run(test_limit=15)
-    else:
-        uploader.run()
+    uploader.run()
