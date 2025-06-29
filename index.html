@@ -1515,6 +1515,46 @@ body.has-referral-banner {
       ]
     };
 
+// ===== CACHING SYSTEM =====
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minuten
+const CACHE_KEYS = {
+    characters: 'narrin_characters',
+    timestamp: 'narrin_characters_timestamp'
+};
+
+function getCachedCharacters() {
+    try {
+        const cached = localStorage.getItem(CACHE_KEYS.characters);
+        const timestamp = localStorage.getItem(CACHE_KEYS.timestamp);
+        
+        if (cached && timestamp) {
+            const age = Date.now() - parseInt(timestamp);
+            if (age < CACHE_DURATION) {
+                console.log('Using cached characters');
+                return JSON.parse(cached);
+            }
+        }
+    } catch (error) {
+        console.log('Cache error:', error);
+    }
+    return null;
+}
+
+function setCachedCharacters(data) {
+    try {
+        localStorage.setItem(CACHE_KEYS.characters, JSON.stringify(data));
+        localStorage.setItem(CACHE_KEYS.timestamp, Date.now().toString());
+        console.log('Characters cached');
+    } catch (error) {
+        console.log('Cache save error:', error);
+    }
+}
+
+function clearCharactersCache() {
+    localStorage.removeItem(CACHE_KEYS.characters);
+    localStorage.removeItem(CACHE_KEYS.timestamp);
+}
+
     // ===== NAVIGATION FUNCTIONALITY =====
     
     // Mobile Search Elements
@@ -1769,90 +1809,103 @@ function generateCategoryButtons() {
     }
 
     // UPDATED: Load characters from Make.com with enforced limit
-    async function loadCharactersFromMake(category, gridId, limit = CONFIG.MAX_CHARACTERS_PER_CATEGORY) {
-      const grid = document.getElementById(gridId);
-      const url = `${CONFIG.MAKE_WEBHOOK_URL}?category=${encodeURIComponent(category)}&limit=${limit}`;
+    // UPDATED: Load characters from Make.com with caching
+async function loadCharactersFromMake(category, gridId, limit = CONFIG.MAX_CHARACTERS_PER_CATEGORY) {
+  const grid = document.getElementById(gridId);
+  
+  // Check cache first
+  let cachedData = getCachedCharacters();
+  if (cachedData) {
+    console.log('📦 Using cached data for category:', category);
+    processCharacterData(cachedData, category, gridId, limit);
+    return;
+  }
+  
+  const url = `${CONFIG.MAKE_WEBHOOK_URL}?category=${encodeURIComponent(category)}&limit=${limit}`;
+  
+  console.log(`📡 Fetching from Make.com (max ${limit} characters):`, url);
+  
+  const response = await fetch(url);
+  console.log('📊 Response status:', response.status, response.statusText);
+  
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  
+  const rawText = await response.text();
+  console.log('📋 Raw response text (first 500 chars):', rawText.substring(0, 500));
+  
+  let data;
+  try {
+    data = JSON.parse(rawText);
+  } catch (parseError) {
+    console.error('❌ JSON parse error:', parseError);
+    console.error('❌ Raw response that failed to parse:', rawText);
+    throw new Error('Invalid JSON response from Make.com');
+  }
+  
+  console.log('✅ Parsed Make.com response:', data);
+  
+  // Cache the data
+  setCachedCharacters(data);
+  
+  // Process the data
+  processCharacterData(data, category, gridId, limit);
+}
+
+function processCharacterData(data, category, gridId, limit) {
+  const grid = document.getElementById(gridId);
+  
+  // Debugging - show first record structure
+  if (data.records && data.records.length > 0) {
+    console.log('🔧 First record structure:', JSON.stringify(data.records[0], null, 2));
+  } else if (Array.isArray(data) && data.length > 0) {
+    console.log('🔧 First item structure:', JSON.stringify(data[0], null, 2));
+  }
+  
+  grid.innerHTML = '';
+  
+  if (data.records && data.records.length > 0) {
+    // Filter for this category and enforce limit
+    const categoryRecords = data.records.filter(record => {
+      const fields = record.fields || record;
+      return fields.Category === category || !fields.Category; // Include items without category
+    }).slice(0, limit);
+    
+    console.log(`📦 Processing ${categoryRecords.length} records for ${category} (limited from ${data.records.length} total)`);
+    
+    categoryRecords.forEach((record, index) => {
+      const fields = record.fields || record;
+      console.log(`🔍 Record ${index + 1}:`, fields);
       
-      console.log(`📡 Fetching from Make.com (max ${limit} characters):`, url);
+      const card = createCharacterCard(fields);
+      grid.appendChild(card);
+    });
+  } else if (Array.isArray(data) && data.length > 0) {
+    // Filter for this category and enforce limit
+    const categoryData = data.filter(character => {
+      return character.Category === category || !character.Category;
+    }).slice(0, limit);
+    
+    console.log(`📦 Processing ${categoryData.length} items for ${category} (limited from ${data.length} total)`);
+    
+    categoryData.forEach((character, index) => {
+      console.log(`🔍 Character ${index + 1}:`, character);
       
-      const response = await fetch(url);
-      console.log('📊 Response status:', response.status, response.statusText);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const rawText = await response.text();
-      console.log('📋 Raw response text (first 500 chars):', rawText.substring(0, 500));
-      
-      let data;
-      try {
-        data = JSON.parse(rawText);
-      } catch (parseError) {
-        console.error('❌ JSON parse error:', parseError);
-        console.error('❌ Raw response that failed to parse:', rawText);
-        throw new Error('Invalid JSON response from Make.com');
-      }
-      
-      console.log('✅ Parsed Make.com response:', data);
-      
-      // Debugging - show first record structure
-      if (data.records && data.records.length > 0) {
-        console.log('🔧 First record structure:', JSON.stringify(data.records[0], null, 2));
-      } else if (Array.isArray(data) && data.length > 0) {
-        console.log('🔧 First item structure:', JSON.stringify(data[0], null, 2));
-      }
-      
-      grid.innerHTML = '';
-      
-      if (data.records && data.records.length > 0) {
-        // ENFORCE LIMIT: Slice the records to maximum limit
-        const limitedRecords = data.records.slice(0, limit);
-        console.log(`📦 Processing ${limitedRecords.length} records from Airtable format (limited from ${data.records.length} total)`);
-        
-        limitedRecords.forEach((record, index) => {
-          const fields = record.fields || record;
-          console.log(`🔍 Record ${index + 1}:`, fields);
-          
-          // DEBUG: Check if Avatar_URL exists
-          if (fields.Avatar_URL) {
-            console.log(`🖼️ Avatar_URL found for ${fields.Name || fields.name}:`, fields.Avatar_URL);
-          } else {
-            console.log(`⚠️ No Avatar_URL found for ${fields.Name || fields.name}`);
-          }
-          
-          const card = createCharacterCard(fields);
-          grid.appendChild(card);
-        });
-      } else if (Array.isArray(data) && data.length > 0) {
-        // ENFORCE LIMIT: Slice the array to maximum limit
-        const limitedData = data.slice(0, limit);
-        console.log(`📦 Processing ${limitedData.length} items from direct array format (limited from ${data.length} total)`);
-        
-        limitedData.forEach((character, index) => {
-          console.log(`🔍 Character ${index + 1}:`, character);
-          
-          // DEBUG: Check if Avatar_URL exists
-          if (character.Avatar_URL || character.avatar_url) {
-            console.log(`🖼️ Avatar URL found for ${character.Name || character.name}:`, character.Avatar_URL || character.avatar_url);
-          } else {
-            console.log(`⚠️ No Avatar URL found for ${character.Name || character.name}`);
-          }
-          
-          const card = createCharacterCard(character);
-          grid.appendChild(card);
-        });
-      } else {
-        console.warn('⚠️ No usable data found in Make.com response');
-        grid.innerHTML = `
-          <div class="error-card no-data">
-            <span class="error-icon">📭</span>
-            <div class="error-title">No ${category} characters found</div>
-            <div class="error-message">Check your Airtable data</div>
-          </div>
-        `;
-      }
-    }
+      const card = createCharacterCard(character);
+      grid.appendChild(card);
+    });
+  } else {
+    console.warn('⚠️ No usable data found in response');
+    grid.innerHTML = `
+      <div class="error-card no-data">
+        <span class="error-icon">📭</span>
+        <div class="error-title">No ${category} characters found</div>
+        <div class="error-message">Check your Airtable data</div>
+      </div>
+    `;
+  }
+}
 
     // FIXED: Character card creation with proper error handling
     function createCharacterCard(character) {
