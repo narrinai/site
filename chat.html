@@ -2422,16 +2422,15 @@ const sendMessageUrl = "/.netlify/functions/save-chat-message";
       loadCharacter(characterSlug);
     }
 
-  async function loadCharacter(slug) {
+ async function loadCharacter(slug) {
   try {
-    console.log("🔍 Loading character with slug:", slug);
+    console.log("🔍 Loading character via Make.com:", slug);
     
-    // Use Make.com webhook for character data
     const response = await fetch("https://hook.eu2.make.com/hv83kxp3x9s2r6iy9pwmkc4w1qhyc7ts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        action: "get_characters",
+        action: "get_character",
         slug: slug
       })
     });
@@ -2444,10 +2443,10 @@ const sendMessageUrl = "/.netlify/functions/save-chat-message";
     console.log("✅ Make.com character response:", data);
 
     if (!data.success) {
-      throw new Error("Failed to fetch character data");
+      throw new Error("Character not found in Make.com response");
     }
 
-    // Handle both single character and character array responses
+    // Handle both single character and character array
     let character;
     if (data.character) {
       character = data.character;
@@ -2554,16 +2553,18 @@ const sendMessageUrl = "/.netlify/functions/save-chat-message";
 }
 
  async function fetchHistory() {
-  console.log("🚨 NETLIFY VERSION: fetchHistory() aangeroepen");
+  console.log("🚨 AIRTABLE VERSION: fetchHistory() aangeroepen");
   
   const token = localStorage.getItem("user_token");
   const uid = localStorage.getItem("user_uid");
   const email = localStorage.getItem("user_email");
+  const user_id = localStorage.getItem("user_id");
   
   console.log("📋 User data:", { 
     token: !!token, 
     uid: !!uid, 
     email, 
+    user_id,
     characterSlug 
   });
   
@@ -2572,21 +2573,20 @@ const sendMessageUrl = "/.netlify/functions/save-chat-message";
     return;
   }
 
-  console.log("🚀 Sending request to Netlify Function for chat history...");
+  console.log("🚀 Sending request to Airtable chat history webhook...");
   
   try {
-    // GET request with URL parameters
-    const params = new URLSearchParams({
-      user_email: email,
-      user_uid: uid,
-      user_token: token,
-      user_id: localStorage.getItem("user_id") || "",
-      char: characterSlug
-    });
-
-    const response = await fetch(`/.netlify/functions/get-chat-history?${params}`, {
-      method: "GET",
-      headers: { "Content-Type": "application/json" }
+    const response = await fetch("https://hook.eu2.make.com/fjpapor4lkj9mpypaqx8no68d64bxe19", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "get_chat_history",
+        user_email: email,
+        user_uid: uid,
+        user_token: token,
+        user_id: user_id || null,
+        character_slug: characterSlug
+      })
     });
 
     console.log("📨 Response status:", response.status);
@@ -2597,26 +2597,33 @@ const sendMessageUrl = "/.netlify/functions/save-chat-message";
     }
 
     const data = await response.json();
-    console.log("✅ Netlify Function response:", data);
+    console.log("✅ Airtable chat history response:", data);
 
     if (!data.success) {
       console.error("❌ API returned success: false:", data.error);
       return;
     }
 
-    const history = data.history || [];
+    const history = data.history || data.messages || [];
     console.log(`📜 Processing ${history.length} chat messages`);
 
     const chatlog = document.getElementById("chatlog");
     chatlog.innerHTML = ''; // Clear existing content
     
+    // Sort by creation time
+    history.sort((a, b) => {
+      const timeA = new Date(a.CreatedTime || a.created_time || 0);
+      const timeB = new Date(b.CreatedTime || b.created_time || 0);
+      return timeA - timeB;
+    });
+
     let messagesProcessed = 0;
 
     history.forEach((record, index) => {
       console.log(`💬 Processing message ${index + 1}:`, record);
       
-      const role = record.role || 'user';
-      const message = record.message || '';
+      const role = record.Role || record.role || 'user';
+      const message = record.Message || record.message || '';
       
       if (!message || message.trim() === '') {
         console.warn("⚠️ Skipping record without message:", record);
@@ -2712,107 +2719,107 @@ const sendMessageUrl = "/.netlify/functions/save-chat-message";
     }
 
     async function sendMessage(event) {
-      event?.preventDefault();
-      const userInput = document.getElementById("userInput");
-      const input = userInput.value.trim();
-      if (!input) return;
+  event?.preventDefault();
+  const userInput = document.getElementById("userInput");
+  const input = userInput.value.trim();
+  if (!input) return;
 
-      const token = localStorage.getItem("user_token");
-      const uid   = localStorage.getItem("user_uid");
-      const email = localStorage.getItem("user_email");
-      const user_id = localStorage.getItem("user_id");
-      
-      console.log("🚀 sendMessage debug:", { token: !!token, uid: !!uid, email, user_id, characterSlug });
-      
-      if (!token || !uid || !email) {
-        console.error("sendMessage: missing token, uid or email");
-        localStorage.setItem('login_redirect_url', window.location.href);
-        window.location.href = 'profile.html';
-        return;
-      }
+  const token = localStorage.getItem("user_token");
+  const uid = localStorage.getItem("user_uid");
+  const email = localStorage.getItem("user_email");
+  const user_id = localStorage.getItem("user_id");
+  
+  console.log("🚀 sendMessage debug:", { token: !!token, uid: !!uid, email, user_id, characterSlug });
+  
+  if (!token || !uid || !email) {
+    console.error("sendMessage: missing token, uid or email");
+    localStorage.setItem('login_redirect_url', window.location.href);
+    window.location.href = 'profile.html';
+    return;
+  }
 
-      const sendButton = document.getElementById("sendButton");
-      sendButton.disabled = true;
-      sendButton.textContent = "Sending...";
+  const sendButton = document.getElementById("sendButton");
+  sendButton.disabled = true;
+  sendButton.textContent = "Sending...";
 
-      const chatlog = document.getElementById("chatlog");
-      const divUser = document.createElement("p");
-      divUser.innerHTML = `<strong>You:</strong> ${input}`;
-      chatlog.appendChild(divUser);
-      chatlog.scrollTop = chatlog.scrollHeight;
-      userInput.value = "";
+  const chatlog = document.getElementById("chatlog");
+  const divUser = document.createElement("p");
+  divUser.innerHTML = `<strong>You:</strong> ${input}`;
+  chatlog.appendChild(divUser);
+  chatlog.scrollTop = chatlog.scrollHeight;
+  userInput.value = "";
 
-      // Show typing indicator after 1 second delay
-      setTimeout(() => {
-        showTypingIndicator();
-      }, 1000);
+  // Show typing indicator after 1 second delay
+  setTimeout(() => {
+    showTypingIndicator();
+  }, 1000);
 
-      try {
-        const requestPayload = {
-  action: "send_message",
-  message: input,
-  character_slug: characterSlug,
-  user_email: email,
-  user_uid: uid,
-  user_token: token,
-  user_id: user_id || null
-};
-        
-        console.log("📤 sendMessage FULL payload:", requestPayload);
+  try {
+    const requestPayload = {
+      action: "send_message",
+      message: input,
+      character_slug: characterSlug,
+      user_email: email,
+      user_uid: uid,
+      user_token: token,
+      user_id: user_id || null
+    };
+    
+    console.log("📤 sendMessage FULL payload:", requestPayload);
 
-        // NIEUWE (Make.com NewChat Flow)
-const response = await fetch("https://hook.eu2.make.com/36bygx4a2y4bkl97wkdjdmtn3o9ygjms", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(requestPayload)
-});
+    // Use Make.com NewChat webhook
+    const response = await fetch("https://hook.eu2.make.com/36bygx4a2y4bkl97wkdjdmtn3o9ygjms", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestPayload)
+    });
 
-        console.log("📨 sendMessage response status:", response.status, response.statusText);
+    console.log("📨 sendMessage response status:", response.status, response.statusText);
 
-        const rawText = await response.text();
-        console.log("📄 sendMessage raw response:", rawText);
+    const rawText = await response.text();
+    console.log("📄 sendMessage raw response:", rawText);
 
-        let data;
-        try {
-          data = JSON.parse(rawText);
-          console.log("✅ sendMessage parsed response:", data);
-        } catch (e) {
-          console.warn("JSON parse error, using fallback:", e);
-          data = { 
-            success: true, 
-            reply: "Whoopsie! 🙈 I just had a bit of a brain fart (do AIs have brains?). Let's pretend that never happened and try again!" 
-          };
-        }
-
-        if (!data.success) {
-          throw new Error("Chat request failed");
-        }
-
-        const reply = data.reply || "⚠️ No reply received.";
-
-        // Wait and show response
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        hideTypingIndicator();
-
-        const divBot = document.createElement("p");
-        const avatarHtml = getAvatarHtml();
-        divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${reply}`;
-        chatlog.appendChild(divBot);
-        chatlog.scrollTop = chatlog.scrollHeight;
-        
-      } catch (err) {
-        console.error("❌ sendMessage Error:", err);
-        hideTypingIndicator();
-        
-        const divErr = document.createElement("p");
-        divErr.innerHTML = `<strong>${currentCharacter?.name || 'Character'}:</strong> ⚠️ Something went wrong while sending.`;
-        chatlog.appendChild(divErr);
-        chatlog.scrollTop = chatlog.scrollHeight;
-      } finally {
-        sendButton.disabled = false;
-        sendButton.textContent = "Send";
-      }
+    let data;
+    try {
+      data = JSON.parse(rawText);
+      console.log("✅ sendMessage parsed response:", data);
+    } catch (e) {
+      console.warn("JSON parse error, using fallback:", e);
+      data = { 
+        success: true, 
+        reply: "Whoopsie! 🙈 I just had a bit of a brain fart (do AIs have brains?). Let's pretend that never happened and try again!" 
+      };
     }
+
+    if (!data.success) {
+      throw new Error("Chat request failed");
+    }
+
+    const reply = data.reply || "⚠️ No reply received.";
+
+    // Wait and show response
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    hideTypingIndicator();
+
+    const divBot = document.createElement("p");
+    const avatarHtml = getAvatarHtml();
+    divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${reply}`;
+    chatlog.appendChild(divBot);
+    chatlog.scrollTop = chatlog.scrollHeight;
+    
+  } catch (err) {
+    console.error("❌ sendMessage Error:", err);
+    hideTypingIndicator();
+    
+    const divErr = document.createElement("p");
+    divErr.innerHTML = `<strong>${currentCharacter?.name || 'Character'}:</strong> ⚠️ Something went wrong while sending.`;
+    chatlog.appendChild(divErr);
+    chatlog.scrollTop = chatlog.scrollHeight;
+  } finally {
+    sendButton.disabled = false;
+    sendButton.textContent = "Send";
+  }
+}
 
     // ===== DISCLAIMER TOGGLE FUNCTIONALITY =====
     document.addEventListener('DOMContentLoaded', () => {
