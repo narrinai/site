@@ -1602,8 +1602,6 @@
     </div>
   </nav>
 
- 
-
   <!-- Content -->
   <div class="content">
     <div class="results-header">
@@ -1641,54 +1639,12 @@
     console.log('🔥 TAGS.HTML SCRIPT LOADED!');
 
     // ===== CONFIGURATION =====
-const CONFIG = {
-  // Netlify Function endpoint
-  CHARACTERS_API: '/.netlify/functions/characters'
-};
+    const CONFIG = {
+      // Netlify Function endpoint
+      CHARACTERS_API: '/.netlify/functions/characters'
+    };
 
-console.log('🔗 CONFIG LOADED:', CONFIG);
-
-
-// ===== GLOBAL VARIABLES =====
-let currentPage = 1;
-let allCharacters = [];
-let filteredCharacters = [];
-let availableTags = [];
-let activeTags = [];
-const charactersPerPage = 24;
-
-function getCachedCharacters() {
-    try {
-        const cached = localStorage.getItem(CACHE_KEYS.characters);
-        const timestamp = localStorage.getItem(CACHE_KEYS.timestamp);
-        
-        if (cached && timestamp) {
-            const age = Date.now() - parseInt(timestamp);
-            if (age < CACHE_DURATION) {
-                console.log('Using cached characters');
-                return JSON.parse(cached);
-            }
-        }
-    } catch (error) {
-        console.log('Cache error:', error);
-    }
-    return null;
-}
-
-function setCachedCharacters(data) {
-    try {
-        localStorage.setItem(CACHE_KEYS.characters, JSON.stringify(data));
-        localStorage.setItem(CACHE_KEYS.timestamp, Date.now().toString());
-        console.log('Characters cached');
-    } catch (error) {
-        console.log('Cache save error:', error);
-    }
-}
-
-function clearCharactersCache() {
-    localStorage.removeItem(CACHE_KEYS.characters);
-    localStorage.removeItem(CACHE_KEYS.timestamp);
-}
+    console.log('🔗 CONFIG LOADED:', CONFIG);
 
     // ===== GLOBAL VARIABLES =====
     let currentPage = 1;
@@ -1914,202 +1870,170 @@ function clearCharactersCache() {
     });
 
     // ===== TAGS PAGE INITIALIZATION =====
-function initializePage() {
-  console.log('🏷️ Tags page loading...');
-  
-  // Update page elements based on URL parameters
-  const urlParams = new URLSearchParams(window.location.search);
-  const tagParam = urlParams.get('tag');
-  
-  if (tagParam) {
-    // If specific tag is in URL, set it as active
-    activeTags = [tagParam];
-    const capitalizedTag = tagParam.charAt(0).toUpperCase() + tagParam.slice(1);
-    document.getElementById('breadcrumb-tag').textContent = `Tag: ${capitalizedTag}`;
-    document.getElementById('tag-title').textContent = capitalizedTag;
-    document.getElementById('tag-description').textContent = getTagDescription(tagParam);
-    updateTagIcon(tagParam);
-  } else {
-    document.getElementById('breadcrumb-tag').textContent = 'All Tags';
-    document.getElementById('tag-title').textContent = 'Character Tags';
-    document.getElementById('tag-description').textContent = 'Find characters by their unique tags and traits';
-    updateTagIcon();
-  }
-}
-
-// ===== TAG DESCRIPTIONS =====
-function getTagDescription(tagName) {
-  const tagDescriptions = {
-    // Personality traits
-    'wise': 'Discover characters known for their wisdom, knowledge, and sage advice',
-    'funny': 'Meet characters who bring humor, wit, and laughter to every conversation',
-    'helpful': 'Chat with characters who are always ready to assist and support others',
-    'mysterious': 'Explore enigmatic characters with secrets, intrigue, and hidden depths',
-    'romantic': 'Connect with characters who embody love, passion, and romantic ideals',
-    'creative': 'Engage with imaginative characters who inspire artistic expression',
-    'leader': 'Meet natural-born leaders who command respect and inspire others',
-    'mentor': 'Learn from wise guides who share knowledge and life lessons',
-    'teacher': 'Discover educators who inspire learning and personal growth',
-    'villain': 'Encounter complex antagonists with compelling motivations',
-    'hero': 'Chat with brave champions who fight for justice and righteousness',
-    
-    // Professions & Roles
-    'scientist': 'Explore the minds of brilliant researchers and innovators',
-    'artist': 'Connect with creative souls who express beauty through their art',
-    'warrior': 'Meet fierce fighters who defend what they believe in',
-    'inventor': 'Discover ingenious minds who create solutions and innovations',
-    'writer': 'Engage with storytellers who craft worlds with their words',
-    'poet': 'Connect with lyrical souls who express emotions through verse',
-    'playwright': 'Meet theatrical minds who bring stories to life on stage',
-    'physicist': 'Explore the universe with brilliant scientific minds',
-    'politician': 'Engage with leaders who shape the course of history',
-    'activist': 'Meet passionate advocates fighting for change and justice',
-    
-    // Attributes & Qualities
-    'genius': 'Chat with extraordinarily intelligent minds throughout history',
-    'nobel': 'Meet Nobel Prize winners and other distinguished achievers',
-    'determined': 'Connect with unwavering spirits who never give up',
-    'inspiring': 'Discover characters who motivate and uplift others',
-    'adventure': 'Join bold explorers on thrilling journeys and quests',
-    'military': 'Meet strategic minds from the world of warfare and tactics',
-    'emperor': 'Chat with powerful rulers who shaped civilizations',
-    'emporer': 'Chat with powerful rulers who shaped civilizations',
-    'queen': 'Meet regal figures who ruled with grace and strength',
-    'ancient': 'Discover timeless characters from bygone eras',
-    'legendary': 'Meet mythical figures whose stories echo through time',
-    'noble': 'Connect with characters of honor, dignity, and moral courage',
-    'brave': 'Chat with fearless souls who face danger head-on',
-    'clever': 'Engage with quick-witted characters who solve problems creatively',
-    'charming': 'Meet charismatic personalities who captivate everyone they meet',
-    'powerful': 'Connect with influential figures who changed the world',
-    
-    // Categories
-    'historical': 'Journey through time with real figures from history',
-    'fictional': 'Enter the worlds of beloved literary and fictional characters',
-    'fantasy': 'Explore magical realms with mystical beings and creatures',
-    'anime': 'Connect with iconic characters from Japanese animation',
-    'gaming': 'Meet legendary heroes and characters from video games',
-    'movies': 'Chat with memorable characters from the silver screen',
-    'tv': 'Connect with beloved personalities from television',
-    'books': 'Meet unforgettable characters from literature',
-    'mythology': 'Discover gods, heroes, and legends from world mythology'
-  };
-  
-  return tagDescriptions[tagName.toLowerCase()] || `Discover amazing characters with the "${tagName}" trait`;
-}
-
-// ===== CHARACTER LOADING FUNCTIONS =====
-async function loadCharacters() {
-  try {
-    console.log('🚀 Loading all characters for tags page...');
-    
-    // Build API URL for Netlify Function (get all characters)
-    const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
-    // Don't set category filter - we want all characters
-    url.searchParams.set('limit', '200'); // Get many for tags page
-    
-    console.log(`📡 Fetching from Netlify Function:`, url.toString());
-    
-    const response = await fetch(url.toString());
-    
-    if (!response.ok) {
-      console.error('❌ HTTP Error:', response.status, response.statusText);
-      throw new Error(`HTTP error! status: ${response.status}`);
+    function initializePage() {
+      console.log('🏷️ Tags page loading...');
+      
+      // Update page elements based on URL parameters
+      const urlParams = new URLSearchParams(window.location.search);
+      const tagParam = urlParams.get('tag');
+      
+      if (tagParam) {
+        // If specific tag is in URL, set it as active
+        activeTags = [tagParam];
+        const capitalizedTag = tagParam.charAt(0).toUpperCase() + tagParam.slice(1);
+        document.getElementById('breadcrumb-tag').textContent = `Tag: ${capitalizedTag}`;
+        document.getElementById('tag-title').textContent = capitalizedTag;
+        document.getElementById('tag-description').textContent = getTagDescription(tagParam);
+        updateTagIcon(tagParam);
+      } else {
+        document.getElementById('breadcrumb-tag').textContent = 'All Tags';
+        document.getElementById('tag-title').textContent = 'Character Tags';
+        document.getElementById('tag-description').textContent = 'Find characters by their unique tags and traits';
+        updateTagIcon();
+      }
     }
-    
-    const data = await response.json();
-    console.log('✅ Netlify Function response:', data);
-    
-    if (!data.success) {
-      throw new Error(data.error || 'Unknown API error');
+
+    // ===== TAG DESCRIPTIONS =====
+    function getTagDescription(tagName) {
+      const tagDescriptions = {
+        // Personality traits
+        'wise': 'Discover characters known for their wisdom, knowledge, and sage advice',
+        'funny': 'Meet characters who bring humor, wit, and laughter to every conversation',
+        'helpful': 'Chat with characters who are always ready to assist and support others',
+        'mysterious': 'Explore enigmatic characters with secrets, intrigue, and hidden depths',
+        'romantic': 'Connect with characters who embody love, passion, and romantic ideals',
+        'creative': 'Engage with imaginative characters who inspire artistic expression',
+        'leader': 'Meet natural-born leaders who command respect and inspire others',
+        'mentor': 'Learn from wise guides who share knowledge and life lessons',
+        'teacher': 'Discover educators who inspire learning and personal growth',
+        'villain': 'Encounter complex antagonists with compelling motivations',
+        'hero': 'Chat with brave champions who fight for justice and righteousness',
+        
+        // Professions & Roles
+        'scientist': 'Explore the minds of brilliant researchers and innovators',
+        'artist': 'Connect with creative souls who express beauty through their art',
+        'warrior': 'Meet fierce fighters who defend what they believe in',
+        'inventor': 'Discover ingenious minds who create solutions and innovations',
+        'writer': 'Engage with storytellers who craft worlds with their words',
+        'poet': 'Connect with lyrical souls who express emotions through verse',
+        'playwright': 'Meet theatrical minds who bring stories to life on stage',
+        'physicist': 'Explore the universe with brilliant scientific minds',
+        'politician': 'Engage with leaders who shape the course of history',
+        'activist': 'Meet passionate advocates fighting for change and justice',
+        
+        // Attributes & Qualities
+        'genius': 'Chat with extraordinarily intelligent minds throughout history',
+        'nobel': 'Meet Nobel Prize winners and other distinguished achievers',
+        'determined': 'Connect with unwavering spirits who never give up',
+        'inspiring': 'Discover characters who motivate and uplift others',
+        'adventure': 'Join bold explorers on thrilling journeys and quests',
+        'military': 'Meet strategic minds from the world of warfare and tactics',
+        'emperor': 'Chat with powerful rulers who shaped civilizations',
+        'emporer': 'Chat with powerful rulers who shaped civilizations',
+        'queen': 'Meet regal figures who ruled with grace and strength',
+        'ancient': 'Discover timeless characters from bygone eras',
+        'legendary': 'Meet mythical figures whose stories echo through time',
+        'noble': 'Connect with characters of honor, dignity, and moral courage',
+        'brave': 'Chat with fearless souls who face danger head-on',
+        'clever': 'Engage with quick-witted characters who solve problems creatively',
+        'charming': 'Meet charismatic personalities who captivate everyone they meet',
+        'powerful': 'Connect with influential figures who changed the world',
+        
+        // Categories
+        'historical': 'Journey through time with real figures from history',
+        'fictional': 'Enter the worlds of beloved literary and fictional characters',
+        'fantasy': 'Explore magical realms with mystical beings and creatures',
+        'anime': 'Connect with iconic characters from Japanese animation',
+        'gaming': 'Meet legendary heroes and characters from video games',
+        'movies': 'Chat with memorable characters from the silver screen',
+        'tv': 'Connect with beloved personalities from television',
+        'books': 'Meet unforgettable characters from literature',
+        'mythology': 'Discover gods, heroes, and legends from world mythology'
+      };
+      
+      return tagDescriptions[tagName.toLowerCase()] || `Discover amazing characters with the "${tagName}" trait`;
     }
-    
-    // Process the data
-    processCharacterData(data.characters);
 
-  } catch (error) {
-    console.error('❌ Error loading characters:', error);
-    showErrorState('Failed to load characters. Please try again.', error.message);
-  }
-}
+    // ===== CHARACTER LOADING FUNCTIONS =====
+    async function loadCharacters() {
+      try {
+        console.log('🚀 Loading all characters for tags page...');
+        
+        // Build API URL for Netlify Function (get all characters)
+        const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
+        // Don't set category filter - we want all characters
+        url.searchParams.set('limit', '200'); // Get many for tags page
+        
+        console.log(`📡 Fetching from Netlify Function:`, url.toString());
+        
+        const response = await fetch(url.toString());
+        
+        if (!response.ok) {
+          console.error('❌ HTTP Error:', response.status, response.statusText);
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('✅ Netlify Function response:', data);
+        
+        if (!data.success) {
+          throw new Error(data.error || 'Unknown API error');
+        }
+        
+        // Process the data
+        processCharacterData(data.characters);
 
-function processCharacterData(characters) {
-  console.log('📦 Processing characters:', characters.length);
+      } catch (error) {
+        console.error('❌ Error loading characters:', error);
+        showErrorState('Failed to load characters. Please try again.', error.message);
+      }
+    }
 
-  // Process all characters
-  allCharacters = characters.map(character => ({
-    id: character.Character_ID || character.Name || 'unknown',
-    name: character.Name || 'Unknown',
-    title: character.Character_Title || '',
-    description: character.Character_Description || '',
-    avatarUrl: character.Avatar_URL || null,
-    characterUrl: character.Character_URL || getCharacterUrl(character),
-    category: character.Category || 'unknown',
-    slug: character.Slug || character.Name,
-    tags: processTags(character.Tags)
-  }));
+    function processCharacterData(data) {
+      // Handle both direct characters array and API response formats
+      let characters = [];
+      
+      if (Array.isArray(data)) {
+        // Direct array of characters
+        characters = data;
+      } else if (data && data.success && Array.isArray(data.records)) {
+        // Make.com API format
+        characters = data.records.map(record => record.fields || record);
+      } else if (data && data.records && Array.isArray(data.records)) {
+        // Alternative API format
+        characters = data.records.map(record => record.fields || record);
+      } else {
+        console.error('❌ Invalid data format:', data);
+        characters = [];
+      }
 
-  console.log('✅ Processed characters:', allCharacters.length);
+      console.log('📦 Processing characters:', characters.length);
 
-  // Extract all unique tags
-  extractAvailableTags();
-  
-  // Apply initial filters if tag is in URL
-  applyTagFilters();
-  
-  // Update results and render
-  updateResultsCount();
-  renderCharacters();
-}
+      // Process all characters
+      allCharacters = characters.map(character => ({
+        id: character.Character_ID || character.Name || 'unknown',
+        name: character.Name || 'Unknown',
+        title: character.Character_Title || character.title || '',
+        description: character.Character_Description || character.description || '',
+        avatarUrl: character.Avatar_URL || null,
+        characterUrl: character.Character_URL || getCharacterUrl(character),
+        category: character.Category || 'unknown',
+        slug: character.Slug || character.Name,
+        tags: processTags(character.Tags)
+      }));
 
-function processCharacterData(data) {
-  console.log('📊 Data type:', typeof data);
-  console.log('📊 Is array:', Array.isArray(data));
+      console.log('✅ Processed characters:', allCharacters.length);
 
-  // Handle response data structure
-  let records = [];
-  if (data.success && Array.isArray(data.records)) {
-    records = data.records;
-  } else if (Array.isArray(data)) {
-    records = data;
-  } else if (data.records && Array.isArray(data.records)) {
-    records = data.records;
-  } else {
-    throw new Error('Invalid response format from Make.com');
-  }
-
-  console.log('📦 Processing records:', records.length);
-
-  // Process the records
-  allCharacters = records.map(record => {
-    // Handle both Airtable format (with fields) and direct format
-    const fields = record.fields || record;
-    
-    return {
-      id: fields.Character_ID || fields.Name || 'unknown',
-      name: fields.Name || 'Unknown',
-      title: fields.Character_Title || fields.title || '',
-      description: fields.Character_Description || fields.description || '',
-      avatarUrl: getAvatarUrl(fields),
-      characterUrl: getCharacterUrl(fields),
-      category: fields.Category || 'unknown',
-      slug: fields.Slug || fields.Name,
-      tags: processTags(fields.Tags)
-    };
-  });
-
-  console.log('✅ Processed characters:', allCharacters.length);
-
-  // Extract all unique tags
-  extractAvailableTags();
-  
-  // Apply initial filters if tag is in URL
-  applyTagFilters();
-  
-  // Update results and render
-  updateResultsCount();
-  renderCharacters();
-}
+      // Extract all unique tags
+      extractAvailableTags();
+      
+      // Apply initial filters if tag is in URL
+      applyTagFilters();
+      
+      // Update results and render
+      updateResultsCount();
+      renderCharacters();
+    }
 
     // ===== TAG PROCESSING FUNCTIONS =====
     function processTags(tagsField) {
@@ -2280,45 +2204,45 @@ function processCharacterData(data) {
 
     // ===== SEARCH FUNCTIONALITY =====
     function setupEventListeners() {
-  // Search functionality for navigation search input
-  const navSearchInput = document.getElementById('navSearchInput');
-  if (navSearchInput) {
-    navSearchInput.addEventListener('input', function(e) {
-      const searchTerm = e.target.value.toLowerCase();
-      filterCharacters(searchTerm);
-    });
-  }
-
-  // Mobile search functionality
-  const mobileSearchInput = document.getElementById('mobileSearchInput');
-  if (mobileSearchInput) {
-    mobileSearchInput.addEventListener('input', function(e) {
-      const searchTerm = e.target.value.toLowerCase();
+      // Search functionality for navigation search input
       const navSearchInput = document.getElementById('navSearchInput');
-      
       if (navSearchInput) {
-        navSearchInput.value = e.target.value;
+        navSearchInput.addEventListener('input', function(e) {
+          const searchTerm = e.target.value.toLowerCase();
+          filterCharacters(searchTerm);
+        });
       }
-      filterCharacters(searchTerm);
-    });
-  }
 
-  // Prevent search form submissions
-  const navSearchForm = document.querySelector('.nav-search');
-  if (navSearchForm) {
-    navSearchForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-    });
-  }
+      // Mobile search functionality
+      const mobileSearchInput = document.getElementById('mobileSearchInput');
+      if (mobileSearchInput) {
+        mobileSearchInput.addEventListener('input', function(e) {
+          const searchTerm = e.target.value.toLowerCase();
+          const navSearchInput = document.getElementById('navSearchInput');
+          
+          if (navSearchInput) {
+            navSearchInput.value = e.target.value;
+          }
+          filterCharacters(searchTerm);
+        });
+      }
 
-  const mobileSearchForm = document.querySelector('.mobile-search-form');
-  if (mobileSearchForm) {
-    mobileSearchForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-      toggleMobileSearch();
-    });
-  }
-}
+      // Prevent search form submissions
+      const navSearchForm = document.querySelector('.nav-search');
+      if (navSearchForm) {
+        navSearchForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+        });
+      }
+
+      const mobileSearchForm = document.querySelector('.mobile-search-form');
+      if (mobileSearchForm) {
+        mobileSearchForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          toggleMobileSearch();
+        });
+      }
+    }
 
     function filterCharacters(searchTerm) {
       // First apply tag filters
@@ -2550,7 +2474,7 @@ function processCharacterData(data) {
       
       selectedCategories.forEach(category => {
         const link = document.createElement('a');
-        link.href = `category.html?category=${category.id}`;
+        link.href = `category.html?cat=${category.id}`;
         link.className = `category-btn ${currentCategory === category.id ? 'active' : ''}`;
         link.textContent = category.name;
         container.appendChild(link);
