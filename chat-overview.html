@@ -2445,7 +2445,7 @@ line-clamp: 3;
     }
 
     // Direct Airtable API via Netlify Function
-    const response = await fetch('/.netlify/functions/get-user-chats', {
+    const response = await fetchWithRetry('/.netlify/functions/get-user-chats', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -2456,10 +2456,6 @@ line-clamp: 3;
     });
 
     console.log('📡 Netlify Function response status:', response.status);
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
 
     const data = await response.json();
     console.log('✅ Netlify Function response:', data);
@@ -2472,14 +2468,21 @@ line-clamp: 3;
     userChats = data.chats || [];
     
     console.log('✅ Chats loaded from Airtable:', userChats.length, 'chats found');
-    console.log('📊 Sample chats:', userChats.slice(0, 2));
+    
+    // Als er chats zijn, log sample data
+    if (userChats.length > 0) {
+      console.log('📊 Sample chat structure:', userChats[0]);
+    }
 
     displayChats();
 
   } catch (error) {
     console.error('❌ Error loading chats:', error);
     showError(`Failed to load chats: ${error.message}`);
-    showSampleChats(); // Fallback for demo
+    
+    // Toon sample chats alleen als fallback
+    console.log('🎭 Showing sample chats as fallback');
+    showSampleChats();
   }
 }
 
@@ -2557,15 +2560,36 @@ function extractAvatarUrl(chat) {
     }
 
    function formatChatDate(timestamp) {
-  if (!timestamp) return 'Never';
+  if (!timestamp || timestamp === 'Never') return 'Never';
   
   try {
     const date = new Date(timestamp);
-    return date.toLocaleDateString('en-GB', { 
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
+    
+    // Check if valid date
+    if (isNaN(date.getTime())) {
+      return 'Unknown';
+    }
+    
+    const now = new Date();
+    const diffTime = now - date;
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+    const diffMinutes = Math.floor(diffTime / (1000 * 60));
+    
+    // Relative time formatting
+    if (diffMinutes < 60) {
+      return diffMinutes <= 1 ? 'Just now' : `${diffMinutes} minutes ago`;
+    } else if (diffHours < 24) {
+      return diffHours === 1 ? '1 hour ago' : `${diffHours} hours ago`;
+    } else if (diffDays < 7) {
+      return diffDays === 1 ? 'Yesterday' : `${diffDays} days ago`;
+    } else {
+      return date.toLocaleDateString('en-GB', { 
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    }
   } catch (e) {
     console.error('Date formatting error:', e);
     return 'Unknown';
@@ -2664,34 +2688,40 @@ function extractAvatarUrl(chat) {
       });
     }
 
-    function createChatCard(chat) {
-      console.log('🃏 Creating card for chat:', chat);
-      
-      const card = document.createElement('a');
-      card.className = 'chat-card';
-      card.href = `chat.html?char=${chat.character_slug}`;
-      
-      const avatarContent = chat.avatar_url 
-        ? `<img src="${chat.avatar_url}" alt="${chat.character_name}" onerror="this.parentElement.innerHTML='👤'">`
-        : '👤';
+   function createChatCard(chat) {
+  console.log('🃏 Creating card for chat:', chat);
+  
+  const card = document.createElement('a');
+  card.className = 'chat-card';
+  card.href = `chat.html?char=${chat.character_slug}`;
+  
+  // Verbeterde avatar handling
+  const avatarContent = chat.avatar_url 
+    ? `<img src="${chat.avatar_url}" alt="${chat.character_name}" onerror="this.parentElement.innerHTML='👤'" loading="lazy">`
+    : '👤';
 
-      card.innerHTML = `
-        <div class="chat-header">
-          <div class="chat-avatar">${avatarContent}</div>
-          <div class="chat-info">
-            <h3 class="chat-name">${chat.character_name}</h3>
-            <p class="chat-title">${chat.character_title || ''}</p>
-          </div>
-        </div>
-        <div class="chat-preview">${chat.last_message || 'Start a new conversation...'}</div>
-        <div class="chat-meta">
-          <span class="chat-date">${formatChatDate(chat.last_message_date)}</span>
-          <span class="message-count">${chat.message_count || 0} messages</span>
-        </div>
-      `;
+  // Korte preview text (max 120 karakters)
+  const previewText = chat.last_message 
+    ? (chat.last_message.length > 120 ? chat.last_message.substring(0, 120) + '...' : chat.last_message)
+    : 'Start a new conversation...';
 
-      return card;
-    }
+  card.innerHTML = `
+    <div class="chat-header">
+      <div class="chat-avatar">${avatarContent}</div>
+      <div class="chat-info">
+        <h3 class="chat-name">${chat.character_name || 'Unknown Character'}</h3>
+        <p class="chat-title">${chat.character_title || 'AI Character'}</p>
+      </div>
+    </div>
+    <div class="chat-preview">${previewText}</div>
+    <div class="chat-meta">
+      <span class="chat-date">${formatChatDate(chat.last_message_date)}</span>
+      <span class="message-count">${chat.message_count || 0} messages</span>
+    </div>
+  `;
+
+  return card;
+}
 
     // UI State Functions
     function showLoading() {
