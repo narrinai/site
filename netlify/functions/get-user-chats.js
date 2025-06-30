@@ -204,7 +204,7 @@ if (allChatsResponse.ok) {
 }
 
 // Nu probeer de originele filter query
-const chatHistoryUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${userRecordId}')&sort[0][field]=CreatedTime&sort[0][direction]=desc`;
+const chatHistoryUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=ARRAYCOMPACT(ARRAYJOIN({User}))='${userRecordId}'&sort[0][field]=CreatedTime&sort[0][direction]=desc`;
 console.log('🔗 DEBUG ChatHistory filtered URL:', chatHistoryUrl);
     
     const chatResponse = await fetch(chatHistoryUrl, {
