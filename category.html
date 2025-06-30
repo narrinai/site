@@ -1606,58 +1606,60 @@
 
   <script>
     // ===== CONFIGURATION =====
-    const CONFIG = {
-      MAKE_WEBHOOK_URL: 'https://hook.eu2.make.com/kej7ez9bgc9g1ic7xh55dx13zsp1go1g',
-      CATEGORIES: {
-        'historical': {
-          title: 'Historical Figures',
-          icon: '🏛️',
-          description: 'Chat with the greatest minds and leaders from history'
-        },
-        'fictional': {
-          title: 'Fictional Characters', 
-          icon: '📚',
-          description: 'Meet your favorite characters from books, movies, and stories'
-        },
-        'celebrity': {
-          title: 'Celebrities',
-          icon: '⭐',
-          description: 'Connect with famous personalities and public figures'
-        },
-        'anime-manga': {
-          title: 'Anime & Manga',
-          icon: '🎌',
-          description: 'Discover characters from your favorite anime and manga series'
-        },
-        'gaming': {
-          title: 'Gaming Characters',
-          icon: '🎮',
-          description: 'Battle-tested heroes and legends from the gaming world'
-        },
-        'movies-tv': {
-          title: 'Movies & TV',
-          icon: '🎬',
-          description: 'Meet iconic characters from movies and television'
-        },
-        'books': {
-          title: 'Book Characters',
-          icon: '📖',
-          description: 'Literary characters from famous novels and stories'
-        },
-        'mythology': {
-          title: 'Mythological Figures',
-          icon: '⚡',
-          description: 'Gods, heroes and legends from world mythology'
-        }
-      }
-    };
-
-// ===== CACHING SYSTEM =====
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minuten
-const CACHE_KEYS = {
-    characters: 'narrin_characters',
-    timestamp: 'narrin_characters_timestamp'
+const CONFIG = {
+  // Netlify Function endpoint
+  CHARACTERS_API: '/.netlify/functions/characters',
+  CATEGORIES: {
+    'historical': {
+      title: 'Historical Figures',
+      icon: '🏛️',
+      description: 'Chat with the greatest minds and leaders from history'
+    },
+    'fictional': {
+      title: 'Fictional Characters', 
+      icon: '📚',
+      description: 'Meet your favorite characters from books, movies, and stories'
+    },
+    'celebrity': {
+      title: 'Celebrities',
+      icon: '⭐',
+      description: 'Connect with famous personalities and public figures'
+    },
+    'anime-manga': {
+      title: 'Anime & Manga',
+      icon: '🎌',
+      description: 'Discover characters from your favorite anime and manga series'
+    },
+    'gaming': {
+      title: 'Gaming Characters',
+      icon: '🎮',
+      description: 'Battle-tested heroes and legends from the gaming world'
+    },
+    'movies-tv': {
+      title: 'Movies & TV',
+      icon: '🎬',
+      description: 'Meet iconic characters from movies and television'
+    },
+    'books': {
+      title: 'Book Characters',
+      icon: '📖',
+      description: 'Literary characters from famous novels and stories'
+    },
+    'mythology': {
+      title: 'Mythological Figures',
+      icon: '⚡',
+      description: 'Gods, heroes and legends from world mythology'
+    }
+  }
 };
+
+
+// ===== GLOBAL VARIABLES =====
+let currentCategory = '';
+let currentPage = 1;
+let allCharacters = [];
+let filteredCharacters = [];
+const charactersPerPage = 24;
 
 function getCachedCharacters() {
     try {
@@ -1866,49 +1868,66 @@ function clearCharactersCache() {
     }
 
     // ===== CHARACTER LOADING FUNCTIONS =====
-    // ===== CHARACTER LOADING FUNCTIONS WITH CACHING =====
+    // ===== CHARACTER LOADING FUNCTIONS =====
 async function loadCharacters() {
   try {
     console.log('🚀 Loading characters for category:', currentCategory);
     
-    // Check cache first
-    let cachedData = getCachedCharacters();
-    if (cachedData) {
-      console.log('📦 Using cached data for category:', currentCategory);
-      processCharacterData(cachedData);
-      return;
-    }
+    // Build API URL for Netlify Function
+    const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
+    url.searchParams.set('category', currentCategory);
+    url.searchParams.set('limit', '100'); // Get more for category pages
     
-    // Make request to Make.com webhook with POST method
-    const response = await fetch(CONFIG.MAKE_WEBHOOK_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        category: currentCategory
-      })
-    });
-
-    console.log('📊 Response status:', response.status);
-
+    console.log(`📡 Fetching from Netlify Function:`, url.toString());
+    
+    const response = await fetch(url.toString());
+    
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-
-    const data = await response.json();
-    console.log('✅ Make.com response received:', data);
     
-    // Cache the data
-    setCachedCharacters(data);
+    const data = await response.json();
+    console.log('✅ Netlify Function response:', data);
+    
+    if (!data.success) {
+      throw new Error(data.error || 'Unknown API error');
+    }
     
     // Process the data
-    processCharacterData(data);
+    processCharacterData(data.characters);
 
   } catch (error) {
     console.error('❌ Error loading characters:', error);
     showErrorState('Failed to load characters. Please try again.', error.message);
   }
+}
+
+function processCharacterData(characters) {
+  console.log('📦 Processing characters:', characters.length);
+
+  // Filter for current category (extra filtering)
+  const categoryCharacters = characters.filter(char => 
+    char.Category && char.Category.toLowerCase() === currentCategory.toLowerCase()
+  );
+
+  // Process the characters
+  allCharacters = categoryCharacters.map(character => ({
+    id: character.Character_ID || character.Name || 'unknown',
+    name: character.Name || 'Unknown',
+    title: character.Character_Title || '',
+    description: character.Character_Description || '',
+    avatarUrl: character.Avatar_URL || null,
+    characterUrl: character.Character_URL || getCharacterUrl(character),
+    category: character.Category || currentCategory,
+    slug: character.Slug || character.Name
+  }));
+
+  console.log('✅ Processed characters for category:', allCharacters.length);
+
+  filteredCharacters = [...allCharacters];
+  filteredCharacters.sort((a, b) => a.name.localeCompare(b.name));
+  updateResultsCount();
+  renderCharacters();
 }
 
 function processCharacterData(data) {
