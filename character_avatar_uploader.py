@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Character Avatar Uploader - Only for characters WITHOUT Avatar_URL
-Improved face detection and better search terms
+Improved face detection and better search terms - FIXED Google API
 """
 
 import requests
@@ -168,7 +168,7 @@ class MissingAvatarUploader:
         return False
 
     def search_google(self, character):
-        """Enhanced Google search with better face-focused terms"""
+        """Enhanced Google search with better face-focused terms - FIXED API"""
         if not self.search_service:
             print("   ❌ No Google Search service available")
             return []
@@ -200,13 +200,13 @@ class MissingAvatarUploader:
             print(f"   🔍 Search: {query}")
             
             try:
+                # FIXED: Removed imgSize parameter that was causing errors
                 result = self.search_service.cse().list(
                     q=query,
                     cx=self.google_cx,
                     searchType='image',
                     num=8,  # More results per query
                     safe='active',
-                    imgSize='medium',  # Medium to large images
                     imgType='face',    # Focus on faces
                     imgColorType='color'  # Prefer color images
                 ).execute()
