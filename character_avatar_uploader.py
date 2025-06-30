@@ -139,10 +139,12 @@ class MissingAvatarUploader:
             'alexander the great', 'buddha', 'jesus', 'mahatma gandhi', 'nelson mandela',
             'martin luther king', 'benjamin franklin', 'alexander hamilton',
             'franklin d roosevelt', 'john f kennedy', 'queen elizabeth',
-            'steve jobs', 'bill gates', 'walt disney', 'henry ford'
+            'steve jobs', 'bill gates', 'walt disney', 'henry ford', 'barack obama',
+            'donald trump', 'elon musk', 'mark zuckerberg', 'jeff bezos', 'warren buffett',
+            'oprah winfrey', 'richard branson', 'tim cook', 'satya nadella'
         ]
         
-        # Fictional character indicators
+        # Fictional character indicators - EXPANDED to catch more fictional types
         fictional_indicators = [
             'the grey', 'the white', 'jedi', 'sith', 'lord', 'master chief',
             'spider-man', 'batman', 'superman', 'iron man', 'captain america',
@@ -150,7 +152,16 @@ class MissingAvatarUploader:
             'hermione', 'naruto', 'goku', 'luffy', 'vegeta', 'sonic', 'mario',
             'link', 'zelda', 'pikachu', 'ash ketchum', 'sailor moon',
             'coach', 'instructor', 'master', 'sensei', 'professor', 'dr.',
-            'aria', 'codex', 'sage', 'mentor', 'navigator', 'harmony', 'spark'
+            'aria', 'codex', 'sage', 'mentor', 'navigator', 'harmony', 'spark',
+            'fitness coach', 'life coach', 'business coach', 'wellness coach',
+            'mindfulness coach', 'spiritual guide', 'meditation guide',
+            'yoga instructor', 'personal trainer', 'nutritionist',
+            'therapist', 'counselor', 'advisor', 'consultant',
+            'zeus', 'apollo', 'athena', 'poseidon', 'hades', 'aphrodite',
+            'thor', 'odin', 'loki', 'freya', 'baldur', 'heimdall',
+            'ares', 'artemis', 'hera', 'demeter', 'hestia', 'hermes',
+            'mythology', 'mythological', 'mythical', 'legendary',
+            'fictional', 'fantasy', 'imaginary', 'character'
         ]
         
         name_lower = character_name.lower()
@@ -164,11 +175,16 @@ class MissingAvatarUploader:
             if indicator in name_lower:
                 return False
         
-        # Default to fictional to be safe
+        # Additional check for coach/instructor patterns
+        coach_patterns = ['coach', 'instructor', 'trainer', 'guide', 'mentor']
+        if any(pattern in name_lower for pattern in coach_patterns):
+            return False
+        
+        # Default to fictional to be safe - we don't want real people for fictional characters
         return False
 
     def search_google(self, character):
-        """Enhanced Google search with better face-focused terms - FIXED API"""
+        """Enhanced Google search with better face-focused terms - FIXED API + NO REAL PEOPLE FOR FICTIONAL"""
         if not self.search_service:
             print("   ❌ No Google Search service available")
             return []
@@ -187,11 +203,11 @@ class MissingAvatarUploader:
                 f'"{character_name}" headshot photograph portrait'
             ]
         else:
-            # For fictional characters: focus on character art/illustrations with face
+            # For fictional characters: focus on ART/ILLUSTRATIONS only - NO real people photos
             search_queries = [
-                f'"{character_name}" character portrait art face illustration',
-                f'"{character_name}" character headshot art face drawing',
-                f'"{character_name}" portrait illustration face artwork'
+                f'"{character_name}" character art illustration portrait drawing',
+                f'"{character_name}" digital art character design portrait',
+                f'"{character_name}" artwork illustration character portrait fantasy art'
             ]
         
         all_images = []
@@ -231,6 +247,24 @@ class MissingAvatarUploader:
                     if any(keyword in title for keyword in skip_keywords):
                         continue
                     
+                    # EXTRA FILTERING: For fictional characters, avoid real people photos
+                    if not is_real:
+                        # Skip if it looks like a real person photo for fictional characters
+                        real_photo_keywords = [
+                            'celebrity', 'actor', 'actress', 'model', 'person', 'man', 'woman',
+                            'real', 'human', 'face', 'headshot', 'portrait photo', 'photograph',
+                            'professional photo', 'studio photo', 'getty images', 'shutterstock'
+                        ]
+                        if any(keyword in title for keyword in real_photo_keywords):
+                            print(f"   ⚠️ Skipping real person photo for fictional character: {title[:50]}...")
+                            continue
+                        
+                        # Prefer art/illustration keywords for fictional characters
+                        art_keywords = ['art', 'illustration', 'drawing', 'artwork', 'digital art', 'fantasy', 'character design']
+                        if not any(keyword in title for keyword in art_keywords):
+                            # Lower priority if no art keywords found
+                            continue
+                    
                     # Prioritize images with face-related terms
                     priority = 1
                     face_terms = ['portrait', 'headshot', 'face', 'close-up', 'closeup']
@@ -239,9 +273,9 @@ class MissingAvatarUploader:
                     
                     # Boost priority for real people photos vs fictional art
                     if is_real and any(word in title for word in ['photo', 'photograph', 'picture']):
-                        priority += 1
-                    elif not is_real and any(word in title for word in ['art', 'illustration', 'drawing', 'artwork']):
-                        priority += 1
+                        priority += 2
+                    elif not is_real and any(word in title for word in ['art', 'illustration', 'drawing', 'artwork', 'digital art']):
+                        priority += 2
                     
                     all_images.append({
                         'url': url,
