@@ -159,10 +159,53 @@ exports.handler = async (event, context) => {
     const userRecordId = targetUser.id;
 
     // Stap 2: Haal ChatHistory op voor deze gebruiker
-    console.log('💬 DEBUG Fetching chat history for user:', userRecordId);
-    
-    const chatHistoryUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${userRecordId}')&sort[0][field]=CreatedTime&sort[0][direction]=desc`;
-    console.log('🔗 DEBUG ChatHistory URL:', chatHistoryUrl);
+console.log('💬 DEBUG Fetching chat history for user:', userRecordId);
+
+// Debug: Haal ALLE ChatHistory records op om te zien wat er staat
+const allChatsUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory`;
+console.log('🔗 DEBUG All chats URL:', allChatsUrl);
+
+const allChatsResponse = await fetch(allChatsUrl, {
+  method: 'GET',
+  headers: airtableHeaders
+});
+
+if (allChatsResponse.ok) {
+  const allChatsData = await allChatsResponse.json();
+  console.log('💬 DEBUG Total chat records:', allChatsData.records.length);
+  
+  // Log laatste 5 chat records
+  allChatsData.records.slice(0, 5).forEach((record, index) => {
+    console.log(`💬 DEBUG Chat ${index + 1}:`, {
+      id: record.id,
+      user_field: record.fields.User,
+      user_type: typeof record.fields.User,
+      character_field: record.fields.Character,
+      message: record.fields.Message?.substring(0, 50) + '...',
+      created: record.fields.CreatedTime,
+      all_fields: Object.keys(record.fields)
+    });
+  });
+  
+  // Zoek chats die mogelijk van onze user zijn
+  const possibleUserChats = allChatsData.records.filter(record => {
+    const userField = record.fields.User;
+    return userField && (
+      userField === userRecordId ||
+      (Array.isArray(userField) && userField.includes(userRecordId)) ||
+      (Array.isArray(userField) && userField[0] === userRecordId)
+    );
+  });
+  
+  console.log('💬 DEBUG Possible user chats found:', possibleUserChats.length);
+  if (possibleUserChats.length > 0) {
+    console.log('💬 DEBUG Sample possible chat:', possibleUserChats[0]);
+  }
+}
+
+// Nu probeer de originele filter query
+const chatHistoryUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${userRecordId}')&sort[0][field]=CreatedTime&sort[0][direction]=desc`;
+console.log('🔗 DEBUG ChatHistory filtered URL:', chatHistoryUrl);
     
     const chatResponse = await fetch(chatHistoryUrl, {
       method: 'GET',
