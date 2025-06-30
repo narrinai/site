@@ -88,6 +88,21 @@ exports.handler = async (event, context) => {
     // Transform data to expected format
     const characters = (data.records || []).map(record => {
       const fields = record.fields || {};
+      
+      // Debug avatar data
+      console.log(`Avatar data for ${fields.Name}:`, {
+        Avatar_File: fields.Avatar_File,
+        Avatar_URL: fields.Avatar_URL
+      });
+      
+      // Extract avatar URL properly
+      let avatarUrl = '';
+      if (fields.Avatar_File && Array.isArray(fields.Avatar_File) && fields.Avatar_File.length > 0) {
+        avatarUrl = fields.Avatar_File[0].url || '';
+      } else if (fields.Avatar_URL && typeof fields.Avatar_URL === 'string') {
+        avatarUrl = fields.Avatar_URL;
+      }
+      
       return {
         id: record.id,
         Name: fields.Name || '',
@@ -96,7 +111,7 @@ exports.handler = async (event, context) => {
         Category: fields.Category || 'historical',
         Tags: fields.Tags || [],
         Slug: fields.Slug || '',
-        Avatar_URL: fields.Avatar_File?.[0]?.url || '',
+        Avatar_URL: avatarUrl,
         Character_URL: fields.Character_URL || `chat.html?char=${fields.Slug || 'unknown'}`,
         Character_ID: fields.Character_ID || record.id
       };
