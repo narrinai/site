@@ -1587,8 +1587,6 @@
     </div>
   </nav>
 
-  
-
   <!-- Content -->
   <div class="content">
     <div class="results-header">
@@ -1606,93 +1604,52 @@
 
   <script>
     // ===== CONFIGURATION =====
-const CONFIG = {
-  // Netlify Function endpoint
-  CHARACTERS_API: '/.netlify/functions/characters',
-  CATEGORIES: {
-    'historical': {
-      title: 'Historical Figures',
-      icon: '🏛️',
-      description: 'Chat with the greatest minds and leaders from history'
-    },
-    'fictional': {
-      title: 'Fictional Characters', 
-      icon: '📚',
-      description: 'Meet your favorite characters from books, movies, and stories'
-    },
-    'celebrity': {
-      title: 'Celebrities',
-      icon: '⭐',
-      description: 'Connect with famous personalities and public figures'
-    },
-    'anime-manga': {
-      title: 'Anime & Manga',
-      icon: '🎌',
-      description: 'Discover characters from your favorite anime and manga series'
-    },
-    'gaming': {
-      title: 'Gaming Characters',
-      icon: '🎮',
-      description: 'Battle-tested heroes and legends from the gaming world'
-    },
-    'movies-tv': {
-      title: 'Movies & TV',
-      icon: '🎬',
-      description: 'Meet iconic characters from movies and television'
-    },
-    'books': {
-      title: 'Book Characters',
-      icon: '📖',
-      description: 'Literary characters from famous novels and stories'
-    },
-    'mythology': {
-      title: 'Mythological Figures',
-      icon: '⚡',
-      description: 'Gods, heroes and legends from world mythology'
-    }
-  }
-};
-
-
-// ===== GLOBAL VARIABLES =====
-let currentCategory = '';
-let currentPage = 1;
-let allCharacters = [];
-let filteredCharacters = [];
-const charactersPerPage = 24;
-
-function getCachedCharacters() {
-    try {
-        const cached = localStorage.getItem(CACHE_KEYS.characters);
-        const timestamp = localStorage.getItem(CACHE_KEYS.timestamp);
-        
-        if (cached && timestamp) {
-            const age = Date.now() - parseInt(timestamp);
-            if (age < CACHE_DURATION) {
-                console.log('Using cached characters');
-                return JSON.parse(cached);
-            }
+    const CONFIG = {
+      // Netlify Function endpoint
+      CHARACTERS_API: '/.netlify/functions/characters',
+      CATEGORIES: {
+        'historical': {
+          title: 'Historical Figures',
+          icon: '🏛️',
+          description: 'Chat with the greatest minds and leaders from history'
+        },
+        'fictional': {
+          title: 'Fictional Characters', 
+          icon: '📚',
+          description: 'Meet your favorite characters from books, movies, and stories'
+        },
+        'celebrity': {
+          title: 'Celebrities',
+          icon: '⭐',
+          description: 'Connect with famous personalities and public figures'
+        },
+        'anime-manga': {
+          title: 'Anime & Manga',
+          icon: '🎌',
+          description: 'Discover characters from your favorite anime and manga series'
+        },
+        'gaming': {
+          title: 'Gaming Characters',
+          icon: '🎮',
+          description: 'Battle-tested heroes and legends from the gaming world'
+        },
+        'movies-tv': {
+          title: 'Movies & TV',
+          icon: '🎬',
+          description: 'Meet iconic characters from movies and television'
+        },
+        'books': {
+          title: 'Book Characters',
+          icon: '📖',
+          description: 'Literary characters from famous novels and stories'
+        },
+        'mythology': {
+          title: 'Mythological Figures',
+          icon: '⚡',
+          description: 'Gods, heroes and legends from world mythology'
         }
-    } catch (error) {
-        console.log('Cache error:', error);
-    }
-    return null;
-}
-
-function setCachedCharacters(data) {
-    try {
-        localStorage.setItem(CACHE_KEYS.characters, JSON.stringify(data));
-        localStorage.setItem(CACHE_KEYS.timestamp, Date.now().toString());
-        console.log('Characters cached');
-    } catch (error) {
-        console.log('Cache save error:', error);
-    }
-}
-
-function clearCharactersCache() {
-    localStorage.removeItem(CACHE_KEYS.characters);
-    localStorage.removeItem(CACHE_KEYS.timestamp);
-}
+      }
+    };
 
     // ===== GLOBAL VARIABLES =====
     let currentCategory = '';
@@ -1868,113 +1825,83 @@ function clearCharactersCache() {
     }
 
     // ===== CHARACTER LOADING FUNCTIONS =====
-    // ===== CHARACTER LOADING FUNCTIONS =====
-async function loadCharacters() {
-  try {
-    console.log('🚀 Loading characters for category:', currentCategory);
-    
-    // Build API URL for Netlify Function
-    const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
-    url.searchParams.set('category', currentCategory);
-    url.searchParams.set('limit', '100'); // Get more for category pages
-    
-    console.log(`📡 Fetching from Netlify Function:`, url.toString());
-    
-    const response = await fetch(url.toString());
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    async function loadCharacters() {
+      try {
+        console.log('🚀 Loading characters for category:', currentCategory);
+        
+        // Build API URL for Netlify Function
+        const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
+        url.searchParams.set('category', currentCategory);
+        url.searchParams.set('limit', '100'); // Get more for category pages
+        
+        console.log(`📡 Fetching from Netlify Function:`, url.toString());
+        
+        const response = await fetch(url.toString());
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('✅ Netlify Function response:', data);
+        
+        if (!data.success) {
+          throw new Error(data.error || 'Unknown API error');
+        }
+        
+        // Process the data
+        processCharacterData(data.characters);
+
+      } catch (error) {
+        console.error('❌ Error loading characters:', error);
+        showErrorState('Failed to load characters. Please try again.', error.message);
+      }
     }
-    
-    const data = await response.json();
-    console.log('✅ Netlify Function response:', data);
-    
-    if (!data.success) {
-      throw new Error(data.error || 'Unknown API error');
+
+    function processCharacterData(data) {
+      // Handle both direct characters array and API response formats
+      let characters = [];
+      
+      if (Array.isArray(data)) {
+        // Direct array of characters
+        characters = data;
+      } else if (data && data.success && Array.isArray(data.records)) {
+        // Make.com API format
+        characters = data.records.map(record => record.fields || record);
+      } else if (data && data.records && Array.isArray(data.records)) {
+        // Alternative API format
+        characters = data.records.map(record => record.fields || record);
+      } else {
+        console.error('❌ Invalid data format:', data);
+        characters = [];
+      }
+
+      console.log('📦 Processing characters:', characters.length);
+
+      // Filter for current category
+      const categoryCharacters = characters.filter(char => 
+        !char.Category || char.Category.toLowerCase() === currentCategory.toLowerCase()
+      );
+
+      // Process the characters
+      allCharacters = categoryCharacters.map(character => ({
+        id: character.Character_ID || character.Name || 'unknown',
+        name: character.Name || 'Unknown',
+        title: character.Character_Title || character.title || '',
+        description: character.Character_Description || character.description || '',
+        avatarUrl: character.Avatar_URL || null,
+        characterUrl: character.Character_URL || getCharacterUrl(character),
+        category: character.Category || currentCategory,
+        slug: character.Slug || character.Name
+      }));
+
+      console.log('✅ Processed characters for category:', allCharacters.length);
+
+      filteredCharacters = [...allCharacters];
+      filteredCharacters.sort((a, b) => a.name.localeCompare(b.name));
+      updateResultsCount();
+      renderCharacters();
     }
-    
-    // Process the data
-    processCharacterData(data.characters);
-
-  } catch (error) {
-    console.error('❌ Error loading characters:', error);
-    showErrorState('Failed to load characters. Please try again.', error.message);
-  }
-}
-
-function processCharacterData(characters) {
-  console.log('📦 Processing characters:', characters.length);
-
-  // Filter for current category (extra filtering)
-  const categoryCharacters = characters.filter(char => 
-    char.Category && char.Category.toLowerCase() === currentCategory.toLowerCase()
-  );
-
-  // Process the characters
-  allCharacters = categoryCharacters.map(character => ({
-    id: character.Character_ID || character.Name || 'unknown',
-    name: character.Name || 'Unknown',
-    title: character.Character_Title || '',
-    description: character.Character_Description || '',
-    avatarUrl: character.Avatar_URL || null,
-    characterUrl: character.Character_URL || getCharacterUrl(character),
-    category: character.Category || currentCategory,
-    slug: character.Slug || character.Name
-  }));
-
-  console.log('✅ Processed characters for category:', allCharacters.length);
-
-  filteredCharacters = [...allCharacters];
-  filteredCharacters.sort((a, b) => a.name.localeCompare(b.name));
-  updateResultsCount();
-  renderCharacters();
-}
-
-function processCharacterData(data) {
-  // Handle response data structure
-  let records = [];
-  if (data.success && Array.isArray(data.records)) {
-    records = data.records;
-  } else if (Array.isArray(data)) {
-    records = data;
-  } else if (data.records && Array.isArray(data.records)) {
-    records = data.records;
-  } else {
-    throw new Error('Invalid response format from Make.com');
-  }
-
-  console.log('📦 Processing records:', records.length);
-
-  // Filter for current category
-  const categoryRecords = records.filter(record => {
-    const fields = record.fields || record;
-    return fields.Category === currentCategory || !fields.Category;
-  });
-
-  // Process the records
-  allCharacters = categoryRecords.map(record => {
-    // Handle both Airtable format (with fields) and direct format
-    const fields = record.fields || record;
-    
-    return {
-      id: fields.Character_ID || fields.Name || 'unknown',
-      name: fields.Name || 'Unknown',
-      title: fields.Character_Title || fields.title || '',
-      description: fields.Character_Description || fields.description || '',
-      avatarUrl: getAvatarUrl(fields),
-      characterUrl: getCharacterUrl(fields),
-      category: fields.Category || currentCategory,
-      slug: fields.Slug || fields.Name
-    };
-  });
-
-  console.log('✅ Processed characters:', allCharacters.length);
-
-  filteredCharacters = [...allCharacters];
-  filteredCharacters.sort((a, b) => a.name.localeCompare(b.name));
-  updateResultsCount();
-  renderCharacters();
-}
 
     // ===== AVATAR URL EXTRACTION =====
     function getAvatarUrl(fields) {
@@ -2036,50 +1963,49 @@ function processCharacterData(data) {
     }
 
     // ===== SEARCH FUNCTIONALITY =====
-    // ===== SEARCH FUNCTIONALITY =====
-function setupEventListeners() {
-  // Search functionality for navigation search input
-  const navSearchInput = document.getElementById('navSearchInput');
-  if (navSearchInput) {
-    navSearchInput.addEventListener('input', function(e) {
-      const searchTerm = e.target.value.toLowerCase();
-      const mobileSearchInput = document.getElementById('mobileSearchInput');
-      if (mobileSearchInput) {
-        mobileSearchInput.value = e.target.value;
-      }
-      filterCharacters(searchTerm);
-    });
-  }
-
-  // Mobile search functionality
-  const mobileSearchInput = document.getElementById('mobileSearchInput');
-  if (mobileSearchInput) {
-    mobileSearchInput.addEventListener('input', function(e) {
-      const searchTerm = e.target.value.toLowerCase();
+    function setupEventListeners() {
+      // Search functionality for navigation search input
       const navSearchInput = document.getElementById('navSearchInput');
       if (navSearchInput) {
-        navSearchInput.value = e.target.value;
+        navSearchInput.addEventListener('input', function(e) {
+          const searchTerm = e.target.value.toLowerCase();
+          const mobileSearchInput = document.getElementById('mobileSearchInput');
+          if (mobileSearchInput) {
+            mobileSearchInput.value = e.target.value;
+          }
+          filterCharacters(searchTerm);
+        });
       }
-      filterCharacters(searchTerm);
-    });
-  }
 
-  // Prevent search form submissions
-  const navSearchForm = document.querySelector('.nav-search');
-  if (navSearchForm) {
-    navSearchForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-    });
-  }
+      // Mobile search functionality
+      const mobileSearchInput = document.getElementById('mobileSearchInput');
+      if (mobileSearchInput) {
+        mobileSearchInput.addEventListener('input', function(e) {
+          const searchTerm = e.target.value.toLowerCase();
+          const navSearchInput = document.getElementById('navSearchInput');
+          if (navSearchInput) {
+            navSearchInput.value = e.target.value;
+          }
+          filterCharacters(searchTerm);
+        });
+      }
 
-  const mobileSearchForm = document.querySelector('.mobile-search-form');
-  if (mobileSearchForm) {
-    mobileSearchForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-      toggleMobileSearch();
-    });
-  }
-}
+      // Prevent search form submissions
+      const navSearchForm = document.querySelector('.nav-search');
+      if (navSearchForm) {
+        navSearchForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+        });
+      }
+
+      const mobileSearchForm = document.querySelector('.mobile-search-form');
+      if (mobileSearchForm) {
+        mobileSearchForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          toggleMobileSearch();
+        });
+      }
+    }
 
     function filterCharacters(searchTerm) {
       if (!searchTerm) {
