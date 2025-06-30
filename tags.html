@@ -1641,18 +1641,21 @@
     console.log('🔥 TAGS.HTML SCRIPT LOADED!');
 
     // ===== CONFIGURATION =====
-    const CONFIG = {
-      MAKE_WEBHOOK_URL: 'https://hook.eu2.make.com/icbbdkt7wk2gm3p13xyk568mxwwh3ti2'
-    };
-
-    console.log('🔗 CONFIG LOADED:', CONFIG);
-
-// ===== CACHING SYSTEM =====
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minuten
-const CACHE_KEYS = {
-    characters: 'narrin_characters',
-    timestamp: 'narrin_characters_timestamp'
+const CONFIG = {
+  // Netlify Function endpoint
+  CHARACTERS_API: '/.netlify/functions/characters'
 };
+
+console.log('🔗 CONFIG LOADED:', CONFIG);
+
+
+// ===== GLOBAL VARIABLES =====
+let currentPage = 1;
+let allCharacters = [];
+let filteredCharacters = [];
+let availableTags = [];
+let activeTags = [];
+const charactersPerPage = 24;
 
 function getCachedCharacters() {
     try {
@@ -1995,53 +1998,68 @@ function getTagDescription(tagName) {
   return tagDescriptions[tagName.toLowerCase()] || `Discover amazing characters with the "${tagName}" trait`;
 }
 
-    // ===== CHARACTER LOADING FUNCTIONS =====
-    // ===== CHARACTER LOADING FUNCTIONS WITH CACHING =====
+// ===== CHARACTER LOADING FUNCTIONS =====
 async function loadCharacters() {
   try {
     console.log('🚀 Loading all characters for tags page...');
     
-    // Check cache first
-    let cachedData = getCachedCharacters();
-    if (cachedData) {
-      console.log('📦 Using cached data for tags page');
-      processCharacterData(cachedData);
-      return;
-    }
+    // Build API URL for Netlify Function (get all characters)
+    const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
+    // Don't set category filter - we want all characters
+    url.searchParams.set('limit', '200'); // Get many for tags page
     
-    console.log('🔗 Using webhook URL:', CONFIG.MAKE_WEBHOOK_URL);
+    console.log(`📡 Fetching from Netlify Function:`, url.toString());
     
-    // Make request to Make.com webhook without category filter
-    const response = await fetch(CONFIG.MAKE_WEBHOOK_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        limit: "100"
-      })
-    });
-
-    console.log('📊 Response status:', response.status);
-
+    const response = await fetch(url.toString());
+    
     if (!response.ok) {
       console.error('❌ HTTP Error:', response.status, response.statusText);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-
-    const data = await response.json();
-    console.log('✅ Make.com response received:', data);
     
-    // Cache the data
-    setCachedCharacters(data);
+    const data = await response.json();
+    console.log('✅ Netlify Function response:', data);
+    
+    if (!data.success) {
+      throw new Error(data.error || 'Unknown API error');
+    }
     
     // Process the data
-    processCharacterData(data);
+    processCharacterData(data.characters);
 
   } catch (error) {
     console.error('❌ Error loading characters:', error);
     showErrorState('Failed to load characters. Please try again.', error.message);
   }
+}
+
+function processCharacterData(characters) {
+  console.log('📦 Processing characters:', characters.length);
+
+  // Process all characters
+  allCharacters = characters.map(character => ({
+    id: character.Character_ID || character.Name || 'unknown',
+    name: character.Name || 'Unknown',
+    title: character.Character_Title || '',
+    description: character.Character_Description || '',
+    avatarUrl: character.Avatar_URL || null,
+    characterUrl: character.Character_URL || getCharacterUrl(character),
+    category: character.Category || 'unknown',
+    slug: character.Slug || character.Name,
+    tags: processTags(character.Tags)
+  }));
+
+  console.log('✅ Processed characters:', allCharacters.length);
+
+  // Extract all unique tags
+  extractAvailableTags();
+  
+  // Apply initial filters if tag is in URL
+  applyTagFilters();
+  
+  // Update results and render
+  updateResultsCount();
+  renderCharacters();
 }
 
 function processCharacterData(data) {
