@@ -2444,7 +2444,7 @@ line-clamp: 3;
       throw new Error('Missing authentication data');
     }
 
-    // Gebruik Netlify Function in plaats van Make.com webhook
+    // Direct Airtable API via Netlify Function
     const response = await fetch('/.netlify/functions/get-user-chats', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -2468,18 +2468,18 @@ line-clamp: 3;
       throw new Error(data.error || 'API returned success: false');
     }
 
-    // Verwerk de chats data
+    // Process the chats data from Airtable
     userChats = data.chats || [];
     
-    console.log('✅ Final processed chats:', userChats.length, 'chats found');
-    console.log('📊 Sample chats:', userChats.slice(0, 3));
+    console.log('✅ Chats loaded from Airtable:', userChats.length, 'chats found');
+    console.log('📊 Sample chats:', userChats.slice(0, 2));
 
     displayChats();
 
   } catch (error) {
     console.error('❌ Error loading chats:', error);
     showError(`Failed to load chats: ${error.message}`);
-    showSampleChats(); // Fallback voor demo
+    showSampleChats(); // Fallback for demo
   }
 }
 
