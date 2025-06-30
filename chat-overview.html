@@ -2425,8 +2425,7 @@ line-clamp: 3;
       }
     }
 
-    // VERBETERDE LOADUSERCHATS FUNCTIE MET ALLE CHATS
-    async function loadUserChats() {
+   async function loadUserChats() {
   showLoading();
   
   try {
@@ -2434,198 +2433,54 @@ line-clamp: 3;
     const email = localStorage.getItem('user_email');
     const uid = localStorage.getItem('user_uid');
 
-    // SAFARI DEBUG SECTIE
-    console.log('🔍 SAFARI DEBUG - Browser info:', {
-      userAgent: navigator.userAgent,
-      isSafari: /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent),
-      cookieEnabled: navigator.cookieEnabled,
-      localStorageAvailable: typeof(Storage) !== "undefined"
-    });
-
-    console.log('🔍 SAFARI AUTH DEBUG:', {
+    console.log('🔍 Loading chats via Netlify Function:', {
       hasToken: !!token,
       hasEmail: !!email,
       hasUid: !!uid,
-      tokenLength: token ? token.length : 0,
-      email: email // Voor debugging - verwijder later
+      email: email
     });
 
     if (!token || !email || !uid) {
       throw new Error('Missing authentication data');
     }
 
-        console.log('🔍 Request data:', {
-          user_email: email,
-          user_uid: uid,
-          user_token: token,
-          action: 'get_user_chats'
-        });
-
-        // VERBETERDE FETCH MET RETRY LOGICA EN LIMIT PARAMETER
-        const response = await fetchWithRetry('https://hook.eu2.make.com/8ftepe6e6mmfqffae4jlbtfeako4m0sy', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            user_email: email,
-            user_uid: uid,
-            user_token: token,
-            action: 'get_user_chats',
-            limit: 1000  // VERHOOG LIMIT OM ALLE CHATS TE KRIJGEN
-          })
-        }, 3); // Retry tot 3 keer
-
-        console.log('📡 Response status:', response.status);
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const rawText = await response.text();
-        console.log('📄 Raw response (first 1000 chars):', rawText.substring(0, 1000));
-
-        let data;
-        try {
-          data = JSON.parse(rawText);
-          console.log('✅ Parsed data:', data);
-        } catch (e) {
-          console.error('❌ JSON parse error:', e);
-          throw new Error('Invalid JSON received from server');
-        }
-
-        // VERBETERDE DATA PROCESSING
-        let rawChats = [];
-        
-      // Array Aggregator format met alle character data
-if (data.chats && Array.isArray(data.chats)) {
-  rawChats = data.chats; // Gebruik direct de Array Aggregator data
-} else if (data.data && Array.isArray(data.data)) {
-  rawChats = data.data;
-} else if (Array.isArray(data)) {
-  rawChats = data;
-} else {
-  console.log('⚠️ Unexpected data format:', data);
-  rawChats = [];
-}
-
-   console.log('📋 Raw chats from API:', rawChats.length, 'items found');
-// EXTRA DEBUG INFO
-console.log('🔍 FULL RAW RESPONSE:', JSON.stringify(data, null, 2));
-console.log('🔍 RAW CHATS DETAILS:', rawChats);
-console.log('🔍 User credentials being sent:', {
-  email: email,
-  uid: uid,
-  token: token ? 'present' : 'missing'
-});
-
-// NIEUWE DEBUG CODE HIERONDER:
-console.log('🔍 DEBUGGING FLOW:');
-console.log('🔍 rawChats array:', rawChats);
-console.log('🔍 About to start VERBETERDE PROCESSING...');
-
-if (rawChats.length === 0) {
-  console.log('⚠️ No chats found in response - showing empty state');
-  userChats = [];
-  displayChats();
-  return;
-}
-
-// VERBETERDE PROCESSING - Alle chat records verwerken
-console.log('🔄 Starting VERBETERDE PROCESSING with', rawChats.length, 'chats');
-        if (rawChats.length === 0) {
-          console.log('⚠️ No chats found in response');
-          userChats = [];
-          displayChats();
-          return;
-        }
-
-        // VERBETERDE PROCESSING - Alle chat records verwerken
-// VERBETERDE PROCESSING - Alle chat records verwerken
-const chatMap = new Map();
-rawChats.forEach((chat, index) => {
-  console.log(`🔄 Processing chat ${index + 1}:`, chat);
-  
-  const characterName = chat.character_name || chat['Name (from Character)'] || chat.Character_Name || 'Unknown Character';
-  const characterSlug = chat.character_slug || chat['Slug (from Character)'] || chat.Character_Slug || 'unknown';
-  
-  console.log(`📝 Character details - Name: "${characterName}", Slug: "${characterSlug}"`);
-
-  if (!characterName || characterName === 'Unknown Character') {
-    console.log('⚠️ Skipping chat with invalid name:', characterName);
-    return;
-  }
-  
-  console.log(`✅ Adding chat to chatMap with key: "${characterSlug}"`);
-
-  const chatKey = characterSlug;
-  const lastMessageDate = chat.CreatedTime || chat.Last_Message_Date || new Date().toISOString();
-  
-  if (!chatMap.has(chatKey) || 
-      new Date(lastMessageDate) > new Date(chatMap.get(chatKey).last_message_date)) {
-    
-    chatMap.set(chatKey, {
-      character_name: characterName,
-      character_title: chat.character_title || chat['Character_Title (from Character)'] || 'AI Character',
-      character_slug: characterSlug,
-      avatar_url: extractAvatarUrl(chat),
-      last_message: (() => {
-  console.log('🔍 DEBUG - chat object:', chat);
-  console.log('🔍 chat.message:', chat.message);
-  console.log('🔍 chat.Message:', chat.Message);
-  const msg = chat.message || chat.Message || chat.last_message || 'Start a new conversation...';
-  console.log('🔍 Final message:', msg);
-  return msg;
-})(),
-      last_message_date: lastMessageDate,
-      message_count: 1,
-      chat_id: chat.record_id || `${email}_${characterSlug}`,
-      conversation_id: chat.conversation_id || null
+    // Gebruik Netlify Function in plaats van Make.com webhook
+    const response = await fetch('/.netlify/functions/get-user-chats', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_email: email,
+        user_uid: uid,
+        user_token: token
+      })
     });
-  } else {
-    // Update message count
-    const existing = chatMap.get(chatKey);
-    existing.message_count = (existing.message_count || 1) + 1;
+
+    console.log('📡 Netlify Function response status:', response.status);
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log('✅ Netlify Function response:', data);
+
+    if (!data.success) {
+      throw new Error(data.error || 'API returned success: false');
+    }
+
+    // Verwerk de chats data
+    userChats = data.chats || [];
+    
+    console.log('✅ Final processed chats:', userChats.length, 'chats found');
+    console.log('📊 Sample chats:', userChats.slice(0, 3));
+
+    displayChats();
+
+  } catch (error) {
+    console.error('❌ Error loading chats:', error);
+    showError(`Failed to load chats: ${error.message}`);
+    showSampleChats(); // Fallback voor demo
   }
-});
-
-// KRITIEK: Dit moet DIRECT na de forEach
-userChats = Array.from(chatMap.values());
-
-console.log('🗺️ ChatMap size:', chatMap.size);
-console.log('🗺️ UserChats IMMEDIATELY after conversion:', userChats);
-console.log('🗺️ UserChats length IMMEDIATELY after conversion:', userChats.length);
-
-// Sorteer op laatste bericht datum (nieuwste eerst)
-userChats.sort((a, b) => {
-  const dateA = parseDateForSorting(a.last_message_date);
-  const dateB = parseDateForSorting(b.last_message_date);
-  return dateB - dateA;
-});
-
-console.log('✅ Final processed chats:', userChats.length, 'chats found');
-console.log('📊 Sample chats:', userChats.slice(0, 3));
-
-// DIRECT displayChats aanroepen
-displayChats();
-
-// Sorteer op laatste bericht datum (nieuwste eerst)
-userChats.sort((a, b) => {
-  const dateA = parseDateForSorting(a.last_message_date);
-  const dateB = parseDateForSorting(b.last_message_date);
-  return dateB - dateA;
-});
-
-console.log('✅ Final processed chats:', userChats.length, 'chats found');
-console.log('📊 Sample chats:', userChats.slice(0, 3));
-
-
-
-displayChats();
-
-} catch (error) {
-  console.error('❌ Error loading chats:', error);
-  showError(`Failed to load chats: ${error.message}`);
-  showSampleChats(); // Fallback voor demo
-}
 }
 
 // Helper functie voor avatar URL extractie
