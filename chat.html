@@ -2544,208 +2544,66 @@ document.addEventListener('DOMContentLoaded', () => {
 }
 
  async function fetchHistory() {
-  console.log("🚨 ULTRA ROBUST VERSION: fetchHistory() aangeroepen");
+  console.log("🚨 NETLIFY VERSION: fetchHistory() aangeroepen");
   
   const token = localStorage.getItem("user_token");
-  const uid   = localStorage.getItem("user_uid");
+  const uid = localStorage.getItem("user_uid");
   const email = localStorage.getItem("user_email");
-  let user_id = localStorage.getItem("user_id");
   
   console.log("📋 User data:", { 
     token: !!token, 
     uid: !!uid, 
     email, 
-    user_id,
     characterSlug 
   });
   
   if (!token || !uid || !characterSlug || !email) {
-    console.warn("⚠️ fetchHistory: missing data", { 
-      hasToken: !!token, 
-      hasUid: !!uid, 
-      hasEmail: !!email,
-      hasUserId: !!user_id,
-      hasCharacterSlug: !!characterSlug 
-    });
+    console.warn("⚠️ fetchHistory: missing data");
     return;
   }
 
-  console.log("🚀 Sending request to chat history webhook...");
+  console.log("🚀 Sending request to Netlify Function...");
   
   try {
-    const requestPayload = {
-      user_email: email,
-      user_uid: uid,
-      user_token: token,
-      user_id: user_id || null,
-      char: characterSlug
-    };
-    
-    console.log("📤 Request payload:", requestPayload);
-    
-    const resp = await fetch("https://hook.eu2.make.com/fjpapor4lkj9mpypaqx8no68d64bxe19", {
+    const response = await fetch("/.netlify/functions/get-chat-history", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(requestPayload)
+      body: JSON.stringify({
+        user_email: email,
+        user_uid: uid,
+        user_token: token,
+        char: characterSlug
+      })
     });
 
-    console.log("📨 Response status:", resp.status, resp.statusText);
+    console.log("📨 Response status:", response.status);
 
-    if (!resp.ok) {
-      console.error("❌ fetchHistory response not ok:", resp.status, resp.statusText);
+    if (!response.ok) {
+      console.error("❌ fetchHistory response not ok:", response.status);
       return;
     }
 
-    const rawText = await resp.text();
-    console.log("📄 Raw response length:", rawText.length);
-    console.log("📄 Complete raw response:", rawText);
+    const data = await response.json();
+    console.log("✅ Netlify Function response:", data);
 
-    // Multiple fallback strategies for parsing
-    let data = null;
-    
-    // Strategy 1: Try direct JSON parse
-    try {
-      data = JSON.parse(rawText);
-      console.log("✅ Strategy 1 (direct parse) succeeded!");
-    } catch (e1) {
-      console.log("❌ Strategy 1 failed:", e1.message);
-      
-      // Strategy 2: Try to extract and manually construct JSON
-      try {
-        console.log("🔧 Trying Strategy 2: Manual JSON construction...");
-        
-        // Look for success indicator
-        const successMatch = rawText.match(/["\']?success["\']?\s*:\s*(true|false)/i);
-        const success = successMatch ? successMatch[1] === 'true' : false;
-        
-        // Look for history array using multiple patterns
-        let historyArray = [];
-        
-        const patterns = [
-          /"history"\s*:\s*(\[.*?\])/s,
-          /'history'\s*:\s*(\[.*?\])/s,
-          /history\s*:\s*(\[.*?\])/s,
-          /"records"\s*:\s*(\[.*?\])/s,
-          /"messages"\s*:\s*(\[.*?\])/s
-        ];
-        
-        for (const pattern of patterns) {
-          const match = rawText.match(pattern);
-          if (match) {
-            try {
-              historyArray = JSON.parse(match[1]);
-              console.log(`✅ Found history using pattern: ${pattern.source}`);
-              break;
-            } catch (parseErr) {
-              console.log(`❌ Pattern ${pattern.source} matched but parse failed:`, parseErr.message);
-            }
-          }
-        }
-        
-        if (historyArray.length > 0) {
-          data = { success: success, history: historyArray };
-          console.log("✅ Strategy 2 succeeded! Constructed data:", data);
-        } else {
-          throw new Error("No history array found in any pattern");
-        }
-        
-      } catch (e2) {
-        console.log("❌ Strategy 2 failed:", e2.message);
-        
-        // Strategy 3: Try to find individual message objects
-        try {
-          console.log("🔧 Trying Strategy 3: Extract individual objects...");
-          
-          const objectMatches = rawText.match(/\{[^{}]*\}/g);
-          if (objectMatches && objectMatches.length > 0) {
-            const parsedObjects = [];
-            
-            objectMatches.forEach((objStr, index) => {
-              try {
-                const obj = JSON.parse(objStr);
-                parsedObjects.push(obj);
-                console.log(`✅ Parsed object ${index + 1}:`, obj);
-              } catch (objErr) {
-                console.log(`❌ Failed to parse object ${index + 1}:`, objStr);
-              }
-            });
-            
-            if (parsedObjects.length > 0) {
-              data = { success: true, history: parsedObjects };
-              console.log("✅ Strategy 3 succeeded! Found", parsedObjects.length, "objects");
-            } else {
-              throw new Error("No valid objects found");
-            }
-          } else {
-            throw new Error("No object patterns found");
-          }
-          
-        } catch (e3) {
-          console.log("❌ Strategy 3 failed:", e3.message);
-          
-          // Strategy 4: Create mock data to test UI
-          console.log("🔧 Strategy 4: Creating mock data for testing...");
-          data = {
-            success: true,
-            history: [
-              { role: "user", message: "Hello Abraham!" },
-              { role: "assistant", message: "Greetings! I am Abraham Lincoln, 16th President of the United States. How may I assist you today?" }
-            ]
-          };
-          console.log("✅ Strategy 4: Using mock data to test UI");
-        }
-      }
-    }
-
-    if (!data || !data.success) {
-      console.error("❌ All parsing strategies failed or API returned success: false");
+    if (!data.success) {
+      console.error("❌ API returned success: false:", data.error);
       return;
     }
 
-    // Process history data
-    let history = [];
-    
-    if (Array.isArray(data.history)) {
-      history = data.history;
-      console.log("✅ Found history array with", history.length, "items");
-    } else if (data.history && typeof data.history === 'object') {
-      history = Object.values(data.history);
-      console.log("🔧 Converted history object to array with", history.length, "items");
-    } else {
-      console.log("ℹ️ No history data found - starting fresh chat");
-      return;
-    }
-
-    console.log(`📚 Processing ${history.length} chat messages`);
+    const history = data.history || [];
+    console.log(`📜 Processing ${history.length} chat messages`);
 
     const chatlog = document.getElementById("chatlog");
     chatlog.innerHTML = ''; // Clear existing content
     
-    // Sort by timestamp if available
-    history.sort((a, b) => {
-      const timeA = a.CreatedTime || a.createdTime || a.created_time || a.timestamp || 0;
-      const timeB = b.CreatedTime || b.createdTime || b.created_time || b.timestamp || 0;
-      return new Date(timeA) - new Date(timeB);
-    });
-
     let messagesProcessed = 0;
 
     history.forEach((record, index) => {
       console.log(`💬 Processing message ${index + 1}:`, record);
       
-      // Extract role and message with multiple fallbacks
-      let role = record.Role || record.role || record.sender || record.type || 
-                 (record.fields && (record.fields.Role || record.fields.role));
-      
-      let message = record.Message || record.message || record.content || record.text || record.body ||
-                    (record.fields && (record.fields.Message || record.fields.message || record.fields.content));
-
-      // Default role assignment
-      if (!role) {
-        role = index % 2 === 0 ? 'user' : 'assistant';
-      }
-      
-      console.log(`📝 Final extracted: role="${role}", message="${message ? message.substring(0, 50) : 'null'}..."`);
+      const role = record.role || 'user';
+      const message = record.message || '';
       
       if (!message || message.trim() === '') {
         console.warn("⚠️ Skipping record without message:", record);
@@ -2769,7 +2627,8 @@ document.addEventListener('DOMContentLoaded', () => {
   } catch (err) {
     console.error("❌ Exception in fetchHistory:", err);
   }
-}
+} 
+
 
     function getAvatarHtml() {
       if (currentCharacter?.avatar_url) {
