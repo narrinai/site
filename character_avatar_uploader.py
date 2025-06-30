@@ -232,9 +232,20 @@ class MissingAvatarUploader:
                     title = item.get('title', '').lower()
                     
                     # Skip our own site and common problematic sources
-                    skip_domains = ['narrin.ai', 'pinterest.com', 'tumblr.com', 'reddit.com']
+                    skip_domains = [
+                        'narrin.ai', 'pinterest.com', 'tumblr.com', 'reddit.com',
+                        'instagram.com', 'facebook.com', 'm.facebook.com', 
+                        'twitter.com', 'tiktok.com', 'youtube.com'
+                    ]
                     if any(domain in url.lower() for domain in skip_domains):
+                        print(f"   ⚠️ Skipping social media/problematic domain: {url[:50]}...")
                         continue
+                    
+                    # Check for actual image file extensions
+                    image_extensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp']
+                    if not any(ext in url.lower() for ext in image_extensions):
+                        # Allow if no extension visible, but will be checked later
+                        pass
                     
                     # Enhanced filtering for better face images
                     skip_keywords = [
@@ -305,7 +316,7 @@ class MissingAvatarUploader:
         return unique_images[:10]  # Return top 10
 
     def has_face(self, image_data):
-        """Check if image contains a detectable face using OpenCV"""
+        """Check if image contains a detectable face using OpenCV - RELAXED for art/illustrations"""
         if not self.face_cascade:
             return True  # If face detection not available, assume it's okay
         
@@ -320,19 +331,30 @@ class MissingAvatarUploader:
             # Convert to grayscale for face detection
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             
-            # Detect faces
+            # Detect faces with more relaxed parameters for art/illustrations
             faces = self.face_cascade.detectMultiScale(
                 gray,
-                scaleFactor=1.1,
-                minNeighbors=5,
-                minSize=(30, 30)
+                scaleFactor=1.05,  # More sensitive
+                minNeighbors=3,    # Less strict
+                minSize=(20, 20),  # Smaller minimum
+                maxSize=(500, 500) # Reasonable maximum
             )
             
             num_faces = len(faces)
             print(f"   👤 Detected {num_faces} face(s)")
             
-            # We want exactly 1 face for a good portrait
-            return num_faces == 1
+            # Allow 1-2 faces (sometimes art has partial faces or stylized faces)
+            # For illustrations, face detection might be less reliable
+            if num_faces >= 1 and num_faces <= 3:
+                return True
+            elif num_faces == 0:
+                # For art/illustrations, sometimes face detection fails
+                # Allow it if the image passes other checks
+                print(f"   ⚠️ No faces detected, but allowing for art/illustration")
+                return True
+            else:
+                print(f"   ❌ Too many faces detected: {num_faces}")
+                return False
             
         except Exception as e:
             print(f"   ⚠️ Face detection error: {e}")
@@ -342,54 +364,64 @@ class MissingAvatarUploader:
         """Enhanced image processing with face detection and better filtering"""
         try:
             headers = {
-                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                'Accept': 'image/webp,image/avif,image/jpeg,image/png,image/*,*/*;q=0.8'
             }
             
-            response = self.session.get(url, timeout=15, headers=headers)
+            response = self.session.get(url, timeout=15, headers=headers, allow_redirects=True)
             response.raise_for_status()
             
-            # Check content type
+            # Check content type first
             content_type = response.headers.get('content-type', '').lower()
+            if 'text/html' in content_type:
+                print(f"   ❌ HTML page instead of image: {content_type}")
+                return None
+            
             if not any(img_type in content_type for img_type in ['image/', 'jpeg', 'jpg', 'png', 'webp']):
                 print(f"   ⚠️ Not an image file: {content_type}")
                 return None
             
             # Check file size
             content_length = len(response.content)
-            if content_length < 10240:  # Less than 10KB
+            if content_length < 5120:  # Less than 5KB - likely too small
                 print(f"   ⚠️ Image too small: {content_length} bytes")
                 return None
             if content_length > 15 * 1024 * 1024:  # More than 15MB
                 print(f"   ⚠️ Image too large: {content_length} bytes")
                 return None
             
-            # Check for face detection BEFORE processing
-            if not self.has_face(response.content):
-                print(f"   ❌ No single face detected in image")
+            # Try to open as image first
+            try:
+                img = Image.open(BytesIO(response.content))
+            except Exception as e:
+                print(f"   ❌ Cannot open as image: {e}")
                 return None
-            
-            img = Image.open(BytesIO(response.content))
             
             # Enhanced dimension checks
             width, height = img.size
             aspect_ratio = width / height
             
             # Reject images that are too wide (likely collages or banners)
-            if aspect_ratio > 1.8:
+            if aspect_ratio > 2.0:  # Slightly more lenient
                 print(f"   ❌ Too wide (likely banner/collage): {width}x{height}, ratio: {aspect_ratio:.2f}")
                 return None
             
             # Reject images that are too tall (likely full-body or multi-character)
-            if aspect_ratio < 0.6:
+            if aspect_ratio < 0.5:  # Slightly more lenient
                 print(f"   ❌ Too tall (likely full-body): {width}x{height}, ratio: {aspect_ratio:.2f}")
                 return None
             
             # Check minimum resolution for good quality
-            if width < 150 or height < 150:
+            if width < 100 or height < 100:  # More lenient for art
                 print(f"   ❌ Resolution too low: {width}x{height}")
                 return None
             
-            print(f"   ✅ Good image: {width}x{height}, ratio: {aspect_ratio:.2f}")
+            print(f"   ✅ Good image dimensions: {width}x{height}, ratio: {aspect_ratio:.2f}")
+            
+            # Check for face detection AFTER basic checks but BEFORE heavy processing
+            if not self.has_face(response.content):
+                print(f"   ❌ Face detection failed")
+                return None
             
             # Convert to RGB if needed
             if img.mode in ('RGBA', 'LA', 'P'):
