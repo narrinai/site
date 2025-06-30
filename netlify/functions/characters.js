@@ -59,6 +59,11 @@ exports.handler = async (event, context) => {
       url += `?filterByFormula=${encodeURIComponent(filterFormula)}`;
     }
     
+    // Add limit if specified (max 100 for performance)
+    const maxLimit = Math.min(parseInt(limit) || 100, 100);
+    const separator = category ? '&' : '?';
+    url += `${separator}maxRecords=${maxLimit}`;
+    
     console.log('🔗 Airtable URL:', url);
 
     // Make Airtable API call
