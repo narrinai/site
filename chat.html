@@ -2422,21 +2422,23 @@ const sendMessageUrl = "/.netlify/functions/save-chat-message";
       loadCharacter(characterSlug);
     }
 
-   async function loadCharacter(slug) {
+  async function loadCharacter(slug) {
   try {
     console.log("Loading character:", slug);
     
-    const response = await fetch("/.netlify/functions/characters", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-  action: "get_character",
-  slug: slug,
-  user_id: localStorage.getItem("user_id") || null,
-  user_email: localStorage.getItem("user_email") || null,
-  user_token: localStorage.getItem("user_token") || null,
-  user_uid: localStorage.getItem("user_uid") || null
-})
+    // GET request instead of POST
+    const params = new URLSearchParams({
+      action: "get_character",
+      slug: slug,
+      user_id: localStorage.getItem("user_id") || "",
+      user_email: localStorage.getItem("user_email") || "",
+      user_token: localStorage.getItem("user_token") || "",
+      user_uid: localStorage.getItem("user_uid") || ""
+    });
+    
+    const response = await fetch(`/.netlify/functions/characters?${params}`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" }
     });
 
     if (!response.ok) {
@@ -2561,17 +2563,19 @@ const sendMessageUrl = "/.netlify/functions/save-chat-message";
   console.log("🚀 Sending request to Netlify Function for chat history...");
   
   try {
-   const response = await fetch("/.netlify/functions/get-chat-history", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    user_email: email,
-    user_uid: uid,
-    user_token: token,
-    user_id: localStorage.getItem("user_id") || null,
-    char: characterSlug
-  })
-});
+    // GET request with URL parameters
+    const params = new URLSearchParams({
+      user_email: email,
+      user_uid: uid,
+      user_token: token,
+      user_id: localStorage.getItem("user_id") || "",
+      char: characterSlug
+    });
+
+    const response = await fetch(`/.netlify/functions/get-chat-history?${params}`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" }
+    });
 
     console.log("📨 Response status:", response.status);
 
@@ -2624,7 +2628,7 @@ const sendMessageUrl = "/.netlify/functions/save-chat-message";
   } catch (err) {
     console.error("❌ Exception in fetchHistory:", err);
   }
-} 
+}
 
 
     function getAvatarHtml() {
