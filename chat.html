@@ -2424,15 +2424,10 @@ const sendMessageUrl = "/.netlify/functions/save-chat-message";
 
   async function loadCharacter(slug) {
   try {
-    console.log("Loading character:", slug);
+    console.log("🔍 Loading character with slug:", slug);
     
-    // GET request to fetch all characters, then filter by slug
     const params = new URLSearchParams({
-      action: "get_characters", // Changed from get_character to get_characters
-      user_id: localStorage.getItem("user_id") || "",
-      user_email: localStorage.getItem("user_email") || "",
-      user_token: localStorage.getItem("user_token") || "",
-      user_uid: localStorage.getItem("user_uid") || ""
+      action: "get_characters"
     });
     
     const response = await fetch(`/.netlify/functions/characters?${params}`, {
@@ -2441,32 +2436,49 @@ const sendMessageUrl = "/.netlify/functions/save-chat-message";
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
     const data = await response.json();
-    console.log("Character API response:", data);
+    console.log("✅ Full API response:", data);
 
-    if (!data.success || !data.characters) {
-      throw new Error("No characters found");
+    if (!data.success || !data.characters || !Array.isArray(data.characters)) {
+      throw new Error("Invalid API response structure");
     }
 
-    // Find the specific character by slug
-    const character = data.characters.find(char => 
-      char.slug === slug || 
-      char.character_id === slug ||
-      char.name?.toLowerCase().replace(/\s+/g, '-') === slug
-    );
+    console.log(`📊 Found ${data.characters.length} total characters`);
+    
+    // Log all characters for debugging
+    data.characters.forEach((char, i) => {
+      console.log(`${i+1}. Name: "${char.name}" | Slug: "${char.slug}" | ID: "${char.character_id}"`);
+    });
+
+    // Try multiple matching strategies
+    console.log(`🔎 Looking for character with slug: "${slug}"`);
+    
+    let character = data.characters.find(char => {
+      const matches = [
+        char.slug === slug,
+        char.character_id === slug,
+        char.name?.toLowerCase() === slug.toLowerCase(),
+        char.name?.toLowerCase().replace(/\s+/g, '-') === slug
+      ];
+      
+      console.log(`  Checking "${char.name}": slug="${char.slug}", id="${char.character_id}" | Matches:`, matches);
+      return matches.some(Boolean);
+    });
 
     if (!character) {
-      throw new Error(`Character with slug '${slug}' not found`);
+      const availableIds = data.characters.map(c => c.slug || c.character_id).filter(Boolean);
+      throw new Error(`Character "${slug}" not found. Available: ${availableIds.join(', ')}`);
     }
 
+    console.log("🎉 Found character:", character);
     currentCharacter = character;
     setupCharacterInterface();
     
   } catch (error) {
-    console.error("Error loading character:", error);
+    console.error("❌ loadCharacter error:", error);
     showError("Failed to load character: " + error.message);
   }
 }
