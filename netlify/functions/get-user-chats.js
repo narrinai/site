@@ -241,7 +241,9 @@ exports.handler = async (event, context) => {
     });
 
     console.log('✅ Final response: ', finalChats.length, 'chats prepared');
-    console.log('📊 Sample chat:', finalChats[0]);
+    if (finalChats.length > 0) {
+      console.log('📊 Sample chat:', finalChats[0]);
+    }
 
     return {
       statusCode: 200,
