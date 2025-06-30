@@ -52,7 +52,7 @@ exports.handler = async (event, context) => {
 
     // Airtable configuratie
     const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
-    const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
+const AIRTABLE_API_KEY = process.env.AIRTABLE_TOKEN; // Gebruik je bestaande AIRTABLE_TOKEN
     
     console.log('🔧 Environment check:', {
       hasBaseId: !!AIRTABLE_BASE_ID,
@@ -62,16 +62,20 @@ exports.handler = async (event, context) => {
     });
     
     if (!AIRTABLE_BASE_ID || !AIRTABLE_API_KEY) {
-      console.error('❌ Missing Airtable configuration');
-      return {
-        statusCode: 500,
-        headers,
-        body: JSON.stringify({ 
-          success: false, 
-          error: 'Server configuration error - Missing Airtable credentials' 
-        })
-      };
-    }
+  console.error('❌ Missing Airtable configuration:', {
+    hasBaseId: !!AIRTABLE_BASE_ID,
+    hasToken: !!AIRTABLE_API_KEY,
+    envVars: Object.keys(process.env).filter(key => key.includes('AIRTABLE'))
+  });
+  return {
+    statusCode: 500,
+    headers,
+    body: JSON.stringify({ 
+      success: false, 
+      error: 'Server configuration error - Missing Airtable credentials' 
+    })
+  };
+}
 
     const airtableHeaders = {
       'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
