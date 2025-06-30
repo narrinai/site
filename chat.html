@@ -2426,10 +2426,9 @@ const sendMessageUrl = "/.netlify/functions/save-chat-message";
   try {
     console.log("Loading character:", slug);
     
-    // GET request instead of POST
+    // GET request to fetch all characters, then filter by slug
     const params = new URLSearchParams({
-      action: "get_character",
-      slug: slug,
+      action: "get_characters", // Changed from get_character to get_characters
       user_id: localStorage.getItem("user_id") || "",
       user_email: localStorage.getItem("user_email") || "",
       user_token: localStorage.getItem("user_token") || "",
@@ -2448,11 +2447,22 @@ const sendMessageUrl = "/.netlify/functions/save-chat-message";
     const data = await response.json();
     console.log("Character API response:", data);
 
-    if (!data.success || !data.character) {
-      throw new Error("Character not found");
+    if (!data.success || !data.characters) {
+      throw new Error("No characters found");
     }
 
-    currentCharacter = data.character;
+    // Find the specific character by slug
+    const character = data.characters.find(char => 
+      char.slug === slug || 
+      char.character_id === slug ||
+      char.name?.toLowerCase().replace(/\s+/g, '-') === slug
+    );
+
+    if (!character) {
+      throw new Error(`Character with slug '${slug}' not found`);
+    }
+
+    currentCharacter = character;
     setupCharacterInterface();
     
   } catch (error) {
