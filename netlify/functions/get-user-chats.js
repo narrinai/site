@@ -1,4 +1,4 @@
-// netlify/functions/get-user-chats.js - FULL VERSION
+// netlify/functions/get-user-chats.js - DEBUG VERSION
 exports.handler = async (event, context) => {
   const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -6,7 +6,7 @@ exports.handler = async (event, context) => {
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
   };
 
-  console.log('🚀 Function started, method:', event.httpMethod);
+  console.log('🚀 DEBUG Function started, method:', event.httpMethod);
 
   // Handle OPTIONS request
   if (event.httpMethod === 'OPTIONS') {
@@ -37,7 +37,7 @@ exports.handler = async (event, context) => {
 
     const { user_email, user_uid, user_token } = requestData;
     
-    console.log('📧 Processing request for user:', user_email);
+    console.log('📧 DEBUG Processing request for user:', user_email);
 
     if (!user_email || !user_uid) {
       return {
@@ -52,9 +52,9 @@ exports.handler = async (event, context) => {
 
     // Airtable configuratie
     const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
-const AIRTABLE_API_KEY = process.env.AIRTABLE_TOKEN; // Gebruik je bestaande AIRTABLE_TOKEN
+    const AIRTABLE_API_KEY = process.env.AIRTABLE_TOKEN;
     
-    console.log('🔧 Environment check:', {
+    console.log('🔧 DEBUG Environment check:', {
       hasBaseId: !!AIRTABLE_BASE_ID,
       hasApiKey: !!AIRTABLE_API_KEY,
       baseIdLength: AIRTABLE_BASE_ID?.length,
@@ -62,71 +62,107 @@ const AIRTABLE_API_KEY = process.env.AIRTABLE_TOKEN; // Gebruik je bestaande AIR
     });
     
     if (!AIRTABLE_BASE_ID || !AIRTABLE_API_KEY) {
-  console.error('❌ Missing Airtable configuration:', {
-    hasBaseId: !!AIRTABLE_BASE_ID,
-    hasToken: !!AIRTABLE_API_KEY,
-    envVars: Object.keys(process.env).filter(key => key.includes('AIRTABLE'))
-  });
-  return {
-    statusCode: 500,
-    headers,
-    body: JSON.stringify({ 
-      success: false, 
-      error: 'Server configuration error - Missing Airtable credentials' 
-    })
-  };
-}
+      console.error('❌ Missing Airtable configuration:', {
+        hasBaseId: !!AIRTABLE_BASE_ID,
+        hasToken: !!AIRTABLE_API_KEY,
+        envVars: Object.keys(process.env).filter(key => key.includes('AIRTABLE'))
+      });
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({ 
+          success: false, 
+          error: 'Server configuration error - Missing Airtable credentials' 
+        })
+      };
+    }
 
     const airtableHeaders = {
       'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
       'Content-Type': 'application/json'
     };
 
-    // Stap 1: Zoek de gebruiker in Users tabel op basis van email
-    console.log('🔍 Searching for user by email:', user_email);
+    // DEBUG: Haal ALLE users op om te zien wat er in de tabel staat
+    console.log('🔍 DEBUG Fetching ALL users for debugging...');
     
-    const userSearchUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=AND({Email}='${user_email}')`;
+    const allUsersUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users`;
+    console.log('🔗 DEBUG Users URL:', allUsersUrl);
     
-    const userResponse = await fetch(userSearchUrl, {
+    const allUsersResponse = await fetch(allUsersUrl, {
       method: 'GET',
       headers: airtableHeaders
     });
 
-    if (!userResponse.ok) {
-      console.error('❌ Error fetching user:', userResponse.status, userResponse.statusText);
+    if (!allUsersResponse.ok) {
+      console.error('❌ Error fetching all users:', allUsersResponse.status, allUsersResponse.statusText);
+      const errorText = await allUsersResponse.text();
+      console.error('❌ Error details:', errorText);
       return {
         statusCode: 500,
         headers,
         body: JSON.stringify({ 
           success: false, 
-          error: `User lookup failed: ${userResponse.statusText}` 
+          error: `Users table fetch failed: ${allUsersResponse.statusText}`,
+          debug: errorText
         })
       };
     }
 
-    const userData = await userResponse.json();
-    console.log('👤 User search result:', userData.records.length, 'users found');
+    const allUsersData = await allUsersResponse.json();
+    console.log('👥 DEBUG Total users in Airtable:', allUsersData.records.length);
 
-    if (userData.records.length === 0) {
+    // Log details van alle users
+    allUsersData.records.forEach((record, index) => {
+      console.log(`👤 DEBUG User ${index + 1}:`, {
+        id: record.id,
+        email_field: record.fields.Email,
+        email_lowercase: record.fields.email,
+        all_fields: Object.keys(record.fields),
+        matches_target: record.fields.Email === user_email
+      });
+    });
+
+    // Zoek handmatig naar de gebruiker
+    const targetUser = allUsersData.records.find(record => 
+      record.fields.Email === user_email || 
+      record.fields.email === user_email ||
+      (record.fields.Email && record.fields.Email.toLowerCase() === user_email.toLowerCase())
+    );
+
+    if (!targetUser) {
+      console.log('❌ DEBUG Target user NOT found');
+      console.log('❌ DEBUG Search email:', user_email);
+      console.log('❌ DEBUG Available emails:', allUsersData.records.map(r => r.fields.Email || r.fields.email || 'NO_EMAIL'));
+      
       return {
         statusCode: 404,
         headers,
         body: JSON.stringify({ 
           success: false, 
-          error: 'User not found in database' 
+          error: 'User not found in database',
+          debug: {
+            searchEmail: user_email,
+            totalUsers: allUsersData.records.length,
+            availableEmails: allUsersData.records.map(r => r.fields.Email || r.fields.email || 'NO_EMAIL'),
+            firstUserFields: allUsersData.records[0]?.fields || 'NO_USERS'
+          }
         })
       };
     }
 
-    const userRecord = userData.records[0];
-    const userRecordId = userRecord.id;
-    
-    console.log('✅ Found user record:', userRecordId);
+    console.log('✅ DEBUG Found target user:', {
+      id: targetUser.id,
+      email: targetUser.fields.Email,
+      fields: Object.keys(targetUser.fields)
+    });
 
-    // Stap 2: Haal alle ChatHistory records op voor deze gebruiker
-    console.log('💬 Fetching chat history for user:', userRecordId);
+    const userRecordId = targetUser.id;
+
+    // Stap 2: Haal ChatHistory op voor deze gebruiker
+    console.log('💬 DEBUG Fetching chat history for user:', userRecordId);
     
     const chatHistoryUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${userRecordId}')&sort[0][field]=CreatedTime&sort[0][direction]=desc`;
+    console.log('🔗 DEBUG ChatHistory URL:', chatHistoryUrl);
     
     const chatResponse = await fetch(chatHistoryUrl, {
       method: 'GET',
@@ -135,24 +171,51 @@ const AIRTABLE_API_KEY = process.env.AIRTABLE_TOKEN; // Gebruik je bestaande AIR
 
     if (!chatResponse.ok) {
       console.error('❌ Error fetching chat history:', chatResponse.status, chatResponse.statusText);
+      const errorText = await chatResponse.text();
+      console.error('❌ ChatHistory error details:', errorText);
       return {
         statusCode: 500,
         headers,
         body: JSON.stringify({ 
           success: false, 
-          error: `Chat history fetch failed: ${chatResponse.statusText}` 
+          error: `Chat history fetch failed: ${chatResponse.statusText}`,
+          debug: errorText
         })
       };
     }
 
     const chatData = await chatResponse.json();
-    console.log('💬 Found', chatData.records.length, 'chat messages');
+    console.log('💬 DEBUG Found', chatData.records.length, 'chat messages');
 
-    // Stap 3: Groepeer berichten per character en haal character details op
+    // Log sample chat record
+    if (chatData.records.length > 0) {
+      console.log('💬 DEBUG Sample chat record:', {
+        id: chatData.records[0].id,
+        fields: chatData.records[0].fields,
+        character: chatData.records[0].fields.Character,
+        message: chatData.records[0].fields.Message?.substring(0, 50) + '...'
+      });
+    }
+
+    // Als er geen chats zijn, return lege array
+    if (chatData.records.length === 0) {
+      console.log('💬 DEBUG No chats found for user');
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({ 
+          success: true, 
+          chats: [],
+          message: 'No chats found for this user',
+          user_id: userRecordId
+        })
+      };
+    }
+
+    // Stap 3: Groepeer berichten per character
     const characterChats = {};
     const characterIds = new Set();
 
-    // Groepeer berichten per character
     chatData.records.forEach(record => {
       const characterId = record.fields.Character ? record.fields.Character[0] : null;
       
@@ -171,7 +234,6 @@ const AIRTABLE_API_KEY = process.env.AIRTABLE_TOKEN; // Gebruik je bestaande AIR
         characterChats[characterId].messages.push(record);
         characterChats[characterId].messageCount++;
         
-        // Update laatste bericht (records zijn al gesorteerd op CreatedTime desc)
         if (!characterChats[characterId].lastMessage) {
           characterChats[characterId].lastMessage = record.fields.Message || '';
           characterChats[characterId].lastMessageDate = record.fields.CreatedTime || '';
@@ -179,9 +241,9 @@ const AIRTABLE_API_KEY = process.env.AIRTABLE_TOKEN; // Gebruik je bestaande AIR
       }
     });
 
-    console.log('🎭 Found chats with', characterIds.size, 'different characters');
+    console.log('🎭 DEBUG Found chats with', characterIds.size, 'different characters');
+    console.log('🎭 DEBUG Character IDs:', Array.from(characterIds));
 
-    // Stap 4: Haal character details op voor alle unieke characters
     if (characterIds.size === 0) {
       return {
         statusCode: 200,
@@ -189,18 +251,18 @@ const AIRTABLE_API_KEY = process.env.AIRTABLE_TOKEN; // Gebruik je bestaande AIR
         body: JSON.stringify({ 
           success: true, 
           chats: [],
-          message: 'No chats found for this user'
+          message: 'No character chats found for this user',
+          user_id: userRecordId
         })
       };
     }
 
-    // Converteer Set naar Array voor filter
+    // Stap 4: Haal character details op
     const characterIdArray = Array.from(characterIds);
     const characterFilter = characterIdArray.map(id => `RECORD_ID()='${id}'`).join(',');
     
     const charactersUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula=OR(${characterFilter})`;
-    
-    console.log('🎭 Fetching character details for:', characterIdArray.length, 'characters');
+    console.log('🎭 DEBUG Characters URL:', charactersUrl);
     
     const charactersResponse = await fetch(charactersUrl, {
       method: 'GET',
@@ -220,7 +282,7 @@ const AIRTABLE_API_KEY = process.env.AIRTABLE_TOKEN; // Gebruik je bestaande AIR
     }
 
     const charactersData = await charactersResponse.json();
-    console.log('🎭 Retrieved', charactersData.records.length, 'character details');
+    console.log('🎭 DEBUG Retrieved', charactersData.records.length, 'character details');
 
     // Stap 5: Combineer chat data met character details
     const finalChats = [];
@@ -230,7 +292,6 @@ const AIRTABLE_API_KEY = process.env.AIRTABLE_TOKEN; // Gebruik je bestaande AIR
       const chatInfo = characterChats[characterId];
       
       if (chatInfo) {
-        // Extract avatar URL uit Airtable attachment format
         let avatarUrl = null;
         if (character.fields.Avatar_File && Array.isArray(character.fields.Avatar_File) && character.fields.Avatar_File.length > 0) {
           avatarUrl = character.fields.Avatar_File[0].url;
@@ -247,7 +308,6 @@ const AIRTABLE_API_KEY = process.env.AIRTABLE_TOKEN; // Gebruik je bestaande AIR
           last_message: chatInfo.lastMessage,
           last_message_date: chatInfo.lastMessageDate,
           message_count: chatInfo.messageCount,
-          // Extra character info
           character_description: character.fields.Character_Description || '',
           character_tags: character.fields.Tags || [],
           character_category: character.fields.Category || ''
@@ -257,16 +317,16 @@ const AIRTABLE_API_KEY = process.env.AIRTABLE_TOKEN; // Gebruik je bestaande AIR
       }
     });
 
-    // Sorteer op laatste bericht datum (nieuwste eerst)
+    // Sorteer op laatste bericht datum
     finalChats.sort((a, b) => {
       const dateA = a.last_message_date ? new Date(a.last_message_date) : new Date(0);
       const dateB = b.last_message_date ? new Date(b.last_message_date) : new Date(0);
       return dateB.getTime() - dateA.getTime();
     });
 
-    console.log('✅ Final response: ', finalChats.length, 'chats prepared');
+    console.log('✅ DEBUG Final response:', finalChats.length, 'chats prepared');
     if (finalChats.length > 0) {
-      console.log('📊 Sample chat:', finalChats[0]);
+      console.log('📊 DEBUG Sample final chat:', finalChats[0]);
     }
 
     return {
@@ -276,13 +336,18 @@ const AIRTABLE_API_KEY = process.env.AIRTABLE_TOKEN; // Gebruik je bestaande AIR
         success: true,
         chats: finalChats,
         total_chats: finalChats.length,
-        user_id: userRecordId
+        user_id: userRecordId,
+        debug: {
+          totalUsersInDb: allUsersData.records.length,
+          totalChatMessages: chatData.records.length,
+          uniqueCharacters: characterIds.size
+        }
       })
     };
 
   } catch (error) {
-    console.error('❌ Function error:', error);
-    console.error('❌ Error stack:', error.stack);
+    console.error('❌ DEBUG Function error:', error);
+    console.error('❌ DEBUG Error stack:', error.stack);
     
     return {
       statusCode: 500,
@@ -292,7 +357,8 @@ const AIRTABLE_API_KEY = process.env.AIRTABLE_TOKEN; // Gebruik je bestaande AIR
         error: 'Internal server error: ' + error.message,
         debug: {
           errorName: error.name,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          stack: error.stack
         }
       })
     };
