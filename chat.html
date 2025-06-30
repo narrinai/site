@@ -2409,8 +2409,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentCharacter = null;
     let characterSlug = null;
     
-    // NIEUWE WEBHOOK URL
-    const newWebhookUrl = "https://hook.eu2.make.com/36bygx4a2y4bkl97wkdjdmtn3o9ygjms";
+    // Use Netlify Functions instead of Make.com
+const getCharacterUrl = "/.netlify/functions/characters";
+const sendMessageUrl = "/.netlify/functions/save-chat-message";
 
     const params = new URLSearchParams(window.location.search);
     characterSlug = params.get("char");
@@ -2421,47 +2422,42 @@ document.addEventListener('DOMContentLoaded', () => {
       loadCharacter(characterSlug);
     }
 
-    async function loadCharacter(slug) {
-      try {
-        console.log("Loading character:", slug);
-        
-        const token = localStorage.getItem("user_token");
-        const uid = localStorage.getItem("user_uid");
-        const email = localStorage.getItem("user_email");
-        
-        const requestData = {
-          action: "get_character",
-          Slug: slug,
-          user_uid: uid || "",
-          user_token: token || "",
-          user_email: email || ""
-        };
-        
-        const response = await fetch(newWebhookUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(requestData)
-        });
+   async function loadCharacter(slug) {
+  try {
+    console.log("Loading character:", slug);
+    
+    const response = await fetch("/.netlify/functions/characters", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+  action: "get_character",
+  slug: slug,
+  user_id: localStorage.getItem("user_id") || null,
+  user_email: localStorage.getItem("user_email") || null,
+  user_token: localStorage.getItem("user_token") || null,
+  user_uid: localStorage.getItem("user_uid") || null
+})
+    });
 
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log("Character API response:", data);
-
-        if (!data.success || !data.character) {
-          throw new Error("Character not found");
-        }
-
-        currentCharacter = data.character;
-        setupCharacterInterface();
-        
-      } catch (error) {
-        console.error("Error loading character:", error);
-        showError("Failed to load character: " + error.message);
-      }
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
     }
+
+    const data = await response.json();
+    console.log("Character API response:", data);
+
+    if (!data.success || !data.character) {
+      throw new Error("Character not found");
+    }
+
+    currentCharacter = data.character;
+    setupCharacterInterface();
+    
+  } catch (error) {
+    console.error("Error loading character:", error);
+    showError("Failed to load character: " + error.message);
+  }
+}
 
     function setupCharacterInterface() {
       if (!currentCharacter) return;
@@ -2562,19 +2558,20 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  console.log("🚀 Sending request to Netlify Function...");
+  console.log("🚀 Sending request to Netlify Function for chat history...");
   
   try {
-    const response = await fetch("/.netlify/functions/get-chat-history", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        user_email: email,
-        user_uid: uid,
-        user_token: token,
-        char: characterSlug
-      })
-    });
+   const response = await fetch("/.netlify/functions/get-chat-history", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    user_email: email,
+    user_uid: uid,
+    user_token: token,
+    user_id: localStorage.getItem("user_id") || null,
+    char: characterSlug
+  })
+});
 
     console.log("📨 Response status:", response.status);
 
@@ -2736,23 +2733,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
       try {
         const requestPayload = {
-          action: "send_message",
-          text: input,
-          Character_id: characterSlug,
-          Slug: characterSlug,
-          user_uid: uid,
-          user_token: token,
-          user_email: email,
-          user_id: user_id || null
-        };
+  action: "send_message",
+  message: input,
+  character_slug: characterSlug,
+  user_email: email,
+  user_uid: uid,
+  user_token: token,
+  user_id: user_id || null
+};
         
         console.log("📤 sendMessage FULL payload:", requestPayload);
 
-        const response = await fetch(newWebhookUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(requestPayload)
-        });
+        // NIEUWE (Make.com NewChat Flow)
+const response = await fetch("https://hook.eu2.make.com/36bygx4a2y4bkl97wkdjdmtn3o9ygjms", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(requestPayload)
+});
 
         console.log("📨 sendMessage response status:", response.status, response.statusText);
 
@@ -2843,13 +2840,16 @@ async function checkUsageLimit() {
       action: 'get_profile'
     };
 
-    const resp = await fetch('https://hook.eu2.make.com/lya166veex7oo2wwo8mx4fuhlkssxlog', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+    const resp = await fetch("https://hook.eu2.make.com/lya166veex7oo2wwo8mx4fuhlkssxlog", {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    ...payload,
+    user_id: localStorage.getItem("user_id") || null
+  })
+});
 
-    if (!resp.ok) {
+if (!resp.ok) {  // ✅ CORRECT: nu gebruikt 'resp'
       console.warn('⚠️ Could not check usage limit, allowing message');
       return true;
     }
