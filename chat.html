@@ -2426,13 +2426,14 @@ const sendMessageUrl = "/.netlify/functions/save-chat-message";
   try {
     console.log("🔍 Loading character with slug:", slug);
     
-    const params = new URLSearchParams({
-      action: "get_characters"
-    });
-    
-    const response = await fetch(`/.netlify/functions/characters?${params}`, {
-      method: "GET",
-      headers: { "Content-Type": "application/json" }
+    // Use Make.com webhook for character data
+    const response = await fetch("https://hook.eu2.make.com/hv83kxp3x9s2r6iy9pwmkc4w1qhyc7ts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "get_characters",
+        slug: slug
+      })
     });
 
     if (!response.ok) {
@@ -2440,37 +2441,26 @@ const sendMessageUrl = "/.netlify/functions/save-chat-message";
     }
 
     const data = await response.json();
-    console.log("✅ Full API response:", data);
+    console.log("✅ Make.com character response:", data);
 
-    if (!data.success || !data.characters || !Array.isArray(data.characters)) {
-      throw new Error("Invalid API response structure");
+    if (!data.success) {
+      throw new Error("Failed to fetch character data");
     }
 
-    console.log(`📊 Found ${data.characters.length} total characters`);
-    
-    // Log all characters for debugging
-    data.characters.forEach((char, i) => {
-      console.log(`${i+1}. Name: "${char.name}" | Slug: "${char.slug}" | ID: "${char.character_id}"`);
-    });
-
-    // Try multiple matching strategies
-    console.log(`🔎 Looking for character with slug: "${slug}"`);
-    
-    let character = data.characters.find(char => {
-      const matches = [
-        char.slug === slug,
-        char.character_id === slug,
-        char.name?.toLowerCase() === slug.toLowerCase(),
-        char.name?.toLowerCase().replace(/\s+/g, '-') === slug
-      ];
-      
-      console.log(`  Checking "${char.name}": slug="${char.slug}", id="${char.character_id}" | Matches:`, matches);
-      return matches.some(Boolean);
-    });
+    // Handle both single character and character array responses
+    let character;
+    if (data.character) {
+      character = data.character;
+    } else if (data.characters && Array.isArray(data.characters)) {
+      character = data.characters.find(char => 
+        char.slug === slug || 
+        char.character_id === slug ||
+        char.Character_ID === slug
+      );
+    }
 
     if (!character) {
-      const availableIds = data.characters.map(c => c.slug || c.character_id).filter(Boolean);
-      throw new Error(`Character "${slug}" not found. Available: ${availableIds.join(', ')}`);
+      throw new Error(`Character "${slug}" not found`);
     }
 
     console.log("🎉 Found character:", character);
