@@ -2433,7 +2433,7 @@ line-clamp: 3;
     const email = localStorage.getItem('user_email');
     const uid = localStorage.getItem('user_uid');
 
-    console.log('🔍 Loading chats via Netlify Function:', {
+    console.log('🔍 Loading chats - Auth check:', {
       hasToken: !!token,
       hasEmail: !!email,
       hasUid: !!uid,
@@ -2444,10 +2444,19 @@ line-clamp: 3;
       throw new Error('Missing authentication data');
     }
 
+    // Test of de function bestaat
+    console.log('🔗 Testing function endpoint...');
+    
     // Direct Airtable API via Netlify Function
-    const response = await fetch('/.netlify/functions/get-user-chats', {
+    const functionUrl = '/.netlify/functions/get-user-chats';
+    console.log('📡 Calling:', functionUrl);
+    
+    const response = await fetch(functionUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
       body: JSON.stringify({
         user_email: email,
         user_uid: uid,
@@ -2455,36 +2464,68 @@ line-clamp: 3;
       })
     });
 
-    console.log('📡 Netlify Function response status:', response.status);
+    console.log('📡 Function response:', {
+      status: response.status,
+      statusText: response.statusText,
+      ok: response.ok,
+      headers: Object.fromEntries(response.headers)
+    });
+
+    // Check voor verschillende error types
+    if (response.status === 404) {
+      console.error('❌ Function not found - mogelijk deployment issue');
+      showError('Chat functie niet beschikbaar. Probeer pagina te verversen.');
+      return;
+    }
+    
+    if (response.status === 500) {
+      console.error('❌ Server error - mogelijk environment variables');
+      const errorText = await response.text();
+      console.error('Server error details:', errorText);
+      showError('Server configuratie probleem. Neem contact op met support.');
+      return;
+    }
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ HTTP Error:', response.status, errorText);
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
     const data = await response.json();
-    console.log('✅ Netlify Function response:', data);
+    console.log('✅ Function response data:', data);
 
     if (!data.success) {
+      console.error('❌ API returned success: false:', data.error);
       throw new Error(data.error || 'API returned success: false');
     }
 
     // Process the chats data from Airtable
     userChats = data.chats || [];
     
-    console.log('✅ Chats loaded from Airtable:', userChats.length, 'chats found');
+    console.log('✅ Chats loaded:', userChats.length, 'chats found');
     
-    // Als er chats zijn, log sample data
     if (userChats.length > 0) {
-      console.log('📊 Sample chat structure:', userChats[0]);
+      console.log('📊 Sample chat:', userChats[0]);
     }
 
     displayChats();
 
   } catch (error) {
     console.error('❌ Error loading chats:', error);
-    showError(`Failed to load chats: ${error.message}`);
     
-    // Toon sample chats alleen als fallback
+    // Specifieke error handling
+    if (error.message.includes('Failed to fetch')) {
+      showError('Netwerkprobleem. Check je internetverbinding en probeer opnieuw.');
+    } else if (error.message.includes('404')) {
+      showError('Chat functie niet gevonden. Mogelijk deployment probleem.');
+    } else if (error.message.includes('500')) {
+      showError('Server configuratie probleem. Neem contact op met support.');
+    } else {
+      showError(`Fout bij laden van chats: ${error.message}`);
+    }
+    
+    // Fallback naar sample chats voor demo
     console.log('🎭 Showing sample chats as fallback');
     showSampleChats();
   }
