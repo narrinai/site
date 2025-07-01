@@ -2614,41 +2614,69 @@
       }, 15000); // 15 seconden timeout
     }
 
-    // ===== GEFIXTE handleLoginSuccess functie =====
-    function handleLoginSuccess(user, eventType = 'unknown') {
-      console.log(`✅ handleLoginSuccess called for: ${user.email} (${eventType})`);
-      
-      // Store user data
-      localStorage.setItem('user_email', user.email);
-      localStorage.setItem('user_token', user.token.access_token);
-      localStorage.setItem('user_uid', user.id);
-      
-      // BELANGRIJKE FIX: Alleen webhook call voor NIEUWE registraties
-      if (eventType === 'signup') {
-        console.log('🆕 NEW SIGNUP: Will create user in Airtable');
-        createOrUpdateUser(user, true);
-      } else if (eventType === 'login') {
-        console.log('🔄 EXISTING LOGIN: Loading profile without webhook call');
-        // Voor bestaande users: GEEN webhook call, gewoon profile laden
-        showProfileUI();
-        loadProfile();
-        handlePostLoginRedirect();
-      } else {
-        console.log('🤔 UNKNOWN EVENT TYPE: Defaulting to profile load');
-        showProfileUI();
-        loadProfile();
-      }
-      
-      // Update UI
-      updateLoginButton();
-      
-      // Reset processing flag na korte delay
-      setTimeout(() => {
-        console.log('🔓 Auth processing completed - resetting flags');
-        isProcessingAuth = false;
-        authCallLock = false;
-      }, 2000);
-    }
+    // GEFIXTE versie van handleLoginSuccess functie
+function handleLoginSuccess(user, eventType = 'unknown') {
+  console.log(`✅ handleLoginSuccess called for: ${user.email} (${eventType})`);
+  
+  // KRITIEKE FIX: Betere token storage
+  const accessToken = user.token?.access_token || user.access_token;
+  const refreshToken = user.token?.refresh_token || user.refresh_token;
+  
+  if (!accessToken) {
+    console.error('❌ No access token found in user object');
+    return;
+  }
+  
+  // Store ALL noodzakelijke authentication data
+  localStorage.setItem('user_email', user.email);
+  localStorage.setItem('user_token', accessToken);
+  localStorage.setItem('user_uid', user.id);
+  localStorage.setItem('user_auth_timestamp', Date.now().toString());
+  
+  // NIEUW: Store refresh token als beschikbaar
+  if (refreshToken) {
+    localStorage.setItem('user_refresh_token', refreshToken);
+  }
+  
+  // NIEUW: Store complete user object voor recovery
+  try {
+    localStorage.setItem('user_netlify_data', JSON.stringify({
+      id: user.id,
+      email: user.email,
+      user_metadata: user.user_metadata || {},
+      app_metadata: user.app_metadata || {},
+      created_at: user.created_at,
+      updated_at: user.updated_at
+    }));
+  } catch (e) {
+    console.warn('Could not store user data:', e);
+  }
+  
+  console.log('💾 Authentication data stored successfully');
+  
+  // Rest van de functie blijft hetzelfde...
+  if (eventType === 'signup') {
+    console.log('🆕 NEW SIGNUP: Will create user in Airtable');
+    createOrUpdateUser(user, true);
+  } else if (eventType === 'login') {
+    console.log('🔄 EXISTING LOGIN: Loading profile without webhook call');
+    showProfileUI();
+    loadProfile();
+    handlePostLoginRedirect();
+  } else {
+    console.log('🤔 UNKNOWN EVENT TYPE: Defaulting to profile load');
+    showProfileUI();
+    loadProfile();
+  }
+  
+  updateLoginButton();
+  
+  setTimeout(() => {
+    console.log('🔓 Auth processing completed - resetting flags');
+    isProcessingAuth = false;
+    authCallLock = false;
+  }, 2000);
+}
 
     // New function to handle post-login redirect
     function handlePostLoginRedirect() {
