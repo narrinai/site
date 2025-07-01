@@ -2425,24 +2425,29 @@ line-clamp: 3;
       }
     }
 
-   async function loadUserChats() {
+   // GEFIXTE versie voor chat-overview.html
+async function loadUserChats() {
+  console.log('📡 Loading user chats...');
+  
+  // NIEUWE authentication check
+  if (!window.isAuthenticated || !window.currentUser) {
+    if (!initializeAuthenticationCheck()) {
+      showNotLoggedIn();
+      return;
+    }
+  }
+  
   showLoading();
   
   try {
-    const token = localStorage.getItem('user_token');
-    const email = localStorage.getItem('user_email');
-    const uid = localStorage.getItem('user_uid');
-
+    const { email, token, uid } = window.currentUser;
+    
     console.log('🔍 Loading chats - Auth check:', {
       hasToken: !!token,
       hasEmail: !!email,
       hasUid: !!uid,
       email: email
     });
-
-    if (!token || !email || !uid) {
-      throw new Error('Missing authentication data');
-    }
 
     // Test of de function bestaat
     console.log('🔗 Testing function endpoint...');
