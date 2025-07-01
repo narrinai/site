@@ -2237,6 +2237,11 @@ line-clamp: 3;
 
    // Initialize page
     document.addEventListener('DOMContentLoaded', () => {
+      // Initialize authentication check
+  initializeAuthenticationCheck();
+  
+  // Run Safari compatibility checks first
+  checkLocalStorageSupport();
       console.log('🚀 Chat overview page loaded');
       
       // Run Safari compatibility checks first
@@ -2424,6 +2429,82 @@ line-clamp: 3;
         showNotLoggedIn();
       }
     }
+
+// UNIVERSELE Authentication Check - Voeg toe aan chat-overview.html
+function initializeAuthenticationCheck() {
+  console.log('🔐 Initializing authentication check...');
+  
+  // Check localStorage first
+  const token = localStorage.getItem('user_token');
+  const email = localStorage.getItem('user_email');
+  const uid = localStorage.getItem('user_uid');
+  const timestamp = localStorage.getItem('user_auth_timestamp');
+  
+  if (token && email && uid && token !== 'false' && token !== 'null') {
+    // Check if token is not too old (24 hours)
+    const authAge = Date.now() - parseInt(timestamp || '0');
+    if (authAge < 24 * 60 * 60 * 1000) {
+      console.log('✅ Valid authentication found in localStorage:', email);
+      
+      // Set global auth state
+      window.isAuthenticated = true;
+      window.currentUser = { email, uid, token };
+      
+      // Update UI
+      updateLoginButton();
+      
+      return true;
+    } else {
+      console.log('⏰ Authentication expired, clearing...');
+      clearAuthData();
+    }
+  }
+  
+  // Fallback: Check Netlify Identity
+  if (window.netlifyIdentity) {
+    const netlifyUser = window.netlifyIdentity.currentUser();
+    if (netlifyUser) {
+      console.log('✅ Found Netlify Identity user:', netlifyUser.email);
+      
+      // Store authentication data
+      const accessToken = netlifyUser.token?.access_token || netlifyUser.access_token;
+      if (accessToken) {
+        localStorage.setItem('user_email', netlifyUser.email);
+        localStorage.setItem('user_token', accessToken);
+        localStorage.setItem('user_uid', netlifyUser.id);
+        localStorage.setItem('user_auth_timestamp', Date.now().toString());
+        
+        window.isAuthenticated = true;
+        window.currentUser = { 
+          email: netlifyUser.email, 
+          uid: netlifyUser.id, 
+          token: accessToken 
+        };
+        
+        return true;
+      }
+    }
+  }
+  
+  console.log('❌ No valid authentication found');
+  window.isAuthenticated = false;
+  window.currentUser = null;
+  updateLoginButton();
+  return false;
+}
+
+// Clear authentication data
+function clearAuthData() {
+  localStorage.removeItem('user_email');
+  localStorage.removeItem('user_token');
+  localStorage.removeItem('user_uid');
+  localStorage.removeItem('user_auth_timestamp');
+  localStorage.removeItem('user_refresh_token');
+  localStorage.removeItem('user_netlify_data');
+  
+  window.isAuthenticated = false;
+  window.currentUser = null;
+}
 
    // GEFIXTE versie voor chat-overview.html
 async function loadUserChats() {
