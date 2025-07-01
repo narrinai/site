@@ -2839,111 +2839,194 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    async function sendMessage(event) {
-      event?.preventDefault();
-      const userInput = document.getElementById("userInput");
-      const input = userInput.value.trim();
-      if (!input) return;
-
-      const token = localStorage.getItem("user_token");
-      const uid   = localStorage.getItem("user_uid");
-      const email = localStorage.getItem("user_email");
-      const user_id = localStorage.getItem("user_id");
+// UNIVERSELE Authentication Check - Voeg toe aan chat.html
+function initializeAuthenticationCheck() {
+  console.log('🔐 Initializing authentication check...');
+  
+  // Check localStorage first
+  const token = localStorage.getItem('user_token');
+  const email = localStorage.getItem('user_email');
+  const uid = localStorage.getItem('user_uid');
+  const timestamp = localStorage.getItem('user_auth_timestamp');
+  
+  if (token && email && uid && token !== 'false' && token !== 'null') {
+    // Check if token is not too old (24 hours)
+    const authAge = Date.now() - parseInt(timestamp || '0');
+    if (authAge < 24 * 60 * 60 * 1000) {
+      console.log('✅ Valid authentication found in localStorage:', email);
       
-      console.log("🚀 sendMessage debug:", { token: !!token, uid: !!uid, email, user_id, characterSlug });
+      // Set global auth state
+      window.isAuthenticated = true;
+      window.currentUser = { email, uid, token };
       
-      if (!token || !uid || !email) {
-        console.error("sendMessage: missing token, uid or email");
-        localStorage.setItem('login_redirect_url', window.location.href);
-        window.location.href = 'profile.html';
-        return;
-      }
-
-      const sendButton = document.getElementById("sendButton");
-      sendButton.disabled = true;
-      sendButton.textContent = "Sending...";
-
-      const chatlog = document.getElementById("chatlog");
-      const divUser = document.createElement("p");
-      divUser.innerHTML = `<strong>You:</strong> ${input}`;
-      chatlog.appendChild(divUser);
-      chatlog.scrollTop = chatlog.scrollHeight;
-      userInput.value = "";
-
-      // Show typing indicator after 1 second delay
-      setTimeout(() => {
-        showTypingIndicator();
-      }, 1000);
-
-      try {
-        const requestPayload = {
-          action: "send_message",
-          text: input,
-          Character_id: characterSlug,
-          Slug: characterSlug,
-          user_uid: uid,
-          user_token: token,
-          user_email: email,
-          user_id: user_id || null
+      return true;
+    } else {
+      console.log('⏰ Authentication expired, clearing...');
+      clearAuthData();
+    }
+  }
+  
+  // Fallback: Check Netlify Identity
+  if (window.netlifyIdentity) {
+    const netlifyUser = window.netlifyIdentity.currentUser();
+    if (netlifyUser) {
+      console.log('✅ Found Netlify Identity user:', netlifyUser.email);
+      
+      // Store authentication data
+      const accessToken = netlifyUser.token?.access_token || netlifyUser.access_token;
+      if (accessToken) {
+        localStorage.setItem('user_email', netlifyUser.email);
+        localStorage.setItem('user_token', accessToken);
+        localStorage.setItem('user_uid', netlifyUser.id);
+        localStorage.setItem('user_auth_timestamp', Date.now().toString());
+        
+        window.isAuthenticated = true;
+        window.currentUser = { 
+          email: netlifyUser.email, 
+          uid: netlifyUser.id, 
+          token: accessToken 
         };
         
-        console.log("📤 sendMessage FULL payload:", requestPayload);
-
-        const response = await fetch(newWebhookUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(requestPayload)
-        });
-
-        console.log("📨 sendMessage response status:", response.status, response.statusText);
-
-        const rawText = await response.text();
-        console.log("📄 sendMessage raw response:", rawText);
-
-        let data;
-        try {
-          data = JSON.parse(rawText);
-          console.log("✅ sendMessage parsed response:", data);
-        } catch (e) {
-          console.warn("JSON parse error, using fallback:", e);
-          data = { 
-            success: true, 
-            reply: "Whoopsie! 🙈 I just had a bit of a brain fart (do AIs have brains?). Let's pretend that never happened and try again!" 
-          };
-        }
-
-        if (!data.success) {
-          throw new Error("Chat request failed");
-        }
-
-        const reply = data.reply || "⚠️ No reply received.";
-
-        // Wait and show response
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        hideTypingIndicator();
-
-        const divBot = document.createElement("p");
-        const avatarHtml = getAvatarHtml();
-        divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${reply}`;
-        chatlog.appendChild(divBot);
-        chatlog.scrollTop = chatlog.scrollHeight;
-        
-      } catch (err) {
-        console.error("❌ sendMessage Error:", err);
-        hideTypingIndicator();
-        
-        const divErr = document.createElement("p");
-        divErr.innerHTML = `<strong>${currentCharacter?.name || 'Character'}:</strong> ⚠️ Something went wrong while sending.`;
-        chatlog.appendChild(divErr);
-        chatlog.scrollTop = chatlog.scrollHeight;
-      } finally {
-        sendButton.disabled = false;
-        sendButton.textContent = "Send";
+        return true;
       }
     }
+  }
+  
+  console.log('❌ No valid authentication found');
+  window.isAuthenticated = false;
+  window.currentUser = null;
+  return false;
+}
+
+// Clear authentication data
+function clearAuthData() {
+  localStorage.removeItem('user_email');
+  localStorage.removeItem('user_token');
+  localStorage.removeItem('user_uid');
+  localStorage.removeItem('user_auth_timestamp');
+  localStorage.removeItem('user_refresh_token');
+  localStorage.removeItem('user_netlify_data');
+  
+  window.isAuthenticated = false;
+  window.currentUser = null;
+}
+
+    // GEFIXTE versie voor chat page
+async function sendMessage(event) {
+  event?.preventDefault();
+  
+  // NIEUWE authentication check
+  if (!window.isAuthenticated || !window.currentUser) {
+    console.log('❌ User not authenticated, checking localStorage...');
+    
+    // Try to restore from localStorage
+    if (!initializeAuthenticationCheck()) {
+      console.log('❌ No valid auth found, redirecting to login');
+      localStorage.setItem('login_redirect_url', window.location.href);
+      window.location.href = 'profile.html';
+      return;
+    }
+  }
+  
+  const userInput = document.getElementById("userInput");
+  const input = userInput.value.trim();
+  if (!input) return;
+
+  // Use current user data
+  const email = window.currentUser.email;
+  const token = window.currentUser.token;
+  const uid = window.currentUser.uid;
+  const user_id = localStorage.getItem("user_id");
+  
+  console.log("🚀 sendMessage debug:", { token: !!token, uid: !!uid, email, user_id, characterSlug });
+
+  const sendButton = document.getElementById("sendButton");
+  sendButton.disabled = true;
+  sendButton.textContent = "Sending...";
+
+  const chatlog = document.getElementById("chatlog");
+  const divUser = document.createElement("p");
+  divUser.innerHTML = `<strong>You:</strong> ${input}`;
+  chatlog.appendChild(divUser);
+  chatlog.scrollTop = chatlog.scrollHeight;
+  userInput.value = "";
+
+  // Show typing indicator after 1 second delay
+  setTimeout(() => {
+    showTypingIndicator();
+  }, 1000);
+
+  try {
+    const requestPayload = {
+      action: "send_message",
+      text: input,
+      Character_id: characterSlug,
+      Slug: characterSlug,
+      user_uid: uid,
+      user_token: token,
+      user_email: email,
+      user_id: user_id || null
+    };
+    
+    console.log("📤 sendMessage FULL payload:", requestPayload);
+
+    const response = await fetch(newWebhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestPayload)
+    });
+
+    console.log("📨 sendMessage response status:", response.status, response.statusText);
+
+    const rawText = await response.text();
+    console.log("📄 sendMessage raw response:", rawText);
+
+    let data;
+    try {
+      data = JSON.parse(rawText);
+      console.log("✅ sendMessage parsed response:", data);
+    } catch (e) {
+      console.warn("JSON parse error, using fallback:", e);
+      data = { 
+        success: true, 
+        reply: "Whoopsie! 🙈 I just had a bit of a brain fart (do AIs have brains?). Let's pretend that never happened and try again!" 
+      };
+    }
+
+    if (!data.success) {
+      throw new Error("Chat request failed");
+    }
+
+    const reply = data.reply || "⚠️ No reply received.";
+
+    // Wait and show response
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    hideTypingIndicator();
+
+    const divBot = document.createElement("p");
+    const avatarHtml = getAvatarHtml();
+    divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${reply}`;
+    chatlog.appendChild(divBot);
+    chatlog.scrollTop = chatlog.scrollHeight;
+    
+  } catch (err) {
+    console.error("❌ sendMessage Error:", err);
+    hideTypingIndicator();
+    
+    const divErr = document.createElement("p");
+    divErr.innerHTML = `<strong>${currentCharacter?.name || 'Character'}:</strong> ⚠️ Something went wrong while sending.`;
+    chatlog.appendChild(divErr);
+    chatlog.scrollTop = chatlog.scrollHeight;
+  } finally {
+    sendButton.disabled = false;
+    sendButton.textContent = "Send";
+  }
+}
 
     // ===== DISCLAIMER TOGGLE FUNCTIONALITY =====
     document.addEventListener('DOMContentLoaded', () => {
+        // Initialize authentication check
+  initializeAuthenticationCheck();
       const disclaimerToggle = document.getElementById('disclaimerToggle');
       const disclaimerExpanded = document.getElementById('disclaimerExpanded');
       
