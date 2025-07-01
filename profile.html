@@ -2965,158 +2965,165 @@
     }
 
     // GEFIXTE versie van loadProfile() functie
-    async function loadProfile() {
-      const token = localStorage.getItem('user_token');
-      const email = localStorage.getItem('user_email');
-      const uid = localStorage.getItem('user_uid');
-      
-      if (!token || !email || !uid) {
-        console.log('⚠️ No auth data - showing login UI');
-        showLoginUI();
-        return;
-      }
+async function loadProfile() {
+  const token = localStorage.getItem('user_token');
+  const email = localStorage.getItem('user_email');
+  const uid = localStorage.getItem('user_uid');
+  
+  if (!token || !email || !uid) {
+    console.log('⚠️ No auth data - showing login UI');
+    showLoginUI();
+    return;
+  }
 
-      console.log('📡 Loading profile for:', email);
-      showLoading();
-      
-      try {
-        const payload = { 
-          user_email: email, 
-          user_uid: uid, 
+  console.log('📡 Loading profile for:', email);
+  showLoading();
+  
+  try {
+    const payload = { 
+      user_email: email, 
+      user_uid: uid, 
+      user_token: token,
+      action: 'get_profile' // Explicit action for profile loading
+    };
+    
+    console.log('📤 Request payload:', payload);
+    
+    const resp = await fetch('https://hook.eu2.make.com/lya166veex7oo2wwo8mx4fuhlkssxlog', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    
+    console.log('📡 Response status:', resp.status);
+    
+    if (!resp.ok) {
+      // KRITIEKE FIX: Als gebruiker niet gevonden wordt, probeer opnieuw aan te maken
+      if (resp.status === 400 || resp.status === 404) {
+        console.log('🔄 User data not found in Airtable, attempting to create...');
+        
+        // Probeer de gebruiker opnieuw aan te maken in Airtable
+        const createPayload = {
+          user_email: email,
+          user_uid: uid,
           user_token: token,
-          action: 'get_profile' // Explicit action for profile loading
+          user_metadata: {
+            full_name: '',
+            avatar_url: '',
+            provider: 'email'
+          },
+          is_new_user: false, // Bestaande user, maar niet in Airtable
+          timestamp: new Date().toISOString(),
+          source: 'profile_page_recovery'
         };
         
-        console.log('📤 Request payload:', payload);
-        
-        const resp = await fetch('https://hook.eu2.make.com/lya166veex7oo2wwo8mx4fuhlkssxlog', {
+        console.log('📤 Creating missing user in Airtable...');
+        const createResp = await fetch('https://hook.eu2.make.com/03ug6qzucda4ksrkcc06nu3bu3vetj15', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(createPayload)
         });
         
-        console.log('📡 Response status:', resp.status);
-        
-        if (!resp.ok) {
-          // If user not found (404), create them
-          if (resp.status === 404) {
-            console.log('🔄 User not found, creating...');
-            const user = {
-              email: email,
-              id: uid,
-              token: { access_token: token },
-              user_metadata: {}
-            };
-            await createOrUpdateUser(user);
-            return; // createOrUpdateUser will call loadProfile again
-          }
-          throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+        if (createResp.ok) {
+          console.log('✅ User created in Airtable, retrying profile load...');
+          // Wacht 3 seconden en probeer opnieuw
+          setTimeout(() => {
+            loadProfile();
+          }, 3000);
+          return;
         }
-        
-        const responseText = await resp.text();
-        console.log('📋 Raw response (first 500 chars):', responseText.substring(0, 500));
-        
-        // CRITICAL FIX: Better response parsing
-        let data;
-        
-        try {
-          data = JSON.parse(responseText);
-          console.log('📋 Parsed JSON data:', data);
-          
-          // EXTRA DEBUG: Log specific fields we care about
-          console.log('📊 USAGE DEBUG - Email:', data.email);
-          console.log('📊 USAGE DEBUG - Plan:', data.plan);
-          console.log('📊 USAGE DEBUG - Usage:', data.usage, '(type:', typeof data.usage, ')');
-          console.log('📊 USAGE DEBUG - Quota:', data.quota, '(type:', typeof data.quota, ')');
-          
-        } catch (parseError) {
-          console.error('❌ JSON Parse Error:', parseError);
-          console.log('❌ Failed to parse response as JSON, using fallback data');
-          
-          // Use fallback data if JSON parsing fails
-          data = {
-            email: email,
-            plan: 'Free',
-            usage: 0,
-            quota: 100
-          };
-        }
-        
-        // Process the data with fallbacks and better error handling
-        setField('email', data.email || email);
-        const userPlan = data.plan || 'Free';
-        setField('plan', userPlan);
-        
-        // Update premium card based on plan
-        updatePremiumCard(userPlan);
-        
-        // CRITICAL FIX: Better usage/quota handling
-        console.log('📊 PROCESSING USAGE DATA:');
-        console.log('📊 Raw data.usage:', data.usage, '(type:', typeof data.usage, ')');
-        console.log('📊 Raw data.quota:', data.quota, '(type:', typeof data.quota, ')');
-        
-        // Ensure usage and quota are numbers with proper conversion
-        let usage = 0;
-        let quota = 100; // Default quota
-        
-        // IMPROVED: More robust number parsing
-        if (data.usage !== undefined && data.usage !== null && data.usage !== '') {
-          if (typeof data.usage === 'string') {
-            usage = parseInt(data.usage.replace(/[^0-9]/g, ''), 10) || 0;
-          } else {
-            usage = Number(data.usage) || 0;
-          }
-        }
-        
-        if (data.quota !== undefined && data.quota !== null && data.quota !== '') {
-          if (typeof data.quota === 'string') {
-            quota = parseInt(data.quota.replace(/[^0-9]/g, ''), 10) || 100;
-          } else {
-            quota = Number(data.quota) || 100;
-          }
-        }
-        
-        console.log('📊 FINAL PROCESSED VALUES:');
-        console.log('📊 Final usage:', usage, '(type:', typeof usage, ')');
-        console.log('📊 Final quota:', quota, '(type:', typeof quota, ')');
-        
-        // Update UI with processed values
-        // Update UI based on plan type
-if (userPlan.toLowerCase() === 'premium' || userPlan.toLowerCase() === 'pro') {
-  // Premium users: show "Unlimited"
-  setField('usage', usage.toString());
-  document.getElementById('quota').textContent = 'Unlimited';
-  document.getElementById('usage-fill').style.width = '0%'; // No bar for unlimited
-} else {
-  // Free users: show quota and percentage
-  setField('usage', usage.toString());
-  document.getElementById('quota').textContent = quota.toString();
-  
-  const percentage = quota > 0 ? (usage / quota) * 100 : 0;
-  console.log('📊 Calculated percentage:', percentage, '%');
-  document.getElementById('usage-fill').style.width = `${Math.min(percentage, 100)}%`;
-}
-        
-        console.log('📊 FINAL UI UPDATE COMPLETED ✅');
-        console.log('✅ Profile loaded and UI updated');
-
-        updateUsageCountdown(userPlan, usage, quota);
-
-      } catch (error) {
-        console.error('❌ Error loading profile:', error);
-        showError(`Loading error: ${error.message}`);
-        
-        // Show basic info even if webhook fails
-        setField('email', email);
-        setField('plan', 'Free');
-        setField('usage', '0');
-        document.getElementById('quota').textContent = '100';
-        document.getElementById('usage-fill').style.width = '0%';
-        updatePremiumCard('Free');
-      } finally {
-        hideLoading();
       }
+      
+      throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
     }
+    
+    const responseText = await resp.text();
+    console.log('📋 Raw response (first 500 chars):', responseText.substring(0, 500));
+    
+    // KRITIEKE FIX: Betere response parsing met fallbacks
+    let data;
+    
+    try {
+      data = JSON.parse(responseText);
+      console.log('📋 Parsed JSON data:', data);
+    } catch (parseError) {
+      console.error('❌ JSON Parse Error:', parseError);
+      console.log('❌ Failed to parse response, using default values');
+      
+      // Gebruik standaard waarden als JSON parsing faalt
+      data = {
+        email: email,
+        plan: 'Free',
+        usage: 0,
+        quota: 100
+      };
+    }
+    
+    // VEILIGE data processing met null checks
+    setField('email', data?.email || email);
+    const userPlan = data?.plan || 'Free';
+    setField('plan', userPlan);
+    
+    // Update premium card
+    updatePremiumCard(userPlan);
+    
+    // VEILIGE usage/quota verwerking
+    let usage = 0;
+    let quota = 100;
+    
+    if (data && typeof data.usage !== 'undefined' && data.usage !== null) {
+      usage = parseInt(String(data.usage).replace(/[^0-9]/g, ''), 10) || 0;
+    }
+    
+    if (data && typeof data.quota !== 'undefined' && data.quota !== null) {
+      quota = parseInt(String(data.quota).replace(/[^0-9]/g, ''), 10) || 100;
+    }
+    
+    console.log('📊 Final processed values - Usage:', usage, 'Quota:', quota);
+    
+    // Update UI veilig
+    if (userPlan.toLowerCase() === 'premium' || userPlan.toLowerCase() === 'pro') {
+      setField('usage', usage.toString());
+      const quotaElement = document.getElementById('quota');
+      if (quotaElement) quotaElement.textContent = 'Unlimited';
+      
+      const usageFill = document.getElementById('usage-fill');
+      if (usageFill) usageFill.style.width = '0%';
+    } else {
+      setField('usage', usage.toString());
+      const quotaElement = document.getElementById('quota');
+      if (quotaElement) quotaElement.textContent = quota.toString();
+      
+      const percentage = quota > 0 ? (usage / quota) * 100 : 0;
+      const usageFill = document.getElementById('usage-fill');
+      if (usageFill) usageFill.style.width = `${Math.min(percentage, 100)}%`;
+    }
+    
+    console.log('✅ Profile loaded successfully');
+    updateUsageCountdown(userPlan, usage, quota);
+
+  } catch (error) {
+    console.error('❌ Error loading profile:', error);
+    
+    // FALLBACK: Toon basis info ook bij fout
+    setField('email', email);
+    setField('plan', 'Free');
+    setField('usage', '0');
+    
+    const quotaElement = document.getElementById('quota');
+    if (quotaElement) quotaElement.textContent = '100';
+    
+    const usageFill = document.getElementById('usage-fill');
+    if (usageFill) usageFill.style.width = '0%';
+    
+    updatePremiumCard('Free');
+    
+    // Toon gebruiksvriendelijke foutmelding
+    showError('Profile loaded with default settings. Some data may not be current.');
+  } finally {
+    hideLoading();
+  }
+}
 
     // Edit functionality
     function enableEdit(field) {
@@ -3313,13 +3320,15 @@ if (userPlan.toLowerCase() === 'premium' || userPlan.toLowerCase() === 'pro') {
       originalValue = null;
     }
 
-    // Utility functions
-    function setField(field, text) {
-      const element = document.getElementById(field);
-      if (element) {
-        element.textContent = text;
-      }
-    }
+    // VEILIGERE versie van setField functie
+function setField(field, text) {
+  const element = document.getElementById(field);
+  if (element) {
+    element.textContent = String(text || '');
+  } else {
+    console.warn(`⚠️ Element with id '${field}' not found`);
+  }
+}
 
     function showError(msg) {
       hideMessages();
