@@ -2044,6 +2044,88 @@ function processNetlifyData(characters, category, gridId, limit) {
       toggleMobileSearch();
     });
 
+    // ===== UNIVERSAL AUTHENTICATION CHECK =====
+    // UNIVERSELE Authentication Check - Voeg toe aan ELKE pagina
+    function initializeAuthenticationCheck() {
+      console.log('🔐 Initializing authentication check...');
+      
+      // Check localStorage first
+      const token = localStorage.getItem('user_token');
+      const email = localStorage.getItem('user_email');
+      const uid = localStorage.getItem('user_uid');
+      const timestamp = localStorage.getItem('user_auth_timestamp');
+      
+      if (token && email && uid && token !== 'false' && token !== 'null') {
+        // Check if token is not too old (24 hours)
+        const authAge = Date.now() - parseInt(timestamp || '0');
+        if (authAge < 24 * 60 * 60 * 1000) {
+          console.log('✅ Valid authentication found in localStorage:', email);
+          
+          // Set global auth state
+          window.isAuthenticated = true;
+          window.currentUser = { email, uid, token };
+          
+          // Update UI
+          updateLoginButton();
+          
+          return true;
+        } else {
+          console.log('⏰ Authentication expired, clearing...');
+          clearAuthData();
+        }
+      }
+      
+      // Fallback: Check Netlify Identity
+      if (window.netlifyIdentity) {
+        const netlifyUser = window.netlifyIdentity.currentUser();
+        if (netlifyUser) {
+          console.log('✅ Found Netlify Identity user:', netlifyUser.email);
+          
+          // Restore localStorage from Netlify
+          handleLoginSuccess(netlifyUser, 'recovery');
+          return true;
+        }
+      }
+      
+      console.log('❌ No valid authentication found');
+      window.isAuthenticated = false;
+      window.currentUser = null;
+      updateLoginButton();
+      return false;
+    }
+
+    // Clear authentication data
+    function clearAuthData() {
+      localStorage.removeItem('user_email');
+      localStorage.removeItem('user_token');
+      localStorage.removeItem('user_uid');
+      localStorage.removeItem('user_auth_timestamp');
+      localStorage.removeItem('user_refresh_token');
+      localStorage.removeItem('user_netlify_data');
+      
+      window.isAuthenticated = false;
+      window.currentUser = null;
+    }
+
+    // Handle login success and store auth data
+    function handleLoginSuccess(user, source = 'login') {
+      console.log(`✅ handleLoginSuccess called for: ${user.email} (${source})`);
+      
+      // Store authentication data in localStorage
+      localStorage.setItem('user_email', user.email);
+      localStorage.setItem('user_token', user.token?.access_token || 'true');
+      localStorage.setItem('user_uid', user.id);
+      localStorage.setItem('user_auth_timestamp', Date.now().toString());
+      localStorage.setItem('user_netlify_data', JSON.stringify(user));
+      
+      // Set global auth state
+      window.isAuthenticated = true;
+      window.currentUser = { email: user.email, uid: user.id, token: user.token?.access_token };
+      
+      // Update UI
+      updateLoginButton();
+    }
+
     // ===== NETLIFY IDENTITY =====
     function updateLoginButton() {
       const loginBtn = document.getElementById('loginBtn');
@@ -2075,11 +2157,14 @@ function processNetlifyData(characters, category, gridId, limit) {
    // Initialize Netlify Identity
 if (window.netlifyIdentity) {
   window.netlifyIdentity.on('init', updateLoginButton);
-  window.netlifyIdentity.on('login', () => {
-    updateLoginButton();
+  window.netlifyIdentity.on('login', (user) => {
+    handleLoginSuccess(user, 'login');
     window.netlifyIdentity.close();
   });
-  window.netlifyIdentity.on('logout', updateLoginButton);
+  window.netlifyIdentity.on('logout', () => {
+    clearAuthData();
+    updateLoginButton();
+  });
   
   // Update bestaande signup event om referral te verwerken
   window.netlifyIdentity.on('signup', user => {
@@ -2114,6 +2199,9 @@ if (window.netlifyIdentity) {
     // ===== INITIALIZATION =====
     document.addEventListener('DOMContentLoaded', () => {
       console.log(`🚀 Initializing Narrin AI with max ${CONFIG.MAX_CHARACTERS_PER_CATEGORY} characters per category...`);
+      
+      // Initialize authentication check first
+      initializeAuthenticationCheck();
       
       // Generate dynamic content
       generateCategoryButtons();

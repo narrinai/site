@@ -2150,6 +2150,82 @@
   </div>
 
   <script>
+    // ===== UNIVERSAL AUTHENTICATION CHECK FUNCTION =====
+    function initializeAuthenticationCheck() {
+      console.log('🔐 Initializing universal authentication check...');
+      
+      // Check localStorage first for faster response
+      const storedEmail = localStorage.getItem('user_email');
+      const storedToken = localStorage.getItem('user_token');
+      const storedUid = localStorage.getItem('user_uid');
+      const authTimestamp = localStorage.getItem('user_auth_timestamp');
+      
+      if (storedEmail && storedToken && storedUid && authTimestamp) {
+        // Check if token is still valid (24 hours)
+        const tokenAge = Date.now() - parseInt(authTimestamp);
+        const maxAge = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+        
+        if (tokenAge < maxAge) {
+          console.log('✅ Valid authentication found in localStorage');
+          return true;
+        } else {
+          console.log('⚠️ Stored authentication expired, clearing...');
+          clearAuthData();
+        }
+      }
+      
+      // Fallback to Netlify Identity current user
+      if (window.netlifyIdentity) {
+        const currentUser = window.netlifyIdentity.currentUser();
+        if (currentUser) {
+          console.log('✅ Valid Netlify Identity user found');
+          handleLoginSuccess(currentUser);
+          return true;
+        }
+      }
+      
+      console.log('❌ No valid authentication found');
+      return false;
+    }
+
+    function handleLoginSuccess(user) {
+      console.log('💾 Storing authentication data for:', user.email);
+      
+      // Store authentication data with timestamp
+      localStorage.setItem('user_email', user.email);
+      localStorage.setItem('user_token', user.token?.access_token || user.access_token);
+      localStorage.setItem('user_uid', user.id);
+      localStorage.setItem('user_auth_timestamp', Date.now().toString());
+      
+      // Store additional user data if available
+      if (user.user_metadata) {
+        localStorage.setItem('user_metadata', JSON.stringify(user.user_metadata));
+      }
+      
+      console.log('✅ Authentication data stored successfully');
+    }
+
+    function clearAuthData() {
+      console.log('🧹 Clearing authentication data...');
+      
+      // Clear all auth-related localStorage items
+      const authKeys = [
+        'user_email',
+        'user_token',
+        'user_uid',
+        'user_auth_timestamp',
+        'user_metadata',
+        'user_refresh_token',
+        'user_netlify_data'
+      ];
+      
+      authKeys.forEach(key => {
+        localStorage.removeItem(key);
+      });
+      
+      console.log('✅ Authentication data cleared');
+    }
+
     // ===== STRIPE CONFIGURATION =====
     const stripe = Stripe('pk_live_jz2dXpzmEDUahXkKkyUe36Zt');
     const PRICE_ID = 'price_1Rc9oTDU567HpUYxl1sLu71A';
@@ -2807,16 +2883,19 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       // ===== BELANGRIJKSTE FIX: Gescheiden event handling =====
       window.netlifyIdentity.on('login', user => {
         console.log('🔑 LOGIN event fired for:', user.email);
-        handleAuthEvent(user, 'login'); // Expliciet 'login' type
+        handleLoginSuccess(user); // Store auth data first
+        handleAuthEvent(user, 'login'); // Then handle auth event
       });
 
       window.netlifyIdentity.on('signup', user => {
         console.log('🎉 SIGNUP event fired for:', user.email);
-        handleAuthEvent(user, 'signup'); // Expliciet 'signup' type
+        handleLoginSuccess(user); // Store auth data first
+        handleAuthEvent(user, 'signup'); // Then handle auth event
       });
 
       window.netlifyIdentity.on('logout', () => {
         console.log('👋 Logout event');
+        clearAuthData(); // Clear auth data first
         resetAuthState();
         localStorage.clear();
         showLoginUI();
@@ -2911,7 +2990,10 @@ function handleLoginSuccess(user, eventType = 'unknown') {
     document.addEventListener('DOMContentLoaded', () => {
       console.log('🚀 Page loaded, initializing...');
       
-      // Set up redirect handling FIRST
+      // FIRST: Run universal authentication check
+      const isAuthenticated = initializeAuthenticationCheck();
+      
+      // Set up redirect handling
       setupRedirectHandling();
       
       // Check upgrade status
@@ -2924,8 +3006,8 @@ function handleLoginSuccess(user, eventType = 'unknown') {
         // Check if user is already logged in
         netlifyUser = window.netlifyIdentity.currentUser();
         
-        if (netlifyUser) {
-          console.log('✅ User already logged in:', netlifyUser.email);
+        if (netlifyUser || isAuthenticated) {
+          console.log('✅ User authenticated:', netlifyUser?.email || localStorage.getItem('user_email'));
           // For existing logged-in users, just load profile (don't redirect)
           showProfileUI();
           loadProfile();
