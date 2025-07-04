@@ -3009,7 +3009,7 @@ function clearAuthData() {
   window.currentUser = null;
 }
 
-    // GEFIXTE versie voor chat page
+// GEFIXTE versie voor chat page
 async function sendMessage(event) {
   event?.preventDefault();
   
@@ -3050,10 +3050,10 @@ async function sendMessage(event) {
   userInput.value = "";
 
   // Show typing indicator based on message length
-const typingDelay = Math.min(500 + (input.length * 50), 2000); // 500ms-2s
-setTimeout(() => {
-  showTypingIndicator();
-}, typingDelay);
+  const typingDelay = Math.min(500 + (input.length * 50), 2000); // 500ms-2s
+  setTimeout(() => {
+    showTypingIndicator();
+  }, typingDelay);
 
   try {
     const requestPayload = {
@@ -3098,43 +3098,29 @@ setTimeout(() => {
 
     const reply = data.reply || "⚠️ No reply received.";
 
-   // Realistic response timing based on reply length
-const responseDelay = Math.min(1000 + (reply.length * 30), 4000); // 1s-4s
-await new Promise(resolve => setTimeout(resolve, responseDelay));
+    // Realistic response timing based on reply length
+    const responseDelay = Math.min(1000 + (reply.length * 30), 4000); // 1s-4s
+    await new Promise(resolve => setTimeout(resolve, responseDelay));
     hideTypingIndicator();
-
 
     const divBot = document.createElement("p");
-const avatarHtml = getAvatarHtml();
-divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span>`;
-chatlog.appendChild(divBot);
-chatlog.scrollTop = chatlog.scrollHeight;
-
-const typingSpan = divBot.querySelector('.typing-text');
-typewriterEffect(typingSpan, reply);
-    
-  } catch (err) {
-    console.error("❌ sendMessage Error:", err);
-    hideTypingIndicator();
-    
-    const divErr = document.createElement("p");
-    divErr.innerHTML = `<strong>${currentCharacter?.name || 'Character'}:</strong> ⚠️ Something went wrong while sending.`;
-    chatlog.appendChild(divErr);
+    const avatarHtml = getAvatarHtml();
+    divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span>`;
+    chatlog.appendChild(divBot);
     chatlog.scrollTop = chatlog.scrollHeight;
-  } finally {
-    sendButton.disabled = false;
-    sendButton.textContent = "Send";
-  }
 
-// MEMORY PROCESSING - binnen try block
+    const typingSpan = divBot.querySelector('.typing-text');
+    typewriterEffect(typingSpan, reply);
+
+    // MEMORY PROCESSING - binnen try block
     if (data && data.success && data.reply) {
-        console.log('🧠 Starting memory processing for message:', input);
-        
-        const tempRecordId = `temp_${Date.now()}_${localStorage.getItem('user_id')}`;
-        
-        setTimeout(() => {
-            processMemoryForMessage(tempRecordId, input, getLastMessages(3));
-        }, 1000);
+      console.log('🧠 Starting memory processing for message:', input);
+      
+      const tempRecordId = `temp_${Date.now()}_${localStorage.getItem('user_id')}`;
+      
+      setTimeout(() => {
+        processMemoryForMessage(tempRecordId, input, getLastMessages(3));
+      }, 1000);
     }
     
   } catch (err) {
@@ -3151,29 +3137,29 @@ typewriterEffect(typingSpan, reply);
   }
 }
 
-    // ===== DISCLAIMER TOGGLE FUNCTIONALITY =====
-    document.addEventListener('DOMContentLoaded', () => {
-        // Initialize authentication check
+// ===== DISCLAIMER TOGGLE FUNCTIONALITY =====
+document.addEventListener('DOMContentLoaded', () => {
+  // Initialize authentication check
   initializeAuthenticationCheck();
-      const disclaimerToggle = document.getElementById('disclaimerToggle');
-      const disclaimerExpanded = document.getElementById('disclaimerExpanded');
+  const disclaimerToggle = document.getElementById('disclaimerToggle');
+  const disclaimerExpanded = document.getElementById('disclaimerExpanded');
+  
+  if (disclaimerToggle && disclaimerExpanded) {
+    disclaimerToggle.addEventListener('click', () => {
+      const isExpanded = disclaimerExpanded.style.display !== 'none';
       
-      if (disclaimerToggle && disclaimerExpanded) {
-        disclaimerToggle.addEventListener('click', () => {
-          const isExpanded = disclaimerExpanded.style.display !== 'none';
-          
-          if (isExpanded) {
-            disclaimerExpanded.style.display = 'none';
-            disclaimerToggle.classList.remove('expanded');
-            disclaimerToggle.setAttribute('aria-label', 'Show more information');
-          } else {
-            disclaimerExpanded.style.display = 'block';
-            disclaimerToggle.classList.add('expanded');
-            disclaimerToggle.setAttribute('aria-label', 'Show less information');
-          }
-        });
+      if (isExpanded) {
+        disclaimerExpanded.style.display = 'none';
+        disclaimerToggle.classList.remove('expanded');
+        disclaimerToggle.setAttribute('aria-label', 'Show more information');
+      } else {
+        disclaimerExpanded.style.display = 'block';
+        disclaimerToggle.classList.add('expanded');
+        disclaimerToggle.setAttribute('aria-label', 'Show less information');
       }
     });
+  }
+});
 
 // ===== USAGE LIMIT CHECK =====
 async function checkUsageLimit() {
