@@ -3094,16 +3094,37 @@ if (memories && memories.length > 0) {
     console.log("📄 sendMessage raw response:", rawText);
 
     let data;
-    try {
-      data = JSON.parse(rawText);
-      console.log("✅ sendMessage parsed response:", data);
-    } catch (e) {
-      console.warn("JSON parse error, using fallback:", e);
-      data = { 
-        success: true, 
-        reply: "Whoopsie! 🙈 I just had a bit of a brain fart (do AIs have brains?). Let's pretend that never happened and try again!" 
-      };
-    }
+try {
+  data = JSON.parse(rawText);
+  console.log("✅ sendMessage parsed response:", data);
+} catch (e) {
+  console.warn("JSON parse error, using fallback:", e);
+  
+  // VERBETERDE FALLBACK - probeer de JSON te repareren
+  let fixedJson = rawText.trim();
+  
+  // Voeg ontbrekende } toe aan het einde
+  if (!fixedJson.endsWith('}')) {
+    fixedJson += '}';
+  }
+  
+  // Als er nog steeds een error is, probeer basic response extractie
+  try {
+    data = JSON.parse(fixedJson);
+    console.log("✅ Fixed JSON successfully:", data);
+  } catch (e2) {
+    console.warn("JSON still broken, extracting reply manually");
+    
+    // Zoek naar reply in de response
+    const replyMatch = rawText.match(/"reply":\s*"([^"]*(?:\\.[^"]*)*)"/);
+    const reply = replyMatch ? replyMatch[1].replace(/\\"/g, '"') : "Sorry, there was an issue processing your message. Please try again!";
+    
+    data = { 
+      success: true, 
+      reply: reply
+    };
+  }
+}
 
     if (!data.success) {
       throw new Error("Chat request failed");
