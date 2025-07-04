@@ -2839,6 +2839,28 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    // Typewriter effect for bot response
+function typewriterEffect(element, text, speed = 30) {
+  let i = 0;
+  const timer = setInterval(() => {
+    if (i < text.length) {
+      element.textContent += text.charAt(i);
+      i++;
+    } else {
+      clearInterval(timer);
+    }
+  }, speed);
+}
+
+// Replace instant message with typewriter
+const avatarHtml = getAvatarHtml();
+divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span>`;
+chatlog.appendChild(divBot);
+chatlog.scrollTop = chatlog.scrollHeight;
+
+const typingSpan = divBot.querySelector('.typing-text');
+typewriterEffect(typingSpan, reply);
+
 // UNIVERSELE Authentication Check - Voeg toe aan chat.html
 function initializeAuthenticationCheck() {
   console.log('🔐 Initializing authentication check...');
@@ -2951,10 +2973,11 @@ async function sendMessage(event) {
   chatlog.scrollTop = chatlog.scrollHeight;
   userInput.value = "";
 
-  // Show typing indicator after 1 second delay
-  setTimeout(() => {
-    showTypingIndicator();
-  }, 1000);
+  // Show typing indicator based on message length
+const typingDelay = Math.min(500 + (input.length * 50), 2000); // 500ms-2s
+setTimeout(() => {
+  showTypingIndicator();
+}, typingDelay);
 
   try {
     const requestPayload = {
@@ -2999,15 +3022,20 @@ async function sendMessage(event) {
 
     const reply = data.reply || "⚠️ No reply received.";
 
-    // Wait and show response
-    await new Promise(resolve => setTimeout(resolve, 1000));
+   // Realistic response timing based on reply length
+const responseDelay = Math.min(1000 + (reply.length * 30), 4000); // 1s-4s
+await new Promise(resolve => setTimeout(resolve, responseDelay));
     hideTypingIndicator();
 
+
     const divBot = document.createElement("p");
-    const avatarHtml = getAvatarHtml();
-    divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${reply}`;
-    chatlog.appendChild(divBot);
-    chatlog.scrollTop = chatlog.scrollHeight;
+const avatarHtml = getAvatarHtml();
+divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span>`;
+chatlog.appendChild(divBot);
+chatlog.scrollTop = chatlog.scrollHeight;
+
+const typingSpan = divBot.querySelector('.typing-text');
+typewriterEffect(typingSpan, reply);
     
   } catch (err) {
     console.error("❌ sendMessage Error:", err);
