@@ -105,16 +105,17 @@ exports.handler = async (event, context) => {
       const updateUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory/${record_id}`;
       
       const updateData = {
-  fields: {
-    "Memory_Importance": analysis.memory_importance,
-    "Emotional_State": analysis.emotional_state, 
-    "Summary": analysis.summary,
-    "Memory_Tags": analysis.memory_tags
-  }
-};
-      
-      console.log('📤 Sending update to Airtable:', updateData);
-      
+        fields: {
+          "Memory_Importance": analysis.memory_importance,
+          "Emotional_State": analysis.emotional_state, 
+          "Summary": analysis.summary,
+          "Memory_Tags": analysis.memory_tags
+        }
+      };
+
+      console.log('📤 Attempting to update record:', record_id);
+      console.log('📤 Update data:', JSON.stringify(updateData, null, 2));
+
       const updateResponse = await fetch(updateUrl, {
         method: 'PATCH',
         headers: {
@@ -123,15 +124,18 @@ exports.handler = async (event, context) => {
         },
         body: JSON.stringify(updateData)
       });
-      
+
+      console.log('📨 Update response status:', updateResponse.status);
+      const responseText = await updateResponse.text();
+      console.log('📨 Update response:', responseText);
+
       if (!updateResponse.ok) {
-        const errorText = await updateResponse.text();
-        console.error('❌ Airtable update failed:', updateResponse.status, errorText);
-        throw new Error(`Airtable update failed: ${updateResponse.status} - ${errorText}`);
+        console.error('❌ Airtable update failed:', updateResponse.status, responseText);
+        throw new Error(`Airtable update failed: ${updateResponse.status} - ${responseText}`);
       }
-      
-      const updateResult = await updateResponse.json();
-      console.log('✅ Memory update successful:', updateResult.id);
+
+      const updateResult = JSON.parse(responseText);
+      console.log('✅ Memory update successful:', updateResult);
       
       return {
         statusCode: 200,
@@ -182,14 +186,15 @@ exports.handler = async (event, context) => {
                 
                 const updateData = {
                   fields: {
-                    Memory_Importance: analysis.memory_importance,
-                    Emotional_State: analysis.emotional_state,
-                    Summary: analysis.summary,
-                    Memory_Tags: analysis.memory_tags
+                    "Memory_Importance": analysis.memory_importance,
+                    "Emotional_State": analysis.emotional_state,
+                    "Summary": analysis.summary,
+                    "Memory_Tags": analysis.memory_tags
                   }
                 };
                 
-                console.log('📤 Updating record with:', updateData);
+                console.log('📤 Attempting to update record:', latestRecord.id);
+                console.log('📤 Update data:', JSON.stringify(updateData, null, 2));
                 
                 const updateResponse = await fetch(updateUrl, {
                   method: 'PATCH',
@@ -200,9 +205,13 @@ exports.handler = async (event, context) => {
                   body: JSON.stringify(updateData)
                 });
                 
+                console.log('📨 Update response status:', updateResponse.status);
+                const responseText = await updateResponse.text();
+                console.log('📨 Update response:', responseText);
+                
                 if (updateResponse.ok) {
-                  const updateResult = await updateResponse.json();
-                  console.log('✅ Memory update successful:', updateResult.id);
+                  const updateResult = JSON.parse(responseText);
+                  console.log('✅ Memory update successful:', updateResult);
                   
                   return {
                     statusCode: 200,
@@ -215,7 +224,7 @@ exports.handler = async (event, context) => {
                     })
                   };
                 } else {
-                  console.log('❌ Update failed:', updateResponse.status);
+                  console.log('❌ Update failed:', updateResponse.status, responseText);
                 }
               }
             } else {
