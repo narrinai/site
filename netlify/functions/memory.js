@@ -15,7 +15,7 @@ exports.handler = async (event, context) => {
   }
 
   const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
-  const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
+const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY || process.env.AIRTABLE_TOKEN;
   
   console.log('🔑 Environment check:', {
     hasApiKey: !!AIRTABLE_API_KEY,
