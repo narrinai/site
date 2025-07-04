@@ -3108,7 +3108,13 @@ typewriterEffect(typingSpan, reply);
     sendButton.textContent = "Send";
   }
 
-
+// Na het versturen van een bericht, process memory (als je een record ID hebt)
+if (data.success && data.user_record_id) {
+    // Process memory voor dit nieuwe bericht
+    setTimeout(() => {
+        processMemoryForMessage(data.user_record_id, input, getLastMessages(3));
+    }, 1000); // Korte delay zodat het bericht eerst opgeslagen is
+}
   
 }
 
@@ -3339,6 +3345,14 @@ function checkUpgradeStatus() {
     const newUrl = window.location.pathname + '?char=' + characterSlug;
     window.history.replaceState({}, document.title, newUrl);
   }
+}
+
+// Helper functie voor conversation context
+function getLastMessages(count = 3) {
+    const chatlog = document.getElementById("chatlog");
+    const messages = chatlog.querySelectorAll("p");
+    const lastMessages = Array.from(messages).slice(-count);
+    return lastMessages.map(msg => msg.textContent).join(" | ");
 }
 
   </script>
