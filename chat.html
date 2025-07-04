@@ -2412,7 +2412,70 @@ document.addEventListener('DOMContentLoaded', () => {
     // NIEUWE WEBHOOK URL
     const newWebhookUrl = "https://hook.eu2.make.com/36bygx4a2y4bkl97wkdjdmtn3o9ygjms";
 
+// ===== MEMORY SYSTEM VIA NETLIFY FUNCTION (zoals category.html) =====
+// Memory retrieval via Netlify function - same pattern as character loading
+async function getRelevantMemories(userId, characterId, currentMessage) {
+    try {
+        console.log("🧠 Getting relevant memories for:", { userId, characterId });
+        
+        // Use same pattern as category.html - Netlify Function endpoint
+        const functionUrl = '/.netlify/functions/memory';
+        console.log('📡 Calling memory function:', functionUrl);
+        
+        const response = await fetch(functionUrl, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'get_memories',
+                user_id: userId,
+                character_id: characterId,
+                current_message: currentMessage,
+                min_importance: 3
+            })
+        });
+        
+        console.log('📡 Memory function response:', {
+            status: response.status,
+            ok: response.ok
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Memory function error:', errorText);
+            return [];
+        }
+        
+        const data = await response.json();
+        console.log('🧠 Memory response:', data);
+        
+        if (data.success && data.memories) {
+            console.log(`✅ Found ${data.memories.length} relevant memories`);
+            return data.memories;
+        }
+        
+        console.log('ℹ️ No memories found or success=false');
+        return [];
+        
+    } catch (error) {
+        console.error('Memory retrieval error:', error);
+        return [];
+    }
+}
 
+// Memory processing functie - simpel voor nu
+async function processMemoryForMessage(recordId, message, conversationContext) {
+    try {
+        console.log("🧠 Processing memory for record:", recordId);
+        // Voor nu alleen loggen - later eventueel uitbreiden met AI analysis
+        console.log("💭 Message to process:", message.substring(0, 100) + "...");
+        
+    } catch (error) {
+        console.error('Memory processing error:', error);
+    }
+}
     
     const params = new URLSearchParams(window.location.search);
     characterSlug = params.get("char");
