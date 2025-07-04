@@ -3147,15 +3147,18 @@ try {
     typewriterEffect(typingSpan, reply);
 
     // MEMORY PROCESSING - binnen try block
-    if (data && data.success && data.reply) {
-      console.log('🧠 Starting memory processing for message:', input);
-      
-      const tempRecordId = `temp_${Date.now()}_${localStorage.getItem('user_id')}`;
-      
-      setTimeout(() => {
-        processMemoryForMessage(tempRecordId, input, getLastMessages(3));
-      }, 1000);
-    }
+if (data && data.success && data.reply) {
+  console.log('🧠 Starting memory processing for message:', input);
+  
+  // Gebruik het echte record_id uit de response als beschikbaar
+  const recordId = data.record_id || data.chat_record_id || data.message_id || null;
+  
+  console.log('🔍 Using record_id for memory processing:', recordId);
+  
+  setTimeout(() => {
+    processMemoryForMessage(recordId, input, getLastMessages(3));
+  }, 1000);
+}
     
   } catch (err) {
     console.error("❌ sendMessage Error:", err);
