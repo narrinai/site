@@ -1,5 +1,4 @@
 // netlify/functions/memory.js
-const fetch = require('node-fetch');
 
 exports.handler = async (event, context) => {
   // Only allow POST requests
