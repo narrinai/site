@@ -2468,9 +2468,27 @@ async function getRelevantMemories(userId, characterId, currentMessage) {
 // Memory processing functie - simpel voor nu
 async function processMemoryForMessage(recordId, message, conversationContext) {
     try {
-        console.log("🧠 Processing memory for record:", recordId);
-        // Voor nu alleen loggen - later eventueel uitbreiden met AI analysis
-        console.log("💭 Message to process:", message.substring(0, 100) + "...");
+        console.log("🧠 Processing memory for message:", message.substring(0, 50));
+        
+        // Roep update-memory function aan
+        const response = await fetch('/.netlify/functions/update-memory', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                record_id: recordId,
+                message: message,
+                context: conversationContext || '',
+                user_id: localStorage.getItem('user_id'),
+                character_id: characterSlug
+            })
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            console.log('✅ Memory processed successfully:', result);
+        } else {
+            console.log('⚠️ Memory processing failed, but continuing...');
+        }
         
     } catch (error) {
         console.error('Memory processing error:', error);
@@ -3108,12 +3126,16 @@ typewriterEffect(typingSpan, reply);
     sendButton.textContent = "Send";
   }
 
-// Na het versturen van een bericht, process memory (als je een record ID hebt)
-if (data.success && data.user_record_id) {
-    // Process memory voor dit nieuwe bericht
+// NIEUWE CODE - altijd memory processsen
+if (data.success && data.reply) {
+    console.log('🧠 Starting memory processing for message:', input);
+    
+    // Gebruik een unieke ID gebaseerd op timestamp + gebruiker
+    const tempRecordId = `temp_${Date.now()}_${localStorage.getItem('user_id')}`;
+    
     setTimeout(() => {
-        processMemoryForMessage(data.user_record_id, input, getLastMessages(3));
-    }, 1000); // Korte delay zodat het bericht eerst opgeslagen is
+        processMemoryForMessage(tempRecordId, input, getLastMessages(3));
+    }, 1000);
 }
   
 }
