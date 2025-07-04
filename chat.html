@@ -3038,6 +3038,18 @@ async function sendMessage(event) {
   
   console.log("🚀 sendMessage debug:", { token: !!token, uid: !!uid, email, user_id, characterSlug });
 
+// Haal relevante herinneringen op
+console.log("🧠 Retrieving memories before sending message...");
+const memories = await getRelevantMemories(user_id, characterSlug, input);
+let memoryContext = "";
+
+if (memories && memories.length > 0) {
+    console.log(`📚 Found ${memories.length} relevant memories`);
+    memoryContext = memories.map(m => `[Memory: ${m.summary || m.message}]`).join(" ");
+} else {
+    console.log("📭 No relevant memories found");
+}
+
   const sendButton = document.getElementById("sendButton");
   sendButton.disabled = true;
   sendButton.textContent = "Sending...";
@@ -3059,6 +3071,7 @@ async function sendMessage(event) {
     const requestPayload = {
       action: "send_message",
       text: input,
+          memory_context: memoryContext, 
       Character_id: characterSlug,
       Slug: characterSlug,
       user_uid: uid,
