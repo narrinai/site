@@ -3126,18 +3126,29 @@ typewriterEffect(typingSpan, reply);
     sendButton.textContent = "Send";
   }
 
-// NIEUWE CODE - altijd memory processsen
-if (data.success && data.reply) {
-    console.log('🧠 Starting memory processing for message:', input);
+// MEMORY PROCESSING - binnen try block
+    if (data && data.success && data.reply) {
+        console.log('🧠 Starting memory processing for message:', input);
+        
+        const tempRecordId = `temp_${Date.now()}_${localStorage.getItem('user_id')}`;
+        
+        setTimeout(() => {
+            processMemoryForMessage(tempRecordId, input, getLastMessages(3));
+        }, 1000);
+    }
     
-    // Gebruik een unieke ID gebaseerd op timestamp + gebruiker
-    const tempRecordId = `temp_${Date.now()}_${localStorage.getItem('user_id')}`;
+  } catch (err) {
+    console.error("❌ sendMessage Error:", err);
+    hideTypingIndicator();
     
-    setTimeout(() => {
-        processMemoryForMessage(tempRecordId, input, getLastMessages(3));
-    }, 1000);
-}
-  
+    const divErr = document.createElement("p");
+    divErr.innerHTML = `<strong>${currentCharacter?.name || 'Character'}:</strong> ⚠️ Something went wrong while sending.`;
+    chatlog.appendChild(divErr);
+    chatlog.scrollTop = chatlog.scrollHeight;
+  } finally {
+    sendButton.disabled = false;
+    sendButton.textContent = "Send";
+  }
 }
 
     // ===== DISCLAIMER TOGGLE FUNCTIONALITY =====
