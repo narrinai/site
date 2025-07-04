@@ -143,11 +143,80 @@ const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY || process.env.AIRTABLE_TO
       };
       
     } else {
-      console.log('🔍 No specific record_id, searching for recent record...');
+  console.log('🔍 No specific record_id, searching for recent record...');
+  
+  // Zoek naar recente record van deze user/character
+  if (user_id && character_id) {
+    // Probeer verschillende formulas
+    const searchFormulas = [
+      `AND({User}='${user_id}',{Slug (from Character)}='${character_id}')`,
+      `AND({User}='${user_id}')`,
+      `{User}='${user_id}'`
+    ];
+    
+    for (const formula of searchFormulas) {
+      console.log('🔍 Trying formula:', formula);
       
-      // Zoek naar recente record van deze user/character
-      if (user_id && character_id) {
-        const searchUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${user_id}',{Character}='${character_id}')&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=1`;
+      const searchUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=${encodeURIComponent(formula)}&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=1`;
+      
+      const searchResponse = await fetch(searchUrl, {
+        headers: {
+          'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (searchResponse.ok) {
+        const searchData = await searchResponse.json();
+        console.log('🔍 Search response:', searchData);
+        
+        if (searchData.records && searchData.records.length > 0) {
+          const latestRecord = searchData.records[0];
+          console.log('📝 Found recent record to update:', latestRecord.id);
+          
+          // Update dit record
+          const updateUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory/${latestRecord.id}`;
+          
+          const updateData = {
+            fields: {
+              Memory_Importance: analysis.memory_importance,
+              Emotional_State: analysis.emotional_state,
+              Summary: analysis.summary,
+              Memory_Tags: analysis.memory_tags
+            }
+          };
+          
+          console.log('📤 Updating record with:', updateData);
+          
+          const updateResponse = await fetch(updateUrl, {
+            method: 'PATCH',
+            headers: {
+              'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updateData)
+          });
+          
+          if (updateResponse.ok) {
+            const updateResult = await updateResponse.json();
+            console.log('✅ Memory update successful:', updateResult.id);
+            
+            return {
+              statusCode: 200,
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                success: true,
+                record_id: updateResult.id,
+                analysis: analysis,
+                message: 'Memory processed successfully'
+              })
+            };
+          } else {
+            console.log('❌ Update failed:', updateResponse.status);
+          }
+        }
+      }
+    }
         
         const searchResponse = await fetch(searchUrl, {
           headers: {
