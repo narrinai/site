@@ -52,7 +52,7 @@ exports.handler = async (event, context) => {
     try {
       console.log('🤖 Attempting AI analysis...');
       
-      const analyzeResponse = await fetch(`${process.env.URL}/.netlify/functions/analyze-memory`, {
+      const analyzeResponse = await fetch(`/.netlify/functions/analyze-memory`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
