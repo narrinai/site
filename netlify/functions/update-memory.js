@@ -105,13 +105,13 @@ exports.handler = async (event, context) => {
       const updateUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory/${record_id}`;
       
       const updateData = {
-        fields: {
-          Memory_Importance: analysis.memory_importance,
-          Emotional_State: analysis.emotional_state,
-          Summary: analysis.summary,
-          Memory_Tags: analysis.memory_tags
-        }
-      };
+  fields: {
+    "Memory_Importance": analysis.memory_importance,
+    "Emotional_State": analysis.emotional_state, 
+    "Summary": analysis.summary,
+    "Memory_Tags": analysis.memory_tags
+  }
+};
       
       console.log('📤 Sending update to Airtable:', updateData);
       
