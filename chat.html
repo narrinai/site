@@ -3093,33 +3093,99 @@ async function sendMessage(event) {
     console.log("📄 sendMessage raw response:", rawText);
 
     let data;
-    try {
-      data = JSON.parse(rawText);
-      console.log("✅ sendMessage parsed response:", data);
-    } catch (e) {
-      console.warn("JSON parse error, using fallback:", e);
-      
-      let fixedJson = rawText.trim();
-      
-      if (!fixedJson.endsWith('}')) {
-        fixedJson += '}';
-      }
-      
-      try {
-        data = JSON.parse(fixedJson);
-        console.log("✅ Fixed JSON successfully:", data);
-      } catch (e2) {
-        console.warn("JSON still broken, extracting reply manually");
-        
-        const replyMatch = rawText.match(/"reply":\s*"([^"]*(?:\\.[^"]*)*)"/);
-        const reply = replyMatch ? replyMatch[1].replace(/\\"/g, '"') : "Sorry, there was an issue processing your message. Please try again!";
-        
-        data = { 
-          success: true, 
-          reply: reply
-        };
-      }
+try {
+  data = JSON.parse(rawText);
+  console.log("✅ sendMessage parsed response:", data);
+} catch (e) {
+  console.warn("JSON parse error, using advanced fallback:", e);
+  console.log("Raw response that failed:", rawText);
+  
+  // GEAVANCEERDE FALLBACK PARSING
+  try {
+    // Probeer verschillende reparatie strategieën
+    let fixedJson = rawText.trim();
+    
+    // Strategie 1: Voeg ontbrekende haakjes toe
+    if (!fixedJson.startsWith('{')) {
+      fixedJson = '{' + fixedJson;
     }
+    if (!fixedJson.endsWith('}')) {
+      fixedJson = fixedJson + '}';
+    }
+    
+    // Strategie 2: Probeer gebroken JSON te repareren
+    data = JSON.parse(fixedJson);
+    console.log("✅ Fixed JSON with brackets:", data);
+    
+  } catch (e2) {
+    console.warn("Bracket fix failed, trying manual extraction:", e2);
+    
+    // Strategie 3: Handmatige extractie van key-value pairs
+    try {
+      const extractedData = {};
+      
+      // Zoek naar success indicator
+      const successMatch = rawText.match(/["\']?success["\']?\s*[:=]\s*(true|false)/i);
+      if (successMatch) {
+        extractedData.success = successMatch[1].toLowerCase() === 'true';
+      } else {
+        extractedData.success = true; // Assumeer success als niet gevonden
+      }
+      
+      // Zoek naar reply met verschillende patronen
+      const replyPatterns = [
+        /"reply"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/,
+        /'reply'\s*:\s*'([^']*(?:\\.[^']*)*)'/,
+        /reply\s*[:=]\s*"([^"]*(?:\\.[^"]*)*)"/,
+        /reply\s*[:=]\s*'([^']*(?:\\.[^']*)*)'/,
+        /"response"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/,
+        /"message"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/
+      ];
+      
+      let replyFound = false;
+      for (const pattern of replyPatterns) {
+        const match = rawText.match(pattern);
+        if (match) {
+          extractedData.reply = match[1].replace(/\\"/g, '"').replace(/\\'/g, "'");
+          replyFound = true;
+          console.log("✅ Found reply using pattern:", pattern.source);
+          break;
+        }
+      }
+      
+      if (!replyFound) {
+        // Laatste poging: zoek naar tekst tussen quotes
+        const textMatch = rawText.match(/"([^"]{10,})"/);
+        if (textMatch) {
+          extractedData.reply = textMatch[1];
+          console.log("✅ Found reply using text extraction");
+        } else {
+          extractedData.reply = "I apologize, but I'm having trouble processing your message right now. Could you please try again?";
+          console.log("❌ No reply found, using fallback message");
+        }
+      }
+      
+      // Zoek naar record_id
+      const recordIdMatch = rawText.match(/["\']?(?:record_id|id|message_id)["\']?\s*[:=]\s*["\']?([^"'\s,}]+)/i);
+      if (recordIdMatch) {
+        extractedData.record_id = recordIdMatch[1];
+      }
+      
+      data = extractedData;
+      console.log("✅ Manual extraction successful:", data);
+      
+    } catch (e3) {
+      console.error("❌ All parsing strategies failed:", e3);
+      
+      // Absolute fallback
+      data = {
+        success: true,
+        reply: "I'm experiencing some technical difficulties right now. Please try sending your message again in a moment."
+      };
+      console.log("🔄 Using absolute fallback response");
+    }
+  }
+}
 
     if (!data.success) {
       throw new Error("Chat request failed");
