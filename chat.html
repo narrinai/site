@@ -2417,12 +2417,25 @@ document.addEventListener('DOMContentLoaded', () => {
 // ===== MEMORY SYSTEM VIA NETLIFY FUNCTION (zoals category.html) =====
 // Memory retrieval via Netlify function - same pattern as character loading
 async function getRelevantMemories(userId, characterId, currentMessage) {
+    console.log("🧠 DEBUG: Starting memory retrieval...");
+    console.log("🔍 Parameters:", { userId, characterId, currentMessage: currentMessage?.substring(0, 50) });
+    
     try {
-        console.log("🧠 Getting relevant memories for:", { userId, characterId, currentMessage: currentMessage?.substring(0, 50) });
-        
-        // Use same pattern as category.html - Netlify Function endpoint
+        // Test eerst de Netlify function
         const functionUrl = '/.netlify/functions/memory';
-        console.log('📡 Calling memory function:', functionUrl);
+        console.log('📡 Testing memory function URL:', functionUrl);
+        
+        const requestData = {
+            action: 'get_memories',
+            user_id: userId,
+            character_id: characterId,
+            character_slug: characterId,
+            current_message: currentMessage,
+            min_importance: 3,
+            max_results: 5
+        };
+        
+        console.log('📤 Memory request data:', requestData);
         
         const response = await fetch(functionUrl, {
             method: 'POST',
@@ -2430,127 +2443,143 @@ async function getRelevantMemories(userId, characterId, currentMessage) {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
-            body: JSON.stringify({
-                action: 'get_memories',
-                user_id: userId,
-                character_id: characterId,
-                character_slug: characterId, // Extra fallback
-                current_message: currentMessage,
-                min_importance: 3,
-                max_results: 5
-            })
+            body: JSON.stringify(requestData)
         });
         
-        console.log('📡 Memory function response:', {
-            status: response.status,
-            ok: response.ok,
-            statusText: response.statusText
-        });
+        console.log('📨 Memory function response status:', response.status);
+        console.log('📨 Memory function response ok:', response.ok);
+        
+        const responseText = await response.text();
+        console.log('📄 Memory function raw response:', responseText);
         
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error('❌ Memory function error:', errorText);
-            
-            // FALLBACK: Directly query Airtable for recent memories
-            console.log('🔄 Trying direct Airtable fallback...');
+            console.log('❌ Memory function failed, trying direct fallback...');
             return await getMemoriesDirectFallback(userId, characterId);
         }
         
-        const data = await response.json();
-        console.log('🧠 Memory response:', data);
+        const data = JSON.parse(responseText);
+        console.log('✅ Memory function parsed data:', data);
         
-        if (data.success && data.memories) {
-            console.log(`✅ Found ${data.memories.length} relevant memories`);
+        if (data.success && data.memories && Array.isArray(data.memories)) {
+            console.log(`✅ Found ${data.memories.length} memories via function`);
             return data.memories;
+        } else {
+            console.log('⚠️ Function returned success=false or no memories, trying fallback...');
+            return await getMemoriesDirectFallback(userId, characterId);
         }
         
-        console.log('ℹ️ No memories found or success=false, trying fallback...');
-        return await getMemoriesDirectFallback(userId, characterId);
-        
     } catch (error) {
-        console.error('Memory retrieval error:', error);
-        console.log('🔄 Trying direct fallback due to error...');
+        console.error('❌ Memory function error:', error);
+        console.log('🔄 Falling back to direct method...');
         return await getMemoriesDirectFallback(userId, characterId);
     }
 }
 
 // FALLBACK: Direct ophalen van memories uit Airtable
 async function getMemoriesDirectFallback(userId, characterId) {
+    console.log("🔄 DEBUG: Direct memory fallback starting...");
+    console.log("🔍 Fallback parameters:", { userId, characterId });
+    
     try {
-        console.log("🔄 Direct memory fallback for user:", userId);
-        
-        // Haal recente chat history op met memory data
         const email = localStorage.getItem("user_email");
         const token = localStorage.getItem("user_token");
         const uid = localStorage.getItem("user_uid");
         
+        console.log("🔑 Auth data for fallback:", { 
+            hasEmail: !!email, 
+            hasToken: !!token, 
+            hasUid: !!uid,
+            email: email
+        });
+        
         if (!email || !token || !uid) {
-            console.log("❌ No auth data for fallback");
+            console.log("❌ Missing auth data for fallback");
             return [];
         }
         
-        // Gebruik bestaande chat history webhook met memory focus
+        const requestData = {
+            user_email: email,
+            user_uid: uid,
+            user_token: token,
+            user_id: userId,
+            char: characterId,
+            memory_focus: true,
+            debug_mode: true
+        };
+        
+        console.log("📤 Fallback request data:", requestData);
+        
         const response = await fetch("https://hook.eu2.make.com/fjpapor4lkj9mpypaqx8no68d64bxe19", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                user_email: email,
-                user_uid: uid,
-                user_token: token,
-                user_id: userId,
-                char: characterId,
-                memory_focus: true
-            })
+            body: JSON.stringify(requestData)
         });
         
+        console.log("📨 Fallback response status:", response.status);
+        
         if (!response.ok) {
-            console.log("❌ Fallback request failed");
+            console.log("❌ Fallback HTTP request failed");
             return [];
         }
         
         const rawText = await response.text();
-        let data;
+        console.log("📄 Fallback raw response (first 500 chars):", rawText.substring(0, 500));
         
+        let data;
         try {
             data = JSON.parse(rawText);
         } catch (e) {
-            console.log("❌ Fallback JSON parse failed");
+            console.log("❌ Fallback JSON parse failed:", e.message);
             return [];
         }
+        
+        console.log("✅ Fallback parsed data keys:", Object.keys(data));
+        console.log("✅ Fallback success:", data.success);
         
         if (!data.success || !data.history) {
-            console.log("❌ Fallback no history data");
+            console.log("❌ Fallback: no success or no history");
             return [];
         }
         
-        // Filter records met memory data
-        const memoriesFromHistory = [];
+        const memories = [];
+        const historyArray = Array.isArray(data.history) ? data.history : Object.values(data.history);
         
-        if (Array.isArray(data.history)) {
-            data.history.forEach(record => {
-                const fields = record.fields || record;
-                
-                // Check voor memory velden
-                if (fields.Memory_Importance && fields.Summary) {
-                    memoriesFromHistory.push({
-                        summary: fields.Summary,
-                        importance: fields.Memory_Importance,
-                        emotional_state: fields.Emotional_State,
-                        memory_tags: fields.Memory_Tags,
-                        message: fields.Message,
-                        created_time: fields.CreatedTime
-                    });
-                }
-            });
-        }
+        console.log(`🔍 Processing ${historyArray.length} history records for memories...`);
         
-        console.log(`🔄 Fallback found ${memoriesFromHistory.length} memories from history`);
-        
-        // Sorteer op importance en neem top 5
-        return memoriesFromHistory
-            .sort((a, b) => (b.importance || 0) - (a.importance || 0))
-            .slice(0, 5);
+        historyArray.forEach((record, index) => {
+            const fields = record.fields || record;
             
+            // Check voor memory velden - VERBETERD
+            const hasMemoryImportance = fields.Memory_Importance && parseInt(fields.Memory_Importance) >= 3;
+            const hasSummary = fields.Summary && fields.Summary.trim().length > 0;
+            const hasEmotionalState = fields.Emotional_State && fields.Emotional_State !== 'neutral';
+            
+            if (hasMemoryImportance || hasSummary || hasEmotionalState) {
+                const memory = {
+                    summary: fields.Summary || fields.Message?.substring(0, 100) || 'No summary',
+                    importance: parseInt(fields.Memory_Importance) || 3,
+                    emotional_state: fields.Emotional_State || 'neutral',
+                    memory_tags: fields.Memory_Tags || ['general'],
+                    message: fields.Message || '',
+                    created_time: fields.CreatedTime || ''
+                };
+                
+                memories.push(memory);
+                console.log(`📝 Found memory ${index + 1}:`, {
+                    summary: memory.summary.substring(0, 50) + '...',
+                    importance: memory.importance,
+                    emotional_state: memory.emotional_state
+                });
+            }
+        });
+        
+        // Sorteer op importance
+        memories.sort((a, b) => (b.importance || 0) - (a.importance || 0));
+        const topMemories = memories.slice(0, 5);
+        
+        console.log(`✅ Fallback found ${topMemories.length} memories total`);
+        return topMemories;
+        
     } catch (error) {
         console.error("❌ Direct fallback error:", error);
         return [];
@@ -3303,16 +3332,30 @@ async function sendMessage(event) {
   console.log("🚀 sendMessage debug:", { token: !!token, uid: !!uid, email, user_id, characterSlug });
 
   // Haal relevante herinneringen op
-  console.log("🧠 Retrieving memories before sending message...");
-  const memories = await getRelevantMemories(user_id, characterSlug, input);
-  let memoryContext = "";
+console.log("🧠 Retrieving memories before sending message...");
+let memories = [];
+try {
+  memories = await getRelevantMemories(user_id, characterSlug, input);
+  console.log("✅ Memory retrieval completed:", memories?.length || 0, "memories found");
+} catch (error) {
+  console.error("❌ Memory retrieval failed:", error);
+  memories = []; // Fallback to empty array
+}
 
-  if (memories && memories.length > 0) {
-    console.log(`📚 Found ${memories.length} relevant memories`);
+// DEBUG: Memory verification
+if (memories && memories.length > 0) {
+    console.log(`📚 Found ${memories.length} relevant memories:`);
+    memories.forEach((memory, i) => {
+        console.log(`  ${i+1}. [${memory.importance}] ${memory.summary?.substring(0, 80)}...`);
+    });
     memoryContext = memories.map(m => `[Memory: ${m.summary || m.message}]`).join(" ");
-  } else {
+    console.log("📝 Memory context being sent:", memoryContext);
+} else {
     console.log("📭 No relevant memories found");
-  }
+    memoryContext = "";
+}
+
+
 
   const sendButton = document.getElementById("sendButton");
   sendButton.disabled = true;
