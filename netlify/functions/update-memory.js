@@ -180,7 +180,7 @@ exports.handler = async (event, context) => {
       
       const updateUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory/${record_id}`;
       
-      // EXACTE VELDNAMEN met type validatie
+      // GEBRUIK ECHTE AI ANALYSIS
       const updateData = {
         fields: {
           "Memory_Importance": parseInt(analysis.memory_importance) || 5,
@@ -190,12 +190,7 @@ exports.handler = async (event, context) => {
         }
       };
       
-      console.log('🔍 Data types check:', {
-        Memory_Importance: typeof updateData.fields.Memory_Importance,
-        Emotional_State: typeof updateData.fields.Emotional_State,
-        Summary: typeof updateData.fields.Summary,
-        Memory_Tags: Array.isArray(updateData.fields.Memory_Tags) ? 'array' : typeof updateData.fields.Memory_Tags
-      });
+      console.log('🧠 Using AI analysis:', updateData.fields);
       
       console.log('📤 Sending update to Airtable:', updateData);
       
@@ -302,7 +297,7 @@ exports.handler = async (event, context) => {
               const updateUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory/${latestRecord.id}`;
               
               // VASTE VELDNAMEN GEBRUIKEN
-              // VASTE VELDNAMEN GEBRUIKEN met type casting
+              // GEBRUIK ECHTE AI ANALYSIS
               const updateData = {
                 fields: {
                   "Memory_Importance": parseInt(analysis.memory_importance) || 5,
@@ -312,12 +307,7 @@ exports.handler = async (event, context) => {
                 }
               };
               
-              console.log('🔍 Data types check for User ID match:', {
-                Memory_Importance: typeof updateData.fields.Memory_Importance,
-                Emotional_State: typeof updateData.fields.Emotional_State,
-                Summary: typeof updateData.fields.Summary,
-                Memory_Tags: Array.isArray(updateData.fields.Memory_Tags) ? 'array' : typeof updateData.fields.Memory_Tags
-              });
+              console.log('🧠 Using AI analysis for User ID match:', updateData.fields);
               
               console.log('📤 Updating record with User ID match:', updateData);
               
@@ -416,6 +406,7 @@ exports.handler = async (event, context) => {
                 
                 const updateUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory/${record.id}`;
                 
+                // GEBRUIK ECHTE AI ANALYSIS
                 const updateData = {
                   fields: {
                     "Memory_Importance": parseInt(analysis.memory_importance) || 5,
@@ -425,12 +416,7 @@ exports.handler = async (event, context) => {
                   }
                 };
                 
-                console.log('🔍 Data types check for email match:', {
-                  Memory_Importance: typeof updateData.fields.Memory_Importance,
-                  Emotional_State: typeof updateData.fields.Emotional_State,
-                  Summary: typeof updateData.fields.Summary,
-                  Memory_Tags: Array.isArray(updateData.fields.Memory_Tags) ? 'array' : typeof updateData.fields.Memory_Tags
-                });
+                console.log('🧠 Using AI analysis for email match:', updateData.fields);
                 
                 console.log('📤 Updating email-matched record:', updateData);
                 
@@ -530,6 +516,7 @@ exports.handler = async (event, context) => {
               
               const updateUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory/${matchingRecord.id}`;
               
+              // GEBRUIK ECHTE AI ANALYSIS
               const updateData = {
                 fields: {
                   "Memory_Importance": parseInt(analysis.memory_importance) || 5,
@@ -539,12 +526,7 @@ exports.handler = async (event, context) => {
                 }
               };
               
-              console.log('🔍 Data types check for manual match:', {
-                Memory_Importance: typeof updateData.fields.Memory_Importance,
-                Emotional_State: typeof updateData.fields.Emotional_State,
-                Summary: typeof updateData.fields.Summary,
-                Memory_Tags: Array.isArray(updateData.fields.Memory_Tags) ? 'array' : typeof updateData.fields.Memory_Tags
-              });
+              console.log('🧠 Using AI analysis for manual match:', updateData.fields);
               
               console.log('📤 Updating manually matched record:', updateData);
               
