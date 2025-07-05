@@ -15,19 +15,33 @@ exports.handler = async (event, context) => {
   }
 
   const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
-const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY || process.env.AIRTABLE_TOKEN;
+  // FIXED: Gebruik AIRTABLE_TOKEN als fallback
+  const AIRTABLE_API_KEY = process.env.AIRTABLE_TOKEN || process.env.AIRTABLE_API_KEY;
   
   console.log('🔑 Environment check:', {
     hasApiKey: !!AIRTABLE_API_KEY,
     hasBaseId: !!AIRTABLE_BASE_ID,
-    baseId: AIRTABLE_BASE_ID?.substring(0, 10) + '...'
+    apiKeyLength: AIRTABLE_API_KEY ? AIRTABLE_API_KEY.length : 0,
+    baseIdLength: AIRTABLE_BASE_ID ? AIRTABLE_BASE_ID.length : 0
   });
   
   if (!AIRTABLE_BASE_ID || !AIRTABLE_API_KEY) {
+    console.error('❌ Missing environment variables:', {
+      hasApiKey: !!AIRTABLE_API_KEY,
+      hasBaseId: !!AIRTABLE_BASE_ID,
+      envKeys: Object.keys(process.env).filter(key => key.includes('AIRTABLE'))
+    });
+    
     return {
       statusCode: 500,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: 'Missing environment variables' })
+      body: JSON.stringify({ 
+        error: 'Missing environment variables',
+        debug: {
+          hasApiKey: !!AIRTABLE_API_KEY,
+          hasBaseId: !!AIRTABLE_BASE_ID
+        }
+      })
     };
   }
 
@@ -40,13 +54,37 @@ const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY || process.env.AIRTABLE_TO
     if (action === 'get_memories') {
       console.log('🔍 Getting memories for:', { user_id, character_id, min_importance });
       
-      // Haal herinneringen op uit ChatHistory tabel
-      // Meerdere filter strategieën proberen
+      // Test basic connection first
+      console.log('🔧 Testing basic Airtable connection...');
       
-      // Strategie 1: Zoek op User_ID en Character slug
+      const testUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?maxRecords=1`;
+      const testResponse = await fetch(testUrl, {
+        headers: {
+          'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log('📨 Test response status:', testResponse.status);
+      
+      if (!testResponse.ok) {
+        const errorText = await testResponse.text();
+        console.error('❌ Basic connection failed:', errorText);
+        throw new Error(`Airtable connection failed: ${testResponse.status} - ${errorText}`);
+      }
+      
+      const testData = await testResponse.json();
+      console.log('✅ Basic connection successful, records available:', testData.records?.length || 0);
+      
+      // Log available fields from first record
+      if (testData.records && testData.records.length > 0) {
+        const firstRecord = testData.records[0];
+        console.log('📊 Available fields in ChatHistory:', Object.keys(firstRecord.fields || {}));
+      }
+      
+      // Strategy 1: Zoek op User en Memory_Importance
       let filterFormula = `AND(
         {User} = '${user_id}',
-        {Slug (from Character)} = '${character_id}',
         {Memory_Importance} >= ${min_importance}
       )`;
       
@@ -54,7 +92,7 @@ const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY || process.env.AIRTABLE_TO
       
       let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=${encodeURIComponent(filterFormula)}&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=10`;
       
-      console.log('📡 Calling Airtable API...');
+      console.log('📡 Calling Airtable API (strategy 1)...');
       
       let response = await fetch(url, {
         headers: {
@@ -63,34 +101,18 @@ const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY || process.env.AIRTABLE_TO
         }
       });
       
+      console.log('📨 Strategy 1 response status:', response.status);
+      
       if (!response.ok) {
         console.log('❌ Strategy 1 failed, trying strategy 2...');
         
-        // Strategie 2: Zoek alleen op User_ID
-        filterFormula = `AND(
+        // Strategy 2: Zoek alleen op User_ID (probeer ook User_ID veld)
+        filterFormula = `OR(
           {User} = '${user_id}',
-          {Memory_Importance} >= ${min_importance}
+          {User_ID} = '${user_id}'
         )`;
         
         console.log('🔍 Filter formula (strategy 2):', filterFormula);
-        
-        url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=${encodeURIComponent(filterFormula)}&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=10`;
-        
-        response = await fetch(url, {
-          headers: {
-            'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
-            'Content-Type': 'application/json'
-          }
-        });
-      }
-      
-      if (!response.ok) {
-        console.log('❌ Strategy 2 failed, trying strategy 3...');
-        
-        // Strategie 3: Haal alle recente records van deze user op
-        filterFormula = `{User} = '${user_id}'`;
-        
-        console.log('🔍 Filter formula (strategy 3):', filterFormula);
         
         url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=${encodeURIComponent(filterFormula)}&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=20`;
         
@@ -100,6 +122,24 @@ const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY || process.env.AIRTABLE_TO
             'Content-Type': 'application/json'
           }
         });
+        
+        console.log('📨 Strategy 2 response status:', response.status);
+      }
+      
+      if (!response.ok) {
+        console.log('❌ Strategy 2 failed, trying strategy 3...');
+        
+        // Strategy 3: Haal gewoon recente records op en filter later
+        url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=50`;
+        
+        response = await fetch(url, {
+          headers: {
+            'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        console.log('📨 Strategy 3 response status:', response.status);
       }
       
       if (!response.ok) {
@@ -130,35 +170,55 @@ const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY || process.env.AIRTABLE_TO
       // Filter en process memories
       const memories = data.records
         .filter(record => {
-          // Extra filtering voor character match als nodig
-          const recordCharacter = record.fields['Slug (from Character)'] || 
-                                record.fields['Character'] || 
-                                record.fields['character'];
+          const fields = record.fields;
           
-          // Als we een character_id hebben, filter daarop
-          if (character_id && recordCharacter) {
-            return recordCharacter.includes(character_id) || recordCharacter === character_id;
+          // Check if this record belongs to the user
+          const recordUserId = fields.User || fields.User_ID || fields.user_id;
+          const userMatch = recordUserId === user_id || recordUserId === String(user_id);
+          
+          // Check character match if provided
+          if (character_id) {
+            const recordCharacter = fields['Slug (from Character)'] || 
+                                  fields['Character'] || 
+                                  fields['character'] ||
+                                  fields['Slug'];
+            
+            const characterMatch = recordCharacter === character_id || 
+                                 (recordCharacter && recordCharacter.includes && recordCharacter.includes(character_id));
+            
+            return userMatch && characterMatch;
           }
           
-          // Anders accepteer alle records van deze user
-          return true;
+          return userMatch;
         })
         .map(record => {
           const fields = record.fields;
           return {
             id: record.id,
             message: fields.Message || fields.message || '',
-            summary: fields.Summary || fields.summary || '',
-            date: fields.CreatedTime || fields.created_time || '',
-            importance: fields.Memory_Importance || fields.memory_importance || 1,
+            summary: fields.Summary || fields.summary || fields.Message || fields.message || '',
+            date: fields.CreatedTime || fields.created_time || fields.CreatedTime || '',
+            importance: parseInt(fields.Memory_Importance || fields.memory_importance || 1),
             emotional_state: fields.Emotional_State || fields.emotional_state || 'neutral',
             tags: fields.Memory_Tags || fields.memory_tags || []
           };
         })
-        .filter(memory => memory.importance >= min_importance) // Extra filter op importance
+        .filter(memory => {
+          // Extra filter op importance
+          return memory.importance >= min_importance && memory.message.trim() !== '';
+        })
         .slice(0, 10); // Max 10 memories
       
       console.log(`✅ Found ${memories.length} relevant memories`);
+      
+      // Log een sample van de memories voor debugging
+      if (memories.length > 0) {
+        console.log('📋 Sample memory:', {
+          message: memories[0].message.substring(0, 50) + '...',
+          importance: memories[0].importance,
+          emotional_state: memories[0].emotional_state
+        });
+      }
       
       return {
         statusCode: 200,
@@ -187,7 +247,7 @@ const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY || process.env.AIRTABLE_TO
       body: JSON.stringify({ 
         error: 'Internal server error',
         details: error.message,
-        stack: error.stack
+        stack: error.stack?.substring(0, 500) // Begrensd voor logging
       })
     };
   }
