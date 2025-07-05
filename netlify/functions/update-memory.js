@@ -41,18 +41,19 @@ exports.handler = async (event, context) => {
     const body = JSON.parse(event.body || '{}');
     console.log('📋 Parsed body:', body);
     
-const { record_id, message, context, user_id, character_id, debug_mode, character_slug, expected_character } = body;
+    const { record_id, message, context, user_id, character_id, debug_mode, character_slug, expected_character } = body;
 
-// DEBUG MODE: Extra logging als debug_mode is ingeschakeld
-if (debug_mode) {
-  console.log('🔍 DEBUG MODE ENABLED');
-  console.log('🔍 DEBUG: Full request body:', JSON.stringify(body, null, 2));
-  console.log('🔍 DEBUG: Looking for User:', user_id, '(type:', typeof user_id, ')');
-  console.log('🔍 DEBUG: Looking for Character:', character_id);
-  console.log('🔍 DEBUG: Character slug:', character_slug);
-  console.log('🔍 DEBUG: Expected character:', expected_character);
-  console.log('🔍 DEBUG: Record ID provided:', record_id);
-}    
+    // DEBUG MODE: Extra logging als debug_mode is ingeschakeld
+    if (debug_mode) {
+      console.log('🔍 DEBUG MODE ENABLED');
+      console.log('🔍 DEBUG: Full request body:', JSON.stringify(body, null, 2));
+      console.log('🔍 DEBUG: Looking for User:', user_id, '(type:', typeof user_id, ')');
+      console.log('🔍 DEBUG: Looking for Character:', character_id);
+      console.log('🔍 DEBUG: Character slug:', character_slug);
+      console.log('🔍 DEBUG: Expected character:', expected_character);
+      console.log('🔍 DEBUG: Record ID provided:', record_id);
+    }    
+    
     if (!message) {
       return {
         statusCode: 400,
@@ -172,21 +173,29 @@ if (debug_mode) {
       console.log('📝 Fallback analysis:', analysis);
     }
     
-    // STAP 3: Update Airtable record
+    // KRITIEKE FIX: Update Airtable record met EXACTE veldnamen
     // Strategy 1: Als er een record_id is, update het
     if (record_id && record_id.startsWith('rec')) {
       console.log('📝 Updating specific record:', record_id);
       
       const updateUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory/${record_id}`;
       
+      // EXACTE VELDNAMEN met type validatie
       const updateData = {
         fields: {
-          "Memory_Importance": analysis.memory_importance,
-          "Emotional_State": analysis.emotional_state,
-          "Summary": analysis.summary,
-          "Memory_Tags": Array.isArray(analysis.memory_tags) ? analysis.memory_tags.join(', ') : analysis.memory_tags
+          "Memory_Importance": parseInt(analysis.memory_importance) || 5,
+          "Emotional_State": String(analysis.emotional_state) || "neutral",
+          "Summary": String(analysis.summary) || "",
+          "Memory_Tags": Array.isArray(analysis.memory_tags) ? analysis.memory_tags : [String(analysis.memory_tags) || "general"]
         }
       };
+      
+      console.log('🔍 Data types check:', {
+        Memory_Importance: typeof updateData.fields.Memory_Importance,
+        Emotional_State: typeof updateData.fields.Emotional_State,
+        Summary: typeof updateData.fields.Summary,
+        Memory_Tags: Array.isArray(updateData.fields.Memory_Tags) ? 'array' : typeof updateData.fields.Memory_Tags
+      });
       
       console.log('📤 Sending update to Airtable:', updateData);
       
@@ -204,6 +213,22 @@ if (debug_mode) {
       if (!updateResponse.ok) {
         const errorText = await updateResponse.text();
         console.error('❌ Airtable update failed:', errorText);
+        
+        // Extra debugging voor field namen
+        console.log('🔍 Field validation check...');
+        const schemaUrl = `https://api.airtable.com/v0/meta/bases/${AIRTABLE_BASE_ID}/tables`;
+        const schemaResponse = await fetch(schemaUrl, {
+          headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` }
+        });
+        
+        if (schemaResponse.ok) {
+          const schemaData = await schemaResponse.json();
+          const chatHistoryTable = schemaData.tables.find(t => t.name === 'ChatHistory');
+          if (chatHistoryTable) {
+            console.log('📋 Available fields in ChatHistory:', chatHistoryTable.fields.map(f => f.name));
+          }
+        }
+        
         throw new Error(`Airtable update failed: ${updateResponse.status} - ${errorText}`);
       }
       
@@ -226,30 +251,30 @@ if (debug_mode) {
       console.log('🔍 No specific record_id, searching for recent record...');
       
       // Strategy 2: Zoek naar recente record van deze user
-      const user_id = body.user_id || body.user_uid || body.user_email;
+      const user_id_param = body.user_id || body.user_uid || body.user_email;
       const user_email = body.user_email;
       const user_uid = body.user_uid;
       
       console.log('🔍 User search parameters:', {
-        user_id: user_id,
+        user_id: user_id_param,
         user_email: user_email,
         user_uid: user_uid,
         character_id: character_id
       });
       
-      if (user_id || user_email || user_uid) {
+      if (user_id_param || user_email || user_uid) {
         console.log('🔍 Searching for user records...');
         
         // Strategy 2A: Directe filter met User ID (linked record)
-        if (user_id && user_id !== 'null' && user_id !== '') {
-console.log('🎯 Trying direct User ID filter:', user_id);
+        if (user_id_param && user_id_param !== 'null' && user_id_param !== '') {
+          console.log('🎯 Trying direct User ID filter:', user_id_param);
 
-if (debug_mode) {
-  console.log('🔍 DEBUG: Filter formula will be:', `{User} = '${user_id}'`);
-  console.log('🔍 DEBUG: Full filter URL:', userIdUrl);
-}          
+          if (debug_mode) {
+            console.log('🔍 DEBUG: Filter formula will be:', `{User} = '${user_id_param}'`);
+          }          
+          
           // Probeer filter met User ID als linked record
-          const userIdFilter = `{User} = '${user_id}'`;
+          const userIdFilter = `{User} = '${user_id_param}'`;
           const userIdUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=${encodeURIComponent(userIdFilter)}&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=5`;
           
           const userIdResponse = await fetch(userIdUrl, {
@@ -276,14 +301,23 @@ if (debug_mode) {
               
               const updateUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory/${latestRecord.id}`;
               
+              // VASTE VELDNAMEN GEBRUIKEN
+              // VASTE VELDNAMEN GEBRUIKEN met type casting
               const updateData = {
                 fields: {
-                  "Memory_Importance": analysis.memory_importance,
-                  "Emotional_State": analysis.emotional_state,
-                  "Summary": analysis.summary,
-                  "Memory_Tags": Array.isArray(analysis.memory_tags) ? analysis.memory_tags.join(', ') : analysis.memory_tags
+                  "Memory_Importance": parseInt(analysis.memory_importance) || 5,
+                  "Emotional_State": String(analysis.emotional_state) || "neutral", 
+                  "Summary": String(analysis.summary) || "",
+                  "Memory_Tags": Array.isArray(analysis.memory_tags) ? analysis.memory_tags : [String(analysis.memory_tags) || "general"]
                 }
               };
+              
+              console.log('🔍 Data types check for User ID match:', {
+                Memory_Importance: typeof updateData.fields.Memory_Importance,
+                Emotional_State: typeof updateData.fields.Emotional_State,
+                Summary: typeof updateData.fields.Summary,
+                Memory_Tags: Array.isArray(updateData.fields.Memory_Tags) ? 'array' : typeof updateData.fields.Memory_Tags
+              });
               
               console.log('📤 Updating record with User ID match:', updateData);
               
@@ -316,6 +350,20 @@ if (debug_mode) {
               } else {
                 const errorText = await updateResponse.text();
                 console.error('❌ Update failed:', errorText);
+                
+                // Debug de field namen bij failure
+                console.log('🔍 Debugging field names after failure...');
+                const existingRecord = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory/${latestRecord.id}`, {
+                  headers: {
+                    'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+                    'Content-Type': 'application/json'
+                  }
+                });
+                
+                if (existingRecord.ok) {
+                  const recordData = await existingRecord.json();
+                  console.log('🔍 Current record fields:', Object.keys(recordData.fields));
+                }
               }
             } else {
               console.log('❌ No records found with User ID filter');
@@ -328,89 +376,93 @@ if (debug_mode) {
         
         // Strategy 2B: Fallback - haal recente records en filter handmatig
         console.log('🔍 Fallback: Fetching recent records for manual filtering...');
-        
-// Strategy 2B: Fallback - haal recente records en filter handmatig
-console.log('🔍 Fallback: Fetching recent records for manual filtering...');
 
-// TEMP DEBUG: Zoek naar records met jouw email om de numerieke user_id te vinden
-if (user_email) {
-  console.log('🔍 DEBUG: Searching for records with email:', user_email);
-  
-  const emailUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=10`;
-  
-  const emailResponse = await fetch(emailUrl, {
-    headers: {
-      'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
-      'Content-Type': 'application/json'
-    }
-  });
-  
-  if (emailResponse.ok) {
-    const emailData = await emailResponse.json();
-    console.log('🔍 DEBUG: Checking records for email match...');
-    
-    emailData.records.forEach((record, index) => {
-      const fields = record.fields || {};
-      const recordEmail = fields.Email || fields['Email (from User)'] || 'no email';
-      
-      console.log(`🔍 Record ${index + 1}:`, {
-        id: record.id,
-        User: fields.User,
-        Email: recordEmail,
-        Message: fields.Message ? fields.Message.substring(0, 30) + '...' : 'no message'
-      });
-      
-      // Check if this record matches your email
-      if (recordEmail === user_email || 
-          (Array.isArray(recordEmail) && recordEmail.includes(user_email))) {
-        console.log('🎯 FOUND MATCHING EMAIL! User ID is:', fields.User);
-        console.log('🎯 This is the numeric user_id you need to store:', fields.User);
-        
-        // Als we een match vinden, probeer dit record te updaten
-        console.log('🔧 Attempting to update this matching record...');
-        
-        const updateUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory/${record.id}`;
-        
-        const updateData = {
-          fields: {
-            "Memory_Importance": analysis.memory_importance,
-            "Emotional_State": analysis.emotional_state,
-            "Summary": analysis.summary,
-            "Memory_Tags": Array.isArray(analysis.memory_tags) ? analysis.memory_tags.join(', ') : analysis.memory_tags
-          }
-        };
-        
-        console.log('📤 Updating email-matched record:', updateData);
-        
-        // Dit is een async operation, maar we doen het in de loop voor testing
-        fetch(updateUrl, {
-          method: 'PATCH',
-          headers: {
-            'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(updateData)
-        }).then(response => {
-          console.log('📨 Email match update response status:', response.status);
-          if (response.ok) {
-            console.log('✅ SUCCESS! Memory updated via email match!');
-            return response.json();
-          } else {
-            return response.text().then(text => {
-              console.error('❌ Email match update failed:', text);
+        // TEMP DEBUG: Zoek naar records met jouw email om de numerieke user_id te vinden
+        if (user_email) {
+          console.log('🔍 DEBUG: Searching for records with email:', user_email);
+          
+          const emailUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=10`;
+          
+          const emailResponse = await fetch(emailUrl, {
+            headers: {
+              'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (emailResponse.ok) {
+            const emailData = await emailResponse.json();
+            console.log('🔍 DEBUG: Checking records for email match...');
+            
+            emailData.records.forEach((record, index) => {
+              const fields = record.fields || {};
+              const recordEmail = fields.Email || fields['Email (from User)'] || 'no email';
+              
+              console.log(`🔍 Record ${index + 1}:`, {
+                id: record.id,
+                User: fields.User,
+                Email: recordEmail,
+                Message: fields.Message ? fields.Message.substring(0, 30) + '...' : 'no message'
+              });
+              
+              // Check if this record matches your email
+              if (recordEmail === user_email || 
+                  (Array.isArray(recordEmail) && recordEmail.includes(user_email))) {
+                console.log('🎯 FOUND MATCHING EMAIL! User ID is:', fields.User);
+                console.log('🎯 This is the numeric user_id you need to store:', fields.User);
+                
+                // Als we een match vinden, probeer dit record te updaten
+                console.log('🔧 Attempting to update this matching record...');
+                
+                const updateUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory/${record.id}`;
+                
+                const updateData = {
+                  fields: {
+                    "Memory_Importance": parseInt(analysis.memory_importance) || 5,
+                    "Emotional_State": String(analysis.emotional_state) || "neutral",
+                    "Summary": String(analysis.summary) || "",
+                    "Memory_Tags": Array.isArray(analysis.memory_tags) ? analysis.memory_tags : [String(analysis.memory_tags) || "general"]
+                  }
+                };
+                
+                console.log('🔍 Data types check for email match:', {
+                  Memory_Importance: typeof updateData.fields.Memory_Importance,
+                  Emotional_State: typeof updateData.fields.Emotional_State,
+                  Summary: typeof updateData.fields.Summary,
+                  Memory_Tags: Array.isArray(updateData.fields.Memory_Tags) ? 'array' : typeof updateData.fields.Memory_Tags
+                });
+                
+                console.log('📤 Updating email-matched record:', updateData);
+                
+                // Dit is een async operation, maar we doen het in de loop voor testing
+                fetch(updateUrl, {
+                  method: 'PATCH',
+                  headers: {
+                    'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify(updateData)
+                }).then(response => {
+                  console.log('📨 Email match update response status:', response.status);
+                  if (response.ok) {
+                    console.log('✅ SUCCESS! Memory updated via email match!');
+                    return response.json();
+                  } else {
+                    return response.text().then(text => {
+                      console.error('❌ Email match update failed:', text);
+                    });
+                  }
+                }).then(result => {
+                  if (result && result.id) {
+                    console.log('✅ Updated record ID:', result.id);
+                  }
+                }).catch(error => {
+                  console.error('❌ Email match update error:', error);
+                });
+              }
             });
           }
-        }).then(result => {
-          if (result && result.id) {
-            console.log('✅ Updated record ID:', result.id);
-          }
-        }).catch(error => {
-          console.error('❌ Email match update error:', error);
-        });
-      }
-    });
-  }
-}
+        }
 
         const recentUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=30`;
         
@@ -452,20 +504,20 @@ if (user_email) {
               if (Array.isArray(userField)) {
                 // User is een array van linked records
                 userMatch = userField.some(userId => 
-                  String(userId) === String(user_id) || 
-                  parseInt(userId) === parseInt(user_id)
+                  String(userId) === String(user_id_param) || 
+                  parseInt(userId) === parseInt(user_id_param)
                 );
               } else if (userField !== undefined && userField !== null) {
                 // User is een enkele waarde
-                userMatch = String(userField) === String(user_id) || 
-                           parseInt(userField) === parseInt(user_id);
+                userMatch = String(userField) === String(user_id_param) || 
+                           parseInt(userField) === parseInt(user_id_param);
               }
               
               if (userMatch) {
                 console.log('✅ Found matching record:', {
                   id: record.id,
                   userField: userField,
-                  searchedUserId: user_id,
+                  searchedUserId: user_id_param,
                   match: 'user_id'
                 });
               }
@@ -480,12 +532,19 @@ if (user_email) {
               
               const updateData = {
                 fields: {
-                  "Memory_Importance": analysis.memory_importance,
-                  "Emotional_State": analysis.emotional_state,
-                  "Summary": analysis.summary,
-                  "Memory_Tags": Array.isArray(analysis.memory_tags) ? analysis.memory_tags.join(', ') : analysis.memory_tags
+                  "Memory_Importance": parseInt(analysis.memory_importance) || 5,
+                  "Emotional_State": String(analysis.emotional_state) || "neutral",
+                  "Summary": String(analysis.summary) || "",
+                  "Memory_Tags": Array.isArray(analysis.memory_tags) ? analysis.memory_tags : [String(analysis.memory_tags) || "general"]
                 }
               };
+              
+              console.log('🔍 Data types check for manual match:', {
+                Memory_Importance: typeof updateData.fields.Memory_Importance,
+                Emotional_State: typeof updateData.fields.Emotional_State,
+                Summary: typeof updateData.fields.Summary,
+                Memory_Tags: Array.isArray(updateData.fields.Memory_Tags) ? 'array' : typeof updateData.fields.Memory_Tags
+              });
               
               console.log('📤 Updating manually matched record:', updateData);
               
@@ -521,7 +580,7 @@ if (user_email) {
               }
             } else {
               console.log('❌ No matching user record found in manual search');
-              console.log('🔍 Searched for user_id:', user_id, 'type:', typeof user_id);
+              console.log('🔍 Searched for user_id:', user_id_param, 'type:', typeof user_id_param);
             }
           }
         } else {
