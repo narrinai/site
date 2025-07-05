@@ -3304,8 +3304,12 @@ async function sendMessage(event) {
 
   // Haal relevante herinneringen op
   console.log("🧠 Retrieving memories before sending message...");
-  const memories = await getRelevantMemories(user_id, characterSlug, input);
-  let memoryContext = "";
+async function getRelevantMemories(userId, characterId, currentMessage) {
+    console.log("🔄 FORCED FALLBACK: Direct memory retrieval");
+    
+    // Skip memory function, go direct to fallback
+    return await getMemoriesDirectFallback(userId, characterId);
+}  let memoryContext = "";
 
   if (memories && memories.length > 0) {
     console.log(`📚 Found ${memories.length} relevant memories`);
