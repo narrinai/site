@@ -41,8 +41,18 @@ exports.handler = async (event, context) => {
     const body = JSON.parse(event.body || '{}');
     console.log('📋 Parsed body:', body);
     
-    const { record_id, message, context, user_id, character_id } = body;
-    
+const { record_id, message, context, user_id, character_id, debug_mode, character_slug, expected_character } = body;
+
+// DEBUG MODE: Extra logging als debug_mode is ingeschakeld
+if (debug_mode) {
+  console.log('🔍 DEBUG MODE ENABLED');
+  console.log('🔍 DEBUG: Full request body:', JSON.stringify(body, null, 2));
+  console.log('🔍 DEBUG: Looking for User:', user_id, '(type:', typeof user_id, ')');
+  console.log('🔍 DEBUG: Looking for Character:', character_id);
+  console.log('🔍 DEBUG: Character slug:', character_slug);
+  console.log('🔍 DEBUG: Expected character:', expected_character);
+  console.log('🔍 DEBUG: Record ID provided:', record_id);
+}    
     if (!message) {
       return {
         statusCode: 400,
@@ -232,8 +242,12 @@ exports.handler = async (event, context) => {
         
         // Strategy 2A: Directe filter met User ID (linked record)
         if (user_id && user_id !== 'null' && user_id !== '') {
-          console.log('🎯 Trying direct User ID filter:', user_id);
-          
+console.log('🎯 Trying direct User ID filter:', user_id);
+
+if (debug_mode) {
+  console.log('🔍 DEBUG: Filter formula will be:', `{User} = '${user_id}'`);
+  console.log('🔍 DEBUG: Full filter URL:', userIdUrl);
+}          
           // Probeer filter met User ID als linked record
           const userIdFilter = `{User} = '${user_id}'`;
           const userIdUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=${encodeURIComponent(userIdFilter)}&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=5`;
