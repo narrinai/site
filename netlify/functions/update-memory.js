@@ -1,5 +1,4 @@
 // netlify/functions/update-memory.js
-// DEBUG VERSIE - Extra logging om het probleem te vinden
 
 exports.handler = async (event, context) => {
   console.log('🔍 update-memory function called');
@@ -12,36 +11,26 @@ exports.handler = async (event, context) => {
     };
   }
 
-  const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
+  // GEBRUIK DE JUISTE VARIABLE NAMEN
+  const AIRTABLE_API_KEY = process.env.AIRTABLE_TOKEN || process.env.AIRTABLE_API_KEY;
   const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
+  const AIRTABLE_TABLE_ID = process.env.AIRTABLE_TABLE_ID;
   
-  // UITGEBREIDE DEBUG INFO
   console.log('🔍 Environment check:', {
     hasApiKey: !!AIRTABLE_API_KEY,
     hasBaseId: !!AIRTABLE_BASE_ID,
+    hasTableId: !!AIRTABLE_TABLE_ID,
     apiKeyLength: AIRTABLE_API_KEY ? AIRTABLE_API_KEY.length : 0,
     baseIdLength: AIRTABLE_BASE_ID ? AIRTABLE_BASE_ID.length : 0,
-    apiKeyStart: AIRTABLE_API_KEY ? AIRTABLE_API_KEY.substring(0, 6) + '...' : 'null',
-    baseIdStart: AIRTABLE_BASE_ID ? AIRTABLE_BASE_ID.substring(0, 6) + '...' : 'null'
+    tableIdLength: AIRTABLE_TABLE_ID ? AIRTABLE_TABLE_ID.length : 0
   });
   
   if (!AIRTABLE_API_KEY || !AIRTABLE_BASE_ID) {
-    console.error('❌ Missing environment variables:', {
-      hasApiKey: !!AIRTABLE_API_KEY,
-      hasBaseId: !!AIRTABLE_BASE_ID,
-      envKeys: Object.keys(process.env).filter(key => key.includes('AIRTABLE'))
-    });
+    console.error('❌ Missing environment variables');
     return {
       statusCode: 500,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        error: 'Missing Airtable configuration',
-        debug: {
-          hasApiKey: !!AIRTABLE_API_KEY,
-          hasBaseId: !!AIRTABLE_BASE_ID,
-          envKeys: Object.keys(process.env).filter(key => key.includes('AIRTABLE'))
-        }
-      })
+      body: JSON.stringify({ error: 'Missing Airtable configuration' })
     };
   }
 
@@ -53,8 +42,7 @@ exports.handler = async (event, context) => {
       record_id,
       message: message ? message.substring(0, 50) + '...' : 'null',
       user_id,
-      character_id,
-      hasContext: !!context
+      character_id
     });
     
     if (!message) {
@@ -65,8 +53,6 @@ exports.handler = async (event, context) => {
       };
     }
     
-    console.log('🧠 Processing memory for message:', message.substring(0, 50));
-    
     // Enhanced analysis
     const lowerMessage = message.toLowerCase();
     
@@ -74,8 +60,6 @@ exports.handler = async (event, context) => {
                           lowerMessage.includes('heet') ||
                           lowerMessage.includes('ben ik') ||
                           lowerMessage.includes('mijn') ||
-                          lowerMessage.includes('herinner') ||
-                          lowerMessage.includes('vergeet niet') ||
                           lowerMessage.includes('name') ||
                           lowerMessage.includes('called') ||
                           lowerMessage.includes('i am') ||
@@ -88,18 +72,16 @@ exports.handler = async (event, context) => {
                        lowerMessage.includes('gelukkig') ||
                        lowerMessage.includes('happy') ||
                        lowerMessage.includes('sad') ||
-                       lowerMessage.includes('angry') ||
-                       lowerMessage.includes('excited');
+                       lowerMessage.includes('angry');
     
     const isQuestion = message.includes('?');
     
     // Calculate importance (1-10)
-    let importance = 3; // Base score
+    let importance = 3;
     if (isPersonalInfo) importance += 4;
     if (isEmotional) importance += 2;  
     if (isQuestion) importance += 1;
     if (message.length > 80) importance += 1;
-    
     importance = Math.min(importance, 10);
     
     // Determine emotional state
@@ -110,7 +92,7 @@ exports.handler = async (event, context) => {
       emotionalState = 'sad';
     } else if (lowerMessage.includes('boos') || lowerMessage.includes('angry')) {
       emotionalState = 'angry';
-    } else if (message.includes('!') || lowerMessage.includes('excited')) {
+    } else if (message.includes('!')) {
       emotionalState = 'excited';
     }
     
@@ -129,13 +111,11 @@ exports.handler = async (event, context) => {
       memory_tags: tags
     };
     
-    console.log('📝 Final analysis:', analysis);
+    console.log('📝 Analysis:', analysis);
     
-    // TEST: Probeer eerst een simpele Airtable API call om te kijken of de connectie werkt
-    console.log('🔧 Testing basic Airtable connection...');
-    
+    // Test basic Airtable connection
     const testUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?maxRecords=1`;
-    console.log('📡 Test URL:', testUrl);
+    console.log('🔧 Testing connection...');
     
     const testResponse = await fetch(testUrl, {
       headers: {
@@ -144,11 +124,11 @@ exports.handler = async (event, context) => {
       }
     });
     
-    console.log('📨 Test response status:', testResponse.status);
+    console.log('📨 Test response:', testResponse.status);
     
     if (!testResponse.ok) {
       const errorText = await testResponse.text();
-      console.error('❌ Basic Airtable connection failed:', errorText);
+      console.error('❌ Connection failed:', errorText);
       
       return {
         statusCode: 500,
@@ -156,41 +136,30 @@ exports.handler = async (event, context) => {
         body: JSON.stringify({ 
           error: 'Airtable connection failed',
           status: testResponse.status,
-          details: errorText,
-          analysis: analysis
+          details: errorText.substring(0, 200)
         })
       };
     }
     
     const testData = await testResponse.json();
-    console.log('✅ Basic Airtable connection successful:', {
-      recordCount: testData.records?.length || 0,
-      hasRecords: !!testData.records
-    });
-    
-    // Log de velden van het eerste record om te zien wat er beschikbaar is
-    if (testData.records && testData.records.length > 0) {
-      const firstRecord = testData.records[0];
-      console.log('📊 Available fields in first record:', Object.keys(firstRecord.fields || {}));
-    }
+    console.log('✅ Connection successful, records found:', testData.records?.length || 0);
     
     // Strategy 1: Use record_id if provided
     if (record_id && record_id !== 'null' && record_id !== '') {
-      console.log('🎯 Strategy 1: Using provided record_id:', record_id);
+      console.log('🎯 Using record_id:', record_id);
       
       const updateUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory/${record_id}`;
-      console.log('📡 Update URL:', updateUrl);
       
       const updateData = {
         fields: {
           "Memory_Importance": analysis.memory_importance,
           "Emotional_State": analysis.emotional_state,
           "Summary": analysis.summary,
-          "Memory_Tags": analysis.memory_tags.join(', ') // Join array to string
+          "Memory_Tags": analysis.memory_tags.join(', ')
         }
       };
       
-      console.log('📤 Update data being sent:', JSON.stringify(updateData, null, 2));
+      console.log('📤 Updating record...');
       
       const updateResponse = await fetch(updateUrl, {
         method: 'PATCH',
@@ -201,12 +170,11 @@ exports.handler = async (event, context) => {
         body: JSON.stringify(updateData)
       });
       
-      console.log('📨 Update response status:', updateResponse.status);
+      console.log('📨 Update response:', updateResponse.status);
       
       if (updateResponse.ok) {
         const updateResult = await updateResponse.json();
-        console.log('✅ Memory update successful via record_id!');
-        console.log('📝 Updated record fields:', Object.keys(updateResult.fields || {}));
+        console.log('✅ Record updated successfully!');
         
         return {
           statusCode: 200,
@@ -216,38 +184,27 @@ exports.handler = async (event, context) => {
             method: 'record_id',
             record_id: updateResult.id,
             analysis: analysis,
-            message: 'Memory processed and updated successfully'
+            message: 'Memory updated successfully'
           })
         };
       } else {
         const errorText = await updateResponse.text();
-        console.error('❌ Record ID update failed:', {
-          status: updateResponse.status,
-          statusText: updateResponse.statusText,
-          error: errorText
-        });
-        // Fall through to Strategy 2
+        console.error('❌ Update failed:', errorText);
       }
     }
     
-    // Strategy 2: Search for recent user records to update
+    // Strategy 2: Search for recent user records
     if (user_id && user_id !== 'null' && user_id !== '') {
-      console.log('🔍 Strategy 2: Searching for recent records to update...');
+      console.log('🔍 Searching for user records...');
       
-      // Build filter formula - meer robuust
-      const filterFormulas = [
+      // Try different search strategies
+      const searchFilters = [
         `AND({Role}='user', {User}='${user_id}')`,
-        `AND({Role}='user', {User_ID}='${user_id}')`,
-        `{User}='${user_id}'`,
-        `{User_ID}='${user_id}'`
+        `{User}='${user_id}'`
       ];
       
-      for (const filterFormula of filterFormulas) {
-        console.log('🔍 Trying filter:', filterFormula);
-        
-        const searchUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=${encodeURIComponent(filterFormula)}&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=3`;
-        
-        console.log('📡 Search URL:', searchUrl);
+      for (const filter of searchFilters) {
+        const searchUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=${encodeURIComponent(filter)}&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=1`;
         
         const searchResponse = await fetch(searchUrl, {
           headers: {
@@ -256,24 +213,15 @@ exports.handler = async (event, context) => {
           }
         });
         
-        console.log('📨 Search response status:', searchResponse.status);
-        
         if (searchResponse.ok) {
           const searchData = await searchResponse.json();
-          console.log('📊 Search results for filter:', {
-            filter: filterFormula,
-            recordCount: searchData.records?.length || 0
-          });
+          console.log(`📊 Search results for ${filter}:`, searchData.records?.length || 0);
           
           if (searchData.records && searchData.records.length > 0) {
-            // Update the most recent record
-            const latestRecord = searchData.records[0];
-            console.log('📝 Found record to update:', {
-              id: latestRecord.id,
-              fields: Object.keys(latestRecord.fields || {})
-            });
+            const record = searchData.records[0];
+            console.log('📝 Found record:', record.id);
             
-            const updateUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory/${latestRecord.id}`;
+            const updateUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory/${record.id}`;
             
             const updateData = {
               fields: {
@@ -284,8 +232,6 @@ exports.handler = async (event, context) => {
               }
             };
             
-            console.log('📤 Update data being sent:', JSON.stringify(updateData, null, 2));
-            
             const updateResponse = await fetch(updateUrl, {
               method: 'PATCH',
               headers: {
@@ -295,12 +241,9 @@ exports.handler = async (event, context) => {
               body: JSON.stringify(updateData)
             });
             
-            console.log('📨 Update response status:', updateResponse.status);
-            
             if (updateResponse.ok) {
               const updateResult = await updateResponse.json();
-              console.log('✅ Memory update successful via search!');
-              console.log('📝 Updated record fields:', Object.keys(updateResult.fields || {}));
+              console.log('✅ Record updated via search!');
               
               return {
                 statusCode: 200,
@@ -308,36 +251,24 @@ exports.handler = async (event, context) => {
                 body: JSON.stringify({
                   success: true,
                   method: 'search',
-                  filter_used: filterFormula,
                   record_id: updateResult.id,
                   analysis: analysis,
-                  message: 'Memory processed and updated successfully'
+                  message: 'Memory updated successfully'
                 })
               };
             } else {
               const errorText = await updateResponse.text();
-              console.error('❌ Search-based update failed:', {
-                status: updateResponse.status,
-                error: errorText
-              });
+              console.error('❌ Search update failed:', errorText);
             }
             
-            // Stop trying other filters if we found records but update failed
-            break;
+            break; // Stop trying other filters
           }
-        } else {
-          const errorText = await searchResponse.text();
-          console.error('❌ Search failed for filter:', {
-            filter: filterFormula,
-            status: searchResponse.status,
-            error: errorText
-          });
         }
       }
     }
     
-    // Strategy 3: Fallback - just return analysis without updating
-    console.log('⚠️ All update strategies failed, returning analysis only');
+    // Fallback - analysis only
+    console.log('⚠️ No records updated, analysis only');
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
@@ -345,20 +276,19 @@ exports.handler = async (event, context) => {
         success: true,
         method: 'analysis_only',
         analysis: analysis,
-        message: 'Memory analysis completed but no records updated - this is normal if no matching records found'
+        message: 'Memory analyzed but no records found to update'
       })
     };
     
   } catch (error) {
-    console.error('❌ Memory update error:', error);
+    console.error('❌ Error:', error);
     
     return {
       statusCode: 500,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         error: 'Memory processing failed',
-        details: error.message,
-        stack: error.stack
+        details: error.message
       })
     };
   }
