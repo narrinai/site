@@ -1,11 +1,10 @@
-// netlify/functions/memory.js
+// netlify/functions/memory.js - DEBUG VERSION
 
 exports.handler = async (event, context) => {
-  console.log('🧠 memory function called');
+  console.log('🧠 DEBUG memory function called');
   console.log('📨 Event method:', event.httpMethod);
   console.log('📨 Event body:', event.body);
   
-  // Only allow POST requests
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
@@ -17,69 +16,23 @@ exports.handler = async (event, context) => {
   const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
   const AIRTABLE_API_KEY = process.env.AIRTABLE_TOKEN || process.env.AIRTABLE_API_KEY;
   
-  console.log('🔑 Environment check:', {
-    hasApiKey: !!AIRTABLE_API_KEY,
-    hasBaseId: !!AIRTABLE_BASE_ID,
-    apiKeyLength: AIRTABLE_API_KEY ? AIRTABLE_API_KEY.length : 0,
-    baseIdLength: AIRTABLE_BASE_ID ? AIRTABLE_BASE_ID.length : 0
-  });
-  
   if (!AIRTABLE_BASE_ID || !AIRTABLE_API_KEY) {
-    console.error('❌ Missing environment variables');
     return {
       statusCode: 500,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        error: 'Missing environment variables'
-      })
+      body: JSON.stringify({ error: 'Missing environment variables' })
     };
   }
 
   try {
     const body = JSON.parse(event.body || '{}');
-    console.log('📋 Parsed body:', body);
-    
-    const { 
-      action, 
-      user_id, 
-      character_id, 
-      character_slug,
-      current_message, 
-      min_importance = 3,
-      max_results = 5 
-    } = body;
+    const { action, user_id, character_id, character_slug, min_importance = 3 } = body;
     
     if (action === 'get_memories') {
-      console.log('🔍 Getting memories for:', { 
-        user_id, 
-        character_id: character_id || character_slug, 
-        min_importance 
-      });
+      console.log('🔍 DEBUG: Getting memories for:', { user_id, character_id, character_slug });
       
-      // Use character_slug if character_id is not provided
-      const characterIdentifier = character_id || character_slug;
-      
-      // Test basic connection first
-      const testUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?maxRecords=1`;
-      const testResponse = await fetch(testUrl, {
-        headers: {
-          'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (!testResponse.ok) {
-        throw new Error(`Airtable connection failed: ${testResponse.status}`);
-      }
-      
-      console.log('✅ Basic Airtable connection successful');
-      
-      // STRATEGY: Get recent records with memory data and filter manually
-      // This is more reliable than complex filter formulas
-      
-      const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=100`;
-      
-      console.log('📡 Fetching recent ChatHistory records...');
+      // Get recent records for debugging
+      const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=20`;
       
       const response = await fetch(url, {
         headers: {
@@ -89,43 +42,64 @@ exports.handler = async (event, context) => {
       });
       
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ Airtable API error:', response.status, errorText);
         throw new Error(`Airtable API error: ${response.status}`);
       }
       
       const data = await response.json();
-      console.log('📊 Retrieved records:', data.records?.length || 0);
+      console.log('🔍 DEBUG: Total records found:', data.records?.length || 0);
       
       if (!data.records || data.records.length === 0) {
-        console.log('📭 No records found');
         return {
           statusCode: 200,
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             success: true,
             memories: [],
-            message: 'No records found'
+            debug: 'No records found at all'
           })
         };
       }
       
-      // Log available fields from first record for debugging
-      if (data.records.length > 0) {
-        const firstRecord = data.records[0];
-        console.log('📊 Available fields:', Object.keys(firstRecord.fields || {}));
-        console.log('📊 Sample record fields:', {
-          User: firstRecord.fields?.User,
-          Character: firstRecord.fields?.Character,
-          'Slug (from Character)': firstRecord.fields?.['Slug (from Character)'],
-          Memory_Importance: firstRecord.fields?.Memory_Importance,
-          Summary: firstRecord.fields?.Summary,
-          Message: firstRecord.fields?.Message ? firstRecord.fields.Message.substring(0, 50) + '...' : 'no message'
+      // DEBUG: Log first few records
+      console.log('🔍 DEBUG: Analyzing first 5 records...');
+      data.records.slice(0, 5).forEach((record, index) => {
+        const fields = record.fields || {};
+        console.log(`🔍 Record ${index + 1}:`, {
+          id: record.id,
+          User: fields.User,
+          Message: fields.Message ? fields.Message.substring(0, 50) + '...' : 'no message',
+          Memory_Importance: fields.Memory_Importance,
+          Summary: fields.Summary ? fields.Summary.substring(0, 50) + '...' : 'no summary',
+          'Slug (from Character)': fields['Slug (from Character)'],
+          Character: fields.Character
         });
-      }
+      });
       
-      // Manual filtering and processing
-      const memories = [];
+      // Count records per user
+      const userCounts = {};
+      const memoryDataCounts = {};
+      
+      data.records.forEach(record => {
+        const fields = record.fields || {};
+        const recordUserId = String(fields.User || 'unknown');
+        
+        // Count by user
+        userCounts[recordUserId] = (userCounts[recordUserId] || 0) + 1;
+        
+        // Count memory data
+        if (fields.Memory_Importance && fields.Summary) {
+          memoryDataCounts[recordUserId] = (memoryDataCounts[recordUserId] || 0) + 1;
+        }
+      });
+      
+      console.log('🔍 DEBUG: Records per user:', userCounts);
+      console.log('🔍 DEBUG: Memory data per user:', memoryDataCounts);
+      console.log('🔍 DEBUG: Looking for user_id:', user_id, '(type:', typeof user_id, ')');
+      
+      // Find matching records
+      const userMatches = [];
+      const characterMatches = [];
+      const memoryMatches = [];
       
       for (const record of data.records) {
         const fields = record.fields || {};
@@ -137,88 +111,77 @@ exports.handler = async (event, context) => {
           parseInt(recordUserId) === parseInt(user_id)
         );
         
-        if (!userMatch) {
-          continue; // Skip if user doesn't match
-        }
-        
-        // Check character match if provided
-        if (characterIdentifier) {
-          const recordCharacterSlug = fields['Slug (from Character)'] || 
-                                    fields.Character || 
-                                    fields.character_slug ||
-                                    fields.slug;
+        if (userMatch) {
+          userMatches.push({
+            id: record.id,
+            User: recordUserId,
+            Message: fields.Message ? fields.Message.substring(0, 50) + '...' : 'no message',
+            Character: fields['Slug (from Character)'] || fields.Character
+          });
           
-          let characterMatch = false;
-          
-          if (recordCharacterSlug) {
-            if (Array.isArray(recordCharacterSlug)) {
-              characterMatch = recordCharacterSlug.some(slug => 
-                String(slug).toLowerCase() === String(characterIdentifier).toLowerCase()
-              );
-            } else {
-              characterMatch = String(recordCharacterSlug).toLowerCase() === String(characterIdentifier).toLowerCase();
+          // Check character match
+          const characterIdentifier = character_id || character_slug;
+          if (characterIdentifier) {
+            const recordCharacterSlug = fields['Slug (from Character)'] || fields.Character;
+            
+            if (recordCharacterSlug) {
+              const characterMatch = Array.isArray(recordCharacterSlug) 
+                ? recordCharacterSlug.some(slug => String(slug).toLowerCase() === String(characterIdentifier).toLowerCase())
+                : String(recordCharacterSlug).toLowerCase() === String(characterIdentifier).toLowerCase();
+              
+              if (characterMatch) {
+                characterMatches.push(record.id);
+                
+                // Check memory data
+                if (fields.Memory_Importance && fields.Summary) {
+                  memoryMatches.push({
+                    id: record.id,
+                    importance: fields.Memory_Importance,
+                    summary: fields.Summary.substring(0, 50) + '...',
+                    message: fields.Message ? fields.Message.substring(0, 50) + '...' : 'no message'
+                  });
+                }
+              }
             }
           }
-          
-          if (!characterMatch) {
-            continue; // Skip if character doesn't match
-          }
-        }
-        
-        // Check if memory data exists
-        const memoryImportance = parseInt(fields.Memory_Importance || 0);
-        const summary = fields.Summary || '';
-        const message = fields.Message || '';
-        
-        // Only include records with memory data and sufficient importance
-        if (memoryImportance >= min_importance && (summary || message)) {
-          memories.push({
-            id: record.id,
-            message: message,
-            summary: summary || message.substring(0, 100),
-            date: fields.CreatedTime || '',
-            importance: memoryImportance,
-            emotional_state: fields.Emotional_State || 'neutral',
-            tags: fields.Memory_Tags || [],
-            context: message.substring(0, 200) // Extra context for AI
-          });
         }
       }
       
-      // Sort by importance and recency
-      memories.sort((a, b) => {
-        // First by importance (higher is better)
-        if (b.importance !== a.importance) {
-          return b.importance - a.importance;
-        }
-        // Then by date (more recent is better)
-        return new Date(b.date) - new Date(a.date);
-      });
+      console.log('🔍 DEBUG: User matches found:', userMatches.length);
+      console.log('🔍 DEBUG: Character matches found:', characterMatches.length);
+      console.log('🔍 DEBUG: Memory data matches found:', memoryMatches.length);
       
-      // Limit results
-      const limitedMemories = memories.slice(0, max_results);
-      
-      console.log(`✅ Found ${limitedMemories.length} relevant memories (from ${memories.length} total with memory data)`);
-      
-      // Log sample for debugging
-      if (limitedMemories.length > 0) {
-        console.log('📋 Top memory sample:', {
-          summary: limitedMemories[0].summary.substring(0, 50) + '...',
-          importance: limitedMemories[0].importance,
-          emotional_state: limitedMemories[0].emotional_state,
-          date: limitedMemories[0].date
-        });
+      if (userMatches.length > 0) {
+        console.log('🔍 DEBUG: Sample user match:', userMatches[0]);
       }
+      
+      if (memoryMatches.length > 0) {
+        console.log('🔍 DEBUG: Sample memory match:', memoryMatches[0]);
+      }
+      
+      // Return debug info and any found memories
+      const finalMemories = memoryMatches.filter(m => m.importance >= min_importance);
       
       return {
         statusCode: 200,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           success: true,
-          memories: limitedMemories,
-          count: limitedMemories.length,
-          total_with_memory_data: memories.length,
-          message: `Found ${limitedMemories.length} relevant memories`
+          memories: finalMemories,
+          count: finalMemories.length,
+          debug: {
+            total_records: data.records.length,
+            user_matches: userMatches.length,
+            character_matches: characterMatches.length,
+            memory_data_matches: memoryMatches.length,
+            searching_for: {
+              user_id: user_id,
+              character: character_id || character_slug,
+              min_importance: min_importance
+            },
+            user_counts: userCounts,
+            memory_data_counts: memoryDataCounts
+          }
         })
       };
     }
@@ -230,7 +193,7 @@ exports.handler = async (event, context) => {
     };
     
   } catch (error) {
-    console.error('❌ Memory function error:', error);
+    console.error('❌ DEBUG Memory function error:', error);
     return {
       statusCode: 500,
       headers: { 'Content-Type': 'application/json' },
