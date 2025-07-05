@@ -3212,18 +3212,27 @@ console.log("🔍 Final reply used:", reply);
     const typingSpan = divBot.querySelector('.typing-text');
     typewriterEffect(typingSpan, reply);
 
-    // Memory processing in background
-    if (data && data.success && data.reply) {
-      console.log('🧠 Starting memory processing for message:', input);
-      
-      const recordId = data.record_id || data.chat_record_id || data.message_id || null;
-      
-      console.log('🔍 Using record_id for memory processing:', recordId);
-      
-      setTimeout(() => {
-        processMemoryForMessage(recordId, input, getLastMessages(3));
-      }, 1000);
-    }
+    // Memory processing in background - VERBETERDE VERSIE
+if (data && data.success) {
+  console.log('🧠 Starting memory processing for message:', input);
+  
+  // Zoek naar record_id in ALLE mogelijke velden
+  const recordId = data.record_id || 
+                  data.chat_record_id || 
+                  data.message_id || 
+                  data.user_record_id || 
+                  data.ChatHistory_id ||
+                  data.id ||
+                  null;
+  
+  console.log('🔍 Full API response for record_id detection:', data);
+  console.log('🔍 Extracted record_id:', recordId);
+  console.log('🔍 Available data keys:', Object.keys(data));
+  
+  setTimeout(() => {
+    processMemoryForMessage(recordId, input, getLastMessages(3));
+  }, 1000);
+}
     
   } catch (err) {
     console.error("❌ sendMessage Error:", err);
