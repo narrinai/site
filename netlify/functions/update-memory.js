@@ -216,11 +216,106 @@ exports.handler = async (event, context) => {
       console.log('🔍 No specific record_id, searching for recent record...');
       
       // Strategy 2: Zoek naar recente record van deze user
-      if (user_id && user_id !== 'null' && user_id !== '') {
-        console.log('🔍 Searching for user records with user_id:', user_id);
+      const user_id = body.user_id || body.user_uid || body.user_email;
+      const user_email = body.user_email;
+      const user_uid = body.user_uid;
+      
+      console.log('🔍 User search parameters:', {
+        user_id: user_id,
+        user_email: user_email,
+        user_uid: user_uid,
+        character_id: character_id
+      });
+      
+      if (user_id || user_email || user_uid) {
+        console.log('🔍 Searching for user records...');
         
-        // Eerst proberen om gewoon recente records te halen en dan te filteren
-        const recentUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=20`;
+        // Strategy 2A: Directe filter met User ID (linked record)
+        if (user_id && user_id !== 'null' && user_id !== '') {
+          console.log('🎯 Trying direct User ID filter:', user_id);
+          
+          // Probeer filter met User ID als linked record
+          const userIdFilter = `{User} = '${user_id}'`;
+          const userIdUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=${encodeURIComponent(userIdFilter)}&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=5`;
+          
+          const userIdResponse = await fetch(userIdUrl, {
+            headers: {
+              'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          console.log('📨 User ID filter response status:', userIdResponse.status);
+          
+          if (userIdResponse.ok) {
+            const userIdData = await userIdResponse.json();
+            console.log('📊 User ID filter results:', userIdData.records?.length || 0);
+            
+            if (userIdData.records && userIdData.records.length > 0) {
+              const latestRecord = userIdData.records[0];
+              console.log('✅ Found record with User ID filter:', {
+                id: latestRecord.id,
+                User: latestRecord.fields?.User,
+                Role: latestRecord.fields?.Role,
+                Message: latestRecord.fields?.Message ? latestRecord.fields.Message.substring(0, 50) + '...' : 'no message'
+              });
+              
+              const updateUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory/${latestRecord.id}`;
+              
+              const updateData = {
+                fields: {
+                  "Memory_Importance": analysis.memory_importance,
+                  "Emotional_State": analysis.emotional_state,
+                  "Summary": analysis.summary,
+                  "Memory_Tags": Array.isArray(analysis.memory_tags) ? analysis.memory_tags.join(', ') : analysis.memory_tags
+                }
+              };
+              
+              console.log('📤 Updating record with User ID match:', updateData);
+              
+              const updateResponse = await fetch(updateUrl, {
+                method: 'PATCH',
+                headers: {
+                  'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updateData)
+              });
+              
+              console.log('📨 Update response status:', updateResponse.status);
+              
+              if (updateResponse.ok) {
+                const updateResult = await updateResponse.json();
+                console.log('✅ Memory update successful with User ID!', updateResult.id);
+                
+                return {
+                  statusCode: 200,
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    success: true,
+                    method: 'user_id_filter',
+                    record_id: updateResult.id,
+                    analysis: analysis,
+                    message: 'Memory processed successfully'
+                  })
+                };
+              } else {
+                const errorText = await updateResponse.text();
+                console.error('❌ Update failed:', errorText);
+              }
+            } else {
+              console.log('❌ No records found with User ID filter');
+            }
+          } else {
+            const errorText = await userIdResponse.text();
+            console.error('❌ User ID filter failed:', errorText);
+          }
+        }
+        
+        // Strategy 2B: Fallback - haal recente records en filter handmatig
+        console.log('🔍 Fallback: Fetching recent records for manual filtering...');
+        
+        const recentUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=30`;
         
         const recentResponse = await fetch(recentUrl, {
           headers: {
@@ -236,38 +331,55 @@ exports.handler = async (event, context) => {
           console.log('📊 Recent records found:', recentData.records?.length || 0);
           
           if (recentData.records && recentData.records.length > 0) {
-            // Log de eerste paar records voor debugging
-            console.log('🔍 First few records for debugging:');
-            recentData.records.slice(0, 3).forEach((record, index) => {
+            // Debug: Log records om te zien wat we hebben
+            console.log('🔍 Analyzing recent records for manual matching...');
+            recentData.records.slice(0, 5).forEach((record, index) => {
+              const fields = record.fields || {};
               console.log(`Record ${index + 1}:`, {
                 id: record.id,
-                fields: Object.keys(record.fields || {}),
-                User: record.fields?.User,
-                Role: record.fields?.Role,
-                Message: record.fields?.Message ? record.fields.Message.substring(0, 30) + '...' : 'no message'
+                User: fields.User,
+                Role: fields.Role,
+                Message: fields.Message ? fields.Message.substring(0, 30) + '...' : 'no message',
+                CreatedTime: fields.CreatedTime
               });
             });
             
-            // Zoek naar een matching record voor deze user
-            const userRecord = recentData.records.find(record => {
+            // Zoek naar een matching record
+            const matchingRecord = recentData.records.find(record => {
               const fields = record.fields || {};
               
-              // Check verschillende mogelijke User veld formaten
-              const userField = fields.User || fields.user || fields.User_ID || fields.user_id;
+              // Check User veld (linked record - kan array of single value zijn)
+              const userField = fields.User;
+              let userMatch = false;
               
-              // User veld kan een array zijn (linked record) of een string
               if (Array.isArray(userField)) {
-                return userField.includes(user_id) || userField.includes(parseInt(user_id));
-              } else {
-                return userField === user_id || userField === parseInt(user_id) || String(userField) === String(user_id);
+                // User is een array van linked records
+                userMatch = userField.some(userId => 
+                  String(userId) === String(user_id) || 
+                  parseInt(userId) === parseInt(user_id)
+                );
+              } else if (userField !== undefined && userField !== null) {
+                // User is een enkele waarde
+                userMatch = String(userField) === String(user_id) || 
+                           parseInt(userField) === parseInt(user_id);
               }
+              
+              if (userMatch) {
+                console.log('✅ Found matching record:', {
+                  id: record.id,
+                  userField: userField,
+                  searchedUserId: user_id,
+                  match: 'user_id'
+                });
+              }
+              
+              return userMatch;
             });
             
-            if (userRecord) {
-              console.log('📝 Found matching user record:', userRecord.id);
-              console.log('📝 Record fields:', Object.keys(userRecord.fields || {}));
+            if (matchingRecord) {
+              console.log('📝 Found matching user record via manual search:', matchingRecord.id);
               
-              const updateUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory/${userRecord.id}`;
+              const updateUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory/${matchingRecord.id}`;
               
               const updateData = {
                 fields: {
@@ -278,7 +390,7 @@ exports.handler = async (event, context) => {
                 }
               };
               
-              console.log('📤 Updating user record:', updateData);
+              console.log('📤 Updating manually matched record:', updateData);
               
               const updateResponse = await fetch(updateUrl, {
                 method: 'PATCH',
@@ -293,14 +405,14 @@ exports.handler = async (event, context) => {
               
               if (updateResponse.ok) {
                 const updateResult = await updateResponse.json();
-                console.log('✅ Memory update successful:', updateResult.id);
+                console.log('✅ Memory update successful via manual matching!', updateResult.id);
                 
                 return {
                   statusCode: 200,
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
                     success: true,
-                    method: 'search',
+                    method: 'manual_user_match',
                     record_id: updateResult.id,
                     analysis: analysis,
                     message: 'Memory processed successfully'
@@ -308,10 +420,10 @@ exports.handler = async (event, context) => {
                 };
               } else {
                 const errorText = await updateResponse.text();
-                console.error('❌ Update failed:', errorText);
+                console.error('❌ Manual match update failed:', errorText);
               }
             } else {
-              console.log('❌ No matching user record found');
+              console.log('❌ No matching user record found in manual search');
               console.log('🔍 Searched for user_id:', user_id, 'type:', typeof user_id);
             }
           }
