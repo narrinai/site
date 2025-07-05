@@ -15,7 +15,6 @@ exports.handler = async (event, context) => {
   }
 
   const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
-  // FIXED: Gebruik AIRTABLE_TOKEN als fallback
   const AIRTABLE_API_KEY = process.env.AIRTABLE_TOKEN || process.env.AIRTABLE_API_KEY;
   
   console.log('🔑 Environment check:', {
@@ -26,21 +25,12 @@ exports.handler = async (event, context) => {
   });
   
   if (!AIRTABLE_BASE_ID || !AIRTABLE_API_KEY) {
-    console.error('❌ Missing environment variables:', {
-      hasApiKey: !!AIRTABLE_API_KEY,
-      hasBaseId: !!AIRTABLE_BASE_ID,
-      envKeys: Object.keys(process.env).filter(key => key.includes('AIRTABLE'))
-    });
-    
+    console.error('❌ Missing environment variables');
     return {
       statusCode: 500,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
-        error: 'Missing environment variables',
-        debug: {
-          hasApiKey: !!AIRTABLE_API_KEY,
-          hasBaseId: !!AIRTABLE_BASE_ID
-        }
+        error: 'Missing environment variables'
       })
     };
   }
@@ -49,14 +39,27 @@ exports.handler = async (event, context) => {
     const body = JSON.parse(event.body || '{}');
     console.log('📋 Parsed body:', body);
     
-    const { action, user_id, character_id, current_message, min_importance = 3 } = body;
+    const { 
+      action, 
+      user_id, 
+      character_id, 
+      character_slug,
+      current_message, 
+      min_importance = 3,
+      max_results = 5 
+    } = body;
     
     if (action === 'get_memories') {
-      console.log('🔍 Getting memories for:', { user_id, character_id, min_importance });
+      console.log('🔍 Getting memories for:', { 
+        user_id, 
+        character_id: character_id || character_slug, 
+        min_importance 
+      });
+      
+      // Use character_slug if character_id is not provided
+      const characterIdentifier = character_id || character_slug;
       
       // Test basic connection first
-      console.log('🔧 Testing basic Airtable connection...');
-      
       const testUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?maxRecords=1`;
       const testResponse = await fetch(testUrl, {
         headers: {
@@ -65,158 +68,145 @@ exports.handler = async (event, context) => {
         }
       });
       
-      console.log('📨 Test response status:', testResponse.status);
-      
       if (!testResponse.ok) {
-        const errorText = await testResponse.text();
-        console.error('❌ Basic connection failed:', errorText);
-        throw new Error(`Airtable connection failed: ${testResponse.status} - ${errorText}`);
+        throw new Error(`Airtable connection failed: ${testResponse.status}`);
       }
       
-      const testData = await testResponse.json();
-      console.log('✅ Basic connection successful, records available:', testData.records?.length || 0);
+      console.log('✅ Basic Airtable connection successful');
       
-      // Log available fields from first record
-      if (testData.records && testData.records.length > 0) {
-        const firstRecord = testData.records[0];
-        console.log('📊 Available fields in ChatHistory:', Object.keys(firstRecord.fields || {}));
-      }
+      // STRATEGY: Get recent records with memory data and filter manually
+      // This is more reliable than complex filter formulas
       
-      // Strategy 1: Zoek op User en Memory_Importance
-      let filterFormula = `AND(
-        {User} = '${user_id}',
-        {Memory_Importance} >= ${min_importance}
-      )`;
+      const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=100`;
       
-      console.log('🔍 Filter formula (strategy 1):', filterFormula);
+      console.log('📡 Fetching recent ChatHistory records...');
       
-      let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=${encodeURIComponent(filterFormula)}&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=10`;
-      
-      console.log('📡 Calling Airtable API (strategy 1)...');
-      
-      let response = await fetch(url, {
+      const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
           'Content-Type': 'application/json'
         }
       });
       
-      console.log('📨 Strategy 1 response status:', response.status);
-      
-      if (!response.ok) {
-        console.log('❌ Strategy 1 failed, trying strategy 2...');
-        
-        // Strategy 2: Zoek alleen op User_ID (probeer ook User_ID veld)
-        filterFormula = `OR(
-          {User} = '${user_id}',
-          {User_ID} = '${user_id}'
-        )`;
-        
-        console.log('🔍 Filter formula (strategy 2):', filterFormula);
-        
-        url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=${encodeURIComponent(filterFormula)}&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=20`;
-        
-        response = await fetch(url, {
-          headers: {
-            'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        console.log('📨 Strategy 2 response status:', response.status);
-      }
-      
-      if (!response.ok) {
-        console.log('❌ Strategy 2 failed, trying strategy 3...');
-        
-        // Strategy 3: Haal gewoon recente records op en filter later
-        url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=50`;
-        
-        response = await fetch(url, {
-          headers: {
-            'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        console.log('📨 Strategy 3 response status:', response.status);
-      }
-      
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('❌ All strategies failed:', response.status, errorText);
-        throw new Error(`Airtable API error: ${response.status} - ${errorText}`);
+        console.error('❌ Airtable API error:', response.status, errorText);
+        throw new Error(`Airtable API error: ${response.status}`);
       }
       
       const data = await response.json();
-      console.log('📊 Airtable response:', {
-        recordCount: data.records?.length || 0,
-        hasRecords: !!(data.records && data.records.length > 0)
-      });
+      console.log('📊 Retrieved records:', data.records?.length || 0);
       
       if (!data.records || data.records.length === 0) {
-        console.log('📭 No memories found');
+        console.log('📭 No records found');
         return {
           statusCode: 200,
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             success: true,
             memories: [],
-            message: 'No memories found for this user/character combination'
+            message: 'No records found'
           })
         };
       }
       
-      // Filter en process memories
-      const memories = data.records
-        .filter(record => {
-          const fields = record.fields;
+      // Log available fields from first record for debugging
+      if (data.records.length > 0) {
+        const firstRecord = data.records[0];
+        console.log('📊 Available fields:', Object.keys(firstRecord.fields || {}));
+        console.log('📊 Sample record fields:', {
+          User: firstRecord.fields?.User,
+          Character: firstRecord.fields?.Character,
+          'Slug (from Character)': firstRecord.fields?.['Slug (from Character)'],
+          Memory_Importance: firstRecord.fields?.Memory_Importance,
+          Summary: firstRecord.fields?.Summary,
+          Message: firstRecord.fields?.Message ? firstRecord.fields.Message.substring(0, 50) + '...' : 'no message'
+        });
+      }
+      
+      // Manual filtering and processing
+      const memories = [];
+      
+      for (const record of data.records) {
+        const fields = record.fields || {};
+        
+        // Check user match
+        const recordUserId = fields.User;
+        const userMatch = recordUserId && (
+          String(recordUserId) === String(user_id) ||
+          parseInt(recordUserId) === parseInt(user_id)
+        );
+        
+        if (!userMatch) {
+          continue; // Skip if user doesn't match
+        }
+        
+        // Check character match if provided
+        if (characterIdentifier) {
+          const recordCharacterSlug = fields['Slug (from Character)'] || 
+                                    fields.Character || 
+                                    fields.character_slug ||
+                                    fields.slug;
           
-          // Check if this record belongs to the user
-          const recordUserId = fields.User || fields.User_ID || fields.user_id;
-          const userMatch = recordUserId === user_id || recordUserId === String(user_id);
+          let characterMatch = false;
           
-          // Check character match if provided
-          if (character_id) {
-            const recordCharacter = fields['Slug (from Character)'] || 
-                                  fields['Character'] || 
-                                  fields['character'] ||
-                                  fields['Slug'];
-            
-            const characterMatch = recordCharacter === character_id || 
-                                 (recordCharacter && recordCharacter.includes && recordCharacter.includes(character_id));
-            
-            return userMatch && characterMatch;
+          if (recordCharacterSlug) {
+            if (Array.isArray(recordCharacterSlug)) {
+              characterMatch = recordCharacterSlug.some(slug => 
+                String(slug).toLowerCase() === String(characterIdentifier).toLowerCase()
+              );
+            } else {
+              characterMatch = String(recordCharacterSlug).toLowerCase() === String(characterIdentifier).toLowerCase();
+            }
           }
           
-          return userMatch;
-        })
-        .map(record => {
-          const fields = record.fields;
-          return {
+          if (!characterMatch) {
+            continue; // Skip if character doesn't match
+          }
+        }
+        
+        // Check if memory data exists
+        const memoryImportance = parseInt(fields.Memory_Importance || 0);
+        const summary = fields.Summary || '';
+        const message = fields.Message || '';
+        
+        // Only include records with memory data and sufficient importance
+        if (memoryImportance >= min_importance && (summary || message)) {
+          memories.push({
             id: record.id,
-            message: fields.Message || fields.message || '',
-            summary: fields.Summary || fields.summary || fields.Message || fields.message || '',
-            date: fields.CreatedTime || fields.created_time || fields.CreatedTime || '',
-            importance: parseInt(fields.Memory_Importance || fields.memory_importance || 1),
-            emotional_state: fields.Emotional_State || fields.emotional_state || 'neutral',
-            tags: fields.Memory_Tags || fields.memory_tags || []
-          };
-        })
-        .filter(memory => {
-          // Extra filter op importance
-          return memory.importance >= min_importance && memory.message.trim() !== '';
-        })
-        .slice(0, 10); // Max 10 memories
+            message: message,
+            summary: summary || message.substring(0, 100),
+            date: fields.CreatedTime || '',
+            importance: memoryImportance,
+            emotional_state: fields.Emotional_State || 'neutral',
+            tags: fields.Memory_Tags || [],
+            context: message.substring(0, 200) // Extra context for AI
+          });
+        }
+      }
       
-      console.log(`✅ Found ${memories.length} relevant memories`);
+      // Sort by importance and recency
+      memories.sort((a, b) => {
+        // First by importance (higher is better)
+        if (b.importance !== a.importance) {
+          return b.importance - a.importance;
+        }
+        // Then by date (more recent is better)
+        return new Date(b.date) - new Date(a.date);
+      });
       
-      // Log een sample van de memories voor debugging
-      if (memories.length > 0) {
-        console.log('📋 Sample memory:', {
-          message: memories[0].message.substring(0, 50) + '...',
-          importance: memories[0].importance,
-          emotional_state: memories[0].emotional_state
+      // Limit results
+      const limitedMemories = memories.slice(0, max_results);
+      
+      console.log(`✅ Found ${limitedMemories.length} relevant memories (from ${memories.length} total with memory data)`);
+      
+      // Log sample for debugging
+      if (limitedMemories.length > 0) {
+        console.log('📋 Top memory sample:', {
+          summary: limitedMemories[0].summary.substring(0, 50) + '...',
+          importance: limitedMemories[0].importance,
+          emotional_state: limitedMemories[0].emotional_state,
+          date: limitedMemories[0].date
         });
       }
       
@@ -225,14 +215,14 @@ exports.handler = async (event, context) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           success: true,
-          memories: memories,
-          count: memories.length,
-          message: `Found ${memories.length} relevant memories`
+          memories: limitedMemories,
+          count: limitedMemories.length,
+          total_with_memory_data: memories.length,
+          message: `Found ${limitedMemories.length} relevant memories`
         })
       };
     }
     
-    // Andere actions kunnen hier toegevoegd worden
     return {
       statusCode: 400,
       headers: { 'Content-Type': 'application/json' },
@@ -246,8 +236,7 @@ exports.handler = async (event, context) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         error: 'Internal server error',
-        details: error.message,
-        stack: error.stack?.substring(0, 500) // Begrensd voor logging
+        details: error.message
       })
     };
   }
