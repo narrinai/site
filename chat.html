@@ -2469,7 +2469,6 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     try {
         console.log("🧠 Processing memory for message:", message.substring(0, 50));
         
-        // VERBETERDE USER_ID DETECTIE
         const stored_user_id = localStorage.getItem('user_id');
         const stored_user_email = localStorage.getItem('user_email');
         const stored_user_uid = localStorage.getItem('user_uid');
@@ -2491,9 +2490,8 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
             character_id: characterSlug
         };
         
-        console.log("📤 Memory request data:", requestData);
+        console.log("📤 FULL Memory request data:", requestData);
         
-        // GEBRUIK RELATIEVE URL
         const response = await fetch('/.netlify/functions/update-memory', {
             method: 'POST',
             headers: { 
@@ -2504,46 +2502,59 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
         });
         
         console.log("📨 Memory function response status:", response.status);
+        console.log("📨 Memory function response headers:", Object.fromEntries(response.headers.entries()));
+        
+        // ALTIJD response text lezen, ook bij error
+        const responseText = await response.text();
+        console.log("📄 FULL Memory function raw response:", responseText);
         
         if (response.ok) {
-            const result = await response.json();
-            console.log('✅ Memory processed successfully:', result);
-            
-            if (result.success) {
-                console.log('🧠 Memory analysis:', result.analysis);
-                console.log('📝 Update method used:', result.method);
+            try {
+                const result = JSON.parse(responseText);
+                console.log('✅ Memory processed successfully:', result);
                 
-                if (result.method !== 'analysis_only') {
-                    console.log('💾 Memory successfully saved to Airtable');
+                if (result.success) {
+                    console.log('🧠 Memory analysis:', result.analysis);
+                    console.log('📝 Update method used:', result.method);
                     
-                    // Optioneel: Toon een klein success indicatortje
-                    const chatlog = document.getElementById("chatlog");
-                    if (chatlog) {
-                        const memoryIndicator = document.createElement("div");
-                        memoryIndicator.style.cssText = `
-                            font-size: 10px; 
-                            color: #14b8a6; 
-                            text-align: center; 
-                            margin: 2px 0; 
-                            opacity: 0.7;
-                        `;
-                        memoryIndicator.textContent = "💾 Memory saved";
-                        chatlog.appendChild(memoryIndicator);
+                    if (result.method !== 'analysis_only') {
+                        console.log('💾 Memory successfully saved to Airtable');
+                        console.log('🆔 Updated record ID:', result.record_id);
                         
-                        // Verwijder na 3 seconden
-                        setTimeout(() => {
-                            if (memoryIndicator.parentNode) {
-                                memoryIndicator.remove();
-                            }
-                        }, 3000);
+                        // Success indicator
+                        const chatlog = document.getElementById("chatlog");
+                        if (chatlog) {
+                            const memoryIndicator = document.createElement("div");
+                            memoryIndicator.style.cssText = `
+                                font-size: 10px; 
+                                color: #14b8a6; 
+                                text-align: center; 
+                                margin: 2px 0; 
+                                opacity: 0.7;
+                            `;
+                            memoryIndicator.textContent = "💾 Memory saved";
+                            chatlog.appendChild(memoryIndicator);
+                            
+                            setTimeout(() => {
+                                if (memoryIndicator.parentNode) {
+                                    memoryIndicator.remove();
+                                }
+                            }, 3000);
+                        }
+                    } else {
+                        console.log('⚠️ Memory analyzed but not saved to Airtable');
+                        console.log('⚠️ This means no matching record was found in ChatHistory');
                     }
                 } else {
-                    console.log('⚠️ Memory analyzed but not saved to Airtable');
+                    console.log('❌ Memory processing returned success: false');
                 }
+            } catch (parseError) {
+                console.error('❌ Failed to parse memory response as JSON:', parseError);
+                console.log('📄 Raw response that failed to parse:', responseText);
             }
         } else {
-            const errorText = await response.text();
-            console.log('❌ Memory processing failed:', response.status, errorText);
+            console.log('❌ Memory processing failed with status:', response.status);
+            console.log('📄 Error response:', responseText);
         }
         
     } catch (error) {
