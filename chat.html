@@ -3091,98 +3091,78 @@ async function sendMessage(event) {
 
     const rawText = await response.text();
     console.log("📄 sendMessage raw response:", rawText);
+    // EXTRA DEBUG INFO
+console.log("📄 Raw response type:", typeof rawText);
+console.log("📄 Raw response length:", rawText.length);
+console.log("📄 First 200 chars:", rawText.substring(0, 200));
+console.log("📄 Last 200 chars:", rawText.substring(rawText.length - 200));
 
     let data;
 try {
+  // Probeer eerst direct parsing
   data = JSON.parse(rawText);
-  console.log("✅ sendMessage parsed response:", data);
+  console.log("✅ Direct JSON parse successful:", data);
 } catch (e) {
-  console.warn("JSON parse error, using advanced fallback:", e);
-  console.log("Raw response that failed:", rawText);
+  console.warn("❌ Direct JSON parse failed:", e.message);
   
-  // GEAVANCEERDE FALLBACK PARSING
+  // STRATEGIE 1: Clean de response text
   try {
-    // Probeer verschillende reparatie strategieën
-    let fixedJson = rawText.trim();
+    let cleanText = rawText.trim();
     
-    // Strategie 1: Voeg ontbrekende haakjes toe
-    if (!fixedJson.startsWith('{')) {
-      fixedJson = '{' + fixedJson;
-    }
-    if (!fixedJson.endsWith('}')) {
-      fixedJson = fixedJson + '}';
-    }
+    // Verwijder BOM en speciale characters
+    cleanText = cleanText.replace(/^\uFEFF/, ''); // BOM
+    cleanText = cleanText.replace(/[\x00-\x1F\x7F-\x9F]/g, ''); // Control characters
     
-    // Strategie 2: Probeer gebroken JSON te repareren
-    data = JSON.parse(fixedJson);
-    console.log("✅ Fixed JSON with brackets:", data);
+    // Zoek naar JSON object in de text
+    const jsonMatch = cleanText.match(/\{.*\}/s);
+    if (jsonMatch) {
+      data = JSON.parse(jsonMatch[0]);
+      console.log("✅ JSON extracted and parsed:", data);
+    } else {
+      throw new Error("No JSON object found in response");
+    }
     
   } catch (e2) {
-    console.warn("Bracket fix failed, trying manual extraction:", e2);
+    console.warn("❌ JSON extraction failed:", e2.message);
     
-    // Strategie 3: Handmatige extractie van key-value pairs
-    try {
-      const extractedData = {};
-      
-      // Zoek naar success indicator
-      const successMatch = rawText.match(/["\']?success["\']?\s*[:=]\s*(true|false)/i);
-      if (successMatch) {
-        extractedData.success = successMatch[1].toLowerCase() === 'true';
-      } else {
-        extractedData.success = true; // Assumeer success als niet gevonden
+    // STRATEGIE 2: Zoek naar reply in raw text
+    console.log("🔍 Searching for reply in raw text...");
+    
+    // Meerdere patronen om reply te vinden
+    const patterns = [
+      /"reply"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/s,
+      /'reply'\s*:\s*'([^']*(?:\\.[^']*)*)'/s,
+      /reply["\']?\s*[:=]\s*["\']([^"']*(?:\\.[^"']*)*)["\']?/s,
+      /"response"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/s,
+      /"message"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/s,
+      /"text"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/s
+    ];
+    
+    let foundReply = null;
+    for (const pattern of patterns) {
+      const match = rawText.match(pattern);
+      if (match && match[1] && match[1].length > 10) { // Minimaal 10 karakters
+        foundReply = match[1].replace(/\\"/g, '"').replace(/\\'/g, "'").replace(/\\n/g, '\n');
+        console.log("✅ Found reply with pattern:", pattern.source);
+        console.log("✅ Extracted reply:", foundReply.substring(0, 100) + "...");
+        break;
       }
-      
-      // Zoek naar reply met verschillende patronen
-      const replyPatterns = [
-        /"reply"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/,
-        /'reply'\s*:\s*'([^']*(?:\\.[^']*)*)'/,
-        /reply\s*[:=]\s*"([^"]*(?:\\.[^"]*)*)"/,
-        /reply\s*[:=]\s*'([^']*(?:\\.[^']*)*)'/,
-        /"response"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/,
-        /"message"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/
-      ];
-      
-      let replyFound = false;
-      for (const pattern of replyPatterns) {
-        const match = rawText.match(pattern);
-        if (match) {
-          extractedData.reply = match[1].replace(/\\"/g, '"').replace(/\\'/g, "'");
-          replyFound = true;
-          console.log("✅ Found reply using pattern:", pattern.source);
-          break;
-        }
-      }
-      
-      if (!replyFound) {
-        // Laatste poging: zoek naar tekst tussen quotes
-        const textMatch = rawText.match(/"([^"]{10,})"/);
-        if (textMatch) {
-          extractedData.reply = textMatch[1];
-          console.log("✅ Found reply using text extraction");
-        } else {
-          extractedData.reply = "I apologize, but I'm having trouble processing your message right now. Could you please try again?";
-          console.log("❌ No reply found, using fallback message");
-        }
-      }
-      
-      // Zoek naar record_id
-      const recordIdMatch = rawText.match(/["\']?(?:record_id|id|message_id)["\']?\s*[:=]\s*["\']?([^"'\s,}]+)/i);
-      if (recordIdMatch) {
-        extractedData.record_id = recordIdMatch[1];
-      }
-      
-      data = extractedData;
-      console.log("✅ Manual extraction successful:", data);
-      
-    } catch (e3) {
-      console.error("❌ All parsing strategies failed:", e3);
+    }
+    
+    if (foundReply) {
+      data = {
+        success: true,
+        reply: foundReply
+      };
+    } else {
+      console.error("❌ No reply found in any pattern");
+      console.log("🔍 Full raw text for manual inspection:", rawText);
       
       // Absolute fallback
       data = {
         success: true,
-        reply: "I'm experiencing some technical difficulties right now. Please try sending your message again in a moment."
+        reply: "I'm having trouble processing your message right now. Let me try again with your next message."
       };
-      console.log("🔄 Using absolute fallback response");
     }
   }
 }
