@@ -2923,12 +2923,18 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     }
 
     // Typewriter effect for bot response
-function typewriterEffect(element, text, speed = 30) {
+function typewriterEffect(element, text, speed = 15) {
   let i = 0;
   const timer = setInterval(() => {
     if (i < text.length) {
       element.textContent += text.charAt(i);
       i++;
+      
+      // Auto-scroll tijdens typen
+      const chatlog = document.getElementById("chatlog");
+      if (chatlog) {
+        chatlog.scrollTop = chatlog.scrollHeight;
+      }
     } else {
       clearInterval(timer);
     }
