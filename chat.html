@@ -3171,7 +3171,13 @@ try {
       throw new Error("Chat request failed");
     }
 
-    const reply = data.reply || "⚠️ No reply received.";
+    // Check if reply is empty or just whitespace
+const reply = (data.reply && data.reply.trim()) || 
+              (data.response && data.response.trim()) || 
+              (data.message && data.message.trim()) || 
+              "I apologize, but I'm having a technical issue generating a response right now. Could you please try again?";
+
+console.log("🔍 Final reply used:", reply);
 
     // Response timing
     const responseDelay = Math.min(1000 + (reply.length * 30), 4000);
