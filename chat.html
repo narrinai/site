@@ -3009,15 +3009,13 @@ function clearAuthData() {
   window.currentUser = null;
 }
 
-// GEFIXTE versie voor chat page
 async function sendMessage(event) {
   event?.preventDefault();
   
-  // NIEUWE authentication check
+  // Authentication check
   if (!window.isAuthenticated || !window.currentUser) {
     console.log('❌ User not authenticated, checking localStorage...');
     
-    // Try to restore from localStorage
     if (!initializeAuthenticationCheck()) {
       console.log('❌ No valid auth found, redirecting to login');
       localStorage.setItem('login_redirect_url', window.location.href);
@@ -3030,7 +3028,6 @@ async function sendMessage(event) {
   const input = userInput.value.trim();
   if (!input) return;
 
-  // Use current user data
   const email = window.currentUser.email;
   const token = window.currentUser.token;
   const uid = window.currentUser.uid;
@@ -3038,31 +3035,33 @@ async function sendMessage(event) {
   
   console.log("🚀 sendMessage debug:", { token: !!token, uid: !!uid, email, user_id, characterSlug });
 
-// Haal relevante herinneringen op
-console.log("🧠 Retrieving memories before sending message...");
-const memories = await getRelevantMemories(user_id, characterSlug, input);
-let memoryContext = "";
+  // Haal relevante herinneringen op
+  console.log("🧠 Retrieving memories before sending message...");
+  const memories = await getRelevantMemories(user_id, characterSlug, input);
+  let memoryContext = "";
 
-if (memories && memories.length > 0) {
+  if (memories && memories.length > 0) {
     console.log(`📚 Found ${memories.length} relevant memories`);
     memoryContext = memories.map(m => `[Memory: ${m.summary || m.message}]`).join(" ");
-} else {
+  } else {
     console.log("📭 No relevant memories found");
-}
+  }
 
   const sendButton = document.getElementById("sendButton");
   sendButton.disabled = true;
   sendButton.textContent = "Sending...";
 
   const chatlog = document.getElementById("chatlog");
+  
+  // DIRECT: Voeg gebruiker bericht toe aan chat
   const divUser = document.createElement("p");
   divUser.innerHTML = `<strong>You:</strong> ${input}`;
   chatlog.appendChild(divUser);
   chatlog.scrollTop = chatlog.scrollHeight;
   userInput.value = "";
 
-  // Show typing indicator based on message length
-  const typingDelay = Math.min(500 + (input.length * 50), 2000); // 500ms-2s
+  // Show typing indicator
+  const typingDelay = Math.min(500 + (input.length * 50), 2000);
   setTimeout(() => {
     showTypingIndicator();
   }, typingDelay);
@@ -3071,7 +3070,7 @@ if (memories && memories.length > 0) {
     const requestPayload = {
       action: "send_message",
       text: input,
-          memory_context: memoryContext, 
+      memory_context: memoryContext, 
       Character_id: characterSlug,
       Slug: characterSlug,
       user_uid: uid,
@@ -3094,37 +3093,33 @@ if (memories && memories.length > 0) {
     console.log("📄 sendMessage raw response:", rawText);
 
     let data;
-try {
-  data = JSON.parse(rawText);
-  console.log("✅ sendMessage parsed response:", data);
-} catch (e) {
-  console.warn("JSON parse error, using fallback:", e);
-  
-  // VERBETERDE FALLBACK - probeer de JSON te repareren
-  let fixedJson = rawText.trim();
-  
-  // Voeg ontbrekende } toe aan het einde
-  if (!fixedJson.endsWith('}')) {
-    fixedJson += '}';
-  }
-  
-  // Als er nog steeds een error is, probeer basic response extractie
-  try {
-    data = JSON.parse(fixedJson);
-    console.log("✅ Fixed JSON successfully:", data);
-  } catch (e2) {
-    console.warn("JSON still broken, extracting reply manually");
-    
-    // Zoek naar reply in de response
-    const replyMatch = rawText.match(/"reply":\s*"([^"]*(?:\\.[^"]*)*)"/);
-    const reply = replyMatch ? replyMatch[1].replace(/\\"/g, '"') : "Sorry, there was an issue processing your message. Please try again!";
-    
-    data = { 
-      success: true, 
-      reply: reply
-    };
-  }
-}
+    try {
+      data = JSON.parse(rawText);
+      console.log("✅ sendMessage parsed response:", data);
+    } catch (e) {
+      console.warn("JSON parse error, using fallback:", e);
+      
+      let fixedJson = rawText.trim();
+      
+      if (!fixedJson.endsWith('}')) {
+        fixedJson += '}';
+      }
+      
+      try {
+        data = JSON.parse(fixedJson);
+        console.log("✅ Fixed JSON successfully:", data);
+      } catch (e2) {
+        console.warn("JSON still broken, extracting reply manually");
+        
+        const replyMatch = rawText.match(/"reply":\s*"([^"]*(?:\\.[^"]*)*)"/);
+        const reply = replyMatch ? replyMatch[1].replace(/\\"/g, '"') : "Sorry, there was an issue processing your message. Please try again!";
+        
+        data = { 
+          success: true, 
+          reply: reply
+        };
+      }
+    }
 
     if (!data.success) {
       throw new Error("Chat request failed");
@@ -3132,11 +3127,12 @@ try {
 
     const reply = data.reply || "⚠️ No reply received.";
 
-    // Realistic response timing based on reply length
-    const responseDelay = Math.min(1000 + (reply.length * 30), 4000); // 1s-4s
+    // Response timing
+    const responseDelay = Math.min(1000 + (reply.length * 30), 4000);
     await new Promise(resolve => setTimeout(resolve, responseDelay));
     hideTypingIndicator();
 
+    // DIRECT: Voeg character antwoord toe aan chat
     const divBot = document.createElement("p");
     const avatarHtml = getAvatarHtml();
     divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span>`;
@@ -3146,19 +3142,18 @@ try {
     const typingSpan = divBot.querySelector('.typing-text');
     typewriterEffect(typingSpan, reply);
 
-    // MEMORY PROCESSING - binnen try block
-if (data && data.success && data.reply) {
-  console.log('🧠 Starting memory processing for message:', input);
-  
-  // Gebruik het echte record_id uit de response als beschikbaar
-  const recordId = data.record_id || data.chat_record_id || data.message_id || null;
-  
-  console.log('🔍 Using record_id for memory processing:', recordId);
-  
-  setTimeout(() => {
-    processMemoryForMessage(recordId, input, getLastMessages(3));
-  }, 1000);
-}
+    // Memory processing in background
+    if (data && data.success && data.reply) {
+      console.log('🧠 Starting memory processing for message:', input);
+      
+      const recordId = data.record_id || data.chat_record_id || data.message_id || null;
+      
+      console.log('🔍 Using record_id for memory processing:', recordId);
+      
+      setTimeout(() => {
+        processMemoryForMessage(recordId, input, getLastMessages(3));
+      }, 1000);
+    }
     
   } catch (err) {
     console.error("❌ sendMessage Error:", err);
