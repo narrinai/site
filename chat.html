@@ -3133,11 +3133,8 @@ async function sendMessage(event) {
   chatlog.scrollTop = chatlog.scrollHeight;
   userInput.value = "";
 
-  // Show typing indicator
-  const typingDelay = Math.min(500 + (input.length * 50), 2000);
-  setTimeout(() => {
-    showTypingIndicator();
-  }, typingDelay);
+  // Show typing indicator immediately
+showTypingIndicator();
 
   try {
     const requestPayload = {
@@ -3252,10 +3249,8 @@ const reply = (data.reply && data.reply.trim()) ||
 
 console.log("🔍 Final reply used:", reply);
 
-    // Response timing
-    const responseDelay = Math.min(1000 + (reply.length * 30), 4000);
-    await new Promise(resolve => setTimeout(resolve, responseDelay));
-    hideTypingIndicator();
+    // Hide typing indicator immediately when response is ready
+hideTypingIndicator();
 
     // DIRECT: Voeg character antwoord toe aan chat
     const divBot = document.createElement("p");
@@ -3286,7 +3281,7 @@ if (data && data.success) {
   
   setTimeout(() => {
     processMemoryForMessage(recordId, input, getLastMessages(3));
-  }, 1000);
+  }, 5000);
 }
     
   } catch (err) {
