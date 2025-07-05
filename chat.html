@@ -2492,6 +2492,33 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
         
         console.log("📤 FULL Memory request data:", requestData);
         
+async function processMemoryForMessage(recordId, message, conversationContext) {
+    try {
+        console.log("🧠 Processing memory for message:", message.substring(0, 50));
+        
+        const stored_user_id = localStorage.getItem('user_id');
+        const stored_user_email = localStorage.getItem('user_email');
+        const stored_user_uid = localStorage.getItem('user_uid');
+        
+        console.log("🔍 User detection:", {
+            user_id: stored_user_id,
+            user_email: stored_user_email,
+            user_uid: stored_user_uid,
+            characterSlug: characterSlug
+        });
+        
+        const requestData = {
+            record_id: recordId || null,
+            message: message,
+            context: conversationContext || '',
+            user_id: stored_user_id || stored_user_uid || stored_user_email,
+            user_email: stored_user_email,
+            user_uid: stored_user_uid,
+            character_id: characterSlug
+        };
+        
+        console.log("📤 FULL Memory request data:", requestData);
+        
         const response = await fetch('/.netlify/functions/update-memory', {
             method: 'POST',
             headers: { 
@@ -2560,6 +2587,82 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     } catch (error) {
         console.error('❌ Memory processing error:', error);
     }
+
+// FORCE DEBUG: Voeg deze regel toe NA console.log("📤 FULL Memory request data:", requestData);
+requestData.debug_mode = true;
+requestData.force_recent_search = true;
+
+}
+
+        const response = await fetch('/.netlify/functions/update-memory', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(requestData)
+        });
+        
+        console.log("📨 Memory function response status:", response.status);
+        console.log("📨 Memory function response headers:", Object.fromEntries(response.headers.entries()));
+        
+        // ALTIJD response text lezen, ook bij error
+        const responseText = await response.text();
+        console.log("📄 FULL Memory function raw response:", responseText);
+        
+        if (response.ok) {
+            try {
+                const result = JSON.parse(responseText);
+                console.log('✅ Memory processed successfully:', result);
+                
+                if (result.success) {
+                    console.log('🧠 Memory analysis:', result.analysis);
+                    console.log('📝 Update method used:', result.method);
+                    
+                    if (result.method !== 'analysis_only') {
+                        console.log('💾 Memory successfully saved to Airtable');
+                        console.log('🆔 Updated record ID:', result.record_id);
+                        
+                        // Success indicator
+                        const chatlog = document.getElementById("chatlog");
+                        if (chatlog) {
+                            const memoryIndicator = document.createElement("div");
+                            memoryIndicator.style.cssText = `
+                                font-size: 10px; 
+                                color: #14b8a6; 
+                                text-align: center; 
+                                margin: 2px 0; 
+                                opacity: 0.7;
+                            `;
+                            memoryIndicator.textContent = "💾 Memory saved";
+                            chatlog.appendChild(memoryIndicator);
+                            
+                            setTimeout(() => {
+                                if (memoryIndicator.parentNode) {
+                                    memoryIndicator.remove();
+                                }
+                            }, 3000);
+                        }
+                    } else {
+                        console.log('⚠️ Memory analyzed but not saved to Airtable');
+                        console.log('⚠️ This means no matching record was found in ChatHistory');
+                    }
+                } else {
+                    console.log('❌ Memory processing returned success: false');
+                }
+            } catch (parseError) {
+                console.error('❌ Failed to parse memory response as JSON:', parseError);
+                console.log('📄 Raw response that failed to parse:', responseText);
+            }
+        } else {
+            console.log('❌ Memory processing failed with status:', response.status);
+            console.log('📄 Error response:', responseText);
+        }
+        
+    } catch (error) {
+        console.error('❌ Memory processing error:', error);
+    }
+    
 }
     
     const params = new URLSearchParams(window.location.search);
