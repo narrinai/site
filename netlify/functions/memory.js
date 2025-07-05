@@ -78,19 +78,31 @@ exports.handler = async (event, context) => {
         if (!userMatch) continue;
         
         // FIXED: Check character match in Slug field instead of Character field
-        let characterMatch = true; // Default to true if no character specified
-        
-        if (characterIdentifier) {
-          const recordSlug = fields['Slug (from Character)'] || fields.Slug;
-          
-          if (recordSlug) {
-            characterMatch = Array.isArray(recordSlug) 
-              ? recordSlug.some(slug => String(slug).toLowerCase() === String(characterIdentifier).toLowerCase())
-              : String(recordSlug).toLowerCase() === String(characterIdentifier).toLowerCase();
-          } else {
-            characterMatch = false;
-          }
-        }
+let characterMatch = true; // Default to true if no character specified
+
+if (characterIdentifier) {
+  const recordSlug = fields['Slug (from Character)'] || fields.Slug;
+  
+  console.log(`🔍 Checking character match: "${characterIdentifier}" vs "${recordSlug}"`);
+  
+  if (recordSlug) {
+    if (Array.isArray(recordSlug)) {
+      characterMatch = recordSlug.some(slug => {
+        const match = String(slug).toLowerCase() === String(characterIdentifier).toLowerCase();
+        console.log(`  Array check: "${slug}" === "${characterIdentifier}" = ${match}`);
+        return match;
+      });
+    } else {
+      characterMatch = String(recordSlug).toLowerCase() === String(characterIdentifier).toLowerCase();
+      console.log(`  Direct check: "${recordSlug}" === "${characterIdentifier}" = ${characterMatch}`);
+    }
+  } else {
+    console.log(`  No slug found in record, skipping`);
+    characterMatch = false;
+  }
+  
+  console.log(`  Final character match: ${characterMatch}`);
+}
         
         if (!characterMatch) continue;
         
