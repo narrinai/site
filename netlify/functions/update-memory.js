@@ -315,6 +315,89 @@ exports.handler = async (event, context) => {
         // Strategy 2B: Fallback - haal recente records en filter handmatig
         console.log('🔍 Fallback: Fetching recent records for manual filtering...');
         
+// Strategy 2B: Fallback - haal recente records en filter handmatig
+console.log('🔍 Fallback: Fetching recent records for manual filtering...');
+
+// TEMP DEBUG: Zoek naar records met jouw email om de numerieke user_id te vinden
+if (user_email) {
+  console.log('🔍 DEBUG: Searching for records with email:', user_email);
+  
+  const emailUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=10`;
+  
+  const emailResponse = await fetch(emailUrl, {
+    headers: {
+      'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  
+  if (emailResponse.ok) {
+    const emailData = await emailResponse.json();
+    console.log('🔍 DEBUG: Checking records for email match...');
+    
+    emailData.records.forEach((record, index) => {
+      const fields = record.fields || {};
+      const recordEmail = fields.Email || fields['Email (from User)'] || 'no email';
+      
+      console.log(`🔍 Record ${index + 1}:`, {
+        id: record.id,
+        User: fields.User,
+        Email: recordEmail,
+        Message: fields.Message ? fields.Message.substring(0, 30) + '...' : 'no message'
+      });
+      
+      // Check if this record matches your email
+      if (recordEmail === user_email || 
+          (Array.isArray(recordEmail) && recordEmail.includes(user_email))) {
+        console.log('🎯 FOUND MATCHING EMAIL! User ID is:', fields.User);
+        console.log('🎯 This is the numeric user_id you need to store:', fields.User);
+        
+        // Als we een match vinden, probeer dit record te updaten
+        console.log('🔧 Attempting to update this matching record...');
+        
+        const updateUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory/${record.id}`;
+        
+        const updateData = {
+          fields: {
+            "Memory_Importance": analysis.memory_importance,
+            "Emotional_State": analysis.emotional_state,
+            "Summary": analysis.summary,
+            "Memory_Tags": Array.isArray(analysis.memory_tags) ? analysis.memory_tags.join(', ') : analysis.memory_tags
+          }
+        };
+        
+        console.log('📤 Updating email-matched record:', updateData);
+        
+        // Dit is een async operation, maar we doen het in de loop voor testing
+        fetch(updateUrl, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(updateData)
+        }).then(response => {
+          console.log('📨 Email match update response status:', response.status);
+          if (response.ok) {
+            console.log('✅ SUCCESS! Memory updated via email match!');
+            return response.json();
+          } else {
+            return response.text().then(text => {
+              console.error('❌ Email match update failed:', text);
+            });
+          }
+        }).then(result => {
+          if (result && result.id) {
+            console.log('✅ Updated record ID:', result.id);
+          }
+        }).catch(error => {
+          console.error('❌ Email match update error:', error);
+        });
+      }
+    });
+  }
+}
+
         const recentUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=30`;
         
         const recentResponse = await fetch(recentUrl, {
