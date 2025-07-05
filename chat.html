@@ -3348,8 +3348,20 @@ if (memories && memories.length > 0) {
     memories.forEach((memory, i) => {
         console.log(`  ${i+1}. [${memory.importance}] ${memory.summary?.substring(0, 80)}...`);
     });
-    memoryContext = memories.map(m => `[Memory: ${m.summary || m.message}]`).join(" ");
-    console.log("📝 Memory context being sent:", memoryContext);
+// Verbeterde memory context formatting
+if (memories && memories.length > 0) {
+    const memoryTexts = memories.map(m => {
+        const summary = m.summary || m.message || '';
+        const importance = m.importance || 0;
+        return `[Belangrijk geheugen (${importance}/10): ${summary}]`;
+    });
+    
+    memoryContext = `\n\nVorige gesprekken en belangrijke informatie:\n${memoryTexts.join('\n')}\n\nGebruik deze informatie om persoonlijk te antwoorden.\n`;
+    
+    console.log("📝 Improved memory context:", memoryContext);
+} else {
+    memoryContext = "";
+}    console.log("📝 Memory context being sent:", memoryContext);
 } else {
     console.log("📭 No relevant memories found");
     memoryContext = "";
@@ -3376,8 +3388,7 @@ showTypingIndicator();
   try {
     const requestPayload = {
       action: "send_message",
-      text: input,
-      memory_context: memoryContext, 
+      text: memoryContext + input, // Voeg memory context toe aan de user input
       Character_id: characterSlug,
       Slug: characterSlug,
       user_uid: uid,
