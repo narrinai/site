@@ -1786,7 +1786,8 @@
 
     /* Generated prompt section */
     .generated-prompt-section {
-      margin-top: var(--spacing-xl);
+      margin-top: var(--spacing-2xl);
+      margin-bottom: var(--spacing-2xl);
       padding: var(--spacing-xl);
       background: var(--color-white);
       border: 2px solid var(--color-teal);
@@ -2372,20 +2373,22 @@
             <div class="prompt-empty">Select personality traits above to generate your character prompt...</div>
           </div>
           <div class="prompt-actions">
-            <button type="button" id="regeneratePrompt" class="regenerate-btn">🔄 Regenerate</button>
             <button type="button" id="manualEdit" class="manual-edit-btn">✏️ Edit Manually</button>
           </div>
           <div style="font-size: var(--font-size-xs); color: var(--color-gray); margin-top: var(--spacing-sm); font-style: italic;">
-            The "Regenerate" button creates a new prompt based on your current personality selections above.
+            Click "Edit Manually" to customize the generated prompt or make changes to personality selections above to auto-update.
           </div>
         </div>
         
-        <div class="form-group" id="manualPromptGroup" style="display: none;">
+        <div class="form-group" id="manualPromptGroup" style="display: none; margin-top: var(--spacing-xl);">
           <label for="characterPrompt">Character Prompt *</label>
           <textarea id="characterPrompt" name="characterPrompt" required 
                     class="character-prompt"
                     placeholder="Your generated prompt will appear here..."></textarea>
           <div class="char-counter"><span id="promptCounter">0</span>/2000</div>
+          <div class="prompt-actions" style="margin-top: var(--spacing-md);">
+            <button type="button" id="backToGenerated" class="regenerate-btn">← Back to Generated</button>
+          </div>
         </div>
       </div>
 
@@ -3261,20 +3264,24 @@
 
    // Setup prompt actions
    function setupPromptActions() {
-     const regenerateBtn = document.getElementById('regeneratePrompt');
      const manualEditBtn = document.getElementById('manualEdit');
+     const backToGeneratedBtn = document.getElementById('backToGenerated');
      const manualPromptGroup = document.getElementById('manualPromptGroup');
-     const promptPreview = document.querySelector('.prompt-preview');
-     
-     regenerateBtn.addEventListener('click', () => {
-       generatePrompt();
-       showSuccess('Character prompt has been regenerated based on your current personality selections!', 'Prompt Updated');
-     });
+     const generatedPromptSection = document.querySelector('.generated-prompt-section');
      
      manualEditBtn.addEventListener('click', () => {
+       // Hide generated prompt section
+       generatedPromptSection.style.display = 'none';
+       
        // Show manual edit field
        manualPromptGroup.style.display = 'block';
-       promptPreview.style.display = 'none';
+       
+       // Copy current generated prompt to manual field
+       const currentPrompt = document.getElementById('characterPrompt').value;
+       if (!currentPrompt.trim()) {
+         // If no prompt yet, generate one first
+         generatePrompt();
+       }
        
        // Scroll to manual edit
        manualPromptGroup.scrollIntoView({ behavior: 'smooth' });
@@ -3283,6 +3290,17 @@
        setTimeout(() => {
          document.getElementById('characterPrompt').focus();
        }, 300);
+     });
+     
+     backToGeneratedBtn.addEventListener('click', () => {
+       // Show generated prompt section
+       generatedPromptSection.style.display = 'block';
+       
+       // Hide manual edit field
+       manualPromptGroup.style.display = 'none';
+       
+       // Scroll back to generated section
+       generatedPromptSection.scrollIntoView({ behavior: 'smooth' });
      });
    }
 
