@@ -4211,21 +4211,21 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
       submitBtn.textContent = 'Character Created! Redirecting...';
       showSuccess('Character created successfully! Opening chat with your new character...', 'Success');
       
-      // Generate slug from character name if not provided by API
-      let characterSlug = result.character_slug || result.slug || result.data?.slug;
-      
-      if (!characterSlug && formData.name) {
-        // Generate slug from character name
-        characterSlug = formData.name
-          .toLowerCase()
-          .trim()
-          .replace(/[^\w\s-]/g, '') // Remove special characters
-          .replace(/\s+/g, '-')     // Replace spaces with hyphens
-          .replace(/-+/g, '-')      // Replace multiple hyphens with single
-          .replace(/^-|-$/g, '');   // Remove leading/trailing hyphens
-        
-        console.log('🔗 Generated character slug:', characterSlug);
-      }
+      // Get slug from API response (uit character object)
+let characterSlug = result.character?.slug || result.character?.character_id || result.slug;
+
+if (!characterSlug && formData.name) {
+  // Generate slug from character name als fallback
+  characterSlug = formData.name
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '') // Remove special characters
+    .replace(/\s+/g, '-')     // Replace spaces with hyphens
+    .replace(/-+/g, '-')      // Replace multiple hyphens with single
+    .replace(/^-|-$/g, '');   // Remove leading/trailing hyphens
+  
+  console.log('🔗 Generated character slug:', characterSlug);
+}
       
       // Redirect to the new character's chat page
       setTimeout(() => {
