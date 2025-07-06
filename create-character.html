@@ -1810,16 +1810,18 @@
     }
 
     .prompt-preview {
-      background: var(--color-off-white);
-      padding: var(--spacing-lg);
-      border-radius: var(--radius-md);
-      border: 1px solid var(--color-light-gray);
-      font-size: var(--font-size-sm);
-      line-height: 1.6;
-      color: var(--color-gray-dark);
-      margin-bottom: var(--spacing-lg);
-      min-height: 120px;
-    }
+  background: var(--color-off-white);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-light-gray);
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+  color: var(--color-gray-dark);
+  margin-bottom: var(--spacing-lg);
+  min-height: 60px;
+  max-height: 120px;
+  overflow-y: auto;
+}
 
     .prompt-empty {
       color: var(--color-gray-light);
@@ -2989,12 +2991,13 @@
      });
    }
 
-   // Setup personality trait buttons
+   // Setup personality trait buttons - FIXED
    function setupPersonalityButtons() {
      // Personality traits (max 5)
      const traitButtons = document.querySelectorAll('#personalityTraits .personality-button');
      traitButtons.forEach(button => {
-       button.addEventListener('click', () => {
+       button.addEventListener('click', (e) => {
+         e.preventDefault();
          const trait = button.getAttribute('data-trait');
          toggleArraySelection(personalityState.traits, trait, 5, button, 'traitsCounter', 'traits');
        });
@@ -3003,32 +3006,35 @@
      // Speaking patterns (max 3)
      const speakingButtons = document.querySelectorAll('#speakingPattern .personality-button');
      speakingButtons.forEach(button => {
-       button.addEventListener('click', () => {
+       button.addEventListener('click', (e) => {
+         e.preventDefault();
          const pattern = button.getAttribute('data-pattern');
-         toggleArraySelection(personalityState.speaking, pattern, 3, button, 'speakingCounter', 'patterns');
+         toggleArraySelection(personalityState.speaking, pattern, 3, button, 'speakingCounter', 'speaking patterns');
        });
      });
 
      // Bonding approach (max 2)
      const bondingButtons = document.querySelectorAll('#bondingApproach .personality-button');
      bondingButtons.forEach(button => {
-       button.addEventListener('click', () => {
+       button.addEventListener('click', (e) => {
+         e.preventDefault();
          const bonding = button.getAttribute('data-bonding');
-         toggleArraySelection(personalityState.bonding, bonding, 2, button, 'bondingCounter', 'approaches');
+         toggleArraySelection(personalityState.bonding, bonding, 2, button, 'bondingCounter', 'bonding approaches');
        });
      });
 
      // Personality quirks (no max)
      const quirkButtons = document.querySelectorAll('#personalityQuirks .personality-button');
      quirkButtons.forEach(button => {
-       button.addEventListener('click', () => {
+       button.addEventListener('click', (e) => {
+         e.preventDefault();
          const quirk = button.getAttribute('data-quirk');
          toggleArraySelection(personalityState.quirks, quirk, Infinity, button);
        });
      });
    }
 
-   // Toggle selection in array with max limit
+   // Toggle selection in array with max limit - FIXED
    function toggleArraySelection(array, item, maxLimit, buttonElement, counterId = null, labelSuffix = '') {
      const index = array.indexOf(item);
      
@@ -3056,7 +3062,7 @@
          } else {
            counter.textContent = `Select 0-${maxLimit} ${labelSuffix} - Currently selected: ${array.length}`;
          }
-         if (array.length >= maxLimit) {
+         if (array.length >= maxLimit && maxLimit !== Infinity) {
            counter.classList.add('at-limit');
          } else {
            counter.classList.remove('at-limit');
@@ -3073,7 +3079,8 @@
      const customQuirkInput = document.getElementById('customQuirk');
      const addCustomQuirkBtn = document.getElementById('addCustomQuirk');
      
-     addCustomQuirkBtn.addEventListener('click', () => {
+     addCustomQuirkBtn.addEventListener('click', (e) => {
+       e.preventDefault();
        const quirkText = customQuirkInput.value.trim();
        if (quirkText) {
          addCustomQuirk(quirkText);
@@ -3111,7 +3118,8 @@
      button.appendChild(removeBtn);
      
      // Click handler
-     button.addEventListener('click', () => {
+     button.addEventListener('click', (e) => {
+       e.preventDefault();
        const index = personalityState.quirks.indexOf(quirkKey);
        if (index > -1) {
          personalityState.quirks.splice(index, 1);
@@ -3274,21 +3282,29 @@
    function updatePromptPreview(prompt) {
      const preview = document.getElementById('promptPreview');
      if (prompt.trim()) {
-       preview.textContent = prompt;
+       // Truncate long prompts in preview
+       const maxLength = 200;
+       let displayText = prompt;
+       if (prompt.length > maxLength) {
+         displayText = prompt.substring(0, maxLength) + '...';
+       }
+       preview.textContent = displayText;
        preview.classList.remove('prompt-empty');
      } else {
        preview.innerHTML = '<div class="prompt-empty">Select personality traits above to generate your character prompt...</div>';
      }
    }
 
-   // Setup prompt actions
+   // Setup prompt actions - FIXED
    function setupPromptActions() {
      const manualEditBtn = document.getElementById('manualEdit');
      const backToGeneratedBtn = document.getElementById('backToGenerated');
      const manualPromptGroup = document.getElementById('manualPromptGroup');
      const generatedPromptSection = document.querySelector('.generated-prompt-section');
      
-     manualEditBtn.addEventListener('click', () => {
+     manualEditBtn.addEventListener('click', (e) => {
+       e.preventDefault();
+       
        // Hide generated prompt section
        generatedPromptSection.style.display = 'none';
        
@@ -3311,7 +3327,9 @@
        }, 300);
      });
      
-     backToGeneratedBtn.addEventListener('click', () => {
+     backToGeneratedBtn.addEventListener('click', (e) => {
+       e.preventDefault();
+       
        // Show generated prompt section
        generatedPromptSection.style.display = 'block';
        
@@ -3586,69 +3604,6 @@ function debugUserData() {
   };
 }
 
-// ===== CHARACTER FORM SUBMISSION =====
-   
-   // Handle form submission
-   // Initialize everything
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('🚀 Create Character page initializing...');
-  
-  // Run Safari compatibility checks first
-  checkLocalStorageSupport();
-  setupSafariFixes();
-  runSafariCompatibilityTest();
-  
-  // Debug user data on page load
-  setTimeout(() => {
-    debugUserData();
-  }, 1000);
-  
-  setupCharacterCounters();
-  setupAvatarFunctionality();
-  setupPersonalitySliders();
-  setupPersonalityButtons();
-  setupCustomQuirks();
-  setupPromptActions();
-  loadTags();
-  
-  // Initialize preview
-  updatePreview();
-  
-  console.log('✅ Create Character page initialization complete');
-});
-
-   // Validate form data
-   function validateFormData(data) {
-     if (!data.name) {
-       showError('Character name is required', 'Validation Error');
-       document.getElementById('characterName').focus();
-       return false;
-     }
-     
-     if (!data.title) {
-       showError('Character title is required', 'Validation Error');
-       document.getElementById('characterTitle').focus();
-       return false;
-     }
-     
-     if (!data.prompt) {
-       showError('Character prompt is required', 'Validation Error');
-       generatePrompt(); // Try to generate one
-       if (!document.getElementById('characterPrompt').value.trim()) {
-         showError('Please create a character prompt by selecting personality traits or editing manually', 'Validation Error');
-         return false;
-       }
-     }
-     
-     if (!data.category) {
-       showError('Please select a category', 'Validation Error');
-       document.getElementById('characterCategory').focus();
-       return false;
-     }
-     
-     return true;
-   }
-
    // ===== CHARACTER FORM FUNCTIONALITY =====
    
    // Character counters
@@ -3684,7 +3639,7 @@ document.addEventListener('DOMContentLoaded', () => {
      });
    }
 
-   // Voeg deze functie toe NA setupCharacterCounters:
+   // Update prompt counter
 function updatePromptCounter() {
   const prompt = document.getElementById('characterPrompt').value;
   const counter = document.getElementById('promptCounter');
@@ -3925,6 +3880,11 @@ document.addEventListener('DOMContentLoaded', () => {
   setupSafariFixes();
   runSafariCompatibilityTest();
   
+  // Debug user data on page load
+  setTimeout(() => {
+    debugUserData();
+  }, 1000);
+  
   setupCharacterCounters();
   setupAvatarFunctionality();
   setupPersonalitySliders();
@@ -3939,7 +3899,39 @@ document.addEventListener('DOMContentLoaded', () => {
   console.log('✅ Create Character page initialization complete');
 });
 
-// ===== AVATAR FALLBACK FUNCTIES =====
+   // Validate form data
+   function validateFormData(data) {
+     if (!data.name) {
+       showError('Character name is required', 'Validation Error');
+       document.getElementById('characterName').focus();
+       return false;
+     }
+     
+     if (!data.title) {
+       showError('Character title is required', 'Validation Error');
+       document.getElementById('characterTitle').focus();
+       return false;
+     }
+     
+     if (!data.prompt) {
+       showError('Character prompt is required', 'Validation Error');
+       generatePrompt(); // Try to generate one
+       if (!document.getElementById('characterPrompt').value.trim()) {
+         showError('Please create a character prompt by selecting personality traits or editing manually', 'Validation Error');
+         return false;
+       }
+     }
+     
+     if (!data.category) {
+       showError('Please select a category', 'Validation Error');
+       document.getElementById('characterCategory').focus();
+       return false;
+     }
+     
+     return true;
+   }
+
+   // ===== AVATAR FALLBACK FUNCTIES =====
  
  function generateEmojiAvatar(characterName, category) {
    const emoji = getEmojiForCharacter(characterName, category);
