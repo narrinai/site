@@ -4119,9 +4119,17 @@ document.addEventListener('DOMContentLoaded', () => {
  }
  
 // ===== FORM SUBMISSION HANDLER =====
+let isSubmitting = false; // Global flag to prevent double submissions
+
 document.getElementById('characterForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   console.log('🚀 Form submission started...');
+  
+  // Prevent double submission
+  if (isSubmitting) {
+    console.log('⚠️ Form already being submitted, ignoring...');
+    return;
+  }
   
   // Check if user is logged in
   const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
@@ -4151,19 +4159,35 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
     return;
   }
   
+  // Set submitting flag and disable form
+  isSubmitting = true;
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  const originalText = submitBtn.textContent;
+  
   try {
-    // Show loading
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    const originalText = submitBtn.textContent;
+    // Show loading state
     submitBtn.textContent = 'Creating Character...';
     submitBtn.disabled = true;
+    
+    // Disable entire form to prevent any changes during submission
+    const formElements = e.target.querySelectorAll('input, textarea, select, button');
+    formElements.forEach(element => {
+      if (element !== submitBtn) {
+        element.disabled = true;
+      }
+    });
+    
+    console.log('📤 Sending character data to API...');
     
     // Create character
     const result = await createCharacter(formData);
     
     if (result.success) {
-      showSuccess('Character created successfully!', 'Success');
-      // Reset form or redirect
+      console.log('✅ Character created successfully');
+      submitBtn.textContent = 'Character Created! Redirecting...';
+      showSuccess('Character created successfully! Redirecting to characters page...', 'Success');
+      
+      // Redirect after showing success message
       setTimeout(() => {
         window.location.href = 'index.html';
       }, 2000);
@@ -4174,15 +4198,24 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
   } catch (error) {
     console.error('❌ Error creating character:', error);
     showError('Failed to create character. Please try again.', 'Error');
-  } finally {
-    // Reset button
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    submitBtn.textContent = 'Create Character';
+    
+    // Reset form state on error so user can try again
+    isSubmitting = false;
+    submitBtn.textContent = originalText;
     submitBtn.disabled = false;
+    
+    // Re-enable form elements
+    const formElements = e.target.querySelectorAll('input, textarea, select, button');
+    formElements.forEach(element => {
+      element.disabled = false;
+    });
   }
+  
+  // Note: We don't reset isSubmitting on success because we're redirecting
+  // This prevents any further submissions during the redirect process
 });
 
-// Create character function
+// Create character function with improved error handling
 async function createCharacter(formData) {
   try {
     const requestData = {
@@ -4192,6 +4225,8 @@ async function createCharacter(formData) {
       user_token: localStorage.getItem("user_token")
     };
     
+    console.log('🔄 Making API request...');
+    
     const response = await fetch('https://hook.eu2.make.com/c36jubkn9rbbqg0ovgfbx2ca1iwgf16q', {
       method: 'POST',
       headers: {
@@ -4200,11 +4235,14 @@ async function createCharacter(formData) {
       body: JSON.stringify(requestData)
     });
     
+    console.log(`📡 API Response: ${response.status} ${response.statusText}`);
+    
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
     
     const result = await response.json();
+    console.log('📋 API Result:', result);
     return result;
     
   } catch (error) {
@@ -4212,6 +4250,15 @@ async function createCharacter(formData) {
     return { success: false, error: error.message };
   }
 }
+
+// Additional safety: Prevent form submission on page unload
+window.addEventListener('beforeunload', (e) => {
+  if (isSubmitting) {
+    e.preventDefault();
+    e.returnValue = 'Character is being created. Are you sure you want to leave?';
+    return e.returnValue;
+  }
+});
 
  </script>
 
