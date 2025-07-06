@@ -3564,144 +3564,66 @@
    // Category change handler
    document.getElementById('characterCategory').addEventListener('change', generateSuggestedTags);
 
+// Add debugging for user data
+function debugUserData() {
+  console.log('🔍 DEBUGGING USER DATA:');
+  
+  // Netlify Identity user
+  const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+  console.log('Netlify User:', netlifyUser);
+  
+  // Local storage data
+  const localEmail = localStorage.getItem("user_email");
+  const localToken = localStorage.getItem("user_token");
+  const localUID = localStorage.getItem("user_uid");
+  
+  console.log('Local Storage Data:', {
+    email: localEmail,
+    token: localToken,
+    uid: localUID
+  });
+  
+  // All localStorage keys
+  console.log('All localStorage keys:', Object.keys(localStorage));
+  
+  return {
+    netlifyUser,
+    localEmail,
+    localToken,
+    localUID
+  };
+}
+
 // ===== CHARACTER FORM SUBMISSION =====
    
    // Handle form submission
-   document.getElementById('characterForm').addEventListener('submit', async (e) => {
-     e.preventDefault();
-     
-     console.log('🚀 Starting character creation...');
-     
-     // Check if user is logged in
-     const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
-     const localEmail = localStorage.getItem("user_email");
-     const localToken = localStorage.getItem("user_token");
-     const localUID = localStorage.getItem("user_uid");
-     
-     if (!netlifyUser && !localEmail) {
-       showLoginOverlay();
-       return;
-     }
-     
-     // Get user data
-     const userEmail = netlifyUser?.email || localEmail;
-     const userUID = netlifyUser?.id || localUID;
-     
-     // Collect form data
-     const formData = collectFormData();
-     
-     // Validate required fields
-     if (!validateFormData(formData)) {
-       return;
-     }
-     
-     // Show loading state
-     const submitBtn = document.querySelector('.btn-primary-form');
-     const originalText = submitBtn.textContent;
-     submitBtn.textContent = 'Creating Character...';
-     submitBtn.disabled = true;
-     
-     try {
-       // Upload avatar if file is selected
-       let avatarUrl = '';
-       const avatarMethod = document.querySelector('input[name="avatarMethod"]:checked').value;
-       
-       if (avatarMethod === 'upload') {
-         const fileInput = document.getElementById('avatarFileInput');
-         if (fileInput.files[0]) {
-           console.log('📸 Uploading avatar to Cloudinary...');
-           avatarUrl = await uploadToCloudinary(fileInput.files[0], formData.slug);
-         }
-       } else if (avatarMethod === 'url') {
-         avatarUrl = document.getElementById('avatarUrlInput').value.trim();
-       }
-       
-       // Generate fallback avatar if no avatar provided
-       if (!avatarUrl) {
-         avatarUrl = generateEmojiAvatar(formData.name, formData.category);
-         console.log('🎨 Generated emoji avatar for:', formData.name);
-       }
-       
-       // Prepare character data
-       const characterData = {
-         action: 'create_character',
-         user_email: userEmail,
-         user_uid: userUID,
-         name: formData.name,
-         character_title: formData.title,
-         character_id: `char_${Date.now()}`,
-         slug: formData.slug,
-         prompt: formData.prompt,
-         avatar_url: avatarUrl || '',
-         category: formData.category,
-         character_description: formData.description,
-         tags: formData.tags,
-         visibility: formData.visibility,
-         character_url: `https://narrin.ai/chat.html?char=${formData.slug}`,
-         created_by: userEmail
-       };
-       
-       console.log('📤 Sending character data:', characterData);
-       
-       // Send to webhook
-       const response = await fetch('https://hook.eu2.make.com/c36jubkn9rbbqg0ovgfbx2ca1iwgf16q', {
-         method: 'POST',
-         headers: {
-           'Content-Type': 'application/json',
-         },
-         body: JSON.stringify(characterData)
-       });
-       
-       const result = await response.json();
-       console.log('📥 Webhook response:', result);
-       
-       if (response.ok && result.success) {
-         showSuccess('Character created successfully! You can now chat with your character.', 'Success');
-         
-         // Redirect to character chat after 2 seconds
-         setTimeout(() => {
-           window.location.href = `chat.html?char=${formData.slug}`;
-         }, 2000);
-         
-       } else {
-         throw new Error(result.message || 'Failed to create character');
-       }
-       
-     } catch (error) {
-       console.error('❌ Error creating character:', error);
-       showError('Failed to create character. Please try again.', 'Error');
-     } finally {
-       // Reset button
-       submitBtn.textContent = originalText;
-       submitBtn.disabled = false;
-     }
-   });
-
-   // Collect form data
-   function collectFormData() {
-     const name = document.getElementById('characterName').value.trim();
-     const title = document.getElementById('characterTitle').value.trim();
-     const description = document.getElementById('characterDescription').value.trim();
-     const prompt = document.getElementById('characterPrompt').value.trim();
-     const category = document.getElementById('characterCategory').value;
-     const visibility = document.querySelector('input[name="visibility"]:checked').value;
-     
-     // Generate slug from name
-     const slug = name.toLowerCase()
-       .replace(/[^a-z0-9]+/g, '-')
-       .replace(/(^-|-$)/g, '');
-     
-     return {
-       name,
-       title,
-       description,
-       prompt,
-       category,
-       visibility,
-       slug,
-       tags: selectedTags
-     };
-   }
+   // Initialize everything
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('🚀 Create Character page initializing...');
+  
+  // Run Safari compatibility checks first
+  checkLocalStorageSupport();
+  setupSafariFixes();
+  runSafariCompatibilityTest();
+  
+  // Debug user data on page load
+  setTimeout(() => {
+    debugUserData();
+  }, 1000);
+  
+  setupCharacterCounters();
+  setupAvatarFunctionality();
+  setupPersonalitySliders();
+  setupPersonalityButtons();
+  setupCustomQuirks();
+  setupPromptActions();
+  loadTags();
+  
+  // Initialize preview
+  updatePreview();
+  
+  console.log('✅ Create Character page initialization complete');
+});
 
    // Validate form data
    function validateFormData(data) {
