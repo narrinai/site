@@ -3658,6 +3658,17 @@ function debugUserData() {
   };
 }
 
+// ===== SLUG GENERATION FUNCTION =====
+function generateSlug(text) {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '') // Remove special characters except spaces and hyphens
+    .replace(/\s+/g, '-')         // Replace spaces with hyphens
+    .replace(/-+/g, '-')          // Replace multiple hyphens with single hyphen
+    .replace(/^-|-$/g, '');       // Remove leading/trailing hyphens
+}
+
    // ===== CHARACTER FORM FUNCTIONALITY =====
    
    // Character counters
@@ -4261,6 +4272,7 @@ if (!characterSlug && formData.name) {
 
 // Create character function with improved error handling
 // Create character function with improved error handling
+// Create character function with improved error handling
 async function createCharacter(formData) {
   try {
     // Get user credentials
@@ -4270,6 +4282,10 @@ async function createCharacter(formData) {
     if (!userEmail || !userToken) {
       throw new Error('User not logged in - missing credentials');
     }
+    
+    // Generate slug from character name
+    const slug = generateSlug(formData.name);
+    console.log('🔗 Generated slug:', slug);
     
     // Debug tags
     console.log('🏷️ selectedTags:', selectedTags);
@@ -4282,14 +4298,16 @@ async function createCharacter(formData) {
       
       // Character data voor Make.com
       name: formData.name,
-      character_name: formData.name, // Voor slug generatie
+      slug: slug,                    // Generated slug
+      character_id: slug,            // Use slug as character_id
       title: formData.title,
       description: formData.description,
       prompt: formData.prompt,
       category: formData.category,
       tags: JSON.stringify(selectedTags), // Als JSON string
       visibility: formData.visibility,
-      avatar_url: formData.avatarUrl || ''
+      avatar_url: formData.avatarUrl || '',
+      character_url: `https://narrin.ai/chat.html?char=${slug}`
     };
     
     console.log('📤 Request data:', requestData);
