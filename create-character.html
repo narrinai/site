@@ -4260,6 +4260,7 @@ if (!characterSlug && formData.name) {
 });
 
 // Create character function with improved error handling
+// Create character function with improved error handling
 async function createCharacter(formData) {
   try {
     // Get user credentials
@@ -4270,26 +4271,28 @@ async function createCharacter(formData) {
       throw new Error('User not logged in - missing credentials');
     }
     
+    // Debug tags
+    console.log('🏷️ selectedTags:', selectedTags);
+    console.log('🏷️ formData.tags:', formData.tags);
+    
     const requestData = {
       action: 'create_character',
       user_email: userEmail,
       user_token: userToken,
       
-      // Character data - gestructureerd voor Make.com
+      // Character data voor Make.com
       name: formData.name,
+      character_name: formData.name, // Voor slug generatie
       title: formData.title,
       description: formData.description,
       prompt: formData.prompt,
       category: formData.category,
-tags: formData.tags, // Stuur als array
+      tags: JSON.stringify(selectedTags), // Als JSON string
       visibility: formData.visibility,
-      avatar_url: formData.avatarUrl || '',
-      
-      // Extra debug info
-      character_data: formData.character_data
+      avatar_url: formData.avatarUrl || ''
     };
     
-   console.log('🔄 Making API request with data:', requestData);
+    console.log('📤 Request data:', requestData);
     
     const response = await fetch('https://hook.eu2.make.com/c36jubkn9rbbqg0ovgfbx2ca1iwgf16q', {
       method: 'POST',
@@ -4304,9 +4307,8 @@ tags: formData.tags, // Stuur als array
     }
 
     const responseText = await response.text();
-    console.log('📝 API Response (raw):', responseText);
+    console.log('📝 API Response:', responseText);
 
-    // Parse response
     let result = {};
     if (responseText && responseText.trim() !== '') {
       try {
@@ -4317,9 +4319,8 @@ tags: formData.tags, // Stuur als array
       }
     }
 
-    console.log('📋 Parsed API Response:', result);
     return result;
-
+    
   } catch (error) {
     console.error('❌ API Request failed:', error);
     throw error;
