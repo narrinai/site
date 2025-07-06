@@ -4131,6 +4131,11 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
     return;
   }
   
+  // Set flags to prevent both double submission and unload warning
+  isSubmitting = true;
+  isFormSubmitting = true;
+  formHasUnsavedChanges = false; // Clear unsaved changes flag
+
   // Check if user is logged in
   const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
   const localEmail = localStorage.getItem("user_email");
@@ -4142,17 +4147,31 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
     return;
   }
   
-  // Collect form data
+  // Collect form data - ENHANCED VERSION
   const formData = {
     name: document.getElementById('characterName').value.trim(),
-    title: document.getElementById('characterTitle').value.trim(),
+    title: document.getElementById('characterTitle').value.trim(), 
     description: document.getElementById('characterDescription').value.trim(),
     prompt: document.getElementById('characterPrompt').value.trim(),
     category: document.getElementById('characterCategory').value,
     tags: selectedTags,
     visibility: document.querySelector('input[name="visibility"]:checked').value,
-    avatarUrl: currentAvatarUrl
+    avatarUrl: currentAvatarUrl,
+    
+    // NIEUWE VELDEN TOEVOEGEN:
+    character_data: {
+      name: document.getElementById('characterName').value.trim(),
+      title: document.getElementById('characterTitle').value.trim(),
+      description: document.getElementById('characterDescription').value.trim(), 
+      prompt: document.getElementById('characterPrompt').value.trim(),
+      category: document.getElementById('characterCategory').value,
+      tags: selectedTags.join(','), // Make.com verwacht comma-separated string
+      visibility: document.querySelector('input[name="visibility"]:checked').value,
+      avatar_url: currentAvatarUrl || ''
+    }
   };
+  
+  console.log('📋 Form data collected:', formData);
   
   // Validate form data
   if (!validateFormData(formData)) {
@@ -4183,31 +4202,42 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
     const result = await createCharacter(formData);
     
     if (result.success) {
-  console.log('✅ Character created successfully');
-  submitBtn.textContent = 'Character Created! Redirecting...';
-  showSuccess('Character created successfully! Opening chat with your new character...', 'Success');
-  
-  // Generate slug from character name if not provided by API
-  let characterSlug = result.character_slug || result.slug;
-  
-  if (!characterSlug) {
-    // Generate slug from character name
-    characterSlug = formData.name
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, '') // Remove special characters
-      .replace(/\s+/g, '-')     // Replace spaces with hyphens
-      .replace(/-+/g, '-')      // Replace multiple hyphens with single
-      .replace(/^-|-$/g, '');   // Remove leading/trailing hyphens
-  }
-  
-  // Redirect to the new character's chat page
-  setTimeout(() => {
-    window.location.href = `chat.html?char=${characterSlug}`;
-  }, 2000);
-} else {
-  throw new Error(result.error || 'Failed to create character');
-}
+      console.log('✅ Character created successfully:', result);
+      
+      // Stop form submission warning
+      isFormSubmitting = true;
+      formHasUnsavedChanges = false;
+      
+      submitBtn.textContent = 'Character Created! Redirecting...';
+      showSuccess('Character created successfully! Opening chat with your new character...', 'Success');
+      
+      // Generate slug from character name if not provided by API
+      let characterSlug = result.character_slug || result.slug || result.data?.slug;
+      
+      if (!characterSlug && formData.name) {
+        // Generate slug from character name
+        characterSlug = formData.name
+          .toLowerCase()
+          .trim()
+          .replace(/[^\w\s-]/g, '') // Remove special characters
+          .replace(/\s+/g, '-')     // Replace spaces with hyphens
+          .replace(/-+/g, '-')      // Replace multiple hyphens with single
+          .replace(/^-|-$/g, '');   // Remove leading/trailing hyphens
+        
+        console.log('🔗 Generated character slug:', characterSlug);
+      }
+      
+      // Redirect to the new character's chat page
+      setTimeout(() => {
+        if (characterSlug) {
+          window.location.href = `chat.html?char=${characterSlug}`;
+        } else {
+          window.location.href = 'index.html';
+        }
+      }, 2000);
+    } else {
+      throw new Error(result.error || result.message || 'Failed to create character');
+    }
     
   } catch (error) {
     console.error('❌ Error creating character:', error);
@@ -4232,46 +4262,65 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
 // Create character function with improved error handling
 async function createCharacter(formData) {
   try {
-    const requestData = {
-      action: 'create_character',
-      character_data: formData,
-      user_email: localStorage.getItem("user_email"),
-      user_token: localStorage.getItem("user_token")
-    };
+    // Get user credentials
+    const userEmail = localStorage.getItem("user_email");
+    const userToken = localStorage.getItem("user_token");
     
-    console.log('🔄 Making API request...');
-    
-    const response = await fetch('https://hook.eu2.make.com/c36jubkn9rbbqg0ovgfbx2ca1iwgf16q', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestData)
-    });
-    
-    console.log(`📡 API Response: ${response.status} ${response.statusText}`);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    if (!userEmail || !userToken) {
+      throw new Error('User not logged in - missing credentials');
     }
     
-    const result = await response.json();
-    console.log('📋 API Result:', result);
-    return result;
+    const requestData = {
+      action: 'create_character',
+      user_email: userEmail,
+      user_token: userToken,
+      
+      // Character data - gestructureerd voor Make.com
+      name: formData.name,
+      title: formData.title,
+      description: formData.description,
+      prompt: formData.prompt,
+      category: formData.category,
+      tags: formData.tags.join(','), // Comma-separated string
+      visibility: formData.visibility,
+      avatar_url: formData.avatarUrl || '',
+      
+      // Extra debug info
+      character_data: formData.character_data
+    };
     
-  } catch (error) {
-    console.error('❌ Create character API error:', error);
-    return { success: false, error: error.message };
-  }
+    console.log('🔄 Making API request with data:', requestData);
+
+// Prevent data loss warning - only when form has unsaved changes
+let formHasUnsavedChanges = false;
+let isFormSubmitting = false;
+
+// Track when form has changes
+function trackFormChanges() {
+  const formElements = document.querySelectorAll('#characterForm input, #characterForm textarea, #characterForm select');
+  formElements.forEach(element => {
+    element.addEventListener('change', () => {
+      formHasUnsavedChanges = true;
+    });
+    element.addEventListener('input', () => {
+      formHasUnsavedChanges = true;
+    });
+  });
 }
 
-// Additional safety: Prevent form submission on page unload
+// Better beforeunload handler
 window.addEventListener('beforeunload', (e) => {
-  if (isSubmitting) {
+  // Only warn if there are unsaved changes AND we're not submitting
+  if (formHasUnsavedChanges && !isFormSubmitting) {
     e.preventDefault();
-    e.returnValue = 'Character is being created. Are you sure you want to leave?';
+    e.returnValue = 'You have unsaved character data. Are you sure you want to leave?';
     return e.returnValue;
   }
+});
+
+// Initialize form change tracking
+document.addEventListener('DOMContentLoaded', () => {
+  trackFormChanges();
 });
 
  </script>
