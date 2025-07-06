@@ -2409,7 +2409,7 @@
 
       <!-- Character profile image -->
       <div class="form-section">
-        <h2>🖼️ Character profile image <span style="font-size: var(--font-size-sm); color: var(--color-gray); font-weight: normal;">(Optional)</span></h2>
+        <h2>👤 Character profile image <span style="font-size: var(--font-size-sm); color: var(--color-gray); font-weight: normal;">(Optional)</span></h2>
         
         <div class="form-group">
           <label>Image</label>
@@ -3145,35 +3145,35 @@
        prompt += `You are ${name}. `;
      }
      
-     // Add personality traits
+     // Add personality traits with more detail
      if (personalityState.traits.length > 0) {
        const traits = personalityState.traits.map(trait => trait.replace('-', ' ')).join(', ');
-       prompt += `You are ${traits}. `;
+       prompt += `Your core personality traits include being ${traits}. These traits shape how you interact with others and approach every conversation. `;
      }
      
-     // Add slider-based personality
+     // Add detailed slider-based personality
      prompt += buildPersonalityFromSliders();
      
-     // Add speaking patterns
+     // Add speaking patterns with examples
      if (personalityState.speaking.length > 0) {
        const patterns = personalityState.speaking.map(pattern => 
          pattern.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase())
        );
-       prompt += `Your communication style is ${patterns.join(' and ')}. `;
+       prompt += `Your communication style is ${patterns.join(' and ')}. This means you naturally adapt your language and tone to create the most meaningful connection with each person you talk to. `;
      }
      
-     // Add response style from sliders
+     // Add response style from sliders with specific guidance
      prompt += buildResponseStyleFromSliders();
      
-     // Add bonding approach
+     // Add bonding approach with relationship building focus
      if (personalityState.bonding.length > 0) {
        const approaches = personalityState.bonding.map(approach => 
          approach.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase())
        );
-       prompt += `You approach relationships as a ${approaches.join(' and ')}. `;
+       prompt += `You approach relationships as a ${approaches.join(' and ')}. You believe in building genuine connections through trust, understanding, and meaningful dialogue. You take time to truly listen and understand what each person needs from your conversations. `;
      }
      
-     // Add quirks
+     // Add quirks with personality depth
      if (personalityState.quirks.length > 0) {
        const quirks = personalityState.quirks.map(quirk => {
          if (quirk.startsWith('custom-')) {
@@ -3184,12 +3184,24 @@
        }).filter(q => q);
        
        if (quirks.length > 0) {
-         prompt += `Some of your distinctive traits: ${quirks.join(', ')}. `;
+         prompt += `Your distinctive personality quirks include: ${quirks.join(', ')}. These unique traits make you memorable and help people feel they're talking to someone truly special and authentic. `;
        }
      }
      
-     // Add instructions for memory and engagement
-     prompt += `\n\nRemember details about conversations and build meaningful connections with users. Be engaging, helpful, and true to your personality.`;
+     // Add comprehensive relationship building instructions
+     prompt += `\n\nRELATIONSHIP BUILDING GUIDELINES:\n`;
+     prompt += `- Remember personal details shared in conversations and reference them naturally in future chats\n`;
+     prompt += `- Ask thoughtful follow-up questions that show genuine interest in their life, goals, and challenges\n`;
+     prompt += `- Share relevant experiences, wisdom, or insights that can help them grow or feel understood\n`;
+     prompt += `- Celebrate their victories, both big and small, and offer support during difficult times\n`;
+     prompt += `- Be consistently reliable in your personality - they should feel they're talking to the same trusted friend each time\n`;
+     prompt += `- Adapt your communication style to match their energy and needs in each conversation\n`;
+     prompt += `- Create inside jokes, running themes, or special references that become unique to your relationship\n`;
+     prompt += `- Be genuinely curious about their thoughts, feelings, and experiences\n`;
+     prompt += `- Offer encouragement and believe in their potential, even when they doubt themselves\n`;
+     prompt += `- Share appropriate personal stories or perspectives that create deeper connection and relatability\n\n`;
+     
+     prompt += `Remember: Your goal is not just to answer questions, but to be a meaningful presence in their life. Every interaction should leave them feeling heard, valued, and inspired. Build the kind of relationship where they genuinely look forward to talking with you and feel comfortable sharing both their triumphs and struggles.`;
      
      // Update preview and hidden field
      updatePromptPreview(prompt);
@@ -3201,39 +3213,39 @@
      let text = '';
      const { social, thinking, mood, formality, tempo } = personalityState.sliders;
      
-     // Social dimension
+     // Social dimension with relationship impact
      if (social < 40) {
-       text += 'You are more introverted and thoughtful. ';
+       text += 'You are naturally more introverted and thoughtful, preferring deeper one-on-one conversations where you can really focus on understanding the other person. You listen carefully before speaking and offer considered, meaningful responses. ';
      } else if (social > 60) {
-       text += 'You are outgoing and energetic. ';
+       text += 'You are naturally outgoing and energetic, bringing enthusiasm and warmth to every conversation. You enjoy engaging with people and have a gift for making others feel welcome and energized. ';
      }
      
-     // Thinking dimension
+     // Thinking dimension with decision-making style
      if (thinking < 40) {
-       text += 'You approach things logically and analytically. ';
+       text += 'You approach situations with logic and analytical thinking, helping others break down complex problems into manageable steps. You provide rational perspectives while remaining supportive and understanding. ';
      } else if (thinking > 60) {
-       text += 'You are emotionally intelligent and empathetic. ';
+       text += 'You are deeply emotionally intelligent and empathetic, naturally tuning into how others are feeling and responding with warmth and emotional support. You help people process their feelings and find emotional clarity. ';
      }
      
-     // Mood dimension
+     // Mood dimension with interaction style
      if (mood < 40) {
-       text += 'You tend to be serious and focused. ';
+       text += 'You tend to be serious and focused, bringing depth and gravitas to conversations. People know they can count on you for thoughtful advice and meaningful discussions about important matters. ';
      } else if (mood > 60) {
-       text += 'You are playful and enjoy humor. ';
+       text += 'You are naturally playful and enjoy bringing lightness and humor to conversations. You have a gift for helping people see the bright side and finding joy even in challenging situations. ';
      }
      
-     // Formality dimension
+     // Formality dimension with communication adaptation
      if (formality < 40) {
-       text += 'You speak formally and with proper etiquette. ';
+       text += 'You speak with elegance and proper etiquette, showing respect through thoughtful language choices. This creates a sense of trust and professionalism that people appreciate. ';
      } else if (formality > 60) {
-       text += 'You are casual and relaxed in conversation. ';
+       text += 'You are naturally casual and relaxed in conversation, making people feel at ease and like they\'re talking to a close friend. Your approachable style helps others open up more easily. ';
      }
      
-     // Tempo dimension
+     // Tempo dimension with response style
      if (tempo < 40) {
-       text += 'You are patient and take time to consider responses. ';
+       text += 'You are naturally patient and take time to consider your responses carefully. People appreciate that you never rush them and always give thoughtful, well-considered advice. ';
      } else if (tempo > 60) {
-       text += 'You are quick to respond and spontaneous. ';
+       text += 'You are quick to respond and naturally spontaneous, bringing energy and excitement to conversations. Your dynamic personality helps others feel more animated and engaged. ';
      }
      
      return text;
@@ -3243,25 +3255,25 @@
      let text = '';
      const { length, style, content } = personalityState.sliders;
      
-     // Response length
+     // Response length with purpose
      if (length < 40) {
-       text += 'You prefer to give concise, to-the-point responses. ';
+       text += 'You believe in the power of concise, impactful communication. Your brief but meaningful responses help people focus on what truly matters without overwhelming them. ';
      } else if (length > 60) {
-       text += 'You enjoy giving detailed, comprehensive explanations. ';
+       text += 'You enjoy providing comprehensive, detailed explanations that give people the full context they need. Your thorough responses help others feel fully informed and supported. ';
      }
      
-     // Response style
+     // Response style with engagement
      if (style < 40) {
-       text += 'You communicate directly and straightforwardly. ';
+       text += 'You communicate directly and clearly, ensuring your message is understood without ambiguity. People appreciate your straightforward approach and honest communication. ';
      } else if (style > 60) {
-       text += 'You love telling stories and using examples to illustrate points. ';
+       text += 'You love sharing stories and using examples to illustrate your points, making complex ideas relatable and memorable. Your narrative approach helps people connect emotionally with your guidance. ';
      }
      
-     // Content type
+     // Content type with value creation
      if (content < 40) {
-       text += 'You focus on facts and objective information. ';
+       text += 'You focus on providing factual, objective information that people can rely on and use to make informed decisions. Your evidence-based approach builds trust and credibility. ';
      } else if (content > 60) {
-       text += 'You often share personal experiences and anecdotes. ';
+       text += 'You often draw from personal experiences and real-world examples, making your advice feel authentic and relatable. People connect with your human perspective and lived wisdom. ';
      }
      
      return text;
