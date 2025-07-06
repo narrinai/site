@@ -3556,4 +3556,269 @@
 
    // Avatar functionality
    function setupAvatarFunctionality() {
-     const avatarOptions = document.querySelectorAll('
+     const avatarOptions = document.querySelectorAll('input[name="avatarMethod"]');
+     const avatarFileInput = document.getElementById('avatarFileInput');
+     const avatarUrlInput = document.getElementById('avatarUrlInput');
+     const avatarPreview = document.getElementById('avatarPreview');
+     const avatarImg = document.getElementById('avatarImg');
+     const fileName = document.getElementById('fileName');
+     
+     avatarOptions.forEach(option => {
+       option.addEventListener('change', () => {
+         document.querySelectorAll('.avatar-option').forEach(opt => opt.classList.remove('active'));
+         option.closest('.avatar-option').classList.add('active');
+       });
+     });
+     
+     avatarFileInput.addEventListener('change', (e) => {
+       const file = e.target.files[0];
+       if (file) {
+         fileName.textContent = file.name;
+         const reader = new FileReader();
+         reader.onload = (e) => {
+           currentAvatarUrl = e.target.result;
+           avatarImg.src = currentAvatarUrl;
+           avatarPreview.style.display = 'block';
+           updatePreview();
+         };
+         reader.readAsDataURL(file);
+       }
+     });
+     
+     avatarUrlInput.addEventListener('input', () => {
+       const url = avatarUrlInput.value.trim();
+       if (url) {
+         currentAvatarUrl = url;
+         avatarImg.src = url;
+         avatarPreview.style.display = 'block';
+         updatePreview();
+       } else {
+         avatarPreview.style.display = 'none';
+         currentAvatarUrl = '';
+         updatePreview();
+       }
+     });
+   }
+
+   // Trigger file upload
+   function triggerFileUpload() {
+     document.getElementById('avatarFileInput').click();
+   }
+
+   // Visibility selection
+   function selectVisibility(type) {
+     document.querySelectorAll('.radio-option').forEach(option => {
+       option.classList.remove('selected');
+     });
+     
+     event.target.closest('.radio-option').classList.add('selected');
+     document.querySelector(`input[value="${type}"]`).checked = true;
+   }
+
+   // Update preview
+   function updatePreview() {
+     const name = document.getElementById('characterName').value || 'Character Name';
+     const title = document.getElementById('characterTitle').value || 'Character title will appear here';
+     
+     document.getElementById('previewName').textContent = name;
+     document.getElementById('previewTitle').textContent = title;
+     
+     // Update avatar
+     const previewAvatar = document.getElementById('previewAvatar');
+     if (currentAvatarUrl) {
+       previewAvatar.innerHTML = `<img src="${currentAvatarUrl}" alt="Avatar">`;
+     } else {
+       previewAvatar.innerHTML = '👤';
+     }
+     
+     // Update tags
+     const previewTags = document.getElementById('previewTags');
+     previewTags.innerHTML = '';
+     selectedTags.forEach(tag => {
+       const tagElement = document.createElement('div');
+       tagElement.className = 'preview-tag';
+       tagElement.textContent = tag;
+       previewTags.appendChild(tagElement);
+     });
+     
+     // Show preview if there's content
+     const hasContent = name !== 'Character Name' || title !== 'Character title will appear here' || selectedTags.length > 0;
+     document.getElementById('previewSection').style.display = hasContent ? 'block' : 'none';
+   }
+
+// 🔧 CLOUDINARY AVATAR UPLOAD FUNCTION
+async function uploadToCloudinary(file, slug) {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', 'ml_default');
+  formData.append('public_id', `avatars/${slug}`);
+  formData.append('quality', 'auto');
+  formData.append('fetch_format', 'auto');
+  
+  const response = await fetch('https://api.cloudinary.com/v1_1/dqrmopzes/image/upload', {
+    method: 'POST',
+    body: formData
+  });
+  
+  if (!response.ok) {
+    const errorData = await response.json();
+    console.error('Cloudinary error:', errorData);
+    throw new Error(`Cloudinary upload failed: ${errorData.error?.message || response.statusText}`);
+  }
+  
+  const result = await response.json();
+  return result.secure_url;
+}
+
+   // Login overlay functions
+   function showLoginOverlay() {
+     document.getElementById('loginOverlay').style.display = 'flex';
+   }
+
+   function hideLoginOverlay() {
+     document.getElementById('loginOverlay').style.display = 'none';
+   }
+
+   function showLoginModal() {
+     if (window.netlifyIdentity) {
+       window.netlifyIdentity.open('login');
+     }
+   }
+
+   // Go back function
+   function goBack() {
+     window.history.back();
+   }
+
+   // ===== SAFARI COMPATIBILITY CHECK =====
+function checkLocalStorageSupport() {
+  try {
+    const test = 'localStorage-test';
+    localStorage.setItem(test, test);
+    localStorage.removeItem(test);
+    console.log('✅ localStorage werkt normaal');
+    return true;
+  } catch (e) {
+    console.error('❌ localStorage NIET beschikbaar:', e);
+    showError('Safari privacy instellingen blokkeren lokale opslag. Schakel "Prevent Cross-Site Tracking" uit in Safari instellingen.', 'Safari Compatibility Issue');
+    return false;
+  }
+}
+
+// Safari iOS fix voor cross-site requests
+function setupSafariFixes() {
+  if (/Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent)) {
+    console.log('🍎 Safari detected, applying fixes...');
+    
+    // Force credentials for all requests
+    const originalFetch = window.fetch;
+    window.fetch = function(url, options = {}) {
+      options.credentials = options.credentials || 'same-origin';
+      options.mode = options.mode || 'cors';
+      return originalFetch(url, options);
+    };
+    
+    // Check private browsing
+    try {
+      localStorage.setItem('safari-test', '1');
+      localStorage.removeItem('safari-test');
+    } catch (e) {
+      if (e.name === 'QuotaExceededError') {
+        showWarning('Safari Private Browsing detected. Some features may not work properly. Please use regular browsing mode.', 'Safari Compatibility');
+      }
+    }
+  }
+}
+
+function runSafariCompatibilityTest() {
+  const results = {
+    localStorage: false,
+    sessionStorage: false,
+    cookies: false,
+    fetch: false
+  };
+  
+  // Test localStorage
+  try {
+    localStorage.setItem('test', 'value');
+    localStorage.removeItem('test');
+    results.localStorage = true;
+  } catch (e) {
+    console.error('localStorage test failed:', e);
+  }
+  
+  // Test sessionStorage
+  try {
+    sessionStorage.setItem('test', 'value');
+    sessionStorage.removeItem('test');
+    results.sessionStorage = true;
+  } catch (e) {
+    console.error('sessionStorage test failed:', e);
+  }
+  
+  // Test cookies
+  results.cookies = navigator.cookieEnabled;
+  
+  // Test fetch
+  results.fetch = typeof fetch !== 'undefined';
+  
+  console.log('🔍 Safari Compatibility Results:', results);
+  console.log('🔍 SAFARI DEBUG - Browser info:', {
+    userAgent: navigator.userAgent,
+    isSafari: /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent),
+    cookieEnabled: navigator.cookieEnabled,
+    localStorageAvailable: typeof(Storage) !== "undefined"
+  });
+  
+  if (!results.localStorage || !results.sessionStorage) {
+    showError(`Safari compatibility issue detected. Please check your Safari privacy settings and disable "Prevent Cross-Site Tracking".`, 'Browser Compatibility');
+  }
+  
+  return results;
+}
+
+// Initialize everything
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('🚀 Create Character page initializing...');
+  
+  // Run Safari compatibility checks first
+  checkLocalStorageSupport();
+  setupSafariFixes();
+  runSafariCompatibilityTest();
+  
+  setupCharacterCounters();
+  setupAvatarFunctionality();
+  setupPersonalitySliders();
+  setupPersonalityButtons();
+  setupCustomQuirks();
+  setupPromptActions();
+  loadTags();
+  
+  // Initialize preview
+  updatePreview();
+  
+  console.log('✅ Create Character page initialization complete');
+});
+ </script>
+
+ <!-- Footer -->
+ <footer class="footer">
+   <div class="footer-container">
+     <div class="footer-links">
+       <a href="index.html" class="footer-link">Characters</a>
+       <span class="footer-separator">•</span>
+       <a href="chat-overview.html" class="footer-link">Chats</a>
+       <span class="footer-separator">•</span>
+       <a href="create-character.html" class="footer-link">Create Character</a>
+       <span class="footer-separator">•</span>
+       <a href="profile.html" class="footer-link">Profile</a>
+       <span class="footer-separator">•</span>
+       <a href="privacy-policy.html" class="footer-link">Privacy Policy</a>
+       <span class="footer-separator">•</span>
+       <a href="terms-and-conditions.html" class="footer-link">Terms and Conditions</a>
+     </div>
+     <p class="footer-copyright">© 2025 Narrin AI. All rights reserved.</p>
+   </div>
+ </footer>
+</body>
+</html>
