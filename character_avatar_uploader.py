@@ -188,6 +188,67 @@ class CharacterAvatarUploader:
         import urllib.parse
         return f"data:image/svg+xml,{urllib.parse.quote(svg)}"
 
+def search_google_images(self, character_name, category):
+    """Search for character images"""
+    if not self.search_service:
+        return []
+    
+    # Different search strategies based on category
+    if category in ['historical', 'celebrity']:
+        queries = [
+            f'"{character_name}" portrait photograph',
+            f'"{character_name}" official photo',
+            f'{character_name} headshot'
+        ]
+    else:
+        queries = [
+            f'"{character_name}" character art',
+            f'"{character_name}" anime art',
+            f'{character_name} character design'
+        ]
+    
+    all_images = []
+    
+    for query in queries:
+        print(f"   🔍 Search: {query}")
+        
+        try:
+            result = self.search_service.cse().list(
+                q=query,
+                cx=self.google_cx,
+                searchType='image',
+                num=8,
+                safe='active',
+                imgColorType='color'
+            ).execute()
+            
+            for item in result.get('items', []):
+                url = item['link']
+                
+                # Skip problematic domains
+                skip_domains = [
+                    'narrin.ai', 'pinterest.com', 'tumblr.com', 'reddit.com',
+                    'instagram.com', 'facebook.com', 'twitter.com', 'tiktok.com'
+                ]
+                
+                if any(domain in url.lower() for domain in skip_domains):
+                    continue
+                
+                all_images.append({
+                    'url': url,
+                    'title': item.get('title', ''),
+                    'query': query
+                })
+            
+            time.sleep(1)
+            
+        except Exception as e:
+            print(f"   ❌ Search error: {e}")
+            continue
+    
+    print(f"   📷 Found {len(all_images)} images")
+    return all_images[:10]
+
     def get_emoji_for_character(self, name, category):
         """Get appropriate emoji for character based on name and category"""
         name_lower = name.lower()
