@@ -40,14 +40,14 @@ class CharacterAvatarUploader:
         })
 
     def load_characters_without_avatar(self, limit=10):
-        """Load characters without Avatar_URL from good categories only"""
+        """Load characters from good categories (with or without avatars for analysis)"""
         url = f"https://api.airtable.com/v0/{self.airtable_base}/Characters"
         headers = {'Authorization': f'Bearer {self.airtable_token}'}
         
         all_records = []
         offset = None
         
-        print(f"🔍 Loading characters without avatars...")
+        print(f"🔍 Loading characters...")
         
         # Load all records first
         while True:
@@ -75,7 +75,7 @@ class CharacterAvatarUploader:
         
         print(f"📋 Total records loaded: {len(all_records)}")
         
-        # Categories we want to process (real people and known characters)
+        # Categories we want to process
         good_categories = [
             'historical',      # Historical figures
             'fictional',       # Fictional characters  
@@ -87,7 +87,7 @@ class CharacterAvatarUploader:
             'movies-tv'        # Movies & TV
         ]
         
-        # Categories to skip (all coaches and assistants)
+        # Categories to skip
         skip_categories = [
             'cooking-coach', 'study-coach', 'creativity-coach', 'career-coach',
             'relationship-coach', 'accounting-coach', 'language-coach', 
@@ -96,6 +96,7 @@ class CharacterAvatarUploader:
         ]
         
         valid_characters = []
+        characters_with_avatars = []
         skipped_by_category = 0
         skipped_other = 0
         
@@ -105,11 +106,11 @@ class CharacterAvatarUploader:
             avatar_url = fields.get('Avatar_URL', '').strip()
             category = fields.get('Category', '').lower().strip()
             
-            # Skip if no name or already has avatar
-            if not character_name or avatar_url:
+            # Skip if no name
+            if not character_name:
                 continue
             
-            print(f"   📋 Checking: {character_name} (category: '{category}')")
+            print(f"   📋 Checking: {character_name} (category: '{category}', has_avatar: {bool(avatar_url)})")
             
             # Skip coach categories
             if category in skip_categories:
@@ -117,25 +118,50 @@ class CharacterAvatarUploader:
                 skipped_by_category += 1
                 continue
             
-            # Only process good categories
+            # Check good categories
             if category in good_categories:
-                valid_characters.append({
-                    'name': character_name,
-                    'id': record['id'],
-                    'category': category
-                })
-                print(f"   ✅ Added: {character_name} ({category})")
-                
-                if len(valid_characters) >= limit:
-                    break
+                if avatar_url:
+                    characters_with_avatars.append({
+                        'name': character_name,
+                        'category': category,
+                        'avatar_url': avatar_url
+                    })
+                    print(f"   ✅ Has avatar: {character_name} ({category})")
+                else:
+                    valid_characters.append({
+                        'name': character_name,
+                        'id': record['id'],
+                        'category': category
+                    })
+                    print(f"   🎯 NEEDS avatar: {character_name} ({category})")
+                    
+                    if len(valid_characters) >= limit:
+                        break
             else:
                 print(f"   ⚠️ Skipped other category '{category}': {character_name}")
                 skipped_other += 1
         
         print(f"\n📊 Results:")
-        print(f"   ✅ Valid characters: {len(valid_characters)}")
+        print(f"   🎯 NEED avatars: {len(valid_characters)}")
+        print(f"   ✅ HAVE avatars: {len(characters_with_avatars)}")
         print(f"   ❌ Skipped coaches: {skipped_by_category}")
         print(f"   ⚠️ Skipped other: {skipped_other}")
+        
+        # Show breakdown by category
+        if characters_with_avatars:
+            print(f"\n📋 Characters that ALREADY have avatars:")
+            category_counts = {}
+            for char in characters_with_avatars:
+                cat = char['category']
+                category_counts[cat] = category_counts.get(cat, 0) + 1
+            
+            for category, count in sorted(category_counts.items(), key=lambda x: x[1], reverse=True):
+                print(f"   {category:15} : {count:2d} characters (have avatars)")
+        
+        if valid_characters:
+            print(f"\n🎯 Characters that NEED avatars:")
+            for char in valid_characters:
+                print(f"   - {char['name']} ({char['category']})")
         
         return valid_characters
 
