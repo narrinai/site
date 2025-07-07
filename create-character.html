@@ -4284,31 +4284,33 @@ async function createCharacter(formData) {
     }
     
     // Generate slug from character name
-    const slug = generateSlug(formData.name);
-    console.log('🔗 Generated slug:', slug);
-    
-    // Debug tags
-    console.log('🏷️ selectedTags:', selectedTags);
-    console.log('🏷️ formData.tags:', formData.tags);
-    
-    const requestData = {
-      action: 'create_character',
-      user_email: userEmail,
-      user_token: userToken,
-      
-      // Character data voor Make.com
-      name: formData.name,
-      slug: slug,                    // Generated slug
-      character_id: slug,            // Use slug as character_id
-      title: formData.title,
-      description: formData.description,
-      prompt: formData.prompt,
-      category: formData.category,
-      tags: selectedTags.join(','), // Als comma-separated string
-      visibility: formData.visibility,
-      avatar_url: formData.avatarUrl || '',
-      character_url: `https://narrin.ai/chat.html?char=${slug}`
-    };
+const slug = generateSlug(formData.name);
+console.log('🔗 Generated slug:', slug);
+
+// Debug tags
+console.log('🏷️ selectedTags:', selectedTags);
+console.log('🏷️ formData.tags:', formData.tags);
+console.log('🔍 EXACT tags value:', JSON.stringify(selectedTags)); // ← NIEUWE REGEL HIER
+console.log('🔍 Join result:', selectedTags.join(',')); // ← EN DEZE OOK
+
+const requestData = {
+  action: 'create_character',
+  user_email: userEmail,
+  user_token: userToken,
+  
+  // Character data voor Make.com
+  name: formData.name,
+  slug: slug,
+  character_id: slug,
+  title: formData.title,
+  description: formData.description,
+  prompt: formData.prompt,
+  category: formData.category,
+  tags: selectedTags.join(','), // Als comma-separated string
+  visibility: formData.visibility,
+  avatar_url: formData.avatarUrl || '',
+  character_url: `https://narrin.ai/chat.html?char=${slug}`
+};
     
     console.log('📤 Request data:', requestData);
     
