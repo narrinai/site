@@ -2795,46 +2795,51 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     }
 
     async function loadCharacter(slug) {
-      try {
-        console.log("Loading character:", slug);
-        
-        const token = localStorage.getItem("user_token");
-        const uid = localStorage.getItem("user_uid");
-        const email = localStorage.getItem("user_email");
-        
-        const requestData = {
-          action: "get_character",
-          Slug: slug,
-          user_uid: uid || "",
-          user_token: token || "",
-          user_email: email || ""
-        };
-        
-        const response = await fetch(newWebhookUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(requestData)
-        });
+  try {
+    console.log("Loading character:", slug);
+    
+    const token = localStorage.getItem("user_token");
+    const uid = localStorage.getItem("user_uid");
+    const email = localStorage.getItem("user_email");
+    
+    const requestData = {
+      action: "get_character",
+      Slug: slug,
+      user_uid: uid || "",
+      user_token: token || "",
+      user_email: email || ""
+    };
+    
+    const response = await fetch(newWebhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestData)
+    });
 
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log("Character API response:", data);
-
-        if (!data.success || !data.character) {
-          throw new Error("Character not found");
-        }
-
-        currentCharacter = data.character;
-        setupCharacterInterface();
-        
-      } catch (error) {
-        console.error("Error loading character:", error);
-        showError("Failed to load character: " + error.message);
-      }
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
     }
+
+    const data = await response.json();
+    console.log("Character API response:", data);
+
+    if (!data.success || !data.character) {
+      throw new Error("Character not found");
+    }
+
+    // Decode Base64 prompt
+    if (data.character.prompt) {
+      data.character.prompt = atob(data.character.prompt);
+    }
+
+    currentCharacter = data.character;
+    setupCharacterInterface();
+    
+  } catch (error) {
+    console.error("Error loading character:", error);
+    showError("Failed to load character: " + error.message);
+  }
+}
 
     function setupCharacterInterface() {
       if (!currentCharacter) return;
