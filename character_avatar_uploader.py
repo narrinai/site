@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Character Avatar Uploader - Only for characters WITHOUT Avatar_URL
-Improved face detection and better search terms - FIXED Google API
+Verbeterde Character Avatar Uploader - Gefixte versie
+Betere filtering en meer betrouwbare afbeelding verwerking
 """
 
 import requests
@@ -16,7 +16,7 @@ import numpy as np
 
 load_dotenv()
 
-class MissingAvatarUploader:
+class ImprovedAvatarUploader:
     def __init__(self):
         # Google API credentials
         self.google_api_key = os.getenv('GOOGLE_API_KEY')
@@ -33,14 +33,17 @@ class MissingAvatarUploader:
         # Initialize Google Search
         try:
             self.search_service = build('customsearch', 'v1', developerKey=self.google_api_key)
-            print("✅ Google Search initialized with API key")
+            print("✅ Google Search initialized")
         except Exception as e:
             print(f"❌ Google API error: {e}")
             self.search_service = None
         
         self.session = requests.Session()
+        self.session.headers.update({
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        })
         
-        # Initialize OpenCV face detector
+        # Face detection (optioneel)
         try:
             self.face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
             print("✅ Face detection initialized")
@@ -49,31 +52,24 @@ class MissingAvatarUploader:
             self.face_cascade = None
 
     def load_characters_without_avatar(self, limit=50):
-        """Load characters WITHOUT Avatar_URL, limit to first 50"""
+        """Load characters WITHOUT Avatar_URL"""
         url = f"https://api.airtable.com/v0/{self.airtable_base}/Characters"
         headers = {'Authorization': f'Bearer {self.airtable_token}'}
         
         all_records = []
         offset = None
-        page = 1
         
-        print(f"🔍 Loading characters (first {limit} without avatars)...")
+        print(f"🔍 Loading characters without avatars...")
         
-        # Load all characters first
         while True:
             params = {'maxRecords': 100}
             if offset:
                 params['offset'] = offset
             
-            print(f"📄 Loading page {page}...")
-            
             try:
                 response = self.session.get(url, headers=headers, params=params)
+                response.raise_for_status()
                 
-                if not response.ok:
-                    print(f"❌ Airtable error: {response.status_code} - {response.text}")
-                    break
-                    
                 data = response.json()
                 records = data.get('records', [])
                 all_records.extend(records)
@@ -81,228 +77,152 @@ class MissingAvatarUploader:
                 offset = data.get('offset')
                 if not offset:
                     break
-                
-                page += 1
-                if page > 20:  # Safety limit
-                    break
                     
-                time.sleep(0.5)  # Rate limiting
+                time.sleep(0.5)
                 
             except Exception as e:
-                print(f"❌ API request error: {e}")
+                print(f"❌ API error: {e}")
                 break
         
-        print(f"\n📋 Filtering characters WITHOUT Avatar_URL...")
-        
-        # Filter for characters without Avatar_URL
+        # Filter characters without Avatar_URL
         characters_without_avatar = []
         
         for record in all_records:
             fields = record.get('fields', {})
             character_name = fields.get('Name')
-            avatar_url = fields.get('Avatar_URL', '')
+            avatar_url = fields.get('Avatar_URL', '').strip()
             
-            if character_name:
-                # Check if Avatar_URL is empty, None, or just whitespace
-                if not avatar_url or not avatar_url.strip():
-                    characters_without_avatar.append({
-                        'name': character_name,
-                        'id': record['id'],
-                        'search_terms': f"{character_name} portrait face",
-                        'current_avatar': ''
-                    })
-                    
-                    # Stop when we have enough
-                    if len(characters_without_avatar) >= limit:
-                        break
+            if character_name and not avatar_url:
+                characters_without_avatar.append({
+                    'name': character_name,
+                    'id': record['id']
+                })
+                
+                if len(characters_without_avatar) >= limit:
+                    break
         
-        print(f"\n📊 Results:")
-        print(f"   ❌ WITHOUT Avatar_URL (first {limit}): {len(characters_without_avatar)}")
-        
-        if len(characters_without_avatar) > 0:
-            print(f"\n📝 Characters to process:")
-            for i, char in enumerate(characters_without_avatar, 1):
-                print(f"   {i:2d}. {char['name']}")
-        
+        print(f"📊 Found {len(characters_without_avatar)} characters without avatars")
         return characters_without_avatar
 
-    def is_real_person(self, character_name):
-        """Determine if this is likely a real historical person vs fictional character"""
-        # Real historical people (scientists, leaders, artists, etc.)
-        real_person_names = [
-            'albert einstein', 'nikola tesla', 'leonardo da vinci', 'marie curie',
-            'isaac newton', 'thomas edison', 'charles darwin', 'galileo galilei',
-            'wolfgang amadeus mozart', 'ludwig van beethoven', 'william shakespeare',
-            'pablo picasso', 'vincent van gogh', 'michelangelo', 'plato', 'aristotle',
-            'socrates', 'confucius', 'napoleon bonaparte', 'winston churchill',
-            'abraham lincoln', 'george washington', 'julius caesar', 'cleopatra',
-            'alexander the great', 'buddha', 'jesus', 'mahatma gandhi', 'nelson mandela',
-            'martin luther king', 'benjamin franklin', 'alexander hamilton',
-            'franklin d roosevelt', 'john f kennedy', 'queen elizabeth',
-            'steve jobs', 'bill gates', 'walt disney', 'henry ford', 'barack obama',
-            'donald trump', 'elon musk', 'mark zuckerberg', 'jeff bezos', 'warren buffett',
-            'oprah winfrey', 'richard branson', 'tim cook', 'satya nadella'
-        ]
-        
-        # Fictional character indicators - EXPANDED to catch more fictional types
-        fictional_indicators = [
-            'the grey', 'the white', 'jedi', 'sith', 'lord', 'master chief',
-            'spider-man', 'batman', 'superman', 'iron man', 'captain america',
-            'gandalf', 'aragorn', 'legolas', 'gimli', 'frodo', 'harry potter',
-            'hermione', 'naruto', 'goku', 'luffy', 'vegeta', 'sonic', 'mario',
-            'link', 'zelda', 'pikachu', 'ash ketchum', 'sailor moon',
-            'coach', 'instructor', 'master', 'sensei', 'professor', 'dr.',
-            'aria', 'codex', 'sage', 'mentor', 'navigator', 'harmony', 'spark',
-            'fitness coach', 'life coach', 'business coach', 'wellness coach',
-            'mindfulness coach', 'spiritual guide', 'meditation guide',
-            'yoga instructor', 'personal trainer', 'nutritionist',
-            'therapist', 'counselor', 'advisor', 'consultant',
-            'zeus', 'apollo', 'athena', 'poseidon', 'hades', 'aphrodite',
-            'thor', 'odin', 'loki', 'freya', 'baldur', 'heimdall',
-            'ares', 'artemis', 'hera', 'demeter', 'hestia', 'hermes',
-            'mythology', 'mythological', 'mythical', 'legendary',
-            'fictional', 'fantasy', 'imaginary', 'character'
-        ]
-        
+    def is_fictional_character(self, character_name):
+        """Bepaal of dit een fictief character is"""
         name_lower = character_name.lower()
         
-        # Check if it's a known real person
-        if name_lower in real_person_names:
-            return True
+        # Duidelijke fictieve indicators
+        fictional_indicators = [
+            'coach', 'instructor', 'trainer', 'guide', 'mentor', 'sensei',
+            'fitness', 'wellness', 'mindfulness', 'spiritual', 'meditation',
+            'personal trainer', 'life coach', 'business coach',
+            'gandalf', 'aragorn', 'legolas', 'batman', 'superman', 'spider-man',
+            'naruto', 'goku', 'pikachu', 'mario', 'sonic', 'link', 'zelda',
+            'zeus', 'apollo', 'thor', 'odin', 'loki', 'ares', 'athena',
+            'the grey', 'the white', 'master chief', 'iron man', 'captain america'
+        ]
         
-        # Check for fictional indicators
-        for indicator in fictional_indicators:
-            if indicator in name_lower:
-                return False
-        
-        # Additional check for coach/instructor patterns
-        coach_patterns = ['coach', 'instructor', 'trainer', 'guide', 'mentor']
-        if any(pattern in name_lower for pattern in coach_patterns):
-            return False
-        
-        # Default to fictional to be safe - we don't want real people for fictional characters
-        return False
+        return any(indicator in name_lower for indicator in fictional_indicators)
 
-    def search_google(self, character):
-        """Enhanced Google search with better face-focused terms - FIXED API + NO REAL PEOPLE FOR FICTIONAL"""
+    def search_google_images(self, character_name):
+        """Verbeterde Google image search"""
         if not self.search_service:
-            print("   ❌ No Google Search service available")
             return []
         
-        character_name = character['name']
-        is_real = self.is_real_person(character_name)
+        is_fictional = self.is_fictional_character(character_name)
         
-        print(f"   🔍 Detected as: {'Real person' if is_real else 'Fictional character'}")
-        
-        # Create highly specific search terms for faces
-        if is_real:
-            # For real people: focus on portrait photographs with face visible
+        if is_fictional:
+            # Voor fictieve characters: focus op artwork
             search_queries = [
-                f'"{character_name}" portrait photograph face headshot',
-                f'"{character_name}" official portrait photo face',
-                f'"{character_name}" headshot photograph portrait'
+                f'"{character_name}" character art portrait illustration',
+                f'"{character_name}" digital art character design',
+                f'"{character_name}" artwork portrait drawing',
+                f'{character_name} character illustration face portrait'
             ]
         else:
-            # For fictional characters: focus on ART/ILLUSTRATIONS only - NO real people photos
+            # Voor echte personen: focus op foto's
             search_queries = [
-                f'"{character_name}" character art illustration portrait drawing',
-                f'"{character_name}" digital art character design portrait',
-                f'"{character_name}" artwork illustration character portrait fantasy art'
+                f'"{character_name}" portrait photograph',
+                f'"{character_name}" headshot photo',
+                f'"{character_name}" official portrait',
+                f'{character_name} portrait photo face'
             ]
         
         all_images = []
         
         for query in search_queries:
-            print(f"   🔍 Search: {query}")
+            print(f"   🔍 Searching: {query}")
             
             try:
-                # FIXED: Removed imgSize parameter that was causing errors
+                # Verbeterde Google search parameters
                 result = self.search_service.cse().list(
                     q=query,
                     cx=self.google_cx,
                     searchType='image',
-                    num=8,  # More results per query
+                    num=10,
                     safe='active',
-                    imgType='face',    # Focus on faces
-                    imgColorType='color'  # Prefer color images
+                    imgType='face' if not is_fictional else 'photo',
+                    imgColorType='color',
+                    fileType='jpg,png,webp'  # Specificeer bestandstypes
                 ).execute()
                 
                 for item in result.get('items', []):
                     url = item['link']
                     title = item.get('title', '').lower()
                     
-                    # Skip our own site and common problematic sources
+                    # Skip problematische domeinen
                     skip_domains = [
                         'narrin.ai', 'pinterest.com', 'tumblr.com', 'reddit.com',
-                        'instagram.com', 'facebook.com', 'm.facebook.com', 
-                        'twitter.com', 'tiktok.com', 'youtube.com'
+                        'instagram.com', 'facebook.com', 'm.facebook.com',
+                        'twitter.com', 'x.com', 'tiktok.com', 'youtube.com',
+                        'wikia.com', 'fandom.com'  # Ook wikia/fandom skippen
                     ]
+                    
                     if any(domain in url.lower() for domain in skip_domains):
-                        print(f"   ⚠️ Skipping social media/problematic domain: {url[:50]}...")
                         continue
                     
-                    # Check for actual image file extensions
-                    image_extensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp']
-                    if not any(ext in url.lower() for ext in image_extensions):
-                        # Allow if no extension visible, but will be checked later
-                        pass
+                    # Check voor directe afbeelding URLs
+                    image_extensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif']
+                    has_extension = any(ext in url.lower() for ext in image_extensions)
                     
-                    # Enhanced filtering for better face images
+                    # Skip duidelijk problematische content
                     skip_keywords = [
-                        'collage', 'multiple', 'group', 'vs', 'comparison', 'collection',
-                        'wallpaper', 'logo', 'text', 'quote', 'meme', 'comic', 'strip',
-                        'poster', 'banner', 'cover', 'thumbnail', 'icon', 'emoji',
-                        'silhouette', 'shadow', 'back', 'behind', 'crowd', 'team'
+                        'collage', 'multiple', 'group', 'team', 'vs', 'comparison',
+                        'wallpaper', 'logo', 'text', 'quote', 'meme', 'thumbnail',
+                        'silhouette', 'shadow', 'back', 'behind'
                     ]
                     
                     if any(keyword in title for keyword in skip_keywords):
                         continue
                     
-                    # EXTRA FILTERING: For fictional characters, avoid real people photos
-                    if not is_real:
-                        # Skip if it looks like a real person photo for fictional characters
-                        real_photo_keywords = [
-                            'celebrity', 'actor', 'actress', 'model', 'person', 'man', 'woman',
-                            'real', 'human', 'face', 'headshot', 'portrait photo', 'photograph',
-                            'professional photo', 'studio photo', 'getty images', 'shutterstock'
-                        ]
-                        if any(keyword in title for keyword in real_photo_keywords):
-                            print(f"   ⚠️ Skipping real person photo for fictional character: {title[:50]}...")
-                            continue
-                        
-                        # Prefer art/illustration keywords for fictional characters
-                        art_keywords = ['art', 'illustration', 'drawing', 'artwork', 'digital art', 'fantasy', 'character design']
-                        if not any(keyword in title for keyword in art_keywords):
-                            # Lower priority if no art keywords found
-                            continue
-                    
-                    # Prioritize images with face-related terms
+                    # Prioriteit score
                     priority = 1
-                    face_terms = ['portrait', 'headshot', 'face', 'close-up', 'closeup']
-                    if any(term in title for term in face_terms):
-                        priority = 3
                     
-                    # Boost priority for real people photos vs fictional art
-                    if is_real and any(word in title for word in ['photo', 'photograph', 'picture']):
+                    # Bonus voor directe afbeelding URLs
+                    if has_extension:
+                        priority += 3
+                    
+                    # Bonus voor goede woorden
+                    good_words = ['portrait', 'headshot', 'face', 'close-up', 'official']
+                    if any(word in title for word in good_words):
                         priority += 2
-                    elif not is_real and any(word in title for word in ['art', 'illustration', 'drawing', 'artwork', 'digital art']):
+                    
+                    # Bonus voor betrouwbare domeinen
+                    good_domains = ['wikipedia.org', 'wikimedia.org', 'britannica.com', 'deviantart.com']
+                    if any(domain in url.lower() for domain in good_domains):
                         priority += 2
                     
                     all_images.append({
                         'url': url,
-                        'title': item.get('title', ''),
-                        'source': item.get('displayLink', ''),
+                        'title': title,
                         'priority': priority,
-                        'query': query
+                        'has_extension': has_extension
                     })
                 
-                time.sleep(0.5)  # Rate limiting between queries
+                time.sleep(1)  # Rate limiting
                 
             except Exception as e:
-                print(f"   ❌ Search error for '{query}': {e}")
+                print(f"   ❌ Search error: {e}")
                 continue
         
-        # Remove duplicates and sort by priority
+        # Remove duplicates en sorteer op prioriteit
         seen_urls = set()
         unique_images = []
         for img in all_images:
@@ -313,146 +233,113 @@ class MissingAvatarUploader:
         unique_images.sort(key=lambda x: x['priority'], reverse=True)
         
         print(f"   📷 Found {len(unique_images)} unique images")
-        return unique_images[:10]  # Return top 10
+        return unique_images[:15]  # Top 15
 
-    def has_face(self, image_data):
-        """Check if image contains a detectable face using OpenCV - RELAXED for art/illustrations"""
-        if not self.face_cascade:
-            return True  # If face detection not available, assume it's okay
-        
+    def download_and_process_image(self, url, character_name):
+        """Verbeterde afbeelding download en verwerking"""
         try:
-            # Convert image data to OpenCV format
-            nparr = np.frombuffer(image_data, np.uint8)
-            img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            print(f"   📥 Downloading: {url[:60]}...")
             
-            if img is None:
-                return False
-            
-            # Convert to grayscale for face detection
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            
-            # Detect faces with more relaxed parameters for art/illustrations
-            faces = self.face_cascade.detectMultiScale(
-                gray,
-                scaleFactor=1.05,  # More sensitive
-                minNeighbors=3,    # Less strict
-                minSize=(20, 20),  # Smaller minimum
-                maxSize=(500, 500) # Reasonable maximum
-            )
-            
-            num_faces = len(faces)
-            print(f"   👤 Detected {num_faces} face(s)")
-            
-            # Allow 1-2 faces (sometimes art has partial faces or stylized faces)
-            # For illustrations, face detection might be less reliable
-            if num_faces >= 1 and num_faces <= 3:
-                return True
-            elif num_faces == 0:
-                # For art/illustrations, sometimes face detection fails
-                # Allow it if the image passes other checks
-                print(f"   ⚠️ No faces detected, but allowing for art/illustration")
-                return True
-            else:
-                print(f"   ❌ Too many faces detected: {num_faces}")
-                return False
-            
-        except Exception as e:
-            print(f"   ⚠️ Face detection error: {e}")
-            return True  # If detection fails, allow the image
-
-    def process_image(self, url, character_name):
-        """Enhanced image processing with face detection and better filtering"""
-        try:
+            # Verbeterde headers
             headers = {
-                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-                'Accept': 'image/webp,image/avif,image/jpeg,image/png,image/*,*/*;q=0.8'
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+                'Accept': 'image/webp,image/avif,image/jpeg,image/png,image/*,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'DNT': '1',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1'
             }
             
-            response = self.session.get(url, timeout=15, headers=headers, allow_redirects=True)
+            response = self.session.get(url, timeout=20, headers=headers, allow_redirects=True)
             response.raise_for_status()
             
-            # Check content type first
+            # Check content type
             content_type = response.headers.get('content-type', '').lower()
+            print(f"   📄 Content-Type: {content_type}")
+            
             if 'text/html' in content_type:
-                print(f"   ❌ HTML page instead of image: {content_type}")
+                print(f"   ❌ Got HTML page instead of image")
                 return None
             
             if not any(img_type in content_type for img_type in ['image/', 'jpeg', 'jpg', 'png', 'webp']):
-                print(f"   ⚠️ Not an image file: {content_type}")
+                print(f"   ❌ Not an image: {content_type}")
                 return None
             
             # Check file size
             content_length = len(response.content)
-            if content_length < 5120:  # Less than 5KB - likely too small
-                print(f"   ⚠️ Image too small: {content_length} bytes")
-                return None
-            if content_length > 15 * 1024 * 1024:  # More than 15MB
-                print(f"   ⚠️ Image too large: {content_length} bytes")
+            print(f"   📏 File size: {content_length} bytes")
+            
+            if content_length < 1024:  # Minder dan 1KB
+                print(f"   ❌ File too small: {content_length} bytes")
                 return None
             
-            # Try to open as image first
+            if content_length > 20 * 1024 * 1024:  # Meer dan 20MB
+                print(f"   ❌ File too large: {content_length} bytes")
+                return None
+            
+            # Try to open as image
             try:
                 img = Image.open(BytesIO(response.content))
+                print(f"   🖼️  Image format: {img.format}, Mode: {img.mode}")
             except Exception as e:
-                print(f"   ❌ Cannot open as image: {e}")
+                print(f"   ❌ Cannot open image: {e}")
                 return None
             
-            # Enhanced dimension checks
+            # Check dimensions
             width, height = img.size
             aspect_ratio = width / height
+            print(f"   📐 Dimensions: {width}x{height}, ratio: {aspect_ratio:.2f}")
             
-            # Reject images that are too wide (likely collages or banners)
-            if aspect_ratio > 2.0:  # Slightly more lenient
-                print(f"   ❌ Too wide (likely banner/collage): {width}x{height}, ratio: {aspect_ratio:.2f}")
+            # Meer tolerante dimensie checks
+            if width < 50 or height < 50:
+                print(f"   ❌ Too small: {width}x{height}")
                 return None
             
-            # Reject images that are too tall (likely full-body or multi-character)
-            if aspect_ratio < 0.5:  # Slightly more lenient
-                print(f"   ❌ Too tall (likely full-body): {width}x{height}, ratio: {aspect_ratio:.2f}")
+            if aspect_ratio > 3.0 or aspect_ratio < 0.3:
+                print(f"   ❌ Bad aspect ratio: {aspect_ratio:.2f}")
                 return None
             
-            # Check minimum resolution for good quality
-            if width < 100 or height < 100:  # More lenient for art
-                print(f"   ❌ Resolution too low: {width}x{height}")
-                return None
-            
-            print(f"   ✅ Good image dimensions: {width}x{height}, ratio: {aspect_ratio:.2f}")
-            
-            # Check for face detection AFTER basic checks but BEFORE heavy processing
-            if not self.has_face(response.content):
-                print(f"   ❌ Face detection failed")
-                return None
-            
-            # Convert to RGB if needed
+            # Convert to RGB
             if img.mode in ('RGBA', 'LA', 'P'):
+                print(f"   🔄 Converting {img.mode} to RGB")
                 background = Image.new('RGB', img.size, (255, 255, 255))
                 if img.mode == 'P':
                     img = img.convert('RGBA')
-                background.paste(img, mask=img.split()[-1] if img.mode in ('RGBA', 'LA') else None)
-                img = background
+                if img.mode in ('RGBA', 'LA'):
+                    background.paste(img, mask=img.split()[-1])
+                    img = background
+                else:
+                    img = img.convert('RGB')
             elif img.mode != 'RGB':
                 img = img.convert('RGB')
             
-            # Smart crop to square (512x512) for high-quality avatars
-            # Focus on upper portion for better face framing
+            # Resize to 512x512 with smart cropping
+            print(f"   🎨 Resizing to 512x512...")
             img = ImageOps.fit(img, (512, 512), Image.Resampling.LANCZOS, centering=(0.5, 0.3))
             
-            # Save as WebP with high quality
+            # Save as high-quality WebP
             img_bytes = BytesIO()
-            img.save(img_bytes, format='WEBP', quality=92, optimize=True)
+            img.save(img_bytes, format='WEBP', quality=90, optimize=True)
             img_bytes.seek(0)
             
             processed_size = len(img_bytes.getvalue())
-            print(f"   ✅ Processed: {content_length} → {processed_size} bytes (512x512 WebP)")
+            print(f"   ✅ Processed: {content_length} → {processed_size} bytes")
             
             return img_bytes.getvalue()
             
+        except requests.exceptions.Timeout:
+            print(f"   ❌ Download timeout")
+            return None
+        except requests.exceptions.RequestException as e:
+            print(f"   ❌ Download error: {e}")
+            return None
         except Exception as e:
-            print(f"   ❌ Image processing error: {e}")
+            print(f"   ❌ Processing error: {e}")
             return None
 
-    def save_to_avatars_folder(self, image_data, filename):
-        """Save image to avatars/ folder"""
+    def save_avatar(self, image_data, filename):
+        """Save avatar to local folder"""
         avatars_dir = "avatars"
         os.makedirs(avatars_dir, exist_ok=True)
         
@@ -467,8 +354,8 @@ class MissingAvatarUploader:
             print(f"   ❌ Save error: {e}")
             return None
 
-    def update_airtable_avatar_url(self, character_id, filename):
-        """Update Airtable with the new Avatar_URL"""
+    def update_airtable(self, character_id, filename):
+        """Update Airtable met Avatar_URL"""
         url = f"https://api.airtable.com/v0/{self.airtable_base}/Characters/{character_id}"
         headers = {
             'Authorization': f'Bearer {self.airtable_token}',
@@ -476,143 +363,112 @@ class MissingAvatarUploader:
         }
         
         avatar_url = f"https://narrin.ai/avatars/{filename}"
-        timestamp = int(time.time())
-        avatar_url_with_cache = f"{avatar_url}?v={timestamp}"
         
         data = {
             "fields": {
-                "Avatar_URL": avatar_url_with_cache
+                "Avatar_URL": avatar_url
             }
         }
         
         try:
             response = requests.patch(url, json=data, headers=headers)
             response.raise_for_status()
-            print(f"   📝 Airtable updated: {avatar_url_with_cache}")
+            print(f"   📝 Airtable updated: {avatar_url}")
             return True
         except Exception as e:
             print(f"   ❌ Airtable update failed: {e}")
             return False
 
     def process_character(self, character):
-        """Process one character with enhanced face detection"""
+        """Process one character"""
         print(f"\n🎯 Processing: {character['name']}")
         
         # Search for images
-        images = self.search_google(character)
+        images = self.search_google_images(character['name'])
         if not images:
             print("   ❌ No images found")
             return False
         
-        # Create safe filename
+        # Create filename
         safe_name = character['name'].lower()
-        safe_name = safe_name.replace(' ', '-').replace('/', '-').replace('\\', '-')
-        safe_name = ''.join(c for c in safe_name if c.isalnum() or c in '-_')
+        safe_name = ''.join(c if c.isalnum() else '-' for c in safe_name)
+        safe_name = safe_name.strip('-')
         timestamp = int(time.time())
         filename = f"{safe_name}-{timestamp}.webp"
         
-        print(f"   📁 Target filename: {filename}")
-        
-        # Try each image until one works
+        # Try images in order of priority
         for i, img in enumerate(images, 1):
-            print(f"   🖼️  Trying image {i}/{len(images)} from: {img['source']}")
-            print(f"        Priority: {img['priority']}, Query: {img['query'][:40]}...")
+            print(f"   🖼️  Trying image {i}/{len(images)} (priority: {img['priority']})")
             
-            # Process the image with face detection
-            processed_data = self.process_image(img['url'], character['name'])
+            processed_data = self.download_and_process_image(img['url'], character['name'])
             if not processed_data:
                 continue
             
-            # Save to avatars folder
-            local_path = self.save_to_avatars_folder(processed_data, filename)
-            if not local_path:
+            # Save locally
+            if not self.save_avatar(processed_data, filename):
                 continue
             
             # Update Airtable
-            if self.update_airtable_avatar_url(character['id'], filename):
-                print(f"   ✅ SUCCESS: {character['name']} → avatars/{filename}")
+            if self.update_airtable(character['id'], filename):
+                print(f"   🎉 SUCCESS: {character['name']} → {filename}")
                 return True
-            else:
-                print(f"   ❌ Failed to update Airtable")
         
         print(f"   ❌ All images failed for {character['name']}")
         return False
 
-    def run(self):
-        """Main execution function for 50 characters"""
-        print("🚀 Character Avatar Uploader - Face-Focused Processing")
-        print("🎯 Processing FIRST 50 characters without Avatar_URL")
-        print("👤 Enhanced face detection for better portraits")
-        print("💾 Saving to avatars/ folder + updating Airtable")
+    def run(self, limit=10):
+        """Main execution"""
+        print("🚀 Verbeterde Character Avatar Uploader")
+        print(f"📊 Processing first {limit} characters without avatars")
         
-        # Load first 50 characters without avatars
-        characters = self.load_characters_without_avatar(limit=50)
-        
+        characters = self.load_characters_without_avatar(limit)
         if not characters:
-            print("\n🎉 No characters found without avatars!")
+            print("✅ No characters need avatars!")
             return 0, 0
         
-        print(f"\n📋 Will process {len(characters)} characters:")
+        print(f"\n📋 Characters to process:")
         for i, char in enumerate(characters, 1):
             print(f"  {i:2d}. {char['name']}")
         
-        # Confirmation
         response = input(f"\n✅ Process these {len(characters)} characters? (y/N): ")
         if response.lower() != 'y':
-            print("❌ Cancelled by user")
+            print("❌ Cancelled")
             return 0, 0
-        
-        print(f"\n▶️ Starting enhanced processing...")
         
         success = 0
         failed = 0
         
         for i, char in enumerate(characters, 1):
-            print(f"\n[{i}/{len(characters)}] Processing: {char['name']}")
+            print(f"\n{'='*60}")
+            print(f"[{i}/{len(characters)}] Processing: {char['name']}")
+            print(f"{'='*60}")
             
             try:
                 if self.process_character(char):
                     success += 1
-                    print(f"   🎉 Success! ({success}/{i} so far)")
                 else:
                     failed += 1
-                    print(f"   😞 Failed. ({failed}/{i} failed so far)")
                 
-                # Progress update
-                if i % 10 == 0:
-                    print(f"\n📊 Progress update: {i}/{len(characters)} processed")
-                    print(f"   ✅ Successful: {success}")
-                    print(f"   ❌ Failed: {failed}")
+                print(f"\n📊 Progress: {success} success, {failed} failed")
                 
-                # Delay between characters
-                time.sleep(2)
+                # Pauze tussen characters
+                if i < len(characters):
+                    time.sleep(3)
                 
             except KeyboardInterrupt:
-                print(f"\n⏹️ Stopped by user at character {i}")
+                print(f"\n⏹️ Stopped by user")
                 break
             except Exception as e:
                 print(f"   ❌ Unexpected error: {e}")
                 failed += 1
-                continue
         
-        print(f"\n🎉 Processing Complete!")
-        print(f"✅ Successful: {success}")
+        print(f"\n🎉 Complete!")
+        print(f"✅ Success: {success}")
         print(f"❌ Failed: {failed}")
-        print(f"📊 Success rate: {(success/(success+failed)*100):.1f}%")
-        print(f"📁 Avatar files saved in: ./avatars/")
-        
-        if success > 0:
-            print(f"\n📋 Next steps:")
-            print(f"1. Upload avatars folder to your website")
-            print(f"2. Avatars available at: https://narrin.ai/avatars/")
-            print(f"3. Airtable already updated with Avatar_URLs")
+        print(f"📈 Success rate: {(success/(success+failed)*100):.1f}%")
         
         return success, failed
 
 if __name__ == "__main__":
-    print("🎯 Enhanced Character Avatar Uploader")
-    print("👤 Face detection + Better search terms")
-    print("📸 Processing first 50 characters without avatars")
-    
-    uploader = MissingAvatarUploader()
-    uploader.run()
+    uploader = ImprovedAvatarUploader()
+    uploader.run(limit=10)  # Start met 10 characters voor test
