@@ -52,7 +52,7 @@ class ImprovedAvatarUploader:
             self.face_cascade = None
 
     def load_characters_without_avatar(self, limit=50):
-        """Load characters WITHOUT Avatar_URL"""
+        """Load characters WITHOUT Avatar_URL, only real people and known characters"""
         url = f"https://api.airtable.com/v0/{self.airtable_base}/Characters"
         headers = {'Authorization': f'Bearer {self.airtable_token}'}
         
@@ -84,65 +84,180 @@ class ImprovedAvatarUploader:
                 print(f"❌ API error: {e}")
                 break
         
-        # Filter characters without Avatar_URL
-        characters_without_avatar = []
+        # Filter characters: geen avatar + echte personen/bekende characters
+        valid_characters = []
+        skipped_count = 0
         
         for record in all_records:
             fields = record.get('fields', {})
             character_name = fields.get('Name')
             avatar_url = fields.get('Avatar_URL', '').strip()
             
-            if character_name and not avatar_url:
-                characters_without_avatar.append({
+            if not character_name or avatar_url:
+                continue
+            
+            # Skip fictieve AI coaches/assistenten
+            if self.should_skip_character(character_name):
+                skipped_count += 1
+                continue
+            
+            # Check of het een echte persoon of bekende character is
+            is_valid, char_type = self.is_real_person_or_known_character(character_name)
+            
+            if is_valid:
+                valid_characters.append({
                     'name': character_name,
-                    'id': record['id']
+                    'id': record['id'],
+                    'type': char_type
                 })
+                print(f"   ✅ Added: {character_name} ({char_type})")
                 
-                if len(characters_without_avatar) >= limit:
+                if len(valid_characters) >= limit:
                     break
+            else:
+                print(f"   ❌ Skipped unknown: {character_name}")
+                skipped_count += 1
         
-        print(f"📊 Found {len(characters_without_avatar)} characters without avatars")
-        return characters_without_avatar
+        print(f"\n📊 Results:")
+        print(f"   ✅ Valid characters found: {len(valid_characters)}")
+        print(f"   ❌ Skipped characters: {skipped_count}")
+        
+        return valid_characters
 
-    def is_fictional_character(self, character_name):
-        """Bepaal of dit een fictief character is"""
+    def should_skip_character(self, character_name):
+        """Bepaal of deze character geskipt moet worden (fictieve coaches/instructors)"""
         name_lower = character_name.lower()
         
-        # Duidelijke fictieve indicators
-        fictional_indicators = [
+        # Skip duidelijk fictieve AI assistenten/coaches/instructors
+        skip_indicators = [
             'coach', 'instructor', 'trainer', 'guide', 'mentor', 'sensei',
             'fitness', 'wellness', 'mindfulness', 'spiritual', 'meditation',
-            'personal trainer', 'life coach', 'business coach',
-            'gandalf', 'aragorn', 'legolas', 'batman', 'superman', 'spider-man',
-            'naruto', 'goku', 'pikachu', 'mario', 'sonic', 'link', 'zelda',
-            'zeus', 'apollo', 'thor', 'odin', 'loki', 'ares', 'athena',
-            'the grey', 'the white', 'master chief', 'iron man', 'captain america'
+            'personal trainer', 'life coach', 'business coach', 'wellness coach',
+            'productivity', 'performance', 'baking boss', 'cost control',
+            'therapy', 'therapist', 'counselor', 'advisor', 'consultant',
+            'assistant', 'helper', 'expert', 'specialist', 'navigator',
+            'harmony', 'spark', 'sage', 'codex', 'aria', 'echo',
+            'virtual', 'ai ', 'bot', 'digital assistant'
         ]
         
-        return any(indicator in name_lower for indicator in fictional_indicators)
+        # Check voor duidelijke fictieve AI/coach namen
+        for indicator in skip_indicators:
+            if indicator in name_lower:
+                print(f"   ⚠️ Skipping fictional AI/coach: {character_name}")
+                return True
+        
+        return False
 
-    def search_google_images(self, character_name):
-        """Verbeterde Google image search"""
+    def is_real_person_or_known_character(self, character_name):
+        """Check of dit een echte persoon of bekende character is"""
+        name_lower = character_name.lower()
+        
+        # Echte historische personen
+        real_people = [
+            'albert einstein', 'nikola tesla', 'leonardo da vinci', 'marie curie',
+            'isaac newton', 'thomas edison', 'charles darwin', 'galileo galilei',
+            'wolfgang amadeus mozart', 'ludwig van beethoven', 'william shakespeare',
+            'pablo picasso', 'vincent van gogh', 'michelangelo', 'plato', 'aristotle',
+            'socrates', 'confucius', 'napoleon bonaparte', 'winston churchill',
+            'abraham lincoln', 'george washington', 'julius caesar', 'cleopatra',
+            'alexander the great', 'buddha', 'jesus', 'mahatma gandhi', 'nelson mandela',
+            'martin luther king', 'benjamin franklin', 'alexander hamilton',
+            'franklin d roosevelt', 'john f kennedy', 'queen elizabeth',
+            'steve jobs', 'bill gates', 'walt disney', 'henry ford',
+            'elvis presley', 'michael jackson', 'madonna', 'lady gaga',
+            'taylor swift', 'beyonce', 'rihanna', 'adele', 'ed sheeran'
+        ]
+        
+        # Bekende anime/cartoon/film characters
+        known_characters = [
+            'gandalf', 'aragorn', 'legolas', 'frodo', 'batman', 'superman', 'spider-man',
+            'iron man', 'captain america', 'wonder woman', 'hulk', 'thor',
+            'naruto', 'sasuke', 'goku', 'vegeta', 'luffy', 'ichigo', 'edward elric',
+            'light yagami', 'l lawliet', 'eren yeager', 'mikasa ackerman',
+            'pikachu', 'ash ketchum', 'mario', 'luigi', 'sonic', 'link', 'zelda',
+            'mickey mouse', 'donald duck', 'bugs bunny', 'daffy duck',
+            'homer simpson', 'bart simpson', 'peter griffin', 'stewie griffin',
+            'rick sanchez', 'morty smith', 'spongebob', 'patrick star',
+            'harry potter', 'hermione granger', 'ron weasley', 'dumbledore',
+            'darth vader', 'luke skywalker', 'princess leia', 'han solo',
+            'sherlock holmes', 'watson', 'james bond'
+        ]
+        
+        # Mythologische figuren (ook bekend)
+        mythological = [
+            'zeus', 'apollo', 'athena', 'poseidon', 'hades', 'aphrodite',
+            'artemis', 'ares', 'hermes', 'hera', 'demeter', 'dionysus',
+            'odin', 'thor', 'loki', 'freya', 'baldur', 'heimdall'
+        ]
+        
+        # Check exacte matches
+        if name_lower in real_people:
+            return True, "real_person"
+        
+        if name_lower in known_characters:
+            return True, "known_character"
+            
+        if name_lower in mythological:
+            return True, "mythological"
+        
+        # Check voor gedeeltelijke matches (voornaam + achternaam)
+        for person in real_people:
+            if all(part in name_lower for part in person.split()):
+                return True, "real_person"
+        
+        for character in known_characters:
+            if all(part in name_lower for part in character.split()):
+                return True, "known_character"
+        
+        # Check voor bekende acteurs/celebrities (breed patroon)
+        celebrity_patterns = [
+            'robert', 'leonardo', 'brad', 'tom', 'will', 'johnny', 'ryan',
+            'jennifer', 'angelina', 'scarlett', 'emma', 'anne', 'julia'
+        ]
+        
+        # Als het een voor+achternaam combinatie is, is het waarschijnlijk een echte persoon
+        parts = name_lower.split()
+        if len(parts) == 2 and len(parts[0]) > 2 and len(parts[1]) > 2:
+            # Check of het lijkt op een echte naam (geen coach/instructor woorden)
+            if not any(skip in name_lower for skip in ['coach', 'trainer', 'guide', 'boss', 'expert']):
+                return True, "likely_real_person"
+        
+        return False, "unknown"
+
+    def search_google_images(self, character_name, char_type):
+        """Verbeterde Google image search op basis van character type"""
         if not self.search_service:
             return []
         
-        is_fictional = self.is_fictional_character(character_name)
+        print(f"   🎭 Character type: {char_type}")
         
-        if is_fictional:
-            # Voor fictieve characters: focus op artwork
-            search_queries = [
-                f'"{character_name}" character art portrait illustration',
-                f'"{character_name}" digital art character design',
-                f'"{character_name}" artwork portrait drawing',
-                f'{character_name} character illustration face portrait'
-            ]
-        else:
-            # Voor echte personen: focus op foto's
+        # Verschillende zoekstrategieën per type
+        if char_type == "real_person":
             search_queries = [
                 f'"{character_name}" portrait photograph',
                 f'"{character_name}" headshot photo',
                 f'"{character_name}" official portrait',
                 f'{character_name} portrait photo face'
+            ]
+        elif char_type in ["known_character", "mythological"]:
+            search_queries = [
+                f'"{character_name}" character art portrait',
+                f'"{character_name}" anime character art',
+                f'"{character_name}" official character design',
+                f'{character_name} character illustration portrait'
+            ]
+        elif char_type == "likely_real_person":
+            # Mix van foto en art voor mogelijk echte personen
+            search_queries = [
+                f'"{character_name}" portrait',
+                f'"{character_name}" photo',
+                f'{character_name} headshot portrait'
+            ]
+        else:
+            # Fallback
+            search_queries = [
+                f'"{character_name}" portrait',
+                f'{character_name} character art'
             ]
         
         all_images = []
@@ -151,17 +266,21 @@ class ImprovedAvatarUploader:
             print(f"   🔍 Searching: {query}")
             
             try:
-                # Verbeterde Google search parameters
-                result = self.search_service.cse().list(
-                    q=query,
-                    cx=self.google_cx,
-                    searchType='image',
-                    num=10,
-                    safe='active',
-                    imgType='face' if not is_fictional else 'photo',
-                    imgColorType='color',
-                    fileType='jpg,png,webp'  # Specificeer bestandstypes
-                ).execute()
+                # Aangepaste search parameters per type
+                search_params = {
+                    'q': query,
+                    'cx': self.google_cx,
+                    'searchType': 'image',
+                    'num': 10,
+                    'safe': 'active',
+                    'imgColorType': 'color'
+                }
+                
+                # Voor echte personen: focus op faces
+                if char_type in ["real_person", "likely_real_person"]:
+                    search_params['imgType'] = 'face'
+                
+                result = self.search_service.cse().list(**search_params).execute()
                 
                 for item in result.get('items', []):
                     url = item['link']
@@ -171,8 +290,7 @@ class ImprovedAvatarUploader:
                     skip_domains = [
                         'narrin.ai', 'pinterest.com', 'tumblr.com', 'reddit.com',
                         'instagram.com', 'facebook.com', 'm.facebook.com',
-                        'twitter.com', 'x.com', 'tiktok.com', 'youtube.com',
-                        'wikia.com', 'fandom.com'  # Ook wikia/fandom skippen
+                        'twitter.com', 'x.com', 'tiktok.com', 'youtube.com'
                     ]
                     
                     if any(domain in url.lower() for domain in skip_domains):
@@ -185,27 +303,31 @@ class ImprovedAvatarUploader:
                     # Skip duidelijk problematische content
                     skip_keywords = [
                         'collage', 'multiple', 'group', 'team', 'vs', 'comparison',
-                        'wallpaper', 'logo', 'text', 'quote', 'meme', 'thumbnail',
-                        'silhouette', 'shadow', 'back', 'behind'
+                        'wallpaper', 'logo', 'text', 'quote', 'meme', 'thumbnail'
                     ]
                     
                     if any(keyword in title for keyword in skip_keywords):
                         continue
                     
-                    # Prioriteit score
+                    # Prioriteit score op basis van type
                     priority = 1
                     
                     # Bonus voor directe afbeelding URLs
                     if has_extension:
                         priority += 3
                     
-                    # Bonus voor goede woorden
-                    good_words = ['portrait', 'headshot', 'face', 'close-up', 'official']
-                    if any(word in title for word in good_words):
-                        priority += 2
+                    # Type-specifieke bonussen
+                    if char_type == "real_person":
+                        photo_words = ['photo', 'portrait', 'headshot', 'official']
+                        if any(word in title for word in photo_words):
+                            priority += 3
+                    elif char_type in ["known_character", "mythological"]:
+                        art_words = ['art', 'anime', 'character', 'illustration', 'drawing']
+                        if any(word in title for word in art_words):
+                            priority += 3
                     
                     # Bonus voor betrouwbare domeinen
-                    good_domains = ['wikipedia.org', 'wikimedia.org', 'britannica.com', 'deviantart.com']
+                    good_domains = ['wikipedia.org', 'wikimedia.org', 'britannica.com', 'deviantart.com', 'artstation.com']
                     if any(domain in url.lower() for domain in good_domains):
                         priority += 2
                     
@@ -380,11 +502,11 @@ class ImprovedAvatarUploader:
             return False
 
     def process_character(self, character):
-        """Process one character"""
-        print(f"\n🎯 Processing: {character['name']}")
+        """Process one character - only if valid type"""
+        print(f"\n🎯 Processing: {character['name']} ({character['type']})")
         
         # Search for images
-        images = self.search_google_images(character['name'])
+        images = self.search_google_images(character['name'], character['type'])
         if not images:
             print("   ❌ No images found")
             return False
@@ -417,18 +539,20 @@ class ImprovedAvatarUploader:
         return False
 
     def run(self, limit=10):
-        """Main execution"""
-        print("🚀 Verbeterde Character Avatar Uploader")
-        print(f"📊 Processing first {limit} characters without avatars")
+        """Main execution - only process real people and known characters"""
+        print("🚀 Character Avatar Uploader - Real People & Known Characters Only")
+        print(f"📊 Processing first {limit} VALID characters without avatars")
+        print("✅ Will process: Real people, actors, anime characters, cartoons")
+        print("❌ Will skip: AI coaches, instructors, fictional assistants")
         
         characters = self.load_characters_without_avatar(limit)
         if not characters:
-            print("✅ No characters need avatars!")
+            print("✅ No valid characters need avatars!")
             return 0, 0
         
-        print(f"\n📋 Characters to process:")
+        print(f"\n📋 Valid characters to process:")
         for i, char in enumerate(characters, 1):
-            print(f"  {i:2d}. {char['name']}")
+            print(f"  {i:2d}. {char['name']} ({char['type']})")
         
         response = input(f"\n✅ Process these {len(characters)} characters? (y/N): ")
         if response.lower() != 'y':
@@ -440,7 +564,7 @@ class ImprovedAvatarUploader:
         
         for i, char in enumerate(characters, 1):
             print(f"\n{'='*60}")
-            print(f"[{i}/{len(characters)}] Processing: {char['name']}")
+            print(f"[{i}/{len(characters)}] Processing: {char['name']} ({char['type']})")
             print(f"{'='*60}")
             
             try:
@@ -465,7 +589,8 @@ class ImprovedAvatarUploader:
         print(f"\n🎉 Complete!")
         print(f"✅ Success: {success}")
         print(f"❌ Failed: {failed}")
-        print(f"📈 Success rate: {(success/(success+failed)*100):.1f}%")
+        if (success + failed) > 0:
+            print(f"📈 Success rate: {(success/(success+failed)*100):.1f}%")
         
         return success, failed
 
