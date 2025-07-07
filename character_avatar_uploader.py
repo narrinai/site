@@ -466,18 +466,38 @@ class CharacterAvatarUploader:
         }
         
         print(f"   📝 DEBUG - Updating Airtable:")
+        print(f"   📝 DEBUG - Character ID: {character_id}")
         print(f"   📝 DEBUG - URL: {url}")
         print(f"   📝 DEBUG - Data: {data}")
         
         try:
-            response = requests.patch(url, json=data, headers=headers)
+            # Add longer timeout and retry logic
+            response = requests.patch(url, json=data, headers=headers, timeout=30)
             print(f"   📝 DEBUG - Response status: {response.status_code}")
+            print(f"   📝 DEBUG - Response headers: {dict(response.headers)}")
             print(f"   📝 DEBUG - Response text: {response.text}")
-            response.raise_for_status()
-            print(f"   📝 Airtable updated: {avatar_url}")
-            return True
-        except Exception as e:
+            
+            if response.status_code == 200:
+                print(f"   📝 ✅ Airtable updated successfully: {avatar_url}")
+                return True
+            elif response.status_code == 422:
+                print(f"   📝 ❌ Invalid data format or field name")
+                return False
+            elif response.status_code == 404:
+                print(f"   📝 ❌ Character ID not found: {character_id}")
+                return False
+            else:
+                print(f"   📝 ❌ Unexpected status code: {response.status_code}")
+                response.raise_for_status()
+                
+        except requests.exceptions.Timeout:
+            print(f"   ❌ Airtable update timed out")
+            return False
+        except requests.exceptions.RequestException as e:
             print(f"   ❌ Airtable update failed: {e}")
+            return False
+        except Exception as e:
+            print(f"   ❌ Unexpected error: {e}")
             return False
 
     def process_character(self, character):
@@ -583,7 +603,7 @@ class CharacterAvatarUploader:
                 print(f"\n📊 Progress: {success} success, {failed} failed")
                 
                 if i < len(characters):
-                    time.sleep(1)  # Shorter delay since many are emoji generation
+                    time.sleep(2)  # Verhoog van 1 naar 2 seconden voor rate limiting
                 
             except KeyboardInterrupt:
                 print(f"\n⏹️ Stopped by user")
