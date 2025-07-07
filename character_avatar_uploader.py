@@ -174,164 +174,7 @@ class CharacterAvatarUploader:
         
         return all_characters
 
-    def generate_emoji_avatar(self, character_name, category):
-        """Generate emoji avatar SVG for fictional characters"""
-        emoji = self.get_emoji_for_character(character_name, category)
-        
-        # Create SVG with emoji
-        svg = f'''<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
-          <rect width="512" height="512" rx="256" fill="#f0f0f0"/>
-          <text x="256" y="320" font-size="240" text-anchor="middle" font-family="system-ui">{emoji}</text>
-        </svg>'''
-        
-        # Convert to data URL
-        import urllib.parse
-        return f"data:image/svg+xml,{urllib.parse.quote(svg)}"
-
-def search_google_images(self, character_name, category):
-    """Search for character images"""
-    if not self.search_service:
-        return []
-    
-    # Different search strategies based on category
-    if category in ['historical', 'celebrity']:
-        queries = [
-            f'"{character_name}" portrait photograph',
-            f'"{character_name}" official photo',
-            f'{character_name} headshot'
-        ]
-    else:
-        queries = [
-            f'"{character_name}" character art',
-            f'"{character_name}" anime art',
-            f'{character_name} character design'
-        ]
-    
-    all_images = []
-    
-    for query in queries:
-        print(f"   🔍 Search: {query}")
-        
-        try:
-            result = self.search_service.cse().list(
-                q=query,
-                cx=self.google_cx,
-                searchType='image',
-                num=8,
-                safe='active',
-                imgColorType='color'
-            ).execute()
-            
-            for item in result.get('items', []):
-                url = item['link']
-                
-                # Skip problematic domains
-                skip_domains = [
-                    'narrin.ai', 'pinterest.com', 'tumblr.com', 'reddit.com',
-                    'instagram.com', 'facebook.com', 'twitter.com', 'tiktok.com'
-                ]
-                
-                if any(domain in url.lower() for domain in skip_domains):
-                    continue
-                
-                all_images.append({
-                    'url': url,
-                    'title': item.get('title', ''),
-                    'query': query
-                })
-            
-            time.sleep(1)
-            
-        except Exception as e:
-            print(f"   ❌ Search error: {e}")
-            continue
-    
-    print(f"   📷 Found {len(all_images)} images")
-    return all_images[:10]
-
-    def get_emoji_for_character(self, name, category):
-        """Get appropriate emoji for character based on name and category"""
-        name_lower = name.lower()
-        
-        # Specific name matches first
-        specific_matches = {
-            'quick cuisine': '👨‍🍳',
-            'baking boss': '🧁',
-            'cost control': '💰',
-            'performance peak': '📈',
-            'resume rocket': '🚀',
-            'motivation motor': '⚡',
-            'mindful mover': '🧘‍♂️',
-            'creative block buster': '🎨',
-            'network navigator': '🌐',
-            'recovery guru': '💪',
-            'trust builder': '🤝',
-            'win-win wizard': '🎯',
-            'echo voidwalker': '🌌',
-            'phoenix emberhart': '🔥',
-            'raven blackmoon': '🌙',
-        }
-        
-        # Check for specific character name matches
-        for key, emoji in specific_matches.items():
-            if key in name_lower:
-                return emoji
-        
-        # Category-based emoji selection
-        category_emojis = {
-            'cooking-coach': ['👨‍🍳', '🍳', '🥘', '🍽️', '🔥', '🌶️'],
-            'study-coach': ['📚', '🎓', '📝', '🧠', '⏰', '🎯'],
-            'creativity-coach': ['🎨', '💡', '✨', '🌈', '🎪', '🎭'],
-            'career-coach': ['📈', '🎯', '💼', '🌟', '🚀', '🎓'],
-            'relationship-coach': ['💝', '💕', '🤝', '💬', '🌹', '💑'],
-            'accounting-coach': ['💰', '📊', '🧮', '📈', '💼', '⚖️'],
-            'language-coach': ['🗣️', '📖', '🌍', '💬', '✍️', '🎓'],
-            'ai-assistant': ['🤖', '💬', '🧠', '⚡', '💡', '🔧'],
-            'negotiation-coach': ['🤝', '💬', '🎯', '⚖️', '🧠', '💡'],
-            'mindfulness-coach': ['🧘‍♂️', '🌸', '🕯️', '🌿', '☮️', '🌙'],
-            'business-coach': ['💼', '📊', '💰', '🎯', '📈', '💡'],
-            'fitness-coach': ['💪', '🏃‍♂️', '🏋️‍♀️', '⚽', '🥇', '🔥'],
-            'educational': ['📚', '🎓', '📝', '🔬', '🧮', '📐']
-        
-        }
-        
-        emojis = category_emojis.get(category, category_emojis['other'])
-        
-        # Use character name for consistent emoji selection
-        name_hash = sum(ord(char) for char in name_lower)
-        return emojis[name_hash % len(emojis)]
-
-    def create_emoji_avatar_file(self, character_name, category):
-        """Create emoji avatar file and return filename"""
-        emoji = self.get_emoji_for_character(character_name, category)
-        
-        # Create SVG content
-        svg_content = f'''<?xml version="1.0" encoding="UTF-8"?>
-<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
-  <rect width="512" height="512" rx="256" fill="#f0f0f0"/>
-  <text x="256" y="320" font-size="240" text-anchor="middle" font-family="Apple Color Emoji, Segoe UI Emoji, system-ui">{emoji}</text>
-</svg>'''
-        
-        # Create filename
-        safe_name = character_name.lower()
-        safe_name = ''.join(c if c.isalnum() else '-' for c in safe_name)
-        safe_name = safe_name.strip('-')
-        timestamp = int(time.time())
-        filename = f"{safe_name}-emoji-{timestamp}.svg"
-        
-        # Save SVG file
-        avatars_dir = "avatars"
-        os.makedirs(avatars_dir, exist_ok=True)
-        file_path = os.path.join(avatars_dir, filename)
-        
-        try:
-            with open(file_path, 'w', encoding='utf-8') as f:
-                f.write(svg_content)
-            print(f"   💾 Saved emoji avatar: {file_path}")
-            return filename
-        except Exception as e:
-            print(f"   ❌ Save error: {e}")
-            return None
+    def search_google_images(self, character_name, category):
         """Search for character images"""
         if not self.search_service:
             return []
@@ -391,6 +234,104 @@ def search_google_images(self, character_name, category):
         
         print(f"   📷 Found {len(all_images)} images")
         return all_images[:10]
+
+    def generate_emoji_avatar(self, character_name, category):
+        """Generate emoji avatar SVG for fictional characters"""
+        emoji = self.get_emoji_for_character(character_name, category)
+        
+        # Create SVG with emoji
+        svg = f'''<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+          <rect width="512" height="512" rx="256" fill="#f0f0f0"/>
+          <text x="256" y="320" font-size="240" text-anchor="middle" font-family="system-ui">{emoji}</text>
+        </svg>'''
+        
+        # Convert to data URL
+        import urllib.parse
+        return f"data:image/svg+xml,{urllib.parse.quote(svg)}"
+
+    def get_emoji_for_character(self, name, category):
+        """Get appropriate emoji for character based on name and category"""
+        name_lower = name.lower()
+        
+        # Specific name matches first
+        specific_matches = {
+            'quick cuisine': '👨‍🍳',
+            'baking boss': '🧁',
+            'cost control': '💰',
+            'performance peak': '📈',
+            'resume rocket': '🚀',
+            'motivation motor': '⚡',
+            'mindful mover': '🧘‍♂️',
+            'creative block buster': '🎨',
+            'network navigator': '🌐',
+            'recovery guru': '💪',
+            'trust builder': '🤝',
+            'win-win wizard': '🎯',
+            'echo voidwalker': '🌌',
+            'phoenix emberhart': '🔥',
+            'raven blackmoon': '🌙',
+        }
+        
+        # Check for specific character name matches
+        for key, emoji in specific_matches.items():
+            if key in name_lower:
+                return emoji
+        
+        # Category-based emoji selection
+        category_emojis = {
+            'cooking-coach': ['👨‍🍳', '🍳', '🥘', '🍽️', '🔥', '🌶️'],
+            'study-coach': ['📚', '🎓', '📝', '🧠', '⏰', '🎯'],
+            'creativity-coach': ['🎨', '💡', '✨', '🌈', '🎪', '🎭'],
+            'career-coach': ['📈', '🎯', '💼', '🌟', '🚀', '🎓'],
+            'relationship-coach': ['💝', '💕', '🤝', '💬', '🌹', '💑'],
+            'accounting-coach': ['💰', '📊', '🧮', '📈', '💼', '⚖️'],
+            'language-coach': ['🗣️', '📖', '🌍', '💬', '✍️', '🎓'],
+            'ai-assistant': ['🤖', '💬', '🧠', '⚡', '💡', '🔧'],
+            'negotiation-coach': ['🤝', '💬', '🎯', '⚖️', '🧠', '💡'],
+            'mindfulness-coach': ['🧘‍♂️', '🌸', '🕯️', '🌿', '☮️', '🌙'],
+            'business-coach': ['💼', '📊', '💰', '🎯', '📈', '💡'],
+            'fitness-coach': ['💪', '🏃‍♂️', '🏋️‍♀️', '⚽', '🥇', '🔥'],
+            'educational': ['📚', '🎓', '📝', '🔬', '🧮', '📐'],
+            'other': ['⭐', '🎨', '💡', '🌟', '✨', '🎯']  # Default emojis
+        }
+        
+        emojis = category_emojis.get(category, category_emojis['other'])
+        
+        # Use character name for consistent emoji selection
+        name_hash = sum(ord(char) for char in name_lower)
+        return emojis[name_hash % len(emojis)]
+
+    def create_emoji_avatar_file(self, character_name, category):
+        """Create emoji avatar file and return filename"""
+        emoji = self.get_emoji_for_character(character_name, category)
+        
+        # Create SVG content
+        svg_content = f'''<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="256" fill="#f0f0f0"/>
+  <text x="256" y="320" font-size="240" text-anchor="middle" font-family="Apple Color Emoji, Segoe UI Emoji, system-ui">{emoji}</text>
+</svg>'''
+        
+        # Create filename
+        safe_name = character_name.lower()
+        safe_name = ''.join(c if c.isalnum() else '-' for c in safe_name)
+        safe_name = safe_name.strip('-')
+        timestamp = int(time.time())
+        filename = f"{safe_name}-emoji-{timestamp}.svg"
+        
+        # Save SVG file
+        avatars_dir = "avatars"
+        os.makedirs(avatars_dir, exist_ok=True)
+        file_path = os.path.join(avatars_dir, filename)
+        
+        try:
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(svg_content)
+            print(f"   💾 Saved emoji avatar: {file_path}")
+            return filename
+        except Exception as e:
+            print(f"   ❌ Save error: {e}")
+            return None
 
     def process_image(self, url, character_name):
         """Download and process image"""
@@ -485,39 +426,52 @@ def search_google_images(self, character_name, category):
             return False
 
     def process_character(self, character):
-        """Process one character"""
+        """Process one character - both images and emoji"""
         print(f"\n🎯 Processing: {character['name']} ({character['category']})")
         
-        # Search for images
-        images = self.search_google_images(character['name'], character['category'])
-        if not images:
-            print("   ❌ No images found")
-            return False
-        
-        # Create filename
-        safe_name = character['name'].lower()
-        safe_name = ''.join(c if c.isalnum() else '-' for c in safe_name)
-        safe_name = safe_name.strip('-')
-        timestamp = int(time.time())
-        filename = f"{safe_name}-{timestamp}.webp"
-        
-        # Try images until one works
-        for i, img in enumerate(images, 1):
-            print(f"   🖼️  Trying image {i}/{len(images)}")
+        if character.get('type') == 'emoji':
+            # Handle emoji characters
+            print("   😀 Creating emoji avatar...")
+            filename = self.create_emoji_avatar_file(character['name'], character['category'])
             
-            processed_data = self.process_image(img['url'], character['name'])
-            if not processed_data:
-                continue
-            
-            if not self.save_avatar(processed_data, filename):
-                continue
-            
-            if self.update_airtable(character['id'], filename):
+            if filename and self.update_airtable(character['id'], filename):
                 print(f"   🎉 SUCCESS: {character['name']} → {filename}")
                 return True
+            else:
+                print(f"   ❌ Failed to create emoji for {character['name']}")
+                return False
         
-        print(f"   ❌ All images failed for {character['name']}")
-        return False
+        else:
+            # Handle image characters
+            images = self.search_google_images(character['name'], character['category'])
+            if not images:
+                print("   ❌ No images found")
+                return False
+            
+            # Create filename
+            safe_name = character['name'].lower()
+            safe_name = ''.join(c if c.isalnum() else '-' for c in safe_name)
+            safe_name = safe_name.strip('-')
+            timestamp = int(time.time())
+            filename = f"{safe_name}-{timestamp}.webp"
+            
+            # Try images until one works
+            for i, img in enumerate(images, 1):
+                print(f"   🖼️  Trying image {i}/{len(images)}")
+                
+                processed_data = self.process_image(img['url'], character['name'])
+                if not processed_data:
+                    continue
+                
+                if not self.save_avatar(processed_data, filename):
+                    continue
+                
+                if self.update_airtable(character['id'], filename):
+                    print(f"   🎉 SUCCESS: {character['name']} → {filename}")
+                    return True
+            
+            print(f"   ❌ All images failed for {character['name']}")
+            return False
 
     def run(self, limit=20):
         """Main execution - process both image and emoji characters"""
