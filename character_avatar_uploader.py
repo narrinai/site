@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Simple Character Avatar Uploader - Debug Version
+Simple Character Avatar Uploader - Final Fixed Version
 Focus on real people and known characters only, skip all coaches
 """
 
@@ -127,15 +127,28 @@ class CharacterAvatarUploader:
         for record in all_records:
             fields = record.get('fields', {})
             character_name = fields.get('Name')
-            avatar_url = fields.get('Avatar_URL', '').strip()
+            avatar_url_raw = fields.get('Avatar_URL', '')
             category = fields.get('Category', '').lower().strip()
+            
+            # ENHANCED AVATAR URL PROCESSING
+            avatar_url = str(avatar_url_raw).strip() if avatar_url_raw else ''
+            
+            # Extra debug en cleaning
+            if avatar_url:
+                print(f"   🔍 DEBUG - Avatar_URL has content: length={len(avatar_url)}, content='{avatar_url[:50]}...'")
+                # Check for invalid/placeholder URLs
+                if avatar_url.lower() in ['none', 'null', 'undefined', '', ' '] or len(avatar_url) < 10:
+                    print(f"   🔧 DEBUG - Treating as empty avatar URL")
+                    avatar_url = ''
+            else:
+                print(f"   🔍 DEBUG - Avatar_URL is empty or None")
             
             # DEBUG INFO per character
             print(f"   📋 DEBUG - Record ID: {record.get('id', 'NO_ID')}")
             print(f"   📋 DEBUG - All fields: {list(fields.keys())}")
             print(f"   📋 DEBUG - Name: '{character_name}'")
-            print(f"   📋 DEBUG - Avatar_URL raw: '{fields.get('Avatar_URL', 'NOT_FOUND')}'")
-            print(f"   📋 DEBUG - Avatar_URL stripped: '{avatar_url}'")
+            print(f"   📋 DEBUG - Avatar_URL raw: '{avatar_url_raw}'")
+            print(f"   📋 DEBUG - Avatar_URL processed: '{avatar_url}'")
             print(f"   📋 DEBUG - Category: '{category}'")
             
             # Skip if no name
@@ -145,17 +158,17 @@ class CharacterAvatarUploader:
             
             print(f"   📋 Checking: {character_name} (category: '{category}', has_avatar: {bool(avatar_url)})")
             
-            # Skip if already has avatar
-            if avatar_url:
+            # ENHANCED AVATAR CHECK - Skip if already has valid avatar
+            if avatar_url and len(avatar_url) > 10 and not avatar_url.lower() in ['none', 'null', 'undefined']:
                 characters_with_avatars.append({
                     'name': character_name,
                     'category': category,
                     'avatar_url': avatar_url
                 })
-                print(f"   ✅ Has avatar: {character_name} ({category})")
+                print(f"   ✅ Has avatar: {character_name} ({category}) - {avatar_url[:30]}...")
                 continue
             
-            # Route to appropriate processing based on category
+            # NO AVATAR - Route to appropriate processing based on category
             if category in real_character_categories:
                 characters_for_images.append({
                     'name': character_name,
@@ -517,7 +530,7 @@ class CharacterAvatarUploader:
 
     def run(self, limit=20):
         """Main execution - process both image and emoji characters"""
-        print("🚀 Character Avatar Uploader - DEBUG VERSION")
+        print("🚀 Character Avatar Uploader - FIXED VERSION")
         print(f"📊 Processing first {limit} characters without avatars")
         print("🖼️ Real characters: Google image search")
         print("😀 Fictional characters: Generate emoji avatars")
