@@ -3447,48 +3447,87 @@
    }
 
    // Fallback tags if Airtable fails
-   function useFallbackTags() {
-     allTags = [
-       'Funny', 'Serious', 'Romantic', 'Adventure', 'Mystery', 'Fantasy', 'Sci-Fi',
-       'Historical', 'Modern', 'Anime', 'Gaming', 'Movies', 'Books', 'TV Shows',
-       'Helpful', 'Educational', 'Creative', 'Philosophical', 'Emotional', 'Logical'
-     ];
-     generateSuggestedTags();
-     populateTagsModal();
-   }
+function useFallbackTags() {
+  allTags = [
+    'academic', 'action', 'actor', 'advancement', 'adventure', 'ancient', 'arcade', 'artist', 
+    'artistic', 'artistic-block', 'athletic', 'awareness', 'baking', 'balance', 'brainstorming', 
+    'calm', 'cardio', 'chef', 'comedy', 'communication', 'concept', 'connection', 'conversation', 
+    'cooking', 'corporate', 'creative', 'cuisine', 'culinary', 'culture', 'custom', 'dating', 
+    'design', 'detective', 'development', 'digital', 'divine', 'documentary', 'drama', 'efficient', 
+    'empathy', 'emperor', 'entertainment', 'entrepreneur', 'epic', 'exam-prep', 'exercise', 
+    'experimental', 'expression', 'famous', 'fantasy', 'fluency', 'focus', 'folklore', 'food', 
+    'fps', 'friendly', 'friendship', 'goals', 'god', 'goddess', 'grammar', 'growth', 'guidance', 
+    'health', 'helpful', 'hero', 'hollywood', 'horror', 'imagination', 'imaginative', 'indie', 
+    'influencer', 'ingredients', 'inner-peace', 'innovation', 'innovative', 'inspiration', 
+    'interview', 'job-search', 'josei', 'king', 'kitchen', 'knowledge', 'knowledgeable', 'leader', 
+    'leadership', 'learning', 'legend', 'love', 'magic', 'management', 'marriage', 'mecha', 
+    'medieval', 'meditation', 'mentor', 'military', 'mindset', 'mmorpg', 'modern', 'motivation', 
+    'multilingual', 'musician', 'mystery', 'mystical', 'myth', 'networking', 'ninja', 'note-taking', 
+    'nutrition', 'organization', 'peaceful', 'personal', 'personal-growth', 'platformer', 
+    'politician', 'pop-culture', 'positive', 'present', 'productivity', 'professional', 'professor', 
+    'pronunciation', 'puzzle', 'recipe', 'renaissance', 'research', 'resume', 'revolutionary', 
+    'romance', 'rpg', 'samurai', 'school', 'sci-fi', 'science', 'science-fiction', 'seinen', 
+    'self-improvement', 'series', 'shoujo', 'shounen', 'simulation', 'singer', 'skills', 'smart', 
+    'social', 'spiritual', 'star', 'strategy', 'strength', 'stress-relief', 'study', 'study-tips', 
+    'success', 'superhero', 'supernatural', 'support', 'supportive', 'teacher', 'tech', 'thriller', 
+    'time-management', 'training', 'tutor', 'understanding', 'unique', 'villain', 'vision', 
+    'vocabulary', 'warrior', 'wellness', 'wizard', 'workout', 'workplace', 'zen'
+  ];
+  generateSuggestedTags();
+  populateTagsModal();
+}
 
    // Generate suggested tags based on category
-   function generateSuggestedTags() {
-     const category = document.getElementById('characterCategory').value;
-     let suggested = [];
-     
-     // Category-based suggestions
-     const categoryTags = {
-       'historical': ['Historical', 'Educational', 'Serious', 'Wise'],
-       'fictional': ['Fantasy', 'Adventure', 'Creative', 'Imaginative'],
-       'anime-manga': ['Anime', 'Japanese', 'Adventure', 'Fantasy'],
-       'gaming': ['Gaming', 'Adventure', 'Action', 'Strategy'],
-       'movies-tv': ['Movies', 'TV Shows', 'Entertainment', 'Drama'],
-       'educational': ['Educational', 'Helpful', 'Informative', 'Patient'],
-       'ai-assistant': ['Helpful', 'Logical', 'Efficient', 'Knowledgeable']
-     };
-     
-     if (category && categoryTags[category]) {
-       suggested = categoryTags[category];
-     } else {
-       // Default suggestions
-       suggested = ['Friendly', 'Helpful', 'Creative', 'Funny'];
-     }
-     
-     // Filter to only include tags that exist in allTags
-     suggested = suggested.filter(tag => allTags.includes(tag));
-     
-     // Add some random popular tags
-     const popularTags = allTags.filter(tag => !suggested.includes(tag)).slice(0, 2);
-     suggested = [...suggested, ...popularTags].slice(0, 6);
-     
-     displaySuggestedTags(suggested);
-   }
+function generateSuggestedTags() {
+  const category = document.getElementById('characterCategory').value;
+  let suggested = [];
+  
+  // Category-based suggestions
+  const categoryTags = {
+    'historical': ['ancient', 'leader', 'emperor', 'king', 'warrior', 'revolutionary'],
+    'fantasy': ['magic', 'wizard', 'adventure', 'hero', 'mystical', 'supernatural'],
+    'anime-manga': ['shounen', 'shoujo', 'seinen', 'action', 'romance', 'school'],
+    'celebrity': ['famous', 'star', 'actor', 'musician', 'singer', 'entertainment'],
+    'gaming': ['rpg', 'fps', 'mmorpg', 'strategy', 'adventure', 'action'],
+    'movies-tv': ['drama', 'comedy', 'action', 'thriller', 'horror', 'romance'],
+    'mythology': ['god', 'goddess', 'legend', 'myth', 'divine', 'epic'],
+    'original': ['creative', 'unique', 'custom', 'innovative', 'imaginative', 'artistic'],
+    'ai-assistant': ['helpful', 'smart', 'efficient', 'friendly', 'supportive', 'knowledgeable'],
+    'educational': ['teacher', 'academic', 'learning', 'knowledge', 'mentor', 'professor'],
+    'fitness-coach': ['workout', 'training', 'health', 'exercise', 'strength', 'motivation'],
+    'business-coach': ['leadership', 'entrepreneur', 'strategy', 'success', 'professional', 'growth'],
+    'language-coach': ['multilingual', 'teacher', 'conversation', 'fluency', 'communication', 'learning'],
+    'accounting-coach': ['professional', 'management', 'productivity', 'organization', 'skills', 'guidance'],
+    'career-coach': ['professional', 'advancement', 'interview', 'networking', 'success', 'development'],
+    'negotiation-coach': ['communication', 'strategy', 'leadership', 'professional', 'skills', 'success'],
+    'creativity-coach': ['artistic', 'creative', 'inspiration', 'imagination', 'innovation', 'expression'],
+    'study-coach': ['academic', 'learning', 'study-tips', 'organization', 'productivity', 'focus'],
+    'relationship-coach': ['communication', 'love', 'dating', 'friendship', 'empathy', 'support'],
+    'mindfulness-coach': ['meditation', 'zen', 'peaceful', 'calm', 'balance', 'inner-peace'],
+    'cooking-coach': ['chef', 'recipe', 'cuisine', 'cooking', 'nutrition', 'culinary'],
+    'fictional': ['creative', 'imaginative', 'fantasy', 'adventure', 'unique', 'artistic']
+  };
+  
+  if (category && categoryTags[category]) {
+    suggested = categoryTags[category];
+  } else {
+    // Default suggestions
+    suggested = ['friendly', 'helpful', 'creative', 'supportive'];
+  }
+  
+  // Filter to only include tags that exist in allTags
+  suggested = suggested.filter(tag => allTags.includes(tag));
+  
+  // Add some random popular tags if we don't have enough
+  if (suggested.length < 4) {
+    const popularTags = ['helpful', 'friendly', 'creative', 'supportive', 'smart', 'funny'].filter(tag => 
+      allTags.includes(tag) && !suggested.includes(tag)
+    );
+    suggested = [...suggested, ...popularTags].slice(0, 6);
+  }
+  
+  displaySuggestedTags(suggested);
+}
 
    // Display suggested tags
    function displaySuggestedTags(tags) {
