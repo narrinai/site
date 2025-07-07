@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Simple Character Avatar Uploader - Working Version
+Simple Character Avatar Uploader - Debug Version
 Focus on real people and known characters only, skip all coaches
 """
 
@@ -26,6 +26,10 @@ class CharacterAvatarUploader:
         self.airtable_token = os.getenv('AIRTABLE_TOKEN')
         self.airtable_base = os.getenv('AIRTABLE_BASE', 'app7aSv140x93FY8r')
         
+        # DEBUG INFO
+        print(f"🔍 DEBUG - Base: {self.airtable_base}")
+        print(f"🔍 DEBUG - Token eerste 10 chars: {self.airtable_token[:10] if self.airtable_token else 'NONE'}...")
+        
         # Initialize Google Search
         try:
             self.search_service = build('customsearch', 'v1', developerKey=self.google_api_key)
@@ -44,6 +48,10 @@ class CharacterAvatarUploader:
         url = f"https://api.airtable.com/v0/{self.airtable_base}/Characters"
         headers = {'Authorization': f'Bearer {self.airtable_token}'}
         
+        # DEBUG INFO
+        print(f"🔍 DEBUG - URL: {url}")
+        print(f"🔍 DEBUG - Headers: {headers}")
+        
         all_records = []
         offset = None
         
@@ -57,10 +65,22 @@ class CharacterAvatarUploader:
             
             try:
                 response = self.session.get(url, headers=headers, params=params)
+                print(f"🔍 DEBUG - Response status: {response.status_code}")
                 response.raise_for_status()
                 
                 data = response.json()
                 records = data.get('records', [])
+                
+                # DEBUG INFO
+                print(f"📋 DEBUG - Loaded {len(records)} records in this batch")
+                if records:
+                    first_record = records[0]
+                    print(f"📋 DEBUG - First record ID: {first_record.get('id', 'NO_ID')}")
+                    print(f"📋 DEBUG - First record fields: {list(first_record.get('fields', {}).keys())}")
+                    print(f"📋 DEBUG - First record Avatar_URL: '{first_record.get('fields', {}).get('Avatar_URL', 'NOT_FOUND')}'")
+                    print(f"📋 DEBUG - First record Name: '{first_record.get('fields', {}).get('Name', 'NOT_FOUND')}'")
+                    print(f"📋 DEBUG - First record Category: '{first_record.get('fields', {}).get('Category', 'NOT_FOUND')}'")
+                
                 all_records.extend(records)
                 
                 offset = data.get('offset')
@@ -71,6 +91,7 @@ class CharacterAvatarUploader:
                 
             except Exception as e:
                 print(f"❌ API error: {e}")
+                print(f"❌ Response text: {response.text if 'response' in locals() else 'NO_RESPONSE'}")
                 break
         
         print(f"📋 Total records loaded: {len(all_records)}")
@@ -109,8 +130,17 @@ class CharacterAvatarUploader:
             avatar_url = fields.get('Avatar_URL', '').strip()
             category = fields.get('Category', '').lower().strip()
             
+            # DEBUG INFO per character
+            print(f"   📋 DEBUG - Record ID: {record.get('id', 'NO_ID')}")
+            print(f"   📋 DEBUG - All fields: {list(fields.keys())}")
+            print(f"   📋 DEBUG - Name: '{character_name}'")
+            print(f"   📋 DEBUG - Avatar_URL raw: '{fields.get('Avatar_URL', 'NOT_FOUND')}'")
+            print(f"   📋 DEBUG - Avatar_URL stripped: '{avatar_url}'")
+            print(f"   📋 DEBUG - Category: '{category}'")
+            
             # Skip if no name
             if not character_name:
+                print(f"   ⚠️ DEBUG - Skipping: No name")
                 continue
             
             print(f"   📋 Checking: {character_name} (category: '{category}', has_avatar: {bool(avatar_url)})")
@@ -161,6 +191,12 @@ class CharacterAvatarUploader:
         print(f"   📊 TOTAL to process: {len(all_characters)}")
         print(f"   ✅ HAVE avatars: {len(characters_with_avatars)}")
         print(f"   ⚠️ Unknown category: {skipped_unknown}")
+        
+        # DEBUG - Show characters with avatars
+        if characters_with_avatars:
+            print(f"\n📋 DEBUG - Characters WITH avatars:")
+            for char in characters_with_avatars[:10]:  # Show first 10
+                print(f"   ✅ {char['name']} ({char['category']}) - {char['avatar_url'][:50]}...")
         
         # Show breakdown
         if all_characters:
@@ -416,8 +452,14 @@ class CharacterAvatarUploader:
             }
         }
         
+        print(f"   📝 DEBUG - Updating Airtable:")
+        print(f"   📝 DEBUG - URL: {url}")
+        print(f"   📝 DEBUG - Data: {data}")
+        
         try:
             response = requests.patch(url, json=data, headers=headers)
+            print(f"   📝 DEBUG - Response status: {response.status_code}")
+            print(f"   📝 DEBUG - Response text: {response.text}")
             response.raise_for_status()
             print(f"   📝 Airtable updated: {avatar_url}")
             return True
@@ -475,7 +517,7 @@ class CharacterAvatarUploader:
 
     def run(self, limit=20):
         """Main execution - process both image and emoji characters"""
-        print("🚀 Character Avatar Uploader - Images + Emoji Version")
+        print("🚀 Character Avatar Uploader - DEBUG VERSION")
         print(f"📊 Processing first {limit} characters without avatars")
         print("🖼️ Real characters: Google image search")
         print("😀 Fictional characters: Generate emoji avatars")
