@@ -52,7 +52,7 @@ class ImprovedAvatarUploader:
             self.face_cascade = None
 
     def load_characters_without_avatar(self, limit=50):
-        """Load characters WITHOUT Avatar_URL, only real people and known characters"""
+        """Load characters WITHOUT Avatar_URL, filter by category"""
         url = f"https://api.airtable.com/v0/{self.airtable_base}/Characters"
         headers = {'Authorization': f'Bearer {self.airtable_token}'}
         
@@ -84,43 +84,101 @@ class ImprovedAvatarUploader:
                 print(f"❌ API error: {e}")
                 break
         
-        # Filter characters: geen avatar + echte personen/bekende characters
+        # Categorieën die we WILLEN verwerken
+        allowed_categories = [
+            'historical',      # Historische personen
+            'fantasy',         # Fantasy characters (Gandalf, etc.)
+            'anime',          # Anime characters  
+            'cartoon',        # Cartoon characters
+            'movie',          # Film characters
+            'game',           # Game characters
+            'mythology',      # Mythologische figuren
+            'literature',     # Literaire characters
+            'celebrity',      # Celebrities/acteurs
+            'politician',     # Politici
+            'scientist',      # Wetenschappers
+            'artist'          # Kunstenaars
+        ]
+        
+        # Categorieën die we SKIPPEN
+        skip_categories = [
+            'coach',          # Alle coaches
+            'instructor',     # Alle instructors  
+            'trainer',        # Alle trainers
+            'assistant',      # AI assistenten
+            'helper',         # Helpers
+            'guide',          # Guides
+            'mentor',         # Mentors
+            'advisor',        # Advisors
+            'consultant',     # Consultants
+            'therapist',      # Therapists
+            'counselor'       # Counselors
+        ]
+        
         valid_characters = []
-        skipped_count = 0
+        skipped_by_category = 0
+        skipped_by_name = 0
+        skipped_no_category = 0
         
         for record in all_records:
             fields = record.get('fields', {})
             character_name = fields.get('Name')
             avatar_url = fields.get('Avatar_URL', '').strip()
+            category = fields.get('Category', '').lower().strip()
             
             if not character_name or avatar_url:
                 continue
             
-            # Skip fictieve AI coaches/assistenten
-            if self.should_skip_character(character_name):
-                skipped_count += 1
+            print(f"   📋 Checking: {character_name} (category: '{category}')")
+            
+            # Skip op basis van categorie
+            if category in skip_categories:
+                print(f"   ❌ Skipped by category '{category}': {character_name}")
+                skipped_by_category += 1
                 continue
             
-            # Check of het een echte persoon of bekende character is
-            is_valid, char_type = self.is_real_person_or_known_character(character_name)
+            # Als er geen categorie is, check de naam
+            if not category:
+                if self.should_skip_character(character_name):
+                    skipped_by_name += 1
+                    continue
+                else:
+                    print(f"   ⚠️ No category, checking name: {character_name}")
+                    skipped_no_category += 1
+                    # Je kunt kiezen om deze wel of niet te verwerken
+                    # Voor nu skippen we characters zonder categorie
+                    continue
             
-            if is_valid:
-                valid_characters.append({
-                    'name': character_name,
-                    'id': record['id'],
-                    'type': char_type
-                })
-                print(f"   ✅ Added: {character_name} ({char_type})")
+            # Als categorie toegestaan is, of als het een bekende character is
+            if category in allowed_categories:
+                is_valid, char_type = self.is_real_person_or_known_character(character_name)
                 
-                if len(valid_characters) >= limit:
-                    break
+                if is_valid or category in allowed_categories:
+                    # Gebruik categorie als type als we geen specifiek type hebben
+                    final_type = char_type if is_valid else category
+                    
+                    valid_characters.append({
+                        'name': character_name,
+                        'id': record['id'],
+                        'type': final_type,
+                        'category': category
+                    })
+                    print(f"   ✅ Added: {character_name} ({final_type}, category: {category})")
+                    
+                    if len(valid_characters) >= limit:
+                        break
+                else:
+                    print(f"   ❌ Not a known character: {character_name}")
+                    skipped_by_name += 1
             else:
-                print(f"   ❌ Skipped unknown: {character_name}")
-                skipped_count += 1
+                print(f"   ❓ Unknown category '{category}': {character_name}")
+                skipped_by_name += 1
         
         print(f"\n📊 Results:")
         print(f"   ✅ Valid characters found: {len(valid_characters)}")
-        print(f"   ❌ Skipped characters: {skipped_count}")
+        print(f"   ❌ Skipped by category: {skipped_by_category}")
+        print(f"   ❌ Skipped by name check: {skipped_by_name}")
+        print(f"   ⚠️ Skipped (no category): {skipped_no_category}")
         
         return valid_characters
 
@@ -575,7 +633,7 @@ class ImprovedAvatarUploader:
         
         print(f"\n📋 Valid characters to process:")
         for i, char in enumerate(characters, 1):
-            print(f"  {i:2d}. {char['name']} ({char['type']})")
+            print(f"  {i:2d}. {char['name']} ({char['type']}, category: {char.get('category', 'none')})")
         
         response = input(f"\n✅ Process these {len(characters)} characters? (y/N): ")
         if response.lower() != 'y':
