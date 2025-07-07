@@ -4051,16 +4051,19 @@ document.addEventListener('DOMContentLoaded', () => {
    // ===== AVATAR FALLBACK FUNCTIES =====
  
  function generateEmojiAvatar(characterName, category) {
-   const emoji = getEmojiForCharacter(characterName, category);
-   // Genereer een data URL met emoji als SVG
-   const svg = `
-     <svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
-       <rect width="512" height="512" rx="256" fill="#f0f0f0"/>
-       <text x="256" y="320" font-size="240" text-anchor="middle" font-family="system-ui">${emoji}</text>
-     </svg>
-   `;
-   return `data:image/svg+xml;base64,${btoa(svg)}`;
- }
+  const emoji = getEmojiForCharacter(characterName, category);
+  
+  // Gebruik een veiligere encoding methode
+  const svg = `
+    <svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+      <rect width="512" height="512" rx="256" fill="#f0f0f0"/>
+      <text x="256" y="320" font-size="240" text-anchor="middle" font-family="system-ui">${emoji}</text>
+    </svg>
+  `;
+  
+  // Gebruik encodeURIComponent in plaats van btoa voor Unicode veiligheid
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+}
 
  function getEmojiForCharacter(name, category) {
    const nameLower = name.toLowerCase();
