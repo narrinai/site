@@ -4272,7 +4272,6 @@ if (!characterSlug && formData.name) {
 
 // Create character function with improved error handling
 // Create character function with improved error handling
-// Create character function with improved error handling
 async function createCharacter(formData) {
   try {
     // Get user credentials
@@ -4284,33 +4283,27 @@ async function createCharacter(formData) {
     }
     
     // Generate slug from character name
-const slug = generateSlug(formData.name);
-console.log('🔗 Generated slug:', slug);
+    const slug = generateSlug(formData.name);
+    console.log('🔗 Generated slug:', slug);
 
-// Debug tags
-console.log('🏷️ selectedTags:', selectedTags);
-console.log('🏷️ formData.tags:', formData.tags);
-console.log('🔍 EXACT tags value:', JSON.stringify(selectedTags)); // ← NIEUWE REGEL HIER
-console.log('🔍 Join result:', selectedTags.join(',')); // ← EN DEZE OOK
-
-const requestData = {
-  action: 'create_character',
-  user_email: userEmail,
-  user_token: userToken,
-  
-  // Character data voor Make.com
-  name: formData.name,
-  slug: slug,
-  character_id: slug,
-  title: formData.title,
-  description: formData.description,
-  prompt: formData.prompt,
-  category: formData.category,
-tags: selectedTags && selectedTags.length > 0 ? selectedTags.map(tag => tag.toLowerCase()).join(',') : '',
-visibility: formData.visibility,
-  avatar_url: formData.avatarUrl || '',
-  character_url: `https://narrin.ai/chat.html?char=${slug}`
-};
+    const requestData = {
+      action: 'create_character',
+      user_email: userEmail,
+      user_token: userToken,
+      
+      // Character data voor Make.com
+      name: formData.name,
+      slug: slug,
+      character_id: slug,
+      title: formData.title,
+      description: formData.description,
+      prompt: formData.prompt,
+      category: formData.category,
+      tags: selectedTags && selectedTags.length > 0 ? selectedTags.map(tag => tag.toLowerCase()).join(',') : '',
+      visibility: formData.visibility,
+      avatar_url: formData.avatarUrl || '',
+      character_url: `https://narrin.ai/chat.html?char=${slug}`
+    };
     
     console.log('📤 Request data:', requestData);
     
@@ -4326,16 +4319,33 @@ visibility: formData.visibility,
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
+    // Get response as text first, then try to parse
     const responseText = await response.text();
-    console.log('📝 API Response:', responseText);
+    console.log('📝 Raw API Response:', responseText);
 
     let result = {};
     if (responseText && responseText.trim() !== '') {
       try {
         result = JSON.parse(responseText);
+        console.log('✅ Parsed result:', result);
       } catch (parseError) {
-        console.error('JSON parse error:', parseError);
-        throw new Error('Invalid response from server');
+        console.error('JSON Parse Error:', parseError);
+        console.error('Response that failed to parse:', responseText);
+        
+        // Fallback - check if response indicates success
+        if (responseText.includes('"success": true') || responseText.includes('successfully')) {
+          console.log('🔄 Fallback: Detected successful response despite parse error');
+          result = {
+            success: true,
+            message: 'Character created successfully',
+            character: {
+              slug: slug,
+              character_id: slug
+            }
+          };
+        } else {
+          throw new Error('Invalid response from server - JSON parse failed');
+        }
       }
     }
 
