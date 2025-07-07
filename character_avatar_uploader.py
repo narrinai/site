@@ -213,32 +213,39 @@ class ImprovedAvatarUploader:
                     continue
                 else:
                     print(f"   ⚠️ No category, checking name: {character_name}")
-                    skipped_no_category += 1
-                    # Je kunt kiezen om deze wel of niet te verwerken
-                    # Voor nu skippen we characters zonder categorie
+                    # Voeg toe aan manual check
+                    manual_check_categories.append(character_name)
                     continue
             
-            # Als categorie toegestaan is, of als het een bekende character is
+            # Check onduidelijke categorieën handmatig
+            if category in manual_check_categories:
+                print(f"   🤔 Manual check needed for '{category}': {character_name}")
+                # Voor nu skippen we deze, maar je kunt ze handmatig reviewen
+                skipped_by_name += 1
+                continue
+            
+            # Als categorie toegestaan is
             if category in allowed_categories:
                 is_valid, char_type = self.is_real_person_or_known_character(character_name)
                 
-                if is_valid or category in allowed_categories:
-                    # Gebruik categorie als type als we geen specifiek type hebben
-                    final_type = char_type if is_valid else category
-                    
-                    valid_characters.append({
-                        'name': character_name,
-                        'id': record['id'],
-                        'type': final_type,
-                        'category': category
-                    })
-                    print(f"   ✅ Added: {character_name} ({final_type}, category: {category})")
-                    
-                    if len(valid_characters) >= limit:
-                        break
+                # Voor toegestane categorieën accepteren we characters ook zonder expliciete match
+                if is_valid:
+                    final_type = char_type
                 else:
-                    print(f"   ❌ Not a known character: {character_name}")
-                    skipped_by_name += 1
+                    # Gebruik categorie als type voor characters in toegestane categorieën
+                    final_type = category
+                    print(f"   ✅ Accepted by category: {character_name} ({category})")
+                
+                valid_characters.append({
+                    'name': character_name,
+                    'id': record['id'],
+                    'type': final_type,
+                    'category': category
+                })
+                print(f"   ✅ Added: {character_name} ({final_type}, category: {category})")
+                
+                if len(valid_characters) >= limit:
+                    break
             else:
                 print(f"   ❓ Unknown category '{category}': {character_name}")
                 skipped_by_name += 1
@@ -248,6 +255,16 @@ class ImprovedAvatarUploader:
         print(f"   ❌ Skipped by category: {skipped_by_category}")
         print(f"   ❌ Skipped by name check: {skipped_by_name}")
         print(f"   ⚠️ Skipped (no category): {skipped_no_category}")
+        
+        if len(valid_characters) > 0:
+            print(f"\n📋 Character breakdown by category:")
+            category_counts = {}
+            for char in valid_characters:
+                cat = char.get('category', 'unknown')
+                category_counts[cat] = category_counts.get(cat, 0) + 1
+            
+            for category, count in sorted(category_counts.items(), key=lambda x: x[1], reverse=True):
+                print(f"   {category:15} : {count:2d} characters")
         
         return valid_characters
 
