@@ -3658,15 +3658,28 @@ function debugUserData() {
   };
 }
 
-// ===== SLUG GENERATION FUNCTION =====
-function generateSlug(text) {
-  return text
+// ===== ENHANCED SLUG GENERATION WITH UNIQUENESS =====
+function generateUniqueSlug(text) {
+  // Generate base slug
+  const baseSlug = text
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9\s-]/g, '') // Remove special characters except spaces and hyphens
     .replace(/\s+/g, '-')         // Replace spaces with hyphens
     .replace(/-+/g, '-')          // Replace multiple hyphens with single hyphen
     .replace(/^-|-$/g, '');       // Remove leading/trailing hyphens
+  
+  // Add timestamp for uniqueness
+  const timestamp = Date.now();
+  
+  // Add random component for extra uniqueness
+  const random = Math.random().toString(36).substring(2, 6); // 4 random chars
+  
+  // Combine: base-slug-timestamp-random
+  const uniqueSlug = `${baseSlug}-${timestamp}-${random}`;
+  
+  console.log('🔗 Generated unique slug:', uniqueSlug);
+  return uniqueSlug;
 }
 
    // ===== CHARACTER FORM FUNCTIONALITY =====
@@ -4283,8 +4296,8 @@ async function createCharacter(formData) {
     }
     
     // Generate slug from character name
-    const slug = generateSlug(formData.name);
-    console.log('🔗 Generated slug:', slug);
+const slug = generateUniqueSlug(formData.name);    
+console.log('🔗 Generated slug:', slug);
 
     const requestData = {
       action: 'create_character',
