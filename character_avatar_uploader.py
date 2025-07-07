@@ -39,8 +39,8 @@ class CharacterAvatarUploader:
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
         })
 
-    def load_characters_without_avatar(self, limit=10):
-        """Load characters from good categories (with or without avatars for analysis)"""
+    def load_characters_without_avatar(self, limit=50):
+        """Load ALL characters without Avatar_URL and generate emoji avatars for fictional ones"""
         url = f"https://api.airtable.com/v0/{self.airtable_base}/Characters"
         headers = {'Authorization': f'Bearer {self.airtable_token}'}
         
@@ -75,8 +75,8 @@ class CharacterAvatarUploader:
         
         print(f"📋 Total records loaded: {len(all_records)}")
         
-        # Categories we want to process
-        good_categories = [
+        # Categories for REAL character images (Google search)
+        real_character_categories = [
             'historical',      # Historical figures
             'fictional',       # Fictional characters  
             'mythology',       # Mythological figures
@@ -84,21 +84,24 @@ class CharacterAvatarUploader:
             'celebrity',       # Celebrities
             'gaming',          # Gaming characters
             'fantasy',         # Fantasy characters
+            'original',        # Original characters
+            'books',           # Book characters
+            'other',            # Other categories
             'movies-tv'        # Movies & TV
         ]
         
-        # Categories to skip
-        skip_categories = [
+        # Categories for EMOJI avatars (fictional coaches/assistants)
+        emoji_character_categories = [
             'cooking-coach', 'study-coach', 'creativity-coach', 'career-coach',
             'relationship-coach', 'accounting-coach', 'language-coach', 
             'ai-assistant', 'negotiation-coach', 'mindfulness-coach',
             'business-coach', 'fitness-coach', 'educational'
         ]
         
-        valid_characters = []
+        characters_for_images = []  # Real characters needing Google images
+        characters_for_emoji = []   # Fictional characters needing emoji avatars
         characters_with_avatars = []
-        skipped_by_category = 0
-        skipped_other = 0
+        skipped_unknown = 0
         
         for record in all_records:
             fields = record.get('fields', {})
@@ -112,60 +115,162 @@ class CharacterAvatarUploader:
             
             print(f"   📋 Checking: {character_name} (category: '{category}', has_avatar: {bool(avatar_url)})")
             
-            # Skip coach categories
-            if category in skip_categories:
-                print(f"   ❌ Skipped coach/assistant: {character_name}")
-                skipped_by_category += 1
+            # Skip if already has avatar
+            if avatar_url:
+                characters_with_avatars.append({
+                    'name': character_name,
+                    'category': category,
+                    'avatar_url': avatar_url
+                })
+                print(f"   ✅ Has avatar: {character_name} ({category})")
                 continue
             
-            # Check good categories
-            if category in good_categories:
-                if avatar_url:
-                    characters_with_avatars.append({
-                        'name': character_name,
-                        'category': category,
-                        'avatar_url': avatar_url
-                    })
-                    print(f"   ✅ Has avatar: {character_name} ({category})")
-                else:
-                    valid_characters.append({
-                        'name': character_name,
-                        'id': record['id'],
-                        'category': category
-                    })
-                    print(f"   🎯 NEEDS avatar: {character_name} ({category})")
-                    
-                    if len(valid_characters) >= limit:
-                        break
+            # Route to appropriate processing based on category
+            if category in real_character_categories:
+                characters_for_images.append({
+                    'name': character_name,
+                    'id': record['id'],
+                    'category': category,
+                    'type': 'image'
+                })
+                print(f"   🖼️ NEEDS image: {character_name} ({category})")
+                
+            elif category in emoji_character_categories:
+                characters_for_emoji.append({
+                    'name': character_name,
+                    'id': record['id'],
+                    'category': category,
+                    'type': 'emoji'
+                })
+                print(f"   😀 NEEDS emoji: {character_name} ({category})")
+                
             else:
-                print(f"   ⚠️ Skipped other category '{category}': {character_name}")
-                skipped_other += 1
+                print(f"   ⚠️ Unknown category '{category}': {character_name}")
+                skipped_unknown += 1
+                
+            # Stop when we have enough total characters
+            if len(characters_for_images) + len(characters_for_emoji) >= limit:
+                break
+        
+        # Combine both types
+        all_characters = characters_for_images + characters_for_emoji
         
         print(f"\n📊 Results:")
-        print(f"   🎯 NEED avatars: {len(valid_characters)}")
+        print(f"   🖼️ NEED images: {len(characters_for_images)}")
+        print(f"   😀 NEED emoji: {len(characters_for_emoji)}")
+        print(f"   📊 TOTAL to process: {len(all_characters)}")
         print(f"   ✅ HAVE avatars: {len(characters_with_avatars)}")
-        print(f"   ❌ Skipped coaches: {skipped_by_category}")
-        print(f"   ⚠️ Skipped other: {skipped_other}")
+        print(f"   ⚠️ Unknown category: {skipped_unknown}")
         
-        # Show breakdown by category
-        if characters_with_avatars:
-            print(f"\n📋 Characters that ALREADY have avatars:")
-            category_counts = {}
-            for char in characters_with_avatars:
-                cat = char['category']
-                category_counts[cat] = category_counts.get(cat, 0) + 1
+        # Show breakdown
+        if all_characters:
+            print(f"\n📋 Characters to process:")
+            for char in all_characters[:20]:  # Show first 20
+                icon = "🖼️" if char['type'] == 'image' else "😀"
+                print(f"   {icon} {char['name']} ({char['category']})")
             
-            for category, count in sorted(category_counts.items(), key=lambda x: x[1], reverse=True):
-                print(f"   {category:15} : {count:2d} characters (have avatars)")
+            if len(all_characters) > 20:
+                print(f"   ... and {len(all_characters) - 20} more")
         
-        if valid_characters:
-            print(f"\n🎯 Characters that NEED avatars:")
-            for char in valid_characters:
-                print(f"   - {char['name']} ({char['category']})")
-        
-        return valid_characters
+        return all_characters
 
-    def search_google_images(self, character_name, category):
+    def generate_emoji_avatar(self, character_name, category):
+        """Generate emoji avatar SVG for fictional characters"""
+        emoji = self.get_emoji_for_character(character_name, category)
+        
+        # Create SVG with emoji
+        svg = f'''<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+          <rect width="512" height="512" rx="256" fill="#f0f0f0"/>
+          <text x="256" y="320" font-size="240" text-anchor="middle" font-family="system-ui">{emoji}</text>
+        </svg>'''
+        
+        # Convert to data URL
+        import urllib.parse
+        return f"data:image/svg+xml,{urllib.parse.quote(svg)}"
+
+    def get_emoji_for_character(self, name, category):
+        """Get appropriate emoji for character based on name and category"""
+        name_lower = name.lower()
+        
+        # Specific name matches first
+        specific_matches = {
+            'quick cuisine': '👨‍🍳',
+            'baking boss': '🧁',
+            'cost control': '💰',
+            'performance peak': '📈',
+            'resume rocket': '🚀',
+            'motivation motor': '⚡',
+            'mindful mover': '🧘‍♂️',
+            'creative block buster': '🎨',
+            'network navigator': '🌐',
+            'recovery guru': '💪',
+            'trust builder': '🤝',
+            'win-win wizard': '🎯',
+            'echo voidwalker': '🌌',
+            'phoenix emberhart': '🔥',
+            'raven blackmoon': '🌙',
+        }
+        
+        # Check for specific character name matches
+        for key, emoji in specific_matches.items():
+            if key in name_lower:
+                return emoji
+        
+        # Category-based emoji selection
+        category_emojis = {
+            'cooking-coach': ['👨‍🍳', '🍳', '🥘', '🍽️', '🔥', '🌶️'],
+            'study-coach': ['📚', '🎓', '📝', '🧠', '⏰', '🎯'],
+            'creativity-coach': ['🎨', '💡', '✨', '🌈', '🎪', '🎭'],
+            'career-coach': ['📈', '🎯', '💼', '🌟', '🚀', '🎓'],
+            'relationship-coach': ['💝', '💕', '🤝', '💬', '🌹', '💑'],
+            'accounting-coach': ['💰', '📊', '🧮', '📈', '💼', '⚖️'],
+            'language-coach': ['🗣️', '📖', '🌍', '💬', '✍️', '🎓'],
+            'ai-assistant': ['🤖', '💬', '🧠', '⚡', '💡', '🔧'],
+            'negotiation-coach': ['🤝', '💬', '🎯', '⚖️', '🧠', '💡'],
+            'mindfulness-coach': ['🧘‍♂️', '🌸', '🕯️', '🌿', '☮️', '🌙'],
+            'business-coach': ['💼', '📊', '💰', '🎯', '📈', '💡'],
+            'fitness-coach': ['💪', '🏃‍♂️', '🏋️‍♀️', '⚽', '🥇', '🔥'],
+            'educational': ['📚', '🎓', '📝', '🔬', '🧮', '📐']
+        
+        }
+        
+        emojis = category_emojis.get(category, category_emojis['other'])
+        
+        # Use character name for consistent emoji selection
+        name_hash = sum(ord(char) for char in name_lower)
+        return emojis[name_hash % len(emojis)]
+
+    def create_emoji_avatar_file(self, character_name, category):
+        """Create emoji avatar file and return filename"""
+        emoji = self.get_emoji_for_character(character_name, category)
+        
+        # Create SVG content
+        svg_content = f'''<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="256" fill="#f0f0f0"/>
+  <text x="256" y="320" font-size="240" text-anchor="middle" font-family="Apple Color Emoji, Segoe UI Emoji, system-ui">{emoji}</text>
+</svg>'''
+        
+        # Create filename
+        safe_name = character_name.lower()
+        safe_name = ''.join(c if c.isalnum() else '-' for c in safe_name)
+        safe_name = safe_name.strip('-')
+        timestamp = int(time.time())
+        filename = f"{safe_name}-emoji-{timestamp}.svg"
+        
+        # Save SVG file
+        avatars_dir = "avatars"
+        os.makedirs(avatars_dir, exist_ok=True)
+        file_path = os.path.join(avatars_dir, filename)
+        
+        try:
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(svg_content)
+            print(f"   💾 Saved emoji avatar: {file_path}")
+            return filename
+        except Exception as e:
+            print(f"   ❌ Save error: {e}")
+            return None
         """Search for character images"""
         if not self.search_service:
             return []
@@ -353,21 +458,37 @@ class CharacterAvatarUploader:
         print(f"   ❌ All images failed for {character['name']}")
         return False
 
-    def run(self, limit=10):
-        """Main execution"""
-        print("🚀 Character Avatar Uploader - Simple Working Version")
+    def run(self, limit=20):
+        """Main execution - process both image and emoji characters"""
+        print("🚀 Character Avatar Uploader - Images + Emoji Version")
         print(f"📊 Processing first {limit} characters without avatars")
-        print("✅ Focus: Real people, historical figures, known characters")
-        print("❌ Skip: All coaches, instructors, AI assistants")
+        print("🖼️ Real characters: Google image search")
+        print("😀 Fictional characters: Generate emoji avatars")
         
         characters = self.load_characters_without_avatar(limit)
         if not characters:
             print("✅ No characters need avatars!")
             return 0, 0
         
+        # Count by type
+        image_chars = [c for c in characters if c.get('type') == 'image']
+        emoji_chars = [c for c in characters if c.get('type') == 'emoji']
+        
         print(f"\n📋 Characters to process:")
-        for i, char in enumerate(characters, 1):
-            print(f"  {i:2d}. {char['name']} ({char['category']})")
+        print(f"   🖼️ Image search: {len(image_chars)} characters")
+        print(f"   😀 Emoji generation: {len(emoji_chars)} characters")
+        print(f"   📊 Total: {len(characters)} characters")
+        
+        if len(characters) > 10:
+            print(f"\n📝 First 10 characters:")
+            for i, char in enumerate(characters[:10], 1):
+                icon = "🖼️" if char.get('type') == 'image' else "😀"
+                print(f"  {i:2d}. {icon} {char['name']} ({char['category']})")
+            print(f"   ... and {len(characters) - 10} more")
+        else:
+            for i, char in enumerate(characters, 1):
+                icon = "🖼️" if char.get('type') == 'image' else "😀"
+                print(f"  {i:2d}. {icon} {char['name']} ({char['category']})")
         
         response = input(f"\n✅ Process these {len(characters)} characters? (y/N): ")
         if response.lower() != 'y':
@@ -379,7 +500,8 @@ class CharacterAvatarUploader:
         
         for i, char in enumerate(characters, 1):
             print(f"\n{'='*60}")
-            print(f"[{i}/{len(characters)}] Processing: {char['name']}")
+            icon = "🖼️" if char.get('type') == 'image' else "😀"
+            print(f"[{i}/{len(characters)}] {icon} Processing: {char['name']}")
             print(f"{'='*60}")
             
             try:
@@ -391,7 +513,7 @@ class CharacterAvatarUploader:
                 print(f"\n📊 Progress: {success} success, {failed} failed")
                 
                 if i < len(characters):
-                    time.sleep(2)
+                    time.sleep(1)  # Shorter delay since many are emoji generation
                 
             except KeyboardInterrupt:
                 print(f"\n⏹️ Stopped by user")
@@ -406,8 +528,17 @@ class CharacterAvatarUploader:
         if (success + failed) > 0:
             print(f"📈 Success rate: {(success/(success+failed)*100):.1f}%")
         
+        # Show breakdown
+        image_success = sum(1 for i, char in enumerate(characters[:success]) if char.get('type') == 'image')
+        emoji_success = success - image_success
+        
+        print(f"\n📊 Breakdown:")
+        print(f"   🖼️ Images created: {image_success}")
+        print(f"   😀 Emojis created: {emoji_success}")
+        print(f"   📁 Files saved in: ./avatars/")
+        
         return success, failed
 
 if __name__ == "__main__":
     uploader = CharacterAvatarUploader()
-    uploader.run(limit=10)
+    uploader.run(limit=20)  # Process 20 characters (mix of images and emojis)
