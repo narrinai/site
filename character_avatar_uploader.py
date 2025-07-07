@@ -213,8 +213,7 @@ class ImprovedAvatarUploader:
                     continue
                 else:
                     print(f"   ⚠️ No category, checking name: {character_name}")
-                    # Voeg toe aan manual check
-                    manual_check_categories.append(character_name)
+                    skipped_no_category += 1
                     continue
             
             # Check onduidelijke categorieën handmatig
