@@ -58,10 +58,14 @@ class CharacterAvatarUploader:
         print(f"🔍 Loading characters...")
         
         # Load all records first
+        batch_count = 0
         while True:
+            batch_count += 1
             params = {'maxRecords': 100}
             if offset:
                 params['offset'] = offset
+            
+            print(f"🔄 Loading batch {batch_count} (offset: {offset[:20] if offset else 'None'}...)")
             
             try:
                 response = self.session.get(url, headers=headers, params=params)
@@ -71,20 +75,21 @@ class CharacterAvatarUploader:
                 data = response.json()
                 records = data.get('records', [])
                 
-                # DEBUG INFO
-                print(f"📋 DEBUG - Loaded {len(records)} records in this batch")
+                print(f"📋 DEBUG - Loaded {len(records)} records in batch {batch_count}")
+                print(f"📋 DEBUG - Total records so far: {len(all_records) + len(records)}")
+                
+                # DEBUG INFO for first record of each batch
                 if records:
                     first_record = records[0]
-                    print(f"📋 DEBUG - First record ID: {first_record.get('id', 'NO_ID')}")
-                    print(f"📋 DEBUG - First record fields: {list(first_record.get('fields', {}).keys())}")
-                    print(f"📋 DEBUG - First record Avatar_URL: '{first_record.get('fields', {}).get('Avatar_URL', 'NOT_FOUND')}'")
-                    print(f"📋 DEBUG - First record Name: '{first_record.get('fields', {}).get('Name', 'NOT_FOUND')}'")
-                    print(f"📋 DEBUG - First record Category: '{first_record.get('fields', {}).get('Category', 'NOT_FOUND')}'")
+                    print(f"📋 DEBUG - First record in batch {batch_count}: {first_record.get('fields', {}).get('Name', 'NO_NAME')}")
                 
                 all_records.extend(records)
                 
                 offset = data.get('offset')
+                print(f"📋 DEBUG - Next offset: {offset[:20] if offset else 'None (end)'}...")
+                
                 if not offset:
+                    print("📋 DEBUG - No more records, breaking loop")
                     break
                     
                 time.sleep(0.5)
