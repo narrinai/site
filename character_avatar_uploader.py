@@ -148,9 +148,9 @@ class CharacterAvatarUploader:
                 print(f"   ⚠️ Unknown category '{category}': {character_name}")
                 skipped_unknown += 1
                 
-            # Stop when we have enough total characters
-            if len(characters_for_images) + len(characters_for_emoji) >= limit:
-                break
+            # Stop when we have enough total characters (comment out to process ALL)
+            # if len(characters_for_images) + len(characters_for_emoji) >= limit:
+            #     break
         
         # Combine both types
         all_characters = characters_for_images + characters_for_emoji
@@ -556,4 +556,4 @@ class CharacterAvatarUploader:
 
 if __name__ == "__main__":
     uploader = CharacterAvatarUploader()
-    uploader.run(limit=20)  # Process 20 characters (mix of images and emojis)
+    uploader.run(limit=1000)  # Process veel meer characters (limit wordt niet meer gebruikt door break comment)
