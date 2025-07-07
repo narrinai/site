@@ -51,7 +51,65 @@ class ImprovedAvatarUploader:
             print(f"⚠️ Face detection not available: {e}")
             self.face_cascade = None
 
-    def load_characters_without_avatar(self, limit=50):
+    def analyze_categories(self):
+        """Analyze all categories in the database"""
+        url = f"https://api.airtable.com/v0/{self.airtable_base}/Characters"
+        headers = {'Authorization': f'Bearer {self.airtable_token}'}
+        
+        all_records = []
+        offset = None
+        
+        print(f"🔍 Analyzing all categories in database...")
+        
+        while True:
+            params = {'maxRecords': 100}
+            if offset:
+                params['offset'] = offset
+            
+            try:
+                response = self.session.get(url, headers=headers, params=params)
+                response.raise_for_status()
+                
+                data = response.json()
+                records = data.get('records', [])
+                all_records.extend(records)
+                
+                offset = data.get('offset')
+                if not offset:
+                    break
+                    
+                time.sleep(0.5)
+                
+            except Exception as e:
+                print(f"❌ API error: {e}")
+                break
+        
+        # Count categories
+        categories = {}
+        no_category = 0
+        
+        for record in all_records:
+            fields = record.get('fields', {})
+            character_name = fields.get('Name')
+            category = fields.get('Category', '').lower().strip()
+            
+            if not character_name:
+                continue
+                
+            if category:
+                categories[category] = categories.get(category, 0) + 1
+            else:
+                no_category += 1
+        
+        print(f"\n📊 Category Analysis:")
+        print(f"Total characters: {len(all_records)}")
+        print(f"Characters without category: {no_category}")
+        print(f"\nCategories found:")
+        
+        for category, count in sorted(categories.items(), key=lambda x: x[1], reverse=True):
+            print(f"  {category:20} : {count:3d} characters")
+        
+        return categories
         """Load characters WITHOUT Avatar_URL, filter by category"""
         url = f"https://api.airtable.com/v0/{self.airtable_base}/Characters"
         headers = {'Authorization': f'Bearer {self.airtable_token}'}
@@ -100,19 +158,30 @@ class ImprovedAvatarUploader:
             'artist'          # Kunstenaars
         ]
         
-        # Categorieën die we SKIPPEN
+        # Categorieën die we SKIPPEN (alle coach/instructor varianten)
         skip_categories = [
-            'coach',          # Alle coaches
-            'instructor',     # Alle instructors  
-            'trainer',        # Alle trainers
-            'assistant',      # AI assistenten
-            'helper',         # Helpers
-            'guide',          # Guides
-            'mentor',         # Mentors
-            'advisor',        # Advisors
-            'consultant',     # Consultants
-            'therapist',      # Therapists
-            'counselor'       # Counselors
+            'cooking-coach',      # Cooking coaches
+            'accounting-coach',   # Accounting coaches  
+            'educational',        # Educational characters
+            'career-coach',       # Career coaches
+            'original',           # Original characters (lijken fictief)
+            'negotiation-coach',  # Negotiation coaches
+            'creativity-coach',   # Creativity coaches
+            'mindfulness-coach',  # Mindfulness coaches
+            'business-coach',     # Business coaches
+            'fitness-coach',      # Fitness coaches
+            'study-coach',        # Study coaches
+            'coach',              # Generic coaches
+            'instructor',         # Alle instructors  
+            'trainer',            # Alle trainers
+            'assistant',          # AI assistenten
+            'helper',             # Helpers
+            'guide',              # Guides
+            'mentor',             # Mentors
+            'advisor',            # Advisors
+            'consultant',         # Consultants
+            'therapist',          # Therapists
+            'counselor'           # Counselors
         ]
         
         valid_characters = []
@@ -619,9 +688,15 @@ class ImprovedAvatarUploader:
         print(f"   ❌ All images failed for {character['name']}")
         return False
 
-    def run(self, limit=10):
+    def run(self, limit=10, analyze_only=False):
         """Main execution - only process real people and known characters"""
         print("🚀 Character Avatar Uploader - Real People & Known Characters Only")
+        
+        if analyze_only:
+            print("📊 Analyzing categories only...")
+            self.analyze_categories()
+            return 0, 0
+        
         print(f"📊 Processing first {limit} VALID characters without avatars")
         print("✅ Will process: Real people, actors, anime characters, cartoons")
         print("❌ Will skip: AI coaches, instructors, fictional assistants")
@@ -677,4 +752,15 @@ class ImprovedAvatarUploader:
 
 if __name__ == "__main__":
     uploader = ImprovedAvatarUploader()
-    uploader.run(limit=10)  # Start met 10 characters voor test
+    
+    # Eerst categories analyseren
+    print("📊 First, let's analyze all categories in your database:")
+    uploader.analyze_categories()
+    
+    print("\n" + "="*60)
+    response = input("Continue with avatar processing? (y/N): ")
+    
+    if response.lower() == 'y':
+        uploader.run(limit=10)  # Start met 10 characters voor test
+    else:
+        print("👋 Analysis complete!")
