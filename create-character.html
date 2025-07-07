@@ -3698,27 +3698,22 @@ function debugUserData() {
 }
 
 // ===== ENHANCED SLUG GENERATION WITH UNIQUENESS =====
+// Vervang de bestaande generateUniqueSlug functie met:
 function generateUniqueSlug(text) {
-  // Generate base slug
+  // Simpelere slug zonder timestamp
   const baseSlug = text
     .toLowerCase()
     .trim()
-    .replace(/[^a-z0-9\s-]/g, '') // Remove special characters except spaces and hyphens
-    .replace(/\s+/g, '-')         // Replace spaces with hyphens
-    .replace(/-+/g, '-')          // Replace multiple hyphens with single hyphen
-    .replace(/^-|-$/g, '');       // Remove leading/trailing hyphens
+    .replace(/[^a-z0-9\s-]/g, '') // Alleen letters, cijfers, spaties en hyphens
+    .replace(/\s+/g, '-')         // Spaties naar hyphens
+    .replace(/-+/g, '-')          // Meerdere hyphens naar één
+    .replace(/^-|-$/g, '')        // Verwijder begin/eind hyphens
+    .substring(0, 30);            // Beperk tot 30 karakters
   
-  // Add timestamp for uniqueness
-  const timestamp = Date.now();
+  // Voeg alleen een korte random string toe voor uniekheid
+  const random = Math.random().toString(36).substring(2, 6); // 4 karakters
   
-  // Add random component for extra uniqueness
-  const random = Math.random().toString(36).substring(2, 6); // 4 random chars
-  
-  // Combine: base-slug-timestamp-random
-  const uniqueSlug = `${baseSlug}-${timestamp}-${random}`;
-  
-  console.log('🔗 Generated unique slug:', uniqueSlug);
-  return uniqueSlug;
+  return `${baseSlug}-${random}`;
 }
 
    // ===== CHARACTER FORM FUNCTIONALITY =====
