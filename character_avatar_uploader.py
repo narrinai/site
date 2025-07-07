@@ -146,6 +146,29 @@ class ImprovedAvatarUploader:
                 print(f"   ⚠️ Skipping fictional AI/coach: {character_name}")
                 return True
         
+        # Check voor alliteratie patroon (zelfde beginletter voor voornaam/achternaam)
+        # Dit zijn meestal fictieve AI assistenten zoals "Performance Peak", "Resume Rocket"
+        parts = character_name.split()
+        if len(parts) == 2:
+            first_letter_1 = parts[0][0].lower() if parts[0] else ''
+            first_letter_2 = parts[1][0].lower() if parts[1] else ''
+            
+            if first_letter_1 == first_letter_2 and first_letter_1.isalpha():
+                # Extra check: zijn het business/self-help gerelateerde woorden?
+                business_words = [
+                    'performance', 'peak', 'success', 'growth', 'boost', 'power',
+                    'resume', 'rocket', 'career', 'creative', 'block', 'buster',
+                    'mindful', 'mover', 'motivation', 'motor', 'wellness', 'warrior',
+                    'productivity', 'partner', 'focus', 'finder', 'goal', 'getter',
+                    'habit', 'hero', 'energy', 'expert', 'time', 'tracker',
+                    'stress', 'solver', 'balance', 'buddy', 'discipline', 'driver'
+                ]
+                
+                name_words = [word.lower() for word in parts]
+                if any(word in business_words for word in name_words):
+                    print(f"   ⚠️ Skipping alliteration AI assistant: {character_name}")
+                    return True
+        
         return False
 
     def is_real_person_or_known_character(self, character_name):
