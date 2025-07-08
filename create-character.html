@@ -4448,6 +4448,11 @@ window.addEventListener('beforeunload', (e) => {
 document.addEventListener('DOMContentLoaded', () => {
   trackFormChanges();
   
+  // Check if user is returning from login on page load
+  setTimeout(() => {
+    handlePostLoginRedirect();
+  }, 500);
+  
   // Set up authentication handlers for redirect after login
   if (window.netlifyIdentity) {
     window.netlifyIdentity.on('login', user => {
@@ -4470,14 +4475,14 @@ function showLoginOverlay() {
         <h2 class="login-overlay-title">Login Required</h2>
         <p class="login-overlay-text">
           You need to be logged in to create a character. 
-          Sign up or log in to continue with your character creation.
+          We'll save your character data and take you to the login page.
         </p>
         <p class="login-overlay-subtext">
-          Don't worry - we'll save your character and redirect you back after you log in!
+          After you sign up or log in, you'll be brought back here with all your data restored!
         </p>
         <div class="login-overlay-buttons">
           <button class="login-overlay-btn primary" onclick="openLoginFromOverlay()">
-            Login / Register
+            Go to Login Page
           </button>
           <button class="login-overlay-btn secondary" onclick="hideLoginOverlay()">
             Cancel
@@ -4506,11 +4511,18 @@ function hideLoginOverlay() {
 }
 
 function openLoginFromOverlay() {
+  console.log('🚀 Redirecting to login page...');
+  
   // Store that we're creating a character
   localStorage.setItem('creating_character', 'true');
   
   // Store the current page URL to redirect back after login
   localStorage.setItem('login_redirect_url', window.location.href);
+  
+  console.log('💾 Stored redirect data:', {
+    creating_character: 'true',
+    redirect_url: window.location.href
+  });
   
   // Redirect to profile page where login/register works properly
   window.location.href = 'profile.html';
@@ -4539,7 +4551,10 @@ function handlePostLoginRedirect() {
   const creatingCharacter = localStorage.getItem('creating_character');
   const pendingCharacterData = localStorage.getItem('pending_character_creation');
   
+  console.log('🔄 Checking for post-login redirect...', { creatingCharacter, hasPendingData: !!pendingCharacterData });
+  
   if (creatingCharacter === 'true' && pendingCharacterData) {
+    console.log('✅ Found pending character creation, restoring data...');
     // Clean up flag
     localStorage.removeItem('creating_character');
     
