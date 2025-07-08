@@ -4644,6 +4644,25 @@ document.addEventListener('DOMContentLoaded', () => {
   trackFormChanges();
 });
 
+// Quick fix for login button
+function redirectToProfile() {
+  console.log('🔄 Redirecting to profile page...');
+  
+  // Save form data before redirecting
+  if (typeof saveFormDataToStorage === 'function') {
+    saveFormDataToStorage();
+  }
+  localStorage.setItem('login_redirect_url', window.location.href);
+  
+  // Hide overlay and redirect
+  if (typeof hideLoginOverlay === 'function') {
+    hideLoginOverlay();
+  }
+  
+  // Force redirect
+  window.location.href = 'profile.html';
+}
+
  </script>
 
  <!-- Footer -->
