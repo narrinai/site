@@ -4,8 +4,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>My Profile - Narrin AI</title>
-  <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-  
+<!-- Netlify Identity Widget met configuratie -->
+<script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+<script>
+  // Configureer widget styling
+  if (window.netlifyIdentity) {
+    window.netlifyIdentity.init({
+      theme: 'custom',
+      colors: {
+        primary: '#14b8a6',
+        secondary: '#f97316'
+      },
+      logo: false, // Verberg Netlify logo
+      locale: 'en'
+    });
+  }
+</script>  
   <!-- Stripe.js -->
   <script src="https://js.stripe.com/v3/"></script>
   
@@ -4017,6 +4031,54 @@ function updateUsageCountdown(plan, usage, quota) {
     countdownEl.style.display = 'none';
   }
 }
+
+// ===== FORCE NETLIFY MODAL STYLING =====
+function applyNetlifyModalStyling() {
+  // Wacht tot modal volledig geladen is
+  setTimeout(() => {
+    try {
+      // Probeer iframe content te stylen
+      const iframe = document.querySelector('.netlify-identity-widget iframe');
+      if (iframe) {
+        iframe.style.borderRadius = '24px';
+        iframe.style.border = '2px solid #14b8a6';
+        iframe.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+        iframe.style.overflow = 'hidden';
+      }
+
+      // Style de container
+      const widget = document.querySelector('.netlify-identity-widget');
+      if (widget) {
+        widget.style.fontFamily = 'Plus Jakarta Sans, sans-serif';
+        widget.style.backdropFilter = 'blur(20px)';
+        widget.style.background = 'rgba(30, 41, 59, 0.8)';
+      }
+
+      console.log('🎨 Netlify modal styling applied');
+    } catch (error) {
+      console.log('⚠️ Could not apply iframe styling (cross-origin):', error);
+    }
+  }, 200);
+}
+
+// Pas styling toe bij elke modal open
+function setupModalStyling() {
+  if (window.netlifyIdentity) {
+    window.netlifyIdentity.on('open', () => {
+      console.log('🎨 Applying modal styling...');
+      applyNetlifyModalStyling();
+      
+      // Herhaal styling meerdere keren voor zekerheid
+      setTimeout(applyNetlifyModalStyling, 500);
+      setTimeout(applyNetlifyModalStyling, 1000);
+    });
+  }
+}
+
+// Initialize styling setup
+document.addEventListener('DOMContentLoaded', () => {
+  setupModalStyling();
+});
 
   </script>
   <!-- Footer -->
