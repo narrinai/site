@@ -4032,34 +4032,118 @@ function updateUsageCountdown(plan, usage, quota) {
   }
 }
 
-// ===== FORCE NETLIFY MODAL STYLING =====
+// ===== ENHANCED FORCE NETLIFY MODAL STYLING =====
 function applyNetlifyModalStyling() {
+  console.log('🎨 Attempting to apply modal styling...');
+  
   // Wacht tot modal volledig geladen is
   setTimeout(() => {
     try {
-      // Probeer iframe content te stylen
+      // METHODE 1: Style de widget container zelf
+      const widget = document.querySelector('.netlify-identity-widget');
+      if (widget) {
+        widget.style.fontFamily = 'Plus Jakarta Sans, sans-serif !important';
+        widget.style.backdropFilter = 'blur(20px)';
+        widget.style.background = 'rgba(30, 41, 59, 0.8)';
+        console.log('✅ Widget container styled');
+      }
+
+      // METHODE 2: Style iframe container
       const iframe = document.querySelector('.netlify-identity-widget iframe');
       if (iframe) {
         iframe.style.borderRadius = '24px';
         iframe.style.border = '2px solid #14b8a6';
-        iframe.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+        iframe.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1)';
         iframe.style.overflow = 'hidden';
+        console.log('✅ Iframe styled');
       }
 
-      // Style de container
-      const widget = document.querySelector('.netlify-identity-widget');
-      if (widget) {
-        widget.style.fontFamily = 'Plus Jakarta Sans, sans-serif';
-        widget.style.backdropFilter = 'blur(20px)';
-        widget.style.background = 'rgba(30, 41, 59, 0.8)';
+      // METHODE 3: Force styling op alle netlify elementen
+      const allNetlifyElements = document.querySelectorAll('[class*="netlify"]');
+      allNetlifyElements.forEach(el => {
+        el.style.fontFamily = 'Plus Jakarta Sans, sans-serif';
+        el.style.color = '#1e293b';
+      });
+
+      // METHODE 4: Inject custom CSS direct in document
+      const customStyles = `
+        <style id="netlify-custom-styling">
+          .netlify-identity-widget * {
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+          }
+          .netlify-identity-widget iframe {
+            border-radius: 24px !important;
+            border: 2px solid #14b8a6 !important;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1) !important;
+          }
+        </style>
+      `;
+      
+      if (!document.getElementById('netlify-custom-styling')) {
+        document.head.insertAdjacentHTML('beforeend', customStyles);
+        console.log('✅ Custom CSS injected');
       }
 
-      console.log('🎨 Netlify modal styling applied');
     } catch (error) {
-      console.log('⚠️ Could not apply iframe styling (cross-origin):', error);
+      console.log('⚠️ Styling attempt blocked:', error);
     }
-  }, 200);
+  }, 100);
+
+  // Herhaal styling om er zeker van te zijn
+  setTimeout(() => applyForcedStyling(), 300);
+  setTimeout(() => applyForcedStyling(), 600);
+  setTimeout(() => applyForcedStyling(), 1000);
 }
+
+function applyForcedStyling() {
+  try {
+    // Probeer styling opnieuw toe te passen
+    const iframe = document.querySelector('.netlify-identity-widget iframe');
+    if (iframe) {
+      iframe.style.setProperty('border-radius', '24px', 'important');
+      iframe.style.setProperty('border', '2px solid #14b8a6', 'important');
+      iframe.style.setProperty('font-family', 'Plus Jakarta Sans, sans-serif', 'important');
+    }
+    
+    const widget = document.querySelector('.netlify-identity-widget');
+    if (widget) {
+      widget.style.setProperty('font-family', 'Plus Jakarta Sans, sans-serif', 'important');
+    }
+  } catch (error) {
+    console.log('⚠️ Forced styling blocked:', error);
+  }
+}
+
+// Pas styling toe bij elke modal open
+function setupModalStyling() {
+  if (window.netlifyIdentity) {
+    window.netlifyIdentity.on('open', () => {
+      console.log('🎨 Modal opened - applying styling...');
+      applyNetlifyModalStyling();
+      
+      // Extra agressieve herhaling
+      const stylingInterval = setInterval(() => {
+        applyForcedStyling();
+      }, 200);
+      
+      // Stop na 5 seconden
+      setTimeout(() => {
+        clearInterval(stylingInterval);
+      }, 5000);
+    });
+
+    // Ook proberen bij init
+    window.netlifyIdentity.on('init', () => {
+      console.log('🎨 Identity initialized - preparing styling...');
+      applyNetlifyModalStyling();
+    });
+  }
+}
+
+// Initialize styling setup
+document.addEventListener('DOMContentLoaded', () => {
+  setupModalStyling();
+});
 
 // Pas styling toe bij elke modal open
 function setupModalStyling() {
