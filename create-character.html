@@ -4509,18 +4509,11 @@ function openLoginFromOverlay() {
   // Store that we're creating a character
   localStorage.setItem('creating_character', 'true');
   
-  // Hide the overlay first so it doesn't block the Netlify Identity widget
-  hideLoginOverlay();
+  // Store the current page URL to redirect back after login
+  localStorage.setItem('login_redirect_url', window.location.href);
   
-  // Open Netlify Identity widget after a short delay
-  setTimeout(() => {
-    if (window.netlifyIdentity) {
-      window.netlifyIdentity.open('login');
-    } else {
-      // Fallback to profile page
-      window.location.href = 'profile.html';
-    }
-  }, 100);
+  // Redirect to profile page where login/register works properly
+  window.location.href = 'profile.html';
 }
 
 // Store form data for redirect
