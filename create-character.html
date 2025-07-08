@@ -2618,6 +2618,21 @@
    let currentAvatarUrl = '';
    let pendingCharacterData = null;
    
+// Disable Netlify Identity automatic popup
+if (window.netlifyIdentity) {
+  window.netlifyIdentity.on('init', user => {
+    // Don't automatically open login
+  });
+}
+
+// Override any automatic Netlify login triggers
+window.addEventListener('DOMContentLoaded', () => {
+  // Prevent automatic Netlify popup
+  if (window.netlifyIdentity) {
+    window.netlifyIdentity.close();
+  }
+});
+
    // Personality builder state
    let personalityState = {
      sliders: {
@@ -4419,9 +4434,11 @@ const isLoggedIn = netlifyUser || (localEmail && localToken);
 console.log('🔍 Login check:', { netlifyUser, localEmail, localToken, isLoggedIn });
 
 if (!isLoggedIn) {
-  console.log('❌ User not logged in, showing overlay');
-  showLoginOverlay();
+  console.log('❌ User not logged in, redirecting to profile');
+  saveFormDataToStorage();
+  localStorage.setItem('login_redirect_url', window.location.href);
   isSubmitting = false; // Reset flag
+  window.location.href = 'profile.html';
   return;
 } else {
   console.log('✅ User is logged in, proceeding with form submission');
