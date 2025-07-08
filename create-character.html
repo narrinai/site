@@ -3901,6 +3901,22 @@ async function uploadToCloudinary(file, slug) {
   }, 100);
 }
 
+function redirectToProfile() {
+  console.log('🔄 Redirecting to profile page...');
+  
+  // Save form data before redirecting
+  saveFormDataToStorage();
+  localStorage.setItem('login_redirect_url', window.location.href);
+  
+  // Hide overlay and redirect
+  hideLoginOverlay();
+  
+  // Force redirect
+  setTimeout(() => {
+    window.location.href = 'profile.html';
+  }, 100);
+}
+
 // Save form data to localStorage
 function saveFormDataToStorage() {
   const formData = {
