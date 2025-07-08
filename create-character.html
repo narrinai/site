@@ -4450,6 +4450,9 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
   e.preventDefault();
   console.log('🚀 Form submission started...');
   
+// NIEUWE REGEL - Hide login overlay immediately if it's showing
+  hideLoginOverlay();
+
   // Prevent double submission
   if (isSubmitting) {
     console.log('⚠️ Form already being submitted, ignoring...');
@@ -4474,11 +4477,14 @@ if (!isLoggedIn) {
   saveFormDataToStorage();
   localStorage.setItem('login_redirect_url', window.location.href);
   isSubmitting = false; // Reset flag
+  isFormSubmitting = false; // Reset form flag
+  
+  // Direct redirect - NO POPUP
   window.location.href = 'profile.html';
   return;
-} else {
-  console.log('✅ User is logged in, proceeding with form submission');
 }
+
+console.log('✅ User is logged in, proceeding with form submission');
   
   // Collect form data - ENHANCED VERSION
   const formData = {
