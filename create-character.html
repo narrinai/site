@@ -4509,13 +4509,18 @@ function openLoginFromOverlay() {
   // Store that we're creating a character
   localStorage.setItem('creating_character', 'true');
   
-  // Open Netlify Identity widget
-  if (window.netlifyIdentity) {
-    window.netlifyIdentity.open('login');
-  } else {
-    // Fallback to profile page
-    window.location.href = 'profile.html';
-  }
+  // Hide the overlay first so it doesn't block the Netlify Identity widget
+  hideLoginOverlay();
+  
+  // Open Netlify Identity widget after a short delay
+  setTimeout(() => {
+    if (window.netlifyIdentity) {
+      window.netlifyIdentity.open('login');
+    } else {
+      // Fallback to profile page
+      window.location.href = 'profile.html';
+    }
+  }, 100);
 }
 
 // Store form data for redirect
@@ -4623,7 +4628,7 @@ const loginOverlayStyles = `
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10000;
+  z-index: 9000; /* Lower than Netlify Identity widget (which uses 99999) */
   opacity: 0;
   visibility: hidden;
   transition: all 0.3s ease;
