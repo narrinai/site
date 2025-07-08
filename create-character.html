@@ -2859,55 +2859,57 @@
    }
 
    // Enhanced click handler for navigation links
-   function setupNavigationClickHandlers() {
-     const loginBtn = document.getElementById('loginBtn');
-     const mobileLoginBtn = document.getElementById('mobileLoginBtn');
-     
-     // Desktop login button click handler
-     if (loginBtn) {
-       loginBtn.addEventListener('click', (e) => {
-         e.preventDefault();
-         
-         const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
-         const localEmail = localStorage.getItem("user_email");
-         const localToken = localStorage.getItem("user_token");
-         const isLoggedIn = netlifyUser || (localEmail && localToken);
-         
-         if (isLoggedIn) {
-           // User is logged in, go directly to profile page
-           window.location.href = 'profile.html';
-         } else {
-           // User not logged in, store current page for redirect and open login
-           localStorage.setItem('login_redirect_url', window.location.href);
-           openLogin();
-         }
-       });
-     }
-     
-     // Mobile login button click handler
-     if (mobileLoginBtn) {
-       mobileLoginBtn.addEventListener('click', (e) => {
-         e.preventDefault();
-         
-         const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
-         const localEmail = localStorage.getItem("user_email");
-         const localToken = localStorage.getItem("user_token");
-         const isLoggedIn = netlifyUser || (localEmail && localToken);
-         
-         if (isLoggedIn) {
-           // User is logged in, go directly to profile page
-           window.location.href = 'profile.html';
-         } else {
-           // User not logged in, store current page for redirect and open login
-           localStorage.setItem('login_redirect_url', window.location.href);
-           openLogin();
-         }
-         
-         // Close mobile menu after click
-         closeMobileMenu();
-       });
-     }
-   }
+function setupNavigationClickHandlers() {
+  const loginBtn = document.getElementById('loginBtn');
+  const mobileLoginBtn = document.getElementById('mobileLoginBtn');
+  
+  // Desktop login button click handler
+  if (loginBtn) {
+    loginBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      
+      const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+      const localEmail = localStorage.getItem("user_email");
+      const localToken = localStorage.getItem("user_token");
+      const isLoggedIn = netlifyUser || (localEmail && localToken);
+      
+      if (isLoggedIn) {
+        // User is logged in, go directly to profile page
+        window.location.href = 'profile.html';
+      } else {
+        // User not logged in - save form data and redirect to profile
+        saveFormDataToStorage();
+        localStorage.setItem('login_redirect_url', window.location.href);
+        window.location.href = 'profile.html';
+      }
+    });
+  }
+  
+  // Mobile login button click handler
+  if (mobileLoginBtn) {
+    mobileLoginBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      
+      const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+      const localEmail = localStorage.getItem("user_email");
+      const localToken = localStorage.getItem("user_token");
+      const isLoggedIn = netlifyUser || (localEmail && localToken);
+      
+      if (isLoggedIn) {
+        // User is logged in, go directly to profile page
+        window.location.href = 'profile.html';
+      } else {
+        // User not logged in - save form data and redirect to profile
+        saveFormDataToStorage();
+        localStorage.setItem('login_redirect_url', window.location.href);
+        window.location.href = 'profile.html';
+      }
+      
+      // Close mobile menu after click
+      closeMobileMenu();
+    });
+  }
+}
 
    // Function to open login modal
    function openLogin() {
@@ -3886,10 +3888,165 @@ async function uploadToCloudinary(file, slug) {
    }
 
    function showLoginModal() {
-     if (window.netlifyIdentity) {
-       window.netlifyIdentity.open('login');
-     }
-   }
+  // Save form data before redirecting
+  saveFormDataToStorage();
+  localStorage.setItem('login_redirect_url', window.location.href);
+  
+  // Hide overlay and redirect to profile
+  hideLoginOverlay();
+  window.location.href = 'profile.html';
+}
+
+// Save form data to localStorage
+function saveFormDataToStorage() {
+  const formData = {
+    characterName: document.getElementById('characterName').value,
+    characterTitle: document.getElementById('characterTitle').value,
+    characterDescription: document.getElementById('characterDescription').value,
+    characterPrompt: document.getElementById('characterPrompt').value,
+    characterCategory: document.getElementById('characterCategory').value,
+    selectedTags: selectedTags,
+    currentAvatarUrl: currentAvatarUrl,
+    personalityState: personalityState,
+    visibility: document.querySelector('input[name="visibility"]:checked')?.value || 'public',
+    timestamp: Date.now()
+  };
+  
+  try {
+    localStorage.setItem('create_character_draft', JSON.stringify(formData));
+    console.log('✅ Form data saved to localStorage');
+  } catch (e) {
+    console.error('❌ Failed to save form data:', e);
+  }
+}
+
+// Restore form data from localStorage
+function restoreFormDataFromStorage() {
+  try {
+    const savedData = localStorage.getItem('create_character_draft');
+    if (!savedData) return;
+    
+    const formData = JSON.parse(savedData);
+    
+    // Check if data is not too old (24 hours)
+    const maxAge = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+    if (Date.now() - formData.timestamp > maxAge) {
+      localStorage.removeItem('create_character_draft');
+      return;
+    }
+    
+    // Restore form fields
+    if (formData.characterName) {
+      document.getElementById('characterName').value = formData.characterName;
+    }
+    if (formData.characterTitle) {
+      document.getElementById('characterTitle').value = formData.characterTitle;
+    }
+    if (formData.characterDescription) {
+      document.getElementById('characterDescription').value = formData.characterDescription;
+    }
+    if (formData.characterPrompt) {
+      document.getElementById('characterPrompt').value = formData.characterPrompt;
+    }
+    if (formData.characterCategory) {
+      document.getElementById('characterCategory').value = formData.characterCategory;
+    }
+    
+    // Restore tags
+    if (formData.selectedTags && Array.isArray(formData.selectedTags)) {
+      selectedTags = formData.selectedTags;
+      updateTagsPreview();
+    }
+    
+    // Restore avatar
+    if (formData.currentAvatarUrl) {
+      currentAvatarUrl = formData.currentAvatarUrl;
+      const avatarImg = document.getElementById('avatarImg');
+      const avatarPreview = document.getElementById('avatarPreview');
+      if (avatarImg && avatarPreview) {
+        avatarImg.src = currentAvatarUrl;
+        avatarPreview.style.display = 'block';
+      }
+    }
+    
+    // Restore personality state
+    if (formData.personalityState) {
+      personalityState = formData.personalityState;
+      restorePersonalityState();
+    }
+    
+    // Restore visibility
+    if (formData.visibility) {
+      const visibilityRadio = document.querySelector(`input[name="visibility"][value="${formData.visibility}"]`);
+      if (visibilityRadio) {
+        visibilityRadio.checked = true;
+        selectVisibility(formData.visibility);
+      }
+    }
+    
+    // Update counters and preview
+    setupCharacterCounters();
+    updatePreview();
+    generatePrompt();
+    
+    // Show notification about restored data
+    setTimeout(() => {
+      showSuccess('Je formuliergegevens zijn hersteld van je vorige sessie!', 'Gegevens Hersteld');
+    }, 1000);
+    
+    console.log('✅ Form data restored from localStorage');
+    
+    // Clear the saved data after successful restore
+    localStorage.removeItem('create_character_draft');
+    
+  } catch (e) {
+    console.error('❌ Failed to restore form data:', e);
+    localStorage.removeItem('create_character_draft');
+  }
+}
+
+// Restore personality state from saved data
+function restorePersonalityState() {
+  // Restore sliders
+  Object.keys(personalityState.sliders).forEach(key => {
+    const slider = document.querySelector(`[data-trait="${key}"], [data-response="${key}"]`);
+    if (slider) {
+      slider.value = personalityState.sliders[key];
+    }
+  });
+  
+  // Restore selected traits
+  personalityState.traits.forEach(trait => {
+    const button = document.querySelector(`#personalityTraits [data-trait="${trait}"]`);
+    if (button) {
+      button.classList.add('selected');
+    }
+  });
+  
+  // Restore speaking patterns
+  personalityState.speaking.forEach(pattern => {
+    const button = document.querySelector(`#speakingPattern [data-pattern="${pattern}"]`);
+    if (button) {
+      button.classList.add('selected');
+    }
+  });
+  
+  // Restore bonding approaches
+  personalityState.bonding.forEach(bonding => {
+    const button = document.querySelector(`#bondingApproach [data-bonding="${bonding}"]`);
+    if (button) {
+      button.classList.add('selected');
+    }
+  });
+  
+  // Restore quirks
+  personalityState.quirks.forEach(quirk => {
+    const button = document.querySelector(`#personalityQuirks [data-quirk="${quirk}"]`);
+    if (button) {
+      button.classList.add('selected');
+    }
+  });
+}
 
    // Go back function
    function goBack() {
@@ -4004,6 +4161,11 @@ document.addEventListener('DOMContentLoaded', () => {
   setupCustomQuirks();
   setupPromptActions();
   loadTags();
+  
+  // Check for saved form data and restore if found
+  setTimeout(() => {
+    restoreFormDataFromStorage();
+  }, 500);
   
   // Initialize preview
   updatePreview();
@@ -4417,9 +4579,19 @@ function trackFormChanges() {
   formElements.forEach(element => {
     element.addEventListener('change', () => {
       formHasUnsavedChanges = true;
+      // Auto-save draft every few seconds when there are changes
+      clearTimeout(window.autoSaveTimeout);
+      window.autoSaveTimeout = setTimeout(() => {
+        saveFormDataToStorage();
+      }, 3000); // Save after 3 seconds of inactivity
     });
     element.addEventListener('input', () => {
       formHasUnsavedChanges = true;
+      // Auto-save draft every few seconds when there are changes
+      clearTimeout(window.autoSaveTimeout);
+      window.autoSaveTimeout = setTimeout(() => {
+        saveFormDataToStorage();
+      }, 3000); // Save after 3 seconds of inactivity
     });
   });
 }
