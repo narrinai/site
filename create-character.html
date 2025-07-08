@@ -2228,14 +2228,14 @@
   </div>
 
   <!-- Login Overlay -->
-  <div class="login-overlay" id="loginOverlay">
-    <div class="login-message">
-      <h3>Login Required</h3>
-      <p>Please log in to create a character</p>
-      <button class="btn btn-primary" onclick="showLoginModal()">Login</button>
-      <button class="btn btn-secondary" onclick="hideLoginOverlay()" style="margin-left: 10px;">Cancel</button>
-    </div>
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-message">
+    <h3>Login Required</h3>
+    <p>Please log in to create a character</p>
+    <button class="btn btn-primary" onclick="redirectToProfile()">Go to Login</button>
+    <button class="btn btn-secondary" onclick="hideLoginOverlay()" style="margin-left: 10px;">Cancel</button>
   </div>
+</div>
 
   <div class="container">
     <div class="header-page">
@@ -3894,7 +3894,11 @@ async function uploadToCloudinary(file, slug) {
   
   // Hide overlay and redirect to profile
   hideLoginOverlay();
-  window.location.href = 'profile.html';
+  
+  // Force redirect to profile page
+  setTimeout(() => {
+    window.location.href = 'profile.html';
+  }, 100);
 }
 
 // Save form data to localStorage
@@ -4188,13 +4192,20 @@ document.addEventListener('DOMContentLoaded', () => {
      }
      
      if (!data.prompt) {
-       showError('Character prompt is required', 'Validation Error');
-       generatePrompt(); // Try to generate one
-       if (!document.getElementById('characterPrompt').value.trim()) {
-         showError('Please create a character prompt by selecting personality traits or editing manually', 'Validation Error');
-         return false;
-       }
-     }
+  showError('Character prompt is required', 'Validation Error');
+  generatePrompt(); // Try to generate one
+  
+  // Wait a moment for prompt generation
+  setTimeout(() => {
+    const promptField = document.getElementById('characterPrompt');
+    if (!promptField || !promptField.value.trim()) {
+      showError('Please create a character prompt by selecting personality traits or editing manually', 'Validation Error');
+      return false;
+    }
+  }, 100);
+  
+  return false; // Stop validation here
+}
      
      if (!data.category) {
        showError('Please select a category', 'Validation Error');
