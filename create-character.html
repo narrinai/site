@@ -4387,15 +4387,21 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
   formHasUnsavedChanges = false; // Clear unsaved changes flag
 
   // Check if user is logged in
-  const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
-  const localEmail = localStorage.getItem("user_email");
-  const localToken = localStorage.getItem("user_token");
-  const isLoggedIn = netlifyUser || (localEmail && localToken);
-  
-  if (!isLoggedIn) {
-    showLoginOverlay();
-    return;
-  }
+const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+const localEmail = localStorage.getItem("user_email");
+const localToken = localStorage.getItem("user_token");
+const isLoggedIn = netlifyUser || (localEmail && localToken);
+
+console.log('🔍 Login check:', { netlifyUser, localEmail, localToken, isLoggedIn });
+
+if (!isLoggedIn) {
+  console.log('❌ User not logged in, showing overlay');
+  showLoginOverlay();
+  isSubmitting = false; // Reset flag
+  return;
+} else {
+  console.log('✅ User is logged in, proceeding with form submission');
+}
   
   // Collect form data - ENHANCED VERSION
   const formData = {
