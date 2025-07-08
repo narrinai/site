@@ -2233,7 +2233,7 @@
     <h3>Login Required</h3>
     <p>Please log in to create a character</p>
     <button class="btn btn-primary" onclick="redirectToProfile()">Go to Login</button>
-    <button class="btn btn-secondary" onclick="hideLoginOverlay()" style="margin-left: 10px;">Cancel</button>
+<button class="btn btn-secondary" onclick="hideLoginOverlay()" style="margin-left: 10px;">Cancel</button>
   </div>
 </div>
 
@@ -3901,20 +3901,44 @@ async function uploadToCloudinary(file, slug) {
   }, 100);
 }
 
+// Verbeterde redirectToProfile functie
 function redirectToProfile() {
   console.log('🔄 Redirecting to profile page...');
   
   // Save form data before redirecting
-  saveFormDataToStorage();
-  localStorage.setItem('login_redirect_url', window.location.href);
+  try {
+    saveFormDataToStorage();
+    localStorage.setItem('login_redirect_url', window.location.href);
+    console.log('✅ Form data saved and redirect URL set');
+  } catch (error) {
+    console.error('❌ Error saving form data:', error);
+  }
   
-  // Hide overlay and redirect
+  // Hide overlay immediately
   hideLoginOverlay();
   
-  // Force redirect
+  // Force redirect after small delay
   setTimeout(() => {
     window.location.href = 'profile.html';
   }, 100);
+}
+
+// Verbeterde hideLoginOverlay functie
+function hideLoginOverlay() {
+  const overlay = document.getElementById('loginOverlay');
+  if (overlay) {
+    overlay.style.display = 'none';
+    console.log('✅ Login overlay hidden');
+  }
+}
+
+// Verbeterde showLoginOverlay functie
+function showLoginOverlay() {
+  const overlay = document.getElementById('loginOverlay');
+  if (overlay) {
+    overlay.style.display = 'flex';
+    console.log('✅ Login overlay shown');
+  }
 }
 
 // Save form data to localStorage
