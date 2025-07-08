@@ -2618,6 +2618,42 @@
    let currentAvatarUrl = '';
    let pendingCharacterData = null;
    
+// VOLLEDIG NETLIFY IDENTITY UITSCHAKELEN
+window.addEventListener('DOMContentLoaded', () => {
+  // Disable all Netlify Identity functionality
+  if (window.netlifyIdentity) {
+    // Override alle methods
+    window.netlifyIdentity.open = () => {
+      console.log('🚫 Netlify Identity popup geblokkeerd');
+      return false;
+    };
+    
+    window.netlifyIdentity.init = () => {
+      console.log('🚫 Netlify Identity init geblokkeerd');
+      return false;
+    };
+    
+    // Close any existing popups
+    try {
+      window.netlifyIdentity.close();
+    } catch (e) {
+      console.log('Netlify popup was al gesloten');
+    }
+    
+    // Remove event listeners
+    window.netlifyIdentity.off('login');
+    window.netlifyIdentity.off('logout');
+    window.netlifyIdentity.off('init');
+  }
+});
+
+// Block Netlify widget loading
+const netlifyScript = document.querySelector('script[src*="netlify-identity-widget"]');
+if (netlifyScript) {
+  netlifyScript.remove();
+  console.log('🚫 Netlify Identity script verwijderd');
+}
+   
 // Disable Netlify Identity automatic popup
 if (window.netlifyIdentity) {
   window.netlifyIdentity.on('init', user => {
