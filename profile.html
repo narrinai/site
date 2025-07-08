@@ -3607,25 +3607,6 @@ function setField(field, text) {
         window.netlifyIdentity.on('login', user => {
           updateLoginButton();
           window.netlifyIdentity.close();
-          
-          // Check if we need to redirect back to create-character page
-          const redirectUrl = localStorage.getItem('login_redirect_url');
-          const creatingCharacter = localStorage.getItem('creating_character');
-          
-          console.log('🔍 Checking redirect after login:', { redirectUrl, creatingCharacter });
-          
-          if (creatingCharacter === 'true' && redirectUrl && redirectUrl.includes('create-character.html')) {
-            console.log('✅ Redirecting back to create-character page...');
-            
-            // Remove the redirect URL from localStorage
-            localStorage.removeItem('login_redirect_url');
-            
-            // Redirect back to create-character page after a short delay
-            setTimeout(() => {
-              console.log('🔄 Executing redirect to:', redirectUrl);
-              window.location.href = redirectUrl;
-            }, 1000);
-          }
         });
 
         window.netlifyIdentity.on('logout', () => {

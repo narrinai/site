@@ -4197,7 +4197,18 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
   isFormSubmitting = true;
   formHasUnsavedChanges = false; // Clear unsaved changes flag
 
-  // Collect form data FIRST - ENHANCED VERSION
+  // Check if user is logged in
+  const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+  const localEmail = localStorage.getItem("user_email");
+  const localToken = localStorage.getItem("user_token");
+  const isLoggedIn = netlifyUser || (localEmail && localToken);
+  
+  if (!isLoggedIn) {
+    showLoginOverlay();
+    return;
+  }
+  
+  // Collect form data - ENHANCED VERSION
   const formData = {
     name: document.getElementById('characterName').value.trim(),
     title: document.getElementById('characterTitle').value.trim(), 
@@ -4225,20 +4236,6 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
   
   // Validate form data
   if (!validateFormData(formData)) {
-    isSubmitting = false;
-    return;
-  }
-  
-  // Check if user is logged in
-  const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
-  const localEmail = localStorage.getItem("user_email");
-  const localToken = localStorage.getItem("user_token");
-  const isLoggedIn = netlifyUser || (localEmail && localToken);
-  
-  if (!isLoggedIn) {
-    // Store form data before showing login
-    storeFormDataForRedirect(formData);
-    showLoginOverlay();
     return;
   }
   
@@ -4336,14 +4333,7 @@ async function createCharacter(formData) {
     }
     
     // Generate slug from character name
-    const slug = formData.name
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, '') // Remove special characters
-      .replace(/\s+/g, '-')     // Replace spaces with hyphens
-      .replace(/-+/g, '-')      // Replace multiple hyphens with single
-      .replace(/^-|-$/g, '')    // Remove leading/trailing hyphens
-      + '-' + Date.now();       // Add timestamp for uniqueness    
+const slug = generateUniqueSlug(formData.name);    
 console.log('🔗 Generated slug:', slug);
 
     const requestData = {
@@ -4447,338 +4437,7 @@ window.addEventListener('beforeunload', (e) => {
 // Initialize form change tracking
 document.addEventListener('DOMContentLoaded', () => {
   trackFormChanges();
-  
-  // Check if user is returning from login on page load
-  setTimeout(() => {
-    handlePostLoginRedirect();
-  }, 500);
-  
-  // Set up authentication handlers for redirect after login
-  if (window.netlifyIdentity) {
-    window.netlifyIdentity.on('login', user => {
-      handlePostLoginRedirect();
-    });
-  }
 });
-
-// ===== LOGIN OVERLAY FUNCTIONS =====
-function showLoginOverlay() {
-  isSubmitting = false; // Reset submission flag
-  
-  // Create overlay HTML
-  const overlayHTML = `
-    <div id="loginOverlay" class="login-overlay active">
-      <div class="login-overlay-content">
-        <div class="login-icon-circle">
-          <span class="login-icon-emoji">🔐</span>
-        </div>
-        <h2 class="login-overlay-title">Login Required</h2>
-        <p class="login-overlay-text">
-          You need to be logged in to create a character. 
-          We'll save your character data and take you to the login page.
-        </p>
-        <p class="login-overlay-subtext">
-          After you sign up or log in, you'll be brought back here with all your data restored!
-        </p>
-        <div class="login-overlay-buttons">
-          <button class="login-overlay-btn primary" onclick="openLoginFromOverlay()">
-            Go to Login Page
-          </button>
-          <button class="login-overlay-btn secondary" onclick="hideLoginOverlay()">
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-  `;
-  
-  // Add overlay to body if it doesn't exist
-  if (!document.getElementById('loginOverlay')) {
-    document.body.insertAdjacentHTML('beforeend', overlayHTML);
-  } else {
-    document.getElementById('loginOverlay').classList.add('active');
-  }
-  
-  document.body.style.overflow = 'hidden';
-}
-
-function hideLoginOverlay() {
-  const overlay = document.getElementById('loginOverlay');
-  if (overlay) {
-    overlay.classList.remove('active');
-    document.body.style.overflow = '';
-  }
-}
-
-function openLoginFromOverlay() {
-  console.log('🚀 Redirecting to login page...');
-  
-  // Store that we're creating a character
-  localStorage.setItem('creating_character', 'true');
-  
-  // Store the current page URL to redirect back after login
-  localStorage.setItem('login_redirect_url', window.location.href);
-  
-  console.log('💾 Stored redirect data:', {
-    creating_character: 'true',
-    redirect_url: window.location.href
-  });
-  
-  // Redirect to profile page where login/register works properly
-  window.location.href = 'profile.html';
-}
-
-// Store form data for redirect
-function storeFormDataForRedirect(formData) {
-  const characterData = {
-    name: formData.name,
-    title: formData.title,
-    description: formData.description,
-    prompt: formData.prompt,
-    category: formData.category,
-    tags: formData.tags,
-    visibility: formData.visibility,
-    avatarUrl: formData.avatarUrl,
-    personalityState: personalityState,
-    timestamp: Date.now()
-  };
-  
-  localStorage.setItem('pending_character_creation', JSON.stringify(characterData));
-}
-
-// Handle redirect after login
-function handlePostLoginRedirect() {
-  const creatingCharacter = localStorage.getItem('creating_character');
-  const pendingCharacterData = localStorage.getItem('pending_character_creation');
-  
-  console.log('🔄 Checking for post-login redirect...', { creatingCharacter, hasPendingData: !!pendingCharacterData });
-  
-  if (creatingCharacter === 'true' && pendingCharacterData) {
-    console.log('✅ Found pending character creation, restoring data...');
-    // Clean up flag
-    localStorage.removeItem('creating_character');
-    
-    // Hide login overlay
-    hideLoginOverlay();
-    
-    // Parse the stored character data
-    const characterData = JSON.parse(pendingCharacterData);
-    
-    // Check if data is still fresh (within 30 minutes)
-    if (Date.now() - characterData.timestamp < 30 * 60 * 1000) {
-      // Restore form data
-      document.getElementById('characterName').value = characterData.name || '';
-      document.getElementById('characterTitle').value = characterData.title || '';
-      document.getElementById('characterDescription').value = characterData.description || '';
-      document.getElementById('characterPrompt').value = characterData.prompt || '';
-      document.getElementById('characterCategory').value = characterData.category || '';
-      
-      // Restore personality state
-      if (characterData.personalityState) {
-        personalityState = characterData.personalityState;
-        updatePreview();
-      }
-      
-      // Restore tags
-      if (characterData.tags && Array.isArray(characterData.tags)) {
-        selectedTags = characterData.tags;
-        // Update tag display if function exists
-        if (typeof updateSelectedTags === 'function') {
-          updateSelectedTags();
-        }
-      }
-      
-      // Restore visibility
-      if (characterData.visibility) {
-        const visibilityRadio = document.querySelector(`input[name="visibility"][value="${characterData.visibility}"]`);
-        if (visibilityRadio) visibilityRadio.checked = true;
-      }
-      
-      // Restore avatar
-      if (characterData.avatarUrl) {
-        currentAvatarUrl = characterData.avatarUrl;
-        const avatarPreview = document.getElementById('avatarPreview');
-        if (avatarPreview) {
-          avatarPreview.src = currentAvatarUrl;
-          avatarPreview.style.display = 'block';
-        }
-      }
-      
-      // Show success message
-      showSuccess('Welcome back! Your character data has been restored. Click "Create Character" to continue.', 'Logged In Successfully');
-      
-      // Clean up stored data
-      localStorage.removeItem('pending_character_creation');
-      
-      // Scroll to form
-      setTimeout(() => {
-        document.getElementById('characterForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 500);
-      
-    } else {
-      // Data is too old
-      localStorage.removeItem('pending_character_creation');
-      showWarning('Your character creation session has expired. Please fill in the form again.', 'Session Expired');
-    }
-  }
-}
-
-// Add CSS for login overlay
-const loginOverlayStyles = `
-<style>
-.login-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9000; /* Lower than Netlify Identity widget (which uses 99999) */
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.3s ease;
-}
-
-.login-overlay.active {
-  opacity: 1;
-  visibility: visible;
-}
-
-.login-overlay-content {
-  background: var(--color-white);
-  padding: var(--spacing-3xl);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-xl);
-  max-width: 480px;
-  width: 90%;
-  text-align: center;
-  transform: scale(0.9);
-  transition: transform 0.3s ease;
-}
-
-.login-overlay.active .login-overlay-content {
-  transform: scale(1);
-}
-
-.login-icon-circle {
-  width: 80px;
-  height: 80px;
-  background: var(--gradient-primary);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto var(--spacing-xl);
-  box-shadow: var(--shadow-colored);
-}
-
-.login-icon-emoji {
-  font-size: 40px;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-}
-
-.login-overlay-title {
-  font-family: var(--font-secondary);
-  font-size: var(--font-size-2xl);
-  color: var(--color-navy);
-  margin: 0 0 var(--spacing-md) 0;
-  font-weight: 700;
-}
-
-.login-overlay-text {
-  font-size: var(--font-size-base);
-  color: var(--color-gray);
-  margin: 0 0 var(--spacing-md) 0;
-  line-height: 1.6;
-}
-
-.login-overlay-subtext {
-  font-size: var(--font-size-sm);
-  color: var(--color-teal);
-  margin: 0 0 var(--spacing-xl) 0;
-  font-weight: 500;
-}
-
-.login-overlay-buttons {
-  display: flex;
-  gap: var(--spacing-md);
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.login-overlay-btn {
-  padding: var(--spacing-md) var(--spacing-xl);
-  border-radius: var(--radius-lg);
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  font-family: var(--font-primary);
-  cursor: pointer;
-  transition: all var(--transition-base);
-  border: none;
-  min-width: 140px;
-}
-
-.login-overlay-btn.primary {
-  background: var(--gradient-primary);
-  color: var(--color-white);
-  box-shadow: var(--shadow-colored);
-}
-
-.login-overlay-btn.primary:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-xl);
-}
-
-.login-overlay-btn.secondary {
-  background: var(--color-light-gray);
-  color: var(--color-gray-dark);
-}
-
-.login-overlay-btn.secondary:hover {
-  background: var(--color-gray-light);
-  color: var(--color-navy);
-}
-
-@media (max-width: 768px) {
-  .login-overlay-content {
-    padding: var(--spacing-2xl);
-  }
-  
-  .login-icon-circle {
-    width: 64px;
-    height: 64px;
-  }
-  
-  .login-icon-emoji {
-    font-size: 32px;
-  }
-  
-  .login-overlay-title {
-    font-size: var(--font-size-xl);
-  }
-  
-  .login-overlay-buttons {
-    flex-direction: column;
-    width: 100%;
-  }
-  
-  .login-overlay-btn {
-    width: 100%;
-  }
-}
-</style>
-`;
-
-// Add styles to document if not already added
-if (!document.getElementById('loginOverlayStyles')) {
-  const styleElement = document.createElement('div');
-  styleElement.id = 'loginOverlayStyles';
-  styleElement.innerHTML = loginOverlayStyles;
-  document.head.appendChild(styleElement.firstElementChild);
-}
 
  </script>
 
