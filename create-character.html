@@ -4725,7 +4725,30 @@ window.addEventListener('beforeunload', (e) => {
 // Initialize form change tracking
 document.addEventListener('DOMContentLoaded', () => {
   trackFormChanges();
+  
+  // Check if user is returning from login and restore form data
+  setTimeout(() => {
+    checkForLoginReturn();
+  }, 1000);
 });
+
+// Check if user is returning from login and restore data
+function checkForLoginReturn() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const returningFromLogin = urlParams.get('from') === 'login' || document.referrer.includes('profile.html');
+  
+  if (returningFromLogin || localStorage.getItem('create_character_draft')) {
+    console.log('🔄 User returning from login, checking for saved data...');
+    restoreFormDataFromStorage();
+    
+    // Show success message if user just logged in
+    if (returningFromLogin) {
+      setTimeout(() => {
+        showSuccess('Welcome back! Your character data has been restored. You can now create your character.', 'Login Successful');
+      }, 500);
+    }
+  }
+}
 
 // Quick fix for login button
 function redirectToProfile() {

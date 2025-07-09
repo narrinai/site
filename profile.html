@@ -3882,6 +3882,11 @@ function setField(field, text) {
         window.netlifyIdentity.on('login', user => {
           updateLoginButton();
           window.netlifyIdentity.close();
+          
+          // Handle redirect back to create-character if needed
+          setTimeout(() => {
+            handlePostLoginRedirect();
+          }, 500);
         });
 
         window.netlifyIdentity.on('logout', () => {
