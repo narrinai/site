@@ -38,77 +38,30 @@ class SimpleAvatarUploader:
         url = f"https://api.airtable.com/v0/{self.airtable_base}/Characters"
         headers = {'Authorization': f'Bearer {self.airtable_token}'}
         
-        all_characters = []
-        offset = None
-        page = 0
-        
         print("📋 Loading all characters from Airtable...")
         
-        # First, test with a different approach - get ALL records without pagination
         try:
-            print("🔍 Testing direct API call...")
-            test_response = self.session.get(url, headers=headers)
-            test_response.raise_for_status()
-            test_data = test_response.json()
-            print(f"   Direct call - Response keys: {list(test_data.keys())}")
-            print(f"   Direct call - Records count: {len(test_data.get('records', []))}")
-            if 'offset' in test_data:
-                print(f"   Direct call - Has offset: {test_data['offset'][:20]}...")
+            # Airtable returns ALL records in one response (no pagination needed)
+            response = self.session.get(url, headers=headers, timeout=60)  # Longer timeout for large response
+            response.raise_for_status()
+            data = response.json()
+            
+            all_characters = data.get('records', [])
+            
+            print(f"✅ Total characters loaded: {len(all_characters)}")
+            print(f"   Response size: {len(response.content)} bytes")
+            print(f"   Response keys: {list(data.keys())}")
+            
+            if 'offset' in data:
+                print(f"   ⚠️ Offset found (unexpected): {data['offset']}")
             else:
-                print(f"   Direct call - No offset (this might be all records)")
-        except Exception as e:
-            print(f"   Direct call failed: {e}")
-        
-        # Now try pagination
-        while True:
-            page += 1
-            params = {'maxRecords': 100}
-            if offset:
-                params['offset'] = offset
+                print(f"   ✅ No offset - all records loaded in single response")
             
-            try:
-                response = self.session.get(url, headers=headers, params=params)
-                response.raise_for_status()
-                data = response.json()
-                
-                records = data.get('records', [])
-                all_characters.extend(records)
-                
-                print(f"   Page {page}: Loaded {len(records)} records (total: {len(all_characters)})")
-                
-                # DEBUG: Check wat er in de response zit
-                print(f"   Response keys: {list(data.keys())}")
-                offset = data.get('offset')
-                print(f"   Next offset: {offset[:20] if offset else 'None'}...")
-                
-                if not offset:
-                    print("   ✅ No more pages")
-                    break
-                    
-                time.sleep(0.5)  # Rate limiting
-                
-            except Exception as e:
-                print(f"❌ Error loading page {page}: {e}")
-                break
-        
-        print(f"✅ Total characters loaded: {len(all_characters)}")
-        
-        # EXTRA CHECK: Try to access specific table or view
-        print("\n🔍 Checking if there are other views or tables...")
-        try:
-            # Try different endpoints
-            base_url = f"https://api.airtable.com/v0/{self.airtable_base}"
+            return all_characters
             
-            # List all tables (this might not work with current permissions)
-            tables_response = self.session.get(f"{base_url}/Characters?view=Grid%20view", headers=headers)
-            if tables_response.status_code == 200:
-                tables_data = tables_response.json()
-                print(f"   Grid view records: {len(tables_data.get('records', []))}")
-                
         except Exception as e:
-            print(f"   Could not check views: {e}")
-        
-        return all_characters
+            print(f"❌ Error loading characters: {e}")
+            return []
 
     def find_characters_without_avatar(self, characters):
         """Vind characters zonder Avatar_URL"""
