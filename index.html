@@ -1700,9 +1700,12 @@ function generateCategoryButtons() {
   categoryButtons.innerHTML = '';
   if (extraCategoryButtons) extraCategoryButtons.innerHTML = '';
 
+  // Filter categories with 5+ characters
+  const filteredCategories = CONFIG.CATEGORIES.filter(category => category.name.length >= 5);
+
   // Determine how many to show based on screen size
   const isMobile = window.innerWidth <= 768;
-  const categoriesToShow = isMobile ? CONFIG.CATEGORIES.slice(0, 4) : CONFIG.CATEGORIES;
+  const categoriesToShow = isMobile ? filteredCategories.slice(0, 4) : filteredCategories;
 
   // Top navigation
   categoriesToShow.forEach(category => {
@@ -1714,12 +1717,12 @@ function generateCategoryButtons() {
   });
 
   // Add "More..." button on mobile if there are more categories
-  if (isMobile && CONFIG.CATEGORIES.length > 4) {
+  if (isMobile && filteredCategories.length > 4) {
     const moreButton = document.createElement('a');
     moreButton.href = 'category.html';
     moreButton.className = 'category-btn';
     moreButton.style.background = 'var(--color-gray)';
-    moreButton.textContent = `+${CONFIG.CATEGORIES.length - 4} More...`;
+    moreButton.textContent = `+${filteredCategories.length - 4} More...`;
     categoryButtons.appendChild(moreButton);
   }
 
@@ -1738,7 +1741,10 @@ function generateCategoryButtons() {
       { id: 'business-coach', name: 'Business Coach', title: 'Business Coaches' }
     ];
 
-    allOtherCategories.forEach(category => {
+    // Filter extra categories with 5+ characters
+    const filteredExtraCategories = allOtherCategories.filter(category => category.name.length >= 5);
+
+    filteredExtraCategories.forEach(category => {
       const button = document.createElement('a');
       button.href = `category.html?cat=${category.id}`;
       button.className = 'category-btn';
@@ -1753,7 +1759,10 @@ function generateTagButtons() {
   const tagsContainer = document.getElementById('tagsContainer');
   tagsContainer.innerHTML = '';
 
-  CONFIG.TAGS.forEach(tag => {
+  // Filter tags with 5+ characters
+  const filteredTags = CONFIG.TAGS.filter(tag => tag.length >= 5);
+
+  filteredTags.forEach(tag => {
     const button = document.createElement('a');
     button.href = `tags.html?tag=${tag}`;
     button.className = 'tag-btn';
@@ -1776,7 +1785,10 @@ function generateExtraTagButtons() {
     'philosopher', 'strategist', 'innovator', 'explorer', 'diplomat'
   ];
 
-  extraTags.forEach(tag => {
+  // Filter extra tags with 5+ characters
+  const filteredExtraTags = extraTags.filter(tag => tag.length >= 5);
+
+  filteredExtraTags.forEach(tag => {
     const button = document.createElement('a');
     button.href = `tags.html?tag=${tag}`;
     button.className = 'tag-btn';
