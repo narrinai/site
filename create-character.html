@@ -9,6 +9,54 @@
   <script>
     console.log('🚫 NETLIFY IDENTITY WIDGET KILLER ACTIVE');
     
+    // IMMEDIATE DEBUGGING - Check for any "Login Required" text as soon as script runs
+    console.log('🔍 IMMEDIATE CHECK: Looking for Login Required text...');
+    if (document.body) {
+      const bodyText = document.body.textContent || document.body.innerText || '';
+      if (bodyText.includes('Login Required')) {
+        console.log('🚨 FOUND "Login Required" IMMEDIATELY!');
+      }
+    }
+    
+    // Check document head for any injected content
+    const headContent = document.head.innerHTML;
+    if (headContent.includes('Login Required')) {
+      console.log('🚨 FOUND "Login Required" IN HEAD!');
+    }
+    
+    // Override document.write to catch dynamic content
+    const originalWrite = document.write;
+    document.write = function(content) {
+      console.log('📝 DOCUMENT.WRITE CALLED WITH:', content);
+      if (content.includes('Login Required')) {
+        console.log('🚨 BLOCKING DOCUMENT.WRITE WITH "Login Required"');
+        return;
+      }
+      return originalWrite.call(this, content);
+    };
+    
+    // Override innerHTML setters
+    const originalSetInnerHTML = Element.prototype.__lookupSetter__('innerHTML');
+    if (originalSetInnerHTML) {
+      Element.prototype.__defineSetter__('innerHTML', function(content) {
+        if (typeof content === 'string' && content.includes('Login Required')) {
+          console.log('🚨 BLOCKING innerHTML WITH "Login Required":', content);
+          return;
+        }
+        return originalSetInnerHTML.call(this, content);
+      });
+    }
+    
+    // Override appendChild to catch dynamic elements
+    const originalAppendChild = Element.prototype.appendChild;
+    Element.prototype.appendChild = function(child) {
+      if (child && child.textContent && child.textContent.includes('Login Required')) {
+        console.log('🚨 BLOCKING appendChild WITH "Login Required":', child);
+        return child;
+      }
+      return originalAppendChild.call(this, child);
+    };
+    
     // Completely disable Netlify Identity widget
     window.netlifyIdentity = {
       init: () => false,
@@ -200,6 +248,75 @@
     
     // Run popup killer every 500ms
     setInterval(killLoginPopups, 500);
+    
+    // BROWSER EXTENSION DEBUGGING - Check for extension-injected content
+    setTimeout(() => {
+      console.log('🔍 CHECKING FOR BROWSER EXTENSION CONTENT...');
+      
+      // Check for common extension injection patterns
+      const extensionSelectors = [
+        'div[id^="chrome-extension-"]',
+        'div[class*="extension"]',
+        'div[data-extension]',
+        'script[src*="extension"]',
+        'link[href*="extension"]'
+      ];
+      
+      extensionSelectors.forEach(selector => {
+        const elements = document.querySelectorAll(selector);
+        if (elements.length > 0) {
+          console.log('🔌 FOUND EXTENSION CONTENT:', selector, elements);
+        }
+      });
+      
+      // Check for any elements with suspicious z-index values
+      const allElements = document.querySelectorAll('*');
+      allElements.forEach(el => {
+        const zIndex = window.getComputedStyle(el).zIndex;
+        if (zIndex && parseInt(zIndex) > 9999) {
+          console.log('🚨 HIGH Z-INDEX ELEMENT:', el, 'z-index:', zIndex);
+          if (el.textContent && el.textContent.includes('Login Required')) {
+            console.log('🚨 HIGH Z-INDEX ELEMENT CONTAINS "Login Required"!');
+          }
+        }
+      });
+      
+      // Force clear the entire page and rebuild - NUCLEAR OPTION
+      console.log('🧨 NUCLEAR OPTION: Clearing all suspicious elements...');
+      const suspiciousElements = document.querySelectorAll('div, span, p, h1, h2, h3, h4, h5, h6');
+      suspiciousElements.forEach(el => {
+        if (el.textContent && el.textContent.includes('Login Required') && el.textContent.includes('Please log in to create a character')) {
+          console.log('🚨 NUCLEAR STRIKE: Removing element:', el);
+          el.remove();
+        }
+      });
+    }, 5000);
+    
+    // Add CSS to forcibly hide any "Login Required" content
+    const style = document.createElement('style');
+    style.textContent = `
+      /* Hide any element containing "Login Required" */
+      *:has-text("Login Required") {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+      }
+      
+      /* Target specific patterns */
+      div[style*="position: fixed"],
+      div[style*="position: absolute"] {
+        /* Check if contains login text */
+      }
+      
+      /* Aggressive hiding of modal-like elements */
+      div[style*="z-index: 9999"],
+      div[style*="z-index: 99999"],
+      div[style*="z-index: 999999"] {
+        display: none !important;
+      }
+    `;
+    document.head.appendChild(style);
   </script>
   <meta name="description" content="Create your own AI character with custom personality, appearance, and behavior. Build unique AI companions for chat with our easy character creation tool.">
   
