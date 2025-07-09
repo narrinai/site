@@ -74,25 +74,43 @@ class SimpleAvatarUploader:
     def find_characters_without_avatar(self, characters):
         """Vind characters zonder Avatar_URL"""
         characters_needing_avatar = []
+        characters_with_avatar = 0
         
         for record in characters:
             fields = record.get('fields', {})
             name = fields.get('Name')
-            avatar_url = fields.get('Avatar_URL', '').strip()
+            avatar_url = fields.get('Avatar_URL')
             
             # Skip als geen naam
             if not name:
                 continue
             
-            # Check of Avatar_URL leeg is of ongeldig
-            if not avatar_url or len(avatar_url) < 10 or avatar_url.lower() in ['none', 'null', 'undefined']:
+            # DEBUG: Print elke character om te zien wat er gebeurt
+            print(f"   Checking: {name}")
+            print(f"     Avatar_URL raw: {repr(avatar_url)}")
+            print(f"     Avatar_URL type: {type(avatar_url)}")
+            
+            # Check verschillende lege states
+            is_empty = (
+                avatar_url is None or 
+                avatar_url == '' or 
+                (isinstance(avatar_url, str) and avatar_url.strip() == '') or
+                (isinstance(avatar_url, str) and avatar_url.lower().strip() in ['none', 'null', 'undefined'])
+            )
+            
+            if is_empty:
                 characters_needing_avatar.append({
                     'id': record['id'],
                     'name': name,
                     'category': fields.get('Category', 'other').lower()
                 })
+                print(f"     → NEEDS AVATAR")
+            else:
+                characters_with_avatar += 1
+                print(f"     → HAS AVATAR: {avatar_url[:50] if isinstance(avatar_url, str) else avatar_url}...")
         
-        print(f"📊 Characters without avatar: {len(characters_needing_avatar)}")
+        print(f"📊 Characters WITH avatar: {characters_with_avatar}")
+        print(f"📊 Characters WITHOUT avatar: {len(characters_needing_avatar)}")
         return characters_needing_avatar
 
     def search_character_image(self, character_name):
