@@ -2966,6 +2966,30 @@ function generateUniqueSlug(text) {
   return `${baseSlug}-${random}`;
 }
 
+// Global notification functions
+function showNotification(type, title, message, buttons = null) {
+  console.log(`📢 ${type.toUpperCase()}: ${title} - ${message}`);
+  
+  // Simple fallback using native alert/confirm
+  if (type === 'error' || type === 'warning') {
+    alert(`${title}\n\n${message}`);
+  } else {
+    console.log(`✅ ${title}: ${message}`);
+  }
+}
+
+function showSuccess(message, title = 'Success') {
+  showNotification('success', title, message);
+}
+
+function showError(message, title = 'Error') {
+  showNotification('error', title, message);
+}
+
+function showWarning(message, title = 'Warning') {
+  showNotification('warning', title, message);
+}
+
 // VOLLEDIG NETLIFY IDENTITY UITSCHAKELEN
 window.addEventListener('DOMContentLoaded', () => {
   // Disable all Netlify Identity functionality
@@ -3345,6 +3369,8 @@ function setupNavigationClickHandlers() {
    });
 
    // ===== CUSTOM NOTIFICATION SYSTEM =====
+   // Notification function is now defined globally above
+   /* OLD showNotification function - now using global version
    function showNotification(type, title, message, buttons = null) {
      console.log('🚫 NOTIFICATION BLOCKED:', type, title, message);
      
@@ -3428,21 +3454,9 @@ function setupNavigationClickHandlers() {
      ];
      showNotification('question', title, message, buttons);
    }
+   */
    
-   // Success notification
-   function showSuccess(message, title = 'Success') {
-     showNotification('success', title, message);
-   }
-   
-   // Error notification
-   function showError(message, title = 'Error') {
-     showNotification('error', title, message);
-   }
-   
-   // Warning notification
-   function showWarning(message, title = 'Warning') {
-     showNotification('warning', title, message);
-   }
+   // Notification functions are now defined globally above
 
    // ===== PERSONALITY BUILDER FUNCTIONALITY =====
    
