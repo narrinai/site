@@ -3426,6 +3426,52 @@ function setupNavigationClickHandlers() {
 
    // Setup personality trait buttons - FIXED
    function setupPersonalityButtons() {
+  console.log('🎨 Setting up personality buttons...');
+  
+  // Wacht tot DOM geladen is
+  setTimeout(() => {
+    // Personality traits (max 5)
+    const traitButtons = document.querySelectorAll('#personalityTraits .personality-button');
+    console.log('📊 Found trait buttons:', traitButtons.length);
+    traitButtons.forEach(button => {
+      button.addEventListener('click', (e) => {
+        e.preventDefault();
+        const trait = button.getAttribute('data-trait');
+        toggleArraySelection(personalityState.traits, trait, 5, button, 'traitsCounter', 'traits');
+      });
+    });
+
+    // Speaking patterns (max 3)
+    const speakingButtons = document.querySelectorAll('#speakingPattern .personality-button');
+    speakingButtons.forEach(button => {
+      button.addEventListener('click', (e) => {
+        e.preventDefault();
+        const pattern = button.getAttribute('data-pattern');
+        toggleArraySelection(personalityState.speaking, pattern, 3, button, 'speakingCounter', 'speaking patterns');
+      });
+    });
+
+    // Bonding approach (max 2)
+    const bondingButtons = document.querySelectorAll('#bondingApproach .personality-button');
+    bondingButtons.forEach(button => {
+      button.addEventListener('click', (e) => {
+        e.preventDefault();
+        const bonding = button.getAttribute('data-bonding');
+        toggleArraySelection(personalityState.bonding, bonding, 2, button, 'bondingCounter', 'bonding approaches');
+      });
+    });
+
+    // Personality quirks (no max)
+    const quirkButtons = document.querySelectorAll('#personalityQuirks .personality-button');
+    quirkButtons.forEach(button => {
+      button.addEventListener('click', (e) => {
+        e.preventDefault();
+        const quirk = button.getAttribute('data-quirk');
+        toggleArraySelection(personalityState.quirks, quirk, Infinity, button, null, 'quirks');
+      });
+    });
+  }, 100);
+}
      console.log('🎨 Setting up personality buttons...');
      
      // Personality traits (max 5)
@@ -3467,7 +3513,7 @@ function setupNavigationClickHandlers() {
          const quirk = button.getAttribute('data-quirk');
 toggleArraySelection(personalityState.quirks, quirk, Infinity, button, null, 'quirks');       });
      });
-   }
+   
 
    // Toggle selection in array with max limit - FIXED
    function toggleArraySelection(array, item, maxLimit, buttonElement, counterId = null, labelSuffix = '') {
@@ -3700,6 +3746,38 @@ toggleArraySelection(personalityState.quirks, quirk, Infinity, button, null, 'qu
 
    // Update prompt preview with improved formatting and debugging
    function updatePromptPreview(prompt) {
+  const preview = document.getElementById('promptPreview');
+  
+  console.log('🔍 Updating prompt preview:', {
+    promptLength: prompt ? prompt.length : 0,
+    hasPreviewElement: !!preview
+  });
+  
+  if (!preview) {
+    console.error('❌ promptPreview element not found');
+    return;
+  }
+  
+  if (prompt && prompt.trim()) {
+    // Enhanced formatting for better display
+    let formatted = prompt
+      .replace(/\n/g, '<br>')
+      .replace(/# ([^\n]+)/g, '<strong>$1</strong>')
+      .replace(/- ([^\n]+)/g, '• $1');
+    
+    preview.innerHTML = `<div class="prompt-content">${formatted}</div>`;
+    preview.classList.remove('empty');
+  } else {
+    preview.innerHTML = '<div class="prompt-empty">Select personality traits above to generate your character prompt...</div>';
+    preview.classList.add('empty');
+  }
+  
+  // Trigger a small animation to show the update
+  preview.style.opacity = '0.7';
+  setTimeout(() => {
+    preview.style.opacity = '1';
+  }, 100);
+}
      const preview = document.getElementById('promptPreview');
      
      // Debug logging
@@ -3737,7 +3815,7 @@ toggleArraySelection(personalityState.quirks, quirk, Infinity, button, null, 'qu
      setTimeout(() => {
        preview.style.opacity = '1';
      }, 100);
-   }
+   
 
    // Setup prompt actions - FIXED
    function setupPromptActions() {
