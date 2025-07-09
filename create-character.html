@@ -797,7 +797,41 @@
       }
     }
 
-    
+    /* Login overlay for form blocking */
+    .login-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .login-message {
+      background: var(--color-white);
+      padding: var(--spacing-2xl);
+      border-radius: var(--radius-lg);
+      text-align: center;
+      max-width: 400px;
+      margin: var(--spacing-xl);
+      box-shadow: var(--shadow-xl);
+    }
+
+    .login-message h3 {
+      margin: 0 0 var(--spacing-lg) 0;
+      color: var(--color-navy);
+      font-family: var(--font-secondary);
+      font-weight: 700;
+    }
+
+    .login-message p {
+      margin: 0 0 var(--spacing-xl) 0;
+      color: var(--color-gray);
+    }
 
     /* ===== CUSTOM NOTIFICATION SYSTEM ===== */
     .notification-overlay {
@@ -2193,7 +2227,15 @@
     </div>
   </div>
 
-  
+  <!-- Login Overlay -->
+  <div class="login-overlay" id="loginOverlay">
+    <div class="login-message">
+      <h3>Login Required</h3>
+      <p>Please log in to create a character</p>
+      <button class="btn btn-primary" onclick="showLoginModal()">Login</button>
+      <button class="btn btn-secondary" onclick="hideLoginOverlay()" style="margin-left: 10px;">Cancel</button>
+    </div>
+  </div>
 
   <div class="container">
     <div class="header-page">
@@ -2741,26 +2783,6 @@
        startUspCarousel();
      }
    }
-
-// ===== HANDLE REDIRECT AFTER LOGIN =====
-function handleRedirectAfterLogin() {
-  const pendingCharacterData = localStorage.getItem('pending_character_creation');
-  const redirectAfterLogin = localStorage.getItem('redirect_after_login');
-  
-  if (pendingCharacterData && redirectAfterLogin === 'create-character.html') {
-    try {
-      const characterData = JSON.parse(pendingCharacterData);
-      
-      // Check if data is still fresh (within 30 minutes)
-      if (Date.now() - characterData.timestamp < 30 * 60 * 1000) {
-        // Restore form data (code already present)
-        // ... rest of the restore logic
-      }
-    } catch (error) {
-      // Error handling (code already present)
-    }
-  }
-}
 
    // Initialize on load
    window.addEventListener('load', () => {
@@ -3854,7 +3876,20 @@ async function uploadToCloudinary(file, slug) {
   return result.secure_url;
 }
 
-   
+   // Login overlay functions
+   function showLoginOverlay() {
+     document.getElementById('loginOverlay').style.display = 'flex';
+   }
+
+   function hideLoginOverlay() {
+     document.getElementById('loginOverlay').style.display = 'none';
+   }
+
+   function showLoginModal() {
+     if (window.netlifyIdentity) {
+       window.netlifyIdentity.open('login');
+     }
+   }
 
    // Go back function
    function goBack() {
@@ -4024,125 +4059,126 @@ document.addEventListener('DOMContentLoaded', () => {
   // Gebruik encodeURIComponent in plaats van btoa voor Unicode veiligheid
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }
-function getEmojiForCharacter(name, category) {
-  const nameLower = name.toLowerCase();
-  
-  // Specifieke character matches
-  const specificMatches = {
-    'napoleon': '👑',
-    'einstein': '🧠',
-    'gandalf': '🧙‍♂️',
-    'shakespeare': '🎭',
-    'leonardo': '🎨',
-    'socrates': '🤔',
-    'tesla': '⚡',
-    'marie curie': '⚗️',
-    'winston churchill': '🚬',
-    'cleopatra': '👸',
-    'julius caesar': '🏛️',
-    'aristotle': '📚',
-    'plato': '🏛️',
-    'beethoven': '🎵',
-    'mozart': '🎼',
-    'van gogh': '🖼️',
-    'picasso': '🎨',
-    'frida kahlo': '🌺',
-    'sun tzu': '⚔️',
-    'confucius': '🥢',
-    'buddha': '🧘‍♂️',
-    'jesus': '✝️',
-    'muhammad': '🕌',
-    'hercules': '💪',
-    'athena': '🦉',
-    'zeus': '⚡',
-    'poseidon': '🔱',
-    'thor': '🔨',
-    'loki': '🐍',
-    'merlin': '🪄',
-    'dumbledore': '🧙‍♂️',
-    'yoda': '🟢',
-    'spiderman': '🕷️',
-    'batman': '🦇',
-    'superman': '🦸‍♂️',
-    'wonder woman': '👩‍⚔️',
-    'iron man': '🤖',
-    'captain america': '🛡️',
-    'hulk': '💚',
-    'wolverine': '🐺',
-    'deadpool': '🔴',
-    'pikachu': '⚡',
-    'goku': '🥋',
-    'naruto': '🍥',
-    'sailor moon': '🌙',
-    'mario': '🍄',
-    'sonic': '💙',
-    'link': '⚔️',
-    'master chief': '🎮',
-    'kratos': '⚔️',
-    'geralt': '🐺',
-    'chef': '👨‍🍳',
-    'coach': '💪',
-    'teacher': '👩‍🏫',
-    'doctor': '👨‍⚕️',
-    'nurse': '👩‍⚕️',
-    'lawyer': '⚖️',
-    'engineer': '🔧',
-    'scientist': '🔬',
-    'artist': '🎨',
-    'musician': '🎵',
-    'writer': '✍️',
-    'photographer': '📸',
-    'pilot': '✈️',
-    'astronaut': '🚀',
-    'robot': '🤖',
-    'ai': '🤖',
-    'assistant': '🤖',
-    'chatbot': '💬'
-  };
 
-  // Check voor specifieke matches
-  for (const [key, emoji] of Object.entries(specificMatches)) {
-    if (nameLower.includes(key)) {
-      return emoji;
-    }
-  }
+ function getEmojiForCharacter(name, category) {
+   const nameLower = name.toLowerCase();
+   
+   // Specifieke character matches
+   const specificMatches = {
+     'napoleon': '👑',
+     'einstein': '🧠',
+     'gandalf': '🧙‍♂️',
+     'shakespeare': '🎭',
+     'leonardo': '🎨',
+     'socrates': '🤔',
+     'tesla': '⚡',
+     'marie curie': '⚗️',
+     'winston churchill': '🚬',
+     'cleopatra': '👸',
+     'julius caesar': '🏛️',
+     'aristotle': '📚',
+     'plato': '🏛️',
+     'beethoven': '🎵',
+     'mozart': '🎼',
+     'van gogh': '🖼️',
+     'picasso': '🎨',
+     'frida kahlo': '🌺',
+     'sun tzu': '⚔️',
+     'confucius': '🥢',
+     'buddha': '🧘‍♂️',
+     'jesus': '✝️',
+     'muhammad': '🕌',
+     'hercules': '💪',
+     'athena': '🦉',
+     'zeus': '⚡',
+     'poseidon': '🔱',
+     'thor': '🔨',
+     'loki': '🐍',
+     'merlin': '🪄',
+     'dumbledore': '🧙‍♂️',
+     'yoda': '🟢',
+     'spiderman': '🕷️',
+     'batman': '🦇',
+     'superman': '🦸‍♂️',
+     'wonder woman': '👩‍⚔️',
+     'iron man': '🤖',
+     'captain america': '🛡️',
+     'hulk': '💚',
+     'wolverine': '🐺',
+     'deadpool': '🔴',
+     'pikachu': '⚡',
+     'goku': '🥋',
+     'naruto': '🍥',
+     'sailor moon': '🌙',
+     'mario': '🍄',
+     'sonic': '💙',
+     'link': '⚔️',
+     'master chief': '🎮',
+     'kratos': '⚔️',
+     'geralt': '🐺',
+     'chef': '👨‍🍳',
+     'coach': '💪',
+     'teacher': '👩‍🏫',
+     'doctor': '👨‍⚕️',
+     'nurse': '👩‍⚕️',
+     'lawyer': '⚖️',
+     'engineer': '🔧',
+     'scientist': '🔬',
+     'artist': '🎨',
+     'musician': '🎵',
+     'writer': '✍️',
+     'photographer': '📸',
+     'pilot': '✈️',
+     'astronaut': '🚀',
+     'robot': '🤖',
+     'ai': '🤖',
+     'assistant': '🤖',
+     'chatbot': '💬'
+   };
 
-  // Fallback op basis van categorie
-  const categoryEmojis = {
-    'historical': ['👑', '🏛️', '📜', '⚔️', '🎭', '🏺'],
-    'fantasy': ['🧙‍♂️', '🐉', '⚔️', '🧚‍♀️', '🦄', '🔮'],
-    'anime-manga': ['🥋', '⚡', '🍥', '🌸', '🎌', '🗾'],
-    'celebrity': ['⭐', '🎬', '🎤', '🎸', '📺', '🎪'],
-    'gaming': ['🎮', '🕹️', '👾', '🏆', '⚡', '🔥'],
-    'movies-tv': ['🎬', '📺', '🎭', '🍿', '🎪', '🎨'],
-    'mythology': ['⚡', '🔱', '🦅', '🐍', '🌙', '☀️'],
-    'original': ['✨', '🌟', '💫', '🎯', '🎪', '🎭'],
-    'ai-assistant': ['🤖', '💬', '🧠', '⚡', '💡', '🔧'],
-    'educational': ['📚', '🎓', '📝', '🔬', '🧮', '📐'],
-    'fitness-coach': ['💪', '🏃‍♂️', '🏋️‍♀️', '⚽', '🥇', '🔥'],
-    'business-coach': ['💼', '📊', '💰', '🎯', '📈', '💡'],
-    'language-coach': ['🗣️', '📖', '🌍', '💬', '✍️', '🎓'],
-    'accounting-coach': ['💰', '📊', '🧮', '📈', '💼', '⚖️'],
-    'career-coach': ['📈', '🎯', '💼', '🌟', '🚀', '🎓'],
-    'negotiation-coach': ['🤝', '💬', '🎯', '⚖️', '🧠', '💡'],
-    'creativity-coach': ['🎨', '💡', '✨', '🌈', '🎪', '🎭'],
-    'study-coach': ['📚', '🎓', '📝', '🧠', '⏰', '🎯'],
-    'relationship-coach': ['💝', '💕', '🤝', '💬', '🌹', '💑'],
-    'mindfulness-coach': ['🧘‍♂️', '🌸', '🕯️', '🌿', '☮️', '🌙'],
-    'cooking-coach': ['👨‍🍳', '🍳', '🥘', '🍽️', '🔥', '🌶️'],
-    'fictional': ['📚', '🎭', '✨', '🌟', '🎪', '🎨']
-  };
+   // Check voor specifieke matches
+   for (const [key, emoji] of Object.entries(specificMatches)) {
+     if (nameLower.includes(key)) {
+       return emoji;
+     }
+   }
 
-  const emojis = categoryEmojis[category] || categoryEmojis['original'];
-  
-  // Gebruik character naam voor consistent emoji selectie
-  const nameHash = nameLower.split('').reduce((hash, char) => {
-    return hash + char.charCodeAt(0);
-  }, 0);
-  
-  return emojis[nameHash % emojis.length];
-}
+   // Fallback op basis van categorie
+   const categoryEmojis = {
+     'historical': ['👑', '🏛️', '📜', '⚔️', '🎭', '🏺'],
+     'fantasy': ['🧙‍♂️', '🐉', '⚔️', '🧚‍♀️', '🦄', '🔮'],
+     'anime-manga': ['🥋', '⚡', '🍥', '🌸', '🎌', '🗾'],
+     'celebrity': ['⭐', '🎬', '🎤', '🎸', '📺', '🎪'],
+     'gaming': ['🎮', '🕹️', '👾', '🏆', '⚡', '🔥'],
+     'movies-tv': ['🎬', '📺', '🎭', '🍿', '🎪', '🎨'],
+     'mythology': ['⚡', '🔱', '🦅', '🐍', '🌙', '☀️'],
+     'original': ['✨', '🌟', '💫', '🎯', '🎪', '🎭'],
+     'ai-assistant': ['🤖', '💬', '🧠', '⚡', '💡', '🔧'],
+     'educational': ['📚', '🎓', '📝', '🔬', '🧮', '📐'],
+     'fitness-coach': ['💪', '🏃‍♂️', '🏋️‍♀️', '⚽', '🥇', '🔥'],
+     'business-coach': ['💼', '📊', '💰', '🎯', '📈', '💡'],
+     'language-coach': ['🗣️', '📖', '🌍', '💬', '✍️', '🎓'],
+     'accounting-coach': ['💰', '📊', '🧮', '📈', '💼', '⚖️'],
+     'career-coach': ['📈', '🎯', '💼', '🌟', '🚀', '🎓'],
+     'negotiation-coach': ['🤝', '💬', '🎯', '⚖️', '🧠', '💡'],
+     'creativity-coach': ['🎨', '💡', '✨', '🌈', '🎪', '🎭'],
+     'study-coach': ['📚', '🎓', '📝', '🧠', '⏰', '🎯'],
+     'relationship-coach': ['💝', '💕', '🤝', '💬', '🌹', '💑'],
+     'mindfulness-coach': ['🧘‍♂️', '🌸', '🕯️', '🌿', '☮️', '🌙'],
+     'cooking-coach': ['👨‍🍳', '🍳', '🥘', '🍽️', '🔥', '🌶️'],
+     'fictional': ['📚', '🎭', '✨', '🌟', '🎪', '🎨']
+   };
 
+   const emojis = categoryEmojis[category] || categoryEmojis['original'];
+   
+   // Gebruik character naam voor consistent emoji selectie
+   const nameHash = nameLower.split('').reduce((hash, char) => {
+     return hash + char.charCodeAt(0);
+   }, 0);
+   
+   return emojis[nameHash % emojis.length];
+ }
+ 
 // ===== FORM SUBMISSION HANDLER =====
 let isSubmitting = false; // Global flag to prevent double submissions
 
@@ -4161,7 +4197,18 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
   isFormSubmitting = true;
   formHasUnsavedChanges = false; // Clear unsaved changes flag
 
-  // Collect form data EERST
+  // Check if user is logged in
+  const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+  const localEmail = localStorage.getItem("user_email");
+  const localToken = localStorage.getItem("user_token");
+  const isLoggedIn = netlifyUser || (localEmail && localToken);
+  
+  if (!isLoggedIn) {
+    showLoginOverlay();
+    return;
+  }
+  
+  // Collect form data - ENHANCED VERSION
   const formData = {
     name: document.getElementById('characterName').value.trim(),
     title: document.getElementById('characterTitle').value.trim(), 
@@ -4170,146 +4217,20 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
     category: document.getElementById('characterCategory').value,
     tags: selectedTags,
     visibility: document.querySelector('input[name="visibility"]:checked').value,
-    avatarUrl: currentAvatarUrl
-  };
-
-  // Check if user is logged in
-  const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
-  const localEmail = localStorage.getItem("user_email");
-  const localToken = localStorage.getItem("user_token");
-  const isLoggedIn = netlifyUser || (localEmail && localToken);
-
-  if (!isLoggedIn) {
-    // Store form data and redirect to profile.html for login
-    console.log('🔐 User not logged in, redirecting to profile...');
+    avatarUrl: currentAvatarUrl,
     
-    // Store character data in localStorage
-    const characterData = {
-      ...formData,
-      personalityState: personalityState,
-      timestamp: Date.now()
-    };
-    localStorage.setItem('pending_character_creation', JSON.stringify(characterData));
-    localStorage.setItem('redirect_after_login', 'create-character.html');
-    
-    // Reset submission flag
-    isSubmitting = false;
-    
-    // Show notification and redirect
-    showNotification('info', 'Login Required', 'You need to be logged in to create a character. Redirecting to login...', [
-      {
-        text: 'Go to Login',
-        type: 'primary',
-        callback: () => {
-          window.location.href = 'profile.html';
-        }
-      }
-    ]);
-    
-    // Auto redirect after 3 seconds
-    setTimeout(() => {
-      window.location.href = 'profile.html';
-    }, 3000);
-    
-    return;
-  }
-  
-  // ADD ENHANCED FIELDS TO EXISTING formData (instead of redeclaring)
-  formData.character_data = {
-    name: formData.name,
-    title: formData.title,
-    description: formData.description,
-    prompt: formData.prompt,
-    category: formData.category,
-    tags: formData.tags,
-    visibility: formData.visibility,
-    avatar_url: formData.avatarUrl || ''
-  };
-  
-  console.log('📋 Form data collected:', formData);
-  
-  // Validate form data
-  if (!validateFormData(formData)) {
-    isSubmitting = false;
-    return;
-  }
-  
-  // Set submitting flag and disable form
-  const submitBtn = e.target.querySelector('button[type="submit"]');
-  const originalText = submitBtn.textContent;
-  
-  try {
-    // Show loading state
-    submitBtn.textContent = 'Creating Character...';
-    submitBtn.disabled = true;
-    
-    // Disable entire form to prevent any changes during submission
-    const formElements = e.target.querySelectorAll('input, textarea, select, button');
-    formElements.forEach(element => {
-      if (element !== submitBtn) {
-        element.disabled = true;
-      }
-    });
-    
-    console.log('📤 Sending character data to API...');
-    
-    // Create character
-    const result = await createCharacter(formData);
-    
-    if (result.success) {
-      console.log('✅ Character created successfully:', result);
-      
-      // Stop form submission warning
-      isFormSubmitting = true;
-      formHasUnsavedChanges = false;
-      
-      submitBtn.textContent = 'Character Created! Redirecting...';
-      showSuccess('Character created successfully! Opening chat with your new character...', 'Success');
-      
-      // Get slug from API response
-      let characterSlug = result.character?.slug || result.character?.character_id || result.slug;
-
-      if (!characterSlug && formData.name) {
-        // Generate slug from character name als fallback
-        characterSlug = formData.name
-          .toLowerCase()
-          .trim()
-          .replace(/[^\w\s-]/g, '') // Remove special characters
-          .replace(/\s+/g, '-')     // Replace spaces with hyphens
-          .replace(/-+/g, '-')      // Replace multiple hyphens with single
-          .replace(/^-|-$/g, '');   // Remove leading/trailing hyphens
-        
-        console.log('🔗 Generated character slug:', characterSlug);
-      }
-      
-      // Redirect to the new character's chat page
-      setTimeout(() => {
-        if (characterSlug) {
-          window.location.href = `chat.html?char=${characterSlug}`;
-        } else {
-          window.location.href = 'index.html';
-        }
-      }, 2000);
-    } else {
-      throw new Error(result.error || result.message || 'Failed to create character');
+    // NIEUWE VELDEN TOEVOEGEN:
+    character_data: {
+      name: document.getElementById('characterName').value.trim(),
+      title: document.getElementById('characterTitle').value.trim(),
+      description: document.getElementById('characterDescription').value.trim(), 
+      prompt: document.getElementById('characterPrompt').value.trim(),
+      category: document.getElementById('characterCategory').value,
+      tags: selectedTags,
+      visibility: document.querySelector('input[name="visibility"]:checked').value,
+      avatar_url: currentAvatarUrl || ''
     }
-    
-  } catch (error) {
-    console.error('❌ Error creating character:', error);
-    showError('Failed to create character. Please try again.', 'Error');
-    
-    // Reset form state on error so user can try again
-    isSubmitting = false;
-    submitBtn.textContent = originalText;
-    submitBtn.disabled = false;
-    
-    // Re-enable form elements
-    const formElements = e.target.querySelectorAll('input, textarea, select, button');
-    formElements.forEach(element => {
-      element.disabled = false;
-    });
-  }
-});
+  };
   
   console.log('📋 Form data collected:', formData);
   
@@ -4397,8 +4318,9 @@ if (!characterSlug && formData.name) {
   
   // Note: We don't reset isSubmitting on success because we're redirecting
   // This prevents any further submissions during the redirect process
+});
 
-
+// Create character function with improved error handling
 // Create character function with improved error handling
 async function createCharacter(formData) {
   try {
