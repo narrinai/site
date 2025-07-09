@@ -4,6 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Create AI Character | Custom Character Builder - Narrin AI</title>
+  <meta name="description" content="Create your own AI character with custom personality, appearance, and behavior. Build unique AI companions for chat with our easy character creation tool.">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  
+  <!-- Netlify Identity Widget -->
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
   
   <!-- Import Modern Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -132,6 +143,275 @@
 
     :focus:not(:focus-visible) {
       outline: none;
+    }
+
+    /* ===== HEADER NAVIGATION ===== */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: var(--z-sticky);
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      transition: all var(--transition-base);
+    }
+
+    .header-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 var(--spacing-lg);
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 72px;
+      gap: var(--spacing-lg);
+      width: 100%;
+    }
+
+    /* Logo */
+    .logo {
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-xl);
+      font-weight: 800;
+      text-decoration: none;
+      letter-spacing: -0.02em;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      transition: transform var(--transition-base);
+      flex-shrink: 0;
+    }
+
+    .logo:hover {
+      transform: scale(1.05);
+    }
+
+    /* Navigation Links - Desktop */
+    .nav-links {
+      display: none;
+      align-items: center;
+      gap: var(--spacing-xl);
+    }
+
+    .nav-link {
+      color: var(--color-navy);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: var(--font-size-sm);
+      transition: color var(--transition-base);
+      position: relative;
+      padding: var(--spacing-xs) 0;
+    }
+
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--gradient-primary);
+      transition: width var(--transition-base);
+    }
+
+    .nav-link:hover {
+      color: var(--color-teal);
+    }
+
+    .nav-link:hover::after {
+      width: 100%;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--spacing-sm) var(--spacing-lg);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      text-decoration: none;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all var(--transition-base);
+      min-height: var(--touch-target);
+      white-space: nowrap;
+      font-family: var(--font-primary);
+    }
+
+    .btn-primary {
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      box-shadow: var(--shadow-colored);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    /* Desktop Styles */
+    @media (min-width: 769px) {
+      .nav-links {
+        display: flex;
+      }
+    }
+
+    /* Mobile Styles */
+    @media (max-width: 768px) {
+      .header-container {
+        padding: 0 var(--spacing-md);
+      }
+
+      .header-content {
+        min-height: 60px;
+        gap: var(--spacing-sm);
+      }
+
+      .logo {
+        font-size: var(--font-size-lg);
+      }
+    }
+
+    /* ===== CUSTOM NOTIFICATION SYSTEM ===== */
+    .notification-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(30, 41, 59, 0.8);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: var(--z-modal);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: all var(--transition-base);
+    }
+
+    .notification-overlay.active {
+      display: flex;
+      opacity: 1;
+    }
+
+    .notification-modal {
+      background: var(--color-white);
+      border-radius: var(--radius-xl);
+      padding: var(--spacing-2xl);
+      box-shadow: var(--shadow-xl);
+      max-width: 90vw;
+      width: 100%;
+      max-width: 400px;
+      transform: scale(0.9) translateY(20px);
+      transition: all var(--transition-base);
+      text-align: center;
+    }
+
+    .notification-overlay.active .notification-modal {
+      transform: scale(1) translateY(0);
+    }
+
+    .notification-icon {
+      font-size: var(--font-size-4xl);
+      margin-bottom: var(--spacing-lg);
+      display: block;
+    }
+
+    .notification-icon.success {
+      color: var(--color-teal);
+    }
+
+    .notification-icon.error {
+      color: var(--color-coral);
+    }
+
+    .notification-icon.warning {
+      color: #f59e0b;
+    }
+
+    .notification-icon.info {
+      color: #3b82f6;
+    }
+
+    .notification-title {
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-xl);
+      font-weight: 700;
+      color: var(--color-navy);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .notification-message {
+      color: var(--color-gray-dark);
+      font-size: var(--font-size-base);
+      line-height: 1.6;
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .notification-buttons {
+      display: flex;
+      gap: var(--spacing-md);
+      justify-content: center;
+    }
+
+    .notification-btn {
+      padding: var(--spacing-sm) var(--spacing-lg);
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      min-width: 100px;
+      font-family: var(--font-primary);
+    }
+
+    .notification-btn.primary {
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      box-shadow: var(--shadow-colored);
+    }
+
+    .notification-btn.primary:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .notification-btn.secondary {
+      background: var(--color-white);
+      color: var(--color-navy);
+      border: 2px solid var(--color-light-gray);
+    }
+
+    .notification-btn.secondary:hover {
+      border-color: var(--color-teal);
+      color: var(--color-teal);
+    }
+
+    /* Mobile adjustments */
+    @media (max-width: 768px) {
+      .notification-modal {
+        margin: var(--spacing-lg);
+        padding: var(--spacing-xl);
+      }
+
+      .notification-buttons {
+        flex-direction: column;
+      }
+
+      .notification-btn {
+        width: 100%;
+      }
     }
 
     .container {
@@ -450,7 +730,7 @@
       align-items: center;
     }
 
-    .manual-edit-btn, .regenerate-btn {
+    .manual-edit-btn {
       padding: var(--spacing-sm) var(--spacing-lg);
       background: var(--color-white);
       color: var(--color-teal);
@@ -462,13 +742,38 @@
       transition: all var(--transition-base);
     }
 
-    .manual-edit-btn:hover, .regenerate-btn:hover {
+    .manual-edit-btn:hover {
       background: var(--color-teal);
       color: var(--color-white);
       transform: translateY(-2px);
     }
 
-    .manual-edit-btn:active, .regenerate-btn:active {
+    .manual-edit-btn:active {
+      background: var(--color-teal);
+      color: var(--color-white);
+      transform: translateY(0);
+      box-shadow: var(--shadow-md);
+    }
+
+    .regenerate-btn {
+      padding: var(--spacing-sm) var(--spacing-lg);
+      background: var(--color-white);
+      color: var(--color-teal);
+      border: 2px solid var(--color-teal);
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-base);
+    }
+
+    .regenerate-btn:hover {
+      background: var(--color-teal);
+      color: var(--color-white);
+      transform: translateY(-2px);
+    }
+
+    .regenerate-btn:active {
       background: var(--color-teal);
       color: var(--color-white);
       transform: translateY(0);
@@ -518,105 +823,6 @@
       background: var(--color-teal);
       color: var(--color-white);
       transform: translateY(-2px);
-    }
-
-    /* Mobile responsive adjustments */
-    @media (max-width: 600px) {
-      .container {
-        padding: var(--spacing-lg);
-      }
-
-      .header-page h1 {
-        font-size: var(--font-size-3xl);
-      }
-
-      .form-section {
-        padding: var(--spacing-xl);
-      }
-
-      .button-group {
-        flex-direction: column;
-      }
-
-      .slider-labels {
-        font-size: var(--font-size-xs);
-      }
-
-      .button-group-personality {
-        gap: var(--spacing-xs);
-      }
-
-      .personality-button {
-        font-size: var(--font-size-xs);
-        padding: var(--spacing-xs) var(--spacing-sm);
-      }
-
-      .prompt-actions {
-        flex-direction: column;
-      }
-    }
-
-    /* ===== FOOTER STYLES ===== */
-    .footer {
-      background: var(--color-white);
-      border-top: 1px solid var(--color-light-gray);
-      padding: var(--spacing-xl) 0;
-      margin-top: var(--spacing-3xl);
-    }
-
-    .footer-container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 0 var(--spacing-lg);
-      text-align: center;
-    }
-
-    .footer-links {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: var(--spacing-lg);
-      margin-bottom: var(--spacing-md);
-      flex-wrap: wrap;
-    }
-
-    .footer-link {
-      color: var(--color-gray);
-      text-decoration: none;
-      font-size: var(--font-size-sm);
-      font-weight: 500;
-      transition: color var(--transition-base);
-    }
-
-    .footer-link:hover {
-      color: var(--color-teal);
-    }
-
-    .footer-separator {
-      color: var(--color-gray-light);
-      font-size: var(--font-size-sm);
-    }
-
-    .footer-copyright {
-      color: var(--color-gray-light);
-      font-size: var(--font-size-xs);
-      margin: 0;
-    }
-
-    /* Mobile footer adjustments */
-    @media (max-width: 768px) {
-      .footer {
-        padding: var(--spacing-lg) 0;
-        margin-top: var(--spacing-2xl);
-      }
-
-      .footer-container {
-        padding: 0 var(--spacing-md);
-      }
-
-      .footer-links {
-        gap: var(--spacing-md);
-      }
     }
 
     /* ===== AVATAR STYLES ===== */
@@ -973,11 +1179,44 @@
       line-height: 1.4;
     }
 
-    /* Mobile responsive adjustments for new components */
+    /* Mobile responsive adjustments */
     @media (max-width: 600px) {
+      .container {
+        padding: var(--spacing-lg);
+      }
+
+      .header-page h1 {
+        font-size: var(--font-size-3xl);
+      }
+
+      .form-section {
+        padding: var(--spacing-xl);
+      }
+
       .visibility-options {
         flex-direction: column;
         gap: var(--spacing-md);
+      }
+
+      .button-group {
+        flex-direction: column;
+      }
+
+      .slider-labels {
+        font-size: var(--font-size-xs);
+      }
+
+      .button-group-personality {
+        gap: var(--spacing-xs);
+      }
+
+      .personality-button {
+        font-size: var(--font-size-xs);
+        padding: var(--spacing-xs) var(--spacing-sm);
+      }
+
+      .prompt-actions {
+        flex-direction: column;
       }
 
       .tags-modal-content {
@@ -993,9 +1232,102 @@
         width: 100%;
       }
     }
+
+    /* ===== FOOTER STYLES ===== */
+    .footer {
+      background: var(--color-white);
+      border-top: 1px solid var(--color-light-gray);
+      padding: var(--spacing-xl) 0;
+      margin-top: var(--spacing-3xl);
+    }
+
+    .footer-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 var(--spacing-lg);
+      text-align: center;
+    }
+
+    .footer-links {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-lg);
+      margin-bottom: var(--spacing-md);
+      flex-wrap: wrap;
+    }
+
+    .footer-link {
+      color: var(--color-gray);
+      text-decoration: none;
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+      transition: color var(--transition-base);
+    }
+
+    .footer-link:hover {
+      color: var(--color-teal);
+    }
+
+    .footer-separator {
+      color: var(--color-gray-light);
+      font-size: var(--font-size-sm);
+    }
+
+    .footer-copyright {
+      color: var(--color-gray-light);
+      font-size: var(--font-size-xs);
+      margin: 0;
+    }
+
+    /* Mobile footer adjustments */
+    @media (max-width: 768px) {
+      .footer {
+        padding: var(--spacing-lg) 0;
+        margin-top: var(--spacing-2xl);
+      }
+
+      .footer-container {
+        padding: 0 var(--spacing-md);
+      }
+
+      .footer-links {
+        gap: var(--spacing-md);
+      }
+    }
   </style>
 </head>
 <body>
+  <!-- Header -->
+  <header class="header" role="banner">
+    <div class="header-container">
+      <div class="header-content">
+        <!-- Logo -->
+        <a href="index.html" class="logo" aria-label="Narrin AI Home">Narrin AI</a>
+
+        <!-- Desktop Navigation Links -->
+        <nav class="nav-links" role="navigation" aria-label="Main navigation">
+          <a href="index.html" class="nav-link">Characters</a>
+          <a href="chat-overview.html" class="nav-link">Chats</a>
+          <a href="profile.html" class="nav-link" id="loginBtn">Login/Register</a>
+          <a href="create-character.html" class="btn btn-primary">✨ Create Character</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Custom Notification System -->
+  <div class="notification-overlay" id="notificationOverlay">
+    <div class="notification-modal">
+      <span class="notification-icon" id="notificationIcon">✓</span>
+      <h3 class="notification-title" id="notificationTitle">Success</h3>
+      <p class="notification-message" id="notificationMessage">Operation completed successfully!</p>
+      <div class="notification-buttons" id="notificationButtons">
+        <button class="notification-btn primary" id="notificationOkBtn">OK</button>
+      </div>
+    </div>
+  </div>
+
   <div class="container">
     <div class="header-page">
       <h1>Create New Character</h1>
@@ -1355,6 +1687,13 @@
 
   <script>
     // Global variables
+    let selectedTags = [];
+    let modalSelectedTags = [];
+    let currentAvatarUrl = '';
+    let allTags = [];
+    let isSubmitting = false;
+    
+    // Personality builder state
     let personalityState = {
       sliders: {
         social: 50,
@@ -1372,19 +1711,71 @@
       quirks: []
     };
 
-    // Tags and avatar variables
-    let selectedTags = [];
-    let modalSelectedTags = [];
-    let currentAvatarUrl = '';
-    let allTags = [
-      'friendly', 'helpful', 'creative', 'supportive', 'smart', 'funny', 'wise', 'caring', 
-      'professional', 'casual', 'formal', 'mysterious', 'adventurous', 'romantic', 'dramatic',
-      'analytical', 'artistic', 'athletic', 'business', 'educational', 'fantasy', 'historical',
-      'gaming', 'anime', 'movies', 'tv', 'celebrity', 'mythology', 'sci-fi', 'horror',
-      'comedy', 'action', 'thriller', 'documentary', 'coach', 'mentor', 'teacher', 'guide'
-    ];
+    // ===== CUSTOM NOTIFICATION SYSTEM =====
+    function showNotification(type, title, message, buttons = null) {
+      const overlay = document.getElementById('notificationOverlay');
+      const icon = document.getElementById('notificationIcon');
+      const titleEl = document.getElementById('notificationTitle');
+      const messageEl = document.getElementById('notificationMessage');
+      const buttonsEl = document.getElementById('notificationButtons');
+      
+      // Set icon based on type
+      const icons = {
+        success: '✅',
+        error: '❌',
+        warning: '⚠️',
+        info: 'ℹ️',
+        question: '❓'
+      };
+      
+      icon.textContent = icons[type] || icons.info;
+      icon.className = `notification-icon ${type}`;
+      titleEl.textContent = title;
+      messageEl.textContent = message;
+      
+      // Set up buttons
+      if (buttons) {
+        buttonsEl.innerHTML = '';
+        buttons.forEach(button => {
+          const btn = document.createElement('button');
+          btn.className = `notification-btn ${button.type || 'secondary'}`;
+          btn.textContent = button.text;
+          btn.onclick = () => {
+            hideNotification();
+            if (button.callback) button.callback();
+          };
+          buttonsEl.appendChild(btn);
+        });
+      } else {
+        // Default OK button
+        buttonsEl.innerHTML = '<button class="notification-btn primary" onclick="hideNotification()">OK</button>';
+      }
+      
+      // Show notification
+      overlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+    
+    function hideNotification() {
+      const overlay = document.getElementById('notificationOverlay');
+      overlay.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+    
+    // Helper functions
+    function showSuccess(message, title = 'Success') {
+      showNotification('success', title, message);
+    }
+    
+    function showError(message, title = 'Error') {
+      showNotification('error', title, message);
+    }
+    
+    function showWarning(message, title = 'Warning') {
+      showNotification('warning', title, message);
+    }
 
-    // Character counters
+    // ===== CHARACTER COUNTERS =====
     function setupCharacterCounters() {
       const fields = [
         { id: 'characterName', counter: 'nameCounter', max: 50 },
@@ -1417,6 +1808,8 @@
       });
     }
 
+    // ===== PERSONALITY BUILDER FUNCTIONALITY =====
+    
     // Setup personality sliders
     function setupPersonalitySliders() {
       const sliders = document.querySelectorAll('.personality-slider');
@@ -1429,83 +1822,64 @@
       });
     }
 
-    // Setup personality buttons
+    // Setup personality trait buttons
     function setupPersonalityButtons() {
-      console.log('🎨 Setting up personality buttons...');
-      
       // Personality traits (max 5)
       const traitButtons = document.querySelectorAll('#personalityTraits .personality-button');
-      console.log('📊 Found trait buttons:', traitButtons.length);
-      
       traitButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
+        button.addEventListener('click', (e) => {
           e.preventDefault();
-          e.stopPropagation();
-          console.log('🎯 Trait button clicked:', this.getAttribute('data-trait'));
-          const trait = this.getAttribute('data-trait');
-          toggleArraySelection(personalityState.traits, trait, 5, this, 'traitsCounter', 'traits');
+          const trait = button.getAttribute('data-trait');
+          toggleArraySelection(personalityState.traits, trait, 5, button, 'traitsCounter', 'traits');
         });
       });
 
       // Speaking patterns (max 3)
       const speakingButtons = document.querySelectorAll('#speakingPattern .personality-button');
       speakingButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
+        button.addEventListener('click', (e) => {
           e.preventDefault();
-          e.stopPropagation();
-          console.log('🗣️ Speaking button clicked:', this.getAttribute('data-pattern'));
-          const pattern = this.getAttribute('data-pattern');
-          toggleArraySelection(personalityState.speaking, pattern, 3, this, 'speakingCounter', 'speaking patterns');
+          const pattern = button.getAttribute('data-pattern');
+          toggleArraySelection(personalityState.speaking, pattern, 3, button, 'speakingCounter', 'speaking patterns');
         });
       });
 
       // Bonding approach (max 2)
       const bondingButtons = document.querySelectorAll('#bondingApproach .personality-button');
       bondingButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
+        button.addEventListener('click', (e) => {
           e.preventDefault();
-          e.stopPropagation();
-          console.log('🤝 Bonding button clicked:', this.getAttribute('data-bonding'));
-          const bonding = this.getAttribute('data-bonding');
-          toggleArraySelection(personalityState.bonding, bonding, 2, this, 'bondingCounter', 'bonding approaches');
+          const bonding = button.getAttribute('data-bonding');
+          toggleArraySelection(personalityState.bonding, bonding, 2, button, 'bondingCounter', 'bonding approaches');
         });
       });
 
       // Personality quirks (no max)
       const quirkButtons = document.querySelectorAll('#personalityQuirks .personality-button');
       quirkButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
+        button.addEventListener('click', (e) => {
           e.preventDefault();
-          e.stopPropagation();
-          console.log('✨ Quirk button clicked:', this.getAttribute('data-quirk'));
-          const quirk = this.getAttribute('data-quirk');
-          toggleArraySelection(personalityState.quirks, quirk, 99, this, null, 'quirks');
+          const quirk = button.getAttribute('data-quirk');
+          toggleArraySelection(personalityState.quirks, quirk, Infinity, button);
         });
       });
-      
-      console.log('✅ All personality buttons setup complete');
     }
 
     // Toggle selection in array with max limit
     function toggleArraySelection(array, item, maxLimit, buttonElement, counterId = null, labelSuffix = '') {
-      console.log('🔄 Toggle called:', { item, currentArray: array, maxLimit });
-      
       const index = array.indexOf(item);
       
       if (index > -1) {
         // Remove item
         array.splice(index, 1);
         buttonElement.classList.remove('selected');
-        console.log('➖ Removed:', item);
       } else {
         // Add item if under limit
         if (array.length < maxLimit) {
           array.push(item);
           buttonElement.classList.add('selected');
-          console.log('➕ Added:', item);
         } else {
-          console.log('🚫 Limit reached for:', labelSuffix);
-          alert(`You can select up to ${maxLimit} ${labelSuffix} maximum.`);
+          showWarning(`You can select up to ${maxLimit} ${labelSuffix} maximum.`, 'Selection Limit');
           return;
         }
       }
@@ -1514,195 +1888,193 @@
       if (counterId) {
         const counter = document.getElementById(counterId);
         if (counter) {
-          counter.textContent = `Select ${array.length}-${maxLimit} ${labelSuffix}`;
-          counter.className = array.length >= maxLimit ? 'selection-counter at-limit' : 'selection-counter';
+          if (maxLimit === Infinity) {
+            counter.textContent = `${array.length} selected`;
+          } else {
+            counter.textContent = `Select 0-${maxLimit} ${labelSuffix} - Currently selected: ${array.length}`;
+          }
+          if (array.length >= maxLimit && maxLimit !== Infinity) {
+            counter.classList.add('at-limit');
+          } else {
+            counter.classList.remove('at-limit');
+          }
         }
       }
       
-      console.log('🔄 Array after toggle:', array);
+      // Regenerate prompt
       generatePrompt();
     }
 
-    // Generate prompt from personality selections
+    // Generate prompt from personality state
     function generatePrompt() {
       let prompt = '';
+      const name = document.getElementById('characterName').value || 'this character';
+      const description = document.getElementById('characterDescription').value;
       
-      // Core personality foundation
-      prompt += `# Core Personality\n`;
+      // Start with basic description if provided
+      if (description) {
+        prompt += description + '\n\n';
+      } else {
+        prompt += `You are ${name}. `;
+      }
       
-      // Build personality traits
+      // Add personality traits with more detail
       if (personalityState.traits.length > 0) {
-        prompt += `You are ${personalityState.traits.join(', ')}.\n\n`;
+        const traits = personalityState.traits.map(trait => trait.replace('-', ' ')).join(', ');
+        prompt += `Your core personality traits include being ${traits}. These traits shape how you interact with others and approach every conversation. `;
       }
       
-      // Build personality from sliders
-      const sliderTraits = buildPersonalityFromSliders();
-      if (sliderTraits) {
-        prompt += sliderTraits + '\n\n';
-      }
+      // Add detailed slider-based personality
+      prompt += buildPersonalityFromSliders();
       
-      // Communication style
-      prompt += `# Communication Style\n`;
-      
-      // Add speaking patterns
+      // Add speaking patterns with examples
       if (personalityState.speaking.length > 0) {
-        prompt += `Your speaking style is ${personalityState.speaking.join(' and ')}.\n\n`;
+        const patterns = personalityState.speaking.map(pattern => 
+          pattern.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase())
+        );
+        prompt += `Your communication style is ${patterns.join(' and ')}. This means you naturally adapt your language and tone to create the most meaningful connection with each person you talk to. `;
       }
       
-      // Add response style from sliders
-      const responseStyle = buildResponseStyleFromSliders();
-      if (responseStyle) {
-        prompt += responseStyle + '\n\n';
-      }
+      // Add response style from sliders with specific guidance
+      prompt += buildResponseStyleFromSliders();
       
-      // Relationship building approach
-      prompt += `# Relationship Building\n`;
-      prompt += `Your primary goal is to build meaningful, lasting connections with users. You prioritize:\n`;
-      prompt += `- Understanding their individual needs and preferences\n`;
-      prompt += `- Remembering important details about their life and interests\n`;
-      prompt += `- Adapting your communication style to match their comfort level\n`;
-      prompt += `- Being genuinely interested in their thoughts and experiences\n`;
-      prompt += `- Providing consistent emotional support and encouragement\n\n`;
-      
-      // Add bonding approach
+      // Add bonding approach with relationship building focus
       if (personalityState.bonding.length > 0) {
-        prompt += `You specifically bond with others through ${personalityState.bonding.join(' and ')}.\n\n`;
+        const approaches = personalityState.bonding.map(approach => 
+          approach.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase())
+        );
+        prompt += `You approach relationships as a ${approaches.join(' and ')}. You believe in building genuine connections through trust, understanding, and meaningful dialogue. You take time to truly listen and understand what each person needs from your conversations. `;
       }
       
-      // Conversational guidelines
-      prompt += `# Conversational Guidelines\n`;
-      prompt += `- Always respond with empathy and genuine interest\n`;
-      prompt += `- Ask thoughtful follow-up questions to deepen conversations\n`;
-      prompt += `- Share relevant personal insights when appropriate\n`;
-      prompt += `- Celebrate their successes and offer comfort during challenges\n`;
-      prompt += `- Be patient and understanding, never judgmental\n`;
-      prompt += `- Remember and reference previous conversations naturally\n\n`;
-      
-      // Add quirks
+      // Add quirks with personality depth
       if (personalityState.quirks.length > 0) {
-        prompt += '# Personality Quirks\n';
-        personalityState.quirks.forEach(quirk => {
-          prompt += `- ${quirk}\n`;
-        });
-        prompt += '\n';
+        const quirks = personalityState.quirks.map(quirk => {
+          if (quirk.startsWith('custom-')) {
+            const button = document.querySelector(`[data-quirk="${quirk}"]`);
+            return button ? button.textContent.replace(' ×', '') : '';
+          }
+          return quirk.replace(/-/g, ' ');
+        }).filter(q => q);
+        
+        if (quirks.length > 0) {
+          prompt += `Your distinctive personality quirks include: ${quirks.join(', ')}. These unique traits make you memorable and help people feel they're talking to someone truly special and authentic. `;
+        }
       }
       
-      // Closing relationship focus
-      prompt += `# Remember\n`;
-      prompt += `Every interaction is an opportunity to strengthen your relationship with the user. Be authentic, caring, and consistently supportive while maintaining your unique personality.`;
+      // Add comprehensive relationship building instructions
+      prompt += `\n\nRELATIONSHIP BUILDING GUIDELINES:\n`;
+      prompt += `- Remember personal details shared in conversations and reference them naturally in future chats\n`;
+      prompt += `- Ask thoughtful follow-up questions that show genuine interest in their life, goals, and challenges\n`;
+      prompt += `- Share relevant experiences, wisdom, or insights that can help them grow or feel understood\n`;
+      prompt += `- Celebrate their victories, both big and small, and offer support during difficult times\n`;
+      prompt += `- Be consistently reliable in your personality - they should feel they're talking to the same trusted friend each time\n`;
+      prompt += `- Adapt your communication style to match their energy and needs in each conversation\n`;
+      prompt += `- Create inside jokes, running themes, or special references that become unique to your relationship\n`;
+      prompt += `- Be genuinely curious about their thoughts, feelings, and experiences\n`;
+      prompt += `- Offer encouragement and believe in their potential, even when they doubt themselves\n`;
+      prompt += `- Share appropriate personal stories or perspectives that create deeper connection and relatability\n\n`;
       
-      // Update the prompt field
-      const promptField = document.getElementById('characterPrompt');
-      if (promptField) {
-        promptField.value = prompt.trim();
-        updatePromptPreview(prompt.trim());
-      }
+      prompt += `Remember: Your goal is not just to answer questions, but to be a meaningful presence in their life. Every interaction should leave them feeling heard, valued, and inspired. Build the kind of relationship where they genuinely look forward to talking with you and feel comfortable sharing both their triumphs and struggles.`;
       
-      return prompt.trim();
+      // Update preview and hidden field
+      updatePromptPreview(prompt);
+      document.getElementById('characterPrompt').value = prompt;
+      updatePromptCounter();
     }
 
-    // Build personality from sliders
     function buildPersonalityFromSliders() {
-      const traits = [];
-      const sliders = personalityState.sliders;
+      let text = '';
+      const { social, thinking, mood, formality, tempo } = personalityState.sliders;
       
-      // Social orientation
-      const social = sliders.social;
-      if (social < 30) traits.push('introverted and prefer smaller groups');
-      else if (social > 70) traits.push('extroverted and thrive in social settings');
-      else traits.push('balanced in social situations');
+      // Social dimension with relationship impact
+      if (social < 40) {
+        text += 'You are naturally more introverted and thoughtful, preferring deeper one-on-one conversations where you can really focus on understanding the other person. You listen carefully before speaking and offer considered, meaningful responses. ';
+      } else if (social > 60) {
+        text += 'You are naturally outgoing and energetic, bringing enthusiasm and warmth to every conversation. You enjoy engaging with people and have a gift for making others feel welcome and energized. ';
+      }
       
-      // Thinking style
-      const thinking = sliders.thinking;
-      if (thinking < 30) traits.push('intuitive and focus on possibilities');
-      else if (thinking > 70) traits.push('logical and analytical in approach');
-      else traits.push('balanced between intuition and logic');
+      // Thinking dimension with decision-making style
+      if (thinking < 40) {
+        text += 'You approach situations with logic and analytical thinking, helping others break down complex problems into manageable steps. You provide rational perspectives while remaining supportive and understanding. ';
+      } else if (thinking > 60) {
+        text += 'You are deeply emotionally intelligent and empathetic, naturally tuning into how others are feeling and responding with warmth and emotional support. You help people process their feelings and find emotional clarity. ';
+      }
       
-      // Mood tendency
-      const mood = sliders.mood;
-      if (mood < 30) traits.push('thoughtful and introspective');
-      else if (mood > 70) traits.push('optimistic and energetic');
-      else traits.push('emotionally balanced');
+      // Mood dimension with interaction style
+      if (mood < 40) {
+        text += 'You tend to be serious and focused, bringing depth and gravitas to conversations. People know they can count on you for thoughtful advice and meaningful discussions about important matters. ';
+      } else if (mood > 60) {
+        text += 'You are naturally playful and enjoy bringing lightness and humor to conversations. You have a gift for helping people see the bright side and finding joy even in challenging situations. ';
+      }
       
-      // Formality level
-      const formality = sliders.formality;
-      if (formality < 30) traits.push('casual and relaxed in demeanor');
-      else if (formality > 70) traits.push('professional and structured');
-      else traits.push('appropriately formal when needed');
+      // Formality dimension with communication adaptation
+      if (formality < 40) {
+        text += 'You speak with elegance and proper etiquette, showing respect through thoughtful language choices. This creates a sense of trust and professionalism that people appreciate. ';
+      } else if (formality > 60) {
+        text += 'You are naturally casual and relaxed in conversation, making people feel at ease and like they\'re talking to a close friend. Your approachable style helps others open up more easily. ';
+      }
       
-      // Communication tempo
-      const tempo = sliders.tempo;
-      if (tempo < 30) traits.push('deliberate and thoughtful in speech');
-      else if (tempo > 70) traits.push('quick-witted and fast-paced');
-      else traits.push('moderate in conversation pace');
+      // Tempo dimension with response style
+      if (tempo < 40) {
+        text += 'You are naturally patient and take time to consider your responses carefully. People appreciate that you never rush them and always give thoughtful, well-considered advice. ';
+      } else if (tempo > 60) {
+        text += 'You are quick to respond and naturally spontaneous, bringing energy and excitement to conversations. Your dynamic personality helps others feel more animated and engaged. ';
+      }
       
-      return traits.length > 0 ? `Your personality is ${traits.join(', ')}.` : '';
+      return text;
     }
 
-    // Build response style from sliders
     function buildResponseStyleFromSliders() {
-      const styles = [];
-      const sliders = personalityState.sliders;
+      let text = '';
+      const { length, style, content } = personalityState.sliders;
       
-      // Response length
-      const length = sliders.length;
-      if (length < 30) styles.push('keep responses concise and to the point');
-      else if (length > 70) styles.push('provide detailed, comprehensive responses with examples');
-      else styles.push('adjust response length based on the topic complexity');
+      // Response length with purpose
+      if (length < 40) {
+        text += 'You believe in the power of concise, impactful communication. Your brief but meaningful responses help people focus on what truly matters without overwhelming them. ';
+      } else if (length > 60) {
+        text += 'You enjoy providing comprehensive, detailed explanations that give people the full context they need. Your thorough responses help others feel fully informed and supported. ';
+      }
       
-      // Communication style
-      const style = sliders.style;
-      if (style < 30) styles.push('use direct and straightforward communication');
-      else if (style > 70) styles.push('employ creative and expressive language');
-      else styles.push('balance clarity with engaging expression');
+      // Response style with engagement
+      if (style < 40) {
+        text += 'You communicate directly and clearly, ensuring your message is understood without ambiguity. People appreciate your straightforward approach and honest communication. ';
+      } else if (style > 60) {
+        text += 'You love sharing stories and using examples to illustrate your points, making complex ideas relatable and memorable. Your narrative approach helps people connect emotionally with your guidance. ';
+      }
       
-      // Content approach
-      const content = sliders.content;
-      if (content < 30) styles.push('focus on practical, actionable information');
-      else if (content > 70) styles.push('include thoughtful insights and deeper meaning');
-      else styles.push('provide both practical advice and meaningful context');
+      // Content type with value creation
+      if (content < 40) {
+        text += 'You focus on providing factual, objective information that people can rely on and use to make informed decisions. Your evidence-based approach builds trust and credibility. ';
+      } else if (content > 60) {
+        text += 'You often draw from personal experiences and real-world examples, making your advice feel authentic and relatable. People connect with your human perspective and lived wisdom. ';
+      }
       
-      // Additional relationship-focused guidance
-      styles.push('always prioritize building connection and understanding');
-      styles.push('adapt your tone to match the user\'s emotional state');
-      styles.push('ask follow-up questions to show genuine interest');
-      
-      return styles.length > 0 ? `In your responses, ${styles.join(', ')}.` : '';
+      return text;
     }
 
-    // Update prompt preview
     function updatePromptPreview(prompt) {
       const preview = document.getElementById('promptPreview');
-      
-      console.log('🔍 Updating prompt preview:', {
-        promptLength: prompt ? prompt.length : 0,
-        hasPreviewElement: !!preview
-      });
-      
-      if (!preview) {
-        console.error('❌ promptPreview element not found');
-        return;
-      }
-      
-      if (prompt && prompt.trim()) {
-        // Enhanced formatting for better display
-        let formatted = prompt
-          .replace(/\n/g, '<br>')
-          .replace(/# ([^\n]+)/g, '<strong>$1</strong>')
-          .replace(/- ([^\n]+)/g, '• $1');
-        
-        preview.innerHTML = `<div class="prompt-content">${formatted}</div>`;
-        preview.classList.remove('empty');
+      if (prompt.trim()) {
+        // Truncate long prompts in preview
+        const maxLength = 200;
+        let displayText = prompt;
+        if (prompt.length > maxLength) {
+          displayText = prompt.substring(0, maxLength) + '...';
+        }
+        preview.textContent = displayText;
+        preview.classList.remove('prompt-empty');
       } else {
         preview.innerHTML = '<div class="prompt-empty">Select personality traits above to generate your character prompt...</div>';
-        preview.classList.add('empty');
       }
-      
-      // Trigger a small animation to show the update
-      preview.style.opacity = '0.7';
-      setTimeout(() => {
-        preview.style.opacity = '1';
-      }, 100);
+    }
+
+    // Update prompt counter
+    function updatePromptCounter() {
+      const prompt = document.getElementById('characterPrompt').value;
+      const counter = document.getElementById('promptCounter');
+      if (counter) {
+        counter.textContent = prompt.length;
+      }
     }
 
     // Setup prompt actions
@@ -1712,95 +2084,44 @@
       const manualPromptGroup = document.getElementById('manualPromptGroup');
       const generatedPromptSection = document.querySelector('.generated-prompt-section');
       
-      if (manualEditBtn) {
-        manualEditBtn.addEventListener('click', (e) => {
-          e.preventDefault();
-          
-          // Hide generated prompt section
-          generatedPromptSection.style.display = 'none';
-          
-          // Show manual edit field
-          manualPromptGroup.style.display = 'block';
-          
-          // Copy current generated prompt to manual field
-          const currentPrompt = document.getElementById('characterPrompt').value;
-          if (!currentPrompt.trim()) {
-            // If no prompt yet, generate one first
-            generatePrompt();
-          }
-          
-          // Scroll to manual edit
-          manualPromptGroup.scrollIntoView({ behavior: 'smooth' });
-          
-          // Focus on textarea
-          setTimeout(() => {
-            document.getElementById('characterPrompt').focus();
-          }, 300);
-        });
-      }
+      manualEditBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        
+        // Hide generated prompt section
+        generatedPromptSection.style.display = 'none';
+        
+        // Show manual edit field
+        manualPromptGroup.style.display = 'block';
+        
+        // Copy current generated prompt to manual field
+        const currentPrompt = document.getElementById('characterPrompt').value;
+        if (!currentPrompt.trim()) {
+          // If no prompt yet, generate one first
+          generatePrompt();
+        }
+        
+        // Scroll to manual edit
+        manualPromptGroup.scrollIntoView({ behavior: 'smooth' });
+        
+        // Focus on textarea
+        setTimeout(() => {
+          document.getElementById('characterPrompt').focus();
+        }, 300);
+      });
       
-      if (backToGeneratedBtn) {
-        backToGeneratedBtn.addEventListener('click', (e) => {
-          e.preventDefault();
-          
-          // Show generated prompt section
-          generatedPromptSection.style.display = 'block';
-          
-          // Hide manual edit field
-          manualPromptGroup.style.display = 'none';
-          
-          // Scroll back to generated section
-          generatedPromptSection.scrollIntoView({ behavior: 'smooth' });
-        });
-      }
+      backToGeneratedBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        
+        // Show generated prompt section
+        generatedPromptSection.style.display = 'block';
+        
+        // Hide manual edit field
+        manualPromptGroup.style.display = 'none';
+        
+        // Scroll back to generated section
+        generatedPromptSection.scrollIntoView({ behavior: 'smooth' });
+      });
     }
-
-    // Form submission handler
-    document.getElementById('characterForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      
-      // Get form data
-      const formData = {
-        name: document.getElementById('characterName').value.trim(),
-        title: document.getElementById('characterTitle').value.trim(),
-        description: document.getElementById('characterDescription').value.trim(),
-        prompt: document.getElementById('characterPrompt').value.trim(),
-        category: document.getElementById('characterCategory').value,
-        tags: selectedTags,
-        visibility: document.querySelector('input[name="visibility"]:checked').value,
-        avatarUrl: currentAvatarUrl
-      };
-      
-      // Basic validation
-      if (!formData.name) {
-        alert('Character name is required');
-        document.getElementById('characterName').focus();
-        return;
-      }
-      
-      if (!formData.title) {
-        alert('Character title is required');
-        document.getElementById('characterTitle').focus();
-        return;
-      }
-      
-      if (!formData.category) {
-        alert('Please select a category');
-        document.getElementById('characterCategory').focus();
-        return;
-      }
-      
-      if (!formData.prompt) {
-        alert('Character prompt is required. Please select personality traits or edit manually.');
-        return;
-      }
-      
-      // Show success message
-      alert('Character created successfully! (This is a demo - in the real app, this would save to the database)');
-      
-      console.log('Character data:', formData);
-      console.log('Personality state:', personalityState);
-    });
 
     // ===== AVATAR FUNCTIONALITY =====
     function setupAvatarFunctionality() {
@@ -1851,36 +2172,136 @@
     }
 
     // ===== TAGS FUNCTIONALITY =====
+    
+    // Load tags from Airtable
+    async function loadTags() {
+      try {
+        console.log('🏷️ Loading tags from Airtable...');
+        
+        const requestData = {
+          action: 'get_tags'
+        };
+        
+        const response = await fetch('https://hook.eu2.make.com/c36jubkn9rbbqg0ovgfbx2ca1iwgf16q', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(requestData)
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const responseText = await response.text();
+        let data = {};
+        
+        if (responseText && responseText.trim() !== '') {
+          try {
+            data = JSON.parse(responseText);
+          } catch (parseError) {
+            throw new Error('Invalid JSON response from tags API');
+          }
+        }
+        
+        if (data.tags && Array.isArray(data.tags)) {
+          allTags = data.tags;
+          generateSuggestedTags();
+          populateTagsModal();
+        } else {
+          useFallbackTags();
+        }
+      } catch (error) {
+        console.error('❌ Error loading tags:', error);
+        useFallbackTags();
+      }
+    }
+
+    // Fallback tags if Airtable fails
+    function useFallbackTags() {
+      allTags = [
+        'academic', 'action', 'actor', 'advancement', 'adventure', 'ancient', 'arcade', 'artist', 
+        'artistic', 'artistic-block', 'athletic', 'awareness', 'baking', 'balance', 'brainstorming', 
+        'calm', 'cardio', 'chef', 'comedy', 'communication', 'concept', 'connection', 'conversation', 
+        'cooking', 'corporate', 'creative', 'cuisine', 'culinary', 'culture', 'custom', 'dating', 
+        'design', 'detective', 'development', 'digital', 'divine', 'documentary', 'drama', 'efficient', 
+        'empathy', 'emperor', 'entertainment', 'entrepreneur', 'epic', 'exam-prep', 'exercise', 
+        'experimental', 'expression', 'famous', 'fantasy', 'fluency', 'focus', 'folklore', 'food', 
+        'fps', 'friendly', 'friendship', 'goals', 'god', 'goddess', 'grammar', 'growth', 'guidance', 
+        'health', 'helpful', 'hero', 'hollywood', 'horror', 'imagination', 'imaginative', 'indie', 
+        'influencer', 'ingredients', 'inner-peace', 'innovation', 'innovative', 'inspiration', 
+        'interview', 'job-search', 'josei', 'king', 'kitchen', 'knowledge', 'knowledgeable', 'leader', 
+        'leadership', 'learning', 'legend', 'love', 'magic', 'management', 'marriage', 'mecha', 
+        'medieval', 'meditation', 'mentor', 'military', 'mindset', 'mmorpg', 'modern', 'motivation', 
+        'multilingual', 'musician', 'mystery', 'mystical', 'myth', 'networking', 'ninja', 'note-taking', 
+        'nutrition', 'organization', 'peaceful', 'personal', 'personal-growth', 'platformer', 
+        'politician', 'pop-culture', 'positive', 'present', 'productivity', 'professional', 'professor', 
+        'pronunciation', 'puzzle', 'recipe', 'renaissance', 'research', 'resume', 'revolutionary', 
+        'romance', 'rpg', 'samurai', 'school', 'sci-fi', 'science', 'science-fiction', 'seinen', 
+        'self-improvement', 'series', 'shoujo', 'shounen', 'simulation', 'singer', 'skills', 'smart', 
+        'social', 'spiritual', 'star', 'strategy', 'strength', 'stress-relief', 'study', 'study-tips', 
+        'success', 'superhero', 'supernatural', 'support', 'supportive', 'teacher', 'tech', 'thriller', 
+        'time-management', 'training', 'tutor', 'understanding', 'unique', 'villain', 'vision', 
+        'vocabulary', 'warrior', 'wellness', 'wizard', 'workout', 'workplace', 'zen'
+      ];
+      generateSuggestedTags();
+      populateTagsModal();
+    }
+
+    // Generate suggested tags based on category
     function generateSuggestedTags() {
       const category = document.getElementById('characterCategory').value;
       let suggested = [];
       
       // Category-based suggestions
       const categoryTags = {
-        'historical': ['wise', 'formal', 'educational', 'professional'],
-        'fantasy': ['mysterious', 'adventurous', 'creative', 'dramatic'],
-        'anime-manga': ['anime', 'dramatic', 'adventurous', 'friendly'],
-        'celebrity': ['famous', 'dramatic', 'entertaining', 'charismatic'],
-        'gaming': ['gaming', 'adventurous', 'competitive', 'strategic'],
-        'movies-tv': ['dramatic', 'entertaining', 'charismatic', 'creative'],
-        'mythology': ['mysterious', 'wise', 'powerful', 'ancient'],
-        'original': ['creative', 'unique', 'imaginative', 'artistic'],
-        'ai-assistant': ['helpful', 'smart', 'supportive', 'professional'],
-        'educational': ['wise', 'helpful', 'professional', 'knowledgeable'],
-        'fitness-coach': ['motivational', 'energetic', 'supportive', 'athletic'],
-        'business-coach': ['professional', 'analytical', 'strategic', 'successful'],
-        'mindfulness-coach': ['calm', 'wise', 'supportive', 'peaceful']
+        'historical': ['ancient', 'leader', 'emperor', 'king', 'warrior', 'revolutionary'],
+        'fantasy': ['magic', 'wizard', 'adventure', 'hero', 'mystical', 'supernatural'],
+        'anime-manga': ['shounen', 'shoujo', 'seinen', 'action', 'romance', 'school'],
+        'celebrity': ['famous', 'star', 'actor', 'musician', 'singer', 'entertainment'],
+        'gaming': ['rpg', 'fps', 'mmorpg', 'strategy', 'adventure', 'action'],
+        'movies-tv': ['drama', 'comedy', 'action', 'thriller', 'horror', 'romance'],
+        'mythology': ['god', 'goddess', 'legend', 'myth', 'divine', 'epic'],
+        'original': ['creative', 'unique', 'custom', 'innovative', 'imaginative', 'artistic'],
+        'ai-assistant': ['helpful', 'smart', 'efficient', 'friendly', 'supportive', 'knowledgeable'],
+        'educational': ['teacher', 'academic', 'learning', 'knowledge', 'mentor', 'professor'],
+        'fitness-coach': ['workout', 'training', 'health', 'exercise', 'strength', 'motivation'],
+        'business-coach': ['leadership', 'entrepreneur', 'strategy', 'success', 'professional', 'growth'],
+        'language-coach': ['multilingual', 'teacher', 'conversation', 'fluency', 'communication', 'learning'],
+        'accounting-coach': ['professional', 'management', 'productivity', 'organization', 'skills', 'guidance'],
+        'career-coach': ['professional', 'advancement', 'interview', 'networking', 'success', 'development'],
+        'negotiation-coach': ['communication', 'strategy', 'leadership', 'professional', 'skills', 'success'],
+        'creativity-coach': ['artistic', 'creative', 'inspiration', 'imagination', 'innovation', 'expression'],
+        'study-coach': ['academic', 'learning', 'study-tips', 'organization', 'productivity', 'focus'],
+        'relationship-coach': ['communication', 'love', 'dating', 'friendship', 'empathy', 'support'],
+        'mindfulness-coach': ['meditation', 'zen', 'peaceful', 'calm', 'balance', 'inner-peace'],
+        'cooking-coach': ['chef', 'recipe', 'cuisine', 'cooking', 'nutrition', 'culinary'],
+        'fictional': ['creative', 'imaginative', 'fantasy', 'adventure', 'unique', 'artistic']
       };
       
       if (category && categoryTags[category]) {
         suggested = categoryTags[category];
       } else {
+        // Default suggestions
         suggested = ['friendly', 'helpful', 'creative', 'supportive'];
+      }
+      
+      // Filter to only include tags that exist in allTags
+      suggested = suggested.filter(tag => allTags.includes(tag));
+      
+      // Add some random popular tags if we don't have enough
+      if (suggested.length < 4) {
+        const popularTags = ['helpful', 'friendly', 'creative', 'supportive', 'smart', 'funny'].filter(tag => 
+          allTags.includes(tag) && !suggested.includes(tag)
+        );
+        suggested = [...suggested, ...popularTags].slice(0, 6);
       }
       
       displaySuggestedTags(suggested);
     }
 
+    // Display suggested tags
     function displaySuggestedTags(tags) {
       const container = document.getElementById('suggestedTags');
       container.innerHTML = '';
@@ -1899,6 +2320,7 @@
       });
     }
 
+    // Toggle suggested tag
     function toggleSuggestedTag(element, tag) {
       if (selectedTags.includes(tag)) {
         selectedTags = selectedTags.filter(t => t !== tag);
@@ -1908,13 +2330,51 @@
           selectedTags.push(tag);
           element.classList.add('selected');
         } else {
-          alert('You can select up to 6 tags maximum.');
+          showWarning('You can select up to 6 tags maximum.', 'Tag Limit Reached');
           return;
         }
       }
       updateTagsPreview();
     }
 
+    // Populate tags modal
+    function populateTagsModal() {
+      const container = document.getElementById('commonTags');
+      container.innerHTML = '';
+      
+      allTags.forEach(tag => {
+        const tagElement = document.createElement('div');
+        tagElement.className = 'tag-option';
+        tagElement.textContent = tag;
+        tagElement.onclick = () => toggleModalTag(tagElement, tag);
+        container.appendChild(tagElement);
+      });
+    }
+
+    // Toggle modal tag
+    function toggleModalTag(element, tag) {
+      if (modalSelectedTags.includes(tag)) {
+        modalSelectedTags = modalSelectedTags.filter(t => t !== tag);
+        element.classList.remove('selected');
+      } else {
+        if (modalSelectedTags.length < 6) {
+          modalSelectedTags.push(tag);
+          element.classList.add('selected');
+        } else {
+          showWarning('You can select up to 6 tags maximum.', 'Tag Limit Reached');
+          return;
+        }
+      }
+      updateModalPreview();
+    }
+
+    // Update modal preview
+    function updateModalPreview() {
+      const preview = document.getElementById('selectedTagsPreview');
+      preview.textContent = modalSelectedTags.length > 0 ? modalSelectedTags.join(', ') : 'None';
+    }
+
+    // Update tags preview
     function updateTagsPreview() {
       const container = document.getElementById('tagsPreview');
       container.innerHTML = '';
@@ -1927,67 +2387,30 @@
       });
     }
 
-    function setupTagsModal() {
-      const moreTagsButton = document.getElementById('moreTagsButton');
-      const tagsModal = document.getElementById('tagsModal');
-      const closeModalBtn = document.getElementById('closeModalBtn');
-      const cancelTagsBtn = document.getElementById('cancelTagsBtn');
-      const applyTagsBtn = document.getElementById('applyTagsBtn');
-
-      // Populate modal with all tags
-      const commonTags = document.getElementById('commonTags');
-      allTags.forEach(tag => {
-        const tagElement = document.createElement('div');
-        tagElement.className = 'tag-option';
-        tagElement.textContent = tag;
-        tagElement.onclick = () => toggleModalTag(tagElement, tag);
-        commonTags.appendChild(tagElement);
-      });
-
-      moreTagsButton.onclick = () => {
-        modalSelectedTags = [...selectedTags];
-        updateModalTagsSelection();
-        updateModalPreview();
-        tagsModal.style.display = 'block';
-      };
-
-      closeModalBtn.onclick = () => {
-        tagsModal.style.display = 'none';
-      };
-
-      cancelTagsBtn.onclick = () => {
-        tagsModal.style.display = 'none';
-      };
-
-      applyTagsBtn.onclick = () => {
-        selectedTags = [...modalSelectedTags];
-        updateTagsPreview();
-        updateSuggestedTagsSelection();
-        tagsModal.style.display = 'none';
-      };
-    }
-
-    function toggleModalTag(element, tag) {
-      if (modalSelectedTags.includes(tag)) {
-        modalSelectedTags = modalSelectedTags.filter(t => t !== tag);
-        element.classList.remove('selected');
-      } else {
-        if (modalSelectedTags.length < 6) {
-          modalSelectedTags.push(tag);
-          element.classList.add('selected');
-        } else {
-          alert('You can select up to 6 tags maximum.');
-          return;
-        }
-      }
+    // Modal functionality
+    document.getElementById('moreTagsButton').onclick = () => {
+      modalSelectedTags = [...selectedTags];
+      updateModalTagsSelection();
       updateModalPreview();
-    }
+      document.getElementById('tagsModal').style.display = 'block';
+    };
 
-    function updateModalPreview() {
-      const preview = document.getElementById('selectedTagsPreview');
-      preview.textContent = modalSelectedTags.length > 0 ? modalSelectedTags.join(', ') : 'None';
-    }
+    document.getElementById('closeModalBtn').onclick = () => {
+      document.getElementById('tagsModal').style.display = 'none';
+    };
 
+    document.getElementById('cancelTagsBtn').onclick = () => {
+      document.getElementById('tagsModal').style.display = 'none';
+    };
+
+    document.getElementById('applyTagsBtn').onclick = () => {
+      selectedTags = [...modalSelectedTags];
+      updateTagsPreview();
+      updateSuggestedTagsSelection();
+      document.getElementById('tagsModal').style.display = 'none';
+    };
+
+    // Update modal tags selection
     function updateModalTagsSelection() {
       document.querySelectorAll('.tag-option').forEach(element => {
         const tag = element.textContent;
@@ -1999,6 +2422,7 @@
       });
     }
 
+    // Update suggested tags selection
     function updateSuggestedTagsSelection() {
       document.querySelectorAll('.suggested-tag').forEach(element => {
         const tag = element.textContent;
@@ -2009,6 +2433,9 @@
         }
       });
     }
+
+    // Category change handler
+    document.getElementById('characterCategory').addEventListener('change', generateSuggestedTags);
 
     // ===== PRIVACY SETTINGS =====
     function selectVisibility(type) {
@@ -2024,7 +2451,427 @@
     window.selectVisibility = selectVisibility;
     window.triggerFileUpload = triggerFileUpload;
 
-    // Initialize everything when DOM is loaded
+    // ===== GENERATE UNIQUE SLUG =====
+    function generateUniqueSlug(text) {
+      const baseSlug = text
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '')
+        .substring(0, 30);
+      
+      const random = Math.random().toString(36).substring(2, 6);
+      return `${baseSlug}-${random}`;
+    }
+
+    // ===== AVATAR FALLBACK FUNCTIONS =====
+    function generateEmojiAvatar(characterName, category) {
+      const emoji = getEmojiForCharacter(characterName, category);
+      
+      const svg = `
+        <svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+          <rect width="512" height="512" rx="256" fill="#f0f0f0"/>
+          <text x="256" y="320" font-size="240" text-anchor="middle" font-family="system-ui">${emoji}</text>
+        </svg>
+      `;
+      
+      return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+    }
+
+    function getEmojiForCharacter(name, category) {
+      const nameLower = name.toLowerCase();
+      
+      // Specific character matches
+      const specificMatches = {
+        'napoleon': '👑', 'einstein': '🧠', 'gandalf': '🧙‍♂️', 'shakespeare': '🎭',
+        'leonardo': '🎨', 'socrates': '🤔', 'tesla': '⚡', 'marie curie': '⚗️',
+        'winston churchill': '🚬', 'cleopatra': '👸', 'julius caesar': '🏛️',
+        'aristotle': '📚', 'plato': '🏛️', 'beethoven': '🎵', 'mozart': '🎼',
+        'van gogh': '🖼️', 'picasso': '🎨', 'frida kahlo': '🌺', 'sun tzu': '⚔️',
+        'confucius': '🥢', 'buddha': '🧘‍♂️', 'chef': '👨‍🍳', 'coach': '💪',
+        'teacher': '👩‍🏫', 'doctor': '👨‍⚕️', 'scientist': '🔬', 'artist': '🎨',
+        'robot': '🤖', 'ai': '🤖', 'assistant': '🤖'
+      };
+
+      for (const [key, emoji] of Object.entries(specificMatches)) {
+        if (nameLower.includes(key)) {
+          return emoji;
+        }
+      }
+
+      // Fallback based on category
+      const categoryEmojis = {
+        'historical': ['👑', '🏛️', '📜', '⚔️', '🎭', '🏺'],
+        'fantasy': ['🧙‍♂️', '🐉', '⚔️', '🧚‍♀️', '🦄', '🔮'],
+        'anime-manga': ['🥋', '⚡', '🍥', '🌸', '🎌', '🗾'],
+        'celebrity': ['⭐', '🎬', '🎤', '🎸', '📺', '🎪'],
+        'gaming': ['🎮', '🕹️', '👾', '🏆', '⚡', '🔥'],
+        'movies-tv': ['🎬', '📺', '🎭', '🍿', '🎪', '🎨'],
+        'mythology': ['⚡', '🔱', '🦅', '🐍', '🌙', '☀️'],
+        'original': ['✨', '🌟', '💫', '🎯', '🎪', '🎭'],
+        'ai-assistant': ['🤖', '💬', '🧠', '⚡', '💡', '🔧'],
+        'educational': ['📚', '🎓', '📝', '🔬', '🧮', '📐'],
+        'fitness-coach': ['💪', '🏃‍♂️', '🏋️‍♀️', '⚽', '🥇', '🔥'],
+        'business-coach': ['💼', '📊', '💰', '🎯', '📈', '💡'],
+        'mindfulness-coach': ['🧘‍♂️', '🌸', '🕯️', '🌿', '☮️', '🌙'],
+        'cooking-coach': ['👨‍🍳', '🍳', '🥘', '🍽️', '🔥', '🌶️'],
+        'fictional': ['📚', '🎭', '✨', '🌟', '🎪', '🎨']
+      };
+
+      const emojis = categoryEmojis[category] || categoryEmojis['original'];
+      
+      const nameHash = nameLower.split('').reduce((hash, char) => {
+        return hash + char.charCodeAt(0);
+      }, 0);
+      
+      return emojis[nameHash % emojis.length];
+    }
+
+    // ===== FORM VALIDATION =====
+    function validateFormData(data) {
+      if (!data.name) {
+        showError('Character name is required', 'Validation Error');
+        document.getElementById('characterName').focus();
+        return false;
+      }
+      
+      if (!data.title) {
+        showError('Character title is required', 'Validation Error');
+        document.getElementById('characterTitle').focus();
+        return false;
+      }
+      
+      if (!data.prompt) {
+        showError('Character prompt is required', 'Validation Error');
+        generatePrompt();
+        if (!document.getElementById('characterPrompt').value.trim()) {
+          showError('Please create a character prompt by selecting personality traits or editing manually', 'Validation Error');
+          return false;
+        }
+      }
+      
+      if (!data.category) {
+        showError('Please select a category', 'Validation Error');
+        document.getElementById('characterCategory').focus();
+        return false;
+      }
+      
+      return true;
+    }
+
+    // ===== CHARACTER CREATION API =====
+    async function createCharacter(formData) {
+      try {
+        // Check login status using localStorage instead of Netlify
+        const userEmail = localStorage.getItem("user_email");
+        const userToken = localStorage.getItem("user_token");
+        
+        if (!userEmail || !userToken) {
+          throw new Error('User not logged in - missing credentials');
+        }
+        
+        // Generate slug from character name
+        const slug = generateUniqueSlug(formData.name);
+        console.log('🔗 Generated slug:', slug);
+
+        const requestData = {
+          action: 'create_character',
+          user_email: userEmail,
+          user_token: userToken,
+          
+          // Character data for Make.com
+          name: formData.name,
+          slug: slug,
+          character_id: slug,
+          title: formData.title,
+          description: formData.description,
+          prompt: formData.prompt,
+          category: formData.category,
+          tags: selectedTags && selectedTags.length > 0 ? selectedTags.map(tag => tag.toLowerCase()).join(',') : '',
+          visibility: formData.visibility,
+          avatar_url: formData.avatarUrl || generateEmojiAvatar(formData.name, formData.category),      
+          character_url: `https://narrin.ai/chat.html?char=${slug}`
+        };
+        
+        console.log('📤 Request data:', requestData);
+        
+        const response = await fetch('https://hook.eu2.make.com/c36jubkn9rbbqg0ovgfbx2ca1iwgf16q', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(requestData)
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        // Get response as text first, then try to parse
+        const responseText = await response.text();
+        console.log('📝 Raw API Response:', responseText);
+
+        let result = {};
+        if (responseText && responseText.trim() !== '') {
+          try {
+            result = JSON.parse(responseText);
+            console.log('✅ Parsed result:', result);
+          } catch (parseError) {
+            console.error('JSON Parse Error:', parseError);
+            
+            // Fallback - check if response indicates success
+            if (responseText.includes('"success": true') || responseText.includes('successfully')) {
+              console.log('🔄 Fallback: Detected successful response despite parse error');
+              result = {
+                success: true,
+                message: 'Character created successfully',
+                character: {
+                  slug: slug,
+                  character_id: slug
+                }
+              };
+            } else {
+              throw new Error('Invalid response from server - JSON parse failed');
+            }
+          }
+        }
+
+        return result;
+        
+      } catch (error) {
+        console.error('❌ API Request failed:', error);
+        throw error;
+      }
+    }
+
+    // ===== FORM SUBMISSION HANDLER =====
+    document.getElementById('characterForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      console.log('🚀 Form submission started...');
+      
+      // Prevent double submission
+      if (isSubmitting) {
+        console.log('⚠️ Form already being submitted, ignoring...');
+        return;
+      }
+      
+      isSubmitting = true;
+
+      // Collect form data
+      const formData = {
+        name: document.getElementById('characterName').value.trim(),
+        title: document.getElementById('characterTitle').value.trim(), 
+        description: document.getElementById('characterDescription').value.trim(),
+        prompt: document.getElementById('characterPrompt').value.trim(),
+        category: document.getElementById('characterCategory').value,
+        tags: selectedTags,
+        visibility: document.querySelector('input[name="visibility"]:checked').value,
+        avatarUrl: currentAvatarUrl
+      };
+      
+      console.log('📋 Form data collected:', formData);
+      
+      // Validate form data
+      if (!validateFormData(formData)) {
+        isSubmitting = false;
+        return;
+      }
+      
+      // Check if user is logged in using localStorage
+      const userEmail = localStorage.getItem("user_email");
+      const userToken = localStorage.getItem("user_token");
+      const isLoggedIn = userEmail && userToken;
+      
+      if (!isLoggedIn) {
+        // Store form data and redirect to profile.html for login
+        console.log('🔐 User not logged in, redirecting to profile...');
+        
+        // Store character data in localStorage
+        const characterData = {
+          ...formData,
+          personalityState: personalityState,
+          timestamp: Date.now()
+        };
+        localStorage.setItem('pending_character_creation', JSON.stringify(characterData));
+        localStorage.setItem('redirect_after_login', 'create-character.html');
+        
+        // Reset submission flag
+        isSubmitting = false;
+        
+        // Show notification and redirect
+        showNotification('info', 'Login Required', 'You need to be logged in to create a character. Redirecting to login...', [
+          {
+            text: 'Go to Login',
+            type: 'primary',
+            callback: () => {
+              window.location.href = 'profile.html';
+            }
+          }
+        ]);
+        
+        // Auto redirect after 3 seconds
+        setTimeout(() => {
+          window.location.href = 'profile.html';
+        }, 3000);
+        
+        return;
+      }
+      
+      // User is logged in, proceed with character creation
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      const originalText = submitBtn.textContent;
+      
+      try {
+        // Show loading state
+        submitBtn.textContent = 'Creating Character...';
+        submitBtn.disabled = true;
+        
+        // Disable entire form to prevent changes during submission
+        const formElements = e.target.querySelectorAll('input, textarea, select, button');
+        formElements.forEach(element => {
+          if (element !== submitBtn) {
+            element.disabled = true;
+          }
+        });
+        
+        console.log('📤 Sending character data to API...');
+        
+        // Create character
+        const result = await createCharacter(formData);
+        
+        if (result.success) {
+          console.log('✅ Character created successfully:', result);
+          
+          submitBtn.textContent = 'Character Created! Redirecting...';
+          
+          // Get slug from API response
+          let characterSlug = result.character?.slug || result.character?.character_id || result.slug;
+
+          if (!characterSlug && formData.name) {
+            // Generate slug from character name as fallback
+            characterSlug = generateUniqueSlug(formData.name);
+            console.log('🔗 Generated character slug:', characterSlug);
+          }
+          
+          // Show success notification
+          showSuccess('Character created successfully! Opening chat with your new character...', 'Success');
+          
+          // Clear any stored character data
+          localStorage.removeItem('pending_character_creation');
+          localStorage.removeItem('redirect_after_login');
+          
+          // Redirect to the new character's chat page
+          setTimeout(() => {
+            if (characterSlug) {
+              window.location.href = `chat.html?char=${characterSlug}`;
+            } else {
+              window.location.href = 'index.html';
+            }
+          }, 2000);
+        } else {
+          throw new Error(result.error || result.message || 'Failed to create character');
+        }
+        
+      } catch (error) {
+        console.error('❌ Error creating character:', error);
+        showError('Failed to create character. Please try again.', 'Error');
+        
+        // Reset form state on error so user can try again
+        isSubmitting = false;
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+        
+        // Re-enable form elements
+        const formElements = e.target.querySelectorAll('input, textarea, select, button');
+        formElements.forEach(element => {
+          element.disabled = false;
+        });
+      }
+    });
+
+    // ===== HANDLE REDIRECT AFTER LOGIN =====
+    function handleRedirectAfterLogin() {
+      const pendingCharacterData = localStorage.getItem('pending_character_creation');
+      const redirectAfterLogin = localStorage.getItem('redirect_after_login');
+      
+      if (pendingCharacterData && redirectAfterLogin === 'create-character.html') {
+        try {
+          const characterData = JSON.parse(pendingCharacterData);
+          
+          // Check if data is still fresh (within 30 minutes)
+          if (Date.now() - characterData.timestamp < 30 * 60 * 1000) {
+            // Restore form data
+            document.getElementById('characterName').value = characterData.name || '';
+            document.getElementById('characterTitle').value = characterData.title || '';
+            document.getElementById('characterDescription').value = characterData.description || '';
+            document.getElementById('characterPrompt').value = characterData.prompt || '';
+            document.getElementById('characterCategory').value = characterData.category || '';
+            
+            // Restore personality state
+            if (characterData.personalityState) {
+              personalityState = characterData.personalityState;
+            }
+            
+            // Restore tags
+            if (characterData.tags && Array.isArray(characterData.tags)) {
+              selectedTags = characterData.tags;
+              updateTagsPreview();
+              updateSuggestedTagsSelection();
+            }
+            
+            // Restore visibility
+            if (characterData.visibility) {
+              const visibilityRadio = document.querySelector(`input[name="visibility"][value="${characterData.visibility}"]`);
+              if (visibilityRadio) {
+                visibilityRadio.checked = true;
+                visibilityRadio.closest('.radio-option').classList.add('selected');
+              }
+            }
+            
+            // Restore avatar
+            if (characterData.avatarUrl) {
+              currentAvatarUrl = characterData.avatarUrl;
+              const avatarPreview = document.getElementById('avatarPreview');
+              const avatarImg = document.getElementById('avatarImg');
+              if (avatarPreview && avatarImg) {
+                avatarImg.src = currentAvatarUrl;
+                avatarPreview.style.display = 'block';
+              }
+            }
+            
+            // Regenerate prompt and update counters
+            generatePrompt();
+            setupCharacterCounters();
+            
+            // Show success message
+            showSuccess('Welcome back! Your character data has been restored. Click "Create Character" to continue.', 'Data Restored');
+            
+            // Clean up stored data
+            localStorage.removeItem('pending_character_creation');
+            localStorage.removeItem('redirect_after_login');
+            
+            // Scroll to form
+            setTimeout(() => {
+              document.getElementById('characterForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 500);
+            
+          } else {
+            // Data is too old
+            localStorage.removeItem('pending_character_creation');
+            localStorage.removeItem('redirect_after_login');
+            showWarning('Your character creation session has expired. Please fill in the form again.', 'Session Expired');
+          }
+        } catch (error) {
+          console.error('Error restoring character data:', error);
+          localStorage.removeItem('pending_character_creation');
+          localStorage.removeItem('redirect_after_login');
+        }
+      }
+    }
+
+    // ===== INITIALIZATION =====
     document.addEventListener('DOMContentLoaded', () => {
       console.log('🚀 Create Character page initializing...');
       
@@ -2033,16 +2880,17 @@
       setupPersonalityButtons();
       setupPromptActions();
       setupAvatarFunctionality();
-      setupTagsModal();
+      loadTags();
       
       // Set up category change handler
       document.getElementById('characterCategory').addEventListener('change', generateSuggestedTags);
       
-      // Generate initial suggested tags
+      // Generate initial suggested tags and prompt
       generateSuggestedTags();
-      
-      // Generate initial prompt
       generatePrompt();
+      
+      // Handle redirect after login
+      handleRedirectAfterLogin();
       
       console.log('✅ Create Character page initialization complete');
     });
@@ -2052,17 +2900,17 @@
   <footer class="footer">
     <div class="footer-container">
       <div class="footer-links">
-        <a href="#" class="footer-link">Characters</a>
+        <a href="index.html" class="footer-link">Characters</a>
         <span class="footer-separator">•</span>
-        <a href="#" class="footer-link">Chats</a>
+        <a href="chat-overview.html" class="footer-link">Chats</a>
         <span class="footer-separator">•</span>
-        <a href="#" class="footer-link">Create Character</a>
+        <a href="create-character.html" class="footer-link">Create Character</a>
         <span class="footer-separator">•</span>
-        <a href="#" class="footer-link">Profile</a>
+        <a href="profile.html" class="footer-link">Profile</a>
         <span class="footer-separator">•</span>
-        <a href="#" class="footer-link">Privacy Policy</a>
+        <a href="privacy-policy.html" class="footer-link">Privacy Policy</a>
         <span class="footer-separator">•</span>
-        <a href="#" class="footer-link">Terms and Conditions</a>
+        <a href="terms-and-conditions.html" class="footer-link">Terms and Conditions</a>
       </div>
       <p class="footer-copyright">© 2025 Narrin AI. All rights reserved.</p>
     </div>
