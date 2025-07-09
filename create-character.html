@@ -4464,13 +4464,16 @@ console.log('🔍 Login check:', { netlifyUser, localEmail, localToken, isLogged
 
 if (!isLoggedIn) {
   console.log('❌ User not logged in, redirecting to profile');
+  alert('DEBUG: User not logged in - should redirect now'); // DEBUG
   saveFormDataToStorage();
   localStorage.setItem('login_redirect_url', window.location.href);
   isSubmitting = false; // Reset flag
   isFormSubmitting = false; // Reset form flag
   
   // Direct redirect - NO POPUP
-  window.location.href = 'profile.html';
+  setTimeout(() => {
+    window.location.href = 'profile.html';
+  }, 2000); // Give time to see the debug alert
   return;
 }
 
