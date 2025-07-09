@@ -5068,11 +5068,79 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       
-      // User is logged in, show success message
-      alert('User is logged in! Character creation would proceed here.');
+      // User is logged in, proceed with character creation
+      console.log('✅ User is logged in, proceeding with character creation');
+      
+      // Collect form data
+      const formData = {
+        name: document.getElementById('characterName').value.trim(),
+        title: document.getElementById('characterTitle').value.trim(),
+        description: document.getElementById('characterDescription').value.trim(),
+        prompt: document.getElementById('characterPrompt').value.trim(),
+        category: document.getElementById('characterCategory').value,
+        tags: selectedTags,
+        visibility: document.querySelector('input[name="visibility"]:checked').value,
+        avatarUrl: currentAvatarUrl || ''
+      };
+      
+      // Validate form data
+      if (!formData.name || !formData.description || !formData.prompt) {
+        showNotification('Please fill in all required fields.', 'error');
+        return;
+      }
+      
+      // Proceed with character creation
+      createCharacterWithAuth(formData);
     });
   }
   
+  // Character creation with authentication
+  async function createCharacterWithAuth(formData) {
+    try {
+      // Show loading state
+      const submitBtn = document.querySelector('button[type="submit"]');
+      const originalText = submitBtn.textContent;
+      submitBtn.textContent = 'Creating Character...';
+      submitBtn.disabled = true;
+      
+      // Create character
+      const result = await createCharacter(formData);
+      
+      if (result.success) {
+        console.log('✅ Character created successfully:', result);
+        
+        // Show success message
+        submitBtn.textContent = 'Character Created! Redirecting...';
+        showNotification('Character created successfully! Opening chat with your new character...', 'success');
+        
+        // Get slug from API response
+        const slug = result.slug || result.character_slug || formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        
+        // Clear form data
+        localStorage.removeItem('create_character_draft');
+        
+        // Redirect to chat
+        setTimeout(() => {
+          window.location.href = `chat.html?char=${slug}`;
+        }, 1500);
+        
+      } else {
+        throw new Error(result.error || 'Character creation failed');
+      }
+      
+    } catch (error) {
+      console.error('❌ Error creating character:', error);
+      
+      // Reset button state
+      const submitBtn = document.querySelector('button[type="submit"]');
+      submitBtn.textContent = 'Create Character';
+      submitBtn.disabled = false;
+      
+      // Show error message
+      showNotification(error.message || 'Error creating character. Please try again.', 'error');
+    }
+  }
+
   // Check if user is returning from login and restore form data
   setTimeout(() => {
     checkForLoginReturn();
