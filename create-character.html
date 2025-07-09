@@ -4514,16 +4514,31 @@ console.log('🔍 Login check:', { netlifyUser, localEmail, localToken, isLogged
 
 if (!isLoggedIn) {
   console.log('❌ User not logged in, redirecting to profile');
-  alert('DEBUG: User not logged in - should redirect now'); // DEBUG
+  
+  // FORCE HIDE ALL POSSIBLE POPUPS IMMEDIATELY
+  const allElements = document.querySelectorAll('*');
+  allElements.forEach(el => {
+    if (el && el.style) {
+      const computedStyle = getComputedStyle(el);
+      const rect = el.getBoundingClientRect();
+      
+      // If element is positioned fixed/absolute and covers significant area, hide it
+      if ((computedStyle.position === 'fixed' || computedStyle.position === 'absolute') &&
+          (rect.width > 200 && rect.height > 100)) {
+        el.style.display = 'none';
+        el.remove();
+        console.log('🚫 REMOVED SUSPICIOUS POPUP ELEMENT');
+      }
+    }
+  });
+  
   saveFormDataToStorage();
   localStorage.setItem('login_redirect_url', window.location.href);
   isSubmitting = false; // Reset flag
   isFormSubmitting = false; // Reset form flag
   
-  // Direct redirect - NO POPUP
-  setTimeout(() => {
-    window.location.href = 'profile.html';
-  }, 2000); // Give time to see the debug alert
+  // IMMEDIATE redirect - NO DELAY
+  window.location.href = 'profile.html';
   return;
 }
 
