@@ -4161,7 +4161,7 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
   isFormSubmitting = true;
   formHasUnsavedChanges = false; // Clear unsaved changes flag
 
-  // Collect form data - SINGLE DECLARATION WITH ALL FIELDS
+  // Collect form data EERST
   const formData = {
     name: document.getElementById('characterName').value.trim(),
     title: document.getElementById('characterTitle').value.trim(), 
@@ -4170,22 +4170,8 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
     category: document.getElementById('characterCategory').value,
     tags: selectedTags,
     visibility: document.querySelector('input[name="visibility"]:checked').value,
-    avatarUrl: currentAvatarUrl,
-    
-    // Enhanced fields
-    character_data: {
-      name: document.getElementById('characterName').value.trim(),
-      title: document.getElementById('characterTitle').value.trim(),
-      description: document.getElementById('characterDescription').value.trim(), 
-      prompt: document.getElementById('characterPrompt').value.trim(),
-      category: document.getElementById('characterCategory').value,
-      tags: selectedTags,
-      visibility: document.querySelector('input[name="visibility"]:checked').value,
-      avatar_url: currentAvatarUrl || ''
-    }
+    avatarUrl: currentAvatarUrl
   };
-
-  console.log('📋 Form data collected:', formData);
 
   // Check if user is logged in
   const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
@@ -4228,13 +4214,27 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
     return;
   }
   
+  // ADD ENHANCED FIELDS TO EXISTING formData (instead of redeclaring)
+  formData.character_data = {
+    name: formData.name,
+    title: formData.title,
+    description: formData.description,
+    prompt: formData.prompt,
+    category: formData.category,
+    tags: formData.tags,
+    visibility: formData.visibility,
+    avatar_url: formData.avatarUrl || ''
+  };
+  
+  console.log('📋 Form data collected:', formData);
+  
   // Validate form data
   if (!validateFormData(formData)) {
     isSubmitting = false;
     return;
   }
   
-  // Get submit button and show loading state
+  // Set submitting flag and disable form
   const submitBtn = e.target.querySelector('button[type="submit"]');
   const originalText = submitBtn.textContent;
   
@@ -4309,9 +4309,6 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
       element.disabled = false;
     });
   }
-  
-  // Note: We don't reset isSubmitting on success because we're redirecting
-  // This prevents any further submissions during the redirect process
 });
   
   console.log('📋 Form data collected:', formData);
