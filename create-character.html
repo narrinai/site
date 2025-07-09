@@ -618,6 +618,381 @@
         gap: var(--spacing-md);
       }
     }
+
+    /* ===== AVATAR STYLES ===== */
+    .avatar-input-options {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+    }
+
+    .avatar-option {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-lg);
+      border: 2px solid var(--color-light-gray);
+      border-radius: var(--radius-md);
+      transition: border-color var(--transition-base);
+      background: var(--color-white);
+    }
+
+    .avatar-option.active {
+      border-color: var(--color-teal);
+      background-color: var(--color-off-white);
+    }
+
+    .avatar-option input[type="radio"] {
+      display: none;
+    }
+
+    .avatar-option > label {
+      font-weight: 600;
+      margin: 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      color: var(--color-navy);
+    }
+
+    .avatar-option > label::before {
+      content: '';
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--color-gray-light);
+      border-radius: 50%;
+      background: var(--color-white);
+      transition: all var(--transition-base);
+    }
+
+    .avatar-option input[type="radio"]:checked + label::before {
+      border-color: var(--color-teal);
+      background: var(--color-teal);
+      box-shadow: inset 0 0 0 3px var(--color-white);
+    }
+
+    .upload-button {
+      padding: var(--spacing-sm) var(--spacing-lg);
+      background-color: var(--color-light-gray);
+      border: 1px solid var(--color-gray-light);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-size: var(--font-size-sm);
+      transition: background-color var(--transition-base);
+      align-self: flex-start;
+      font-family: var(--font-primary);
+    }
+
+    .upload-button:hover {
+      background-color: var(--color-gray-light);
+    }
+
+    .file-name {
+      font-size: var(--font-size-xs);
+      color: var(--color-gray);
+      margin-top: var(--spacing-xs);
+      font-style: italic;
+    }
+
+    .avatar-preview {
+      margin-top: var(--spacing-md);
+      display: none;
+    }
+
+    .avatar-preview img {
+      width: 80px;
+      height: 80px;
+      border-radius: var(--radius-full);
+      object-fit: cover;
+      border: 3px solid var(--color-light-gray);
+      transition: all var(--transition-base);
+    }
+
+    .avatar-preview img:hover {
+      border-color: var(--color-teal);
+      transform: scale(1.05);
+    }
+
+    /* ===== TAGS STYLES ===== */
+    .suggested-tags-section {
+      margin-bottom: var(--spacing-md);
+    }
+
+    .suggested-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-sm);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .suggested-tag {
+      background-color: var(--color-off-white);
+      border: 2px solid var(--color-teal);
+      color: var(--color-teal);
+      padding: var(--spacing-xs) var(--spacing-md);
+      border-radius: var(--radius-full);
+      font-size: var(--font-size-sm);
+      cursor: pointer;
+      transition: all var(--transition-base);
+      user-select: none;
+      font-weight: 500;
+    }
+
+    .suggested-tag:hover {
+      background-color: var(--color-teal-light);
+    }
+
+    .suggested-tag.selected {
+      background-color: var(--color-teal);
+      color: var(--color-white);
+    }
+
+    .more-tags-button {
+      padding: var(--spacing-sm) var(--spacing-lg);
+      background-color: var(--color-light-gray);
+      color: var(--color-navy);
+      border: 1px solid var(--color-gray-light);
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-sm);
+      cursor: pointer;
+      transition: all var(--transition-base);
+      font-family: var(--font-primary);
+    }
+
+    .more-tags-button:hover {
+      background-color: var(--color-gray-light);
+    }
+
+    .tags-help {
+      font-size: var(--font-size-xs);
+      color: var(--color-gray);
+      margin-top: var(--spacing-xs);
+      font-style: italic;
+    }
+
+    .tags-preview {
+      margin-top: var(--spacing-sm);
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-xs);
+    }
+
+    .tag {
+      background-color: var(--color-off-white);
+      color: var(--color-teal);
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border-radius: var(--radius-full);
+      font-size: var(--font-size-xs);
+      font-weight: 500;
+      border: 1px solid var(--color-teal);
+    }
+
+    /* Tags Modal */
+    .tags-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: var(--z-modal);
+      padding: var(--spacing-lg);
+      box-sizing: border-box;
+    }
+
+    .tags-modal-content {
+      background: var(--color-white);
+      border-radius: var(--radius-lg);
+      max-width: 600px;
+      max-height: 80vh;
+      margin: 50px auto;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow-xl);
+    }
+
+    .tags-modal-header {
+      padding: var(--spacing-lg);
+      border-bottom: 1px solid var(--color-light-gray);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .tags-modal-header h3 {
+      margin: 0;
+      font-size: var(--font-size-xl);
+      color: var(--color-navy);
+      font-family: var(--font-secondary);
+    }
+
+    .close-modal {
+      background: none;
+      border: none;
+      font-size: var(--font-size-2xl);
+      cursor: pointer;
+      padding: 0;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: background-color var(--transition-base);
+      color: var(--color-gray);
+    }
+
+    .close-modal:hover {
+      background-color: var(--color-light-gray);
+    }
+
+    .tags-modal-body {
+      padding: var(--spacing-lg);
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .common-tags-section {
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .tags-modal-body h4 {
+      margin: 0 0 var(--spacing-md) 0;
+      font-size: var(--font-size-lg);
+      color: var(--color-navy);
+      font-family: var(--font-secondary);
+    }
+
+    .common-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-sm);
+    }
+
+    .tag-option {
+      background-color: var(--color-off-white);
+      border: 2px solid var(--color-light-gray);
+      color: var(--color-navy);
+      padding: var(--spacing-xs) var(--spacing-md);
+      border-radius: var(--radius-full);
+      font-size: var(--font-size-sm);
+      cursor: pointer;
+      transition: all var(--transition-base);
+      user-select: none;
+    }
+
+    .tag-option:hover {
+      border-color: var(--color-teal);
+    }
+
+    .tag-option.selected {
+      background-color: var(--color-teal);
+      border-color: var(--color-teal);
+      color: var(--color-white);
+    }
+
+    .tags-modal-footer {
+      padding: var(--spacing-lg);
+      border-top: 1px solid var(--color-light-gray);
+      background-color: var(--color-off-white);
+    }
+
+    .selected-tags-preview {
+      margin-bottom: var(--spacing-lg);
+      font-size: var(--font-size-sm);
+      color: var(--color-gray-dark);
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: var(--spacing-md);
+      justify-content: flex-end;
+    }
+
+    .modal-buttons button {
+      padding: var(--spacing-sm) var(--spacing-lg);
+      font-size: var(--font-size-sm);
+      border-radius: var(--radius-md);
+    }
+
+    /* ===== PRIVACY SETTINGS STYLES ===== */
+    .visibility-options {
+      display: flex;
+      gap: var(--spacing-lg);
+      margin-top: var(--spacing-md);
+    }
+
+    .radio-option {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      cursor: pointer;
+      padding: var(--spacing-lg);
+      border: 2px solid var(--color-light-gray);
+      border-radius: var(--radius-md);
+      transition: all var(--transition-base);
+      background: var(--color-white);
+      box-shadow: var(--shadow-sm);
+      flex: 1;
+    }
+
+    .radio-option:hover {
+      border-color: var(--color-teal);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .radio-option.selected {
+      border-color: var(--color-teal);
+      background: var(--color-off-white);
+      box-shadow: var(--shadow-colored);
+    }
+
+    .radio-option input[type="radio"] {
+      margin: 0;
+      width: auto;
+    }
+
+    .radio-option-content {
+      flex: 1;
+    }
+
+    .radio-option-title {
+      font-weight: 600;
+      margin-bottom: var(--spacing-xs);
+      color: var(--color-navy);
+      font-size: var(--font-size-sm);
+    }
+
+    .radio-option-desc {
+      font-size: var(--font-size-xs);
+      color: var(--color-gray);
+      line-height: 1.4;
+    }
+
+    /* Mobile responsive adjustments for new components */
+    @media (max-width: 600px) {
+      .visibility-options {
+        flex-direction: column;
+        gap: var(--spacing-md);
+      }
+
+      .tags-modal-content {
+        margin: var(--spacing-lg);
+        max-height: calc(100vh - 2 * var(--spacing-lg));
+      }
+
+      .modal-buttons {
+        flex-direction: column;
+      }
+
+      .modal-buttons button {
+        width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
@@ -836,6 +1211,141 @@
         </div>
       </div>
 
+      <!-- Character Profile Image -->
+      <div class="form-section">
+        <h2>👤 Character Profile Image <span style="font-size: var(--font-size-sm); color: var(--color-gray); font-weight: normal;">(Optional)</span></h2>
+        
+        <div class="form-group">
+          <label>Image Source</label>
+          <div class="avatar-input-options">
+            <div class="avatar-option active">
+              <input type="radio" id="avatarUpload" name="avatarMethod" value="upload" checked>
+              <label for="avatarUpload">Upload Image</label>
+              <input type="file" id="avatarFileInput" name="avatarFileInput" 
+                     accept="image/*" style="display: none;">
+              <button type="button" class="upload-button" onclick="triggerFileUpload()">
+                Choose File
+              </button>
+              <span class="file-name" id="fileName">No file chosen</span>
+            </div>
+            
+            <div class="avatar-option">
+              <input type="radio" id="avatarUrl" name="avatarMethod" value="url">
+              <label for="avatarUrl">Image URL</label>
+              <input type="url" id="avatarUrlInput" name="avatarUrlInput" 
+                     placeholder="https://example.com/character-image.jpg">
+            </div>
+          </div>
+          
+          <div class="avatar-preview" id="avatarPreview">
+            <img id="avatarImg" src="" alt="Avatar preview">
+          </div>
+        </div>
+      </div>
+
+      <!-- Tags & Categorization -->
+      <div class="form-section">
+        <h2>🏷️ Tags & Category</h2>
+        
+        <div class="form-group">
+          <label for="characterCategory">Primary Category *</label>
+          <select id="characterCategory" name="characterCategory" required>
+            <option value="">Select a category...</option>
+            <option value="historical">🏛️ Historical Figures</option>
+            <option value="fantasy">🧙‍♂️ Fantasy</option>
+            <option value="anime-manga">🎌 Anime & Manga</option>
+            <option value="celebrity">⭐ Celebrities</option>
+            <option value="gaming">🎮 Gaming</option>
+            <option value="movies-tv">🎬 Movies & TV</option>
+            <option value="mythology">⚡ Mythology</option>
+            <option value="original">✨ Original Characters</option>
+            <option value="ai-assistant">🤖 AI Assistants</option>
+            <option value="educational">📖 Educational</option>
+            <option value="fitness-coach">💪 Fitness Coach</option>
+            <option value="business-coach">💼 Business Coach</option>
+            <option value="language-coach">🗣️ Language Coach</option>
+            <option value="accounting-coach">💰 Accounting Coach</option>
+            <option value="career-coach">📈 Career Coach</option>
+            <option value="negotiation-coach">🤝 Negotiation Coach</option>
+            <option value="creativity-coach">🎨 Creativity Coach</option>
+            <option value="study-coach">📚 Study Coach</option>
+            <option value="relationship-coach">💝 Relationship Coach</option>
+            <option value="mindfulness-coach">🧘 Mindfulness Coach</option>
+            <option value="cooking-coach">👨‍🍳 Cooking Coach</option>
+            <option value="other">🔹 Other</option>
+            <option value="fictional">📚 Fictional</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label>Tags <span style="font-size: var(--font-size-xs); color: var(--color-gray); font-weight: normal;">(Optional - Select up to 6)</span></label>
+          <div class="suggested-tags-section">
+            <div class="suggested-tags" id="suggestedTags">
+              <!-- Suggested tags will be generated here -->
+            </div>
+            <button type="button" class="more-tags-button" id="moreTagsButton">
+              Browse More Tags
+            </button>
+          </div>
+          <div class="tags-help">
+            Select up to 6 tags that best describe your character. These help others discover your character.
+          </div>
+          <div class="tags-preview" id="tagsPreview"></div>
+        </div>
+      </div>
+
+      <!-- Tags Modal -->
+      <div class="tags-modal" id="tagsModal">
+        <div class="tags-modal-content">
+          <div class="tags-modal-header">
+            <h3>Browse Tags</h3>
+            <button type="button" class="close-modal" id="closeModalBtn">×</button>
+          </div>
+          
+          <div class="tags-modal-body">
+            <div class="common-tags-section">
+              <h4>🏷️ Available Tags</h4>
+              <div class="common-tags" id="commonTags"></div>
+            </div>
+          </div>
+          
+          <div class="tags-modal-footer">
+            <div class="selected-tags-preview">
+              <strong>Selected:</strong> <span id="selectedTagsPreview">None</span>
+            </div>
+            <div class="modal-buttons">
+              <button type="button" class="btn-secondary-form" id="cancelTagsBtn">Cancel</button>
+              <button type="button" class="btn-primary-form" id="applyTagsBtn">Apply Tags</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Privacy Settings -->
+      <div class="form-section">
+        <h2>🔒 Privacy Settings *</h2>
+        
+        <div class="form-group">
+          <label>Who can use this character?</label>
+          <div class="visibility-options">
+            <div class="radio-option selected" onclick="selectVisibility('public')">
+              <input type="radio" name="visibility" value="public" checked>
+              <div class="radio-option-content">
+                <div class="radio-option-title">🌍 Public</div>
+                <div class="radio-option-desc">Share this character with the world - your chats remain private.</div>
+              </div>
+            </div>
+            <div class="radio-option" onclick="selectVisibility('private')">
+              <input type="radio" name="visibility" value="private">
+              <div class="radio-option-content">
+                <div class="radio-option-title">🔒 Private</div>
+                <div class="radio-option-desc">Only you can chat with this character.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Buttons -->
       <div class="button-group">
         <button type="submit" class="btn-primary-form">Create Character</button>
@@ -861,6 +1371,18 @@
       bonding: [],
       quirks: []
     };
+
+    // Tags and avatar variables
+    let selectedTags = [];
+    let modalSelectedTags = [];
+    let currentAvatarUrl = '';
+    let allTags = [
+      'friendly', 'helpful', 'creative', 'supportive', 'smart', 'funny', 'wise', 'caring', 
+      'professional', 'casual', 'formal', 'mysterious', 'adventurous', 'romantic', 'dramatic',
+      'analytical', 'artistic', 'athletic', 'business', 'educational', 'fantasy', 'historical',
+      'gaming', 'anime', 'movies', 'tv', 'celebrity', 'mythology', 'sci-fi', 'horror',
+      'comedy', 'action', 'thriller', 'documentary', 'coach', 'mentor', 'teacher', 'guide'
+    ];
 
     // Character counters
     function setupCharacterCounters() {
@@ -1242,7 +1764,11 @@
         name: document.getElementById('characterName').value.trim(),
         title: document.getElementById('characterTitle').value.trim(),
         description: document.getElementById('characterDescription').value.trim(),
-        prompt: document.getElementById('characterPrompt').value.trim()
+        prompt: document.getElementById('characterPrompt').value.trim(),
+        category: document.getElementById('characterCategory').value,
+        tags: selectedTags,
+        visibility: document.querySelector('input[name="visibility"]:checked').value,
+        avatarUrl: currentAvatarUrl
       };
       
       // Basic validation
@@ -1258,6 +1784,12 @@
         return;
       }
       
+      if (!formData.category) {
+        alert('Please select a category');
+        document.getElementById('characterCategory').focus();
+        return;
+      }
+      
       if (!formData.prompt) {
         alert('Character prompt is required. Please select personality traits or edit manually.');
         return;
@@ -1270,6 +1802,228 @@
       console.log('Personality state:', personalityState);
     });
 
+    // ===== AVATAR FUNCTIONALITY =====
+    function setupAvatarFunctionality() {
+      const avatarOptions = document.querySelectorAll('input[name="avatarMethod"]');
+      const avatarFileInput = document.getElementById('avatarFileInput');
+      const avatarUrlInput = document.getElementById('avatarUrlInput');
+      const avatarPreview = document.getElementById('avatarPreview');
+      const avatarImg = document.getElementById('avatarImg');
+      const fileName = document.getElementById('fileName');
+      
+      avatarOptions.forEach(option => {
+        option.addEventListener('change', () => {
+          document.querySelectorAll('.avatar-option').forEach(opt => opt.classList.remove('active'));
+          option.closest('.avatar-option').classList.add('active');
+        });
+      });
+      
+      avatarFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          fileName.textContent = file.name;
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            currentAvatarUrl = e.target.result;
+            avatarImg.src = currentAvatarUrl;
+            avatarPreview.style.display = 'block';
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+      
+      avatarUrlInput.addEventListener('input', () => {
+        const url = avatarUrlInput.value.trim();
+        if (url) {
+          currentAvatarUrl = url;
+          avatarImg.src = url;
+          avatarPreview.style.display = 'block';
+        } else {
+          avatarPreview.style.display = 'none';
+          currentAvatarUrl = '';
+        }
+      });
+    }
+
+    // Trigger file upload
+    function triggerFileUpload() {
+      document.getElementById('avatarFileInput').click();
+    }
+
+    // ===== TAGS FUNCTIONALITY =====
+    function generateSuggestedTags() {
+      const category = document.getElementById('characterCategory').value;
+      let suggested = [];
+      
+      // Category-based suggestions
+      const categoryTags = {
+        'historical': ['wise', 'formal', 'educational', 'professional'],
+        'fantasy': ['mysterious', 'adventurous', 'creative', 'dramatic'],
+        'anime-manga': ['anime', 'dramatic', 'adventurous', 'friendly'],
+        'celebrity': ['famous', 'dramatic', 'entertaining', 'charismatic'],
+        'gaming': ['gaming', 'adventurous', 'competitive', 'strategic'],
+        'movies-tv': ['dramatic', 'entertaining', 'charismatic', 'creative'],
+        'mythology': ['mysterious', 'wise', 'powerful', 'ancient'],
+        'original': ['creative', 'unique', 'imaginative', 'artistic'],
+        'ai-assistant': ['helpful', 'smart', 'supportive', 'professional'],
+        'educational': ['wise', 'helpful', 'professional', 'knowledgeable'],
+        'fitness-coach': ['motivational', 'energetic', 'supportive', 'athletic'],
+        'business-coach': ['professional', 'analytical', 'strategic', 'successful'],
+        'mindfulness-coach': ['calm', 'wise', 'supportive', 'peaceful']
+      };
+      
+      if (category && categoryTags[category]) {
+        suggested = categoryTags[category];
+      } else {
+        suggested = ['friendly', 'helpful', 'creative', 'supportive'];
+      }
+      
+      displaySuggestedTags(suggested);
+    }
+
+    function displaySuggestedTags(tags) {
+      const container = document.getElementById('suggestedTags');
+      container.innerHTML = '';
+      
+      tags.forEach(tag => {
+        const tagElement = document.createElement('div');
+        tagElement.className = 'suggested-tag';
+        tagElement.textContent = tag;
+        tagElement.onclick = () => toggleSuggestedTag(tagElement, tag);
+        
+        if (selectedTags.includes(tag)) {
+          tagElement.classList.add('selected');
+        }
+        
+        container.appendChild(tagElement);
+      });
+    }
+
+    function toggleSuggestedTag(element, tag) {
+      if (selectedTags.includes(tag)) {
+        selectedTags = selectedTags.filter(t => t !== tag);
+        element.classList.remove('selected');
+      } else {
+        if (selectedTags.length < 6) {
+          selectedTags.push(tag);
+          element.classList.add('selected');
+        } else {
+          alert('You can select up to 6 tags maximum.');
+          return;
+        }
+      }
+      updateTagsPreview();
+    }
+
+    function updateTagsPreview() {
+      const container = document.getElementById('tagsPreview');
+      container.innerHTML = '';
+      
+      selectedTags.forEach(tag => {
+        const tagElement = document.createElement('div');
+        tagElement.className = 'tag';
+        tagElement.textContent = tag;
+        container.appendChild(tagElement);
+      });
+    }
+
+    function setupTagsModal() {
+      const moreTagsButton = document.getElementById('moreTagsButton');
+      const tagsModal = document.getElementById('tagsModal');
+      const closeModalBtn = document.getElementById('closeModalBtn');
+      const cancelTagsBtn = document.getElementById('cancelTagsBtn');
+      const applyTagsBtn = document.getElementById('applyTagsBtn');
+
+      // Populate modal with all tags
+      const commonTags = document.getElementById('commonTags');
+      allTags.forEach(tag => {
+        const tagElement = document.createElement('div');
+        tagElement.className = 'tag-option';
+        tagElement.textContent = tag;
+        tagElement.onclick = () => toggleModalTag(tagElement, tag);
+        commonTags.appendChild(tagElement);
+      });
+
+      moreTagsButton.onclick = () => {
+        modalSelectedTags = [...selectedTags];
+        updateModalTagsSelection();
+        updateModalPreview();
+        tagsModal.style.display = 'block';
+      };
+
+      closeModalBtn.onclick = () => {
+        tagsModal.style.display = 'none';
+      };
+
+      cancelTagsBtn.onclick = () => {
+        tagsModal.style.display = 'none';
+      };
+
+      applyTagsBtn.onclick = () => {
+        selectedTags = [...modalSelectedTags];
+        updateTagsPreview();
+        updateSuggestedTagsSelection();
+        tagsModal.style.display = 'none';
+      };
+    }
+
+    function toggleModalTag(element, tag) {
+      if (modalSelectedTags.includes(tag)) {
+        modalSelectedTags = modalSelectedTags.filter(t => t !== tag);
+        element.classList.remove('selected');
+      } else {
+        if (modalSelectedTags.length < 6) {
+          modalSelectedTags.push(tag);
+          element.classList.add('selected');
+        } else {
+          alert('You can select up to 6 tags maximum.');
+          return;
+        }
+      }
+      updateModalPreview();
+    }
+
+    function updateModalPreview() {
+      const preview = document.getElementById('selectedTagsPreview');
+      preview.textContent = modalSelectedTags.length > 0 ? modalSelectedTags.join(', ') : 'None';
+    }
+
+    function updateModalTagsSelection() {
+      document.querySelectorAll('.tag-option').forEach(element => {
+        const tag = element.textContent;
+        if (modalSelectedTags.includes(tag)) {
+          element.classList.add('selected');
+        } else {
+          element.classList.remove('selected');
+        }
+      });
+    }
+
+    function updateSuggestedTagsSelection() {
+      document.querySelectorAll('.suggested-tag').forEach(element => {
+        const tag = element.textContent;
+        if (selectedTags.includes(tag)) {
+          element.classList.add('selected');
+        } else {
+          element.classList.remove('selected');
+        }
+      });
+    }
+
+    // ===== PRIVACY SETTINGS =====
+    function selectVisibility(type) {
+      document.querySelectorAll('.radio-option').forEach(option => {
+        option.classList.remove('selected');
+      });
+      
+      event.target.closest('.radio-option').classList.add('selected');
+      document.querySelector(`input[value="${type}"]`).checked = true;
+    }
+
+    // Make selectVisibility globally available
+    window.selectVisibility = selectVisibility;
+    window.triggerFileUpload = triggerFileUpload;
+
     // Initialize everything when DOM is loaded
     document.addEventListener('DOMContentLoaded', () => {
       console.log('🚀 Create Character page initializing...');
@@ -1278,6 +2032,14 @@
       setupPersonalitySliders();
       setupPersonalityButtons();
       setupPromptActions();
+      setupAvatarFunctionality();
+      setupTagsModal();
+      
+      // Set up category change handler
+      document.getElementById('characterCategory').addEventListener('change', generateSuggestedTags);
+      
+      // Generate initial suggested tags
+      generateSuggestedTags();
       
       // Generate initial prompt
       generatePrompt();
