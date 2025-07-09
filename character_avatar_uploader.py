@@ -40,10 +40,12 @@ class SimpleAvatarUploader:
         
         all_characters = []
         offset = None
+        page = 0
         
         print("📋 Loading all characters from Airtable...")
         
         while True:
+            page += 1
             params = {'maxRecords': 100}
             if offset:
                 params['offset'] = offset
@@ -56,16 +58,21 @@ class SimpleAvatarUploader:
                 records = data.get('records', [])
                 all_characters.extend(records)
                 
-                print(f"   Loaded {len(records)} records (total: {len(all_characters)})")
+                print(f"   Page {page}: Loaded {len(records)} records (total: {len(all_characters)})")
                 
+                # DEBUG: Check wat er in de response zit
+                print(f"   Response keys: {list(data.keys())}")
                 offset = data.get('offset')
+                print(f"   Next offset: {offset[:20] if offset else 'None'}...")
+                
                 if not offset:
+                    print("   ✅ No more pages")
                     break
                     
                 time.sleep(0.5)  # Rate limiting
                 
             except Exception as e:
-                print(f"❌ Error loading characters: {e}")
+                print(f"❌ Error loading page {page}: {e}")
                 break
         
         print(f"✅ Total characters loaded: {len(all_characters)}")
@@ -76,6 +83,8 @@ class SimpleAvatarUploader:
         characters_needing_avatar = []
         characters_with_avatar = 0
         
+        print("📋 Checking Avatar_URL for all characters...")
+        
         for record in characters:
             fields = record.get('fields', {})
             name = fields.get('Name')
@@ -84,11 +93,6 @@ class SimpleAvatarUploader:
             # Skip als geen naam
             if not name:
                 continue
-            
-            # DEBUG: Print elke character om te zien wat er gebeurt
-            print(f"   Checking: {name}")
-            print(f"     Avatar_URL raw: {repr(avatar_url)}")
-            print(f"     Avatar_URL type: {type(avatar_url)}")
             
             # Check verschillende lege states
             is_empty = (
@@ -104,10 +108,9 @@ class SimpleAvatarUploader:
                     'name': name,
                     'category': fields.get('Category', 'other').lower()
                 })
-                print(f"     → NEEDS AVATAR")
+                print(f"   ❌ NO AVATAR: {name}")
             else:
                 characters_with_avatar += 1
-                print(f"     → HAS AVATAR: {avatar_url[:50] if isinstance(avatar_url, str) else avatar_url}...")
         
         print(f"📊 Characters WITH avatar: {characters_with_avatar}")
         print(f"📊 Characters WITHOUT avatar: {len(characters_needing_avatar)}")
