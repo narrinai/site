@@ -44,6 +44,22 @@ class SimpleAvatarUploader:
         
         print("📋 Loading all characters from Airtable...")
         
+        # First, test with a different approach - get ALL records without pagination
+        try:
+            print("🔍 Testing direct API call...")
+            test_response = self.session.get(url, headers=headers)
+            test_response.raise_for_status()
+            test_data = test_response.json()
+            print(f"   Direct call - Response keys: {list(test_data.keys())}")
+            print(f"   Direct call - Records count: {len(test_data.get('records', []))}")
+            if 'offset' in test_data:
+                print(f"   Direct call - Has offset: {test_data['offset'][:20]}...")
+            else:
+                print(f"   Direct call - No offset (this might be all records)")
+        except Exception as e:
+            print(f"   Direct call failed: {e}")
+        
+        # Now try pagination
         while True:
             page += 1
             params = {'maxRecords': 100}
@@ -76,6 +92,22 @@ class SimpleAvatarUploader:
                 break
         
         print(f"✅ Total characters loaded: {len(all_characters)}")
+        
+        # EXTRA CHECK: Try to access specific table or view
+        print("\n🔍 Checking if there are other views or tables...")
+        try:
+            # Try different endpoints
+            base_url = f"https://api.airtable.com/v0/{self.airtable_base}"
+            
+            # List all tables (this might not work with current permissions)
+            tables_response = self.session.get(f"{base_url}/Characters?view=Grid%20view", headers=headers)
+            if tables_response.status_code == 200:
+                tables_data = tables_response.json()
+                print(f"   Grid view records: {len(tables_data.get('records', []))}")
+                
+        except Exception as e:
+            print(f"   Could not check views: {e}")
+        
         return all_characters
 
     def find_characters_without_avatar(self, characters):
