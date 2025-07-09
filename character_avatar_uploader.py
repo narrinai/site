@@ -172,10 +172,11 @@ class CharacterAvatarUploader:
                 })
                 print(f"   ✅ Has avatar: {character_name} ({category}) - {avatar_url[:30]}...")
                 continue
-            else:
-                print(f"   🔴 NO AVATAR: {character_name} - Reason: len={len(avatar_url) if avatar_url else 0}, empty={not bool(avatar_url)}")
             
-            # NO AVATAR - Route to appropriate processing based on category
+            # NO AVATAR - Deze character heeft een avatar nodig!
+            print(f"   🔴 NO AVATAR: {character_name} - NEEDS avatar!")
+            
+            # Route to appropriate processing based on category
             if category in real_character_categories:
                 characters_for_images.append({
                     'name': character_name,
