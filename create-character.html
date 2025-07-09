@@ -3039,8 +3039,8 @@ setupNavigationSearch();
 setupMobileMenu();
 
 // Personality builder state - GLOBAL
-let personalityState = {
-  sliders: {
+personalityState = {
+    sliders: {
     social: 50,
     thinking: 50,
     mood: 50,
@@ -3465,8 +3465,7 @@ function setupNavigationClickHandlers() {
        button.addEventListener('click', (e) => {
          e.preventDefault();
          const quirk = button.getAttribute('data-quirk');
-         toggleArraySelection(personalityState.quirks, quirk, Infinity, button);
-       });
+toggleArraySelection(personalityState.quirks, quirk, Infinity, button, null, 'quirks');       });
      });
    }
 
@@ -3897,7 +3896,7 @@ function setupNavigationClickHandlers() {
      ];
      showNotification('question', title, message, buttons);
    }
-   */
+   
    
    // Notification functions are now defined globally above
 
@@ -4269,49 +4268,49 @@ function updatePromptCounter() {
 
    // Avatar functionality
    function setupAvatarFunctionality() {
-     const avatarOptions = document.querySelectorAll('input[name="avatarMethod"]');
-     const avatarFileInput = document.getElementById('avatarFileInput');
-     const avatarUrlInput = document.getElementById('avatarUrlInput');
-     const avatarPreview = document.getElementById('avatarPreview');
-     const avatarImg = document.getElementById('avatarImg');
-     const fileName = document.getElementById('fileName');
-     
-     avatarOptions.forEach(option => {
-       option.addEventListener('change', () => {
-         document.querySelectorAll('.avatar-option').forEach(opt => opt.classList.remove('active'));
-         option.closest('.avatar-option').classList.add('active');
-       });
-     });
-     
-     avatarFileInput.addEventListener('change', (e) => {
-       const file = e.target.files[0];
-       if (file) {
-         fileName.textContent = file.name;
-         const reader = new FileReader();
-         reader.onload = (e) => {
-           currentAvatarUrl = e.target.result;
-           avatarImg.src = currentAvatarUrl;
-           avatarPreview.style.display = 'block';
-           updatePreview();
-         };
-         reader.readAsDataURL(file);
-       }
-     });
-     
-     avatarUrlInput.addEventListener('input', () => {
-       const url = avatarUrlInput.value.trim();
-       if (url) {
-         currentAvatarUrl = url;
-         avatarImg.src = url;
-         avatarPreview.style.display = 'block';
-         updatePreview();
-       } else {
-         avatarPreview.style.display = 'none';
-         currentAvatarUrl = '';
-         updatePreview();
-       }
-     });
-   }
+  const avatarOptions = document.querySelectorAll('input[name="avatarMethod"]');
+  const avatarFileInput = document.getElementById('avatarFileInput');
+  const avatarUrlInput = document.getElementById('avatarUrlInput');
+  const avatarPreview = document.getElementById('avatarPreview');
+  const avatarImg = document.getElementById('avatarImg');
+  const fileName = document.getElementById('fileName');
+  
+  avatarOptions.forEach(option => {
+    option.addEventListener('change', () => {
+      document.querySelectorAll('.avatar-option').forEach(opt => opt.classList.remove('active'));
+      option.closest('.avatar-option').classList.add('active');
+    });
+  });
+  
+  avatarFileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      fileName.textContent = file.name;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        currentAvatarUrl = e.target.result;
+        avatarImg.src = currentAvatarUrl;
+        avatarPreview.style.display = 'block';
+        updatePreview();
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+  
+  avatarUrlInput.addEventListener('input', () => {
+    const url = avatarUrlInput.value.trim();
+    if (url) {
+      currentAvatarUrl = url;
+      avatarImg.src = url;
+      avatarPreview.style.display = 'block';
+      updatePreview();
+    } else {
+      avatarPreview.style.display = 'none';
+      currentAvatarUrl = '';
+      updatePreview();
+    }
+  });
+}
 
    // Trigger file upload
    function triggerFileUpload() {
@@ -5017,7 +5016,7 @@ if (!characterSlug && formData.name) {
   
   // Note: We don't reset isSubmitting on success because we're redirecting
   // This prevents any further submissions during the redirect process
-});
+
 
 // Create character function with improved error handling
 // Create character function with improved error handling
