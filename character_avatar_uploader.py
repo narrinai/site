@@ -52,6 +52,14 @@ class CharacterAvatarUploader:
         print(f"🔍 DEBUG - URL: {url}")
         print(f"🔍 DEBUG - Headers: {headers}")
         
+        # Test eerst met een eenvoudige call om totaal aantal records te checken
+        test_response = self.session.get(url, headers=headers, params={'maxRecords': 1})
+        if test_response.status_code == 200:
+            test_data = test_response.json()
+            print(f"🔍 DEBUG - Test call successful, keys available: {list(test_data.keys())}")
+        else:
+            print(f"🔍 DEBUG - Test call failed: {test_response.status_code}")
+        
         all_records = []
         offset = None
         
@@ -77,6 +85,8 @@ class CharacterAvatarUploader:
                 
                 print(f"📋 DEBUG - Loaded {len(records)} records in batch {batch_count}")
                 print(f"📋 DEBUG - Total records so far: {len(all_records) + len(records)}")
+                print(f"📋 DEBUG - Full response keys: {list(data.keys())}")
+                print(f"📋 DEBUG - Raw offset value: {data.get('offset', 'NOT_FOUND')}")
                 
                 # DEBUG INFO for first record of each batch
                 if records:
@@ -621,4 +631,4 @@ class CharacterAvatarUploader:
 
 if __name__ == "__main__":
     uploader = CharacterAvatarUploader()
-    uploader.run(limit=5)  # Start met 5 characters voor debug
+    uploader.run()  # Geen limit = alle characters zonder avatar
