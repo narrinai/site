@@ -2966,14 +2966,25 @@ function generateUniqueSlug(text) {
   return `${baseSlug}-${random}`;
 }
 
-// Global notification functions
+// Global notification functions - simplified version
 function showNotification(type, title, message, buttons = null) {
   console.log(`📢 ${type.toUpperCase()}: ${title} - ${message}`);
+  
+  // For login-related notifications, redirect to profile
+  if (title && (title.includes('Login') || title.includes('Required'))) {
+    console.log('🔒 Login required - redirecting to profile');
+    if (typeof saveFormDataToStorage === 'function') {
+      saveFormDataToStorage();
+    }
+    localStorage.setItem('login_redirect_url', window.location.href);
+    window.location.href = 'profile.html';
+    return;
+  }
   
   // Simple fallback using native alert/confirm
   if (type === 'error' || type === 'warning') {
     alert(`${title}\n\n${message}`);
-  } else {
+  } else if (type === 'success') {
     console.log(`✅ ${title}: ${message}`);
   }
 }
@@ -2993,7 +3004,39 @@ function showWarning(message, title = 'Warning') {
 function hideNotification() {
   console.log('📢 Hiding notification');
   // Simple implementation - notifications are using alert() so nothing to hide
+  const overlay = document.getElementById('notificationOverlay');
+  if (overlay) {
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+  }
 }
+
+// Custom alert function
+function customAlert(message, title = 'Notification') {
+  showNotification('info', title, message);
+}
+
+// Custom confirm function
+function customConfirm(message, title = 'Confirm', onConfirm = null, onCancel = null) {
+  if (confirm(`${title}\n\n${message}`)) {
+    if (onConfirm) onConfirm();
+  } else {
+    if (onCancel) onCancel();
+  }
+}
+
+// Setup navigation functions
+function setupNavigationSearch() {
+  console.log('Setting up navigation search...');
+}
+
+function setupMobileMenu() {
+  console.log('Setting up mobile menu...');
+}
+
+// Initialize navigation
+setupNavigationSearch();
+setupMobileMenu();
 
 // VOLLEDIG NETLIFY IDENTITY UITSCHAKELEN
 window.addEventListener('DOMContentLoaded', () => {
@@ -3376,7 +3419,6 @@ function setupNavigationClickHandlers() {
    // ===== CUSTOM NOTIFICATION SYSTEM =====
    // Notification function is now defined globally above
    /* OLD showNotification function - now using global version
-   function showNotification(type, title, message, buttons = null) {
      console.log('🚫 NOTIFICATION BLOCKED:', type, title, message);
      
      // If this is a login-related notification, redirect instead
@@ -5130,6 +5172,9 @@ document.addEventListener('DOMContentLoaded', () => {
       createCharacterWithAuth(formData);
     });
   }
+  
+  // Make createCharacterWithAuth available globally
+  window.createCharacterWithAuth = createCharacterWithAuth;
   
   // Character creation with authentication
   async function createCharacterWithAuth(formData) {
