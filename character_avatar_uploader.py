@@ -43,7 +43,7 @@ class CharacterAvatarUploader:
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
         })
 
-    def load_characters_without_avatar(self, limit=50):
+    def load_characters_without_avatar(self, limit=None):
         """Load ALL characters without Avatar_URL and generate emoji avatars for fictional ones"""
         url = f"https://api.airtable.com/v0/{self.airtable_base}/Characters"
         headers = {'Authorization': f'Bearer {self.airtable_token}'}
@@ -143,25 +143,14 @@ class CharacterAvatarUploader:
                 print(f"   ⚠️ DEBUG - Skipping: No name")
                 continue
             
-            # DETAILED DEBUG INFO per character
-            print(f"\n   🔍 DETAILED DEBUG for {character_name}:")
-            print(f"       Record ID: {record.get('id', 'NO_ID')}")
-            print(f"       avatar_url_raw type: {type(avatar_url_raw)}")
-            print(f"       avatar_url_raw value: '{avatar_url_raw}'")
-            print(f"       avatar_url processed: '{avatar_url}'")
-            print(f"       avatar_url length: {len(avatar_url) if avatar_url else 0}")
-            print(f"       bool(avatar_url): {bool(avatar_url)}")
-            print(f"       category: '{category}'")
+            # REDUCED DEBUG INFO per character (only for characters without avatars)
+            avatar_url = str(avatar_url_raw).strip() if avatar_url_raw else ''
             
             # Extra debug en cleaning
             if avatar_url:
-                print(f"       Avatar_URL has content: length={len(avatar_url)}")
                 # Check for invalid/placeholder URLs
                 if avatar_url.lower() in ['none', 'null', 'undefined', '', ' '] or len(avatar_url) < 10:
-                    print(f"       🔧 DEBUG - Treating as empty avatar URL")
                     avatar_url = ''
-            else:
-                print(f"       🔍 DEBUG - Avatar_URL is empty or None")
             
             # ENHANCED AVATAR CHECK - Skip if already has valid avatar
             if avatar_url and len(avatar_url) > 10 and not avatar_url.lower() in ['none', 'null', 'undefined']:
@@ -170,10 +159,13 @@ class CharacterAvatarUploader:
                     'category': category,
                     'avatar_url': avatar_url
                 })
-                print(f"   ✅ Has avatar: {character_name} ({category}) - {avatar_url[:30]}...")
                 continue
             
             # NO AVATAR - Deze character heeft een avatar nodig!
+            print(f"\n   🔍 DETAILED DEBUG for {character_name}:")
+            print(f"       Record ID: {record.get('id', 'NO_ID')}")
+            print(f"       avatar_url_raw: '{avatar_url_raw}'")
+            print(f"       category: '{category}'")
             print(f"   🔴 NO AVATAR: {character_name} - NEEDS avatar!")
             
             # Route to appropriate processing based on category
@@ -199,8 +191,8 @@ class CharacterAvatarUploader:
                 print(f"   ⚠️ Unknown category '{category}': {character_name}")
                 skipped_unknown += 1
                 
-            # Stop when we have enough total characters for testing
-            if len(characters_for_images) + len(characters_for_emoji) >= limit:
+            # Stop when we have enough total characters for testing (only if limit specified)
+            if limit and len(characters_for_images) + len(characters_for_emoji) >= limit:
                 print(f"\n🛑 STOPPING - Reached limit of {limit} characters to process")
                 break
         
@@ -543,10 +535,13 @@ class CharacterAvatarUploader:
             print(f"   ❌ All images failed for {character['name']}")
             return False
 
-    def run(self, limit=5):
+    def run(self, limit=None):
         """Main execution - process both image and emoji characters"""
-        print("🚀 Character Avatar Uploader - DEBUG VERSION")
-        print(f"📊 Processing first {limit} characters without avatars")
+        print("🚀 Character Avatar Uploader - FULL VERSION")
+        if limit:
+            print(f"📊 Processing first {limit} characters without avatars")
+        else:
+            print(f"📊 Processing ALL characters without avatars")
         print("🖼️ Real characters: Google image search")
         print("😀 Fictional characters: Generate emoji avatars")
         
