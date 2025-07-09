@@ -3931,7 +3931,11 @@ async function uploadToCloudinary(file, slug) {
 
    // Login overlay functions
    function showLoginOverlay() {
-     document.getElementById('loginOverlay').style.display = 'flex';
+     // Don't show overlay - redirect directly to profile
+     console.log('⚠️ showLoginOverlay called - redirecting to profile instead');
+     saveFormDataToStorage();
+     localStorage.setItem('login_redirect_url', window.location.href);
+     window.location.href = 'profile.html';
    }
 
    function hideLoginOverlay() {
@@ -3983,14 +3987,7 @@ function hideLoginOverlay() {
   }
 }
 
-// Verbeterde showLoginOverlay functie
-function showLoginOverlay() {
-  const overlay = document.getElementById('loginOverlay');
-  if (overlay) {
-    overlay.style.display = 'flex';
-    console.log('✅ Login overlay shown');
-  }
-}
+// Removed duplicate showLoginOverlay function - using the one above
 
 // Save form data to localStorage
 function saveFormDataToStorage() {
