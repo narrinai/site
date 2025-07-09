@@ -3583,6 +3583,9 @@ function setupNavigationClickHandlers() {
 
    // Generate prompt from personality state
    function generatePrompt() {
+     console.log('🔧 generatePrompt() called');
+     console.log('📊 personalityState:', personalityState);
+     
      let prompt = '';
      const name = document.getElementById('characterName').value || 'this character';
      const description = document.getElementById('characterDescription').value;
@@ -3653,6 +3656,7 @@ function setupNavigationClickHandlers() {
      prompt += `Remember: Your goal is not just to answer questions, but to be a meaningful presence in their life. Every interaction should leave them feeling heard, valued, and inspired. Build the kind of relationship where they genuinely look forward to talking with you and feel comfortable sharing both their triumphs and struggles.`;
      
      // Update preview and hidden field
+     console.log('📝 Generated prompt:', prompt.substring(0, 100) + '...');
      updatePromptPreview(prompt);
      document.getElementById('characterPrompt').value = prompt;
      updatePromptCounter();
@@ -3729,7 +3733,9 @@ function setupNavigationClickHandlers() {
    }
 
    function updatePromptPreview(prompt) {
+     console.log('🖼️ updatePromptPreview called with:', prompt.substring(0, 50) + '...');
      const preview = document.getElementById('promptPreview');
+     console.log('🎯 promptPreview element:', preview);
      if (prompt.trim()) {
        // Truncate long prompts in preview
        const maxLength = 200;
