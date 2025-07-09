@@ -113,6 +113,38 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   
   <style>
+    /* FORCE HIDE ALL POSSIBLE POPUPS */
+    .netlify-identity-widget,
+    [data-netlify-identity-widget],
+    .netlify-identity-modal,
+    [data-netlify-identity-modal],
+    .modal,
+    .popup,
+    .overlay,
+    .login-overlay,
+    #loginOverlay,
+    div[style*="position: fixed"],
+    div[style*="position: absolute"],
+    iframe[src*="identity"],
+    div[data-netlify-identity] {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      z-index: -9999 !important;
+      pointer-events: none !important;
+      position: absolute !important;
+      top: -9999px !important;
+      left: -9999px !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+    
+    /* Hide any fixed/absolute positioned elements that might be popups */
+    body > div[style*="position: fixed"],
+    body > div[style*="position: absolute"] {
+      display: none !important;
+    }
+    
     /* ===== CSS CUSTOM PROPERTIES ===== */
     :root {
       /* Primary Colors */
@@ -4825,11 +4857,33 @@ window.addEventListener('beforeunload', (e) => {
 document.addEventListener('DOMContentLoaded', () => {
   trackFormChanges();
   
-  // IMPORTANT: Make sure login overlay is hidden on page load
-  const loginOverlay = document.getElementById('loginOverlay');
-  if (loginOverlay) {
-    loginOverlay.style.display = 'none';
-    console.log('🚫 Ensuring login overlay is hidden on page load');
+  // NUCLEAR OPTION: Replace form submit handler
+  const form = document.getElementById('characterForm');
+  if (form) {
+    // Remove all existing event listeners
+    const newForm = form.cloneNode(true);
+    form.parentNode.replaceChild(newForm, form);
+    
+    // Add simple redirect handler
+    newForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      console.log('🚀 NUCLEAR REDIRECT ACTIVATED');
+      
+      // Check if logged in
+      const localEmail = localStorage.getItem("user_email");
+      const localToken = localStorage.getItem("user_token");
+      
+      if (!localEmail || !localToken) {
+        // Save form data and redirect
+        saveFormDataToStorage();
+        localStorage.setItem('login_redirect_url', window.location.href);
+        window.location.href = 'profile.html';
+        return;
+      }
+      
+      // User is logged in, show success message
+      alert('User is logged in! Character creation would proceed here.');
+    });
   }
   
   // Check if user is returning from login and restore form data
