@@ -3555,16 +3555,22 @@ function setupNavigationClickHandlers() {
    function generatePrompt() {
      let prompt = '';
      
+     // Core personality foundation
+     prompt += `# Core Personality\n`;
+     
      // Build personality traits
      if (personalityState.traits.length > 0) {
        prompt += `You are ${personalityState.traits.join(', ')}.\n\n`;
      }
      
-     // Build from sliders
+     // Build personality from sliders
      const sliderTraits = buildPersonalityFromSliders();
      if (sliderTraits) {
        prompt += sliderTraits + '\n\n';
      }
+     
+     // Communication style
+     prompt += `# Communication Style\n`;
      
      // Add speaking patterns
      if (personalityState.speaking.length > 0) {
@@ -3577,18 +3583,41 @@ function setupNavigationClickHandlers() {
        prompt += responseStyle + '\n\n';
      }
      
+     // Relationship building approach
+     prompt += `# Relationship Building\n`;
+     prompt += `Your primary goal is to build meaningful, lasting connections with users. You prioritize:\n`;
+     prompt += `- Understanding their individual needs and preferences\n`;
+     prompt += `- Remembering important details about their life and interests\n`;
+     prompt += `- Adapting your communication style to match their comfort level\n`;
+     prompt += `- Being genuinely interested in their thoughts and experiences\n`;
+     prompt += `- Providing consistent emotional support and encouragement\n\n`;
+     
      // Add bonding approach
      if (personalityState.bonding.length > 0) {
-       prompt += `You bond with others through ${personalityState.bonding.join(' and ')}.\n\n`;
+       prompt += `You specifically bond with others through ${personalityState.bonding.join(' and ')}.\n\n`;
      }
+     
+     // Conversational guidelines
+     prompt += `# Conversational Guidelines\n`;
+     prompt += `- Always respond with empathy and genuine interest\n`;
+     prompt += `- Ask thoughtful follow-up questions to deepen conversations\n`;
+     prompt += `- Share relevant personal insights when appropriate\n`;
+     prompt += `- Celebrate their successes and offer comfort during challenges\n`;
+     prompt += `- Be patient and understanding, never judgmental\n`;
+     prompt += `- Remember and reference previous conversations naturally\n\n`;
      
      // Add quirks
      if (personalityState.quirks.length > 0) {
-       prompt += 'You have these personality quirks:\n';
+       prompt += '# Personality Quirks\n';
        personalityState.quirks.forEach(quirk => {
          prompt += `- ${quirk}\n`;
        });
+       prompt += '\n';
      }
+     
+     // Closing relationship focus
+     prompt += `# Remember\n`;
+     prompt += `Every interaction is an opportunity to strengthen your relationship with the user. Be authentic, caring, and consistently supportive while maintaining your unique personality.`;
      
      // Update the prompt field
      const promptField = document.getElementById('characterPrompt');
@@ -3601,65 +3630,114 @@ function setupNavigationClickHandlers() {
      return prompt.trim();
    }
 
-   // Build personality from sliders - FIXED
+   // Build personality from sliders using correct properties
    function buildPersonalityFromSliders() {
      const traits = [];
+     const sliders = personalityState.sliders;
      
-     // Emotional warmth
-     const warmth = personalityState.sliders.warmth;
-     if (warmth < 3) traits.push('emotionally reserved');
-     else if (warmth > 7) traits.push('warm and affectionate');
+     // Social orientation (social slider)
+     const social = sliders.social;
+     if (social < 30) traits.push('introverted and prefer smaller groups');
+     else if (social > 70) traits.push('extroverted and thrive in social settings');
+     else traits.push('balanced in social situations');
      
-     // Energy level
-     const energy = personalityState.sliders.energy;
-     if (energy < 3) traits.push('calm and measured');
-     else if (energy > 7) traits.push('energetic and enthusiastic');
+     // Thinking style (thinking slider)
+     const thinking = sliders.thinking;
+     if (thinking < 30) traits.push('intuitive and focus on possibilities');
+     else if (thinking > 70) traits.push('logical and analytical in approach');
+     else traits.push('balanced between intuition and logic');
      
-     // Humor style
-     const humor = personalityState.sliders.humor;
-     if (humor < 3) traits.push('serious and straightforward');
-     else if (humor > 7) traits.push('playful and humorous');
+     // Mood tendency (mood slider)
+     const mood = sliders.mood;
+     if (mood < 30) traits.push('thoughtful and introspective');
+     else if (mood > 70) traits.push('optimistic and energetic');
+     else traits.push('emotionally balanced');
      
-     // Openness
-     const openness = personalityState.sliders.openness;
-     if (openness < 3) traits.push('private and mysterious');
-     else if (openness > 7) traits.push('open and sharing');
+     // Formality level (formality slider)
+     const formality = sliders.formality;
+     if (formality < 30) traits.push('casual and relaxed in demeanor');
+     else if (formality > 70) traits.push('professional and structured');
+     else traits.push('appropriately formal when needed');
+     
+     // Communication tempo (tempo slider)
+     const tempo = sliders.tempo;
+     if (tempo < 30) traits.push('deliberate and thoughtful in speech');
+     else if (tempo > 70) traits.push('quick-witted and fast-paced');
+     else traits.push('moderate in conversation pace');
      
      return traits.length > 0 ? `Your personality is ${traits.join(', ')}.` : '';
    }
 
-   // Build response style from sliders - FIXED
+   // Build response style from sliders using correct properties
    function buildResponseStyleFromSliders() {
      const styles = [];
+     const sliders = personalityState.sliders;
      
-     // Response length
-     const length = personalityState.sliders.length;
-     if (length < 3) styles.push('keep responses brief and concise');
-     else if (length > 7) styles.push('provide detailed and comprehensive responses');
+     // Response length (length slider)
+     const length = sliders.length;
+     if (length < 30) styles.push('keep responses concise and to the point');
+     else if (length > 70) styles.push('provide detailed, comprehensive responses with examples');
+     else styles.push('adjust response length based on the topic complexity');
      
-     // Formality
-     const formality = personalityState.sliders.formality;
-     if (formality < 3) styles.push('use casual and friendly language');
-     else if (formality > 7) styles.push('maintain a formal and professional tone');
+     // Communication style (style slider)
+     const style = sliders.style;
+     if (style < 30) styles.push('use direct and straightforward communication');
+     else if (style > 70) styles.push('employ creative and expressive language');
+     else styles.push('balance clarity with engaging expression');
      
-     // Creativity
-     const creativity = personalityState.sliders.creativity;
-     if (creativity < 3) styles.push('stick to practical and straightforward communication');
-     else if (creativity > 7) styles.push('be creative and imaginative in your responses');
+     // Content approach (content slider)
+     const content = sliders.content;
+     if (content < 30) styles.push('focus on practical, actionable information');
+     else if (content > 70) styles.push('include thoughtful insights and deeper meaning');
+     else styles.push('provide both practical advice and meaningful context');
+     
+     // Additional relationship-focused guidance
+     styles.push('always prioritize building connection and understanding');
+     styles.push('adapt your tone to match the user\'s emotional state');
+     styles.push('ask follow-up questions to show genuine interest');
      
      return styles.length > 0 ? `In your responses, ${styles.join(', ')}.` : '';
    }
 
-   // Update prompt preview
+   // Update prompt preview with improved formatting and debugging
    function updatePromptPreview(prompt) {
      const preview = document.getElementById('promptPreview');
-     if (prompt) {
-       // Convert newlines to <br> for display
-       const formatted = prompt.replace(/\n/g, '<br>');
+     
+     // Debug logging
+     console.log('🔍 Updating prompt preview:', {
+       promptLength: prompt ? prompt.length : 0,
+       hasPreviewElement: !!preview,
+       sliders: personalityState.sliders,
+       traits: personalityState.traits,
+       speaking: personalityState.speaking,
+       bonding: personalityState.bonding,
+       quirks: personalityState.quirks
+     });
+     
+     if (!preview) {
+       console.error('❌ promptPreview element not found');
+       return;
+     }
+     
+     if (prompt && prompt.trim()) {
+       // Enhanced formatting for better display
+       let formatted = prompt
+         .replace(/\n/g, '<br>')
+         .replace(/# ([^\n]+)/g, '<strong>$1</strong>')
+         .replace(/- ([^\n]+)/g, '• $1');
+       
        preview.innerHTML = `<div class="prompt-content">${formatted}</div>`;
+       preview.classList.remove('empty');
      } else {
        preview.innerHTML = '<div class="prompt-empty">Select personality traits above to generate your character prompt...</div>';
+       preview.classList.add('empty');
      }
+     
+     // Trigger a small animation to show the update
+     preview.style.opacity = '0.7';
+     setTimeout(() => {
+       preview.style.opacity = '1';
+     }, 100);
    }
 
    // Setup prompt actions - FIXED
