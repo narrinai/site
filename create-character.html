@@ -152,6 +152,54 @@
     // Check immediately and every 3 seconds
     checkLoginRequired();
     setInterval(checkLoginRequired, 3000);
+    
+    // IFRAME DEBUGGING - Check for hidden iframes
+    const debugIframes = () => {
+      const iframes = document.querySelectorAll('iframe');
+      iframes.forEach((iframe, index) => {
+        console.log(`🖼️ IFRAME ${index}:`, {
+          src: iframe.src,
+          style: iframe.style.cssText,
+          width: iframe.offsetWidth,
+          height: iframe.offsetHeight,
+          display: window.getComputedStyle(iframe).display,
+          visibility: window.getComputedStyle(iframe).visibility,
+          position: window.getComputedStyle(iframe).position,
+          zIndex: window.getComputedStyle(iframe).zIndex
+        });
+        
+        // Try to access iframe content if same-origin
+        try {
+          const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+          if (iframeDoc) {
+            const iframeBody = iframeDoc.body.textContent || iframeDoc.body.innerText || '';
+            if (iframeBody.includes('Login Required')) {
+              console.log('🚨 FOUND "Login Required" IN IFRAME:', iframe);
+              console.log('Iframe body text:', iframeBody.substring(0, 200));
+            }
+          }
+        } catch (e) {
+          console.log('🔒 Cannot access iframe content (cross-origin):', e.message);
+        }
+      });
+    };
+    
+    // Check for iframes every 2 seconds
+    setInterval(debugIframes, 2000);
+    
+    // AGGRESSIVE POPUP KILLER - Remove any element containing "Login Required"
+    const killLoginPopups = () => {
+      const allElements = document.querySelectorAll('*');
+      allElements.forEach(el => {
+        if (el.textContent && el.textContent.includes('Login Required')) {
+          console.log('🚨 KILLING ELEMENT WITH "Login Required":', el);
+          el.remove();
+        }
+      });
+    };
+    
+    // Run popup killer every 500ms
+    setInterval(killLoginPopups, 500);
   </script>
   <meta name="description" content="Create your own AI character with custom personality, appearance, and behavior. Build unique AI companions for chat with our easy character creation tool.">
   
