@@ -2339,16 +2339,7 @@
   </div>
 
   <!-- Custom Notification System -->
-  <div class="notification-overlay" id="notificationOverlay">
-    <div class="notification-modal">
-      <span class="notification-icon" id="notificationIcon">✓</span>
-      <h3 class="notification-title" id="notificationTitle">Success</h3>
-      <p class="notification-message" id="notificationMessage">Operation completed successfully!</p>
-      <div class="notification-buttons" id="notificationButtons">
-        <button class="notification-btn primary" id="notificationOkBtn">OK</button>
-      </div>
-    </div>
-  </div>
+  <!-- Notification overlay REMOVED to prevent popups -->
 
   <!-- Login Overlay REMOVED - Using direct redirect instead -->
 
@@ -3113,6 +3104,18 @@ function setupNavigationClickHandlers() {
 
    // ===== CUSTOM NOTIFICATION SYSTEM =====
    function showNotification(type, title, message, buttons = null) {
+     console.log('🚫 NOTIFICATION BLOCKED:', type, title, message);
+     
+     // If this is a login-related notification, redirect instead
+     if (title && (title.includes('Login') || title.includes('Required') || title.includes('Auth'))) {
+       console.log('🚫 LOGIN NOTIFICATION BLOCKED - REDIRECTING');
+       window.location.href = 'profile.html';
+       return;
+     }
+     
+     // Block all notifications for now
+     return;
+     
      const overlay = document.getElementById('notificationOverlay');
      const icon = document.getElementById('notificationIcon');
      const titleEl = document.getElementById('notificationTitle');
