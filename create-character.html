@@ -806,7 +806,7 @@
       height: 100%;
       background: rgba(0, 0, 0, 0.8);
       z-index: 999;
-      display: none;
+      display: none; /* Hidden by default */
       align-items: center;
       justify-content: center;
     }
@@ -2227,15 +2227,7 @@
     </div>
   </div>
 
-  <!-- Login Overlay -->
-<div class="login-overlay" id="loginOverlay">
-  <div class="login-message">
-    <h3>Login Required</h3>
-    <p>Please log in to create a character</p>
-    <button class="btn btn-primary" onclick="redirectToProfile()">Go to Login</button>
-<button class="btn btn-secondary" onclick="hideLoginOverlay()" style="margin-left: 10px;">Cancel</button>
-  </div>
-</div>
+  <!-- Login Overlay REMOVED - Using direct redirect instead -->
 
   <div class="container">
     <div class="header-page">
@@ -3939,7 +3931,8 @@ async function uploadToCloudinary(file, slug) {
    }
 
    function hideLoginOverlay() {
-     document.getElementById('loginOverlay').style.display = 'none';
+     // Overlay removed - no need to hide
+     console.log('hideLoginOverlay called but overlay is removed');
    }
 
    function showLoginModal() {
@@ -4722,6 +4715,13 @@ window.addEventListener('beforeunload', (e) => {
 // Initialize form change tracking
 document.addEventListener('DOMContentLoaded', () => {
   trackFormChanges();
+  
+  // IMPORTANT: Make sure login overlay is hidden on page load
+  const loginOverlay = document.getElementById('loginOverlay');
+  if (loginOverlay) {
+    loginOverlay.style.display = 'none';
+    console.log('🚫 Ensuring login overlay is hidden on page load');
+  }
   
   // Check if user is returning from login and restore form data
   setTimeout(() => {
