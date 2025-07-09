@@ -138,30 +138,30 @@ class CharacterAvatarUploader:
             # ENHANCED AVATAR URL PROCESSING
             avatar_url = str(avatar_url_raw).strip() if avatar_url_raw else ''
             
-            # Extra debug en cleaning
-            if avatar_url:
-                print(f"   🔍 DEBUG - Avatar_URL has content: length={len(avatar_url)}, content='{avatar_url[:50]}...'")
-                # Check for invalid/placeholder URLs
-                if avatar_url.lower() in ['none', 'null', 'undefined', '', ' '] or len(avatar_url) < 10:
-                    print(f"   🔧 DEBUG - Treating as empty avatar URL")
-                    avatar_url = ''
-            else:
-                print(f"   🔍 DEBUG - Avatar_URL is empty or None")
-            
-            # DEBUG INFO per character
-            print(f"   📋 DEBUG - Record ID: {record.get('id', 'NO_ID')}")
-            print(f"   📋 DEBUG - All fields: {list(fields.keys())}")
-            print(f"   📋 DEBUG - Name: '{character_name}'")
-            print(f"   📋 DEBUG - Avatar_URL raw: '{avatar_url_raw}'")
-            print(f"   📋 DEBUG - Avatar_URL processed: '{avatar_url}'")
-            print(f"   📋 DEBUG - Category: '{category}'")
-            
             # Skip if no name
             if not character_name:
                 print(f"   ⚠️ DEBUG - Skipping: No name")
                 continue
             
-            print(f"   📋 Checking: {character_name} (category: '{category}', has_avatar: {bool(avatar_url)})")
+            # DETAILED DEBUG INFO per character
+            print(f"\n   🔍 DETAILED DEBUG for {character_name}:")
+            print(f"       Record ID: {record.get('id', 'NO_ID')}")
+            print(f"       avatar_url_raw type: {type(avatar_url_raw)}")
+            print(f"       avatar_url_raw value: '{avatar_url_raw}'")
+            print(f"       avatar_url processed: '{avatar_url}'")
+            print(f"       avatar_url length: {len(avatar_url) if avatar_url else 0}")
+            print(f"       bool(avatar_url): {bool(avatar_url)}")
+            print(f"       category: '{category}'")
+            
+            # Extra debug en cleaning
+            if avatar_url:
+                print(f"       Avatar_URL has content: length={len(avatar_url)}")
+                # Check for invalid/placeholder URLs
+                if avatar_url.lower() in ['none', 'null', 'undefined', '', ' '] or len(avatar_url) < 10:
+                    print(f"       🔧 DEBUG - Treating as empty avatar URL")
+                    avatar_url = ''
+            else:
+                print(f"       🔍 DEBUG - Avatar_URL is empty or None")
             
             # ENHANCED AVATAR CHECK - Skip if already has valid avatar
             if avatar_url and len(avatar_url) > 10 and not avatar_url.lower() in ['none', 'null', 'undefined']:
@@ -172,6 +172,8 @@ class CharacterAvatarUploader:
                 })
                 print(f"   ✅ Has avatar: {character_name} ({category}) - {avatar_url[:30]}...")
                 continue
+            else:
+                print(f"   🔴 NO AVATAR: {character_name} - Reason: len={len(avatar_url) if avatar_url else 0}, empty={not bool(avatar_url)}")
             
             # NO AVATAR - Route to appropriate processing based on category
             if category in real_character_categories:
@@ -196,9 +198,10 @@ class CharacterAvatarUploader:
                 print(f"   ⚠️ Unknown category '{category}': {character_name}")
                 skipped_unknown += 1
                 
-            # Stop when we have enough total characters (comment out to process ALL)
-            # if len(characters_for_images) + len(characters_for_emoji) >= limit:
-            #     break
+            # Stop when we have enough total characters for testing
+            if len(characters_for_images) + len(characters_for_emoji) >= limit:
+                print(f"\n🛑 STOPPING - Reached limit of {limit} characters to process")
+                break
         
         # Combine both types
         all_characters = characters_for_images + characters_for_emoji
@@ -288,8 +291,6 @@ class CharacterAvatarUploader:
         
         print(f"   📷 Found {len(all_images)} images")
         return all_images[:10]
-
-    
 
     def get_emoji_for_character(self, name, category):
         """Get appropriate emoji for character based on name and category"""
@@ -541,9 +542,9 @@ class CharacterAvatarUploader:
             print(f"   ❌ All images failed for {character['name']}")
             return False
 
-    def run(self, limit=20):
+    def run(self, limit=5):
         """Main execution - process both image and emoji characters"""
-        print("🚀 Character Avatar Uploader - FIXED VERSION")
+        print("🚀 Character Avatar Uploader - DEBUG VERSION")
         print(f"📊 Processing first {limit} characters without avatars")
         print("🖼️ Real characters: Google image search")
         print("😀 Fictional characters: Generate emoji avatars")
@@ -624,4 +625,4 @@ class CharacterAvatarUploader:
 
 if __name__ == "__main__":
     uploader = CharacterAvatarUploader()
-    uploader.run(limit=1000)  # Process veel meer characters (limit wordt niet meer gebruikt door break comment)
+    uploader.run(limit=5)  # Start met 5 characters voor debug
