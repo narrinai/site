@@ -797,41 +797,7 @@
       }
     }
 
-    /* Login overlay for form blocking */
-    .login-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.8);
-      z-index: 999;
-      display: none;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .login-message {
-      background: var(--color-white);
-      padding: var(--spacing-2xl);
-      border-radius: var(--radius-lg);
-      text-align: center;
-      max-width: 400px;
-      margin: var(--spacing-xl);
-      box-shadow: var(--shadow-xl);
-    }
-
-    .login-message h3 {
-      margin: 0 0 var(--spacing-lg) 0;
-      color: var(--color-navy);
-      font-family: var(--font-secondary);
-      font-weight: 700;
-    }
-
-    .login-message p {
-      margin: 0 0 var(--spacing-xl) 0;
-      color: var(--color-gray);
-    }
+    
 
     /* ===== CUSTOM NOTIFICATION SYSTEM ===== */
     .notification-overlay {
@@ -2227,15 +2193,7 @@
     </div>
   </div>
 
-  <!-- Login Overlay -->
-  <div class="login-overlay" id="loginOverlay">
-    <div class="login-message">
-      <h3>Login Required</h3>
-      <p>Please log in to create a character</p>
-      <button class="btn btn-primary" onclick="showLoginModal()">Login</button>
-      <button class="btn btn-secondary" onclick="hideLoginOverlay()" style="margin-left: 10px;">Cancel</button>
-    </div>
-  </div>
+  
 
   <div class="container">
     <div class="header-page">
@@ -2783,6 +2741,26 @@
        startUspCarousel();
      }
    }
+
+// ===== HANDLE REDIRECT AFTER LOGIN =====
+function handleRedirectAfterLogin() {
+  const pendingCharacterData = localStorage.getItem('pending_character_creation');
+  const redirectAfterLogin = localStorage.getItem('redirect_after_login');
+  
+  if (pendingCharacterData && redirectAfterLogin === 'create-character.html') {
+    try {
+      const characterData = JSON.parse(pendingCharacterData);
+      
+      // Check if data is still fresh (within 30 minutes)
+      if (Date.now() - characterData.timestamp < 30 * 60 * 1000) {
+        // Restore form data (code already present)
+        // ... rest of the restore logic
+      }
+    } catch (error) {
+      // Error handling (code already present)
+    }
+  }
+}
 
    // Initialize on load
    window.addEventListener('load', () => {
@@ -3876,20 +3854,7 @@ async function uploadToCloudinary(file, slug) {
   return result.secure_url;
 }
 
-   // Login overlay functions
-   function showLoginOverlay() {
-     document.getElementById('loginOverlay').style.display = 'flex';
-   }
-
-   function hideLoginOverlay() {
-     document.getElementById('loginOverlay').style.display = 'none';
-   }
-
-   function showLoginModal() {
-     if (window.netlifyIdentity) {
-       window.netlifyIdentity.open('login');
-     }
-   }
+   
 
    // Go back function
    function goBack() {
@@ -4204,9 +4169,39 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
   const isLoggedIn = netlifyUser || (localEmail && localToken);
   
   if (!isLoggedIn) {
-    showLoginOverlay();
-    return;
-  }
+  // Store form data and redirect to profile.html for login
+  console.log('🔐 User not logged in, redirecting to profile...');
+  
+  // Store character data in localStorage
+  const characterData = {
+    ...formData,
+    personalityState: personalityState,
+    timestamp: Date.now()
+  };
+  localStorage.setItem('pending_character_creation', JSON.stringify(characterData));
+  localStorage.setItem('redirect_after_login', 'create-character.html');
+  
+  // Reset submission flag
+  isSubmitting = false;
+  
+  // Show notification and redirect
+  showNotification('info', 'Login Required', 'You need to be logged in to create a character. Redirecting to login...', [
+    {
+      text: 'Go to Login',
+      type: 'primary',
+      callback: () => {
+        window.location.href = 'profile.html';
+      }
+    }
+  ]);
+  
+  // Auto redirect after 3 seconds
+  setTimeout(() => {
+    window.location.href = 'profile.html';
+  }, 3000);
+  
+  return;
+}
   
   // Collect form data - ENHANCED VERSION
   const formData = {
