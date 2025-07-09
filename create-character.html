@@ -5,53 +5,94 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Create AI Character | Custom Character Builder - Narrin AI</title>
   
-  <!-- FORCE HIDE ANY POPUPS IMMEDIATELY -->
+  <!-- FORCE DISABLE NETLIFY IDENTITY WIDGET -->
   <script>
-    console.log('🚫 EMERGENCY POPUP BLOCKER ACTIVE');
+    console.log('🚫 NETLIFY IDENTITY WIDGET KILLER ACTIVE');
     
-    // Run as soon as possible
-    function hideAllPopups() {
+    // Completely disable Netlify Identity widget
+    window.netlifyIdentity = {
+      init: () => false,
+      open: () => false,
+      close: () => false,
+      currentUser: () => null,
+      on: () => false,
+      off: () => false,
+      refresh: () => false,
+      gotrue: null
+    };
+    
+    // Block the script from loading
+    Object.defineProperty(window, 'netlifyIdentity', {
+      value: {
+        init: () => false,
+        open: () => false,
+        close: () => false,
+        currentUser: () => null,
+        on: () => false,
+        off: () => false
+      },
+      writable: false,
+      configurable: false
+    });
+    
+    // Remove any existing Netlify widgets
+    function destroyNetlifyWidgets() {
       const selectors = [
-        '#loginOverlay',
-        '.login-overlay',
-        '.modal',
-        '.popup',
-        '.overlay',
-        '[id*="login"][id*="overlay"]',
-        '[class*="login"][class*="overlay"]'
+        '.netlify-identity-widget',
+        '[data-netlify-identity-widget]',
+        '.netlify-identity-modal',
+        '[data-netlify-identity-modal]',
+        'iframe[src*="identity"]',
+        'div[data-netlify-identity]',
+        '#netlify-identity-widget'
       ];
       
       selectors.forEach(selector => {
-        try {
-          const elements = document.querySelectorAll(selector);
-          elements.forEach(el => {
-            if (el) {
-              el.style.display = 'none !important';
-              el.style.visibility = 'hidden !important';
-              el.style.opacity = '0 !important';
-              el.style.zIndex = '-9999 !important';
-              el.remove(); // Remove completely
-              console.log('🚫 REMOVED:', selector);
-            }
-          });
-        } catch (e) {
-          console.log('Error hiding:', selector, e);
-        }
+        const elements = document.querySelectorAll(selector);
+        elements.forEach(el => {
+          if (el) {
+            el.remove();
+            console.log('🚫 DESTROYED NETLIFY WIDGET:', selector);
+          }
+        });
       });
     }
     
-    // Run immediately
-    hideAllPopups();
+    // Run immediately and continuously
+    destroyNetlifyWidgets();
     
-    // Run on DOM ready
-    document.addEventListener('DOMContentLoaded', hideAllPopups);
+    // Observer to catch dynamically added widgets
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList') {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === 1) { // Element node
+              if (node.classList && (
+                node.classList.contains('netlify-identity-widget') ||
+                node.classList.contains('netlify-identity-modal') ||
+                node.hasAttribute('data-netlify-identity-widget')
+              )) {
+                node.remove();
+                console.log('🚫 INTERCEPTED AND DESTROYED NETLIFY WIDGET');
+              }
+            }
+          });
+        }
+      });
+    });
     
-    // Run continuously for first 5 seconds
+    // Start observing
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+    
+    // Run destroyer every 100ms for first 10 seconds
     let counter = 0;
     const interval = setInterval(() => {
-      hideAllPopups();
+      destroyNetlifyWidgets();
       counter++;
-      if (counter > 50) clearInterval(interval); // Stop after 5 seconds
+      if (counter > 100) clearInterval(interval);
     }, 100);
   </script>
   <meta name="description" content="Create your own AI character with custom personality, appearance, and behavior. Build unique AI companions for chat with our easy character creation tool.">
