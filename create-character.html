@@ -2948,6 +2948,24 @@
    let currentAvatarUrl = '';
    let pendingCharacterData = null;
    
+// Global slug generation function
+function generateUniqueSlug(text) {
+  // Simple slug without timestamp
+  const baseSlug = text
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '') // Only letters, numbers, spaces and hyphens
+    .replace(/\s+/g, '-')         // Spaces to hyphens
+    .replace(/-+/g, '-')          // Multiple hyphens to one
+    .replace(/^-|-$/g, '')        // Remove start/end hyphens
+    .substring(0, 30);            // Limit to 30 characters
+  
+  // Add short random string for uniqueness
+  const random = Math.random().toString(36).substring(2, 6); // 4 characters
+  
+  return `${baseSlug}-${random}`;
+}
+
 // VOLLEDIG NETLIFY IDENTITY UITSCHAKELEN
 window.addEventListener('DOMContentLoaded', () => {
   // Disable all Netlify Identity functionality
@@ -4117,24 +4135,6 @@ function debugUserData() {
   };
 }
 
-// ===== ENHANCED SLUG GENERATION WITH UNIQUENESS =====
-// Vervang de bestaande generateUniqueSlug functie met:
-function generateUniqueSlug(text) {
-  // Simpelere slug zonder timestamp
-  const baseSlug = text
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9\s-]/g, '') // Alleen letters, cijfers, spaties en hyphens
-    .replace(/\s+/g, '-')         // Spaties naar hyphens
-    .replace(/-+/g, '-')          // Meerdere hyphens naar één
-    .replace(/^-|-$/g, '')        // Verwijder begin/eind hyphens
-    .substring(0, 30);            // Beperk tot 30 karakters
-  
-  // Voeg alleen een korte random string toe voor uniekheid
-  const random = Math.random().toString(36).substring(2, 6); // 4 karakters
-  
-  return `${baseSlug}-${random}`;
-}
 
    // ===== CHARACTER FORM FUNCTIONALITY =====
    
@@ -4945,8 +4945,8 @@ async function createCharacter(formData) {
     }
     
     // Generate slug from character name
-const slug = generateUniqueSlug(formData.name);    
-console.log('🔗 Generated slug:', slug);
+    const slug = generateUniqueSlug(formData.name);    
+    console.log('🔗 Generated slug:', slug);
 
     const requestData = {
       action: 'create_character',
