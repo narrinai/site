@@ -3425,52 +3425,74 @@ function setupNavigationClickHandlers() {
    }
 
    // Setup personality trait buttons - FIXED
-   function setupPersonalityButtons() {
+   // Setup personality trait buttons - FIXED
+// Setup personality trait buttons - FIXED VERSION
+function setupPersonalityButtons() {
   console.log('🎨 Setting up personality buttons...');
   
-  // Wacht tot DOM geladen is
+  // Wait for DOM to be fully ready
   setTimeout(() => {
     // Personality traits (max 5)
     const traitButtons = document.querySelectorAll('#personalityTraits .personality-button');
     console.log('📊 Found trait buttons:', traitButtons.length);
+    
     traitButtons.forEach(button => {
-      button.addEventListener('click', (e) => {
+      // Remove any existing click handlers
+      button.onclick = null;
+      
+      button.addEventListener('click', function(e) {
         e.preventDefault();
-        const trait = button.getAttribute('data-trait');
-        toggleArraySelection(personalityState.traits, trait, 5, button, 'traitsCounter', 'traits');
+        e.stopPropagation();
+        console.log('🎯 Trait button clicked:', this.getAttribute('data-trait'));
+        const trait = this.getAttribute('data-trait');
+        toggleArraySelection(personalityState.traits, trait, 5, this, 'traitsCounter', 'traits');
       });
     });
 
     // Speaking patterns (max 3)
     const speakingButtons = document.querySelectorAll('#speakingPattern .personality-button');
     speakingButtons.forEach(button => {
-      button.addEventListener('click', (e) => {
+      button.onclick = null;
+      
+      button.addEventListener('click', function(e) {
         e.preventDefault();
-        const pattern = button.getAttribute('data-pattern');
-        toggleArraySelection(personalityState.speaking, pattern, 3, button, 'speakingCounter', 'speaking patterns');
+        e.stopPropagation();
+        console.log('🗣️ Speaking button clicked:', this.getAttribute('data-pattern'));
+        const pattern = this.getAttribute('data-pattern');
+        toggleArraySelection(personalityState.speaking, pattern, 3, this, 'speakingCounter', 'speaking patterns');
       });
     });
 
     // Bonding approach (max 2)
     const bondingButtons = document.querySelectorAll('#bondingApproach .personality-button');
     bondingButtons.forEach(button => {
-      button.addEventListener('click', (e) => {
+      button.onclick = null;
+      
+      button.addEventListener('click', function(e) {
         e.preventDefault();
-        const bonding = button.getAttribute('data-bonding');
-        toggleArraySelection(personalityState.bonding, bonding, 2, button, 'bondingCounter', 'bonding approaches');
+        e.stopPropagation();
+        console.log('🤝 Bonding button clicked:', this.getAttribute('data-bonding'));
+        const bonding = this.getAttribute('data-bonding');
+        toggleArraySelection(personalityState.bonding, bonding, 2, this, 'bondingCounter', 'bonding approaches');
       });
     });
 
     // Personality quirks (no max)
     const quirkButtons = document.querySelectorAll('#personalityQuirks .personality-button');
     quirkButtons.forEach(button => {
-      button.addEventListener('click', (e) => {
+      button.onclick = null;
+      
+      button.addEventListener('click', function(e) {
         e.preventDefault();
-        const quirk = button.getAttribute('data-quirk');
-        toggleArraySelection(personalityState.quirks, quirk, Infinity, button, null, 'quirks');
+        e.stopPropagation();
+        console.log('✨ Quirk button clicked:', this.getAttribute('data-quirk'));
+        const quirk = this.getAttribute('data-quirk');
+        toggleArraySelection(personalityState.quirks, quirk, 99, this, null, 'quirks');
       });
     });
-  }, 100);
+    
+    console.log('✅ All personality buttons setup complete');
+  }, 300); // Slightly longer timeout to ensure DOM is ready
 }
      console.log('🎨 Setting up personality buttons...');
      
@@ -3516,35 +3538,42 @@ toggleArraySelection(personalityState.quirks, quirk, Infinity, button, null, 'qu
    
 
    // Toggle selection in array with max limit - FIXED
-   function toggleArraySelection(array, item, maxLimit, buttonElement, counterId = null, labelSuffix = '') {
-     const index = array.indexOf(item);
-     
-     if (index > -1) {
-       // Remove item
-       array.splice(index, 1);
-       buttonElement.classList.remove('selected');
-     } else {
-       // Add item if under limit
-       if (array.length < maxLimit) {
-         array.push(item);
-         buttonElement.classList.add('selected');
-       } else {
-         showWarning(`You can select up to ${maxLimit} ${labelSuffix} maximum.`, 'Selection Limit');
-         return;
-       }
-     }
-     
-     // Update counter
-     if (counterId) {
-       const counter = document.getElementById(counterId);
-       if (counter) {
-         counter.textContent = `${array.length}/${maxLimit}`;
-         counter.className = array.length >= maxLimit ? 'counter-full' : '';
-       }
-     }
-     
-     generatePrompt();
-   }
+   // Toggle selection in array with max limit - FIXED
+function toggleArraySelection(array, item, maxLimit, buttonElement, counterId = null, labelSuffix = '') {
+  console.log('🔄 Toggle called:', { item, currentArray: array, maxLimit });
+  
+  const index = array.indexOf(item);
+  
+  if (index > -1) {
+    // Remove item
+    array.splice(index, 1);
+    buttonElement.classList.remove('selected');
+    console.log('➖ Removed:', item);
+  } else {
+    // Add item if under limit
+    if (array.length < maxLimit) {
+      array.push(item);
+      buttonElement.classList.add('selected');
+      console.log('➕ Added:', item);
+    } else {
+      console.log('🚫 Limit reached for:', labelSuffix);
+      showWarning(`You can select up to ${maxLimit} ${labelSuffix} maximum.`, 'Selection Limit');
+      return;
+    }
+  }
+  
+  // Update counter
+  if (counterId) {
+    const counter = document.getElementById(counterId);
+    if (counter) {
+      counter.textContent = `Select ${array.length}-${maxLimit} ${labelSuffix}`;
+      counter.className = array.length >= maxLimit ? 'selection-counter at-limit' : 'selection-counter';
+    }
+  }
+  
+  console.log('🔄 Array after toggle:', array);
+  generatePrompt();
+}
 
    // Setup custom quirks
    function setupCustomQuirks() {

@@ -289,19 +289,7 @@ class CharacterAvatarUploader:
         print(f"   📷 Found {len(all_images)} images")
         return all_images[:10]
 
-    def generate_emoji_avatar(self, character_name, category):
-        """Generate emoji avatar SVG for fictional characters"""
-        emoji = self.get_emoji_for_character(character_name, category)
-        
-        # Create SVG with emoji
-        svg = f'''<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
-          <rect width="512" height="512" rx="256" fill="#f0f0f0"/>
-          <text x="256" y="320" font-size="240" text-anchor="middle" font-family="system-ui">{emoji}</text>
-        </svg>'''
-        
-        # Convert to data URL
-        import urllib.parse
-        return f"data:image/svg+xml,{urllib.parse.quote(svg)}"
+    
 
     def get_emoji_for_character(self, name, category):
         """Get appropriate emoji for character based on name and category"""
