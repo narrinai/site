@@ -4,97 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Create AI Character | Custom Character Builder - Narrin AI</title>
-  
-  <!-- FORCE DISABLE NETLIFY IDENTITY WIDGET -->
-  <script>
-    console.log('🚫 NETLIFY IDENTITY WIDGET KILLER ACTIVE');
-    
-    // Completely disable Netlify Identity widget
-    window.netlifyIdentity = {
-      init: () => false,
-      open: () => false,
-      close: () => false,
-      currentUser: () => null,
-      on: () => false,
-      off: () => false,
-      refresh: () => false,
-      gotrue: null
-    };
-    
-    // Block the script from loading
-    Object.defineProperty(window, 'netlifyIdentity', {
-      value: {
-        init: () => false,
-        open: () => false,
-        close: () => false,
-        currentUser: () => null,
-        on: () => false,
-        off: () => false
-      },
-      writable: false,
-      configurable: false
-    });
-    
-    // Remove any existing Netlify widgets
-    function destroyNetlifyWidgets() {
-      const selectors = [
-        '.netlify-identity-widget',
-        '[data-netlify-identity-widget]',
-        '.netlify-identity-modal',
-        '[data-netlify-identity-modal]',
-        'iframe[src*="identity"]',
-        'div[data-netlify-identity]',
-        '#netlify-identity-widget'
-      ];
-      
-      selectors.forEach(selector => {
-        const elements = document.querySelectorAll(selector);
-        elements.forEach(el => {
-          if (el) {
-            el.remove();
-            console.log('🚫 DESTROYED NETLIFY WIDGET:', selector);
-          }
-        });
-      });
-    }
-    
-    // Run immediately and continuously
-    destroyNetlifyWidgets();
-    
-    // Observer to catch dynamically added widgets
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.type === 'childList') {
-          mutation.addedNodes.forEach((node) => {
-            if (node.nodeType === 1) { // Element node
-              if (node.classList && (
-                node.classList.contains('netlify-identity-widget') ||
-                node.classList.contains('netlify-identity-modal') ||
-                node.hasAttribute('data-netlify-identity-widget')
-              )) {
-                node.remove();
-                console.log('🚫 INTERCEPTED AND DESTROYED NETLIFY WIDGET');
-              }
-            }
-          });
-        }
-      });
-    });
-    
-    // Start observing
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true
-    });
-    
-    // Run destroyer every 100ms for first 10 seconds
-    let counter = 0;
-    const interval = setInterval(() => {
-      destroyNetlifyWidgets();
-      counter++;
-      if (counter > 100) clearInterval(interval);
-    }, 100);
-  </script>
   <meta name="description" content="Create your own AI character with custom personality, appearance, and behavior. Build unique AI companions for chat with our easy character creation tool.">
   
   <!-- Favicon -->
@@ -104,8 +13,8 @@
   <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
   
-  <!-- Netlify Identity Widget - DISABLED for create-character page -->
-<!-- <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script> -->
+  <!-- Netlify Identity Widget -->
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
   
   <!-- Import Modern Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -113,38 +22,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   
   <style>
-    /* FORCE HIDE ALL POSSIBLE POPUPS */
-    .netlify-identity-widget,
-    [data-netlify-identity-widget],
-    .netlify-identity-modal,
-    [data-netlify-identity-modal],
-    .modal,
-    .popup,
-    .overlay,
-    .login-overlay,
-    #loginOverlay,
-    div[style*="position: fixed"],
-    div[style*="position: absolute"],
-    iframe[src*="identity"],
-    div[data-netlify-identity] {
-      display: none !important;
-      visibility: hidden !important;
-      opacity: 0 !important;
-      z-index: -9999 !important;
-      pointer-events: none !important;
-      position: absolute !important;
-      top: -9999px !important;
-      left: -9999px !important;
-      width: 0 !important;
-      height: 0 !important;
-    }
-    
-    /* Hide any fixed/absolute positioned elements that might be popups */
-    body > div[style*="position: fixed"],
-    body > div[style*="position: absolute"] {
-      display: none !important;
-    }
-    
     /* ===== CSS CUSTOM PROPERTIES ===== */
     :root {
       /* Primary Colors */
@@ -929,7 +806,7 @@
       height: 100%;
       background: rgba(0, 0, 0, 0.8);
       z-index: 999;
-      display: none; /* Hidden by default */
+      display: none;
       align-items: center;
       justify-content: center;
     }
@@ -2339,9 +2216,26 @@
   </div>
 
   <!-- Custom Notification System -->
-  <!-- Notification overlay REMOVED to prevent popups -->
+  <div class="notification-overlay" id="notificationOverlay">
+    <div class="notification-modal">
+      <span class="notification-icon" id="notificationIcon">✓</span>
+      <h3 class="notification-title" id="notificationTitle">Success</h3>
+      <p class="notification-message" id="notificationMessage">Operation completed successfully!</p>
+      <div class="notification-buttons" id="notificationButtons">
+        <button class="notification-btn primary" id="notificationOkBtn">OK</button>
+      </div>
+    </div>
+  </div>
 
-  <!-- Login Overlay REMOVED - Using direct redirect instead -->
+  <!-- Login Overlay -->
+  <div class="login-overlay" id="loginOverlay">
+    <div class="login-message">
+      <h3>Login Required</h3>
+      <p>Please log in to create a character</p>
+      <button class="btn btn-primary" onclick="showLoginModal()">Login</button>
+      <button class="btn btn-secondary" onclick="hideLoginOverlay()" style="margin-left: 10px;">Cancel</button>
+    </div>
+  </div>
 
   <div class="container">
     <div class="header-page">
@@ -2724,57 +2618,6 @@
    let currentAvatarUrl = '';
    let pendingCharacterData = null;
    
-// VOLLEDIG NETLIFY IDENTITY UITSCHAKELEN
-window.addEventListener('DOMContentLoaded', () => {
-  // Disable all Netlify Identity functionality
-  if (window.netlifyIdentity) {
-    // Override alle methods
-    window.netlifyIdentity.open = () => {
-      console.log('🚫 Netlify Identity popup geblokkeerd');
-      return false;
-    };
-    
-    window.netlifyIdentity.init = () => {
-      console.log('🚫 Netlify Identity init geblokkeerd');
-      return false;
-    };
-    
-    // Close any existing popups
-    try {
-      window.netlifyIdentity.close();
-    } catch (e) {
-      console.log('Netlify popup was al gesloten');
-    }
-    
-    // Remove event listeners
-    window.netlifyIdentity.off('login');
-    window.netlifyIdentity.off('logout');
-    window.netlifyIdentity.off('init');
-  }
-});
-
-// Block Netlify widget loading
-const netlifyScript = document.querySelector('script[src*="netlify-identity-widget"]');
-if (netlifyScript) {
-  netlifyScript.remove();
-  console.log('🚫 Netlify Identity script verwijderd');
-}
-   
-// Disable Netlify Identity automatic popup
-if (window.netlifyIdentity) {
-  window.netlifyIdentity.on('init', user => {
-    // Don't automatically open login
-  });
-}
-
-// Override any automatic Netlify login triggers
-window.addEventListener('DOMContentLoaded', () => {
-  // Prevent automatic Netlify popup
-  if (window.netlifyIdentity) {
-    window.netlifyIdentity.close();
-  }
-});
-
    // Personality builder state
    let personalityState = {
      sliders: {
@@ -3016,57 +2859,55 @@ window.addEventListener('DOMContentLoaded', () => {
    }
 
    // Enhanced click handler for navigation links
-function setupNavigationClickHandlers() {
-  const loginBtn = document.getElementById('loginBtn');
-  const mobileLoginBtn = document.getElementById('mobileLoginBtn');
-  
-  // Desktop login button click handler
-  if (loginBtn) {
-    loginBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      
-      const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
-      const localEmail = localStorage.getItem("user_email");
-      const localToken = localStorage.getItem("user_token");
-      const isLoggedIn = netlifyUser || (localEmail && localToken);
-      
-      if (isLoggedIn) {
-        // User is logged in, go directly to profile page
-        window.location.href = 'profile.html';
-      } else {
-        // User not logged in - save form data and redirect to profile
-        saveFormDataToStorage();
-        localStorage.setItem('login_redirect_url', window.location.href);
-        window.location.href = 'profile.html';
-      }
-    });
-  }
-  
-  // Mobile login button click handler
-  if (mobileLoginBtn) {
-    mobileLoginBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      
-      const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
-      const localEmail = localStorage.getItem("user_email");
-      const localToken = localStorage.getItem("user_token");
-      const isLoggedIn = netlifyUser || (localEmail && localToken);
-      
-      if (isLoggedIn) {
-        // User is logged in, go directly to profile page
-        window.location.href = 'profile.html';
-      } else {
-        // User not logged in - save form data and redirect to profile
-        saveFormDataToStorage();
-        localStorage.setItem('login_redirect_url', window.location.href);
-        window.location.href = 'profile.html';
-      }
-      
-      // Close mobile menu after click
-      closeMobileMenu();
-    });
-  }
-}
+   function setupNavigationClickHandlers() {
+     const loginBtn = document.getElementById('loginBtn');
+     const mobileLoginBtn = document.getElementById('mobileLoginBtn');
+     
+     // Desktop login button click handler
+     if (loginBtn) {
+       loginBtn.addEventListener('click', (e) => {
+         e.preventDefault();
+         
+         const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+         const localEmail = localStorage.getItem("user_email");
+         const localToken = localStorage.getItem("user_token");
+         const isLoggedIn = netlifyUser || (localEmail && localToken);
+         
+         if (isLoggedIn) {
+           // User is logged in, go directly to profile page
+           window.location.href = 'profile.html';
+         } else {
+           // User not logged in, store current page for redirect and open login
+           localStorage.setItem('login_redirect_url', window.location.href);
+           openLogin();
+         }
+       });
+     }
+     
+     // Mobile login button click handler
+     if (mobileLoginBtn) {
+       mobileLoginBtn.addEventListener('click', (e) => {
+         e.preventDefault();
+         
+         const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+         const localEmail = localStorage.getItem("user_email");
+         const localToken = localStorage.getItem("user_token");
+         const isLoggedIn = netlifyUser || (localEmail && localToken);
+         
+         if (isLoggedIn) {
+           // User is logged in, go directly to profile page
+           window.location.href = 'profile.html';
+         } else {
+           // User not logged in, store current page for redirect and open login
+           localStorage.setItem('login_redirect_url', window.location.href);
+           openLogin();
+         }
+         
+         // Close mobile menu after click
+         closeMobileMenu();
+       });
+     }
+   }
 
    // Function to open login modal
    function openLogin() {
@@ -3104,18 +2945,6 @@ function setupNavigationClickHandlers() {
 
    // ===== CUSTOM NOTIFICATION SYSTEM =====
    function showNotification(type, title, message, buttons = null) {
-     console.log('🚫 NOTIFICATION BLOCKED:', type, title, message);
-     
-     // If this is a login-related notification, redirect instead
-     if (title && (title.includes('Login') || title.includes('Required') || title.includes('Auth'))) {
-       console.log('🚫 LOGIN NOTIFICATION BLOCKED - REDIRECTING');
-       window.location.href = 'profile.html';
-       return;
-     }
-     
-     // Block all notifications for now
-     return;
-     
      const overlay = document.getElementById('notificationOverlay');
      const icon = document.getElementById('notificationIcon');
      const titleEl = document.getElementById('notificationTitle');
@@ -4049,215 +3878,18 @@ async function uploadToCloudinary(file, slug) {
 
    // Login overlay functions
    function showLoginOverlay() {
-     // Don't show overlay - redirect directly to profile
-     console.log('⚠️ showLoginOverlay called - redirecting to profile instead');
-     saveFormDataToStorage();
-     localStorage.setItem('login_redirect_url', window.location.href);
-     window.location.href = 'profile.html';
+     document.getElementById('loginOverlay').style.display = 'flex';
    }
 
    function hideLoginOverlay() {
-     // Overlay removed - no need to hide
-     console.log('hideLoginOverlay called but overlay is removed');
+     document.getElementById('loginOverlay').style.display = 'none';
    }
 
    function showLoginModal() {
-  // Save form data before redirecting
-  saveFormDataToStorage();
-  localStorage.setItem('login_redirect_url', window.location.href);
-  
-  // Hide overlay and redirect to profile
-  hideLoginOverlay();
-  
-  // Force redirect to profile page
-  setTimeout(() => {
-    window.location.href = 'profile.html';
-  }, 100);
-}
-
-// Verbeterde redirectToProfile functie
-function redirectToProfile() {
-  console.log('🔄 Redirecting to profile page...');
-  
-  // Save form data before redirecting
-  try {
-    saveFormDataToStorage();
-    localStorage.setItem('login_redirect_url', window.location.href);
-    console.log('✅ Form data saved and redirect URL set');
-  } catch (error) {
-    console.error('❌ Error saving form data:', error);
-  }
-  
-  // Hide overlay immediately
-  hideLoginOverlay();
-  
-  // Force redirect after small delay
-  setTimeout(() => {
-    window.location.href = 'profile.html';
-  }, 100);
-}
-
-// Verbeterde hideLoginOverlay functie
-function hideLoginOverlay() {
-  const overlay = document.getElementById('loginOverlay');
-  if (overlay) {
-    overlay.style.display = 'none';
-    console.log('✅ Login overlay hidden');
-  }
-}
-
-// Removed duplicate showLoginOverlay function - using the one above
-
-// Save form data to localStorage
-function saveFormDataToStorage() {
-  const formData = {
-    characterName: document.getElementById('characterName').value,
-    characterTitle: document.getElementById('characterTitle').value,
-    characterDescription: document.getElementById('characterDescription').value,
-    characterPrompt: document.getElementById('characterPrompt').value,
-    characterCategory: document.getElementById('characterCategory').value,
-    selectedTags: selectedTags,
-    currentAvatarUrl: currentAvatarUrl,
-    personalityState: personalityState,
-    visibility: document.querySelector('input[name="visibility"]:checked')?.value || 'public',
-    timestamp: Date.now()
-  };
-  
-  try {
-    localStorage.setItem('create_character_draft', JSON.stringify(formData));
-    console.log('✅ Form data saved to localStorage');
-  } catch (e) {
-    console.error('❌ Failed to save form data:', e);
-  }
-}
-
-// Restore form data from localStorage
-function restoreFormDataFromStorage() {
-  try {
-    const savedData = localStorage.getItem('create_character_draft');
-    if (!savedData) return;
-    
-    const formData = JSON.parse(savedData);
-    
-    // Check if data is not too old (24 hours)
-    const maxAge = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-    if (Date.now() - formData.timestamp > maxAge) {
-      localStorage.removeItem('create_character_draft');
-      return;
-    }
-    
-    // Restore form fields
-    if (formData.characterName) {
-      document.getElementById('characterName').value = formData.characterName;
-    }
-    if (formData.characterTitle) {
-      document.getElementById('characterTitle').value = formData.characterTitle;
-    }
-    if (formData.characterDescription) {
-      document.getElementById('characterDescription').value = formData.characterDescription;
-    }
-    if (formData.characterPrompt) {
-      document.getElementById('characterPrompt').value = formData.characterPrompt;
-    }
-    if (formData.characterCategory) {
-      document.getElementById('characterCategory').value = formData.characterCategory;
-    }
-    
-    // Restore tags
-    if (formData.selectedTags && Array.isArray(formData.selectedTags)) {
-      selectedTags = formData.selectedTags;
-      updateTagsPreview();
-    }
-    
-    // Restore avatar
-    if (formData.currentAvatarUrl) {
-      currentAvatarUrl = formData.currentAvatarUrl;
-      const avatarImg = document.getElementById('avatarImg');
-      const avatarPreview = document.getElementById('avatarPreview');
-      if (avatarImg && avatarPreview) {
-        avatarImg.src = currentAvatarUrl;
-        avatarPreview.style.display = 'block';
-      }
-    }
-    
-    // Restore personality state
-    if (formData.personalityState) {
-      personalityState = formData.personalityState;
-      restorePersonalityState();
-    }
-    
-    // Restore visibility
-    if (formData.visibility) {
-      const visibilityRadio = document.querySelector(`input[name="visibility"][value="${formData.visibility}"]`);
-      if (visibilityRadio) {
-        visibilityRadio.checked = true;
-        selectVisibility(formData.visibility);
-      }
-    }
-    
-    // Update counters and preview
-    setupCharacterCounters();
-    updatePreview();
-    generatePrompt();
-    
-    // Show notification about restored data
-    setTimeout(() => {
-      showSuccess('Je formuliergegevens zijn hersteld van je vorige sessie!', 'Gegevens Hersteld');
-    }, 1000);
-    
-    console.log('✅ Form data restored from localStorage');
-    
-    // Clear the saved data after successful restore
-    localStorage.removeItem('create_character_draft');
-    
-  } catch (e) {
-    console.error('❌ Failed to restore form data:', e);
-    localStorage.removeItem('create_character_draft');
-  }
-}
-
-// Restore personality state from saved data
-function restorePersonalityState() {
-  // Restore sliders
-  Object.keys(personalityState.sliders).forEach(key => {
-    const slider = document.querySelector(`[data-trait="${key}"], [data-response="${key}"]`);
-    if (slider) {
-      slider.value = personalityState.sliders[key];
-    }
-  });
-  
-  // Restore selected traits
-  personalityState.traits.forEach(trait => {
-    const button = document.querySelector(`#personalityTraits [data-trait="${trait}"]`);
-    if (button) {
-      button.classList.add('selected');
-    }
-  });
-  
-  // Restore speaking patterns
-  personalityState.speaking.forEach(pattern => {
-    const button = document.querySelector(`#speakingPattern [data-pattern="${pattern}"]`);
-    if (button) {
-      button.classList.add('selected');
-    }
-  });
-  
-  // Restore bonding approaches
-  personalityState.bonding.forEach(bonding => {
-    const button = document.querySelector(`#bondingApproach [data-bonding="${bonding}"]`);
-    if (button) {
-      button.classList.add('selected');
-    }
-  });
-  
-  // Restore quirks
-  personalityState.quirks.forEach(quirk => {
-    const button = document.querySelector(`#personalityQuirks [data-quirk="${quirk}"]`);
-    if (button) {
-      button.classList.add('selected');
-    }
-  });
-}
+     if (window.netlifyIdentity) {
+       window.netlifyIdentity.open('login');
+     }
+   }
 
    // Go back function
    function goBack() {
@@ -4373,11 +4005,6 @@ document.addEventListener('DOMContentLoaded', () => {
   setupPromptActions();
   loadTags();
   
-  // Check for saved form data and restore if found
-  setTimeout(() => {
-    restoreFormDataFromStorage();
-  }, 500);
-  
   // Initialize preview
   updatePreview();
   
@@ -4399,20 +4026,13 @@ document.addEventListener('DOMContentLoaded', () => {
      }
      
      if (!data.prompt) {
-  showError('Character prompt is required', 'Validation Error');
-  generatePrompt(); // Try to generate one
-  
-  // Wait a moment for prompt generation
-  setTimeout(() => {
-    const promptField = document.getElementById('characterPrompt');
-    if (!promptField || !promptField.value.trim()) {
-      showError('Please create a character prompt by selecting personality traits or editing manually', 'Validation Error');
-      return false;
-    }
-  }, 100);
-  
-  return false; // Stop validation here
-}
+       showError('Character prompt is required', 'Validation Error');
+       generatePrompt(); // Try to generate one
+       if (!document.getElementById('characterPrompt').value.trim()) {
+         showError('Please create a character prompt by selecting personality traits or editing manually', 'Validation Error');
+         return false;
+       }
+     }
      
      if (!data.category) {
        showError('Please select a category', 'Validation Error');
@@ -4566,9 +4186,6 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
   e.preventDefault();
   console.log('🚀 Form submission started...');
   
-// NIEUWE REGEL - Hide login overlay immediately if it's showing
-  hideLoginOverlay();
-
   // Prevent double submission
   if (isSubmitting) {
     console.log('⚠️ Form already being submitted, ignoring...');
@@ -4581,44 +4198,15 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
   formHasUnsavedChanges = false; // Clear unsaved changes flag
 
   // Check if user is logged in
-const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
-const localEmail = localStorage.getItem("user_email");
-const localToken = localStorage.getItem("user_token");
-const isLoggedIn = netlifyUser || (localEmail && localToken);
-
-console.log('🔍 Login check:', { netlifyUser, localEmail, localToken, isLoggedIn });
-
-if (!isLoggedIn) {
-  console.log('❌ User not logged in, redirecting to profile');
+  const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+  const localEmail = localStorage.getItem("user_email");
+  const localToken = localStorage.getItem("user_token");
+  const isLoggedIn = netlifyUser || (localEmail && localToken);
   
-  // FORCE HIDE ALL POSSIBLE POPUPS IMMEDIATELY
-  const allElements = document.querySelectorAll('*');
-  allElements.forEach(el => {
-    if (el && el.style) {
-      const computedStyle = getComputedStyle(el);
-      const rect = el.getBoundingClientRect();
-      
-      // If element is positioned fixed/absolute and covers significant area, hide it
-      if ((computedStyle.position === 'fixed' || computedStyle.position === 'absolute') &&
-          (rect.width > 200 && rect.height > 100)) {
-        el.style.display = 'none';
-        el.remove();
-        console.log('🚫 REMOVED SUSPICIOUS POPUP ELEMENT');
-      }
-    }
-  });
-  
-  saveFormDataToStorage();
-  localStorage.setItem('login_redirect_url', window.location.href);
-  isSubmitting = false; // Reset flag
-  isFormSubmitting = false; // Reset form flag
-  
-  // IMMEDIATE redirect - NO DELAY
-  window.location.href = 'profile.html';
-  return;
-}
-
-console.log('✅ User is logged in, proceeding with form submission');
+  if (!isLoggedIn) {
+    showLoginOverlay();
+    return;
+  }
   
   // Collect form data - ENHANCED VERSION
   const formData = {
@@ -4829,19 +4417,9 @@ function trackFormChanges() {
   formElements.forEach(element => {
     element.addEventListener('change', () => {
       formHasUnsavedChanges = true;
-      // Auto-save draft every few seconds when there are changes
-      clearTimeout(window.autoSaveTimeout);
-      window.autoSaveTimeout = setTimeout(() => {
-        saveFormDataToStorage();
-      }, 3000); // Save after 3 seconds of inactivity
     });
     element.addEventListener('input', () => {
       formHasUnsavedChanges = true;
-      // Auto-save draft every few seconds when there are changes
-      clearTimeout(window.autoSaveTimeout);
-      window.autoSaveTimeout = setTimeout(() => {
-        saveFormDataToStorage();
-      }, 3000); // Save after 3 seconds of inactivity
     });
   });
 }
@@ -4859,78 +4437,7 @@ window.addEventListener('beforeunload', (e) => {
 // Initialize form change tracking
 document.addEventListener('DOMContentLoaded', () => {
   trackFormChanges();
-  
-  // NUCLEAR OPTION: Replace form submit handler
-  const form = document.getElementById('characterForm');
-  if (form) {
-    // Remove all existing event listeners
-    const newForm = form.cloneNode(true);
-    form.parentNode.replaceChild(newForm, form);
-    
-    // Add simple redirect handler
-    newForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      console.log('🚀 NUCLEAR REDIRECT ACTIVATED');
-      
-      // Check if logged in
-      const localEmail = localStorage.getItem("user_email");
-      const localToken = localStorage.getItem("user_token");
-      
-      if (!localEmail || !localToken) {
-        // Save form data and redirect
-        saveFormDataToStorage();
-        localStorage.setItem('login_redirect_url', window.location.href);
-        window.location.href = 'profile.html';
-        return;
-      }
-      
-      // User is logged in, show success message
-      alert('User is logged in! Character creation would proceed here.');
-    });
-  }
-  
-  // Check if user is returning from login and restore form data
-  setTimeout(() => {
-    checkForLoginReturn();
-  }, 1000);
 });
-
-// Check if user is returning from login and restore data
-function checkForLoginReturn() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const returningFromLogin = urlParams.get('from') === 'login' || document.referrer.includes('profile.html');
-  
-  if (returningFromLogin || localStorage.getItem('create_character_draft')) {
-    console.log('🔄 User returning from login, checking for saved data...');
-    restoreFormDataFromStorage();
-    
-    // Show success message if user just logged in
-    if (returningFromLogin) {
-      setTimeout(() => {
-        showSuccess('Welcome back! Your character data has been restored. You can now create your character.', 'Login Successful');
-      }, 500);
-    }
-  }
-}
-
-// Quick fix for login button
-function redirectToProfile() {
-  console.log('🔄 Redirecting to profile page...');
-  
-  // Save form data before redirecting
-  if (typeof saveFormDataToStorage === 'function') {
-    saveFormDataToStorage();
-  }
-  localStorage.setItem('login_redirect_url', window.location.href);
-  
-  // Hide overlay and redirect
-  if (typeof hideLoginOverlay === 'function') {
-    hideLoginOverlay();
-  }
-  
-  // Force redirect
-  window.location.href = 'profile.html';
-}
 
  </script>
 
