@@ -4260,14 +4260,29 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
   const isLoggedIn = netlifyUser || (localEmail && localToken);
   
   if (!isLoggedIn) {
+  // First collect form data
+  const tempFormData = {
+    name: document.getElementById('characterName').value.trim(),
+    title: document.getElementById('characterTitle').value.trim(), 
+    description: document.getElementById('characterDescription').value.trim(),
+    prompt: document.getElementById('characterPrompt').value.trim(),
+    category: document.getElementById('characterCategory').value,
+    tags: selectedTags,
+    visibility: document.querySelector('input[name="visibility"]:checked').value,
+    avatarUrl: currentAvatarUrl
+  };
+  
   // Store character data before showing login
   const characterData = {
-    ...formData,
+    ...tempFormData,
     personalityState: personalityState,
     timestamp: Date.now()
   };
   localStorage.setItem('pending_character_creation', JSON.stringify(characterData));
   localStorage.setItem('redirect_after_login', 'create-character.html');
+  
+  // Reset submission flag
+  isSubmitting = false;
   
   showLoginOverlay();
   return;
