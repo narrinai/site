@@ -1,420 +1,654 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Password Recovery - Narrin AI</title>
-  
-  <!-- Netlify Identity Widget -->
-  <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-  <script>
-    if (window.netlifyIdentity) {
-      window.netlifyIdentity.init({
-        theme: 'custom',
-        colors: {
-          primary: '#14b8a6',
-          secondary: '#f97316'
-        },
-        logo: false,
-        locale: 'en'
-      });
-    }
-  </script>
-  
-  <!-- Favicon -->
-  <link rel="icon" type="image/x-icon" href="/favicon.ico">
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-  
-  <!-- Import Modern Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wachtwoord Reset - Narrin AI</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    
+    <!-- Import Modern Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <style>
-    /* ===== CSS CUSTOM PROPERTIES ===== */
-    :root {
-      /* Primary Colors */
-      --color-white: #ffffff;
-      --color-off-white: #fafafa;
-      --color-light-gray: #f5f5f5;
-      
-      /* Accent Colors */
-      --color-teal: #14b8a6;
-      --color-teal-light: #5eead4;
-      --color-teal-dark: #0f766e;
-      --color-coral: #f97316;
-      --color-coral-light: #fb923c;
-      --color-coral-dark: #ea580c;
-      
-      /* Supporting Colors */
-      --color-navy: #1e293b;
-      --color-navy-light: #334155;
-      --color-gray: #64748b;
-      --color-gray-light: #94a3b8;
-      
-      /* Spacing */
-      --spacing-xs: 0.25rem;
-      --spacing-sm: 0.5rem;
-      --spacing-md: 1rem;
-      --spacing-lg: 1.5rem;
-      --spacing-xl: 2rem;
-      --spacing-2xl: 3rem;
-      
-      /* Border Radius */
-      --radius-sm: 0.375rem;
-      --radius-md: 0.5rem;
-      --radius-lg: 0.75rem;
-      --radius-xl: 1rem;
-      --radius-full: 9999px;
-      
-      /* Shadows */
-      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-      
-      /* Typography */
-      --font-heading: 'Outfit', system-ui, -apple-system, sans-serif;
-      --font-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-      
-      /* Transitions */
-      --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-      --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
-      --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
-    }
+    <style>
+        /* ===== CSS CUSTOM PROPERTIES ===== */
+        :root {
+            /* Primary Colors */
+            --color-white: #ffffff;
+            --color-off-white: #fafafa;
+            --color-light-gray: #f5f5f5;
+            
+            /* Accent Colors */
+            --color-teal: #14b8a6;
+            --color-teal-light: #5eead4;
+            --color-teal-dark: #0f766e;
+            --color-teal-alt: #10a394;
+            --color-coral: #f97316;
+            --color-coral-light: #fb923c;
+            --color-coral-dark: #ea580c;
+            
+            /* Supporting Colors */
+            --color-navy: #1e293b;
+            --color-navy-light: #334155;
+            --color-gray: #64748b;
+            --color-gray-light: #94a3b8;
+            --color-gray-dark: #475569;
+            
+            /* Gradients */
+            --gradient-primary: linear-gradient(135deg, var(--color-teal) 0%, var(--color-coral) 100%);
+            --gradient-subtle: linear-gradient(135deg, var(--color-teal-light) 0%, var(--color-coral-light) 100%);
+            
+            /* Shadows */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --shadow-colored: 0 10px 25px -5px rgba(20, 184, 166, 0.2);
+            
+            /* Spacing */
+            --spacing-xs: 0.5rem;
+            --spacing-sm: 0.75rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --spacing-2xl: 3rem;
+            --spacing-3xl: 4rem;
+            
+            /* Typography */
+            --font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-secondary: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            
+            /* Font Sizes */
+            --font-size-xs: 0.75rem;
+            --font-size-sm: 0.875rem;
+            --font-size-base: 1rem;
+            --font-size-lg: 1.125rem;
+            --font-size-xl: 1.25rem;
+            --font-size-2xl: 1.5rem;
+            --font-size-3xl: 1.875rem;
+            --font-size-4xl: 2.25rem;
+            
+            /* Border Radius */
+            --radius-sm: 6px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            --radius-full: 9999px;
+            
+            /* Transitions */
+            --transition-fast: 150ms ease-out;
+            --transition-base: 300ms ease-out;
+            --transition-slow: 500ms ease-out;
+            
+            /* Touch Target Size */
+            --touch-target: 44px;
+        }
 
-    /* ===== GLOBAL STYLES ===== */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+        /* ===== RESET & BASE STYLES ===== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-    body {
-      font-family: var(--font-body);
-      background-color: var(--color-off-white);
-      color: var(--color-navy);
-      line-height: 1.6;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: var(--spacing-lg);
-    }
+        html {
+            overflow-x: hidden;
+        }
 
-    /* ===== CONTAINER ===== */
-    .recovery-container {
-      background: var(--color-white);
-      border-radius: var(--radius-xl);
-      box-shadow: var(--shadow-lg);
-      padding: var(--spacing-2xl);
-      width: 100%;
-      max-width: 420px;
-      text-align: center;
-    }
+        body {
+            font-family: var(--font-primary);
+            background: var(--color-off-white);
+            color: var(--color-navy);
+            line-height: 1.6;
+            font-size: var(--font-size-base);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-lg);
+        }
 
-    /* ===== HEADER ===== */
-    .recovery-header {
-      margin-bottom: var(--spacing-2xl);
-    }
+        /* ===== ACCESSIBILITY ===== */
+        :focus {
+            outline: 2px solid var(--color-teal);
+            outline-offset: 2px;
+        }
 
-    .recovery-title {
-      font-family: var(--font-heading);
-      font-size: 2rem;
-      font-weight: 700;
-      color: var(--color-navy);
-      margin-bottom: var(--spacing-sm);
-    }
+        :focus:not(:focus-visible) {
+            outline: none;
+        }
 
-    .recovery-subtitle {
-      color: var(--color-gray);
-      font-size: 0.95rem;
-      line-height: 1.5;
-    }
+        /* ===== HEADER ===== */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            padding: var(--spacing-md) var(--spacing-lg);
+        }
 
-    /* ===== FORM ===== */
-    .recovery-form {
-      display: flex;
-      flex-direction: column;
-      gap: var(--spacing-lg);
-    }
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
 
-    .form-group {
-      text-align: left;
-    }
+        .logo {
+            font-family: var(--font-secondary);
+            font-size: var(--font-size-xl);
+            font-weight: 800;
+            text-decoration: none;
+            letter-spacing: -0.02em;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            transition: transform var(--transition-base);
+        }
 
-    .form-label {
-      display: block;
-      font-size: 0.875rem;
-      font-weight: 500;
-      color: var(--color-navy);
-      margin-bottom: var(--spacing-sm);
-    }
+        .logo:hover {
+            transform: scale(1.05);
+        }
 
-    .form-input {
-      width: 100%;
-      padding: var(--spacing-md);
-      border: 1.5px solid #e2e8f0;
-      border-radius: var(--radius-md);
-      font-family: var(--font-body);
-      font-size: 0.95rem;
-      transition: all var(--transition-fast);
-      background-color: var(--color-white);
-    }
+        .header-back {
+            color: var(--color-gray);
+            text-decoration: none;
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            transition: color var(--transition-base);
+        }
 
-    .form-input:focus {
-      outline: none;
-      border-color: var(--color-teal);
-      box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
-    }
+        .header-back:hover {
+            color: var(--color-teal);
+        }
 
-    .form-input::placeholder {
-      color: var(--color-gray-light);
-    }
+        /* ===== MAIN CONTAINER ===== */
+        .container {
+            background: var(--color-white);
+            padding: var(--spacing-3xl);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-xl);
+            border: 2px solid var(--color-light-gray);
+            transition: all var(--transition-base);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            margin-top: 80px;
+        }
 
-    /* ===== BUTTON ===== */
-    .submit-button {
-      width: 100%;
-      padding: var(--spacing-md) var(--spacing-xl);
-      background: linear-gradient(135deg, var(--color-teal), var(--color-teal-dark));
-      color: var(--color-white);
-      border: none;
-      border-radius: var(--radius-md);
-      font-family: var(--font-body);
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all var(--transition-base);
-      position: relative;
-      overflow: hidden;
-    }
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-primary);
+        }
 
-    .submit-button:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
-    }
+        .container:hover {
+            border-color: var(--color-teal);
+            transform: translateY(-4px);
+        }
 
-    .submit-button:active {
-      transform: translateY(0);
-    }
+        /* ===== LOGO AND HEADER ===== */
+        .recovery-header {
+            margin-bottom: var(--spacing-2xl);
+        }
 
-    .submit-button:disabled {
-      opacity: 0.7;
-      cursor: not-allowed;
-      transform: none;
-    }
+        .recovery-logo {
+            font-family: var(--font-secondary);
+            font-size: var(--font-size-3xl);
+            font-weight: 800;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: var(--spacing-lg);
+            letter-spacing: -0.02em;
+        }
 
-    /* ===== MESSAGES ===== */
-    .message {
-      padding: var(--spacing-md);
-      border-radius: var(--radius-md);
-      font-size: 0.875rem;
-      margin-bottom: var(--spacing-lg);
-      display: none;
-    }
+        .recovery-icon {
+            width: 64px;
+            height: 64px;
+            background: var(--gradient-primary);
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--spacing-lg);
+            box-shadow: var(--shadow-colored);
+            font-size: var(--font-size-2xl);
+            animation: pulse 2s ease-in-out infinite;
+        }
 
-    .message.success {
-      background-color: #d1fae5;
-      color: #047857;
-      border: 1px solid #6ee7b7;
-    }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
 
-    .message.error {
-      background-color: #fee2e2;
-      color: #b91c1c;
-      border: 1px solid #fca5a5;
-    }
+        h1 {
+            font-family: var(--font-secondary);
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+            color: var(--color-navy);
+            margin-bottom: var(--spacing-md);
+            letter-spacing: -0.01em;
+        }
 
-    .message.show {
-      display: block;
-    }
+        .subtitle {
+            color: var(--color-gray);
+            font-size: var(--font-size-base);
+            margin-bottom: var(--spacing-2xl);
+            line-height: 1.6;
+        }
 
-    /* ===== LINKS ===== */
-    .recovery-links {
-      margin-top: var(--spacing-xl);
-      padding-top: var(--spacing-xl);
-      border-top: 1px solid #e2e8f0;
-    }
+        /* ===== FORM STYLES ===== */
+        .form-group {
+            margin-bottom: var(--spacing-lg);
+            text-align: left;
+        }
 
-    .recovery-link {
-      color: var(--color-teal);
-      text-decoration: none;
-      font-size: 0.875rem;
-      font-weight: 500;
-      transition: color var(--transition-fast);
-    }
+        label {
+            display: block;
+            color: var(--color-navy);
+            margin-bottom: var(--spacing-xs);
+            font-weight: 600;
+            font-size: var(--font-size-sm);
+        }
 
-    .recovery-link:hover {
-      color: var(--color-teal-dark);
-      text-decoration: underline;
-    }
+        input[type="password"] {
+            width: 100%;
+            padding: var(--spacing-md) var(--spacing-lg);
+            border: 2px solid var(--color-light-gray);
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-base);
+            font-family: var(--font-primary);
+            transition: all var(--transition-base);
+            background: var(--color-white);
+            color: var(--color-navy);
+            min-height: var(--touch-target);
+        }
 
-    /* ===== LOGO ===== */
-    .logo-link {
-      position: absolute;
-      top: var(--spacing-xl);
-      left: var(--spacing-xl);
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-sm);
-      color: var(--color-navy);
-      font-family: var(--font-heading);
-      font-size: 1.25rem;
-      font-weight: 700;
-      transition: color var(--transition-fast);
-    }
+        input[type="password"]:hover {
+            border-color: var(--color-gray-light);
+        }
 
-    .logo-link:hover {
-      color: var(--color-teal);
-    }
+        input[type="password"]:focus {
+            outline: none;
+            border-color: var(--color-teal);
+            box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+            transform: translateY(-2px);
+        }
 
-    /* ===== RESPONSIVE ===== */
-    @media (max-width: 480px) {
-      body {
-        padding: var(--spacing-md);
-      }
+        input[type="password"]::placeholder {
+            color: var(--color-gray-light);
+        }
 
-      .recovery-container {
-        padding: var(--spacing-xl);
-      }
+        /* ===== BUTTON STYLES ===== */
+        .btn {
+            width: 100%;
+            padding: var(--spacing-md) var(--spacing-xl);
+            background: var(--gradient-primary);
+            color: var(--color-white);
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-base);
+            font-weight: 600;
+            font-family: var(--font-primary);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            box-shadow: var(--shadow-colored);
+            min-height: var(--touch-target);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-sm);
+            position: relative;
+            overflow: hidden;
+        }
 
-      .recovery-title {
-        font-size: 1.75rem;
-      }
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
 
-      .logo-link {
-        position: static;
-        margin-bottom: var(--spacing-xl);
-      }
-    }
-  </style>
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn:disabled:hover {
+            transform: none;
+            box-shadow: var(--shadow-colored);
+        }
+
+        /* ===== MESSAGE STYLES ===== */
+        .message {
+            margin-top: var(--spacing-lg);
+            padding: var(--spacing-md);
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* ===== BACK LINK ===== */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            margin-top: var(--spacing-xl);
+            color: var(--color-gray);
+            text-decoration: none;
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            transition: color var(--transition-base);
+        }
+
+        .back-link:hover {
+            color: var(--color-teal);
+        }
+
+        /* ===== MOBILE RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            body {
+                padding: var(--spacing-md);
+            }
+
+            .container {
+                padding: var(--spacing-2xl);
+                max-width: none;
+                margin-top: 60px;
+            }
+
+            .recovery-logo {
+                font-size: var(--font-size-2xl);
+            }
+
+            .recovery-icon {
+                width: 56px;
+                height: 56px;
+            }
+
+            h1 {
+                font-size: var(--font-size-xl);
+            }
+
+            .header {
+                padding: var(--spacing-sm) var(--spacing-md);
+            }
+
+            .logo {
+                font-size: var(--font-size-lg);
+            }
+        }
+
+        /* ===== ACCESSIBILITY IMPROVEMENTS ===== */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* ===== LOADING STATE ===== */
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .loading .btn {
+            background: var(--color-gray-light);
+            cursor: not-allowed;
+        }
+
+        /* ===== SECURITY INDICATOR ===== */
+        .security-info {
+            margin-top: var(--spacing-lg);
+            padding: var(--spacing-md);
+            background: var(--color-light-gray);
+            border-radius: var(--radius-md);
+            border-left: 4px solid var(--color-teal);
+            font-size: var(--font-size-sm);
+            color: var(--color-gray-dark);
+            text-align: left;
+        }
+
+        .security-info-icon {
+            color: var(--color-teal);
+            margin-right: var(--spacing-xs);
+        }
+    </style>
 </head>
 <body>
-  <!-- Logo -->
-  <a href="/" class="logo-link">
-    <span>Narrin AI</span>
-  </a>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <a href="/" class="logo">Narrin AI</a>
+            <a href="/" class="header-back">← Terug naar homepagina</a>
+        </div>
+    </header>
 
-  <!-- Recovery Container -->
-  <div class="recovery-container">
-    <div class="recovery-header">
-      <h1 class="recovery-title">Reset Password</h1>
-      <p class="recovery-subtitle">Enter your email address and we'll send you a link to reset your password.</p>
+    <!-- Main Container -->
+    <div class="container">
+        <div class="recovery-header">
+            <div class="recovery-icon">🔐</div>
+            <div class="recovery-logo">Narrin AI</div>
+        </div>
+        
+        <h1>Nieuw wachtwoord instellen</h1>
+        <p class="subtitle">Voer je nieuwe wachtwoord in om je account te beveiligen.</p>
+        
+        <form id="recovery-form">
+            <div class="form-group">
+                <label for="password">Nieuw wachtwoord:</label>
+                <input type="password" id="password" name="password" required minlength="6" placeholder="Minimaal 6 karakters">
+            </div>
+            
+            <div class="form-group">
+                <label for="confirm-password">Bevestig wachtwoord:</label>
+                <input type="password" id="confirm-password" name="confirm-password" required minlength="6" placeholder="Herhaal je wachtwoord">
+            </div>
+            
+            <button type="submit" class="btn" id="submit-btn">
+                <span>🔒</span>
+                <span>Wachtwoord bijwerken</span>
+            </button>
+        </form>
+        
+        <div class="security-info">
+            <span class="security-info-icon">🛡️</span>
+            <strong>Veilig:</strong> Dit is een beveiligde verbinding. Je wachtwoord wordt versleuteld opgeslagen.
+        </div>
+        
+        <div id="message" class="message"></div>
+        
+        <a href="/" class="back-link">← Terug naar homepagina</a>
     </div>
 
-    <!-- Messages -->
-    <div id="success-message" class="message success">
-      Check your email! We've sent you a password reset link.
-    </div>
-    <div id="error-message" class="message error"></div>
-
-    <!-- Recovery Form -->
-    <form id="recovery-form" class="recovery-form">
-      <div class="form-group">
-        <label for="email" class="form-label">Email Address</label>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          class="form-input"
-          placeholder="Enter your email"
-          required
-        />
-      </div>
-
-      <button type="submit" class="submit-button" id="submit-button">
-        Send Reset Link
-      </button>
-    </form>
-
-    <!-- Links -->
-    <div class="recovery-links">
-      <a href="/profile.html" class="recovery-link">Back to Login</a>
-    </div>
-  </div>
-
-  <script>
-    // Form handling
-    const form = document.getElementById('recovery-form');
-    const submitButton = document.getElementById('submit-button');
-    const successMessage = document.getElementById('success-message');
-    const errorMessage = document.getElementById('error-message');
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      // Clear previous messages
-      successMessage.classList.remove('show');
-      errorMessage.classList.remove('show');
-      
-      // Get email value
-      const email = document.getElementById('email').value.trim();
-      
-      if (!email) {
-        showError('Please enter your email address');
-        return;
-      }
-      
-      // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        showError('Please enter a valid email address');
-        return;
-      }
-      
-      // Disable button and show loading state
-      submitButton.disabled = true;
-      submitButton.textContent = 'Sending...';
-      
-      try {
-        // Use Netlify Identity for password recovery
-        if (window.netlifyIdentity) {
-          await window.netlifyIdentity.recover(email);
-          showSuccess();
-          form.reset();
-        } else {
-          showError('Authentication service is not available. Please try again later.');
+    <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    <script>
+        const form = document.getElementById('recovery-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const messageDiv = document.getElementById('message');
+        
+        function showMessage(text, type) {
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            
+            // Auto-hide na 5 seconden
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
         }
-      } catch (error) {
-        console.error('Recovery error:', error);
-        showError('An error occurred. Please try again.');
-      } finally {
-        // Re-enable button
-        submitButton.disabled = false;
-        submitButton.textContent = 'Send Reset Link';
-      }
-    });
-
-    function showSuccess() {
-      successMessage.classList.add('show');
-      // Auto-hide after 10 seconds
-      setTimeout(() => {
-        successMessage.classList.remove('show');
-      }, 10000);
-    }
-
-    function showError(message) {
-      errorMessage.textContent = message;
-      errorMessage.classList.add('show');
-      // Auto-hide after 5 seconds
-      setTimeout(() => {
-        errorMessage.classList.remove('show');
-      }, 5000);
-    }
-
-    // Check for Netlify Identity widget
-    if (window.netlifyIdentity) {
-      window.netlifyIdentity.on('init', user => {
-        // If user is already logged in, redirect to profile
-        if (user) {
-          window.location.href = '/profile.html';
+        
+        function hideMessage() {
+            messageDiv.style.display = 'none';
         }
-      });
-    }
-  </script>
+        
+        function setLoading(isLoading) {
+            if (isLoading) {
+                document.body.classList.add('loading');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span>⏳</span><span>Bezig met bijwerken...</span>';
+            } else {
+                document.body.classList.remove('loading');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span>🔒</span><span>Wachtwoord bijwerken</span>';
+            }
+        }
+        
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            hideMessage();
+            
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            
+            // Validatie
+            if (password !== confirmPassword) {
+                showMessage('Wachtwoorden komen niet overeen', 'error');
+                return;
+            }
+            
+            if (password.length < 6) {
+                showMessage('Wachtwoord moet minimaal 6 karakters lang zijn', 'error');
+                return;
+            }
+            
+            // Sterkte controle
+            const hasUpperCase = /[A-Z]/.test(password);
+            const hasLowerCase = /[a-z]/.test(password);
+            const hasNumbers = /\d/.test(password);
+            const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+            
+            if (!hasUpperCase || !hasLowerCase || !hasNumbers) {
+                showMessage('Wachtwoord moet minimaal 1 hoofdletter, 1 kleine letter en 1 cijfer bevatten', 'error');
+                return;
+            }
+            
+            setLoading(true);
+            
+            const user = netlifyIdentity.currentUser();
+            if (user && user.token) {
+                user.update({ password: password })
+                    .then(() => {
+                        showMessage('✅ Wachtwoord succesvol bijgewerkt! Je wordt doorgestuurd naar de homepagina.', 'success');
+                        
+                        // Wacht 3 seconden en redirect
+                        setTimeout(() => {
+                            window.location.href = '/';
+                        }, 3000);
+                    })
+                    .catch((error) => {
+                        console.error('Error updating password:', error);
+                        showMessage('Er is een fout opgetreden. Probeer het opnieuw of neem contact met ons op.', 'error');
+                    })
+                    .finally(() => {
+                        setLoading(false);
+                    });
+            } else {
+                showMessage('Geen geldige gebruiker gevonden. De link is mogelijk verlopen. Probeer opnieuw een wachtwoord reset aan te vragen.', 'error');
+                setLoading(false);
+                
+                // Redirect na 5 seconden
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 5000);
+            }
+        });
+        
+        // Initialize Netlify Identity
+        netlifyIdentity.init();
+        
+        // Check of er een geldige recovery token is
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token') || urlParams.get('recovery_token');
+            
+            if (!token) {
+                showMessage('Geen geldige recovery token gevonden. Vraag een nieuwe wachtwoord reset aan.', 'error');
+                
+                // Redirect na 5 seconden
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 5000);
+            }
+        });
+        
+        // Prevent form submission met Enter key in input velden
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
+                e.preventDefault();
+                form.dispatchEvent(new Event('submit'));
+            }
+        });
+        
+        // Auto-focus op eerste input
+        document.addEventListener('DOMContentLoaded', () => {
+            const firstInput = document.getElementById('password');
+            if (firstInput) {
+                firstInput.focus();
+            }
+        });
+    </script>
 </body>
 </html>
