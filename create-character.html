@@ -3263,6 +3263,56 @@
      updatePromptCounter();
    }
 
+// ===== HANDLE REDIRECT AFTER LOGIN =====
+function handleRedirectAfterLogin() {
+  const pendingCharacterData = localStorage.getItem('pending_character_creation');
+  const redirectAfterLogin = localStorage.getItem('redirect_after_login');
+  
+  if (pendingCharacterData && redirectAfterLogin === 'create-character.html') {
+    try {
+      const characterData = JSON.parse(pendingCharacterData);
+      
+      // Check if data is still fresh (within 30 minutes)
+      if (Date.now() - characterData.timestamp < 30 * 60 * 1000) {
+        // Restore form data
+        document.getElementById('characterName').value = characterData.name || '';
+        document.getElementById('characterTitle').value = characterData.title || '';
+        document.getElementById('characterDescription').value = characterData.description || '';
+        document.getElementById('characterPrompt').value = characterData.prompt || '';
+        document.getElementById('characterCategory').value = characterData.category || '';
+        
+        // Restore personality state
+        if (characterData.personalityState) {
+          personalityState = characterData.personalityState;
+        }
+        
+        // Restore tags
+        if (characterData.tags && Array.isArray(characterData.tags)) {
+          selectedTags = characterData.tags;
+          updateTagsPreview();
+          updateSuggestedTagsSelection();
+        }
+        
+        // Show success message
+        showSuccess('Welcome back! Your character data has been restored.', 'Data Restored');
+        
+        // Clean up stored data
+        localStorage.removeItem('pending_character_creation');
+        localStorage.removeItem('redirect_after_login');
+        
+      } else {
+        // Data is too old
+        localStorage.removeItem('pending_character_creation');
+        localStorage.removeItem('redirect_after_login');
+      }
+    } catch (error) {
+      console.error('Error restoring character data:', error);
+      localStorage.removeItem('pending_character_creation');
+      localStorage.removeItem('redirect_after_login');
+    }
+  }
+}
+
    function buildPersonalityFromSliders() {
      let text = '';
      const { social, thinking, mood, formality, tempo } = personalityState.sliders;
@@ -4011,6 +4061,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize preview
   updatePreview();
   
+  // Handle redirect after login
+  handleRedirectAfterLogin();
+
   console.log('✅ Create Character page initialization complete');
 });
 
@@ -4207,9 +4260,18 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
   const isLoggedIn = netlifyUser || (localEmail && localToken);
   
   if (!isLoggedIn) {
-    showLoginOverlay();
-    return;
-  }
+  // Store character data before showing login
+  const characterData = {
+    ...formData,
+    personalityState: personalityState,
+    timestamp: Date.now()
+  };
+  localStorage.setItem('pending_character_creation', JSON.stringify(characterData));
+  localStorage.setItem('redirect_after_login', 'create-character.html');
+  
+  showLoginOverlay();
+  return;
+}
   
   // Collect form data - ENHANCED VERSION
   const formData = {
