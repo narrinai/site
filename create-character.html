@@ -14,7 +14,7 @@
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
   
   <!-- Netlify Identity Widget -->
-  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
   
   <!-- Import Modern Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2227,15 +2227,7 @@
     </div>
   </div>
 
-  <!-- Login Overlay -->
-  <div class="login-overlay" id="loginOverlay">
-    <div class="login-message">
-      <h3>Login Required</h3>
-      <p>Please log in to create a character</p>
-      <button class="btn btn-primary" onclick="showLoginModal()">Login</button>
-      <button class="btn btn-secondary" onclick="hideLoginOverlay()" style="margin-left: 10px;">Cancel</button>
-    </div>
-  </div>
+  <!-- Login Overlay werd hier verwijderd -->
 
   <div class="container">
     <div class="header-page">
@@ -2817,131 +2809,7 @@
      toggleMobileSearch();
    });
 
-   // ===== NETLIFY IDENTITY BUTTON UPDATES =====
-   function updateLoginButton() {
-     const loginBtn = document.getElementById('loginBtn');
-     const mobileLoginBtn = document.getElementById('mobileLoginBtn');
-     
-     // Check both Netlify Identity and local storage for user info
-     const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
-     const localEmail = localStorage.getItem("user_email");
-     const localToken = localStorage.getItem("user_token");
-     
-     const isLoggedIn = netlifyUser || (localEmail && localToken);
-     
-     if (isLoggedIn) {
-       // Always show "Profile" for logged in users instead of their name
-       
-       // Update desktop button
-       if (loginBtn) {
-         loginBtn.textContent = 'Profile';
-         loginBtn.href = 'profile.html';
-       }
-       
-       // Update mobile button
-       if (mobileLoginBtn) {
-         const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
-         mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}Profile`;
-         mobileLoginBtn.href = 'profile.html';
-       }
-     } else {
-       // User is not logged in
-       if (loginBtn) {
-         loginBtn.textContent = 'Login/Register';
-         loginBtn.href = 'profile.html';
-       }
-       if (mobileLoginBtn) {
-         const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
-         mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}Login/Register`;
-         mobileLoginBtn.href = 'profile.html';
-       }
-     }
-   }
-
-   // Enhanced click handler for navigation links
-   function setupNavigationClickHandlers() {
-     const loginBtn = document.getElementById('loginBtn');
-     const mobileLoginBtn = document.getElementById('mobileLoginBtn');
-     
-     // Desktop login button click handler
-     if (loginBtn) {
-       loginBtn.addEventListener('click', (e) => {
-         e.preventDefault();
-         
-         const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
-         const localEmail = localStorage.getItem("user_email");
-         const localToken = localStorage.getItem("user_token");
-         const isLoggedIn = netlifyUser || (localEmail && localToken);
-         
-         if (isLoggedIn) {
-           // User is logged in, go directly to profile page
-           window.location.href = 'profile.html';
-         } else {
-           // User not logged in, store current page for redirect and open login
-           localStorage.setItem('login_redirect_url', window.location.href);
-           openLogin();
-         }
-       });
-     }
-     
-     // Mobile login button click handler
-     if (mobileLoginBtn) {
-       mobileLoginBtn.addEventListener('click', (e) => {
-         e.preventDefault();
-         
-         const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
-         const localEmail = localStorage.getItem("user_email");
-         const localToken = localStorage.getItem("user_token");
-         const isLoggedIn = netlifyUser || (localEmail && localToken);
-         
-         if (isLoggedIn) {
-           // User is logged in, go directly to profile page
-           window.location.href = 'profile.html';
-         } else {
-           // User not logged in, store current page for redirect and open login
-           localStorage.setItem('login_redirect_url', window.location.href);
-           openLogin();
-         }
-         
-         // Close mobile menu after click
-         closeMobileMenu();
-       });
-     }
-   }
-
-   // Function to open login modal
-   function openLogin() {
-     if (window.netlifyIdentity) {
-       window.netlifyIdentity.open('login');
-     } else {
-       // Fallback if Netlify Identity is not available
-       window.location.href = 'profile.html';
-     }
-   }
-
-   // Initialize login button on page load
-   document.addEventListener('DOMContentLoaded', () => {
-     // Update immediately on page load
-     updateLoginButton();
-     
-     // Set up click handlers
-     setupNavigationClickHandlers();
-     
-     if (window.netlifyIdentity) {
-       window.netlifyIdentity.on('init', user => {
-         updateLoginButton();
-       });
-
-       window.netlifyIdentity.on('login', user => {
-         updateLoginButton();
-         window.netlifyIdentity.close();
-       });
-
-       window.netlifyIdentity.on('logout', () => {
-         updateLoginButton();
-       });
-     }
-   });
+   
 
    // ===== CUSTOM NOTIFICATION SYSTEM =====
    function showNotification(type, title, message, buttons = null) {
@@ -3262,6 +3130,57 @@
      document.getElementById('characterPrompt').value = prompt;
      updatePromptCounter();
    }
+
+   // ===== HANDLE REDIRECT AFTER LOGIN =====
+function handleRedirectAfterLogin() {
+  const pendingCharacterData = localStorage.getItem('pending_character_creation');
+  const redirectAfterLogin = localStorage.getItem('redirect_after_login');
+  
+  if (pendingCharacterData && redirectAfterLogin === 'create-character.html') {
+    try {
+      const characterData = JSON.parse(pendingCharacterData);
+      
+      // Check if data is still fresh (within 30 minutes)
+      if (Date.now() - characterData.timestamp < 30 * 60 * 1000) {
+        // Restore form data
+        document.getElementById('characterName').value = characterData.name || '';
+        document.getElementById('characterTitle').value = characterData.title || '';
+        document.getElementById('characterDescription').value = characterData.description || '';
+        document.getElementById('characterPrompt').value = characterData.prompt || '';
+        document.getElementById('characterCategory').value = characterData.category || '';
+        
+        // Restore personality state
+        if (characterData.personalityState) {
+          personalityState = characterData.personalityState;
+        }
+        
+        // Restore tags
+        if (characterData.tags && Array.isArray(characterData.tags)) {
+          selectedTags = characterData.tags;
+          updateTagsPreview();
+          updateSuggestedTagsSelection();
+        }
+        
+        // Show success message
+        showSuccess('Welcome back! Your character data has been restored. Click "Create Character" to continue.', 'Data Restored');
+        
+        // Clean up stored data
+        localStorage.removeItem('pending_character_creation');
+        localStorage.removeItem('redirect_after_login');
+        
+      } else {
+        // Data is too old
+        localStorage.removeItem('pending_character_creation');
+        localStorage.removeItem('redirect_after_login');
+        showWarning('Your character creation session has expired. Please fill in the form again.', 'Session Expired');
+      }
+    } catch (error) {
+      console.error('Error restoring character data:', error);
+      localStorage.removeItem('pending_character_creation');
+      localStorage.removeItem('redirect_after_login');
+    }
+  }
+}
 
    function buildPersonalityFromSliders() {
      let text = '';
@@ -3877,9 +3796,45 @@ async function uploadToCloudinary(file, slug) {
 }
 
    // Login overlay functions
-   function showLoginOverlay() {
-     document.getElementById('loginOverlay').style.display = 'flex';
-   }
+   // Check if user is logged in using localStorage
+const userEmail = localStorage.getItem("user_email");
+const userToken = localStorage.getItem("user_token");
+const isLoggedIn = userEmail && userToken;
+
+if (!isLoggedIn) {
+  // Store form data and redirect to profile.html for login
+  console.log('🔐 User not logged in, redirecting to profile...');
+  
+  // Store character data in localStorage
+  const characterData = {
+    ...formData,
+    personalityState: personalityState,
+    timestamp: Date.now()
+  };
+  localStorage.setItem('pending_character_creation', JSON.stringify(characterData));
+  localStorage.setItem('redirect_after_login', 'create-character.html');
+  
+  // Reset submission flag
+  isSubmitting = false;
+  
+  // Show notification and redirect
+  showNotification('info', 'Login Required', 'You need to be logged in to create a character. Redirecting to login...', [
+    {
+      text: 'Go to Login',
+      type: 'primary',
+      callback: () => {
+        window.location.href = 'profile.html';
+      }
+    }
+  ]);
+  
+  // Auto redirect after 3 seconds
+  setTimeout(() => {
+    window.location.href = 'profile.html';
+  }, 3000);
+  
+  return;
+}
 
    function hideLoginOverlay() {
      document.getElementById('loginOverlay').style.display = 'none';
@@ -3987,26 +3942,22 @@ function runSafariCompatibilityTest() {
 document.addEventListener('DOMContentLoaded', () => {
   console.log('🚀 Create Character page initializing...');
   
-  // Run Safari compatibility checks first
-  checkLocalStorageSupport();
-  setupSafariFixes();
-  runSafariCompatibilityTest();
-  
-  // Debug user data on page load
-  setTimeout(() => {
-    debugUserData();
-  }, 1000);
-  
   setupCharacterCounters();
-  setupAvatarFunctionality();
   setupPersonalitySliders();
   setupPersonalityButtons();
-  setupCustomQuirks();
   setupPromptActions();
+  setupAvatarFunctionality();
   loadTags();
   
-  // Initialize preview
-  updatePreview();
+  // Set up category change handler
+  document.getElementById('characterCategory').addEventListener('change', generateSuggestedTags);
+  
+  // Generate initial suggested tags and prompt
+  generateSuggestedTags();
+  generatePrompt();
+  
+  // Handle redirect after login
+  handleRedirectAfterLogin();
   
   console.log('✅ Create Character page initialization complete');
 });
