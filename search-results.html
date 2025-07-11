@@ -1275,70 +1275,100 @@
    function extractAvatarUrl(character) {
      console.log('🔍 Extracting avatar URL from character:', character);
      
-     // Method 1: Airtable attachment field (array format) - EXACT zoals index.html
+     // Method 1: Avatar_File (Airtable attachment field) - array format
+     if (character.Avatar_File && Array.isArray(character.Avatar_File) && character.Avatar_File.length > 0) {
+       if (character.Avatar_File[0] && character.Avatar_File[0].url) {
+         console.log(`✅ Using Avatar_File attachment for ${character.Name}:`, character.Avatar_File[0].url);
+         return character.Avatar_File[0].url;
+       }
+     }
+     
+     // Method 2: Avatar_URL (Airtable attachment field) - array format
      if (character.Avatar_URL && Array.isArray(character.Avatar_URL) && character.Avatar_URL.length > 0) {
        if (character.Avatar_URL[0] && character.Avatar_URL[0].url) {
-         console.log(`✅ Using Airtable Avatar_URL attachment for ${character.Name}:`, character.Avatar_URL[0].url);
+         console.log(`✅ Using Avatar_URL attachment for ${character.Name}:`, character.Avatar_URL[0].url);
          return character.Avatar_URL[0].url;
        }
      }
      
-     // Method 2: Direct string Avatar_URL - EXACT zoals index.html
+     // Method 3: Direct string Avatar_URL (if Make.com flattens it)
      if (character.Avatar_URL && typeof character.Avatar_URL === 'string' && character.Avatar_URL.startsWith('http')) {
        console.log(`✅ Using direct Avatar_URL string for ${character.Name}:`, character.Avatar_URL);
        return character.Avatar_URL;
+     }
+     
+     // Method 4: Direct string Avatar_File (fallback)
+     if (character.Avatar_File && typeof character.Avatar_File === 'string' && character.Avatar_File.startsWith('http')) {
+       console.log(`✅ Using direct Avatar_File string for ${character.Name}:`, character.Avatar_File);
+       return character.Avatar_File;
      }
      
      console.log(`⚠️ No valid avatar URL found for ${character.Name || character.name}, using fallback`);
      return null;
    }
 
-   // Create character card (updated version) - EXACT zoals category.html
+   // Create character card - EXACT zoals index.html
    function createCharacterCard(character) {
      const card = document.createElement('a');
      card.className = 'character-card';
      
-     // Priority order for URL: character_url from Airtable, or generate fallback URL
+     // URL handling
      let characterUrl = character.character_url || character.Character_URL;
-     
-     // If no URL from Airtable, generate fallback URL with correct structure
      if (!characterUrl) {
        const charSlug = (character.name || character.Name || 'unknown').toLowerCase().replace(/\s+/g, '-');
        characterUrl = `chat.html?char=${charSlug}`;
      }
-     
      card.href = characterUrl;
      
-     // Extract avatar URL using improved method - SAME AS OTHER PAGES
-     const avatarUrl = extractAvatarUrl(character);
+     // Get basic data
      const name = character.name || character.Name || 'Unknown';
-     
-     // Get character title/description
      const title = character.title || character.Character_Title || character.character_title || character.Character_title || character.description || character.Description || '';
      
-     // Create avatar content with proper fallback - EXACT zoals index.html
-     let avatarContent;
+     // Use improved avatar extraction - SAME AS INDEX.HTML
+     const avatarUrl = extractAvatarUrl(character);
+     
+     // Create avatar container
+     const avatarContainer = document.createElement('div');
+     avatarContainer.className = 'character-avatar';
+     
+     // Create card HTML structure first
+     const nameDiv = document.createElement('div');
+     nameDiv.className = 'character-name';
+     nameDiv.textContent = name;
+     
+     const titleDiv = document.createElement('div');
+     titleDiv.className = 'character-title';
+     titleDiv.textContent = title;
+     
+     // Handle avatar - either real image or fallback icon - EXACT LOGIC AS INDEX.HTML
      if (avatarUrl && avatarUrl.startsWith('http')) {
-       avatarContent = `
-         <img src="${avatarUrl}" 
-              alt="${name}" 
-              loading="lazy" 
-              onload="console.log('✅ Real Airtable avatar loaded for ${name}');"
-              onerror="console.error('❌ Real avatar failed for ${name}:', '${avatarUrl}'); this.style.display='none'; this.parentElement.querySelector('.avatar-fallback').style.display='flex';" 
-              style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
-         <div class="avatar-fallback" style="display: none; color: var(--color-gray-light); font-size: 4rem;">👤</div>
-       `;
+       const img = document.createElement('img');
+       img.src = avatarUrl;
+       img.alt = name;
+       img.style.cssText = 'width: 100%; height: 100%; object-fit: cover; border-radius: 50%;';
+       
+       // Handle successful load
+       img.onload = function() {
+         console.log(`✅ Real Airtable avatar loaded for ${name}`);
+       };
+       
+       // Handle load error - replace with fallback icon
+       img.onerror = function() {
+         console.error(`❌ Real avatar failed for ${name}:`, avatarUrl);
+         avatarContainer.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 4rem; color: #94a3b8;">👤</div>';
+       };
+       
+       avatarContainer.appendChild(img);
      } else {
-       avatarContent = `<div class="avatar-fallback" style="color: var(--color-gray-light); font-size: 4rem;">👤</div>`;
+       // No valid avatar URL - use fallback icon
+       avatarContainer.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 4rem; color: #94a3b8;">👤</div>';
+       console.log(`⚠️ No valid Airtable avatar URL found for ${name}, using fallback icon`);
      }
      
-     card.innerHTML = `
-       <div class="character-avatar">
-         ${avatarContent}
-       </div>
-       <div class="character-name">${name}</div>
-       <div class="character-title">${title}</div>
-     `;
+     // Append elements to card
+     card.appendChild(avatarContainer);
+     card.appendChild(nameDiv);
+     card.appendChild(titleDiv);
      
      return card;
    }
