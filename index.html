@@ -340,36 +340,31 @@
       flex-shrink: 0;
     }
 
-    /* Mobile USP Carousel */
-    .mobile-usp-carousel {
+    /* Mobile Chat Button */
+    .mobile-chat-btn {
       display: none;
       align-items: center;
       justify-content: center;
-      height: 24px;
-      overflow: hidden;
-      position: relative;
-      flex: 1;
-      min-width: 0;
-    }
-
-    .mobile-usp-track {
-      display: flex;
-      flex-direction: column;
-      transition: transform var(--transition-slow);
-      height: 300%;
-    }
-
-    .mobile-usp-item {
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-xs);
-      color: var(--color-gray-dark);
-      font-size: var(--font-size-xs);
-      font-weight: 500;
-      white-space: nowrap;
-      min-height: 100%;
-      justify-content: center;
+      width: var(--touch-target);
+      height: var(--touch-target);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--color-teal);
+      transition: all var(--transition-base);
+      border-radius: var(--radius-md);
       flex-shrink: 0;
+      text-decoration: none;
+    }
+
+    .mobile-chat-btn:hover {
+      background: var(--color-light-gray);
+      color: var(--color-teal-dark);
+    }
+
+    .mobile-chat-btn svg {
+      width: 24px;
+      height: 24px;
     }
 
     /* Mobile Search Button */
@@ -612,7 +607,7 @@
         display: none;
       }
 
-      .mobile-usp-carousel {
+      .mobile-chat-btn {
         display: none !important;
       }
 
@@ -640,7 +635,7 @@
         gap: var(--spacing-sm);
         padding: 0;
         display: grid;
-        grid-template-columns: auto 1fr auto auto;
+        grid-template-columns: auto 1fr auto auto auto;
         align-items: center;
       }
 
@@ -651,24 +646,18 @@
         grid-column: 1;
       }
 
-      .mobile-usp-carousel {
-        display: flex;
-        height: 24px;
-        overflow: hidden;
-        position: relative;
-        grid-column: 2;
-        justify-self: center;
-        align-items: center;
-        justify-content: center;
-      }
-
       .mobile-nav-container {
         flex-shrink: 0;
         min-width: fit-content;
         display: flex !important;
         gap: var(--spacing-xs);
-        grid-column: 3 / 5;
+        grid-column: 3 / 6;
         justify-self: end;
+      }
+
+      .mobile-chat-btn {
+        display: flex;
+        flex-shrink: 0;
       }
 
       .nav-center {
@@ -679,7 +668,12 @@
         display: none !important;
       }
 
-      .mobile-search-btn {
+            .mobile-chat-btn {
+        display: flex;
+        flex-shrink: 0;
+      }
+
+.mobile-search-btn {
         display: flex;
         flex-shrink: 0;
       }
@@ -698,7 +692,7 @@
     @media (max-width: 480px) {
       .header-content {
         gap: var(--spacing-xs);
-        grid-template-columns: auto 1fr auto auto;
+        grid-template-columns: auto 1fr auto auto auto;
       }
       
       .logo {
@@ -1322,27 +1316,20 @@ body.has-referral-banner {
 
         <!-- Mobile Navigation Container -->
         <div class="mobile-nav-container">
-          <!-- Mobile USP Carousel -->
-          <div class="mobile-usp-carousel" aria-label="Key features carousel">
-            <div class="mobile-usp-track" id="uspTrack">
-              <div class="mobile-usp-item">
-                <span class="usp-icon" aria-hidden="true">🔒</span>
-                <span>100% Safe</span>
-              </div>
-              <div class="mobile-usp-item">
-                <span class="usp-icon" aria-hidden="true">🧠</span>
-                <span>Character Memory</span>
-              </div>
-              <div class="mobile-usp-item">
-                <span class="usp-icon" aria-hidden="true">🔐</span>
-                <span>Private Data</span>
-              </div>
-            </div>
-          </div>
+          <!-- Mobile Chat Button -->
+          <a
+            href="chat-overview.html"
+            class="mobile-chat-btn"
+            aria-label="Go to chats"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </a>
 
           <!-- Mobile Search Button -->
-          <button 
-            class="mobile-search-btn" 
+          <button
+            class="mobile-search-btn"
             id="mobileSearchBtn"
             aria-label="Open search"
             aria-expanded="false"
@@ -1539,10 +1526,7 @@ body.has-referral-banner {
     const mobileMenuBtn = document.getElementById('mobileMenuBtn');
     const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
     
-    // USP Carousel Elements
-    const uspTrack = document.getElementById('uspTrack');
-    let currentUspIndex = 0;
-    let uspInterval;
+    // Remove USP Carousel - No longer needed
 
     // ===== MOBILE SEARCH FUNCTIONALITY =====
     function toggleMobileSearch() {
@@ -1624,29 +1608,11 @@ body.has-referral-banner {
       }
     });
 
-    // ===== USP CAROUSEL FUNCTIONALITY =====
-    function startUspCarousel() {
-      if (window.innerWidth <= 768 && uspTrack) {
-        uspInterval = setInterval(() => {
-          currentUspIndex = (currentUspIndex + 1) % 3;
-          uspTrack.style.transform = `translateY(-${currentUspIndex * 33.333}%)`;
-        }, 3000);
-      }
-    }
-
-    function stopUspCarousel() {
-      if (uspInterval) {
-        clearInterval(uspInterval);
-        uspInterval = null;
-      }
-    }
+    // ===== MOBILE NAVIGATION FUNCTIONALITY =====
+    // USP Carousel removed - replaced with chat icon
 
    function handleResize() {
   if (window.innerWidth > 768) {
-    stopUspCarousel();
-    if (uspTrack) {
-      uspTrack.style.transform = '';
-    }
     if (mobileSearchOverlay?.classList.contains('active')) {
       mobileSearchOverlay.classList.remove('active');
       mobileSearchBtn?.setAttribute('aria-expanded', 'false');
@@ -1654,8 +1620,6 @@ body.has-referral-banner {
     if (mobileMenuOverlay?.classList.contains('active')) {
       closeMobileMenu();
     }
-  } else {
-    startUspCarousel();
   }
   
   // Regenerate category buttons for new screen size
@@ -1689,8 +1653,6 @@ body.has-referral-banner {
     });
 
     // ===== DYNAMIC CONTENT GENERATION =====
-
-
 
    // Generate category buttons - Show first 4 on mobile, all on desktop
 function generateCategoryButtons() {
@@ -1771,7 +1733,6 @@ function generateTagButtons() {
   });
 }
 
-
     // Generate extra tag buttons for bottom navigation
 function generateExtraTagButtons() {
   const extraTagsContainer = document.getElementById('extraTagsContainer');
@@ -1848,8 +1809,7 @@ console.log(`🚀 Loading ${limit} characters from Netlify Function for category
 // NIEUWE: Load characters van Netlify Function
 async function loadCharactersFromNetlify(category, gridId, limit = CONFIG.MAX_CHARACTERS_PER_CATEGORY) {
   const grid = document.getElementById(gridId);
-  
-  
+
   // Build API URL
   const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
   url.searchParams.set('category', category);
@@ -1870,7 +1830,6 @@ async function loadCharactersFromNetlify(category, gridId, limit = CONFIG.MAX_CH
     throw new Error(data.error || 'Unknown API error');
   }
 
-  
   // Process the data
   processNetlifyData(data.characters, category, gridId, limit);
 }
