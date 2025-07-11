@@ -342,7 +342,7 @@ class SimpleAvatarUploader:
         print(f"   ❌ All images failed for {character['name']}")
         return False
 
-    def run(self, max_characters=None):
+    def run(self, max_characters=None, target_characters=None):
         """Main execution"""
         print("🚀 Simple Avatar Uploader - Image Search Only")
         print("📷 Searching real images for ALL characters")
@@ -358,23 +358,39 @@ class SimpleAvatarUploader:
         
         # Vind characters zonder avatar
         characters_needing_avatar = self.find_characters_without_avatar(all_characters)
+        
+        # Als er target_characters zijn opgegeven, filter dan
+        if target_characters:
+            print(f"🎯 Filtering for specific characters: {target_characters}")
+            characters_needing_avatar = [
+                char for char in characters_needing_avatar 
+                if char['name'].lower() in [name.lower() for name in target_characters]
+            ]
+            print(f"📊 Found {len(characters_needing_avatar)} matching characters")
+        
         if not characters_needing_avatar:
-            print("✅ All characters already have avatars!")
+            if target_characters:
+                print("❌ None of the target characters need avatars!")
+                print("💡 They might already have avatars, or names don't match exactly")
+                print("📝 Available characters without avatars:")
+                all_without = self.find_characters_without_avatar(all_characters)
+                for char in all_without[:10]:
+                    print(f"   - {char['name']}")
+            else:
+                print("✅ All characters already have avatars!")
             return
         
         # Limiteer aantal characters als opgegeven
-        if max_characters:
+        if max_characters and not target_characters:
             characters_needing_avatar = characters_needing_avatar[:max_characters]
             print(f"📊 Processing first {len(characters_needing_avatar)} characters")
         else:
-            print(f"📊 Processing all {len(characters_needing_avatar)} characters")
+            print(f"📊 Processing {len(characters_needing_avatar)} characters")
         
         # Toon lijst
         print(f"\n📝 Characters to process:")
-        for i, char in enumerate(characters_needing_avatar[:10], 1):
+        for i, char in enumerate(characters_needing_avatar, 1):
             print(f"  {i:2d}. {char['name']} (image search)")
-        if len(characters_needing_avatar) > 10:
-            print(f"   ... and {len(characters_needing_avatar) - 10} more")
         
         # Bevestiging
         response = input(f"\n✅ Process these {len(characters_needing_avatar)} characters? (y/N): ")
@@ -425,4 +441,14 @@ class SimpleAvatarUploader:
 
 if __name__ == "__main__":
     uploader = SimpleAvatarUploader()
-    uploader.run(max_characters=20)  # Verhoogd van 5 naar 20 voor meer tests
+    
+    # OPTIES:
+    # Optie 1: Alle characters zonder avatar
+    # uploader.run(max_characters=20)
+    
+    # Optie 2: Specifieke characters (vervang Avatar_URL met lege string in Airtable eerst)
+    target_characters = ["Inner Peace", "Mindful Eating", "Present Moment", "Zen Master"]
+    uploader.run(target_characters=target_characters)
+    
+    # Optie 3: Test met characters die nog geen avatar hebben
+    # uploader.run(max_characters=5)
