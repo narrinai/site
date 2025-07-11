@@ -57,28 +57,50 @@ class SimpleAvatarUploader:
             return []
 
     def find_characters_without_avatar(self, characters):
-        """Vind characters zonder Avatar_URL"""
+        """Vind characters zonder Avatar_URL - verbeterde detectie"""
         characters_needing_avatar = []
         characters_with_avatar = 0
         
         print("📋 Checking Avatar_URL for all characters...")
+        print("🔍 Debug: Checking first few characters for Avatar_URL structure...")
         
-        for record in characters:
+        for i, record in enumerate(characters):
             fields = record.get('fields', {})
             name = fields.get('Name')
             avatar_url = fields.get('Avatar_URL')
+            
+            # Debug eerste 3 characters om structuur te zien
+            if i < 3:
+                print(f"   🔍 DEBUG Character {i+1}: {name}")
+                print(f"      Avatar_URL type: {type(avatar_url)}")
+                print(f"      Avatar_URL value: {repr(avatar_url)}")
             
             # Skip als geen naam
             if not name:
                 continue
             
-            # Check verschillende lege states
-            is_empty = (
-                avatar_url is None or 
-                avatar_url == '' or 
-                (isinstance(avatar_url, str) and avatar_url.strip() == '') or
-                (isinstance(avatar_url, str) and avatar_url.lower().strip() in ['none', 'null', 'undefined'])
-            )
+            # VERBETERDE DETECTIE - check voor alle mogelijke lege states
+            is_empty = False
+            
+            # Case 1: None, empty string, or whitespace-only string
+            if avatar_url is None or avatar_url == '':
+                is_empty = True
+            elif isinstance(avatar_url, str):
+                if avatar_url.strip() == '' or avatar_url.lower().strip() in ['none', 'null', 'undefined']:
+                    is_empty = True
+            
+            # Case 2: Empty array (als Avatar_URL een attachment field is)
+            elif isinstance(avatar_url, list):
+                if len(avatar_url) == 0:
+                    is_empty = True
+                # Check of alle items in array leeg zijn
+                elif all(not item or not item.get('url') for item in avatar_url):
+                    is_empty = True
+            
+            # Case 3: Object/dict maar zonder url
+            elif isinstance(avatar_url, dict):
+                if not avatar_url.get('url'):
+                    is_empty = True
             
             if is_empty:
                 characters_needing_avatar.append({
@@ -86,25 +108,34 @@ class SimpleAvatarUploader:
                     'name': name,
                     'category': fields.get('Category', 'other').lower()
                 })
-                print(f"   ❌ NO AVATAR: {name}")
+                print(f"   ❌ NO AVATAR: {name} (type: {type(avatar_url)})")
             else:
                 characters_with_avatar += 1
+                if i < 10:  # Show first 10 with avatars for debugging
+                    print(f"   ✅ HAS AVATAR: {name} → {str(avatar_url)[:50]}...")
         
-        print(f"📊 Characters WITH avatar: {characters_with_avatar}")
-        print(f"📊 Characters WITHOUT avatar: {len(characters_needing_avatar)}")
+        print(f"\n📊 Final Results:")
+        print(f"   ✅ Characters WITH avatar: {characters_with_avatar}")
+        print(f"   ❌ Characters WITHOUT avatar: {len(characters_needing_avatar)}")
         
         return characters_needing_avatar
 
     def search_character_image(self, character_name):
         """Zoek afbeelding voor character via Google"""
         try:
-            # Verschillende search queries proberen voor betere resultaten
+            # UITGEBREIDE search queries met meer variaties
             queries = [
                 f'"{character_name}" portrait',
                 f'"{character_name}" character',
                 f'"{character_name}" face',
                 f'{character_name} portrait',
-                f'{character_name} character art'
+                f'{character_name} character art',
+                f'{character_name} person',
+                f'{character_name} avatar',
+                f'{character_name} illustration',
+                # Voor abstract concepten - probeer gerelateerde termen
+                f'{character_name} concept art',
+                f'{character_name} symbol'
             ]
             
             all_images = []
@@ -118,9 +149,8 @@ class SimpleAvatarUploader:
                         q=query,
                         cx=self.google_cx,
                         searchType='image',
-                        num=5,
+                        num=3,  # Minder per query, maar meer queries
                         safe='active'
-                        # Alle andere parameters weggehaald die problemen geven
                     ).execute()
                     
                     items_found = len(result.get('items', []))
@@ -129,9 +159,8 @@ class SimpleAvatarUploader:
                     for item in result.get('items', []):
                         url = item['link']
                         
-                        # Skip problematic domains
-                        skip_domains = ['pinterest.com', 'tumblr.com', 'reddit.com', 'narrin.ai', 
-                                      'facebook.com', 'instagram.com', 'twitter.com', 'tiktok.com']
+                        # Minder restrictief - alleen echt problematische domains skippen
+                        skip_domains = ['narrin.ai']  # Alleen eigen site skippen
                         if any(domain in url.lower() for domain in skip_domains):
                             print(f"      ⏭️ Skipping {url.split('/')[2]}")
                             continue
@@ -145,17 +174,22 @@ class SimpleAvatarUploader:
                             })
                             print(f"      ✅ Added: {url.split('/')[2]}")
                     
-                    # Small delay between queries
-                    time.sleep(1)
+                    # Korte delay tussen queries
+                    time.sleep(0.5)
                     
                 except Exception as e:
                     print(f"   ❌ Query '{query}' failed: {e}")
                     continue
+                
+                # Stop als we genoeg images hebben
+                if len(all_images) >= 15:
+                    print(f"   🎯 Reached 15 images, stopping search")
+                    break
             
             print(f"   📊 Total unique images found: {len(all_images)}")
             
-            # Return top 8 unique images
-            return all_images[:8]
+            # Return alle gevonden images
+            return all_images
             
         except Exception as e:
             print(f"   ❌ Search error: {e}")
@@ -391,4 +425,4 @@ class SimpleAvatarUploader:
 
 if __name__ == "__main__":
     uploader = SimpleAvatarUploader()
-    uploader.run(max_characters=5)  # Start met 5 characters voor test
+    uploader.run(max_characters=20)  # Verhoogd van 5 naar 20 voor meer tests
