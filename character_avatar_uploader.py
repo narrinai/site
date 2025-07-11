@@ -106,20 +106,26 @@ class SimpleAvatarUploader:
             return []
 
     def find_characters_without_avatar(self, characters):
-        """Vind characters zonder Avatar_URL - verbeterde detectie"""
+        """Vind characters zonder Avatar_URL - meer uitgebreide detectie"""
         characters_needing_avatar = []
         characters_with_avatar = 0
         
-        print("📋 Checking Avatar_URL for all characters...")
+        print(f"\n📋 Checking Avatar_URL for ALL {len(characters)} characters...")
         print("🔍 Debug: Checking first few characters for Avatar_URL structure...")
+        
+        # Counters voor verschillende types
+        empty_none = 0
+        empty_string = 0
+        empty_array = 0
+        has_url = 0
         
         for i, record in enumerate(characters):
             fields = record.get('fields', {})
             name = fields.get('Name')
             avatar_url = fields.get('Avatar_URL')
             
-            # Debug eerste 3 characters om structuur te zien
-            if i < 3:
+            # Debug eerste 5 characters om structuur te zien
+            if i < 5:
                 print(f"   🔍 DEBUG Character {i+1}: {name}")
                 print(f"      Avatar_URL type: {type(avatar_url)}")
                 print(f"      Avatar_URL value: {repr(avatar_url)}")
@@ -128,28 +134,49 @@ class SimpleAvatarUploader:
             if not name:
                 continue
             
-            # VERBETERDE DETECTIE - check voor alle mogelijke lege states
+            # UITGEBREIDE DETECTIE - check voor alle mogelijke lege states
             is_empty = False
+            empty_reason = ""
             
-            # Case 1: None, empty string, or whitespace-only string
-            if avatar_url is None or avatar_url == '':
+            # Case 1: None
+            if avatar_url is None:
                 is_empty = True
-            elif isinstance(avatar_url, str):
-                if avatar_url.strip() == '' or avatar_url.lower().strip() in ['none', 'null', 'undefined']:
-                    is_empty = True
+                empty_reason = "None"
+                empty_none += 1
             
-            # Case 2: Empty array (als Avatar_URL een attachment field is)
+            # Case 2: Empty string or whitespace-only string
+            elif isinstance(avatar_url, str):
+                if avatar_url == '':
+                    is_empty = True
+                    empty_reason = "empty string"
+                    empty_string += 1
+                elif avatar_url.strip() == '':
+                    is_empty = True
+                    empty_reason = "whitespace only"
+                    empty_string += 1
+                elif avatar_url.lower().strip() in ['none', 'null', 'undefined']:
+                    is_empty = True
+                    empty_reason = "null-like string"
+                    empty_string += 1
+            
+            # Case 3: Empty array (als Avatar_URL een attachment field is)
             elif isinstance(avatar_url, list):
                 if len(avatar_url) == 0:
                     is_empty = True
+                    empty_reason = "empty array"
+                    empty_array += 1
                 # Check of alle items in array leeg zijn
                 elif all(not item or not item.get('url') for item in avatar_url):
                     is_empty = True
+                    empty_reason = "array with empty items"
+                    empty_array += 1
             
-            # Case 3: Object/dict maar zonder url
+            # Case 4: Object/dict maar zonder url
             elif isinstance(avatar_url, dict):
                 if not avatar_url.get('url'):
                     is_empty = True
+                    empty_reason = "object without url"
+                    empty_array += 1
             
             if is_empty:
                 characters_needing_avatar.append({
@@ -157,35 +184,67 @@ class SimpleAvatarUploader:
                     'name': name,
                     'category': fields.get('Category', 'other').lower()
                 })
-                print(f"   ❌ NO AVATAR: {name} (type: {type(avatar_url)})")
+                if len(characters_needing_avatar) <= 20:  # Show first 20
+                    print(f"   ❌ NO AVATAR: {name} ({empty_reason})")
             else:
                 characters_with_avatar += 1
-                if i < 10:  # Show first 10 with avatars for debugging
+                has_url += 1
+                if i < 5:  # Show first 5 with avatars for debugging
                     print(f"   ✅ HAS AVATAR: {name} → {str(avatar_url)[:50]}...")
+        
+        print(f"\n📊 Detailed breakdown:")
+        print(f"   🔍 Total characters checked: {len(characters)}")
+        print(f"   ❌ None values: {empty_none}")
+        print(f"   ❌ Empty strings: {empty_string}")
+        print(f"   ❌ Empty arrays: {empty_array}")
+        print(f"   ✅ Has URL: {has_url}")
         
         print(f"\n📊 Final Results:")
         print(f"   ✅ Characters WITH avatar: {characters_with_avatar}")
         print(f"   ❌ Characters WITHOUT avatar: {len(characters_needing_avatar)}")
         
+        if len(characters_needing_avatar) > 20:
+            print(f"   📝 First 20 without avatars shown above...")
+            print(f"   📝 Plus {len(characters_needing_avatar) - 20} more")
+        
         return characters_needing_avatar
 
-    def search_character_image(self, character_name):
-        """Zoek afbeelding voor character via Google"""
+    def search_character_image(self, character_name, category=''):
+        """Zoek afbeelding voor character via Google - aangepast voor coach categorieën"""
         try:
-            # UITGEBREIDE search queries met meer variaties
-            queries = [
-                f'"{character_name}" portrait',
-                f'"{character_name}" character',
-                f'"{character_name}" face',
-                f'{character_name} portrait',
-                f'{character_name} character art',
-                f'{character_name} person',
-                f'{character_name} avatar',
-                f'{character_name} illustration',
-                # Voor abstract concepten - probeer gerelateerde termen
-                f'{character_name} concept art',
-                f'{character_name} symbol'
-            ]
+            # Check of dit een coach category is
+            is_coach = 'coach' in category.lower() if category else False
+            
+            if is_coach:
+                print(f"   🎨 COACH CATEGORY detected - searching for illustrations")
+                # Voor coaches: zoek naar illustraties, iconen, abstract art
+                queries = [
+                    f'{character_name} illustration',
+                    f'{character_name} icon',
+                    f'{character_name} vector art',
+                    f'{character_name} graphic design',
+                    f'{character_name} logo',
+                    f'{character_name} symbol',
+                    f'{character_name} abstract art',
+                    f'{character_name} concept art',
+                    f'{character_name} cartoon',
+                    f'{character_name} flat design'
+                ]
+            else:
+                print(f"   👤 REGULAR CHARACTER - searching for portraits/photos")
+                # Voor reguliere characters: zoek naar menselijke afbeeldingen
+                queries = [
+                    f'"{character_name}" portrait',
+                    f'"{character_name}" character',
+                    f'"{character_name}" face',
+                    f'{character_name} portrait',
+                    f'{character_name} character art',
+                    f'{character_name} person',
+                    f'{character_name} avatar',
+                    f'{character_name} illustration',
+                    f'{character_name} concept art',
+                    f'{character_name} symbol'
+                ]
             
             all_images = []
             
@@ -357,9 +416,10 @@ class SimpleAvatarUploader:
     def process_character(self, character):
         """Verwerk één character - zoek alleen echte afbeeldingen"""
         print(f"\n🎯 Processing: {character['name']}")
+        print(f"   📂 Category: {character['category']}")
         
-        # Zoek afbeeldingen
-        images = self.search_character_image(character['name'])
+        # Zoek afbeeldingen (met category info voor coach detection)
+        images = self.search_character_image(character['name'], character['category'])
         if not images:
             print("   ❌ No images found")
             return False
