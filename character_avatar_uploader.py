@@ -111,6 +111,9 @@ class SimpleAvatarUploader:
             
             for query in queries:
                 try:
+                    print(f"   🔍 Searching: {query}")
+                    
+                    # FIX: Correcte Google Custom Search parameters
                     result = self.search_service.cse().list(
                         q=query,
                         cx=self.google_cx,
@@ -118,16 +121,21 @@ class SimpleAvatarUploader:
                         num=5,
                         safe='active',
                         imgColorType='color',
-                        imgSize='medium'
+                        imgSize='large',  # FIXED: was 'medium', nu 'large'
+                        imgType='photo'   # ADDED: prefer photos over clipart
                     ).execute()
+                    
+                    items_found = len(result.get('items', []))
+                    print(f"      📷 Found {items_found} results")
                     
                     for item in result.get('items', []):
                         url = item['link']
                         
                         # Skip problematic domains
                         skip_domains = ['pinterest.com', 'tumblr.com', 'reddit.com', 'narrin.ai', 
-                                      'facebook.com', 'instagram.com', 'twitter.com']
+                                      'facebook.com', 'instagram.com', 'twitter.com', 'tiktok.com']
                         if any(domain in url.lower() for domain in skip_domains):
+                            print(f"      ⏭️ Skipping {url.split('/')[2]}")
                             continue
                         
                         # Skip if we already have this URL
@@ -137,16 +145,19 @@ class SimpleAvatarUploader:
                                 'title': item.get('title', ''),
                                 'query': query
                             })
+                            print(f"      ✅ Added: {url.split('/')[2]}")
                     
                     # Small delay between queries
-                    time.sleep(0.5)
+                    time.sleep(1)
                     
                 except Exception as e:
-                    print(f"   ⚠️ Query '{query}' failed: {e}")
+                    print(f"   ❌ Query '{query}' failed: {e}")
                     continue
             
-            # Return top 10 unique images
-            return all_images[:10]
+            print(f"   📊 Total unique images found: {len(all_images)}")
+            
+            # Return top 8 unique images
+            return all_images[:8]
             
         except Exception as e:
             print(f"   ❌ Search error: {e}")
