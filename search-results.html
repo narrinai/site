@@ -1,1450 +1,1448 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Character Search Results | Find Characters - Narrin AI</title>
-  <meta name="description" content="Search results for AI characters on Narrin AI. Find and chat with your favorite AI characters from history, fiction, and modern personalities. Discover new characters to chat with.">
-  
-  <!-- Favicon -->
-  <link rel="icon" type="image/x-icon" href="/favicon.ico">
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-  
-  <!-- Import Modern Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
-  <style>
-    /* ===== CSS CUSTOM PROPERTIES ===== */
-    :root {
-      /* Primary Colors */
-      --color-white: #ffffff;
-      --color-off-white: #fafafa;
-      --color-light-gray: #f5f5f5;
-      
-      /* Accent Colors */
-      --color-teal: #14b8a6;
-      --color-teal-light: #5eead4;
-      --color-teal-dark: #0f766e;
-      --color-teal-alt: #10a394;
-      --color-coral: #f97316;
-      --color-coral-light: #fb923c;
-      --color-coral-dark: #ea580c;
-      
-      /* Supporting Colors */
-      --color-navy: #1e293b;
-      --color-navy-light: #334155;
-      --color-gray: #64748b;
-      --color-gray-light: #94a3b8;
-      --color-gray-dark: #475569;
-      
-      /* Gradients */
-      --gradient-primary: linear-gradient(135deg, var(--color-teal) 0%, var(--color-coral) 100%);
-      --gradient-subtle: linear-gradient(135deg, var(--color-teal-light) 0%, var(--color-coral-light) 100%);
-      --gradient-tags: linear-gradient(135deg, var(--color-teal-alt) 0%, var(--color-coral) 100%);
-      
-      /* Shadows */
-      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-      --shadow-colored: 0 10px 25px -5px rgba(20, 184, 166, 0.2);
-      
-      /* Spacing */
-      --spacing-xs: 0.5rem;
-      --spacing-sm: 0.75rem;
-      --spacing-md: 1rem;
-      --spacing-lg: 1.5rem;
-      --spacing-xl: 2rem;
-      --spacing-2xl: 3rem;
-      --spacing-3xl: 4rem;
-      
-      /* Typography */
-      --font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-      --font-secondary: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-      
-      /* Font Sizes */
-      --font-size-xs: 0.75rem;
-      --font-size-sm: 0.875rem;
-      --font-size-base: 1rem;
-      --font-size-lg: 1.125rem;
-      --font-size-xl: 1.25rem;
-      --font-size-2xl: 1.5rem;
-      --font-size-3xl: 1.875rem;
-      --font-size-4xl: 2.25rem;
-      
-      /* Border Radius */
-      --radius-sm: 6px;
-      --radius-md: 12px;
-      --radius-lg: 16px;
-      --radius-xl: 24px;
-      --radius-full: 9999px;
-      
-      /* Transitions */
-      --transition-fast: 150ms ease-out;
-      --transition-base: 300ms ease-out;
-      --transition-slow: 500ms ease-out;
-      
-      /* Touch Target Size */
-      --touch-target: 44px;
-      
-      /* Z-index Scale */
-      --z-dropdown: 100;
-      --z-sticky: 200;
-      --z-overlay: 300;
-      --z-modal: 400;
-      --z-menu-overlay: 500;
-    }
-
-    /* ===== RESET & BASE STYLES ===== */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    html {
-      overflow-x: hidden;
-    }
-
-    body {
-      font-family: var(--font-primary);
-      background: var(--color-off-white);
-      color: var(--color-navy);
-      line-height: 1.6;
-      font-size: var(--font-size-base);
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      min-height: 100vh;
-      overflow-x: hidden;
-      position: relative;
-      width: 100%;
-    }
-
-    /* ===== ACCESSIBILITY ===== */
-    :focus {
-      outline: 2px solid var(--color-teal);
-      outline-offset: 2px;
-    }
-
-    :focus:not(:focus-visible) {
-      outline: none;
-    }
-
-    /* ===== HEADER NAVIGATION ===== */
-    .header {
-      position: sticky;
-      top: 0;
-      z-index: var(--z-sticky);
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-      transition: all var(--transition-base);
-    }
-
-    .header-container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 0 var(--spacing-lg);
-      width: 100%;
-      overflow: hidden;
-    }
-
-    .header-content {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      min-height: 72px;
-      gap: var(--spacing-lg);
-      width: 100%;
-    }
-
-    /* Logo */
-    .logo {
-      font-family: var(--font-secondary);
-      font-size: var(--font-size-xl);
-      font-weight: 800;
-      text-decoration: none;
-      letter-spacing: -0.02em;
-      background: var(--gradient-primary);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      transition: transform var(--transition-base);
-      flex-shrink: 0;
-    }
-
-    .logo:hover {
-      transform: scale(1.05);
-    }
-
-    /* Desktop Navigation Center */
-    .nav-center {
-      display: none;
-      align-items: center;
-      gap: var(--spacing-2xl);
-      flex: 1;
-      justify-content: center;
-    }
-
-    /* USPs Container - Desktop */
-    .nav-usps {
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-xl);
-    }
-
-    .usp-item {
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-xs);
-      color: var(--color-gray-dark);
-      font-size: var(--font-size-xs);
-      font-weight: 500;
-      white-space: nowrap;
-    }
-
-    .usp-icon {
-      font-size: var(--font-size-lg);
-      color: var(--color-teal);
-    }
-
-    /* Search Bar - Desktop */
-    .nav-search {
-      position: relative;
-      width: 100%;
-      max-width: 400px;
-    }
-
-    .nav-search-input {
-      width: 100%;
-      padding: var(--spacing-sm) var(--spacing-lg);
-      padding-right: calc(var(--spacing-lg) * 2.5);
-      font-size: var(--font-size-sm);
-      font-family: inherit;
-      border: 2px solid var(--color-light-gray);
-      border-radius: var(--radius-full);
-      background: var(--color-white);
-      color: var(--color-navy);
-      transition: all var(--transition-base);
-    }
-
-    .nav-search-input:hover {
-      border-color: var(--color-gray-light);
-    }
-
-    .nav-search-input:focus {
-      border-color: var(--color-teal);
-      box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
-    }
-
-    .nav-search-input::placeholder {
-      color: var(--color-gray-light);
-    }
-
-    .search-submit {
-      position: absolute;
-      right: 6px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: var(--gradient-primary);
-      border: none;
-      border-radius: var(--radius-full);
-      width: 36px;
-      height: 36px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all var(--transition-base);
-    }
-
-    .search-submit:hover {
-      transform: translateY(-50%) scale(1.1);
-    }
-
-    .search-submit svg {
-      width: 18px;
-      height: 18px;
-      color: var(--color-white);
-    }
-
-    /* Navigation Links - Desktop */
-    .nav-links {
-      display: none;
-      align-items: center;
-      gap: var(--spacing-xl);
-    }
-
-    .nav-link {
-      color: var(--color-navy);
-      text-decoration: none;
-      font-weight: 500;
-      font-size: var(--font-size-sm);
-      transition: color var(--transition-base);
-      position: relative;
-      padding: var(--spacing-xs) 0;
-    }
-
-    .nav-link::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 0;
-      height: 2px;
-      background: var(--gradient-primary);
-      transition: width var(--transition-base);
-    }
-
-    .nav-link:hover {
-      color: var(--color-teal);
-    }
-
-    .nav-link:hover::after {
-      width: 100%;
-    }
-
-    /* Buttons */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: var(--spacing-sm) var(--spacing-lg);
-      font-size: var(--font-size-sm);
-      font-weight: 600;
-      text-decoration: none;
-      border: none;
-      border-radius: var(--radius-md);
-      cursor: pointer;
-      transition: all var(--transition-base);
-      min-height: var(--touch-target);
-      white-space: nowrap;
-    }
-
-    .btn-primary {
-      background: var(--gradient-primary);
-      color: var(--color-white);
-      box-shadow: var(--shadow-colored);
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-lg);
-    }
-
-    /* Mobile Navigation Container */
-    .mobile-nav-container {
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-sm);
-      flex-shrink: 0;
-    }
-
-    /* Mobile USP Carousel */
-    .mobile-usp-carousel {
-      display: none;
-      align-items: center;
-      justify-content: center;
-      height: 24px;
-      overflow: hidden;
-      position: relative;
-      flex: 1;
-      min-width: 0;
-    }
-
-    .mobile-usp-track {
-      display: flex;
-      flex-direction: column;
-      transition: transform var(--transition-slow);
-      height: 300%;
-    }
-
-    .mobile-usp-item {
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-xs);
-      color: var(--color-gray-dark);
-      font-size: var(--font-size-xs);
-      font-weight: 500;
-      white-space: nowrap;
-      min-height: 100%;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    /* Mobile Search Button */
-    .mobile-search-btn {
-      display: none;
-      align-items: center;
-      justify-content: center;
-      width: var(--touch-target);
-      height: var(--touch-target);
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      color: var(--color-navy);
-      transition: all var(--transition-base);
-      border-radius: var(--radius-md);
-      flex-shrink: 0;
-    }
-
-    .mobile-search-btn:hover {
-      background: var(--color-light-gray);
-    }
-
-    .mobile-search-btn svg {
-      width: 24px;
-      height: 24px;
-    }
-
-    /* Mobile Hamburger Menu */
-    .mobile-menu-btn {
-      display: none;
-      align-items: center;
-      justify-content: center;
-      width: var(--touch-target);
-      height: var(--touch-target);
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      color: var(--color-navy);
-      transition: all var(--transition-base);
-      border-radius: var(--radius-md);
-      position: relative;
-      flex-shrink: 0;
-      z-index: var(--z-menu-overlay);
-    }
-
-    .mobile-menu-btn:hover {
-      background: var(--color-light-gray);
-    }
-
-    .hamburger {
-      width: 24px;
-      height: 18px;
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    .hamburger span {
-      display: block;
-      height: 2px;
-      width: 100%;
-      background: var(--color-navy);
-      border-radius: 1px;
-      transition: all var(--transition-base);
-    }
-
-    .mobile-menu-btn.active .hamburger span:nth-child(1) {
-      transform: rotate(45deg) translate(6px, 6px);
-    }
-
-    .mobile-menu-btn.active .hamburger span:nth-child(2) {
-      opacity: 0;
-    }
-
-    .mobile-menu-btn.active .hamburger span:nth-child(3) {
-      transform: rotate(-45deg) translate(6px, -6px);
-    }
-
-    /* Mobile Menu Overlay - Full Screen */
-    .mobile-menu-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(30, 41, 59, 0.95);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      z-index: var(--z-overlay);
-      opacity: 0;
-      visibility: hidden;
-      transition: all var(--transition-base);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .mobile-menu-overlay.active {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .mobile-menu-content {
-      background: var(--color-white);
-      border-radius: var(--radius-xl);
-      padding: var(--spacing-3xl) var(--spacing-xl);
-      box-shadow: var(--shadow-xl);
-      max-width: 90vw;
-      width: 100%;
-      max-width: 400px;
-      transform: scale(0.9) translateY(20px);
-      transition: all var(--transition-base);
-    }
-
-    .mobile-menu-overlay.active .mobile-menu-content {
-      transform: scale(1) translateY(0);
-    }
-
-    .mobile-menu-header {
-      text-align: center;
-      margin-bottom: var(--spacing-2xl);
-    }
-
-    .mobile-menu-logo {
-      font-family: var(--font-secondary);
-      font-size: var(--font-size-2xl);
-      font-weight: 800;
-      background: var(--gradient-primary);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: var(--spacing-sm);
-    }
-
-    .mobile-menu-subtitle {
-      color: var(--color-gray);
-      font-size: var(--font-size-sm);
-    }
-
-    .mobile-menu-nav {
-      display: flex;
-      flex-direction: column;
-      gap: var(--spacing-md);
-    }
-
-    .mobile-menu-link {
-      display: flex;
-      align-items: center;
-      padding: var(--spacing-md) var(--spacing-lg);
-      color: var(--color-navy);
-      text-decoration: none;
-      font-weight: 500;
-      font-size: var(--font-size-base);
-      transition: all var(--transition-base);
-      border-radius: var(--radius-md);
-      background: var(--color-off-white);
-    }
-
-    .mobile-menu-link:hover {
-      background: var(--color-light-gray);
-      color: var(--color-teal);
-      transform: translateX(4px);
-    }
-
-    .mobile-menu-link.btn-primary {
-      background: var(--gradient-primary);
-      color: var(--color-white);
-      justify-content: center;
-      font-weight: 700;
-      margin-top: var(--spacing-lg);
-    }
-
-    .mobile-menu-link.btn-primary:hover {
-      background: var(--gradient-primary);
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-lg);
-    }
-
-    .mobile-menu-link-icon {
-      margin-right: var(--spacing-sm);
-      font-size: var(--font-size-lg);
-    }
-
-    /* Mobile Search Overlay */
-    .mobile-search-overlay {
-      position: fixed;
-      top: 72px;
-      left: 0;
-      right: 0;
-      background: var(--color-white);
-      padding: var(--spacing-lg);
-      box-shadow: var(--shadow-lg);
-      transform: translateY(-100%);
-      opacity: 0;
-      visibility: hidden;
-      transition: all var(--transition-base);
-      z-index: var(--z-dropdown);
-    }
-
-    .mobile-search-overlay.active {
-      transform: translateY(0);
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .mobile-search-form {
-      display: flex;
-      gap: var(--spacing-sm);
-    }
-
-    .mobile-search-input {
-      flex: 1;
-      padding: var(--spacing-md);
-      font-size: var(--font-size-base);
-      font-family: inherit;
-      border: 2px solid var(--color-light-gray);
-      border-radius: var(--radius-md);
-      background: var(--color-white);
-      color: var(--color-navy);
-      transition: all var(--transition-base);
-    }
-
-    .mobile-search-input:focus {
-      border-color: var(--color-teal);
-      box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
-    }
-
-    /* Desktop Styles */
-    @media (min-width: 769px) {
-      .nav-center {
-        display: flex;
-      }
-
-      .nav-links {
-        display: flex;
-      }
-
-      .mobile-nav-container {
-        display: none;
-      }
-
-      .mobile-usp-carousel {
-        display: none !important;
-      }
-
-      .mobile-search-btn {
-        display: none !important;
-      }
-
-      .mobile-menu-btn {
-        display: none !important;
-      }
-
-      .mobile-menu-overlay {
-        display: none !important;
-      }
-    }
-
-    /* Mobile Styles */
-    @media (max-width: 768px) {
-      .header-container {
-        padding: 0 var(--spacing-md);
-      }
-
-      .header-content {
-        min-height: 60px;
-        gap: var(--spacing-sm);
-        padding: 0;
-        display: grid;
-        grid-template-columns: auto 1fr auto auto;
-        align-items: center;
-      }
-
-      .logo {
-        font-size: var(--font-size-lg);
-        flex-shrink: 0;
-        min-width: fit-content;
-        grid-column: 1;
-      }
-
-      .mobile-usp-carousel {
-        display: flex;
-        height: 24px;
-        overflow: hidden;
-        position: relative;
-        grid-column: 2;
-        justify-self: center;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .mobile-nav-container {
-        flex-shrink: 0;
-        min-width: fit-content;
-        display: flex !important;
-        gap: var(--spacing-xs);
-        grid-column: 3 / 5;
-        justify-self: end;
-      }
-
-      .nav-center {
-        display: none !important;
-      }
-
-      .nav-links {
-        display: none !important;
-      }
-
-      .mobile-search-btn {
-        display: flex;
-        flex-shrink: 0;
-      }
-
-      .mobile-menu-btn {
-        display: flex;
-        flex-shrink: 0;
-      }
-
-      .mobile-search-overlay {
-        top: 60px;
-      }
-    }
-
-    /* Extra small mobile devices */
-    @media (max-width: 480px) {
-      .header-content {
-        gap: var(--spacing-xs);
-        grid-template-columns: auto 1fr auto auto;
-      }
-      
-      .logo {
-        font-size: var(--font-size-base);
-      }
-    }
-
-    /* ===== MAIN CONTENT ===== */
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: var(--spacing-xl) var(--spacing-lg);
-    }
-
-    .search-header {
-      text-align: center;
-      margin-bottom: var(--spacing-2xl);
-    }
-
-    .search-header h1 {
-      font-family: var(--font-secondary);
-      font-size: var(--font-size-3xl);
-      font-weight: 700;
-      color: var(--color-navy);
-      margin-bottom: var(--spacing-sm);
-    }
-
-    .search-query {
-      color: var(--color-teal);
-      font-weight: 600;
-    }
-
-    .search-meta {
-      color: var(--color-gray);
-      font-size: var(--font-size-sm);
-      margin-bottom: var(--spacing-lg);
-    }
-
-    /* Search Results */
-    .search-results {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: var(--spacing-lg);
-      margin-bottom: var(--spacing-2xl);
-    }
-
-    .character-card {
-      background: var(--color-white);
-      border: 2px solid var(--color-light-gray);
-      border-radius: var(--radius-lg);
-      padding: var(--spacing-lg);
-      text-decoration: none;
-      color: inherit;
-      transition: all var(--transition-base);
-      text-align: center;
-      padding-top: var(--spacing-2xl);
-    }
-
-    .character-card:hover {
-      border-color: var(--color-teal);
-      transform: translateY(-6px);
-      box-shadow: var(--shadow-xl);
-    }
-
-    .character-avatar {
-      width: 160px;
-      height: 160px;
-      border-radius: var(--radius-full);
-      margin: 0 auto var(--spacing-md);
-      background: var(--color-off-white);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: var(--font-size-3xl);
-      border: 3px solid var(--color-light-gray);
-      overflow: hidden;
-      transition: all var(--transition-base);
-      position: relative;
-    }
-
-    .character-card:hover .character-avatar {
-      border-color: var(--color-teal);
-      transform: scale(1.05);
-    }
-
-    .character-avatar img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      position: absolute;
-      top: 0;
-      left: 0;
-    }
-
-    .character-avatar .avatar-fallback {
-      color: var(--color-gray-light);
-      font-size: 4rem;
-      z-index: 1;
-    }
-
-    .character-name {
-      font-weight: 700;
-      font-size: var(--font-size-base);
-      color: var(--color-navy);
-      margin-bottom: var(--spacing-xs);
-    }
-
-    .character-title {
-      font-size: var(--font-size-sm);
-      color: var(--color-gray);
-    }
-
-    /* Loading State */
-    .loading {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: var(--spacing-3xl);
-    }
-
-    .loading-spinner {
-      width: 32px;
-      height: 32px;
-      border: 3px solid var(--color-light-gray);
-      border-top-color: var(--color-teal);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    /* No Results State */
-    .no-results {
-      text-align: center;
-      padding: var(--spacing-3xl);
-      color: var(--color-gray);
-    }
-
-    .no-results h3 {
-      font-family: var(--font-secondary);
-      font-size: var(--font-size-2xl);
-      margin-bottom: var(--spacing-md);
-      color: var(--color-navy);
-    }
-
-    .no-results p {
-      font-size: var(--font-size-base);
-      margin-bottom: var(--spacing-lg);
-    }
-
-    .no-results .btn {
-      margin-top: var(--spacing-md);
-    }
-
-    /* Mobile Adjustments */
-    @media (max-width: 768px) {
-      .container {
-        padding: var(--spacing-lg) var(--spacing-md);
-      }
-
-      .search-header h1 {
-        font-size: var(--font-size-2xl);
-      }
-
-      .search-results {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: var(--spacing-md);
-      }
-
-      .character-avatar {
-        width: 140px;
-        height: 140px;
-      }
-    }
-
-    /* Accessibility - Reduced Motion */
-    @media (prefers-reduced-motion: reduce) {
-      *,
-      *::before,
-      *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-      }
-    }
-
-    /* ===== FOOTER STYLES ===== */
-    .footer {
-      background: var(--color-white);
-      border-top: 1px solid var(--color-light-gray);
-      padding: var(--spacing-xl) 0;
-      margin-top: var(--spacing-3xl);
-    }
-
-    .footer-container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 0 var(--spacing-lg);
-      text-align: center;
-    }
-
-    .footer-links {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: var(--spacing-lg);
-      margin-bottom: var(--spacing-md);
-      flex-wrap: wrap;
-    }
-
-    .footer-link {
-      color: var(--color-gray);
-      text-decoration: none;
-      font-size: var(--font-size-sm);
-      font-weight: 500;
-      transition: color var(--transition-base);
-    }
-
-    .footer-link:hover {
-      color: var(--color-teal);
-    }
-
-    .footer-separator {
-      color: var(--color-gray-light);
-      font-size: var(--font-size-sm);
-    }
-
-    .footer-copyright {
-      color: var(--color-gray-light);
-      font-size: var(--font-size-xs);
-      margin: 0;
-    }
-
-    /* Mobile footer adjustments */
-    @media (max-width: 768px) {
-      .footer {
-        padding: var(--spacing-lg) 0;
-        margin-top: var(--spacing-2xl);
-      }
-
-      .footer-container {
-        padding: 0 var(--spacing-md);
-      }
-
-      .footer-links {
-        gap: var(--spacing-md);
-      }
-    }
-  </style>
-
-  <!-- Netlify Identity Widget -->
-  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+ <meta charset="UTF-8" />
+ <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+ <title>AI Character Search Results | Find Characters - Narrin AI</title>
+ <meta name="description" content="Search results for AI characters on Narrin AI. Find and chat with your favorite AI characters from history, fiction, and modern personalities. Discover new characters to chat with.">
+ 
+ <!-- Favicon -->
+ <link rel="icon" type="image/x-icon" href="/favicon.ico">
+ <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+ <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+ <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+ 
+ <!-- Import Modern Google Fonts -->
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+ <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+ <style>
+   /* ===== CSS CUSTOM PROPERTIES ===== */
+   :root {
+     /* Primary Colors */
+     --color-white: #ffffff;
+     --color-off-white: #fafafa;
+     --color-light-gray: #f5f5f5;
+     
+     /* Accent Colors */
+     --color-teal: #14b8a6;
+     --color-teal-light: #5eead4;
+     --color-teal-dark: #0f766e;
+     --color-teal-alt: #10a394;
+     --color-coral: #f97316;
+     --color-coral-light: #fb923c;
+     --color-coral-dark: #ea580c;
+     
+     /* Supporting Colors */
+     --color-navy: #1e293b;
+     --color-navy-light: #334155;
+     --color-gray: #64748b;
+     --color-gray-light: #94a3b8;
+     --color-gray-dark: #475569;
+     
+     /* Gradients */
+     --gradient-primary: linear-gradient(135deg, var(--color-teal) 0%, var(--color-coral) 100%);
+     --gradient-subtle: linear-gradient(135deg, var(--color-teal-light) 0%, var(--color-coral-light) 100%);
+     --gradient-tags: linear-gradient(135deg, var(--color-teal-alt) 0%, var(--color-coral) 100%);
+     
+     /* Shadows */
+     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+     --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+     --shadow-colored: 0 10px 25px -5px rgba(20, 184, 166, 0.2);
+     
+     /* Spacing */
+     --spacing-xs: 0.5rem;
+     --spacing-sm: 0.75rem;
+     --spacing-md: 1rem;
+     --spacing-lg: 1.5rem;
+     --spacing-xl: 2rem;
+     --spacing-2xl: 3rem;
+     --spacing-3xl: 4rem;
+     
+     /* Typography */
+     --font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+     --font-secondary: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+     
+     /* Font Sizes */
+     --font-size-xs: 0.75rem;
+     --font-size-sm: 0.875rem;
+     --font-size-base: 1rem;
+     --font-size-lg: 1.125rem;
+     --font-size-xl: 1.25rem;
+     --font-size-2xl: 1.5rem;
+     --font-size-3xl: 1.875rem;
+     --font-size-4xl: 2.25rem;
+     
+     /* Border Radius */
+     --radius-sm: 6px;
+     --radius-md: 12px;
+     --radius-lg: 16px;
+     --radius-xl: 24px;
+     --radius-full: 9999px;
+     
+     /* Transitions */
+     --transition-fast: 150ms ease-out;
+     --transition-base: 300ms ease-out;
+     --transition-slow: 500ms ease-out;
+     
+     /* Touch Target Size */
+     --touch-target: 44px;
+     
+     /* Z-index Scale */
+     --z-dropdown: 100;
+     --z-sticky: 200;
+     --z-overlay: 300;
+     --z-modal: 400;
+     --z-menu-overlay: 500;
+   }
+
+   /* ===== RESET & BASE STYLES ===== */
+   * {
+     box-sizing: border-box;
+     margin: 0;
+     padding: 0;
+   }
+
+   html {
+     overflow-x: hidden;
+   }
+
+   body {
+     font-family: var(--font-primary);
+     background: var(--color-off-white);
+     color: var(--color-navy);
+     line-height: 1.6;
+     font-size: var(--font-size-base);
+     -webkit-font-smoothing: antialiased;
+     -moz-osx-font-smoothing: grayscale;
+     min-height: 100vh;
+     overflow-x: hidden;
+     position: relative;
+     width: 100%;
+   }
+
+   /* ===== ACCESSIBILITY ===== */
+   :focus {
+     outline: 2px solid var(--color-teal);
+     outline-offset: 2px;
+   }
+
+   :focus:not(:focus-visible) {
+     outline: none;
+   }
+
+   /* ===== HEADER NAVIGATION ===== */
+   .header {
+     position: sticky;
+     top: 0;
+     z-index: var(--z-sticky);
+     background: rgba(255, 255, 255, 0.95);
+     backdrop-filter: blur(20px);
+     -webkit-backdrop-filter: blur(20px);
+     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+     transition: all var(--transition-base);
+   }
+
+   .header-container {
+     max-width: 1400px;
+     margin: 0 auto;
+     padding: 0 var(--spacing-lg);
+     width: 100%;
+     overflow: hidden;
+   }
+
+   .header-content {
+     display: flex;
+     align-items: center;
+     justify-content: space-between;
+     min-height: 72px;
+     gap: var(--spacing-lg);
+     width: 100%;
+   }
+
+   /* Logo */
+   .logo {
+     font-family: var(--font-secondary);
+     font-size: var(--font-size-xl);
+     font-weight: 800;
+     text-decoration: none;
+     letter-spacing: -0.02em;
+     background: var(--gradient-primary);
+     -webkit-background-clip: text;
+     -webkit-text-fill-color: transparent;
+     background-clip: text;
+     transition: transform var(--transition-base);
+     flex-shrink: 0;
+   }
+
+   .logo:hover {
+     transform: scale(1.05);
+   }
+
+   /* Desktop Navigation Center */
+   .nav-center {
+     display: none;
+     align-items: center;
+     gap: var(--spacing-2xl);
+     flex: 1;
+     justify-content: center;
+   }
+
+   /* USPs Container - Desktop */
+   .nav-usps {
+     display: flex;
+     align-items: center;
+     gap: var(--spacing-xl);
+   }
+
+   .usp-item {
+     display: flex;
+     align-items: center;
+     gap: var(--spacing-xs);
+     color: var(--color-gray-dark);
+     font-size: var(--font-size-xs);
+     font-weight: 500;
+     white-space: nowrap;
+   }
+
+   .usp-icon {
+     font-size: var(--font-size-lg);
+     color: var(--color-teal);
+   }
+
+   /* Search Bar - Desktop */
+   .nav-search {
+     position: relative;
+     width: 100%;
+     max-width: 400px;
+   }
+
+   .nav-search-input {
+     width: 100%;
+     padding: var(--spacing-sm) var(--spacing-lg);
+     padding-right: calc(var(--spacing-lg) * 2.5);
+     font-size: var(--font-size-sm);
+     font-family: inherit;
+     border: 2px solid var(--color-light-gray);
+     border-radius: var(--radius-full);
+     background: var(--color-white);
+     color: var(--color-navy);
+     transition: all var(--transition-base);
+   }
+
+   .nav-search-input:hover {
+     border-color: var(--color-gray-light);
+   }
+
+   .nav-search-input:focus {
+     border-color: var(--color-teal);
+     box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+   }
+
+   .nav-search-input::placeholder {
+     color: var(--color-gray-light);
+   }
+
+   .search-submit {
+     position: absolute;
+     right: 6px;
+     top: 50%;
+     transform: translateY(-50%);
+     background: var(--gradient-primary);
+     border: none;
+     border-radius: var(--radius-full);
+     width: 36px;
+     height: 36px;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     cursor: pointer;
+     transition: all var(--transition-base);
+   }
+
+   .search-submit:hover {
+     transform: translateY(-50%) scale(1.1);
+   }
+
+   .search-submit svg {
+     width: 18px;
+     height: 18px;
+     color: var(--color-white);
+   }
+
+   /* Navigation Links - Desktop */
+   .nav-links {
+     display: none;
+     align-items: center;
+     gap: var(--spacing-xl);
+   }
+
+   .nav-link {
+     color: var(--color-navy);
+     text-decoration: none;
+     font-weight: 500;
+     font-size: var(--font-size-sm);
+     transition: color var(--transition-base);
+     position: relative;
+     padding: var(--spacing-xs) 0;
+   }
+
+   .nav-link::after {
+     content: '';
+     position: absolute;
+     bottom: 0;
+     left: 0;
+     width: 0;
+     height: 2px;
+     background: var(--gradient-primary);
+     transition: width var(--transition-base);
+   }
+
+   .nav-link:hover {
+     color: var(--color-teal);
+   }
+
+   .nav-link:hover::after {
+     width: 100%;
+   }
+
+   /* Buttons */
+   .btn {
+     display: inline-flex;
+     align-items: center;
+     justify-content: center;
+     padding: var(--spacing-sm) var(--spacing-lg);
+     font-size: var(--font-size-sm);
+     font-weight: 600;
+     text-decoration: none;
+     border: none;
+     border-radius: var(--radius-md);
+     cursor: pointer;
+     transition: all var(--transition-base);
+     min-height: var(--touch-target);
+     white-space: nowrap;
+   }
+
+   .btn-primary {
+     background: var(--gradient-primary);
+     color: var(--color-white);
+     box-shadow: var(--shadow-colored);
+   }
+
+   .btn-primary:hover {
+     transform: translateY(-2px);
+     box-shadow: var(--shadow-lg);
+   }
+
+   /* Mobile Navigation Container */
+   .mobile-nav-container {
+     display: flex;
+     align-items: center;
+     gap: var(--spacing-sm);
+     flex-shrink: 0;
+   }
+
+   /* Mobile USP Carousel */
+   .mobile-usp-carousel {
+     display: none;
+     align-items: center;
+     justify-content: center;
+     height: 24px;
+     overflow: hidden;
+     position: relative;
+     flex: 1;
+     min-width: 0;
+   }
+
+   .mobile-usp-track {
+     display: flex;
+     flex-direction: column;
+     transition: transform var(--transition-slow);
+     height: 300%;
+   }
+
+   .mobile-usp-item {
+     display: flex;
+     align-items: center;
+     gap: var(--spacing-xs);
+     color: var(--color-gray-dark);
+     font-size: var(--font-size-xs);
+     font-weight: 500;
+     white-space: nowrap;
+     min-height: 100%;
+     justify-content: center;
+     flex-shrink: 0;
+   }
+
+   /* Mobile Search Button */
+   .mobile-search-btn {
+     display: none;
+     align-items: center;
+     justify-content: center;
+     width: var(--touch-target);
+     height: var(--touch-target);
+     background: transparent;
+     border: none;
+     cursor: pointer;
+     color: var(--color-navy);
+     transition: all var(--transition-base);
+     border-radius: var(--radius-md);
+     flex-shrink: 0;
+   }
+
+   .mobile-search-btn:hover {
+     background: var(--color-light-gray);
+   }
+
+   .mobile-search-btn svg {
+     width: 24px;
+     height: 24px;
+   }
+
+   /* Mobile Hamburger Menu */
+   .mobile-menu-btn {
+     display: none;
+     align-items: center;
+     justify-content: center;
+     width: var(--touch-target);
+     height: var(--touch-target);
+     background: transparent;
+     border: none;
+     cursor: pointer;
+     color: var(--color-navy);
+     transition: all var(--transition-base);
+     border-radius: var(--radius-md);
+     position: relative;
+     flex-shrink: 0;
+     z-index: var(--z-menu-overlay);
+   }
+
+   .mobile-menu-btn:hover {
+     background: var(--color-light-gray);
+   }
+
+   .hamburger {
+     width: 24px;
+     height: 18px;
+     position: relative;
+     display: flex;
+     flex-direction: column;
+     justify-content: space-between;
+   }
+
+   .hamburger span {
+     display: block;
+     height: 2px;
+     width: 100%;
+     background: var(--color-navy);
+     border-radius: 1px;
+     transition: all var(--transition-base);
+   }
+
+   .mobile-menu-btn.active .hamburger span:nth-child(1) {
+     transform: rotate(45deg) translate(6px, 6px);
+   }
+
+   .mobile-menu-btn.active .hamburger span:nth-child(2) {
+     opacity: 0;
+   }
+
+   .mobile-menu-btn.active .hamburger span:nth-child(3) {
+     transform: rotate(-45deg) translate(6px, -6px);
+   }
+
+   /* Mobile Menu Overlay - Full Screen */
+   .mobile-menu-overlay {
+     position: fixed;
+     top: 0;
+     left: 0;
+     right: 0;
+     bottom: 0;
+     background: rgba(30, 41, 59, 0.95);
+     backdrop-filter: blur(20px);
+     -webkit-backdrop-filter: blur(20px);
+     z-index: var(--z-overlay);
+     opacity: 0;
+     visibility: hidden;
+     transition: all var(--transition-base);
+     display: flex;
+     align-items: center;
+     justify-content: center;
+   }
+
+   .mobile-menu-overlay.active {
+     opacity: 1;
+     visibility: visible;
+   }
+
+   .mobile-menu-content {
+     background: var(--color-white);
+     border-radius: var(--radius-xl);
+     padding: var(--spacing-3xl) var(--spacing-xl);
+     box-shadow: var(--shadow-xl);
+     max-width: 90vw;
+     width: 100%;
+     max-width: 400px;
+     transform: scale(0.9) translateY(20px);
+     transition: all var(--transition-base);
+   }
+
+   .mobile-menu-overlay.active .mobile-menu-content {
+     transform: scale(1) translateY(0);
+   }
+
+   .mobile-menu-header {
+     text-align: center;
+     margin-bottom: var(--spacing-2xl);
+   }
+
+   .mobile-menu-logo {
+     font-family: var(--font-secondary);
+     font-size: var(--font-size-2xl);
+     font-weight: 800;
+     background: var(--gradient-primary);
+     -webkit-background-clip: text;
+     -webkit-text-fill-color: transparent;
+     background-clip: text;
+     margin-bottom: var(--spacing-sm);
+   }
+
+   .mobile-menu-subtitle {
+     color: var(--color-gray);
+     font-size: var(--font-size-sm);
+   }
+
+   .mobile-menu-nav {
+     display: flex;
+     flex-direction: column;
+     gap: var(--spacing-md);
+   }
+
+   .mobile-menu-link {
+     display: flex;
+     align-items: center;
+     padding: var(--spacing-md) var(--spacing-lg);
+     color: var(--color-navy);
+     text-decoration: none;
+     font-weight: 500;
+     font-size: var(--font-size-base);
+     transition: all var(--transition-base);
+     border-radius: var(--radius-md);
+     background: var(--color-off-white);
+   }
+
+   .mobile-menu-link:hover {
+     background: var(--color-light-gray);
+     color: var(--color-teal);
+     transform: translateX(4px);
+   }
+
+   .mobile-menu-link.btn-primary {
+     background: var(--gradient-primary);
+     color: var(--color-white);
+     justify-content: center;
+     font-weight: 700;
+     margin-top: var(--spacing-lg);
+   }
+
+   .mobile-menu-link.btn-primary:hover {
+     background: var(--gradient-primary);
+     transform: translateY(-2px);
+     box-shadow: var(--shadow-lg);
+   }
+
+   .mobile-menu-link-icon {
+     margin-right: var(--spacing-sm);
+     font-size: var(--font-size-lg);
+   }
+
+   /* Mobile Search Overlay */
+   .mobile-search-overlay {
+     position: fixed;
+     top: 72px;
+     left: 0;
+     right: 0;
+     background: var(--color-white);
+     padding: var(--spacing-lg);
+     box-shadow: var(--shadow-lg);
+     transform: translateY(-100%);
+     opacity: 0;
+     visibility: hidden;
+     transition: all var(--transition-base);
+     z-index: var(--z-dropdown);
+   }
+
+   .mobile-search-overlay.active {
+     transform: translateY(0);
+     opacity: 1;
+     visibility: visible;
+   }
+
+   .mobile-search-form {
+     display: flex;
+     gap: var(--spacing-sm);
+   }
+
+   .mobile-search-input {
+     flex: 1;
+     padding: var(--spacing-md);
+     font-size: var(--font-size-base);
+     font-family: inherit;
+     border: 2px solid var(--color-light-gray);
+     border-radius: var(--radius-md);
+     background: var(--color-white);
+     color: var(--color-navy);
+     transition: all var(--transition-base);
+   }
+
+   .mobile-search-input:focus {
+     border-color: var(--color-teal);
+     box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+   }
+
+   /* Desktop Styles */
+   @media (min-width: 769px) {
+     .nav-center {
+       display: flex;
+     }
+
+     .nav-links {
+       display: flex;
+     }
+
+     .mobile-nav-container {
+       display: none;
+     }
+
+     .mobile-usp-carousel {
+       display: none !important;
+     }
+
+     .mobile-search-btn {
+       display: none !important;
+     }
+
+     .mobile-menu-btn {
+       display: none !important;
+     }
+
+     .mobile-menu-overlay {
+       display: none !important;
+     }
+   }
+
+   /* Mobile Styles */
+   @media (max-width: 768px) {
+     .header-container {
+       padding: 0 var(--spacing-md);
+     }
+
+     .header-content {
+       min-height: 60px;
+       gap: var(--spacing-sm);
+       padding: 0;
+       display: grid;
+       grid-template-columns: auto 1fr auto auto;
+       align-items: center;
+     }
+
+     .logo {
+       font-size: var(--font-size-lg);
+       flex-shrink: 0;
+       min-width: fit-content;
+       grid-column: 1;
+     }
+
+     .mobile-usp-carousel {
+       display: flex;
+       height: 24px;
+       overflow: hidden;
+       position: relative;
+       grid-column: 2;
+       justify-self: center;
+       align-items: center;
+       justify-content: center;
+     }
+
+     .mobile-nav-container {
+       flex-shrink: 0;
+       min-width: fit-content;
+       display: flex !important;
+       gap: var(--spacing-xs);
+       grid-column: 3 / 5;
+       justify-self: end;
+     }
+
+     .nav-center {
+       display: none !important;
+     }
+
+     .nav-links {
+       display: none !important;
+     }
+
+     .mobile-search-btn {
+       display: flex;
+       flex-shrink: 0;
+     }
+
+     .mobile-menu-btn {
+       display: flex;
+       flex-shrink: 0;
+     }
+
+     .mobile-search-overlay {
+       top: 60px;
+     }
+   }
+
+   /* Extra small mobile devices */
+   @media (max-width: 480px) {
+     .header-content {
+       gap: var(--spacing-xs);
+       grid-template-columns: auto 1fr auto auto;
+     }
+     
+     .logo {
+       font-size: var(--font-size-base);
+     }
+   }
+
+   /* ===== MAIN CONTENT ===== */
+   .container {
+     max-width: 1200px;
+     margin: 0 auto;
+     padding: var(--spacing-xl) var(--spacing-lg);
+   }
+
+   .search-header {
+     text-align: center;
+     margin-bottom: var(--spacing-2xl);
+   }
+
+   .search-header h1 {
+     font-family: var(--font-secondary);
+     font-size: var(--font-size-3xl);
+     font-weight: 700;
+     color: var(--color-navy);
+     margin-bottom: var(--spacing-sm);
+   }
+
+   .search-query {
+     color: var(--color-teal);
+     font-weight: 600;
+   }
+
+   .search-meta {
+     color: var(--color-gray);
+     font-size: var(--font-size-sm);
+     margin-bottom: var(--spacing-lg);
+   }
+
+   /* Search Results */
+   .search-results {
+     display: grid;
+     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+     gap: var(--spacing-lg);
+     margin-bottom: var(--spacing-2xl);
+   }
+
+   .character-card {
+     background: var(--color-white);
+     border: 2px solid var(--color-light-gray);
+     border-radius: var(--radius-lg);
+     padding: var(--spacing-lg);
+     text-decoration: none;
+     color: inherit;
+     transition: all var(--transition-base);
+     text-align: center;
+     padding-top: var(--spacing-2xl);
+   }
+
+   .character-card:hover {
+     border-color: var(--color-teal);
+     transform: translateY(-6px);
+     box-shadow: var(--shadow-xl);
+   }
+
+   .character-avatar {
+     width: 160px;
+     height: 160px;
+     border-radius: var(--radius-full);
+     margin: 0 auto var(--spacing-md);
+     background: var(--color-off-white);
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     font-size: var(--font-size-3xl);
+     border: 3px solid var(--color-light-gray);
+     overflow: hidden;
+     transition: all var(--transition-base);
+     position: relative;
+   }
+
+   .character-card:hover .character-avatar {
+     border-color: var(--color-teal);
+     transform: scale(1.05);
+   }
+
+   .character-avatar img {
+     width: 100%;
+     height: 100%;
+     object-fit: cover;
+     position: absolute;
+     top: 0;
+     left: 0;
+   }
+
+   .character-avatar .avatar-fallback {
+     color: var(--color-gray-light);
+     font-size: 4rem;
+     z-index: 1;
+   }
+
+   .character-name {
+     font-weight: 700;
+     font-size: var(--font-size-base);
+     color: var(--color-navy);
+     margin-bottom: var(--spacing-xs);
+   }
+
+   .character-title {
+     font-size: var(--font-size-sm);
+     color: var(--color-gray);
+   }
+
+   /* Loading State */
+   .loading {
+     display: flex;
+     justify-content: center;
+     align-items: center;
+     padding: var(--spacing-3xl);
+   }
+
+   .loading-spinner {
+     width: 32px;
+     height: 32px;
+     border: 3px solid var(--color-light-gray);
+     border-top-color: var(--color-teal);
+     border-radius: 50%;
+     animation: spin 1s linear infinite;
+   }
+
+   @keyframes spin {
+     to { transform: rotate(360deg); }
+   }
+
+   /* No Results State */
+   .no-results {
+     text-align: center;
+     padding: var(--spacing-3xl);
+     color: var(--color-gray);
+   }
+
+   .no-results h3 {
+     font-family: var(--font-secondary);
+     font-size: var(--font-size-2xl);
+     margin-bottom: var(--spacing-md);
+     color: var(--color-navy);
+   }
+
+   .no-results p {
+     font-size: var(--font-size-base);
+     margin-bottom: var(--spacing-lg);
+   }
+
+   .no-results .btn {
+     margin-top: var(--spacing-md);
+   }
+
+   /* Mobile Adjustments */
+   @media (max-width: 768px) {
+     .container {
+       padding: var(--spacing-lg) var(--spacing-md);
+     }
+
+     .search-header h1 {
+       font-size: var(--font-size-2xl);
+     }
+
+     .search-results {
+       grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+       gap: var(--spacing-md);
+     }
+
+     .character-avatar {
+       width: 140px;
+       height: 140px;
+     }
+   }
+
+   /* Accessibility - Reduced Motion */
+   @media (prefers-reduced-motion: reduce) {
+     *,
+     *::before,
+     *::after {
+       animation-duration: 0.01ms !important;
+       animation-iteration-count: 1 !important;
+       transition-duration: 0.01ms !important;
+     }
+   }
+
+   /* ===== FOOTER STYLES ===== */
+   .footer {
+     background: var(--color-white);
+     border-top: 1px solid var(--color-light-gray);
+     padding: var(--spacing-xl) 0;
+     margin-top: var(--spacing-3xl);
+   }
+
+   .footer-container {
+     max-width: 1400px;
+     margin: 0 auto;
+     padding: 0 var(--spacing-lg);
+     text-align: center;
+   }
+
+   .footer-links {
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     gap: var(--spacing-lg);
+     margin-bottom: var(--spacing-md);
+     flex-wrap: wrap;
+   }
+
+   .footer-link {
+     color: var(--color-gray);
+     text-decoration: none;
+     font-size: var(--font-size-sm);
+     font-weight: 500;
+     transition: color var(--transition-base);
+   }
+
+   .footer-link:hover {
+     color: var(--color-teal);
+   }
+
+   .footer-separator {
+     color: var(--color-gray-light);
+     font-size: var(--font-size-sm);
+   }
+
+   .footer-copyright {
+     color: var(--color-gray-light);
+     font-size: var(--font-size-xs);
+     margin: 0;
+   }
+
+   /* Mobile footer adjustments */
+   @media (max-width: 768px) {
+     .footer {
+       padding: var(--spacing-lg) 0;
+       margin-top: var(--spacing-2xl);
+     }
+
+     .footer-container {
+       padding: 0 var(--spacing-md);
+     }
+
+     .footer-links {
+       gap: var(--spacing-md);
+     }
+   }
+ </style>
+
+ <!-- Netlify Identity Widget -->
+ <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
 
 <body>
-  <!-- Header -->
-  <header class="header" role="banner">
-    <div class="header-container">
-      <div class="header-content">
-        <!-- Logo -->
-        <a href="index.html" class="logo" aria-label="Narrin AI Home">Narrin AI</a>
+ <!-- Header -->
+ <header class="header" role="banner">
+   <div class="header-container">
+     <div class="header-content">
+       <!-- Logo -->
+       <a href="index.html" class="logo" aria-label="Narrin AI Home">Narrin AI</a>
 
-        <!-- Mobile USP Carousel -->
-        <div class="mobile-usp-carousel" aria-label="Key features">
-          <div class="mobile-usp-track" id="mobileUspTrack">
-            <div class="mobile-usp-item">
-              <span class="usp-icon" aria-hidden="true">🔒</span>
-              <span>100% Safe</span>
-            </div>
-            <div class="mobile-usp-item">
-              <span class="usp-icon" aria-hidden="true">🧠</span>
-              <span>Character Memory</span>
-            </div>
-            <div class="mobile-usp-item">
-              <span class="usp-icon" aria-hidden="true">🔐</span>
-              <span>Private Data</span>
-            </div>
-          </div>
-        </div>
+       <!-- Mobile USP Carousel -->
+       <div class="mobile-usp-carousel" aria-label="Key features">
+         <div class="mobile-usp-track" id="mobileUspTrack">
+           <div class="mobile-usp-item">
+             <span class="usp-icon" aria-hidden="true">🔒</span>
+             <span>100% Safe</span>
+           </div>
+           <div class="mobile-usp-item">
+             <span class="usp-icon" aria-hidden="true">🧠</span>
+             <span>Character Memory</span>
+           </div>
+           <div class="mobile-usp-item">
+             <span class="usp-icon" aria-hidden="true">🔐</span>
+             <span>Private Data</span>
+           </div>
+         </div>
+       </div>
 
-        <!-- Mobile Navigation Container -->
-        <div class="mobile-nav-container">
-          <button class="mobile-search-btn" aria-label="Search" id="mobileSearchBtn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.35-4.35"></path>
-            </svg>
-          </button>
-          <button class="mobile-menu-btn" aria-label="Menu" id="mobileMenuBtn">
-            <div class="hamburger">
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
-          </button>
-        </div>
+       <!-- Mobile Navigation Container -->
+       <div class="mobile-nav-container">
+         <button class="mobile-search-btn" aria-label="Search" id="mobileSearchBtn">
+           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+             <circle cx="11" cy="11" r="8"></circle>
+             <path d="m21 21-4.35-4.35"></path>
+           </svg>
+         </button>
+         <button class="mobile-menu-btn" aria-label="Menu" id="mobileMenuBtn">
+           <div class="hamburger">
+             <span></span>
+             <span></span>
+             <span></span>
+           </div>
+         </button>
+       </div>
 
-        <!-- Desktop Navigation Center -->
-        <nav class="nav-center" role="navigation" aria-label="Main navigation">
-          <!-- USPs - All visible on desktop -->
-          <div class="nav-usps" aria-label="Key features">
-            <div class="usp-item">
-              <span class="usp-icon" aria-hidden="true">🔒</span>
-              <span>100% Safe</span>
-            </div>
-            <div class="usp-item">
-              <span class="usp-icon" aria-hidden="true">🧠</span>
-              <span>Character Memory</span>
-            </div>
-            <div class="usp-item">
-              <span class="usp-icon" aria-hidden="true">🔐</span>
-              <span>Private Data</span>
-            </div>
-          </div>
+       <!-- Desktop Navigation Center -->
+       <nav class="nav-center" role="navigation" aria-label="Main navigation">
+         <!-- USPs - All visible on desktop -->
+         <div class="nav-usps" aria-label="Key features">
+           <div class="usp-item">
+             <span class="usp-icon" aria-hidden="true">🔒</span>
+             <span>100% Safe</span>
+           </div>
+           <div class="usp-item">
+             <span class="usp-icon" aria-hidden="true">🧠</span>
+             <span>Character Memory</span>
+           </div>
+           <div class="usp-item">
+             <span class="usp-icon" aria-hidden="true">🔐</span>
+             <span>Private Data</span>
+           </div>
+         </div>
 
-          <!-- Search Bar - Always visible on desktop -->
-          <form class="nav-search" role="search">
-            <input 
-              type="search" 
-              class="nav-search-input" 
-              placeholder="Search characters..." 
-              aria-label="Search characters"
-              id="navSearchInput"
-            />
-            <button type="submit" class="search-submit" aria-label="Submit search">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"></circle>
-                <path d="m21 21-4.35-4.35"></path>
-              </svg>
-            </button>
-          </form>
-        </nav>
+         <!-- Search Bar - Always visible on desktop -->
+         <form class="nav-search" role="search">
+           <input 
+             type="search" 
+             class="nav-search-input" 
+             placeholder="Search characters..." 
+             aria-label="Search characters"
+             id="navSearchInput"
+           />
+           <button type="submit" class="search-submit" aria-label="Submit search">
+             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+               <circle cx="11" cy="11" r="8"></circle>
+               <path d="m21 21-4.35-4.35"></path>
+             </svg>
+           </button>
+         </form>
+       </nav>
 
-        <!-- Desktop Navigation Links -->
-        <nav class="nav-links" role="navigation" aria-label="Secondary navigation">
-          <a href="index.html" class="nav-link">Characters</a>
-          <a href="chat-overview.html" class="nav-link">Chats</a>
-          <a href="profile.html" class="nav-link" id="loginBtn">Login/Register</a>
-          <a href="create-character.html" class="btn btn-primary">✨ Create Character</a>
-        </nav>
-      </div>
-    </div>
-  </header>
+       <!-- Desktop Navigation Links -->
+       <nav class="nav-links" role="navigation" aria-label="Secondary navigation">
+         <a href="index.html" class="nav-link">Characters</a>
+         <a href="chat-overview.html" class="nav-link">Chats</a>
+         <a href="profile.html" class="nav-link" id="loginBtn">Login/Register</a>
+         <a href="create-character.html" class="btn btn-primary">✨ Create Character</a>
+       </nav>
+     </div>
+   </div>
+ </header>
 
-  <!-- Mobile Menu Overlay -->
-  <div class="mobile-menu-overlay" id="mobileMenuOverlay">
-    <div class="mobile-menu-content">
-      <div class="mobile-menu-header">
-        <div class="mobile-menu-logo">Narrin AI</div>
-        <div class="mobile-menu-subtitle">AI Character Chat Platform</div>
-      </div>
-      <nav class="mobile-menu-nav">
-        <a href="index.html" class="mobile-menu-link">
-          <span class="mobile-menu-link-icon">🏠</span>
-          Characters
-        </a>
-        <a href="chat-overview.html" class="mobile-menu-link">
-          <span class="mobile-menu-link-icon">💬</span>
-          Chats
-        </a>
-        <a href="profile.html" class="mobile-menu-link" id="mobileLoginBtn">
-          <span class="mobile-menu-link-icon">👤</span>
-          Login/Register
-        </a>
-        <a href="create-character.html" class="mobile-menu-link btn-primary">
-          ✨ Create Character
-        </a>
-      </nav>
-    </div>
-  </div>
+ <!-- Mobile Menu Overlay -->
+ <div class="mobile-menu-overlay" id="mobileMenuOverlay">
+   <div class="mobile-menu-content">
+     <div class="mobile-menu-header">
+       <div class="mobile-menu-logo">Narrin AI</div>
+       <div class="mobile-menu-subtitle">AI Character Chat Platform</div>
+     </div>
+     <nav class="mobile-menu-nav">
+       <a href="index.html" class="mobile-menu-link">
+         <span class="mobile-menu-link-icon">🏠</span>
+         Characters
+       </a>
+       <a href="chat-overview.html" class="mobile-menu-link">
+         <span class="mobile-menu-link-icon">💬</span>
+         Chats
+       </a>
+       <a href="profile.html" class="mobile-menu-link" id="mobileLoginBtn">
+         <span class="mobile-menu-link-icon">👤</span>
+         Login/Register
+       </a>
+       <a href="create-character.html" class="mobile-menu-link btn-primary">
+         ✨ Create Character
+       </a>
+     </nav>
+   </div>
+ </div>
 
-  <!-- Mobile Search Overlay -->
-  <div class="mobile-search-overlay" id="mobileSearchOverlay">
-    <form class="mobile-search-form" id="mobileSearchForm">
-      <input
-        type="search"
-        class="mobile-search-input"
-        placeholder="Search characters..."
-        aria-label="Search characters"
-        id="mobileSearchInput"
-      />
-      <button type="submit" class="btn btn-primary">Search</button>
-    </form>
-  </div>
+ <!-- Mobile Search Overlay -->
+ <div class="mobile-search-overlay" id="mobileSearchOverlay">
+   <form class="mobile-search-form" id="mobileSearchForm">
+     <input
+       type="search"
+       class="mobile-search-input"
+       placeholder="Search characters..."
+       aria-label="Search characters"
+       id="mobileSearchInput"
+     />
+     <button type="submit" class="btn btn-primary">Search</button>
+   </form>
+ </div>
 
-  <!-- Main Content -->
-  <main class="container">
-    <div class="search-header">
-      <h1>Search Results</h1>
-      <div class="search-meta">
-        <span id="searchQuery" class="search-query"></span>
-        <span id="resultCount"></span>
-      </div>
-    </div>
+ <!-- Main Content -->
+ <main class="container">
+   <div class="search-header">
+     <h1>Search Results</h1>
+     <div class="search-meta">
+       <span id="searchQuery" class="search-query"></span>
+       <span id="resultCount"></span>
+     </div>
+   </div>
 
-    <div id="loadingState" class="loading">
-      <div class="loading-spinner"></div>
-    </div>
+   <div id="loadingState" class="loading">
+     <div class="loading-spinner"></div>
+   </div>
 
-    <div id="searchResults" class="search-results" style="display: none;"></div>
+   <div id="searchResults" class="search-results" style="display: none;"></div>
 
-    <div id="noResults" class="no-results" style="display: none;">
-      <h3>No characters found</h3>
-      <p>We couldn't find any characters matching your search.</p>
-      <p>Try searching with different keywords or browse our categories.</p>
-      <a href="index.html" class="btn btn-primary">Browse All Characters</a>
-    </div>
-  </main>
+   <div id="noResults" class="no-results" style="display: none;">
+     <h3>No characters found</h3>
+     <p>We couldn't find any characters matching your search.</p>
+     <p>Try searching with different keywords or browse our categories.</p>
+     <a href="index.html" class="btn btn-primary">Browse All Characters</a>
+   </div>
+ </main>
 
-  <script>
-    // ===== SEARCH FUNCTIONALITY =====
-    const SEARCH_WEBHOOK_URL = 'https://hook.eu2.make.com/kej7ez9bgc9tic7';
-    
-    // Get search query from URL parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    const searchQuery = urlParams.get('q') || '';
-    
-    // Sample characters for fallback
-    const sampleCharacters = [
-      { 
-        name: "Napoleon Bonaparte", 
-        title: "French Emperor", 
-        avatar_url: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=160&h=160&fit=crop&crop=face",
-        character_url: "chat.html?char=napoleon-bonaparte"
-      },
-      { 
-        name: "Cleopatra VII", 
-        title: "Queen of Egypt", 
-        avatar_url: "https://images.unsplash.com/photo-1494790108755-2616c179a6c8?w=160&h=160&fit=crop&crop=face",
-        character_url: "chat.html?char=cleopatra-vii"
-      },
-      {
-        name: "Sherlock Holmes",
-        title: "Detective",
-        avatar_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=160&h=160&fit=crop&crop=face",
-        character_url: "chat.html?char=sherlock-holmes"
-      },
-      {
-        name: "Gandalf the Grey",
-        title: "Wizard",
-        avatar_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=160&h=160&fit=crop&crop=face",
-        character_url: "chat.html?char=gandalf-the-grey"
-      },
-      {
-        name: "Elon Musk",
-        title: "Tech Entrepreneur",
-        avatar_url: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=160&h=160&fit=crop&crop=face",
-        character_url: "chat.html?char=elon-musk"
-      }
-    ];
+ <script>
+   // ===== SEARCH FUNCTIONALITY =====
+   const SEARCH_WEBHOOK_URL = 'https://hook.eu2.make.com/kej7ez9bgc9tic7';
+   
+   // Get search query from URL parameters
+   const urlParams = new URLSearchParams(window.location.search);
+   const searchQuery = urlParams.get('q') || '';
+   
+   // Sample characters for fallback
+   const sampleCharacters = [
+     { 
+       name: "Napoleon Bonaparte", 
+       title: "French Emperor", 
+       avatar_url: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=160&h=160&fit=crop&crop=face",
+       character_url: "chat.html?char=napoleon-bonaparte"
+     },
+     { 
+       name: "Cleopatra VII", 
+       title: "Queen of Egypt", 
+       avatar_url: "https://images.unsplash.com/photo-1494790108755-2616c179a6c8?w=160&h=160&fit=crop&crop=face",
+       character_url: "chat.html?char=cleopatra-vii"
+     },
+     {
+       name: "Sherlock Holmes",
+       title: "Detective",
+       avatar_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=160&h=160&fit=crop&crop=face",
+       character_url: "chat.html?char=sherlock-holmes"
+     },
+     {
+       name: "Gandalf the Grey",
+       title: "Wizard",
+       avatar_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=160&h=160&fit=crop&crop=face",
+       character_url: "chat.html?char=gandalf-the-grey"
+     },
+     {
+       name: "Elon Musk",
+       title: "Tech Entrepreneur",
+       avatar_url: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=160&h=160&fit=crop&crop=face",
+       character_url: "chat.html?char=elon-musk"
+     }
+   ];
 
-    // Initialize search on page load
-    document.addEventListener('DOMContentLoaded', () => {
-      if (searchQuery) {
-        document.getElementById('searchQuery').textContent = `"${searchQuery}"`;
-        document.getElementById('navSearchInput').value = searchQuery;
-        performSearch(searchQuery);
-      } else {
-        showNoResults();
-      }
-    });
+   // Initialize search on page load
+   document.addEventListener('DOMContentLoaded', () => {
+     if (searchQuery) {
+       document.getElementById('searchQuery').textContent = `"${searchQuery}"`;
+       document.getElementById('navSearchInput').value = searchQuery;
+       performSearch(searchQuery);
+     } else {
+       showNoResults();
+     }
+   });
 
-    // Perform search
-    async function performSearch(query) {
-      console.log('🔍 Performing search for:', query);
-      
-      try {
-        // Try to search via webhook first
-        await searchCharacters(query);
-      } catch (error) {
-        console.error('❌ Search webhook failed:', error);
-        console.log('🔄 Falling back to sample data search');
-        searchSampleCharacters(query);
-      }
-    }
+   // Perform search
+   async function performSearch(query) {
+     console.log('🔍 Performing search for:', query);
+     
+     try {
+       // Try to search via webhook first
+       await searchCharacters(query);
+     } catch (error) {
+       console.error('❌ Search webhook failed:', error);
+       console.log('🔄 Falling back to sample data search');
+       searchSampleCharacters(query);
+     }
+   }
 
-    // Search characters via webhook
-    async function searchCharacters(query) {
-      const url = `${SEARCH_WEBHOOK_URL}?search=${encodeURIComponent(query)}`;
-      
-      console.log('📡 Searching via webhook:', url);
-      
-      const response = await fetch(url);
-      console.log('📊 Search response status:', response.status, response.statusText);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const rawText = await response.text();
-      console.log('📋 Raw search response:', rawText);
-      
-      let data;
-      try {
-        data = JSON.parse(rawText);
-      } catch (parseError) {
-        console.error('❌ JSON parse error:', parseError);
-        throw new Error('Invalid JSON response');
-      }
-      
-      console.log('✅ Parsed search response:', data);
-      
-      displaySearchResults(data.records || data, query);
-    }
+   // Search characters via webhook
+   async function searchCharacters(query) {
+     const url = `${SEARCH_WEBHOOK_URL}?search=${encodeURIComponent(query)}`;
+     
+     console.log('📡 Searching via webhook:', url);
+     
+     const response = await fetch(url);
+     console.log('📊 Search response status:', response.status, response.statusText);
+     
+     if (!response.ok) {
+       throw new Error(`HTTP error! status: ${response.status}`);
+     }
+     
+     const rawText = await response.text();
+     console.log('📋 Raw search response:', rawText);
+     
+     let data;
+     try {
+       data = JSON.parse(rawText);
+     } catch (parseError) {
+       console.error('❌ JSON parse error:', parseError);
+       throw new Error('Invalid JSON response');
+     }
+     
+     console.log('✅ Parsed search response:', data);
+     
+     displaySearchResults(data.records || data, query);
+   }
 
-    // Search sample characters (fallback)
-    function searchSampleCharacters(query) {
-      const lowerQuery = query.toLowerCase();
-      const results = sampleCharacters.filter(character => 
-        character.name.toLowerCase().includes(lowerQuery) ||
-        character.title.toLowerCase().includes(lowerQuery)
-      );
-      
-      console.log(`📦 Found ${results.length} sample characters matching "${query}"`);
-      displaySearchResults(results, query);
-    }
+   // Search sample characters (fallback)
+   function searchSampleCharacters(query) {
+     const lowerQuery = query.toLowerCase();
+     const results = sampleCharacters.filter(character => 
+       character.name.toLowerCase().includes(lowerQuery) ||
+       character.title.toLowerCase().includes(lowerQuery)
+     );
+     
+     console.log(`📦 Found ${results.length} sample characters matching "${query}"`);
+     displaySearchResults(results, query);
+   }
 
-    // Display search results
-    function displaySearchResults(results, query) {
-      const loadingState = document.getElementById('loadingState');
-      const searchResults = document.getElementById('searchResults');
-      const noResults = document.getElementById('noResults');
-      const resultCount = document.getElementById('resultCount');
-      
-      loadingState.style.display = 'none';
-      
-      if (!results || results.length === 0) {
-        showNoResults();
-        return;
-      }
-      
-      // Update result count
-      const count = results.length;
-      resultCount.textContent = `- ${count} character${count !== 1 ? 's' : ''} found`;
-      
-      // Clear previous results
-      searchResults.innerHTML = '';
-      
-      // Process results
-      const processedResults = results.map(result => {
-        // Handle both direct objects and Airtable record format
-        return result.fields || result;
-      });
-      
-      // Create character cards
-      processedResults.forEach((character, index) => {
-        console.log(`🔍 Processing search result ${index + 1}:`, character);
-        const card = createCharacterCard(character);
-        searchResults.appendChild(card);
-      });
-      
-      searchResults.style.display = 'grid';
-      noResults.style.display = 'none';
-      
-      console.log(`✅ Displayed ${processedResults.length} search results`);
-    }
+   // Display search results
+   function displaySearchResults(results, query) {
+     const loadingState = document.getElementById('loadingState');
+     const searchResults = document.getElementById('searchResults');
+     const noResults = document.getElementById('noResults');
+     const resultCount = document.getElementById('resultCount');
+     
+     loadingState.style.display = 'none';
+     
+     if (!results || results.length === 0) {
+       showNoResults();
+       return;
+     }
+     
+     // Update result count
+     const count = results.length;
+     resultCount.textContent = `- ${count} character${count !== 1 ? 's' : ''} found`;
+     
+     // Clear previous results
+     searchResults.innerHTML = '';
+     
+     // Process results
+     const processedResults = results.map(result => {
+       // Handle both direct objects and Airtable record format
+       return result.fields || result;
+     });
+     
+     // Create character cards
+     processedResults.forEach((character, index) => {
+       console.log(`🔍 Processing search result ${index + 1}:`, character);
+       const card = createCharacterCard(character);
+       searchResults.appendChild(card);
+     });
+     
+     searchResults.style.display = 'grid';
+     noResults.style.display = 'none';
+     
+     console.log(`✅ Displayed ${processedResults.length} search results`);
+   }
 
-    // Show no results state
-    function showNoResults() {
-      document.getElementById('loadingState').style.display = 'none';
-      document.getElementById('searchResults').style.display = 'none';
-      document.getElementById('noResults').style.display = 'block';
-      document.getElementById('resultCount').textContent = '- 0 characters found';
-    }
+   // Show no results state
+   function showNoResults() {
+     document.getElementById('loadingState').style.display = 'none';
+     document.getElementById('searchResults').style.display = 'none';
+     document.getElementById('noResults').style.display = 'block';
+     document.getElementById('resultCount').textContent = '- 0 characters found';
+   }
 
-    // Create character card (reused from index.html)
-    function createCharacterCard(character) {
-      const card = document.createElement('a');
-      card.className = 'character-card';
-      
-      // Priority order for URL: character_url from Airtable, or generate fallback URL
-      let characterUrl = character.character_url || character.Character_URL;
-      
-      // If no URL from Airtable, generate fallback URL with correct structure
-      if (!characterUrl) {
-        const charSlug = (character.name || character.Name || 'unknown').toLowerCase().replace(/\s+/g, '-');
-        characterUrl = `chat.html?char=${charSlug}`;
-      }
-      
-      card.href = characterUrl;
-      
-      // Handle avatar URL extraction
-      let avatarUrl = null;
-      const name = character.name || character.Name || 'Unknown';
-      
-      // Method 1: Airtable attachment field format
-      if (character.Avatar_URL && Array.isArray(character.Avatar_URL) && character.Avatar_URL.length > 0) {
-        if (character.Avatar_URL[0] && typeof character.Avatar_URL[0] === 'object' && character.Avatar_URL[0].url) {
-          avatarUrl = character.Avatar_URL[0].url;
-        } else if (typeof character.Avatar_URL[0] === 'string' && character.Avatar_URL[0].startsWith('http')) {
-          avatarUrl = character.Avatar_URL[0];
-        }
-      }
-      
-      // Method 2: Direct string
-      if (!avatarUrl && character.Avatar_URL && typeof character.Avatar_URL === 'string' && character.Avatar_URL.startsWith('http')) {
-        avatarUrl = character.Avatar_URL;
-      }
-      
-      // Method 3: Other avatar fields
-      if (!avatarUrl) {
-        const avatarFields = ['avatar_url', 'avatarUrl', 'image_url', 'Image_URL', 'picture_url', 'Picture_URL'];
-        for (const field of avatarFields) {
-          if (character[field] && typeof character[field] === 'string' && character[field].startsWith('http')) {
-            avatarUrl = character[field];
-            break;
-          }
-        }
-      }
-      
-      // Get character title/description
-      const title = character.title || character.Character_Title || character.character_title || character.Character_title || character.description || character.Description || '';
-      
-      // Create avatar content with proper fallback
-      let avatarContent;
-      if (avatarUrl) {
-        avatarContent = `
-          <img src="${avatarUrl}" 
-               alt="${name}" 
-               loading="lazy" 
-               onerror="this.style.display='none'; this.parentElement.querySelector('.avatar-fallback').style.display='flex';" 
-               style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
-          <div class="avatar-fallback" style="display: none; color: var(--color-gray-light); font-size: 4rem;">👤</div>
-        `;
-      } else {
-        avatarContent = `<div class="avatar-fallback" style="color: var(--color-gray-light); font-size: 4rem;">👤</div>`;
-      }
-      
-      card.innerHTML = `
-        <div class="character-avatar">
-          ${avatarContent}
-        </div>
-        <div class="character-name">${name}</div>
-        <div class="character-title">${title}</div>
-      `;
-      
-      return card;
-    }
+   // Enhanced avatar URL extraction for Airtable attachment fields - EXACT zoals index.html
+   function extractAvatarUrl(character) {
+     console.log('🔍 Extracting avatar URL from character:', character);
+     
+     // Method 1: Airtable attachment field (array format) - EXACT zoals index.html
+     if (character.Avatar_URL && Array.isArray(character.Avatar_URL) && character.Avatar_URL.length > 0) {
+       if (character.Avatar_URL[0] && character.Avatar_URL[0].url) {
+         console.log(`✅ Using Airtable Avatar_URL attachment for ${character.Name}:`, character.Avatar_URL[0].url);
+         return character.Avatar_URL[0].url;
+       }
+     }
+     
+     // Method 2: Direct string Avatar_URL - EXACT zoals index.html
+     if (character.Avatar_URL && typeof character.Avatar_URL === 'string' && character.Avatar_URL.startsWith('http')) {
+       console.log(`✅ Using direct Avatar_URL string for ${character.Name}:`, character.Avatar_URL);
+       return character.Avatar_URL;
+     }
+     
+     console.log(`⚠️ No valid avatar URL found for ${character.Name || character.name}, using fallback`);
+     return null;
+   }
 
-    // Handle search form submission
-    document.querySelector('.nav-search')?.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const searchInput = e.target.querySelector('.nav-search-input');
-      const query = searchInput.value.trim();
-      if (query) {
-        window.location.href = `search-results.html?q=${encodeURIComponent(query)}`;
-      }
-    });
+   // Create character card (updated version) - EXACT zoals category.html
+   function createCharacterCard(character) {
+     const card = document.createElement('a');
+     card.className = 'character-card';
+     
+     // Priority order for URL: character_url from Airtable, or generate fallback URL
+     let characterUrl = character.character_url || character.Character_URL;
+     
+     // If no URL from Airtable, generate fallback URL with correct structure
+     if (!characterUrl) {
+       const charSlug = (character.name || character.Name || 'unknown').toLowerCase().replace(/\s+/g, '-');
+       characterUrl = `chat.html?char=${charSlug}`;
+     }
+     
+     card.href = characterUrl;
+     
+     // Extract avatar URL using improved method - SAME AS OTHER PAGES
+     const avatarUrl = extractAvatarUrl(character);
+     const name = character.name || character.Name || 'Unknown';
+     
+     // Get character title/description
+     const title = character.title || character.Character_Title || character.character_title || character.Character_title || character.description || character.Description || '';
+     
+     // Create avatar content with proper fallback - EXACT zoals index.html
+     let avatarContent;
+     if (avatarUrl && avatarUrl.startsWith('http')) {
+       avatarContent = `
+         <img src="${avatarUrl}" 
+              alt="${name}" 
+              loading="lazy" 
+              onload="console.log('✅ Real Airtable avatar loaded for ${name}');"
+              onerror="console.error('❌ Real avatar failed for ${name}:', '${avatarUrl}'); this.style.display='none'; this.parentElement.querySelector('.avatar-fallback').style.display='flex';" 
+              style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+         <div class="avatar-fallback" style="display: none; color: var(--color-gray-light); font-size: 4rem;">👤</div>
+       `;
+     } else {
+       avatarContent = `<div class="avatar-fallback" style="color: var(--color-gray-light); font-size: 4rem;">👤</div>`;
+     }
+     
+     card.innerHTML = `
+       <div class="character-avatar">
+         ${avatarContent}
+       </div>
+       <div class="character-name">${name}</div>
+       <div class="character-title">${title}</div>
+     `;
+     
+     return card;
+   }
 
-    // ===== MOBILE USP CAROUSEL =====
-    let currentUspIndex = 0;
-    const uspTrack = document.getElementById('mobileUspTrack');
+   // Handle search form submission
+   document.querySelector('.nav-search')?.addEventListener('submit', (e) => {
+     e.preventDefault();
+     const searchInput = e.target.querySelector('.nav-search-input');
+     const query = searchInput.value.trim();
+     if (query) {
+       window.location.href = `search-results.html?q=${encodeURIComponent(query)}`;
+     }
+   });
 
-    function startUspCarousel() {
-      if (!uspTrack) return;
-      
-      setInterval(() => {
-        currentUspIndex = (currentUspIndex + 1) % 3;
-        uspTrack.style.transform = `translateY(-${currentUspIndex * 33.333}%)`;
-      }, 3000);
-    }
+   // ===== MOBILE USP CAROUSEL =====
+   let currentUspIndex = 0;
+   const uspTrack = document.getElementById('mobileUspTrack');
 
-    // ===== MOBILE NAVIGATION =====
-    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-    const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
-    const mobileSearchBtn = document.getElementById('mobileSearchBtn');
-    const mobileSearchOverlay = document.getElementById('mobileSearchOverlay');
+   function startUspCarousel() {
+     if (!uspTrack) return;
+     
+     setInterval(() => {
+       currentUspIndex = (currentUspIndex + 1) % 3;
+       uspTrack.style.transform = `translateY(-${currentUspIndex * 33.333}%)`;
+     }, 3000);
+   }
 
-    // Mobile menu toggle
-    if (mobileMenuBtn && mobileMenuOverlay) {
-      mobileMenuBtn.addEventListener('click', () => {
-        mobileMenuBtn.classList.toggle('active');
-        mobileMenuOverlay.classList.toggle('active');
-        document.body.style.overflow = mobileMenuOverlay.classList.contains('active') ? 'hidden' : '';
-      });
+   // ===== MOBILE NAVIGATION =====
+   const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+   const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+   const mobileSearchBtn = document.getElementById('mobileSearchBtn');
+   const mobileSearchOverlay = document.getElementById('mobileSearchOverlay');
 
-      // Close menu when clicking overlay
-      mobileMenuOverlay.addEventListener('click', (e) => {
-        if (e.target === mobileMenuOverlay) {
-          mobileMenuBtn.classList.remove('active');
-          mobileMenuOverlay.classList.remove('active');
-          document.body.style.overflow = '';
-        }
-      });
-    }
+   // Mobile menu toggle
+   if (mobileMenuBtn && mobileMenuOverlay) {
+     mobileMenuBtn.addEventListener('click', () => {
+       mobileMenuBtn.classList.toggle('active');
+       mobileMenuOverlay.classList.toggle('active');
+       document.body.style.overflow = mobileMenuOverlay.classList.contains('active') ? 'hidden' : '';
+     });
 
-    // Mobile search toggle
-    if (mobileSearchBtn && mobileSearchOverlay) {
-      mobileSearchBtn.addEventListener('click', () => {
-        mobileSearchOverlay.classList.toggle('active');
-      });
+     // Close menu when clicking overlay
+     mobileMenuOverlay.addEventListener('click', (e) => {
+       if (e.target === mobileMenuOverlay) {
+         mobileMenuBtn.classList.remove('active');
+         mobileMenuOverlay.classList.remove('active');
+         document.body.style.overflow = '';
+       }
+     });
+   }
 
-      // Close search when clicking outside
-      document.addEventListener('click', (e) => {
-        if (!mobileSearchBtn.contains(e.target) && !mobileSearchOverlay.contains(e.target)) {
-          mobileSearchOverlay.classList.remove('active');
-        }
-      });
-    }
+   // Mobile search toggle
+   if (mobileSearchBtn && mobileSearchOverlay) {
+     mobileSearchBtn.addEventListener('click', () => {
+       mobileSearchOverlay.classList.toggle('active');
+     });
 
-    // Mobile search form submission
-    const mobileSearchForm = document.getElementById('mobileSearchForm');
-    if (mobileSearchForm) {
-      mobileSearchForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const searchInput = document.getElementById('mobileSearchInput');
-        const query = searchInput.value.trim();
-        if (query) {
-          window.location.href = `search-results.html?q=${encodeURIComponent(query)}`;
-        }
-      });
-    }
+     // Close search when clicking outside
+     document.addEventListener('click', (e) => {
+       if (!mobileSearchBtn.contains(e.target) && !mobileSearchOverlay.contains(e.target)) {
+         mobileSearchOverlay.classList.remove('active');
+       }
+     });
+   }
 
-    // Initialize mobile features
-    document.addEventListener('DOMContentLoaded', () => {
-      startUspCarousel();
-    });
-  </script>
+   // Mobile search form submission
+   const mobileSearchForm = document.getElementById('mobileSearchForm');
+   if (mobileSearchForm) {
+     mobileSearchForm.addEventListener('submit', (e) => {
+       e.preventDefault();
+       const searchInput = document.getElementById('mobileSearchInput');
+       const query = searchInput.value.trim();
+       if (query) {
+         window.location.href = `search-results.html?q=${encodeURIComponent(query)}`;
+       }
+     });
+   }
 
-  <!-- Footer -->
-  <footer class="footer">
-    <div class="footer-container">
-      <div class="footer-links">
-        <a href="index.html" class="footer-link">Characters</a>
-        <span class="footer-separator">•</span>
-        <a href="chat-overview.html" class="footer-link">Chats</a>
-        <span class="footer-separator">•</span>
-        <a href="create-character.html" class="footer-link">Create Character</a>
-        <span class="footer-separator">•</span>
-        <a href="contact.html" class="footer-link">Contact</a>
-        <span class="footer-separator">•</span>
-        <a href="profile.html" class="footer-link">Profile</a>
-        <span class="footer-separator">•</span>
-        <a href="privacy-policy.html" class="footer-link">Privacy Policy</a>
-        <span class="footer-separator">•</span>
-        <a href="terms-and-conditions.html" class="footer-link">Terms and Conditions</a>
-      </div>
-      <p class="footer-copyright">© 2025 Narrin AI. All rights reserved.</p>
-    </div>
-  </footer>
+   // Initialize mobile features
+   document.addEventListener('DOMContentLoaded', () => {
+     startUspCarousel();
+   });
+ </script>
+
+ <!-- Footer -->
+ <footer class="footer">
+   <div class="footer-container">
+     <div class="footer-links">
+       <a href="index.html" class="footer-link">Characters</a>
+       <span class="footer-separator">•</span>
+       <a href="chat-overview.html" class="footer-link">Chats</a>
+       <span class="footer-separator">•</span>
+       <a href="create-character.html" class="footer-link">Create Character</a>
+       <span class="footer-separator">•</span>
+       <a href="contact.html" class="footer-link">Contact</a>
+       <span class="footer-separator">•</span>
+       <a href="profile.html" class="footer-link">Profile</a>
+       <span class="footer-separator">•</span>
+       <a href="privacy-policy.html" class="footer-link">Privacy Policy</a>
+       <span class="footer-separator">•</span>
+       <a href="terms-and-conditions.html" class="footer-link">Terms and Conditions</a>
+     </div>
+     <p class="footer-copyright">© 2025 Narrin AI. All rights reserved.</p>
+   </div>
+ </footer>
 </body>
 </html>
