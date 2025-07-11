@@ -35,7 +35,7 @@ class SimpleAvatarUploader:
         print("✅ Simple Avatar Uploader - Image Search Only")
 
     def get_all_characters(self):
-        """Haal ALLE characters op uit Airtable - met paginatie voor 400+ records"""
+        """Haal ALLE characters op uit Airtable - gefixte paginatie"""
         url = f"https://api.airtable.com/v0/{self.airtable_base}/Characters"
         headers = {'Authorization': f'Bearer {self.airtable_token}'}
         
@@ -47,17 +47,22 @@ class SimpleAvatarUploader:
         
         try:
             while True:
-                # Airtable pagination parameters
-                params = {
-                    'maxRecords': 100  # Airtable max per request
-                }
-                if offset:
-                    params['offset'] = offset
-                
                 print(f"📄 Loading page {page}...")
                 
-                response = self.session.get(url, headers=headers, params=params, timeout=60)
-                response.raise_for_status()
+                # Build request URL with offset if we have one
+                request_url = url
+                params = {}
+                
+                if offset:
+                    params['offset'] = offset
+                    print(f"   🔗 Using offset: {offset[:20]}...")
+                
+                response = self.session.get(request_url, headers=headers, params=params, timeout=60)
+                
+                if not response.ok:
+                    print(f"   ❌ HTTP Error {response.status_code}: {response.text}")
+                    break
+                
                 data = response.json()
                 
                 # Add records from this page
@@ -73,22 +78,31 @@ class SimpleAvatarUploader:
                     print("   ✅ No more pages - all records loaded")
                     break
                 
+                print(f"   ➡️ Next page offset exists: {offset[:20] if offset else 'None'}...")
+                
                 page += 1
                 
-                # Safety limit to prevent infinite loops
-                if page > 10:
-                    print("   ⚠️ Reached page limit (10), stopping")
+                # Safety limit - increased for 400 records
+                if page > 20:  # Increased from 10 to 20
+                    print("   ⚠️ Reached safety page limit (20), stopping")
                     break
                 
                 # Small delay between requests
                 time.sleep(0.5)
             
-            print(f"✅ Total characters loaded: {len(all_characters)} (across {page} pages)")
+            print(f"\n✅ TOTAL characters loaded: {len(all_characters)} (across {page} pages)")
+            print(f"📊 Expected ~400 characters, got {len(all_characters)}")
+            
+            if len(all_characters) < 300:
+                print("⚠️ WARNING: Got fewer characters than expected!")
+                print("   Check your Airtable base ID and permissions")
             
             return all_characters
             
         except Exception as e:
             print(f"❌ Error loading characters: {e}")
+            import traceback
+            traceback.print_exc()
             return []
 
     def find_characters_without_avatar(self, characters):
