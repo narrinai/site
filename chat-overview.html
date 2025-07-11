@@ -2215,9 +2215,14 @@ line-clamp: 3;
 
     // ===== SEARCH FUNCTIONALITY =====
     function handleSearch(searchTerm) {
-      console.log('Search term:', searchTerm);
-      // Redirect to index.html with search parameter
-      window.location.href = `index.html?search=${encodeURIComponent(searchTerm)}`;
+      if (!searchTerm || !searchTerm.trim()) {
+        console.log('Empty search term, ignoring');
+        return;
+      }
+      
+      const trimmedTerm = searchTerm.trim();
+      console.log('Redirecting to search results for:', trimmedTerm);
+      window.location.href = `search-results.html?q=${encodeURIComponent(trimmedTerm)}`;
     }
 
     // Desktop search

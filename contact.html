@@ -1319,6 +1319,32 @@
       });
     }
 
+    // ===== SEARCH FUNCTIONALITY =====
+    function handleSearch(searchTerm) {
+      if (!searchTerm || !searchTerm.trim()) {
+        console.log('Empty search term, ignoring');
+        return;
+      }
+      
+      const trimmedTerm = searchTerm.trim();
+      console.log('Redirecting to search results for:', trimmedTerm);
+      window.location.href = `search-results.html?q=${encodeURIComponent(trimmedTerm)}`;
+    }
+
+    // Desktop search
+    document.querySelector('.nav-search')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const searchInput = e.target.querySelector('.nav-search-input');
+      handleSearch(searchInput.value);
+    });
+
+    // Mobile search
+    document.querySelector('.mobile-search-form')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const searchInput = e.target.querySelector('.mobile-search-input');
+      handleSearch(searchInput.value);
+    });
+
     // Initialize all functionality
     document.addEventListener('DOMContentLoaded', () => {
       initMobileUSPCarousel();

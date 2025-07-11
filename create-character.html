@@ -2744,8 +2744,14 @@
 
    // ===== SEARCH FUNCTIONALITY =====
    function handleSearch(searchTerm) {
-     console.log('Search term:', searchTerm);
-     // Implement search functionality here
+     if (!searchTerm || !searchTerm.trim()) {
+       console.log('Empty search term, ignoring');
+       return;
+     }
+     
+     const trimmedTerm = searchTerm.trim();
+     console.log('Redirecting to search results for:', trimmedTerm);
+     window.location.href = `search-results.html?q=${encodeURIComponent(trimmedTerm)}`;
    }
 
    // Desktop search

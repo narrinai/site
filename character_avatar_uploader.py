@@ -152,23 +152,30 @@ class MissingAvatarUploader:
         draw = ImageDraw.Draw(img)
         
         try:
-            # Try to load a font (system dependent)
-            font_size = 200
+            # Try to load a font (system dependent) - MUCH LARGER
+            font_size = 300  # Increased from 200 to 300
             try:
-                # Try different font paths
+                # Try different font paths for emoji support
                 font_paths = [
-                    '/System/Library/Fonts/Arial.ttf',  # macOS
-                    '/Windows/Fonts/arial.ttf',         # Windows
-                    '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',  # Linux
+                    '/System/Library/Fonts/Apple Color Emoji.ttc',  # macOS emoji
+                    '/System/Library/Fonts/Helvetica.ttc',          # macOS fallback
+                    '/Windows/Fonts/seguiemj.ttf',                  # Windows emoji
+                    '/Windows/Fonts/arial.ttf',                     # Windows fallback
+                    '/usr/share/fonts/truetype/noto-color-emoji/NotoColorEmoji.ttf',  # Linux emoji
+                    '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',  # Linux fallback
                 ]
                 
                 font = None
                 for font_path in font_paths:
                     if os.path.exists(font_path):
-                        font = ImageFont.truetype(font_path, font_size)
-                        break
+                        try:
+                            font = ImageFont.truetype(font_path, font_size)
+                            break
+                        except:
+                            continue
                 
                 if not font:
+                    # Try with a smaller size if large font fails
                     font = ImageFont.load_default()
                     
             except:
@@ -179,6 +186,7 @@ class MissingAvatarUploader:
             text_width = bbox[2] - bbox[0]
             text_height = bbox[3] - bbox[1]
             
+            # Center the emoji
             x = (size - text_width) // 2
             y = (size - text_height) // 2
             
@@ -186,9 +194,12 @@ class MissingAvatarUploader:
             draw.text((x, y), emoji, font=font, fill='black')
             
         except Exception as e:
-            print(f"   ⚠️ Font error, using simple text: {e}")
-            # Fallback: simple text
-            draw.text((size//2 - 50, size//2 - 20), emoji, fill='black')
+            print(f"   ⚠️ Font error, using fallback: {e}")
+            # Fallback: much larger simple positioning
+            # Position emoji more centrally for larger display
+            fallback_x = size // 2 - 80  # Adjusted for larger emoji
+            fallback_y = size // 2 - 40
+            draw.text((fallback_x, fallback_y), emoji, fill='black')
         
         # Save as WebP
         img_bytes = BytesIO()
@@ -198,7 +209,7 @@ class MissingAvatarUploader:
         # Save to file
         local_path = self.save_to_avatars_folder(img_bytes.getvalue(), filename)
         
-        print(f"   🎨 Created emoji avatar: {emoji}")
+        print(f"   🎨 Created emoji avatar: {emoji} (size: {font_size}px)")
         return local_path
 
     def load_characters_without_avatar(self):
