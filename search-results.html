@@ -1116,46 +1116,12 @@
  </main>
 
  <script>
-   // ===== SEARCH FUNCTIONALITY =====
-   const SEARCH_WEBHOOK_URL = 'https://hook.eu2.make.com/kej7ez9bgc9tic7';
+  // ===== SEARCH FUNCTIONALITY =====
+   const CHARACTERS_API = '/.netlify/functions/characters';
    
    // Get search query from URL parameters
    const urlParams = new URLSearchParams(window.location.search);
    const searchQuery = urlParams.get('q') || '';
-   
-   // Sample characters for fallback
-   const sampleCharacters = [
-     { 
-       name: "Napoleon Bonaparte", 
-       title: "French Emperor", 
-       avatar_url: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=160&h=160&fit=crop&crop=face",
-       character_url: "chat.html?char=napoleon-bonaparte"
-     },
-     { 
-       name: "Cleopatra VII", 
-       title: "Queen of Egypt", 
-       avatar_url: "https://images.unsplash.com/photo-1494790108755-2616c179a6c8?w=160&h=160&fit=crop&crop=face",
-       character_url: "chat.html?char=cleopatra-vii"
-     },
-     {
-       name: "Sherlock Holmes",
-       title: "Detective",
-       avatar_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=160&h=160&fit=crop&crop=face",
-       character_url: "chat.html?char=sherlock-holmes"
-     },
-     {
-       name: "Gandalf the Grey",
-       title: "Wizard",
-       avatar_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=160&h=160&fit=crop&crop=face",
-       character_url: "chat.html?char=gandalf-the-grey"
-     },
-     {
-       name: "Elon Musk",
-       title: "Tech Entrepreneur",
-       avatar_url: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=160&h=160&fit=crop&crop=face",
-       character_url: "chat.html?char=elon-musk"
-     }
-   ];
 
    // Initialize search on page load
    document.addEventListener('DOMContentLoaded', () => {
@@ -1168,62 +1134,62 @@
      }
    });
 
-   // Perform search
+   // Perform search via Netlify Function
    async function performSearch(query) {
      console.log('🔍 Performing search for:', query);
      
      try {
-       // Try to search via webhook first
-       await searchCharacters(query);
+       await searchCharactersViaNetlify(query);
      } catch (error) {
-       console.error('❌ Search webhook failed:', error);
-       console.log('🔄 Falling back to sample data search');
-       searchSampleCharacters(query);
+       console.error('❌ Search failed:', error);
+       showNoResults();
      }
    }
 
-   // Search characters via webhook
-   async function searchCharacters(query) {
-     const url = `${SEARCH_WEBHOOK_URL}?search=${encodeURIComponent(query)}`;
+   // Search characters via Netlify Function - SAME AS CATEGORY.HTML
+   async function searchCharactersViaNetlify(query) {
+     // Build API URL to get ALL characters
+     const url = new URL(CHARACTERS_API, window.location.origin);
+     url.searchParams.set('limit', '500'); // Get many characters for searching
      
-     console.log('📡 Searching via webhook:', url);
+     console.log(`📡 Fetching all characters from Netlify Function for search:`, url.toString());
      
-     const response = await fetch(url);
-     console.log('📊 Search response status:', response.status, response.statusText);
+     const response = await fetch(url.toString());
      
      if (!response.ok) {
        throw new Error(`HTTP error! status: ${response.status}`);
      }
      
-     const rawText = await response.text();
-     console.log('📋 Raw search response:', rawText);
+     const data = await response.json();
+     console.log('✅ Netlify Function response:', data);
      
-     let data;
-     try {
-       data = JSON.parse(rawText);
-     } catch (parseError) {
-       console.error('❌ JSON parse error:', parseError);
-       throw new Error('Invalid JSON response');
+     if (!data.success) {
+       throw new Error(data.error || 'Unknown API error');
      }
      
-     console.log('✅ Parsed search response:', data);
+     // Search through all characters
+     const allCharacters = data.characters || [];
+     console.log(`🔍 Searching through ${allCharacters.length} characters for: "${query}"`);
      
-     displaySearchResults(data.records || data, query);
-   }
-
-   // Search sample characters (fallback)
-   function searchSampleCharacters(query) {
+     // Filter characters based on search query
      const lowerQuery = query.toLowerCase();
-     const results = sampleCharacters.filter(character => 
-       character.name.toLowerCase().includes(lowerQuery) ||
-       character.title.toLowerCase().includes(lowerQuery)
-     );
+     const searchResults = allCharacters.filter(character => {
+       const name = (character.Name || '').toLowerCase();
+       const title = (character.Character_Title || '').toLowerCase();
+       const description = (character.Character_Description || '').toLowerCase();
+       const category = (character.Category || '').toLowerCase();
+       
+       return name.includes(lowerQuery) || 
+              title.includes(lowerQuery) || 
+              description.includes(lowerQuery) ||
+              category.includes(lowerQuery);
+     });
      
-     console.log(`📦 Found ${results.length} sample characters matching "${query}"`);
-     displaySearchResults(results, query);
+     console.log(`✅ Found ${searchResults.length} matching characters`);
+     displaySearchResults(searchResults, query);
    }
 
-   // Display search results
+   // Display search results - UPDATED TO USE SAME AVATAR LOGIC AS CATEGORY.HTML
    function displaySearchResults(results, query) {
      const loadingState = document.getElementById('loadingState');
      const searchResults = document.getElementById('searchResults');
@@ -1244,14 +1210,8 @@
      // Clear previous results
      searchResults.innerHTML = '';
      
-     // Process results
-     const processedResults = results.map(result => {
-       // Handle both direct objects and Airtable record format
-       return result.fields || result;
-     });
-     
-     // Create character cards
-     processedResults.forEach((character, index) => {
+     // Create character cards using SAME LOGIC AS CATEGORY.HTML
+     results.forEach((character, index) => {
        console.log(`🔍 Processing search result ${index + 1}:`, character);
        const card = createCharacterCard(character);
        searchResults.appendChild(card);
@@ -1260,7 +1220,7 @@
      searchResults.style.display = 'grid';
      noResults.style.display = 'none';
      
-     console.log(`✅ Displayed ${processedResults.length} search results`);
+     console.log(`✅ Displayed ${results.length} search results`);
    }
 
    // Show no results state
@@ -1271,104 +1231,88 @@
      document.getElementById('resultCount').textContent = '- 0 characters found';
    }
 
-   // Enhanced avatar URL extraction for Airtable attachment fields - EXACT zoals index.html
-   function extractAvatarUrl(character) {
-     console.log('🔍 Extracting avatar URL from character:', character);
-     
+   // Avatar URL extraction - EXACT SAME AS CATEGORY.HTML
+   function getAvatarUrl(fields) {
      // Method 1: Avatar_File (Airtable attachment field) - array format
-     if (character.Avatar_File && Array.isArray(character.Avatar_File) && character.Avatar_File.length > 0) {
-       if (character.Avatar_File[0] && character.Avatar_File[0].url) {
-         console.log(`✅ Using Avatar_File attachment for ${character.Name}:`, character.Avatar_File[0].url);
-         return character.Avatar_File[0].url;
+     if (fields.Avatar_File && Array.isArray(fields.Avatar_File) && fields.Avatar_File.length > 0) {
+       if (fields.Avatar_File[0] && fields.Avatar_File[0].url) {
+         console.log(`✅ Using Avatar_File attachment for ${fields.Name}:`, fields.Avatar_File[0].url);
+         return fields.Avatar_File[0].url;
        }
      }
      
      // Method 2: Avatar_URL (Airtable attachment field) - array format
-     if (character.Avatar_URL && Array.isArray(character.Avatar_URL) && character.Avatar_URL.length > 0) {
-       if (character.Avatar_URL[0] && character.Avatar_URL[0].url) {
-         console.log(`✅ Using Avatar_URL attachment for ${character.Name}:`, character.Avatar_URL[0].url);
-         return character.Avatar_URL[0].url;
+     if (fields.Avatar_URL && Array.isArray(fields.Avatar_URL) && fields.Avatar_URL.length > 0) {
+       if (fields.Avatar_URL[0] && fields.Avatar_URL[0].url) {
+         console.log(`✅ Using Avatar_URL attachment for ${fields.Name}:`, fields.Avatar_URL[0].url);
+         return fields.Avatar_URL[0].url;
        }
      }
      
      // Method 3: Direct string Avatar_URL (if Make.com flattens it)
-     if (character.Avatar_URL && typeof character.Avatar_URL === 'string' && character.Avatar_URL.startsWith('http')) {
-       console.log(`✅ Using direct Avatar_URL string for ${character.Name}:`, character.Avatar_URL);
-       return character.Avatar_URL;
+     if (fields.Avatar_URL && typeof fields.Avatar_URL === 'string' && fields.Avatar_URL.startsWith('http')) {
+       console.log(`✅ Using direct Avatar_URL string for ${fields.Name}:`, fields.Avatar_URL);
+       return fields.Avatar_URL;
      }
      
      // Method 4: Direct string Avatar_File (fallback)
-     if (character.Avatar_File && typeof character.Avatar_File === 'string' && character.Avatar_File.startsWith('http')) {
-       console.log(`✅ Using direct Avatar_File string for ${character.Name}:`, character.Avatar_File);
-       return character.Avatar_File;
+     if (fields.Avatar_File && typeof fields.Avatar_File === 'string' && fields.Avatar_File.startsWith('http')) {
+       console.log(`✅ Using direct Avatar_File string for ${fields.Name}:`, fields.Avatar_File);
+       return fields.Avatar_File;
      }
      
-     console.log(`⚠️ No valid avatar URL found for ${character.Name || character.name}, using fallback`);
+     console.log(`⚠️ No valid avatar URL found for ${fields.Name}, using fallback`);
      return null;
    }
 
-   // Create character card - EXACT zoals index.html
+   // Character URL generation - SAME AS CATEGORY.HTML
+   function getCharacterUrl(fields) {
+     if (fields.Character_URL) {
+       return fields.Character_URL;
+     }
+     
+     const slug = fields.Slug || (fields.Name || 'unknown').toLowerCase().replace(/\s+/g, '-');
+     return `chat.html?char=${slug}`;
+   }
+
+   // Create character card - EXACT SAME AS CATEGORY.HTML
    function createCharacterCard(character) {
      const card = document.createElement('a');
      card.className = 'character-card';
      
-     // URL handling
-     let characterUrl = character.character_url || character.Character_URL;
-     if (!characterUrl) {
-       const charSlug = (character.name || character.Name || 'unknown').toLowerCase().replace(/\s+/g, '-');
-       characterUrl = `chat.html?char=${charSlug}`;
-     }
-     card.href = characterUrl;
+     // Process character data
+     const processedCharacter = {
+       id: character.Character_ID || character.Name || 'unknown',
+       name: character.Name || 'Unknown',
+       title: character.Character_Title || character.title || '',
+       description: character.Character_Description || character.description || '',
+       avatarUrl: getAvatarUrl(character),
+       characterUrl: character.Character_URL || getCharacterUrl(character)
+     };
      
-     // Get basic data
-     const name = character.name || character.Name || 'Unknown';
-     const title = character.title || character.Character_Title || character.character_title || character.Character_title || character.description || character.Description || '';
+     card.href = processedCharacter.characterUrl;
      
-     // Use improved avatar extraction - SAME AS INDEX.HTML
-     const avatarUrl = extractAvatarUrl(character);
-     
-     // Create avatar container
-     const avatarContainer = document.createElement('div');
-     avatarContainer.className = 'character-avatar';
-     
-     // Create card HTML structure first
-     const nameDiv = document.createElement('div');
-     nameDiv.className = 'character-name';
-     nameDiv.textContent = name;
-     
-     const titleDiv = document.createElement('div');
-     titleDiv.className = 'character-title';
-     titleDiv.textContent = title;
-     
-     // Handle avatar - either real image or fallback icon - EXACT LOGIC AS INDEX.HTML
-     if (avatarUrl && avatarUrl.startsWith('http')) {
-       const img = document.createElement('img');
-       img.src = avatarUrl;
-       img.alt = name;
-       img.style.cssText = 'width: 100%; height: 100%; object-fit: cover; border-radius: 50%;';
-       
-       // Handle successful load
-       img.onload = function() {
-         console.log(`✅ Real Airtable avatar loaded for ${name}`);
-       };
-       
-       // Handle load error - replace with fallback icon
-       img.onerror = function() {
-         console.error(`❌ Real avatar failed for ${name}:`, avatarUrl);
-         avatarContainer.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 4rem; color: #94a3b8;">👤</div>';
-       };
-       
-       avatarContainer.appendChild(img);
+     // Create card HTML with proper avatar handling - SAME AS CATEGORY.HTML
+     if (processedCharacter.avatarUrl && processedCharacter.avatarUrl.startsWith('http')) {
+       card.innerHTML = `
+         <div class="character-avatar">
+           <img src="${processedCharacter.avatarUrl}" 
+                alt="${processedCharacter.name}" 
+                loading="lazy"
+                onload="console.log('✅ Avatar loaded for ${processedCharacter.name}');"
+                onerror="console.error('❌ Avatar failed for ${processedCharacter.name}'); this.style.display='none'; this.parentNode.innerHTML='👤';">
+         </div>
+         <div class="character-name">${processedCharacter.name}</div>
+         <div class="character-title">${processedCharacter.title}</div>
+       `;
      } else {
-       // No valid avatar URL - use fallback icon
-       avatarContainer.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 4rem; color: #94a3b8;">👤</div>';
-       console.log(`⚠️ No valid Airtable avatar URL found for ${name}, using fallback icon`);
+       card.innerHTML = `
+         <div class="character-avatar">👤</div>
+         <div class="character-name">${processedCharacter.name}</div>
+         <div class="character-title">${processedCharacter.title}</div>
+       `;
+       console.log(`⚠️ No valid avatar URL found for ${processedCharacter.name}, using fallback icon`);
      }
-     
-     // Append elements to card
-     card.appendChild(avatarContainer);
-     card.appendChild(nameDiv);
-     card.appendChild(titleDiv);
      
      return card;
    }
