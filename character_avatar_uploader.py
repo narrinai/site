@@ -71,25 +71,25 @@ class SimpleAvatarUploader:
         abstract_patterns = [
             # Performance/Business concepts
             r'\b(performance|peak|success|goal|achievement|profit|growth)\b',
-            r'\b(strategy|business|leader|management|executive|coach)\b',
+            r'\b(strategy|business|leader|management|executive|coach|builder|trust)\b',
             
             # Abstract concepts
             r'\b(wisdom|knowledge|learning|creativity|innovation|inspiration)\b',
-            r'\b(concept|idea|principle|theory|method|approach)\b',
-            r'\b(inner|mindfulness|meditation|spiritual|enlightenment)\b',
+            r'\b(concept|idea|principle|theory|method|approach|guide|helper)\b',
+            r'\b(inner|mindfulness|meditation|spiritual|enlightenment|peace)\b',
             
             # States/Emotions
-            r'\b(happiness|joy|peace|calm|zen|energy|power|strength)\b',
-            r'\b(mindset|attitude|spirit|soul|essence|vibe)\b',
+            r'\b(happiness|joy|calm|zen|energy|power|strength)\b',
+            r'\b(mindset|attitude|spirit|soul|essence|vibe|cultivation)\b',
             
             # Generic/System names
-            r'\b(system|model|framework|template|guide|helper)\b',
-            r'\b(assistant|advisor|mentor|coach|trainer)\b',
+            r'\b(system|model|framework|template|assistant|advisor|mentor|trainer)\b',
         ]
         
         # Check if name matches abstract patterns
         for pattern in abstract_patterns:
             if re.search(pattern, name_lower):
+                print(f"   🤖 Detected as ABSTRACT: '{name}' (matched pattern)")
                 return False
         
         # Check for human name patterns (First Last, or known naming conventions)
@@ -101,6 +101,7 @@ class SimpleAvatarUploader:
         
         for pattern in human_patterns:
             if re.search(pattern, name):
+                print(f"   👤 Detected as REAL: '{name}' (human name pattern)")
                 return True
         
         # Known fictional character indicators
@@ -112,14 +113,28 @@ class SimpleAvatarUploader:
         
         for indicator in fictional_indicators:
             if indicator in name_lower:
+                print(f"   👤 Detected as REAL: '{name}' (fictional character)")
                 return True
+        
+        # Special cases - explicitly abstract concepts
+        explicit_abstract = [
+            'inner peace', 'trust builder', 'performance peak', 'wisdom guide',
+            'happiness coach', 'success mentor', 'growth mindset', 'energy healer'
+        ]
+        
+        for abstract_name in explicit_abstract:
+            if abstract_name in name_lower:
+                print(f"   🤖 Detected as ABSTRACT: '{name}' (explicit abstract concept)")
+                return False
         
         # If name has multiple words but doesn't match patterns, likely real
         words = name.split()
         if len(words) > 1:
+            print(f"   👤 Multi-word name, defaulting to REAL: '{name}'")
             return True
         
         # Single word names are usually abstract concepts
+        print(f"   🤖 Single word, defaulting to ABSTRACT: '{name}'")
         return False
 
     def get_emoji_for_character(self, name):
