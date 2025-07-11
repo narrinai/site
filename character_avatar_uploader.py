@@ -33,20 +33,21 @@ class SimpleAvatarUploader:
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
         })
         
-        # Emoji mapping voor verschillende types characters
+        # Emoji mapping - ALLEEN emoji's die goed werken op alle systemen
         self.emoji_mapping = {
             # Performance/Business
             'performance': '📈', 'peak': '⛰️', 'success': '🏆', 'goal': '🎯', 'achievement': '🏅',
             'business': '💼', 'profit': '💰', 'growth': '📊', 'strategy': '🧠', 'leader': '👔',
+            'trust': '🤝', 'builder': '🤝', 'relationship': '🤝',
             
             # Abstract concepts
-            'wisdom': '🧙‍♂️', 'knowledge': '📚', 'learning': '🎓', 'education': '📖', 'study': '✏️',
+            'wisdom': '📚', 'knowledge': '📚', 'learning': '🎓', 'education': '📖', 'study': '✏️',
             'creativity': '🎨', 'innovation': '💡', 'idea': '🌟', 'inspiration': '✨', 'dream': '💭',
             
-            # Emotions/States
-            'happiness': '😊', 'joy': '😄', 'peace': '☮️', 'calm': '🧘‍♂️', 'zen': '🕯️',
+            # Emotions/States - VERVANG problematische emoji's
+            'happiness': '😊', 'joy': '😄', 'peace': '😌', 'calm': '😌', 'zen': '🕯️',
             'energy': '⚡', 'power': '💪', 'strength': '🦁', 'courage': '🛡️', 'brave': '⚔️',
-            'inner': '🧘‍♂️', 'mindfulness': '🧘‍♀️', 'meditation': '🕯️',
+            'inner': '😌', 'mindfulness': '😌', 'meditation': '🕯️',  # Gebruik 😌 voor inner peace
             
             # Nature/Elements
             'nature': '🌿', 'forest': '🌲', 'ocean': '🌊', 'mountain': '🏔️', 'sun': '☀️',
