@@ -172,17 +172,17 @@ class SimpleAvatarUploader:
         """Create a modern AI-style avatar matching Narrin.ai website design"""
         size = 512
         
-        # Narrin.ai color schemes - exact match with CSS variables
+        # Narrin.ai color schemes - exact match with CSS variables from index.html
         color_schemes = {
             'peace': {
                 'bg_start': '#14b8a6',  # var(--color-teal)
-                'bg_end': '#0f766e',    # var(--color-teal-dark)
+                'bg_end': '#f97316',    # var(--color-coral) - use main gradient
                 'text_color': '#ffffff',
                 'accent_color': '#5eead4'  # var(--color-teal-light)
             },
             'trust': {
-                'bg_start': '#10a394',  # var(--color-teal-alt)
-                'bg_end': '#14b8a6',    # var(--color-teal)
+                'bg_start': '#14b8a6',  # var(--color-teal)  
+                'bg_end': '#f97316',    # var(--color-coral) - main gradient
                 'text_color': '#ffffff',
                 'accent_color': '#5eead4'
             },
@@ -219,7 +219,7 @@ class SimpleAvatarUploader:
         img = Image.new('RGB', (size, size), color='white')
         draw = ImageDraw.Draw(img)
         
-        # Create gradient background (135deg like CSS)
+        # Create gradient background (135deg like CSS --gradient-primary)
         for y in range(size):
             for x in range(size):
                 # Calculate diagonal gradient position (135 degrees)
@@ -245,7 +245,7 @@ class SimpleAvatarUploader:
         
         # Add subtle geometric elements (website style)
         # Large circle with accent color and transparency
-        circle_size = size * 0.6
+        circle_size = size * 0.7
         circle_x = (size - circle_size) // 2
         circle_y = (size - circle_size) // 2
         
@@ -261,37 +261,42 @@ class SimpleAvatarUploader:
         # Draw semi-transparent circle
         overlay_draw.ellipse(
             [circle_x, circle_y, circle_x + circle_size, circle_y + circle_size],
-            fill=(accent_r, accent_g, accent_b, 25)  # Very subtle
+            fill=(accent_r, accent_g, accent_b, 30)  # Slightly more visible
         )
         
         # Add smaller decorative circle
-        small_circle_size = size * 0.2
-        small_x = size - small_circle_size - 20
-        small_y = 20
+        small_circle_size = size * 0.15
+        small_x = size - small_circle_size - 30
+        small_y = 30
         overlay_draw.ellipse(
             [small_x, small_y, small_x + small_circle_size, small_y + small_circle_size],
-            fill=(255, 255, 255, 30)  # White accent
+            fill=(255, 255, 255, 40)  # White accent
         )
         
         # Blend overlay
         img = Image.alpha_composite(img.convert('RGBA'), overlay).convert('RGB')
         draw = ImageDraw.Draw(img)
         
-        # Add text with website typography (Plus Jakarta Sans style)
+        # Add text with website typography - MUCH LARGER FONTS
         try:
-            # Font size based on text length
-            if len(text) <= 4:
-                font_size = 96
+            # VEEL GROTERE font size based on text length
+            if len(text) <= 3:
+                font_size = 160  # Was 96, nu veel groter
+            elif len(text) <= 4:
+                font_size = 140  # Was 96
+            elif len(text) <= 5:
+                font_size = 120  # Was 72
             elif len(text) <= 6:
-                font_size = 72
+                font_size = 100  # Was 72
             else:
-                font_size = 56
+                font_size = 80   # Was 56
             
             # Try modern fonts (similar to Plus Jakarta Sans)
             font_paths = [
-                '/System/Library/Fonts/SF-Pro-Display-Bold.otf',    # macOS modern
+                '/System/Library/Fonts/SF-Pro-Display-Heavy.otf',   # macOS heavy
+                '/System/Library/Fonts/SF-Pro-Display-Bold.otf',    # macOS bold
                 '/System/Library/Fonts/Helvetica-Bold.ttc',         # macOS fallback
-                '/Windows/Fonts/segoeui.ttf',                       # Windows modern
+                '/Windows/Fonts/seguiemj.ttf',                      # Windows emoji (good for bold)
                 '/Windows/Fonts/calibrib.ttf',                      # Windows bold
                 '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',  # Linux
             ]
@@ -301,47 +306,61 @@ class SimpleAvatarUploader:
                 if os.path.exists(font_path):
                     try:
                         font = ImageFont.truetype(font_path, font_size)
+                        print(f"   📝 Using font: {font_path} at {font_size}px")
                         break
-                    except:
+                    except Exception as e:
+                        print(f"   ⚠️ Font failed: {font_path} - {e}")
                         continue
             
             if not font:
-                font = ImageFont.load_default()
+                # Last resort - try default but larger
+                try:
+                    font = ImageFont.load_default()
+                    print(f"   📝 Using default font at {font_size}px")
+                except:
+                    font = None
             
-            # Get text dimensions
-            bbox = draw.textbbox((0, 0), text, font=font)
-            text_width = bbox[2] - bbox[0]
-            text_height = bbox[3] - bbox[1]
-            
-            # Center text
-            x = (size - text_width) // 2
-            y = (size - text_height) // 2
-            
-            # Add subtle text shadow (website style)
-            shadow_offset = 3
-            shadow_color = (0, 0, 0, 40)  # Semi-transparent black
-            
-            # Create shadow overlay
-            shadow_overlay = Image.new('RGBA', (size, size), (0, 0, 0, 0))
-            shadow_draw = ImageDraw.Draw(shadow_overlay)
-            shadow_draw.text((x + shadow_offset, y + shadow_offset), text, font=font, fill=shadow_color)
-            
-            # Blend shadow
-            img = Image.alpha_composite(img.convert('RGBA'), shadow_overlay).convert('RGB')
-            draw = ImageDraw.Draw(img)
-            
-            # Draw main text
-            draw.text((x, y), text, font=font, fill=scheme['text_color'])
-            
-            print(f"   🎨 Created Narrin.ai style avatar: '{text}' ({concept_type}, {font_size}px)")
+            if font:
+                # Get text dimensions
+                bbox = draw.textbbox((0, 0), text, font=font)
+                text_width = bbox[2] - bbox[0]
+                text_height = bbox[3] - bbox[1]
+                
+                # Center text
+                x = (size - text_width) // 2
+                y = (size - text_height) // 2
+                
+                # Add prominent text shadow (website style)
+                shadow_offset = 4
+                shadow_color = (0, 0, 0, 60)  # More visible shadow
+                
+                # Create shadow overlay
+                shadow_overlay = Image.new('RGBA', (size, size), (0, 0, 0, 0))
+                shadow_draw = ImageDraw.Draw(shadow_overlay)
+                shadow_draw.text((x + shadow_offset, y + shadow_offset), text, font=font, fill=shadow_color)
+                
+                # Blend shadow
+                img = Image.alpha_composite(img.convert('RGBA'), shadow_overlay).convert('RGB')
+                draw = ImageDraw.Draw(img)
+                
+                # Draw main text
+                draw.text((x, y), text, font=font, fill=scheme['text_color'])
+                
+                print(f"   🎨 Created Narrin.ai style avatar: '{text}' ({concept_type}, {font_size}px)")
+            else:
+                # Emergency fallback - very large text
+                fallback_size = 80
+                draw.text((size//2 - len(text)*20, size//2 - 30), text, fill=scheme['text_color'])
+                print(f"   ⚠️ Using emergency fallback text")
             
         except Exception as e:
-            print(f"   ⚠️ Font error: {e}")
-            # Fallback text
-            draw.text((size//2 - 50, size//2 - 20), text, fill=scheme['text_color'])
+            print(f"   ❌ Text rendering error: {e}")
+            # Emergency fallback
+            fallback_x = size//2 - len(text)*15
+            fallback_y = size//2 - 20
+            draw.text((fallback_x, fallback_y), text, fill=scheme['text_color'])
         
-        # Add border radius effect by masking corners
-        # Create a mask for rounded corners (16px radius like website)
+        # Add border radius effect by masking corners (like character cards)
         mask = Image.new('L', (size, size), 0)
         mask_draw = ImageDraw.Draw(mask)
         
