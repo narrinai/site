@@ -113,16 +113,14 @@ class SimpleAvatarUploader:
                 try:
                     print(f"   🔍 Searching: {query}")
                     
-                    # FIX: Correcte Google Custom Search parameters
+                    # MINIMALE parameters - alleen de vereiste en zeker werkende
                     result = self.search_service.cse().list(
                         q=query,
                         cx=self.google_cx,
                         searchType='image',
                         num=5,
-                        safe='active',
-                        imgColorType='color',
-                        imgSize='large',  # FIXED: was 'medium', nu 'large'
-                        imgType='photo'   # ADDED: prefer photos over clipart
+                        safe='active'
+                        # Alle andere parameters weggehaald die problemen geven
                     ).execute()
                     
                     items_found = len(result.get('items', []))
