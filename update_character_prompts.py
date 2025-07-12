@@ -59,7 +59,7 @@ Remember: Your goal is not just to answer questions, but to be a meaningful pres
 Always respond as {name} would, using their knowledge, experiences, and perspective while building a genuine emotional connection with the person you're speaking with."""
 
 def get_all_characters():
-    """Haal alle characters op uit Airtable"""
+    """Haal alle characters op uit Airtable (met pagination)"""
     url = f"https://api.airtable.com/v0/{AIRTABLE_BASE}/Characters"
     headers = {
         'Authorization': f'Bearer {AIRTABLE_TOKEN}',
@@ -68,10 +68,36 @@ def get_all_characters():
     
     log(Colors.BLUE, "📋 Characters ophalen uit Airtable...")
     
+    all_records = []
+    offset = None
+    page = 1
+    
     try:
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()
-        return response.json()
+        while True:
+            params = {}
+            if offset:
+                params['offset'] = offset
+            
+            log(Colors.YELLOW, f"   📄 Pagina {page} ophalen...")
+            
+            response = requests.get(url, headers=headers, params=params)
+            response.raise_for_status()
+            data = response.json()
+            
+            # Voeg records toe aan totale lijst
+            all_records.extend(data['records'])
+            
+            # Check of er meer pagina's zijn
+            if 'offset' in data:
+                offset = data['offset']
+                page += 1
+                time.sleep(0.1)  # Kleine pauze tussen pagina's
+            else:
+                break
+        
+        log(Colors.GREEN, f"✅ Totaal {len(all_records)} characters gevonden!")
+        return {'records': all_records}
+        
     except requests.exceptions.RequestException as e:
         raise Exception(f"Fout bij ophalen characters: {e}")
 
