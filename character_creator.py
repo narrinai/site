@@ -29,14 +29,14 @@ def log(color, message):
     """Print gekleurde berichten naar console"""
     print(f"{color}{message}{Colors.RESET}")
 
-# Categorieën en tags definitie
+# Categorieën en tags definitie (database waarden)
 CATEGORIES = [
-    'Historical Figures', 'Fantasy', 'Anime & Manga', 'Celebrities', 'Gaming', 
-    'Movies & TV', 'Mythology', 'Original Characters', 'AI Assistants', 'Educational',
-    'Fitness Coach', 'Business Coach', 'Language Coach', 'Accounting Coach', 'Career Coach',
-    'Negotiation Coach', 'Creativity Coach', 'Study Coach', 'Relationship Coach', 
-    'Mindfulness Coach', 'Cooking Coach', 'Writing Coach', 'Parody', 'RPG', 'Romance',
-    'Middle-Aged', 'Gen-Z', 'Older', 'Humor', 'Other', 'Fictional'
+    'historical', 'fantasy', 'anime-manga', 'celebrity', 'gaming', 
+    'movies-tv', 'mythology', 'original', 'ai-assistant', 'educational',
+    'fitness-coach', 'business-coach', 'language-coach', 'accounting-coach', 'career-coach',
+    'negotiation-coach', 'creativity-coach', 'study-coach', 'relationship-coach', 
+    'mindfulness-coach', 'cooking-coach', 'writing-coach', 'parody', 'rpg', 'romance',
+    'middle-aged', 'gen-z', 'older', 'humor', 'other', 'fictional'
 ]
 
 TAGS = [
@@ -65,72 +65,72 @@ TAGS = [
     'vocabulary', 'warrior', 'wellness', 'wizard', 'workout', 'workplace', 'writing-coach', 'zen'
 ]
 
-# Character data per categorie
+# Character data per categorie (met database waarden)
 CHARACTER_DATA = {
-    'Historical Figures': [
+    'historical': [
         {'name': 'Leonardo da Vinci', 'title': 'Renaissance Polymath', 'description': 'Italian polymath of the Renaissance era, known for art, science, engineering, and countless innovations. A master of observation and creativity.'},
         {'name': 'Cleopatra VII', 'title': 'Last Pharaoh of Egypt', 'description': 'The intelligent and charismatic ruler who spoke multiple languages and commanded respect across the ancient world.'},
         {'name': 'Winston Churchill', 'title': 'British Prime Minister', 'description': 'Wartime leader known for his powerful speeches, strategic mind, and unwavering determination during World War II.'},
         {'name': 'Marie Curie', 'title': 'Nobel Prize Physicist', 'description': 'Pioneer in radioactivity research, first woman to win a Nobel Prize, and first person to win Nobel Prizes in two different sciences.'},
         {'name': 'Alexander the Great', 'title': 'Macedonian Conqueror', 'description': 'Military genius who created one of the largest empires in ancient history before his 30th birthday.'},
     ],
-    'Fantasy': [
+    'fantasy': [
         {'name': 'Gandalf the Grey', 'title': 'Wizard of Middle-earth', 'description': 'Wise and powerful wizard who guides heroes on their quests, known for his deep knowledge of magic and ancient lore.'},
         {'name': 'Elara Moonwhisper', 'title': 'Elven Archmage', 'description': 'Ancient elven sorceress with mastery over lunar magic and keeper of forgotten spells from the first age.'},
         {'name': 'Thorin Ironforge', 'title': 'Dwarven King', 'description': 'Noble dwarf king skilled in smithing and battle, protector of the mountain kingdoms and their ancient treasures.'},
         {'name': 'Seraphina Dragoncaller', 'title': 'Dragon Rider', 'description': 'Fearless warrior who bonds with dragons, soaring through skies and commanding the respect of both beast and mortal.'},
         {'name': 'Merlin Starweaver', 'title': 'Court Wizard', 'description': 'Legendary wizard advisor to kings, master of prophecy and keeper of the balance between light and shadow.'},
     ],
-    'Anime & Manga': [
+    'anime-manga': [
         {'name': 'Akira Hayashi', 'title': 'Ninja Prodigy', 'description': 'Young ninja with exceptional skills in stealth and combat, following the path of honor while protecting his village.'},
         {'name': 'Sakura Tanaka', 'title': 'Magical Girl', 'description': 'High school student who transforms into a magical warrior to protect the world from dark forces.'},
         {'name': 'Ryu Yamamoto', 'title': 'Martial Arts Master', 'description': 'Dedicated fighter seeking to become the strongest while learning valuable lessons about friendship and perseverance.'},
         {'name': 'Yuki Sato', 'title': 'Mecha Pilot', 'description': 'Talented pilot of giant robots, defending Earth from alien invaders while dealing with the pressures of war.'},
         {'name': 'Hana Kimura', 'title': 'Spirit Medium', 'description': 'Young woman with the ability to see and communicate with spirits, helping both the living and the dead find peace.'},
     ],
-    'Celebrities': [
+    'celebrity': [
         {'name': 'Alex Sterling', 'title': 'Hollywood Actor', 'description': 'Charismatic performer known for dramatic roles and dedication to the craft of acting.'},
         {'name': 'Maya Johnson', 'title': 'Pop Star', 'description': 'Rising music sensation with a powerful voice and message of empowerment through her songs.'},
         {'name': 'David Chen', 'title': 'Tech Entrepreneur', 'description': 'Innovative business leader who revolutionized social media and continues to shape the digital future.'},
         {'name': 'Sophie Williams', 'title': 'Award-Winning Director', 'description': 'Visionary filmmaker known for thought-provoking stories and groundbreaking cinematography.'},
         {'name': 'Marcus Rodriguez', 'title': 'Professional Athlete', 'description': 'Elite sports competitor who inspires others through dedication, teamwork, and community involvement.'},
     ],
-    'Gaming': [
+    'gaming': [
         {'name': 'Nova Strike', 'title': 'Space Marine Commander', 'description': 'Elite soldier leading missions across the galaxy, skilled in both strategy and combat operations.'},
         {'name': 'Zara Nightblade', 'title': 'Stealth Assassin', 'description': 'Master of shadows and precision strikes, moving unseen through enemy territory to complete impossible missions.'},
         {'name': 'Captain Forge', 'title': 'Mech Warrior', 'description': 'Veteran pilot of giant mechanical suits, leading squads in epic battles across alien worlds.'},
         {'name': 'Luna Hacker', 'title': 'Cyber Specialist', 'description': 'Expert in digital infiltration and system manipulation, fighting corporations in the neon-lit cyberpunk future.'},
         {'name': 'Rex Survivor', 'title': 'Post-Apocalyptic Wanderer', 'description': 'Resourceful survivor navigating the wasteland, scavenging for supplies and building communities in a harsh world.'},
     ],
-    'Movies & TV': [
+    'movies-tv': [
         {'name': 'Detective Sarah Morgan', 'title': 'Crime Investigator', 'description': 'Sharp-minded detective with an eye for detail, solving complex cases while dealing with personal demons.'},
         {'name': 'Dr. Elena Vasquez', 'title': 'Emergency Room Physician', 'description': 'Dedicated medical professional saving lives under pressure while balancing career and family.'},
         {'name': 'Jake Hunter', 'title': 'Special Forces Operative', 'description': 'Elite military operative taking on dangerous missions to protect national security and innocent lives.'},
         {'name': 'Rachel Green-Martinez', 'title': 'Fashion Magazine Editor', 'description': 'Ambitious magazine editor navigating the competitive world of fashion while maintaining friendships and finding love.'},
         {'name': 'Professor James Wilson', 'title': 'Archaeology Professor', 'description': 'Academic adventurer uncovering ancient mysteries and historical artifacts around the world.'},
     ],
-    'Mythology': [
+    'mythology': [
         {'name': 'Athena Wisdom-Bearer', 'title': 'Goddess of Wisdom', 'description': 'Divine embodiment of strategic warfare, wisdom, and crafts, patron of heroes and protector of cities.'},
         {'name': 'Thor Thunder-Walker', 'title': 'God of Thunder', 'description': 'Mighty Norse god wielding the hammer Mjolnir, protector of Midgard and defender against giants.'},
         {'name': 'Anubis Guide-Walker', 'title': 'Guardian of the Dead', 'description': 'Egyptian deity who guides souls through the afterlife and weighs hearts against the feather of truth.'},
         {'name': 'Quetzalcoatl Feathered-Serpent', 'title': 'Mesoamerican Creator God', 'description': 'Divine serpent deity of wind, learning, and creation, bringer of knowledge and civilization.'},
         {'name': 'Amaterasu Sun-Bringer', 'title': 'Japanese Sun Goddess', 'description': 'Radiant goddess of the sun and universe, bringing light and life to the world.'},
     ],
-    'Original Characters': [
+    'original': [
         {'name': 'Echo Starlight', 'title': 'Interdimensional Explorer', 'description': 'Adventurous traveler who journeys between parallel universes, documenting strange phenomena and alternate realities.'},
         {'name': 'Violet Shadowmend', 'title': 'Memory Healer', 'description': 'Mysterious figure with the ability to repair damaged memories and help people overcome psychological trauma.'},
         {'name': 'Phoenix Ashworth', 'title': 'Time Guardian', 'description': 'Protector of the timeline who prevents paradoxes and ensures historical events unfold as they should.'},
         {'name': 'Sage Windwalker', 'title': 'Elemental Shaman', 'description': 'Spiritual guide who communes with nature spirits and maintains the balance between civilization and the wild.'},
         {'name': 'Raven Darkshore', 'title': 'Dream Walker', 'description': 'Enigmatic being who can enter and manipulate dreams, helping people confront their fears and desires.'},
     ],
-    'AI Assistants': [
+    'ai-assistant': [
         {'name': 'ARIA-7', 'title': 'Advanced AI Companion', 'description': 'Sophisticated artificial intelligence designed to assist with complex problem-solving and provide emotional support.'},
         {'name': 'Codex Prime', 'title': 'Knowledge AI', 'description': 'Vast digital library with access to infinite information, helping users learn and discover new concepts.'},
         {'name': 'NOVA Assistant', 'title': 'Personal AI Helper', 'description': 'Friendly and efficient AI designed to manage schedules, answer questions, and provide daily assistance.'},
         {'name': 'Synth-9', 'title': 'Creative AI Partner', 'description': 'Artistic artificial intelligence that collaborates on creative projects and helps generate innovative ideas.'},
         {'name': 'Oracle-X', 'title': 'Predictive AI', 'description': 'Advanced AI system that analyzes patterns and provides insights about future trends and possibilities.'},
     ],
-    'Educational': [
+    'educational': [
         {'name': 'Professor Emma Clarke', 'title': 'Physics Professor', 'description': 'Enthusiastic educator who makes complex scientific concepts accessible and inspiring for students of all levels.'},
         {'name': 'Dr. Michael Torres', 'title': 'History Scholar', 'description': 'Passionate historian who brings the past to life through engaging storytelling and detailed analysis.'},
         {'name': 'Ms. Lisa Anderson', 'title': 'Mathematics Teacher', 'description': 'Patient and creative math instructor who helps students overcome their fear of numbers and discover mathematical beauty.'},
@@ -241,39 +241,39 @@ def select_random_tags(category, min_tags=5, max_tags=8):
     # Basis tags voor alle categories
     base_tags = ['friendly', 'helpful', 'supportive', 'knowledgeable']
     
-    # Categorie-specifieke tags
+    # Categorie-specifieke tags (met database waarden)
     category_tags = {
-        'Historical Figures': ['famous', 'leader', 'revolutionary', 'knowledge', 'inspiration'],
-        'Fantasy': ['magic', 'mystical', 'adventure', 'hero', 'legend'],
-        'Anime & Manga': ['anime', 'adventure', 'friendship', 'action', 'hero'],
-        'Celebrities': ['famous', 'entertainment', 'star', 'hollywood', 'popular'],
-        'Gaming': ['action', 'adventure', 'strategy', 'competitive', 'digital'],
-        'Movies & TV': ['entertainment', 'drama', 'action', 'series', 'hollywood'],
-        'Mythology': ['divine', 'mystical', 'ancient', 'legend', 'spiritual'],
-        'Original Characters': ['unique', 'imaginative', 'creative', 'innovative', 'custom'],
-        'AI Assistants': ['tech', 'smart', 'efficient', 'modern', 'digital'],
-        'Educational': ['teacher', 'academic', 'learning', 'knowledge', 'professor'],
-        'Fitness Coach': ['health', 'exercise', 'training', 'strength', 'wellness'],
-        'Business Coach': ['professional', 'leadership', 'success', 'entrepreneur', 'corporate'],
-        'Language Coach': ['multilingual', 'communication', 'fluency', 'pronunciation', 'vocabulary'],
-        'Accounting Coach': ['professional', 'efficient', 'organization', 'productivity', 'corporate'],
-        'Career Coach': ['professional', 'leadership', 'success', 'interview', 'networking'],
-        'Negotiation Coach': ['communication', 'strategy', 'professional', 'leadership', 'success'],
-        'Creativity Coach': ['creative', 'artistic', 'imagination', 'innovation', 'inspiration'],
-        'Study Coach': ['academic', 'learning', 'productivity', 'focus', 'organization'],
-        'Relationship Coach': ['communication', 'empathy', 'understanding', 'support', 'guidance'],
-        'Mindfulness Coach': ['meditation', 'peaceful', 'zen', 'wellness', 'inner-peace'],
-        'Cooking Coach': ['chef', 'culinary', 'food', 'recipe', 'kitchen'],
-        'Writing Coach': ['creative', 'artistic', 'inspiration', 'expression', 'writing-coach'],
-        'Parody': ['humor', 'comedy', 'entertainment', 'parody', 'fun'],
-        'RPG': ['adventure', 'fantasy', 'rpg', 'strategy', 'hero'],
-        'Romance': ['love', 'romance', 'dating', 'relationship', 'connection'],
-        'Middle-Aged': ['middle-aged', 'experienced', 'wisdom', 'mentor', 'guidance'],
-        'Gen-Z': ['gen-z', 'modern', 'digital', 'social', 'trendy'],
-        'Older': ['older', 'wisdom', 'experienced', 'mentor', 'traditional'],
-        'Humor': ['humor', 'comedy', 'entertainment', 'fun', 'positive'],
-        'Other': ['unique', 'special', 'interesting', 'diverse', 'custom'],
-        'Fictional': ['imaginative', 'creative', 'fantasy', 'unique', 'fictional']
+        'historical': ['famous', 'leader', 'revolutionary', 'knowledge', 'inspiration'],
+        'fantasy': ['magic', 'mystical', 'adventure', 'hero', 'legend'],
+        'anime-manga': ['anime', 'adventure', 'friendship', 'action', 'hero'],
+        'celebrity': ['famous', 'entertainment', 'star', 'hollywood', 'popular'],
+        'gaming': ['action', 'adventure', 'strategy', 'competitive', 'digital'],
+        'movies-tv': ['entertainment', 'drama', 'action', 'series', 'hollywood'],
+        'mythology': ['divine', 'mystical', 'ancient', 'legend', 'spiritual'],
+        'original': ['unique', 'imaginative', 'creative', 'innovative', 'custom'],
+        'ai-assistant': ['tech', 'smart', 'efficient', 'modern', 'digital'],
+        'educational': ['teacher', 'academic', 'learning', 'knowledge', 'professor'],
+        'fitness-coach': ['health', 'exercise', 'training', 'strength', 'wellness'],
+        'business-coach': ['professional', 'leadership', 'success', 'entrepreneur', 'corporate'],
+        'language-coach': ['multilingual', 'communication', 'fluency', 'pronunciation', 'vocabulary'],
+        'accounting-coach': ['professional', 'efficient', 'organization', 'productivity', 'corporate'],
+        'career-coach': ['professional', 'leadership', 'success', 'interview', 'networking'],
+        'negotiation-coach': ['communication', 'strategy', 'professional', 'leadership', 'success'],
+        'creativity-coach': ['creative', 'artistic', 'imagination', 'innovation', 'inspiration'],
+        'study-coach': ['academic', 'learning', 'productivity', 'focus', 'organization'],
+        'relationship-coach': ['communication', 'empathy', 'understanding', 'support', 'guidance'],
+        'mindfulness-coach': ['meditation', 'peaceful', 'zen', 'wellness', 'inner-peace'],
+        'cooking-coach': ['chef', 'culinary', 'food', 'recipe', 'kitchen'],
+        'writing-coach': ['creative', 'artistic', 'inspiration', 'expression', 'writing-coach'],
+        'parody': ['humor', 'comedy', 'entertainment', 'parody', 'fun'],
+        'rpg': ['adventure', 'fantasy', 'rpg', 'strategy', 'hero'],
+        'romance': ['love', 'romance', 'dating', 'relationship', 'connection'],
+        'middle-aged': ['middle-aged', 'experienced', 'wisdom', 'mentor', 'guidance'],
+        'gen-z': ['gen-z', 'modern', 'digital', 'social', 'trendy'],
+        'older': ['older', 'wisdom', 'experienced', 'mentor', 'traditional'],
+        'humor': ['humor', 'comedy', 'entertainment', 'fun', 'positive'],
+        'other': ['unique', 'special', 'interesting', 'diverse', 'custom'],
+        'fictional': ['imaginative', 'creative', 'fantasy', 'unique', 'fictional']
     }
     
     # Combineer basis tags met categorie-specifieke tags
@@ -386,6 +386,32 @@ def generate_additional_characters(category, base_chars, count=150):
     
     return additional_chars
 
+def test_single_character():
+    """Test met één character om de exacte fout te zien"""
+    log(Colors.BLUE, "🧪 Test met één character...")
+    
+    test_char = {
+        'Name': 'Test Character',
+        'Character_ID': 'test-character',
+        'Slug': 'test-character',
+        'Prompt': 'Test prompt',
+        'Avatar_URL': '',
+        'Category': 'historical',
+        'Character_URL': 'https://narrin.ai/chat.html?char=test-character',
+        'Character_Description': 'Test description',
+        'Tags': ['friendly', 'helpful'],
+        'Visibility': 'public',
+        'Character_Title': 'Test Title'
+    }
+    
+    try:
+        result = create_character_in_airtable(test_char)
+        log(Colors.GREEN, f"✅ Test character succesvol aangemaakt: {result}")
+        return True
+    except Exception as e:
+        log(Colors.RED, f"❌ Test character fout: {e}")
+        return False
+
 def main():
     """Hoofdfunctie"""
     try:
@@ -396,6 +422,11 @@ def main():
         
         log(Colors.BOLD + Colors.MAGENTA, "🎭 CHARACTER CREATOR GESTART")
         log(Colors.CYAN, "═" * 60)
+        
+        # Test eerst met één character
+        if not test_single_character():
+            log(Colors.RED, "❌ Test gefaald, script gestopt")
+            return
         
         # Haal bestaande characters op
         existing_names = get_existing_characters()
