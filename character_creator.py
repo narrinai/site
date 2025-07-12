@@ -311,7 +311,7 @@ def create_character(name, title, description, category, existing_names):
         'Category': category,
         'Character_URL': character_url,
         'Character_Description': description,
-        'Tags': tags,
+        'Tags': tags,  # Dit is al een lijst
         'Visibility': 'public',
         'Character_Title': title
     }
@@ -332,6 +332,9 @@ def create_character_in_airtable(character_data):
     
     try:
         response = requests.post(url, json=data, headers=headers)
+        if response.status_code == 422:
+            log(Colors.RED, f"❌ 422 Error details: {response.text}")
+            log(Colors.YELLOW, f"📋 Character data: {character_data}")
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
