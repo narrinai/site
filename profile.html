@@ -3346,7 +3346,7 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       setTimeout(() => observer.disconnect(), 5000);
     }
 
-    // Add floating terms notice with clickable links
+    // Add terms notice positioned relative to the modal
     function addFloatingTermsNotice() {
       // Remove existing notice if any
       const existingNotice = document.getElementById('floating-terms-notice');
@@ -3354,36 +3354,81 @@ function handleLoginSuccess(user, eventType = 'unknown') {
         existingNotice.remove();
       }
       
-      // Create floating terms notice
-      const termsNotice = document.createElement('div');
-      termsNotice.id = 'floating-terms-notice';
-      termsNotice.style.cssText = `
-        position: fixed;
-        bottom: 80px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(255, 255, 255, 0.98);
-        border: 2px solid #14b8a6;
-        border-radius: 12px;
-        padding: 12px 20px;
-        font-size: 13px;
-        color: #475569;
-        text-align: center;
-        z-index: 1000000001;
-        max-width: 320px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        line-height: 1.4;
-        backdrop-filter: blur(10px);
-        pointer-events: auto;
-      `;
-      
-      termsNotice.innerHTML = 'By signing up, you agree to our <a href="/terms-and-conditions.html" target="_blank" style="color: #14b8a6; text-decoration: underline; font-weight: 600;">Terms & Conditions</a> and <a href="/privacy-policy.html" target="_blank" style="color: #14b8a6; text-decoration: underline; font-weight: 600;">Privacy Policy</a>';
-      
-      // Add to body
-      document.body.appendChild(termsNotice);
-      
-      console.log('✅ Floating terms notice added');
+      // Try to find the modal to position relative to it
+      setTimeout(() => {
+        const modal = document.querySelector('.netlify-identity-widget iframe') || 
+                     document.querySelector('.netlify-identity-widget');
+        
+        if (modal) {
+          // Create terms notice positioned relative to modal
+          const termsNotice = document.createElement('div');
+          termsNotice.id = 'floating-terms-notice';
+          
+          // Position it right below the modal
+          const modalRect = modal.getBoundingClientRect();
+          const modalBottom = modalRect.bottom;
+          const modalLeft = modalRect.left;
+          const modalWidth = modalRect.width;
+          
+          termsNotice.style.cssText = `
+            position: fixed;
+            top: ${modalBottom + 10}px;
+            left: ${modalLeft}px;
+            width: ${modalWidth}px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid #14b8a6;
+            border-radius: 0 0 12px 12px;
+            padding: 12px 20px;
+            font-size: 12px;
+            color: #475569;
+            text-align: center;
+            z-index: 1000000001;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            line-height: 1.4;
+            backdrop-filter: blur(10px);
+            pointer-events: auto;
+            box-sizing: border-box;
+          `;
+          
+          termsNotice.innerHTML = 'By signing up, you agree to our <a href="/terms-and-conditions.html" target="_blank" style="color: #14b8a6; text-decoration: underline; font-weight: 600;">Terms & Conditions</a> and <a href="/privacy-policy.html" target="_blank" style="color: #14b8a6; text-decoration: underline; font-weight: 600;">Privacy Policy</a>';
+          
+          // Add to body
+          document.body.appendChild(termsNotice);
+          
+          console.log('✅ Terms notice positioned below modal');
+        } else {
+          // Fallback to center positioning
+          const termsNotice = document.createElement('div');
+          termsNotice.id = 'floating-terms-notice';
+          termsNotice.style.cssText = `
+            position: fixed;
+            bottom: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.98);
+            border: 2px solid #14b8a6;
+            border-radius: 12px;
+            padding: 12px 20px;
+            font-size: 13px;
+            color: #475569;
+            text-align: center;
+            z-index: 1000000001;
+            max-width: 320px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            line-height: 1.4;
+            backdrop-filter: blur(10px);
+            pointer-events: auto;
+          `;
+          
+          termsNotice.innerHTML = 'By signing up, you agree to our <a href="/terms-and-conditions.html" target="_blank" style="color: #14b8a6; text-decoration: underline; font-weight: 600;">Terms & Conditions</a> and <a href="/privacy-policy.html" target="_blank" style="color: #14b8a6; text-decoration: underline; font-weight: 600;">Privacy Policy</a>';
+          
+          document.body.appendChild(termsNotice);
+          
+          console.log('✅ Fallback terms notice added');
+        }
+      }, 600);
     }
 
     // GEFIXTE versie van forceModalToTop met minder agressieve hiding
