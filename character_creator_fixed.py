@@ -103,7 +103,20 @@ NAME_POOLS = {
         'Eowyn Sunblade', 'Legolas Swiftarrow', 'Gimli Axebreaker', 'Boromir Hornblower', 'Faramir Rangersend',
         'Galadriel Lightbringer', 'Elrond Wisecouncil', 'Arwen Evenstar', 'Frodo Ringbearer', 'Sam Loyalheart',
         'Tauriel Greenleaf', 'Kili Stonebeard', 'Fili Ironbraid', 'Bard Dragonslayer', 'Bilbo Adventurer',
-        'Smaug Goldguard', 'Sauron Darklord', 'Saruman Whitehand', 'Radagast Brownwizard', 'Tom Bombadil'
+        'Smaug Goldguard', 'Sauron Darklord', 'Saruman Whitehand', 'Radagast Brownwizard', 'Tom Bombadil',
+        'Aelindra Starlight', 'Baelon Fireborn', 'Cassia Moonstone', 'Draven Shadowmere', 'Evangeline Sunweaver',
+        'Fenris Wolfheart', 'Gwendolyn Stormrider', 'Hadrian Frostbane', 'Isadora Nightshade', 'Jareth Spellsword',
+        'Kael Dragonfire', 'Lysander Starfall', 'Morrigan Darkwind', 'Nolan Thunderstrike', 'Ophelia Moonbeam',
+        'Perseus Lightblade', 'Quintessa Shadowmoon', 'Roderick Ironwill', 'Seraphim Goldenheart', 'Tristan Stormborn',
+        'Ulysses Windwalker', 'Vivienne Starweaver', 'Warden Stoneheart', 'Xara Nightblade', 'Yorick Graveheart',
+        'Zara Moonwhisper', 'Alaric Dragonbane', 'Bellatrix Starfire', 'Caelum Nightwing', 'Delia Frostmoon',
+        'Evander Shadowhawk', 'Fiora Sunblade', 'Garrick Stormclaw', 'Helena Moonfire', 'Ivan Ironforge',
+        'Jora Starshield', 'Kai Windstorm', 'Lira Shadowdance', 'Magnus Thunderbolt', 'Nira Moonlight',
+        'Orion Starseeker', 'Petra Earthsong', 'Quinn Stormheart', 'Raven Nightfall', 'Soren Lightbringer',
+        'Tara Moonglow', 'Uma Starwhisper', 'Vera Shadowweave', 'Willem Stormforge', 'Xenia Moonstone',
+        'Yara Starlight', 'Zane Shadowbolt', 'Aria Moonbeam', 'Blaze Fireborn', 'Cora Starfall',
+        'Drake Shadowwing', 'Ella Moonweaver', 'Finn Stormcaller', 'Gaia Earthmother', 'Hugo Starborn',
+        'Iris Moonshade', 'Jax Shadowstrike', 'Kira Starfire', 'Leo Stormrider', 'Maya Moonwhisper'
     ],
     'anime-manga': [
         'Akira Hayashi', 'Sakura Tanaka', 'Ryu Yamamoto', 'Yuki Sato', 'Hana Kimura',
@@ -115,7 +128,22 @@ NAME_POOLS = {
         'Natsu Dragneel', 'Lucy Heartfilia', 'Erza Scarlet', 'Gray Fullbuster', 'Wendy Marvell',
         'Happy Exceed', 'Gajeel Redfox', 'Levy McGarden', 'Mirajane Strauss', 'Elfman Strauss',
         'Edward Elric', 'Alphonse Elric', 'Roy Mustang', 'Riza Hawkeye', 'Winry Rockbell',
-        'Scar Ishvalan', 'Izuku Midoriya', 'Katsuki Bakugo', 'Ochaco Uraraka', 'Tenya Iida'
+        'Scar Ishvalan', 'Izuku Midoriya', 'Katsuki Bakugo', 'Ochaco Uraraka', 'Tenya Iida',
+        'Tanjiro Kamado', 'Nezuko Kamado', 'Zenitsu Agatsuma', 'Inosuke Hashibira', 'Giyu Tomioka',
+        'Shinji Ikari', 'Rei Ayanami', 'Asuka Langley', 'Gendo Ikari', 'Misato Katsuragi',
+        'Light Yagami', 'L Lawliet', 'Misa Amane', 'Near', 'Mello',
+        'Senku Ishigami', 'Taiju Oki', 'Yuzuriha Ogawa', 'Tsukasa Shishio', 'Chrome',
+        'Tatsumi', 'Akame', 'Leone', 'Mine', 'Sheele',
+        'Saitama', 'Genos', 'King', 'Tatsumaki', 'Fubuki',
+        'Rimuru Tempest', 'Veldora', 'Shion', 'Benimaru', 'Souei',
+        'Ainz Ooal Gown', 'Albedo', 'Shalltear', 'Sebas Tian', 'Demiurge',
+        'Kirito', 'Asuna', 'Klein', 'Sinon', 'Leafa',
+        'Yusuke Urameshi', 'Kazuma Kuwabara', 'Hiei', 'Kurama', 'Genkai',
+        'Inuyasha', 'Kagome Higurashi', 'Miroku', 'Sango', 'Shippo',
+        'Alucard', 'Seras Victoria', 'Integra Hellsing', 'Walter Dornez', 'Anderson',
+        'Vash Stampede', 'Nicholas Wolfwood', 'Meryl Stryfe', 'Milly Thompson', 'Knives',
+        'Spike Spiegel', 'Jet Black', 'Faye Valentine', 'Ed', 'Ein',
+        'Motoko Kusanagi', 'Batou', 'Togusa', 'Aramaki', 'Ishikawa'
     ],
     'celebrity': [
         'Alex Sterling', 'Maya Johnson', 'David Chen', 'Sophie Williams', 'Marcus Rodriguez',
@@ -125,7 +153,23 @@ NAME_POOLS = {
         'Mason Brooks', 'Chloe Davis', 'Aiden Lee', 'Zoe Carter', 'Jacob Wilson',
         'Lily Evans', 'Dylan Torres', 'Ruby Thompson', 'Hunter Jackson', 'Scarlett Moore',
         'Phoenix Rivera', 'Sage Coleman', 'River Hayes', 'Sky Peterson', 'Ocean Clark',
-        'Storm Bailey', 'Star Morgan', 'Moon Rodriguez', 'Sun Garcia', 'Dawn Miller'
+        'Storm Bailey', 'Star Morgan', 'Moon Rodriguez', 'Sun Garcia', 'Dawn Miller',
+        'Atlas Stone', 'Bella Cruz', 'Cash Rivers', 'Delia Fox', 'Ezra Knight',
+        'Faith Sterling', 'Gage Hunter', 'Hope Wells', 'Ivan Cross', 'Jade Moore',
+        'Kai Stone', 'Lyla Fox', 'Max Knight', 'Nora Wells', 'Owen Cross',
+        'Piper Stone', 'Quinn Fox', 'Reid Knight', 'Sage Wells', 'Tate Cross',
+        'Unity Stone', 'Vale Fox', 'Wade Knight', 'Xara Wells', 'York Cross',
+        'Zara Stone', 'Ace Fox', 'Bryce Knight', 'Chase Wells', 'Drew Cross',
+        'Elle Stone', 'Finn Fox', 'Gray Knight', 'Hart Wells', 'Jude Cross',
+        'Knox Stone', 'Lane Fox', 'Moss Knight', 'Nash Wells', 'Onyx Cross',
+        'Penn Stone', 'Reeve Fox', 'Shay Knight', 'Ty Wells', 'Vale Cross',
+        'West Stone', 'Zane Fox', 'Arrow Knight', 'Blaze Wells', 'Crew Cross',
+        'Dash Stone', 'Echo Fox', 'Flash Knight', 'Grove Wells', 'Hawk Cross',
+        'Jett Stone', 'Knox Fox', 'Lux Knight', 'Mars Wells', 'Neo Cross',
+        'Orion Stone', 'Phoenix Fox', 'Ranger Knight', 'Storm Wells', 'Titan Cross',
+        'Vega Stone', 'Wolf Fox', 'Zen Knight', 'Azure Wells', 'Blaze Cross',
+        'Cosmos Stone', 'Delta Fox', 'Echo Knight', 'Flame Wells', 'Ghost Cross',
+        'Hunter Stone', 'Ion Fox', 'Jet Knight', 'King Wells', 'Lightning Cross'
     ],
     'gaming': [
         'Nova Strike', 'Zara Nightblade', 'Captain Forge', 'Luna Hacker', 'Rex Survivor',
@@ -135,28 +179,27 @@ NAME_POOLS = {
         'Laser Commander', 'Rocket Soldier', 'Tank Destroyer', 'Sniper Elite', 'Assault Leader',
         'Heavy Gunner', 'Speed Demon', 'Stealth Master', 'Combat Engineer', 'Field Medic',
         'Tech Specialist', 'Demolition Expert', 'Recon Scout', 'Battle Mage', 'War Priest',
-        'Death Knight', 'Paladin Guardian', 'Rogue Assassin', 'Archer Ranger', 'Wizard Sage'
+        'Death Knight', 'Paladin Guardian', 'Rogue Assassin', 'Archer Ranger', 'Wizard Sage',
+        'Quantum Soldier', 'Neon Striker', 'Digital Phantom', 'Code Breaker', 'System Hacker',
+        'Data Miner', 'Pixel Warrior', 'Frame Fighter', 'Level Boss', 'Achievement Hunter',
+        'Trophy Collector', 'Rank Master', 'Elite Player', 'Pro Gamer', 'Tournament Victor',
+        'Champion Leader', 'Victory Seeker', 'High Scorer', 'Speed Runner', 'Completionist',
+        'Hardcore Player', 'Casual Gamer', 'Retro Master', 'Indie Developer', 'Game Designer',
+        'Beta Tester', 'Alpha Player', 'Early Access', 'DLC Expert', 'Season Pass',
+        'Battle Royale', 'Squad Leader', 'Team Captain', 'Solo Player', 'Co-op Master',
+        'PvP Champion', 'PvE Expert', 'Raid Leader', 'Guild Master', 'Clan Commander',
+        'Alliance Chief', 'Faction Boss', 'War General', 'Strategy Master', 'Tactics Expert',
+        'Resource Manager', 'Base Builder', 'City Planner', 'Empire Ruler', 'Kingdom Lord',
+        'Space Admiral', 'Fleet Commander', 'Star Captain', 'Galaxy Explorer', 'Universe Conqueror',
+        'Time Traveler', 'Portal Master', 'Dimension Walker', 'Reality Shifter', 'Multiverse Hero',
+        'Quantum Jumper', 'Cyber Enhanced', 'Bio Modified', 'Tech Augmented', 'Neural Linked',
+        'AI Integrated', 'Robot Hybrid', 'Android Copy', 'Synthetic Life', 'Digital Being',
+        'Virtual Entity', 'Hologram Fighter', 'Projection Warrior', 'Energy Construct', 'Light Being'
     ]
 }
 
-# Uitgebreide CHARACTER_DATA met meer beschrijvingen
-CHARACTER_DATA = {
-    'historical': [
-        {'name': 'Leonardo da Vinci', 'title': 'Renaissance Polymath', 'description': 'Italian polymath of the Renaissance era, known for art, science, engineering, and countless innovations. A master of observation and creativity.'},
-        {'name': 'Cleopatra VII', 'title': 'Last Pharaoh of Egypt', 'description': 'The intelligent and charismatic ruler who spoke multiple languages and commanded respect across the ancient world.'},
-        {'name': 'Winston Churchill', 'title': 'British Prime Minister', 'description': 'Wartime leader known for his powerful speeches, strategic mind, and unwavering determination during World War II.'},
-        {'name': 'Marie Curie', 'title': 'Nobel Prize Physicist', 'description': 'Pioneer in radioactivity research, first woman to win a Nobel Prize, and first person to win Nobel Prizes in two different sciences.'},
-        {'name': 'Alexander the Great', 'title': 'Macedonian Conqueror', 'description': 'Military genius who created one of the largest empires in ancient history before his 30th birthday.'},
-    ],
-    'fantasy': [
-        {'name': 'Gandalf the Grey', 'title': 'Wizard of Middle-earth', 'description': 'Wise and powerful wizard who guides heroes on their quests, known for his deep knowledge of magic and ancient lore.'},
-        {'name': 'Elara Moonwhisper', 'title': 'Elven Archmage', 'description': 'Ancient elven sorceress with mastery over lunar magic and keeper of forgotten spells from the first age.'},
-        {'name': 'Thorin Ironforge', 'title': 'Dwarven King', 'description': 'Noble dwarf king skilled in smithing and battle, protector of the mountain kingdoms and their ancient treasures.'},
-        {'name': 'Seraphina Dragoncaller', 'title': 'Dragon Rider', 'description': 'Fearless warrior who bonds with dragons, soaring through skies and commanding the respect of both beast and mortal.'},
-        {'name': 'Merlin Starweaver', 'title': 'Court Wizard', 'description': 'Legendary wizard advisor to kings, master of prophecy and keeper of the balance between light and shadow.'},
-    ],
-    # Voeg andere categorieën toe zoals in origineel script...
-}
+# CHARACTER_DATA weggelaten - we gebruiken alleen NAME_POOLS en extra_base_names
+CHARACTER_DATA = {}
 
 def get_existing_characters():
     """Haal alle bestaande character namen op uit Airtable"""
