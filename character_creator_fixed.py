@@ -291,8 +291,8 @@ def select_random_tags(category, min_tags=5, max_tags=10):
     
     return selected_tags
 
-def generate_unique_characters(category, target_count=150):
-    """Genereer unieke characters zonder cijfers in namen - geen limiet op aantal"""
+def generate_unique_characters(category, target_count=100):
+    """Genereer unieke characters zonder cijfers in namen - stop als geen namen meer beschikbaar"""
     characters = []
     
     # Start met basis characters uit CHARACTER_DATA
@@ -309,7 +309,7 @@ def generate_unique_characters(category, target_count=150):
         used_names = [char['name'] for char in characters]
         available_names = [name for name in available_names if name not in used_names]
         
-        # Genereer characters tot target bereikt is
+        # Genereer characters tot target bereikt is OF geen namen meer beschikbaar
         while len(characters) < target_count and available_names:
             name = available_names.pop(0)
             
@@ -322,38 +322,31 @@ def generate_unique_characters(category, target_count=150):
                 'description': description
             })
     
-    # Als we nog niet genoeg hebben, genereer meer unieke characters
-    while len(characters) < target_count:
-        # Genereer meer variaties in plaats van generieke namen
-        base_names = {
-            'historical': ['Alexander Hamilton', 'Harriet Tubman', 'Frederick Douglass', 'Eleanor Roosevelt', 'Theodore Roosevelt'],
-            'fantasy': ['Artemis Moonstrider', 'Magnus Stormcaller', 'Lyra Nightwhisper', 'Darius Flameheart', 'Celeste Frostwind'],
-            'anime-manga': ['Kenji Nakamura', 'Rin Sakamoto', 'Takeshi Yamada', 'Mai Watanabe', 'Hiroshi Tanaka'],
-            'celebrity': ['Jordan Blake', 'Taylor Reed', 'Morgan Chase', 'Casey Rivers', 'Alex Phoenix'],
-            'gaming': ['Viper Strike', 'Echo Prime', 'Raven Shadow', 'Storm Wolf', 'Blade Hunter']
-        }
-        
-        if category in base_names and len(characters) - (len(CHARACTER_DATA.get(category, [])) if category in CHARACTER_DATA else 0) < len(base_names[category]):
-            extra_index = len(characters) - (len(CHARACTER_DATA.get(category, [])) if category in CHARACTER_DATA else 0)
-            if extra_index < len(base_names[category]):
-                name = base_names[category][extra_index]
-                title, description = generate_title_description(name, category)
+    # Probeer extra base namen als we er nog hebben
+    extra_base_names = {
+        'historical': ['Alexander Hamilton', 'Harriet Tubman', 'Frederick Douglass', 'Eleanor Roosevelt', 'Theodore Roosevelt'],
+        'fantasy': ['Artemis Moonstrider', 'Magnus Stormcaller', 'Lyra Nightwhisper', 'Darius Flameheart', 'Celeste Frostwind'],
+        'anime-manga': ['Kenji Nakamura', 'Rin Sakamoto', 'Takeshi Yamada', 'Mai Watanabe', 'Hiroshi Tanaka'],
+        'celebrity': ['Jordan Blake', 'Taylor Reed', 'Morgan Chase', 'Casey Rivers', 'Alex Phoenix'],
+        'gaming': ['Viper Strike', 'Echo Prime', 'Raven Shadow', 'Storm Wolf', 'Blade Hunter']
+    }
+    
+    if category in extra_base_names and len(characters) < target_count:
+        for extra_name in extra_base_names[category]:
+            if len(characters) >= target_count:
+                break
+            if extra_name not in [char['name'] for char in characters]:
+                title, description = generate_title_description(extra_name, category)
                 characters.append({
-                    'name': name,
+                    'name': extra_name,
                     'title': title,
                     'description': description
                 })
-                continue
-        
-        # Fallback voor als we meer dan de base namen nodig hebben
-        name = f"{category.title()} Master {len(characters) + 1}"
-        characters.append({
-            'name': name,
-            'title': f'{category.title()} Expert',
-            'description': f'Skilled {category} professional with extensive experience and unique insights.'
-        })
     
-    return characters[:target_count]
+    # Rapporteer hoeveel characters er beschikbaar zijn
+    log(Colors.CYAN, f"📊 {category}: {len(characters)} unieke characters beschikbaar (target was {target_count})")
+    
+    return characters
 
 def generate_title_description(name, category):
     """Genereer passende titel en beschrijving voor een naam in een categorie"""
@@ -507,8 +500,8 @@ def main():
         for category in test_categories:
             log(Colors.BLUE, f"\n🎯 Categorie: {category}")
             
-            # Genereer minimaal 150 characters per categorie
-            all_chars = generate_unique_characters(category, 150)  # Minimaal 150 per categorie
+            # Genereer zoveel mogelijk unieke characters per categorie (max beschikbare namen)
+            all_chars = generate_unique_characters(category, 100)  # Verlaagd naar 100 per categorie
             
             category_created = 0
             category_skipped = 0
