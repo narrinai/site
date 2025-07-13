@@ -1902,6 +1902,28 @@
   color: #0f766e;
 }
 
+/* CSS-only approach for terms text - floating notice when modal is open */
+body.modal-open::after {
+  content: "By signing up, you agree to our Terms & Conditions and Privacy Policy";
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.98);
+  border: 2px solid #14b8a6;
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-size: 13px;
+  color: #475569;
+  text-align: center;
+  z-index: 1000000001;
+  max-width: 320px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  line-height: 1.4;
+  backdrop-filter: blur(10px);
+}
+
 /* Modal container iframe */
 .netlify-identity-widget iframe {
   border-radius: var(--radius-xl) !important;
@@ -3156,12 +3178,19 @@ function handleLoginSuccess(user, eventType = 'unknown') {
         // Add terms acceptance text to signup form
         setTimeout(() => {
           addTermsAcceptanceText();
+          addFloatingTermsNotice();
         }, 500);
       });
 
       window.netlifyIdentity.on('close', () => {
         console.log('🔒 Modal closed');
         document.body.classList.remove('modal-open');
+        
+        // Remove floating terms notice
+        const existingNotice = document.getElementById('floating-terms-notice');
+        if (existingNotice) {
+          existingNotice.remove();
+        }
         
         if (window.innerWidth <= 768) {
           const header = document.querySelector('.header');
@@ -3315,6 +3344,46 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       
       // Stop observing after 5 seconds to prevent memory leaks
       setTimeout(() => observer.disconnect(), 5000);
+    }
+
+    // Add floating terms notice with clickable links
+    function addFloatingTermsNotice() {
+      // Remove existing notice if any
+      const existingNotice = document.getElementById('floating-terms-notice');
+      if (existingNotice) {
+        existingNotice.remove();
+      }
+      
+      // Create floating terms notice
+      const termsNotice = document.createElement('div');
+      termsNotice.id = 'floating-terms-notice';
+      termsNotice.style.cssText = `
+        position: fixed;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(255, 255, 255, 0.98);
+        border: 2px solid #14b8a6;
+        border-radius: 12px;
+        padding: 12px 20px;
+        font-size: 13px;
+        color: #475569;
+        text-align: center;
+        z-index: 1000000001;
+        max-width: 320px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        line-height: 1.4;
+        backdrop-filter: blur(10px);
+        pointer-events: auto;
+      `;
+      
+      termsNotice.innerHTML = 'By signing up, you agree to our <a href="/terms-and-conditions.html" target="_blank" style="color: #14b8a6; text-decoration: underline; font-weight: 600;">Terms & Conditions</a> and <a href="/privacy-policy.html" target="_blank" style="color: #14b8a6; text-decoration: underline; font-weight: 600;">Privacy Policy</a>';
+      
+      // Add to body
+      document.body.appendChild(termsNotice);
+      
+      console.log('✅ Floating terms notice added');
     }
 
     // GEFIXTE versie van forceModalToTop met minder agressieve hiding
