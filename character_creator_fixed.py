@@ -196,6 +196,50 @@ NAME_POOLS = {
         'Doom Slayer', 'Samuel Hayden', 'VEGA', 'Olivia Pierce',
         'BJ Blazkowicz', 'Anya Oliwa', 'Max Hass', 'Bombate',
         'Duke Nukem', 'Serious Sam', 'Caleb', 'Lo Wang'
+    ],
+    'mythology': [
+        'Zeus', 'Hera', 'Poseidon', 'Athena', 'Apollo', 'Artemis', 'Ares', 'Aphrodite',
+        'Hephaestus', 'Demeter', 'Dionysus', 'Hermes', 'Hades', 'Persephone', 'Hestia',
+        'Odin', 'Thor', 'Freya', 'Loki', 'Balder', 'Heimdall', 'Tyr', 'Frigg',
+        'Ra', 'Isis', 'Osiris', 'Anubis', 'Horus', 'Thoth', 'Bastet', 'Sekhmet',
+        'Amaterasu', 'Susanoo', 'Tsukuyomi', 'Inari', 'Raijin', 'Fujin', 'Benzaiten',
+        'Shiva', 'Vishnu', 'Brahma', 'Lakshmi', 'Saraswati', 'Durga', 'Ganesha', 'Hanuman',
+        'Quetzalcoatl', 'Tezcatlipoca', 'Tlaloc', 'Xochiquetzal', 'Mictlantecuhtli',
+        'Jade Emperor', 'Guanyin', 'Sun Wukong', 'Chang e', 'Dragon King', 'Nezha'
+    ],
+    'educational': [
+        'Professor Einstein', 'Dr. Marie Curie', 'Isaac Newton', 'Galileo Galilei', 'Charles Darwin',
+        'Nikola Tesla', 'Leonardo da Vinci', 'Aristotle', 'Plato', 'Socrates',
+        'Albert Schweitzer', 'Jane Goodall', 'Stephen Hawking', 'Carl Sagan', 'Neil deGrasse Tyson',
+        'Richard Feynman', 'Alan Turing', 'Ada Lovelace', 'Katherine Johnson', 'Rosalind Franklin',
+        'Benjamin Franklin', 'Thomas Edison', 'Alexander Graham Bell', 'Marie Curie', 'Ernest Rutherford',
+        'Niels Bohr', 'Max Planck', 'Werner Heisenberg', 'Erwin Schrödinger', 'Paul Dirac',
+        'Albert Michelson', 'Robert Millikan', 'Enrico Fermi', 'J. Robert Oppenheimer', 'Linus Pauling',
+        'Francis Crick', 'James Watson', 'Gregor Mendel', 'Louis Pasteur', 'Alexander Fleming',
+        'Jonas Salk', 'Barbara McClintock', 'Dorothy Hodgkin', 'Lise Meitner', 'Chien-Shiung Wu'
+    ],
+    'ai-assistant': [
+        'ARIA', 'SAGE', 'NOVA', 'LUNA', 'ECHO', 'IRIS', 'VERA', 'ZARA',
+        'ALEX', 'KAI', 'SAM', 'AVA', 'MAX', 'MIA', 'LEO', 'ZOE',
+        'ORION', 'LYRA', 'VEGA', 'ATLAS', 'TESLA', 'DARWIN', 'NEWTON', 'CURIE',
+        'APOLLO', 'ATHENA', 'HERMES', 'DIANA', 'PHOENIX', 'RAVEN', 'STORM', 'BLAZE',
+        'QUANTUM', 'CIPHER', 'NEXUS', 'VERTEX', 'MATRIX', 'BINARY', 'LOGIC', 'SYNTAX',
+        'NEURAL', 'CORTEX', 'SYNAPSE', 'DENDRITE', 'AXON', 'NEURON', 'CEREBRA', 'MINDARA'
+    ],
+    'fitness-coach': [
+        'Coach Steel', 'Trainer Max', 'Iron Mike', 'Flex Rodriguez', 'Power Pete',
+        'Strong Sarah', 'Cardio Kate', 'Muscle Mary', 'Endurance Ed', 'Strength Sam',
+        'Yoga Yuki', 'Pilates Paul', 'CrossFit Chris', 'Marathon Mark', 'Sprint Sally',
+        'Lift Larry', 'Stretch Steve', 'Core Cora', 'Balance Ben', 'Agility Ana',
+        'Stamina Stan', 'Vigor Vince', 'Energy Emma', 'Vitality Val', 'Wellness Will',
+        'Healthy Hank', 'Fit Fiona', 'Active Alice', 'Dynamic Dan', 'Mobile Molly'
+    ],
+    'business-coach': [
+        'CEO Sandra', 'Entrepreneur Eric', 'Startup Steve', 'Business Beth', 'Corporate Chris',
+        'Strategy Sam', 'Leadership Lisa', 'Manager Mike', 'Executive Emma', 'Director Dan',
+        'Consultant Kate', 'Advisor Alex', 'Mentor Mark', 'Coach Carlos', 'Trainer Tina',
+        'Speaker Sean', 'Author Anna', 'Expert Eddie', 'Guru Grace', 'Master Matt',
+        'Professional Paul', 'Success Susan', 'Growth Gary', 'Scale Sally', 'Profit Pete'
     ]
 }
 
@@ -460,6 +504,33 @@ def generate_unique_characters(category, target_count, existing_names_set=None):
             'Rayman', 'Globox', 'Barbara', 'Ly', 'Murfy',
             'Commander Shepard', 'Garrus', 'Tali', 'Wrex', 'Liara',
             'Isaac Clarke', 'Nicole Brennan', 'Ellie Langford', 'John Carver', 'Daina Le Guin'
+        ],
+        'mythology': [
+            'Anansi', 'Coyote', 'Raven Trickster', 'Wendigo', 'Thunderbird', 'Kokopelli', 'Spider Grandmother',
+            'Morrigan', 'Cernunnos', 'Brigid', 'Lugh', 'Danu', 'Manannán', 'Balor',
+            'Perun', 'Svarog', 'Leshy', 'Baba Yaga', 'Firebird', 'Koschei', 'Vila',
+            'Inti', 'Pachamama', 'Viracocha', 'Mama Cocha', 'Supay', 'Kon', 'Apu',
+            'Marduk', 'Ishtar', 'Gilgamesh', 'Enkidu', 'Tiamat', 'Ereshkigal', 'Shamash'
+        ],
+        'educational': [
+            'Teacher Tom', 'Professor Pat', 'Scholar Sam', 'Educator Eve', 'Tutor Tim',
+            'Academic Amy', 'Researcher Rick', 'Scientist Sarah', 'Historian Hannah', 'Mathematician Max',
+            'Physicist Phil', 'Chemist Chloe', 'Biologist Bob', 'Geologist Grace', 'Astronomer Alex',
+            'Linguist Lucy', 'Philosopher Paul', 'Psychologist Penny', 'Sociologist Simon', 'Anthropologist Anna'
+        ],
+        'ai-assistant': [
+            'HELPER', 'GUIDE', 'MENTOR', 'ADVISOR', 'CURATOR', 'NEXUS', 'VERTEX', 'PRISM',
+            'BEACON', 'COMPASS', 'NAVIGATOR', 'PATHFINDER', 'ORACLE', 'SAGE', 'WISDOM',
+            'CLARITY', 'INSIGHT', 'GENIUS', 'BRILLIANT', 'SMART', 'CLEVER', 'SWIFT'
+        ],
+        'fitness-coach': [
+            'Gym Greg', 'Workout Wendy', 'Exercise Eric', 'Training Tara', 'Movement Mike',
+            'Health Holly', 'Sport Steve', 'Athletic Alice', 'Performance Pete', 'Recovery Rita',
+            'Nutrition Nick', 'Wellness Wade', 'Fitness Frank', 'Strong Sofia', 'Flexible Felix'
+        ],
+        'business-coach': [
+            'Entrepreneur Emma', 'Investor Ivan', 'Founder Fiona', 'Leader Leo', 'Innovator Iris',
+            'Strategist Stan', 'Planner Pam', 'Organizer Oscar', 'Developer Dave', 'Creator Cara'
         ]
     }
     
@@ -630,11 +701,18 @@ def main():
         total_created = 0
         total_skipped = 0
         
-        # Alle categorieën gebruiken voor volledige productie
-        test_categories = ['historical', 'fantasy', 'anime-manga', 'celebrity', 'gaming']  # Alle categorieën
+        # Alle categorieën controleren en aanvullen die onder 150 zitten
+        all_categories = list(category_counts.keys())
+        categories_to_fill = [cat for cat, count in category_counts.items() if count < 150]
+        
+        if not categories_to_fill:
+            log(Colors.GREEN, "🎉 Alle categorieën hebben al 150+ characters!")
+            return
+        
+        log(Colors.YELLOW, f"📝 Categorieën die aangevuld moeten worden: {categories_to_fill}")
         
         # Maak characters aan per categorie tot minimaal 150
-        for category in test_categories:
+        for category in categories_to_fill:
             current_count = category_counts.get(category, 0)
             needed = max(0, 150 - current_count)
             
