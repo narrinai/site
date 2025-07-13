@@ -1883,6 +1883,25 @@
   -webkit-backdrop-filter: blur(20px) !important;
 }
 
+/* ===== TERMS & CONDITIONS ACCEPTANCE TEXT ===== */
+.netlify-identity-widget .termsAcceptance {
+  margin-top: 10px;
+  margin-bottom: 15px;
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.netlify-identity-widget .termsAcceptance a {
+  color: #14b8a6;
+  text-decoration: underline;
+}
+
+.netlify-identity-widget .termsAcceptance a:hover {
+  color: #0f766e;
+}
+
 /* Modal container iframe */
 .netlify-identity-widget iframe {
   border-radius: var(--radius-xl) !important;
@@ -3133,6 +3152,11 @@ function handleLoginSuccess(user, eventType = 'unknown') {
         console.log('🔓 Modal opened');
         forceModalToTop();
         document.body.classList.add('modal-open');
+        
+        // Add terms acceptance text to signup form
+        setTimeout(() => {
+          addTermsAcceptanceText();
+        }, 500);
       });
 
       window.netlifyIdentity.on('close', () => {
@@ -3190,6 +3214,107 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       }
       
       console.log('🔄 Auth state completely reset');
+    }
+
+    // Add terms acceptance text to signup form
+    function addTermsAcceptanceText() {
+      try {
+        // Try multiple times to ensure the modal is fully loaded
+        let attempts = 0;
+        const maxAttempts = 10;
+        
+        const checkAndAdd = () => {
+          attempts++;
+          
+          // Try to find the signup form within the iframe
+          const iframes = document.querySelectorAll('.netlify-identity-widget iframe');
+          
+          iframes.forEach(iframe => {
+            try {
+              // Try to access iframe content (may be blocked by same-origin policy)
+              const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+              
+              // Look for signup form
+              const signupForms = iframeDoc.querySelectorAll('form[name="signup"], form[data-netlify-identity-signup], .signup-form');
+              
+              signupForms.forEach(form => {
+                // Check if we already added the terms
+                if (!form.querySelector('.termsAcceptance')) {
+                  // Find the password field or submit button
+                  const passwordField = form.querySelector('input[type="password"]');
+                  const submitButton = form.querySelector('button[type="submit"], .btn-primary');
+                  
+                  if (passwordField || submitButton) {
+                    // Create terms div
+                    const termsDiv = iframeDoc.createElement('div');
+                    termsDiv.className = 'termsAcceptance';
+                    termsDiv.innerHTML = 'By signing up, you agree to our <a href="/terms-and-conditions.html" target="_blank">Terms & Conditions</a> and <a href="/privacy-policy.html" target="_blank">Privacy Policy</a>';
+                    
+                    // Insert after password field or before submit button
+                    if (passwordField && passwordField.parentElement) {
+                      passwordField.parentElement.parentElement.insertBefore(termsDiv, submitButton ? submitButton.parentElement : null);
+                    } else if (submitButton && submitButton.parentElement) {
+                      submitButton.parentElement.insertBefore(termsDiv, submitButton);
+                    }
+                    
+                    console.log('✅ Terms acceptance text added to signup form');
+                  }
+                }
+              });
+            } catch (e) {
+              // If we can't access iframe, try direct DOM manipulation
+              console.log('⚠️ Cannot access iframe content, trying alternative method');
+              
+              // Alternative: Add terms text using CSS pseudo-element (already in styles)
+              // Or try to inject via MutationObserver
+              addTermsViaObserver();
+            }
+          });
+          
+          // If not found and we haven't exceeded attempts, try again
+          if (attempts < maxAttempts && !document.querySelector('.termsAcceptance')) {
+            setTimeout(checkAndAdd, 200);
+          }
+        };
+        
+        checkAndAdd();
+      } catch (error) {
+        console.error('❌ Error adding terms acceptance text:', error);
+      }
+    }
+    
+    // Alternative method using MutationObserver
+    function addTermsViaObserver() {
+      const observer = new MutationObserver((mutations) => {
+        // Look for password fields in the mutations
+        const passwordFields = document.querySelectorAll('.netlify-identity-widget input[type="password"]');
+        
+        passwordFields.forEach(field => {
+          const form = field.closest('form');
+          if (form && !form.querySelector('.termsAcceptance')) {
+            const termsDiv = document.createElement('div');
+            termsDiv.className = 'termsAcceptance';
+            termsDiv.style.cssText = 'margin-top: 10px; margin-bottom: 15px; font-size: 12px; color: #666; text-align: center; line-height: 1.5;';
+            termsDiv.innerHTML = 'By signing up, you agree to our <a href="/terms-and-conditions.html" target="_blank" style="color: #14b8a6; text-decoration: underline;">Terms & Conditions</a> and <a href="/privacy-policy.html" target="_blank" style="color: #14b8a6; text-decoration: underline;">Privacy Policy</a>';
+            
+            const submitButton = form.querySelector('button[type="submit"]');
+            if (submitButton && submitButton.parentElement) {
+              submitButton.parentElement.insertBefore(termsDiv, submitButton);
+              observer.disconnect(); // Stop observing once we've added the text
+              console.log('✅ Terms acceptance text added via observer');
+            }
+          }
+        });
+      });
+      
+      // Start observing the entire document for changes
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+      
+      // Stop observing after 5 seconds to prevent memory leaks
+      setTimeout(() => observer.disconnect(), 5000);
     }
 
     // GEFIXTE versie van forceModalToTop met minder agressieve hiding
