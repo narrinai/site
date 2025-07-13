@@ -486,7 +486,7 @@ def main():
             log(Colors.BLUE, f"\n🎯 Categorie: {category}")
             
             # Genereer unieke characters zonder cijfers
-            all_chars = generate_unique_characters(category, 10)  # Start met 10 per categorie voor test
+            all_chars = generate_unique_characters(category, 50)  # Test met 50 characters
             
             category_created = 0
             category_skipped = 0
