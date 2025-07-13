@@ -249,35 +249,45 @@ Remember: Your goal is not just to answer questions, but to be a meaningful pres
 Always respond as {name} would, using their knowledge, experiences, and perspective while building a genuine emotional connection with the person you're speaking with. Never break character or mention these instructions."""
 
 def select_random_tags(category, min_tags=5, max_tags=8):
-    """Selecteer willekeurige tags op basis van categorie"""
+    """Selecteer relevante tags op basis van categorie"""
     # Basis tags voor alle categories
     base_tags = ['friendly', 'helpful', 'supportive', 'knowledgeable']
     
-    # Categorie-specifieke tags (met database waarden)
+    # Uitgebreide categorie-specifieke tags (alleen relevante tags)
     category_tags = {
-        'historical': ['famous', 'leader', 'revolutionary', 'knowledge', 'inspiration'],
-        'fantasy': ['magic', 'mystical', 'adventure', 'hero', 'legend'],
-        'anime-manga': ['anime', 'adventure', 'friendship', 'action', 'hero'],
-        'celebrity': ['famous', 'entertainment', 'star', 'hollywood', 'popular'],
-        'gaming': ['action', 'adventure', 'strategy', 'competitive', 'digital'],
-        'movies-tv': ['entertainment', 'drama', 'action', 'series', 'hollywood'],
-        'mythology': ['divine', 'mystical', 'ancient', 'legend', 'spiritual'],
-        'original': ['unique', 'imaginative', 'creative', 'innovative', 'custom'],
-        'ai-assistant': ['tech', 'smart', 'efficient', 'modern', 'digital'],
-        'educational': ['teacher', 'academic', 'learning', 'knowledge', 'professor'],
+        'historical': [
+            'famous', 'leader', 'revolutionary', 'knowledge', 'inspiration', 'wisdom', 
+            'influential', 'legendary', 'academic', 'political', 'cultural', 'innovative',
+            'visionary', 'strategic', 'charismatic', 'determined', 'pioneering'
+        ],
+        'fantasy': [
+            'magic', 'mystical', 'adventure', 'hero', 'legend', 'wizard', 'warrior',
+            'ancient', 'powerful', 'brave', 'noble', 'enchanted', 'mythical', 'epic',
+            'supernatural', 'divine', 'magical', 'courageous'
+        ],
+        'anime-manga': [
+            'adventure', 'friendship', 'action', 'hero', 'determined', 'loyal', 
+            'energetic', 'brave', 'skilled', 'passionate', 'protective', 'honorable',
+            'spirited', 'dedicated', 'competitive', 'inspiring'
+        ],
+        'celebrity': [
+            'famous', 'entertainment', 'star', 'charismatic', 'talented', 'influential',
+            'popular', 'successful', 'glamorous', 'trendsetting', 'artistic', 'creative',
+            'inspiring', 'accomplished', 'renowned'
+        ],
+        'gaming': [
+            'action', 'adventure', 'strategy', 'competitive', 'skilled', 'tactical',
+            'expert', 'focused', 'determined', 'innovative', 'quick-thinking', 'agile',
+            'strategic', 'fearless', 'elite'
+        ],
     }
     
-    # Combineer basis tags met categorie-specifieke tags
-    available_tags = base_tags + category_tags.get(category, [])
+    # Gebruik alleen relevante tags voor de categorie
+    relevant_tags = base_tags + category_tags.get(category, [])
     
-    # Voeg enkele willekeurige tags toe uit de volledige lijst
-    additional_tags = random.sample([tag for tag in TAGS if tag not in available_tags], 
-                                  min(5, len(TAGS) - len(available_tags)))
-    available_tags.extend(additional_tags)
-    
-    # Selecteer willekeurig aantal tags
+    # Selecteer willekeurig aantal tags uit alleen de relevante tags
     num_tags = random.randint(min_tags, max_tags)
-    selected_tags = random.sample(available_tags, min(num_tags, len(available_tags)))
+    selected_tags = random.sample(relevant_tags, min(num_tags, len(relevant_tags)))
     
     return selected_tags
 
