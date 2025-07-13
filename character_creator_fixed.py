@@ -288,7 +288,7 @@ def select_random_tags(category, valid_tags, min_tags=3, max_tags=6):
     
     return selected_tags
 
-def generate_unique_characters(category, target_count=100):
+def generate_unique_characters(category, target_count=150):
     """Genereer unieke characters zonder cijfers in namen - stop als geen namen meer beschikbaar"""
     characters = []
     
@@ -502,8 +502,8 @@ def main():
         for category in test_categories:
             log(Colors.BLUE, f"\n🎯 Categorie: {category}")
             
-            # Genereer zoveel mogelijk unieke characters per categorie (max beschikbare namen)
-            all_chars = generate_unique_characters(category, 100)  # Verlaagd naar 100 per categorie
+            # Genereer zoveel mogelijk unieke characters per categorie (target 150)
+            all_chars = generate_unique_characters(category, 150)  # Target 150 per categorie
             
             category_created = 0
             category_skipped = 0
