@@ -240,6 +240,78 @@ NAME_POOLS = {
         'Consultant Kate', 'Advisor Alex', 'Mentor Mark', 'Coach Carlos', 'Trainer Tina',
         'Speaker Sean', 'Author Anna', 'Expert Eddie', 'Guru Grace', 'Master Matt',
         'Professional Paul', 'Success Susan', 'Growth Gary', 'Scale Sally', 'Profit Pete'
+    ],
+    'relationship-coach': [
+        'Love Lucy', 'Romance Rick', 'Dating Diana', 'Couple Coach Carl', 'Marriage Mary',
+        'Partner Paul', 'Heart Helen', 'Soul Sam', 'Connection Cora', 'Bond Ben',
+        'Unity Una', 'Harmony Harry', 'Trust Tina', 'Care Chris', 'Support Sue',
+        'Empathy Emma', 'Understanding Una', 'Compassion Cole', 'Kindness Kate', 'Gentle Grace'
+    ],
+    'cooking-coach': [
+        'Chef Charlie', 'Cook Carla', 'Baker Ben', 'Kitchen Kate', 'Recipe Rick',
+        'Flavor Fiona', 'Spice Sam', 'Taste Tina', 'Cuisine Carl', 'Dish Diana',
+        'Meal Mike', 'Food Frank', 'Nutrition Nancy', 'Health Holly', 'Fresh Fred',
+        'Organic Olivia', 'Natural Nick', 'Garden Grace', 'Harvest Hannah', 'Farm Felix'
+    ],
+    'accounting-coach': [
+        'Numbers Nick', 'Finance Fiona', 'Budget Ben', 'Money Mary', 'Cash Carl',
+        'Profit Paul', 'Revenue Rita', 'Cost Cora', 'Tax Tom', 'Audit Ana',
+        'Books Bob', 'Ledger Lucy', 'Balance Bill', 'Credit Chris', 'Debit Diana',
+        'Investment Ivan', 'Savings Sam', 'Expense Emma', 'Income Ian', 'Asset Alice'
+    ],
+    'study-coach': [
+        'Study Steve', 'Learn Lucy', 'Focus Frank', 'Memory Mike', 'Brain Ben',
+        'Smart Sam', 'Clever Cora', 'Bright Bill', 'Sharp Sarah', 'Quick Quinn',
+        'Note Nancy', 'Read Rick', 'Test Tina', 'Exam Emma', 'Grade Grace',
+        'Score Scott', 'Pass Pete', 'Success Sue', 'Achieve Anna', 'Goal Gary'
+    ],
+    'language-coach': [
+        'Speak Sarah', 'Talk Tom', 'Word Wendy', 'Grammar Grace', 'Syntax Sam',
+        'Fluent Frank', 'Accent Anna', 'Dialect Diana', 'Tongue Tim', 'Voice Vera',
+        'Sound Sue', 'Phrase Phil', 'Sentence Sally', 'Language Lucy', 'Verbal Victor',
+        'Communication Chris', 'Expression Emma', 'Articulation Art', 'Pronunciation Paul', 'Clarity Cora'
+    ],
+    'career-coach': [
+        'Career Carl', 'Job Jane', 'Work Will', 'Professional Pat', 'Success Sam',
+        'Growth Grace', 'Advance Anna', 'Promote Pete', 'Rise Rita', 'Climb Chris',
+        'Achievement Amy', 'Goal Gary', 'Target Tom', 'Aim Alice', 'Direction Diana',
+        'Path Paul', 'Route Rick', 'Way Wendy', 'Journey Jane', 'Destination Dan'
+    ],
+    'original': [
+        'Creator Chris', 'Artist Anna', 'Maker Mike', 'Builder Ben', 'Designer Diana',
+        'Inventor Ivan', 'Innovator Iris', 'Pioneer Paul', 'Visionary Vera', 'Dreamer Dan',
+        'Imagination Ian', 'Creative Cora', 'Unique Una', 'Special Sam', 'Rare Rita',
+        'One-of-a-kind Oscar', 'Individual Ivy', 'Personal Pat', 'Custom Carl', 'Bespoke Ben'
+    ],
+    'negotiation-coach': [
+        'Deal Dan', 'Bargain Ben', 'Trade Tom', 'Agreement Anna', 'Contract Carl',
+        'Settlement Sue', 'Compromise Chris', 'Mediate Mike', 'Resolve Rita', 'Solution Sam',
+        'Peace Paul', 'Harmony Helen', 'Balance Bill', 'Fair Fiona', 'Just Jane',
+        'Equal Emma', 'Win-Win Will', 'Mutual Mike', 'Both-Sides Ben', 'Middle Mary'
+    ],
+    'creativity-coach': [
+        'Creative Chris', 'Imagine Ian', 'Dream Diana', 'Vision Vera', 'Inspire Iris',
+        'Art Anna', 'Design Dan', 'Make Mike', 'Build Ben', 'Craft Cora',
+        'Paint Paul', 'Draw Diana', 'Sketch Sam', 'Color Carl', 'Brush Ben',
+        'Canvas Cora', 'Palette Paul', 'Studio Sue', 'Workshop Will', 'Gallery Grace'
+    ],
+    'mindfulness-coach': [
+        'Calm Carl', 'Peace Paul', 'Zen Zoe', 'Serene Sue', 'Tranquil Tom',
+        'Mindful Mike', 'Aware Anna', 'Present Pat', 'Focus Frank', 'Center Chris',
+        'Balance Ben', 'Harmony Helen', 'Flow Fiona', 'Breathe Beth', 'Relax Rita',
+        'Meditate Mary', 'Still Sam', 'Quiet Quinn', 'Silence Sue', 'Hush Helen'
+    ],
+    'other': [
+        'Unique Una', 'Different Dan', 'Various Vera', 'Mixed Mike', 'Diverse Diana',
+        'Assorted Anna', 'Random Rick', 'General Grace', 'Common Carl', 'Basic Ben',
+        'Simple Sam', 'Plain Paul', 'Regular Rita', 'Standard Sue', 'Normal Nancy',
+        'Typical Tom', 'Average Anna', 'Ordinary Oscar', 'Usual Una', 'Common Cora'
+    ],
+    'fictional': [
+        'Story Sam', 'Tale Tom', 'Fiction Frank', 'Novel Nancy', 'Book Ben',
+        'Character Chris', 'Hero Helen', 'Villain Victor', 'Protagonist Paul', 'Antagonist Anna',
+        'Plot Pete', 'Theme Tina', 'Setting Sue', 'Scene Sam', 'Chapter Charlie',
+        'Page Paul', 'Word Wendy', 'Line Lucy', 'Paragraph Pete', 'Sentence Sue'
     ]
 }
 
