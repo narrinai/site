@@ -205,7 +205,21 @@ NAME_POOLS = {
         'Amaterasu', 'Susanoo', 'Tsukuyomi', 'Inari', 'Raijin', 'Fujin', 'Benzaiten',
         'Shiva', 'Vishnu', 'Brahma', 'Lakshmi', 'Saraswati', 'Durga', 'Ganesha', 'Hanuman',
         'Quetzalcoatl', 'Tezcatlipoca', 'Tlaloc', 'Xochiquetzal', 'Mictlantecuhtli',
-        'Jade Emperor', 'Guanyin', 'Sun Wukong', 'Chang e', 'Dragon King', 'Nezha'
+        'Jade Emperor', 'Guanyin', 'Sun Wukong', 'Chang e', 'Dragon King', 'Nezha',
+        'Kronos', 'Rhea', 'Gaia', 'Uranus', 'Chaos', 'Nyx', 'Erebus', 'Tartarus',
+        'Hecate', 'Pan', 'Iris', 'Morpheus', 'Hypnos', 'Thanatos', 'Nike', 'Nemesis',
+        'Helios', 'Selene', 'Eos', 'Boreas', 'Notus', 'Eurus', 'Zephyrus', 'Anemoi',
+        'Valkyrie', 'Brunhilde', 'Sigrun', 'Ragnhild', 'Thrud', 'Reginleif', 'Kara', 'Mist',
+        'Jormungandr', 'Fenrir', 'Sleipnir', 'Huginn', 'Muninn', 'Ratatoskr', 'Yggdrasil', 'Midgard',
+        'Asgard', 'Valhalla', 'Bifrost', 'Ragnarok', 'Einherjar', 'Berserker', 'Skald', 'Jarl',
+        'Ptah', 'Khnum', 'Sobek', 'Taweret', 'Bes', 'Khonsu', 'Nut', 'Geb',
+        'Shu', 'Tefnut', 'Neith', 'Hathor', 'Mut', 'Khepri', 'Atum', 'Amun',
+        'Kali', 'Parvati', 'Indra', 'Agni', 'Vayu', 'Varuna', 'Surya', 'Chandra',
+        'Yama', 'Kubera', 'Kartikeya', 'Ganga', 'Yamuna', 'Kama', 'Rati', 'Mayuri',
+        'Itzamna', 'Kukulkan', 'Chaac', 'Ixchel', 'Ah Puch', 'Camazotz', 'Zipacna', 'Vucub',
+        'Hunahpu', 'Xbalanque', 'Hun Hunahpu', 'Vucub Hunahpu', 'Itzamnaaj', 'Bolon Yokte',
+        'Laozi', 'Confucius', 'Mazu', 'Lei Gong', 'Dian Mu', 'Feng Po', 'Yu Shi', 'Bixia',
+        'Caishen', 'Fu Lu Shou', 'Ba Xian', 'Monkey King', 'White Snake', 'Dragon Princess'
     ],
     'educational': [
         'Professor Einstein', 'Dr. Marie Curie', 'Isaac Newton', 'Galileo Galilei', 'Charles Darwin',
@@ -513,8 +527,46 @@ def select_random_tags(category, valid_tags, min_tags=3, max_tags=6):
     
     return selected_tags
 
+def generate_additional_names(category, count):
+    """Genereer extra namen voor een categorie als er niet genoeg zijn"""
+    base_patterns = {
+        'mythology': ['God', 'Goddess', 'Spirit', 'Divine', 'Sacred', 'Ancient', 'Eternal', 'Celestial'],
+        'educational': ['Professor', 'Dr.', 'Teacher', 'Scholar', 'Expert', 'Researcher', 'Academic', 'Educator'],
+        'ai-assistant': ['AI', 'BOT', 'ASSIST', 'HELP', 'SMART', 'INTEL', 'CYBER', 'TECH'],
+        'fitness-coach': ['Coach', 'Trainer', 'Fit', 'Strong', 'Power', 'Muscle', 'Active', 'Sport'],
+        'business-coach': ['CEO', 'Boss', 'Leader', 'Manager', 'Executive', 'Director', 'Chief', 'President'],
+        'relationship-coach': ['Love', 'Heart', 'Soul', 'Care', 'Bond', 'Unity', 'Trust', 'Connect'],
+        'cooking-coach': ['Chef', 'Cook', 'Baker', 'Kitchen', 'Recipe', 'Flavor', 'Taste', 'Cuisine'],
+        'writing-coach': ['Writer', 'Author', 'Poet', 'Editor', 'Story', 'Word', 'Script', 'Novel'],
+        'parody': ['Funny', 'Comedy', 'Joke', 'Laugh', 'Humor', 'Wit', 'Silly', 'Mock'],
+        'rpg': ['Hero', 'Warrior', 'Mage', 'Knight', 'Rogue', 'Paladin', 'Ranger', 'Fighter'],
+        'romance': ['Love', 'Sweet', 'Heart', 'Kiss', 'Hug', 'Dear', 'Honey', 'Sugar'],
+        'middle-aged': ['Mature', 'Wise', 'Experienced', 'Seasoned', 'Settled', 'Stable', 'Responsible', 'Reliable'],
+        'gen-z': ['Digital', 'Tech', 'Online', 'Social', 'Stream', 'Viral', 'Trend', 'App'],
+        'older': ['Elder', 'Senior', 'Wise', 'Grand', 'Vintage', 'Classic', 'Golden', 'Silver'],
+        'humor': ['Funny', 'Hilarious', 'Witty', 'Silly', 'Goofy', 'Crazy', 'Mad', 'Wild'],
+        'other': ['Helper', 'Support', 'Aid', 'Assist', 'Extra', 'Spare', 'Additional', 'Various'],
+        'fictional': ['Story', 'Tale', 'Character', 'Hero', 'Plot', 'Theme', 'Scene', 'Novel']
+    }
+    
+    first_names = ['Alex', 'Sam', 'Chris', 'Jordan', 'Taylor', 'Casey', 'Riley', 'Quinn', 'Avery', 'Blake', 
+                   'Cameron', 'Drew', 'Ellis', 'Finley', 'Gray', 'Harper', 'Indigo', 'Kai', 'Lane', 'Max',
+                   'Nova', 'Ocean', 'Parker', 'River', 'Sage', 'Tate', 'Val', 'West', 'Zara', 'Eden',
+                   'Frost', 'Haven', 'Jazz', 'Lux', 'Neo', 'Orion', 'Phoenix', 'Reed', 'Storm', 'Vale']
+    
+    patterns = base_patterns.get(category, ['Expert', 'Master', 'Pro', 'Specialist', 'Guru', 'Ace', 'Star', 'Elite'])
+    
+    names = []
+    for i in range(count):
+        first = first_names[i % len(first_names)]
+        pattern = patterns[i % len(patterns)]
+        name = f"{first} {pattern}"
+        names.append(name)
+    
+    return names
+
 def generate_unique_characters(category, target_count, existing_names_set=None):
-    """Genereer unieke characters zonder cijfers in namen - stop als geen namen meer beschikbaar"""
+    """Genereer unieke characters zonder cijfers in namen - genereer extra namen als nodig"""
     characters = []
     if existing_names_set is None:
         existing_names_set = set()
@@ -746,10 +798,25 @@ def generate_unique_characters(category, target_count, existing_names_set=None):
                     'description': description
                 })
     
+    # Als we nog steeds niet genoeg hebben, genereer extra namen
+    if len(characters) < target_count:
+        needed = target_count - len(characters)
+        log(Colors.YELLOW, f"⚠️  {category}: Genereer {needed} extra namen (totaal beschikbaar: {len(characters)})")
+        
+        extra_names = generate_additional_names(category, needed)
+        for extra_name in extra_names:
+            if extra_name not in existing_names_set and extra_name not in [char['name'] for char in characters]:
+                title, description = generate_title_description(extra_name, category)
+                characters.append({
+                    'name': extra_name,
+                    'title': title,
+                    'description': description
+                })
+    
     # Rapporteer hoeveel characters er beschikbaar zijn
     log(Colors.CYAN, f"📊 {category}: {len(characters)} nieuwe characters gegenereerd (target was {target_count})")
     
-    return characters
+    return characters[:target_count]
 
 def generate_title_description(name, category):
     """Genereer passende titel en beschrijving voor een naam in een categorie"""
