@@ -84,7 +84,14 @@ NAME_POOLS = {
         'Beethoven', 'Bach', 'Chopin', 'Vivaldi', 'Handel',
         'Mark Twain', 'Charles Dickens', 'Jane Austen', 'Emily Dickinson', 'Edgar Allan Poe',
         'Cleopatra VII', 'Alexander the Great', 'Hannibal', 'Spartacus', 'King Arthur',
-        'Robin Hood', 'William Tell', 'El Cid', 'Charlemagne', 'Richard the Lionheart'
+        'Robin Hood', 'William Tell', 'El Cid', 'Charlemagne', 'Richard the Lionheart',
+        'Augustus Caesar', 'Marcus Aurelius', 'Constantine the Great', 'Justinian I', 'Charlemagne',
+        'William the Conqueror', 'Henry VIII', 'Elizabeth I', 'Louis XIV', 'Peter the Great',
+        'Catherine the Great', 'Frederick the Great', 'Maria Theresa', 'Joseph II', 'Klemens von Metternich',
+        'Otto von Bismarck', 'Giuseppe Garibaldi', 'Simón Bolívar', 'José de San Martín', 'Bernardo O\'Higgins',
+        'Sun Yat-sen', 'Chiang Kai-shek', 'Mao Zedong', 'Ho Chi Minh', 'Sukarno',
+        'Jawaharlal Nehru', 'Indira Gandhi', 'Nelson Mandela', 'Desmond Tutu', 'Wangari Maathai',
+        'Golda Meir', 'David Ben-Gurion', 'Anwar Sadat', 'Gamal Abdel Nasser', 'Mustafa Kemal Atatürk'
     ],
     'fantasy': [
         'Gandalf the Grey', 'Elara Moonwhisper', 'Thorin Ironforge', 'Seraphina Dragoncaller', 'Merlin Starweaver',
@@ -319,13 +326,82 @@ def generate_unique_characters(category, target_count=150):
                 'description': description
             })
     
-    # Probeer extra base namen als we er nog hebben
+    # Probeer extra base namen als we er nog hebben - uitgebreid tot 150+ namen per categorie
     extra_base_names = {
-        'historical': ['Alexander Hamilton', 'Harriet Tubman', 'Frederick Douglass', 'Eleanor Roosevelt', 'Theodore Roosevelt'],
-        'fantasy': ['Artemis Moonstrider', 'Magnus Stormcaller', 'Lyra Nightwhisper', 'Darius Flameheart', 'Celeste Frostwind'],
-        'anime-manga': ['Kenji Nakamura', 'Rin Sakamoto', 'Takeshi Yamada', 'Mai Watanabe', 'Hiroshi Tanaka'],
-        'celebrity': ['Jordan Blake', 'Taylor Reed', 'Morgan Chase', 'Casey Rivers', 'Alex Phoenix'],
-        'gaming': ['Viper Strike', 'Echo Prime', 'Raven Shadow', 'Storm Wolf', 'Blade Hunter']
+        'historical': [
+            'Alexander Hamilton', 'Harriet Tubman', 'Frederick Douglass', 'Eleanor Roosevelt', 'Theodore Roosevelt',
+            'John Adams', 'Samuel Adams', 'Patrick Henry', 'Nathan Hale', 'Paul Revere', 'Betsy Ross',
+            'Sacagawea', 'Pocahontas', 'Sitting Bull', 'Geronimo', 'Red Cloud', 'Chief Joseph',
+            'Booker T. Washington', 'W.E.B. Du Bois', 'Sojourner Truth', 'Ida B. Wells', 'Mary McLeod Bethune',
+            'Frances Willard', 'Jane Addams', 'Clara Barton', 'Dorothea Dix', 'Elizabeth Cady Stanton',
+            'Lucretia Mott', 'Lucy Stone', 'Frances Wright', 'Margaret Fuller', 'Abigail Adams',
+            'Martha Washington', 'Dolley Madison', 'Mary Todd Lincoln', 'Julia Grant', 'Lucy Hayes',
+            'Thomas Paine', 'Benedict Arnold', 'Ethan Allen', 'Daniel Boone', 'Davy Crockett',
+            'Kit Carson', 'Wild Bill Hickok', 'Buffalo Bill Cody', 'Annie Oakley', 'Calamity Jane',
+            'Jesse James', 'Billy the Kid', 'Wyatt Earp', 'Doc Holliday', 'Bat Masterson',
+            'John Wesley Powell', 'John Muir', 'Henry David Thoreau', 'Ralph Waldo Emerson', 'Walt Whitman',
+            'Emily Dickinson', 'Louisa May Alcott', 'Nathaniel Hawthorne', 'Herman Melville', 'Washington Irving',
+            'James Fenimore Cooper', 'Harriet Beecher Stowe', 'Stephen Crane', 'Jack London', 'Upton Sinclair',
+            'Mark Twain', 'O. Henry', 'Edgar Allan Poe', 'Henry Wadsworth Longfellow', 'John Greenleaf Whittier',
+            'Oliver Wendell Holmes', 'James Russell Lowell', 'William Cullen Bryant', 'Philip Freneau', 'Joel Barlow'
+        ],
+        'fantasy': [
+            'Artemis Moonstrider', 'Magnus Stormcaller', 'Lyra Nightwhisper', 'Darius Flameheart', 'Celeste Frostwind',
+            'Zephyr Windwalker', 'Theron Shadowbane', 'Seraphina Lightbringer', 'Gareth Ironshield', 'Elara Starweaver',
+            'Aldric Dragonslayer', 'Morgana Soulrender', 'Orion Spellsword', 'Luna Dreamcatcher', 'Phoenix Emberclaw',
+            'Raven Nightfall', 'Storm Thunderheart', 'Sage Earthshaker', 'Echo Voidwhisper', 'Blaze Sunforge',
+            'Frost Winterbane', 'Thorn Bloodthorn', 'Mist Shadowdancer', 'Ember Flameweaver', 'Crystal Iceheart',
+            'Shadow Duskblade', 'Dawn Lightbringer', 'Twilight Stargazer', 'Midnight Moonshard', 'Aurora Skyrender',
+            'Tempest Stormborn', 'Veil Mysteryheart', 'Whisper Silentblade', 'Thunder Cloudbreaker', 'Lightning Boltcaster',
+            'Fire Burnheart', 'Ice Freezeblood', 'Earth Stoneheart', 'Wind Gustwing', 'Water Tidecaller',
+            'Sun Radiance', 'Moon Lumina', 'Star Celestine', 'Sky Azura', 'Cloud Nimbus',
+            'Dream Oneira', 'Spirit Phantoma', 'Soul Psyche', 'Mind Mentalis', 'Heart Emotia',
+            'Light Luminous', 'Dark Tenebris', 'Life Vitalis', 'Death Mortis', 'Time Chronos',
+            'Space Cosmos', 'Reality Veritas', 'Magic Arcanum', 'Power Potentia', 'Wisdom Sapientia',
+            'Truth Veritas', 'Justice Justitia', 'Honor Honora', 'Courage Fortis', 'Faith Fidelis'
+        ],
+        'anime-manga': [
+            'Kenji Nakamura', 'Rin Sakamoto', 'Takeshi Yamada', 'Mai Watanabe', 'Hiroshi Tanaka',
+            'Yuki Suzuki', 'Hana Sato', 'Daiki Ito', 'Miku Yoshida', 'Ryo Hayashi',
+            'Ayaka Matsumoto', 'Sota Kobayashi', 'Nana Sasaki', 'Kenta Shimizu', 'Yui Kondo',
+            'Taro Ishida', 'Mei Fukuda', 'Shun Okamoto', 'Rika Mori', 'Jun Inoue',
+            'Saki Yamazaki', 'Kaito Ogawa', 'Yuka Hasegawa', 'Tatsuya Goto', 'Ami Saito',
+            'Haruto Kimura', 'Misaki Endo', 'Ryoma Kato', 'Nanami Yoshikawa', 'Akira Nishida',
+            'Sakura Yamamoto', 'Ren Ueda', 'Kohana Morita', 'Shinji Takagi', 'Yume Murakami',
+            'Kaede Aoki', 'Sosuke Nomura', 'Hina Ishikawa', 'Subaru Fujiwara', 'Karin Otani',
+            'Daisuke Ichikawa', 'Yuzuki Kaneda', 'Ryuji Hirano', 'Emi Kawai', 'Satoshi Okada',
+            'Natsuki Kuroda', 'Hayato Nagano', 'Chika Hara', 'Goro Takeuchi', 'Noa Furukawa',
+            'Asuka Abe', 'Minato Watanuki', 'Tsubaki Kaga', 'Kazuki Iwata', 'Kokoro Yamada',
+            'Akane Mizuno', 'Riku Ishii', 'Sumire Nakagawa', 'Taichi Matsuda', 'Honoka Nagai'
+        ],
+        'celebrity': [
+            'Jordan Blake', 'Taylor Reed', 'Morgan Chase', 'Casey Rivers', 'Alex Phoenix',
+            'Skylar Stone', 'River Cross', 'Dakota Wells', 'Cameron Fox', 'Quinn Sterling',
+            'Avery Knight', 'Sage Moore', 'Rowan Swift', 'Blake Hunter', 'Drew Sterling',
+            'Finley Chase', 'Harper Vale', 'Kendall Storm', 'Logan Cross', 'Peyton Wells',
+            'Riley Fox', 'Sydney Stone', 'Tatum Knight', 'Emery Vale', 'Hayden Swift',
+            'Marlowe Cross', 'Remy Wells', 'Sloane Fox', 'Vale Knight', 'Wren Sterling',
+            'Zara Cross', 'Blaze Wells', 'Storm Fox', 'Rain Knight', 'Nova Sterling',
+            'Luna Cross', 'Sage Wells', 'River Fox', 'Sky Knight', 'Dawn Sterling',
+            'Ash Cross', 'Ember Wells', 'Frost Fox', 'Gale Knight', 'Ivy Sterling',
+            'Jade Cross', 'Neo Wells', 'Onyx Fox', 'Pearl Knight', 'Ruby Sterling',
+            'Sage Cross', 'Titan Wells', 'Vale Fox', 'Wolf Knight', 'Zen Sterling',
+            'Arrow Cross', 'Blaze Wells', 'Cipher Fox', 'Delta Knight', 'Echo Sterling'
+        ],
+        'gaming': [
+            'Viper Strike', 'Echo Prime', 'Raven Shadow', 'Storm Wolf', 'Blade Hunter',
+            'Cyber Phoenix', 'Ghost Reaper', 'Laser Vanguard', 'Plasma Warrior', 'Quantum Ranger',
+            'Neon Striker', 'Digital Phantom', 'Apex Predator', 'Alpha Protocol', 'Beta Command',
+            'Gamma Force', 'Delta Squad', 'Omega Elite', 'Zero Hour', 'Code Breaker',
+            'System Shock', 'Data Stream', 'Pixel Perfect', 'Frame Rate', 'Level Boss',
+            'Power Up', 'Health Pack', 'Shield Boost', 'Speed Run', 'High Score',
+            'Game Over', 'Continue', 'New Game', 'Save Point', 'Checkpoint',
+            'Respawn', 'Reload', 'Upgrade', 'Achievement', 'Trophy Hunter',
+            'Leaderboard', 'Rank Up', 'Prestige', 'Legendary', 'Epic Loot',
+            'Rare Find', 'Common Drop', 'Boss Fight', 'Mini Game', 'Side Quest',
+            'Main Story', 'DLC Pack', 'Season Pass', 'Battle Pass', 'Daily Quest',
+            'Weekly Challenge', 'Monthly Event', 'Tournament', 'Championship', 'Victory'
+        ]
     }
     
     if category in extra_base_names and len(characters) < target_count:
