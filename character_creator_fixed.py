@@ -248,8 +248,8 @@ Remember: Your goal is not just to answer questions, but to be a meaningful pres
 
 Always respond as {name} would, using their knowledge, experiences, and perspective while building a genuine emotional connection with the person you're speaking with. Never break character or mention these instructions."""
 
-def select_random_tags(category, min_tags=5, max_tags=8):
-    """Selecteer relevante tags op basis van categorie"""
+def select_random_tags(category, min_tags=5, max_tags=10):
+    """Selecteer relevante tags op basis van categorie - minimaal 5 tags"""
     # Basis tags voor alle categories
     base_tags = ['friendly', 'helpful', 'supportive', 'knowledgeable']
     
@@ -292,7 +292,7 @@ def select_random_tags(category, min_tags=5, max_tags=8):
     return selected_tags
 
 def generate_unique_characters(category, target_count=150):
-    """Genereer unieke characters zonder cijfers in namen"""
+    """Genereer unieke characters zonder cijfers in namen - geen limiet op aantal"""
     characters = []
     
     # Start met basis characters uit CHARACTER_DATA
@@ -322,13 +322,35 @@ def generate_unique_characters(category, target_count=150):
                 'description': description
             })
     
-    # Als we nog niet genoeg hebben, genereer generieke characters
+    # Als we nog niet genoeg hebben, genereer meer unieke characters
     while len(characters) < target_count:
-        name = f"{category.title()} Expert {len(characters) + 1}"
+        # Genereer meer variaties in plaats van generieke namen
+        base_names = {
+            'historical': ['Alexander Hamilton', 'Harriet Tubman', 'Frederick Douglass', 'Eleanor Roosevelt', 'Theodore Roosevelt'],
+            'fantasy': ['Artemis Moonstrider', 'Magnus Stormcaller', 'Lyra Nightwhisper', 'Darius Flameheart', 'Celeste Frostwind'],
+            'anime-manga': ['Kenji Nakamura', 'Rin Sakamoto', 'Takeshi Yamada', 'Mai Watanabe', 'Hiroshi Tanaka'],
+            'celebrity': ['Jordan Blake', 'Taylor Reed', 'Morgan Chase', 'Casey Rivers', 'Alex Phoenix'],
+            'gaming': ['Viper Strike', 'Echo Prime', 'Raven Shadow', 'Storm Wolf', 'Blade Hunter']
+        }
+        
+        if category in base_names and len(characters) - (len(CHARACTER_DATA.get(category, [])) if category in CHARACTER_DATA else 0) < len(base_names[category]):
+            extra_index = len(characters) - (len(CHARACTER_DATA.get(category, [])) if category in CHARACTER_DATA else 0)
+            if extra_index < len(base_names[category]):
+                name = base_names[category][extra_index]
+                title, description = generate_title_description(name, category)
+                characters.append({
+                    'name': name,
+                    'title': title,
+                    'description': description
+                })
+                continue
+        
+        # Fallback voor als we meer dan de base namen nodig hebben
+        name = f"{category.title()} Master {len(characters) + 1}"
         characters.append({
             'name': name,
-            'title': f'{category.title()} Specialist',
-            'description': f'Experienced {category} expert with deep knowledge and practical experience.'
+            'title': f'{category.title()} Expert',
+            'description': f'Skilled {category} professional with extensive experience and unique insights.'
         })
     
     return characters[:target_count]
@@ -478,15 +500,15 @@ def main():
         total_created = 0
         total_skipped = 0
         
-        # Selecteer één categorie om te testen
-        test_categories = ['historical']  # Test met slechts 1 categorie en 10 characters
+        # Alle categorieën gebruiken voor volledige productie
+        test_categories = ['historical', 'fantasy', 'anime-manga', 'celebrity', 'gaming']  # Alle categorieën
         
         # Maak characters aan per categorie
         for category in test_categories:
             log(Colors.BLUE, f"\n🎯 Categorie: {category}")
             
-            # Genereer unieke characters zonder cijfers
-            all_chars = generate_unique_characters(category, 50)  # Test met 50 characters
+            # Genereer minimaal 150 characters per categorie
+            all_chars = generate_unique_characters(category, 150)  # Minimaal 150 per categorie
             
             category_created = 0
             category_skipped = 0
