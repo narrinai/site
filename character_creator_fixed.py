@@ -202,22 +202,23 @@ NAME_POOLS = {
 # CHARACTER_DATA weggelaten - we gebruiken alleen NAME_POOLS en extra_base_names
 CHARACTER_DATA = {}
 
-def get_existing_characters():
-    """Haal alle bestaande character namen op uit Airtable"""
+def get_existing_characters_by_category():
+    """Haal alle bestaande characters op uit Airtable, gegroepeerd per categorie"""
     url = f"https://api.airtable.com/v0/{AIRTABLE_BASE}/Characters"
     headers = {
         'Authorization': f'Bearer {AIRTABLE_TOKEN}',
         'Content-Type': 'application/json'
     }
     
-    log(Colors.BLUE, "📋 Bestaande characters ophalen...")
+    log(Colors.BLUE, "📋 Bestaande characters per categorie ophalen...")
     
     existing_names = set()
+    category_counts = {}
     offset = None
     
     try:
         while True:
-            params = {'fields[]': 'Name'}
+            params = {'fields[]': ['Name', 'Category']}
             if offset:
                 params['offset'] = offset
             
@@ -225,10 +226,16 @@ def get_existing_characters():
             response.raise_for_status()
             data = response.json()
             
-            # Voeg namen toe aan set
+            # Voeg namen toe aan set en tel per categorie
             for record in data['records']:
-                if 'Name' in record['fields']:
-                    existing_names.add(record['fields']['Name'])
+                fields = record['fields']
+                if 'Name' in fields:
+                    name = fields['Name']
+                    existing_names.add(name)
+                    
+                    # Tel per categorie
+                    category = fields.get('Category', 'unknown')
+                    category_counts[category] = category_counts.get(category, 0) + 1
             
             # Check offset voor volgende pagina
             if 'offset' in data:
@@ -238,11 +245,14 @@ def get_existing_characters():
                 break
         
         log(Colors.GREEN, f"✅ {len(existing_names)} bestaande characters gevonden")
-        return existing_names
+        for category, count in category_counts.items():
+            log(Colors.CYAN, f"   📊 {category}: {count} characters")
+        
+        return existing_names, category_counts
         
     except requests.exceptions.RequestException as e:
         log(Colors.RED, f"❌ Fout bij ophalen bestaande characters: {e}")
-        return set()
+        return set(), {}
 
 def generate_character_id(name):
     """Genereer Character_ID op basis van naam (zelfde als slug)"""
@@ -339,15 +349,18 @@ def select_random_tags(category, valid_tags, min_tags=3, max_tags=6):
     
     return selected_tags
 
-def generate_unique_characters(category, target_count=150):
+def generate_unique_characters(category, target_count, existing_names_set=None):
     """Genereer unieke characters zonder cijfers in namen - stop als geen namen meer beschikbaar"""
     characters = []
+    if existing_names_set is None:
+        existing_names_set = set()
     
-    # Start met basis characters uit CHARACTER_DATA
+    # Start met basis characters uit CHARACTER_DATA (nu leeg)
     if category in CHARACTER_DATA:
         base_chars = CHARACTER_DATA[category]
         for char in base_chars:
-            characters.append(char)
+            if char['name'] not in existing_names_set:
+                characters.append(char)
     
     # Gebruik name pool voor deze categorie
     if category in NAME_POOLS:
@@ -355,7 +368,7 @@ def generate_unique_characters(category, target_count=150):
         
         # Verwijder al gebruikte namen
         used_names = [char['name'] for char in characters]
-        available_names = [name for name in available_names if name not in used_names]
+        available_names = [name for name in available_names if name not in used_names and name not in existing_names_set]
         
         # Genereer characters tot target bereikt is OF geen namen meer beschikbaar
         while len(characters) < target_count and available_names:
@@ -454,7 +467,7 @@ def generate_unique_characters(category, target_count=150):
         for extra_name in extra_base_names[category]:
             if len(characters) >= target_count:
                 break
-            if extra_name not in [char['name'] for char in characters]:
+            if extra_name not in [char['name'] for char in characters] and extra_name not in existing_names_set:
                 title, description = generate_title_description(extra_name, category)
                 characters.append({
                     'name': extra_name,
@@ -463,7 +476,7 @@ def generate_unique_characters(category, target_count=150):
                 })
     
     # Rapporteer hoeveel characters er beschikbaar zijn
-    log(Colors.CYAN, f"📊 {category}: {len(characters)} unieke characters beschikbaar (target was {target_count})")
+    log(Colors.CYAN, f"📊 {category}: {len(characters)} nieuwe characters gegenereerd (target was {target_count})")
     
     return characters
 
@@ -606,8 +619,8 @@ def main():
         log(Colors.BOLD + Colors.MAGENTA, "🎭 CHARACTER CREATOR GESTART (ZONDER CIJFERS)")
         log(Colors.CYAN, "═" * 60)
         
-        # Haal bestaande characters op
-        existing_names = get_existing_characters()
+        # Haal bestaande characters op per categorie
+        existing_names, category_counts = get_existing_characters_by_category()
         
         # Haal geldige tags op uit Airtable
         log(Colors.BLUE, "🏷️  Geldige tags ophalen uit Airtable...")
@@ -620,12 +633,20 @@ def main():
         # Alle categorieën gebruiken voor volledige productie
         test_categories = ['historical', 'fantasy', 'anime-manga', 'celebrity', 'gaming']  # Alle categorieën
         
-        # Maak characters aan per categorie
+        # Maak characters aan per categorie tot minimaal 150
         for category in test_categories:
-            log(Colors.BLUE, f"\n🎯 Categorie: {category}")
+            current_count = category_counts.get(category, 0)
+            needed = max(0, 150 - current_count)
             
-            # Genereer zoveel mogelijk unieke characters per categorie (target 150)
-            all_chars = generate_unique_characters(category, 150)  # Target 150 per categorie
+            log(Colors.BLUE, f"\n🎯 Categorie: {category}")
+            log(Colors.CYAN, f"   📊 Huidige aantal: {current_count}, nodig: {needed}")
+            
+            if needed == 0:
+                log(Colors.GREEN, f"   ✅ {category} heeft al 150+ characters, overslaan")
+                continue
+            
+            # Genereer alleen de benodigde characters
+            all_chars = generate_unique_characters(category, needed, existing_names)
             
             category_created = 0
             category_skipped = 0
