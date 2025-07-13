@@ -468,15 +468,15 @@ def main():
         total_created = 0
         total_skipped = 0
         
-        # Selecteer een paar categorieën om te testen
-        test_categories = ['historical', 'fantasy', 'anime-manga', 'celebrity', 'gaming']
+        # Selecteer één categorie om te testen
+        test_categories = ['historical']  # Test met slechts 1 categorie en 10 characters
         
         # Maak characters aan per categorie
         for category in test_categories:
             log(Colors.BLUE, f"\n🎯 Categorie: {category}")
             
             # Genereer unieke characters zonder cijfers
-            all_chars = generate_unique_characters(category, 50)  # Start met 50 per categorie voor test
+            all_chars = generate_unique_characters(category, 10)  # Start met 10 per categorie voor test
             
             category_created = 0
             category_skipped = 0
