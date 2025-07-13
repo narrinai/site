@@ -82,10 +82,8 @@ class SimpleAvatarUploader:
                 
                 page += 1
                 
-                # Safety limit - increased for 400 records
-                if page > 20:  # Increased from 10 to 20
-                    print("   ⚠️ Reached safety page limit (20), stopping")
-                    break
+                # No safety limit - process all pages
+                # Removed page limit to ensure all characters are loaded
                 
                 # Small delay between requests
                 time.sleep(0.5)
@@ -451,7 +449,7 @@ class SimpleAvatarUploader:
         print(f"   ❌ All images failed for {character['name']}")
         return False
 
-    def run(self, max_characters=None, target_characters=None):
+    def run(self, target_characters=None):
         """Main execution"""
         print("🚀 Simple Avatar Uploader - Image Search Only")
         print("📷 Searching real images for ALL characters")
@@ -489,12 +487,8 @@ class SimpleAvatarUploader:
                 print("✅ All characters already have avatars!")
             return
         
-        # Limiteer aantal characters als opgegeven
-        if max_characters and not target_characters:
-            characters_needing_avatar = characters_needing_avatar[:max_characters]
-            print(f"📊 Processing first {len(characters_needing_avatar)} characters")
-        else:
-            print(f"📊 Processing {len(characters_needing_avatar)} characters")
+        # Process ALL characters without limit
+        print(f"📊 Processing ALL {len(characters_needing_avatar)} characters")
         
         # Toon lijst
         print(f"\n📝 Characters to process:")
@@ -552,4 +546,4 @@ if __name__ == "__main__":
     uploader = SimpleAvatarUploader()
     
     # Nu laden we ALLE 400+ characters en zoeken naar die zonder avatar
-    uploader.run(max_characters=50)  # Verhoogd naar 50 voor test
+    uploader.run()  # Process ALL characters without limit
