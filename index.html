@@ -826,25 +826,42 @@
     }
 
     .section-title {
+      text-decoration: none;
+      color: inherit;
+      display: inline-block;
+    }
+    
+    .section-title h2 {
       font-family: var(--font-secondary);
       font-size: var(--font-size-2xl);
       font-weight: 700;
       color: var(--color-navy);
+      transition: color var(--transition-base);
+      margin: 0;
+    }
+    
+    .section-title:hover h2 {
+      color: var(--color-teal);
     }
 
     .view-all {
-      color: var(--color-teal);
+      background: var(--gradient-primary);
+      color: var(--color-white);
       text-decoration: none;
       font-weight: 600;
       font-size: var(--font-size-sm);
       transition: all var(--transition-base);
-      padding: var(--spacing-xs) var(--spacing-md);
-      border-radius: var(--radius-full);
+      padding: var(--spacing-xs) var(--spacing-lg);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-colored);
+      display: inline-flex;
+      align-items: center;
+      gap: var(--spacing-xs);
     }
 
     .view-all:hover {
-      background: var(--color-teal);
-      color: var(--color-white);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
     }
 
     /* Character Grid */
@@ -1769,7 +1786,9 @@ function generateExtraTagButtons() {
 
         section.innerHTML = `
           <div class="section-header">
-            <h2 class="section-title" id="${category.id}-title">${category.title}</h2>
+            <a href="category.html?cat=${category.id}" class="section-title">
+              <h2 id="${category.id}-title">${category.title}</h2>
+            </a>
             <a href="category.html?cat=${category.id}" class="view-all">View all →</a>
           </div>
           <div class="character-grid" id="${category.id}-grid">
