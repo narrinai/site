@@ -603,6 +603,54 @@ def generate_unique_characters(category, target_count, existing_names_set=None):
         'business-coach': [
             'Entrepreneur Emma', 'Investor Ivan', 'Founder Fiona', 'Leader Leo', 'Innovator Iris',
             'Strategist Stan', 'Planner Pam', 'Organizer Oscar', 'Developer Dave', 'Creator Cara'
+        ],
+        'relationship-coach': [
+            'Therapist Theo', 'Counselor Cathy', 'Advisor Andy', 'Helper Holly', 'Guide Gina',
+            'Mentor Matt', 'Support Sara', 'Listen Lisa', 'Understand Uma', 'Heal Henry'
+        ],
+        'cooking-coach': [
+            'Master Chef Marcus', 'Iron Chef Iris', 'Kitchen King Karl', 'Pastry Queen Pam', 'Grill Master Gary',
+            'Bake Boss Betty', 'Soup Sultan Sam', 'Salad Sage Sally', 'Dessert Duchess Dana', 'Spice Specialist Spencer'
+        ],
+        'accounting-coach': [
+            'CPA Carl', 'Bookkeeper Betty', 'Accountant Amy', 'Finance Frank', 'Budget Bill',
+            'Tax Tina', 'Audit Andy', 'Ledger Lucy', 'Numbers Nancy', 'Profit Paul'
+        ],
+        'study-coach': [
+            'Study Buddy Sam', 'Learning Lucy', 'Focus Felix', 'Memory Master Mike', 'Brain Trainer Ben',
+            'Smart Steve', 'Clever Clara', 'Bright Betty', 'Sharp Sherry', 'Quick Quinn'
+        ],
+        'language-coach': [
+            'Polyglot Pat', 'Linguist Lucy', 'Speaker Sam', 'Translator Tom', 'Grammar Grace',
+            'Accent Anna', 'Fluency Frank', 'Vocabulary Vera', 'Pronunciation Paul', 'Communication Chris'
+        ],
+        'career-coach': [
+            'Career Counselor Carl', 'Job Coach Jane', 'Professional Pat', 'Success Sam', 'Growth Grace',
+            'Advance Anna', 'Promote Pete', 'Rise Rita', 'Climb Chris', 'Achievement Amy'
+        ],
+        'original': [
+            'Original Oscar', 'Unique Una', 'Creative Chris', 'Innovative Ian', 'Fresh Frank',
+            'New Nancy', 'Novel Nick', 'Different Diana', 'Special Sam', 'Rare Rita'
+        ],
+        'negotiation-coach': [
+            'Negotiator Nick', 'Mediator Mary', 'Diplomat Dan', 'Arbitrator Amy', 'Peacemaker Pat',
+            'Deal Maker Dave', 'Agreement Anna', 'Contract Carl', 'Settlement Sue', 'Resolution Rita'
+        ],
+        'creativity-coach': [
+            'Creative Chris', 'Artistic Anna', 'Imaginative Ian', 'Innovative Iris', 'Inspired Isaac',
+            'Visionary Vera', 'Designer Diana', 'Maker Mike', 'Builder Ben', 'Creator Cara'
+        ],
+        'mindfulness-coach': [
+            'Mindful Mike', 'Zen Master Zoe', 'Meditation Mary', 'Calm Carl', 'Peace Paul',
+            'Serene Sue', 'Tranquil Tom', 'Breathe Beth', 'Focus Frank', 'Present Pat'
+        ],
+        'other': [
+            'Helper Henry', 'Assistant Amy', 'Support Sam', 'Aid Anna', 'Backup Ben',
+            'Extra Emma', 'Spare Steve', 'Reserve Rita', 'Additional Alice', 'Surplus Sue'
+        ],
+        'fictional': [
+            'Character Chris', 'Story Sam', 'Tale Tom', 'Fiction Frank', 'Novel Nancy',
+            'Book Ben', 'Plot Paul', 'Hero Helen', 'Villain Victor', 'Protagonist Pete'
         ]
     }
     
