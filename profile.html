@@ -3410,9 +3410,12 @@ function handleLoginSuccess(user, eventType = 'unknown') {
           // Fallback to center positioning
           const termsNotice = document.createElement('div');
           termsNotice.id = 'floating-terms-notice';
+          // Check if mobile for fallback positioning
+          const isMobileFallback = window.innerWidth <= 768;
+          
           termsNotice.style.cssText = `
             position: fixed;
-            bottom: 50%;
+            bottom: ${isMobileFallback ? '40%' : '20%'};
             left: 50%;
             transform: translateX(-50%);
             background: rgba(255, 255, 255, 0.98);
