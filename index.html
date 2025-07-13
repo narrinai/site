@@ -1865,26 +1865,44 @@ function processNetlifyData(characters, category, gridId, limit) {
   grid.innerHTML = '';
   
   if (characters && characters.length > 0) {
-    // Filter for this category and apply limit
+    // Filter for this category first
     const categoryCharacters = characters.filter(char => 
       char.Category && char.Category.toLowerCase() === category.toLowerCase()
-    ).slice(0, limit);
+    );
     
-    console.log(`📋 Showing ${categoryCharacters.length} characters for ${category}`);
+    // Filter for characters with avatars only
+    const charactersWithAvatars = categoryCharacters.filter(char => {
+      // Check for Airtable attachment field
+      if (char.Avatar_URL && Array.isArray(char.Avatar_URL) && char.Avatar_URL.length > 0) {
+        if (char.Avatar_URL[0] && char.Avatar_URL[0].url) {
+          return true;
+        }
+      }
+      // Check for direct string Avatar_URL
+      if (char.Avatar_URL && typeof char.Avatar_URL === 'string' && char.Avatar_URL.startsWith('http')) {
+        return true;
+      }
+      return false;
+    });
     
-    categoryCharacters.forEach((character, index) => {
+    // Take only the first 8 characters with avatars
+    const limitedCharacters = charactersWithAvatars.slice(0, 8);
+    
+    console.log(`📋 Showing ${limitedCharacters.length} characters with avatars for ${category} (from ${categoryCharacters.length} total)`);
+    
+    limitedCharacters.forEach((character, index) => {
       console.log(`🔍 Character ${index + 1}:`, character.Name, character.Avatar_URL);
       
       const card = createCharacterCard(character);
       grid.appendChild(card);
     });
     
-    if (categoryCharacters.length === 0) {
+    if (limitedCharacters.length === 0) {
       grid.innerHTML = `
         <div class="error-card no-data">
           <span class="error-icon">📭</span>
-          <div class="error-title">No ${category} characters found</div>
-          <div class="error-message">Check your Airtable categories</div>
+          <div class="error-title">No ${category} characters with avatars found</div>
+          <div class="error-message">Check your Airtable Avatar_URL fields</div>
         </div>
       `;
     }
