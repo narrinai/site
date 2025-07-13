@@ -248,46 +248,43 @@ Remember: Your goal is not just to answer questions, but to be a meaningful pres
 
 Always respond as {name} would, using their knowledge, experiences, and perspective while building a genuine emotional connection with the person you're speaking with. Never break character or mention these instructions."""
 
-def select_random_tags(category, min_tags=5, max_tags=10):
-    """Selecteer relevante tags op basis van categorie - minimaal 5 tags"""
-    # Basis tags voor alle categories
-    base_tags = ['friendly', 'helpful', 'supportive', 'knowledgeable']
-    
-    # Uitgebreide categorie-specifieke tags (alleen relevante tags)
-    category_tags = {
-        'historical': [
-            'famous', 'leader', 'revolutionary', 'knowledge', 'inspiration', 'wisdom', 
-            'influential', 'legendary', 'academic', 'political', 'cultural', 'innovative',
-            'visionary', 'strategic', 'charismatic', 'determined', 'pioneering'
-        ],
-        'fantasy': [
-            'magic', 'mystical', 'adventure', 'hero', 'legend', 'wizard', 'warrior',
-            'ancient', 'powerful', 'brave', 'noble', 'enchanted', 'mythical', 'epic',
-            'supernatural', 'divine', 'magical', 'courageous'
-        ],
-        'anime-manga': [
-            'adventure', 'friendship', 'action', 'hero', 'determined', 'loyal', 
-            'energetic', 'brave', 'skilled', 'passionate', 'protective', 'honorable',
-            'spirited', 'dedicated', 'competitive', 'inspiring'
-        ],
-        'celebrity': [
-            'famous', 'entertainment', 'star', 'charismatic', 'talented', 'influential',
-            'popular', 'successful', 'glamorous', 'trendsetting', 'artistic', 'creative',
-            'inspiring', 'accomplished', 'renowned'
-        ],
-        'gaming': [
-            'action', 'adventure', 'strategy', 'competitive', 'skilled', 'tactical',
-            'expert', 'focused', 'determined', 'innovative', 'quick-thinking', 'agile',
-            'strategic', 'fearless', 'elite'
-        ],
+def get_valid_airtable_tags():
+    """Haal geldige tags op uit Airtable schema"""
+    url = f"https://api.airtable.com/v0/meta/bases/{AIRTABLE_BASE}/tables"
+    headers = {
+        'Authorization': f'Bearer {AIRTABLE_TOKEN}',
+        'Content-Type': 'application/json'
     }
     
-    # Gebruik alleen relevante tags voor de categorie
-    relevant_tags = base_tags + category_tags.get(category, [])
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+        
+        # Zoek Characters tabel en Tags veld
+        for table in data['tables']:
+            if table['name'] == 'Characters':
+                for field in table['fields']:
+                    if field['name'] == 'Tags' and field['type'] == 'multipleSelects':
+                        # Return alle beschikbare opties
+                        return [option['name'] for option in field['options']['choices']]
+        
+        # Fallback naar basic tags als schema niet gevonden
+        log(Colors.YELLOW, "⚠️  Kon Tags schema niet ophalen, gebruik basis tags")
+        return ['friendly', 'helpful', 'supportive', 'knowledgeable', 'academic', 'adventure', 'famous', 'creative']
+        
+    except Exception as e:
+        log(Colors.YELLOW, f"⚠️  Fout bij ophalen tags schema: {e}, gebruik basis tags")
+        return ['friendly', 'helpful', 'supportive', 'knowledgeable', 'academic', 'adventure', 'famous', 'creative']
+
+def select_random_tags(category, valid_tags, min_tags=3, max_tags=6):
+    """Selecteer relevante tags uit geldige Airtable tags"""
+    if not valid_tags:
+        return ['friendly', 'helpful', 'supportive']
     
-    # Selecteer willekeurig aantal tags uit alleen de relevante tags
-    num_tags = random.randint(min_tags, max_tags)
-    selected_tags = random.sample(relevant_tags, min(num_tags, len(relevant_tags)))
+    # Selecteer willekeurig aantal tags uit geldige tags
+    num_tags = min(random.randint(min_tags, max_tags), len(valid_tags))
+    selected_tags = random.sample(valid_tags, num_tags)
     
     return selected_tags
 
@@ -426,7 +423,7 @@ def generate_title_description(name, category):
     
     return title, description
 
-def create_character(name, title, description, category, existing_names):
+def create_character(name, title, description, category, existing_names, valid_tags):
     """Maak een nieuw character aan"""
     if name in existing_names:
         return None  # Skip als character al bestaat
@@ -436,7 +433,7 @@ def create_character(name, title, description, category, existing_names):
     character_url = generate_character_url(slug)
     avatar_url = generate_avatar_url(name)
     prompt = generate_prompt(name, title, description)
-    tags = select_random_tags(category)
+    tags = select_random_tags(category, valid_tags)
     
     character_data = {
         'Name': name,
@@ -490,6 +487,11 @@ def main():
         # Haal bestaande characters op
         existing_names = get_existing_characters()
         
+        # Haal geldige tags op uit Airtable
+        log(Colors.BLUE, "🏷️  Geldige tags ophalen uit Airtable...")
+        valid_tags = get_valid_airtable_tags()
+        log(Colors.GREEN, f"✅ {len(valid_tags)} geldige tags gevonden: {valid_tags[:10]}...")
+        
         total_created = 0
         total_skipped = 0
         
@@ -513,7 +515,8 @@ def main():
                         char_data['title'], 
                         char_data['description'],
                         category,
-                        existing_names
+                        existing_names,
+                        valid_tags
                     )
                     
                     if character:
