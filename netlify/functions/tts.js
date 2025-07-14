@@ -46,6 +46,15 @@ exports.handler = async (event, context) => {
     // Call ElevenLabs API
     console.log(`🎙️ TTS request: voice_id=${voice_id}, text_length=${text.length}`);
     
+    // Test basic connectivity first
+    try {
+      const testResponse = await fetch('https://httpbin.org/get');
+      console.log(`🌐 Network test: ${testResponse.status}`);
+    } catch (netError) {
+      console.error(`❌ Network connectivity issue:`, netError);
+      throw new Error(`Network connectivity issue: ${netError.message}`);
+    }
+    
     // Create AbortController for timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 second timeout
