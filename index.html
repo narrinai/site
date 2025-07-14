@@ -1558,19 +1558,14 @@ body.has-referral-banner {
   // Netlify Function endpoint
   CHARACTERS_API: '/.netlify/functions/characters',
   MAX_CHARACTERS_PER_CATEGORY: 8,
+  // Only show top 6 most popular categories for fast loading
   CATEGORIES: [
     { id: 'historical', name: 'Historical', title: 'Historical Figures' },
     { id: 'anime-manga', name: 'Anime', title: 'Anime Characters' }, 
-    { id: 'mythology', name: 'Mythology', title: 'Mythological Figures' },
     { id: 'fictional', name: 'Fiction', title: 'Fictional Characters' },
     { id: 'celebrity', name: 'Celebrities', title: 'Celebrities' },
-    { id: 'gaming', name: 'Gaming', title: 'Gaming Characters' },
     { id: 'relationship-coach', name: 'Relationship Coach', title: 'Relationship Coaches' },
-    { id: 'career-coach', name: 'Career Coach', title: 'Career Coaches' },   
-    { id: 'creativity-coach', name: 'Creativity Coach', title: 'Creativity Coaches' },
-    { id: 'fitness-coach', name: 'Fitness Coach', title: 'Fitness Coaches' },
-    { id: 'mindfulness-coach', name: 'Mindfulness Coach', title: 'Mindfulness Coaches' },
-    { id: 'business-coach', name: 'Business Coach', title: 'Business Coaches' }
+    { id: 'fitness-coach', name: 'Fitness Coach', title: 'Fitness Coaches' }
   ],
   TAGS: [
     'wise', 'funny', 'helpful', 'mysterious', 'leader', 
@@ -1755,31 +1750,10 @@ function generateCategoryButtons() {
     categoryButtons.appendChild(moreButton);
   }
 
-  // Extra navigation before CTA (all other categories)
-  if (extraCategoryButtons) {
-    const allOtherCategories = [
-      { id: 'fictional', name: 'Fiction', title: 'Fictional Characters' },
-      { id: 'celebrity', name: 'Celebrities', title: 'Celebrities' },
-      { id: 'anime-manga', name: 'Anime & Manga', title: 'Anime & Manga' },
-      { id: 'gaming', name: 'Gaming', title: 'Gaming Characters' },
-      { id: 'creativity-coach', name: 'Creativity Coach', title: 'Creativity Coaches' },
-      { id: 'fitness-coach', name: 'Fitness Coach', title: 'Fitness Coaches' },
-      { id: 'mindfulness-coach', name: 'Mindfulness Coach', title: 'Mindfulness Coaches' },
-      { id: 'cooking-coach', name: 'Cooking Coach', title: 'Cooking Coaches' },
-      { id: 'business-coach', name: 'Business Coach', title: 'Business Coaches' }
-    ];
-
-    // Filter extra categories with 5+ characters
-    const filteredExtraCategories = allOtherCategories.filter(category => category.name.length >= 5);
-
-    filteredExtraCategories.forEach(category => {
-      const button = document.createElement('a');
-      button.href = `category.html?cat=${category.id}`;
-      button.className = 'category-btn';
-      button.textContent = category.name;
-      extraCategoryButtons.appendChild(button);
-    });
-  }
+  // Disable extra category buttons for faster loading
+  // if (extraCategoryButtons) {
+  //   extraCategoryButtons.innerHTML = '';
+  // }
 }
 
 // Generate tag buttons
@@ -1854,26 +1828,11 @@ function generateExtraTagButtons() {
       sectionsContainer.innerHTML = '';
       midPageCTA.innerHTML = '';
 
-      console.log('🔍 Checking character counts for all categories...');
+      console.log('🚀 Using predefined top 6 categories for fast loading...');
       
-      // Check character counts for all categories
-      const categoriesWithCounts = await Promise.all(
-        CONFIG.CATEGORIES.map(async (category) => {
-          const count = await getCategoryCharacterCount(category.id);
-          console.log(`📊 ${category.name}: ${count} characters`);
-          return { ...category, count };
-        })
-      );
-
-      // Filter categories with at least 15 characters
-      const validCategories = categoriesWithCounts.filter(category => category.count >= 15);
-      console.log(`✅ ${validCategories.length} categories have 15+ characters:`, validCategories.map(c => c.name));
-
-      if (validCategories.length === 0) {
-        console.warn('⚠️ No categories have 15+ characters, showing all categories as fallback');
-        // Fallback to show all categories if none meet the criteria
-        validCategories.push(...categoriesWithCounts);
-      }
+      // Use all configured categories without checking counts for speed
+      const validCategories = CONFIG.CATEGORIES;
+      console.log(`✅ Showing ${validCategories.length} top categories:`, validCategories.map(c => c.name));
 
       // Split valid categories into two groups
       const firstHalf = validCategories.slice(0, Math.ceil(validCategories.length / 2));
@@ -2380,23 +2339,19 @@ if (window.netlifyIdentity) {
 
     // ===== INITIALIZATION =====
     document.addEventListener('DOMContentLoaded', async () => {
-      console.log(`🚀 Initializing Narrin AI (only showing categories with 15+ characters)...`);
+      console.log(`🚀 Initializing Narrin AI (fast loading - 6 top categories)...`);
       
       // Initialize authentication check first
       initializeAuthenticationCheck();
       
-      // Show loading state for buttons
-      showButtonLoadingState();
-      
-      // First check which categories have enough characters, then generate all content
-      await generateCharacterSections();
-      
-      // Generate all buttons after we know which categories are valid
+      // FAST LOADING: Show buttons immediately without character count checking
       generateCategoryButtons();
       generateTagButtons();
-      generateExtraTagButtons();
       
-      // Load character data only for valid categories
+      // Generate character sections (this will check character counts for content)
+      await generateCharacterSections();
+      
+      // Load character data
       initializeCharacterGrids();
       
       // Debug what gets loaded
