@@ -1712,7 +1712,7 @@ body.has-referral-banner {
 
     // ===== DYNAMIC CONTENT GENERATION =====
 
-   // Generate category buttons - Show first 4 on mobile, all on desktop
+   // Generate category buttons - Show first 4 on mobile, all on desktop (only for valid categories)
 function generateCategoryButtons() {
   const categoryButtons = document.getElementById('categoryButtons');
   const extraCategoryButtons = document.getElementById('extraCategoryButtons');
@@ -1720,8 +1720,11 @@ function generateCategoryButtons() {
   categoryButtons.innerHTML = '';
   if (extraCategoryButtons) extraCategoryButtons.innerHTML = '';
 
-  // Filter categories with 5+ characters
-  const filteredCategories = CONFIG.CATEGORIES.filter(category => category.name.length >= 5);
+  // Use valid categories (with 50+ characters) if available, otherwise use all categories
+  const categoriesToUse = window.validCategories || CONFIG.CATEGORIES;
+  
+  // Filter categories with 5+ characters in name
+  const filteredCategories = categoriesToUse.filter(category => category.name.length >= 5);
 
   // Determine how many to show based on screen size
   const isMobile = window.innerWidth <= 768;
@@ -1815,16 +1818,60 @@ function generateExtraTagButtons() {
   });
 }
 
-    // Generate character sections with mid-page CTA
-    function generateCharacterSections() {
+    // Check character count for a category
+    async function getCategoryCharacterCount(category) {
+      try {
+        const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
+        url.searchParams.set('category', category);
+        url.searchParams.set('count_only', 'true'); // Add parameter to only get count
+        
+        const response = await fetch(url.toString());
+        if (!response.ok) return 0;
+        
+        const data = await response.json();
+        if (!data.success) return 0;
+        
+        // Return character count for this category
+        return data.characters ? data.characters.filter(char => 
+          char.Category && char.Category.toLowerCase() === category.toLowerCase()
+        ).length : 0;
+      } catch (error) {
+        console.error(`❌ Error checking count for ${category}:`, error);
+        return 0;
+      }
+    }
+
+    // Generate character sections with mid-page CTA (only for categories with 50+ characters)
+    async function generateCharacterSections() {
       const sectionsContainer = document.getElementById('characterSections');
       const midPageCTA = document.getElementById('midPageCTA');
       sectionsContainer.innerHTML = '';
       midPageCTA.innerHTML = '';
 
-      // Split categories into two groups
-      const firstHalf = CONFIG.CATEGORIES.slice(0, 8); // First 8 categories
-      const secondHalf = CONFIG.CATEGORIES.slice(8); // Remaining categories
+      console.log('🔍 Checking character counts for all categories...');
+      
+      // Check character counts for all categories
+      const categoriesWithCounts = await Promise.all(
+        CONFIG.CATEGORIES.map(async (category) => {
+          const count = await getCategoryCharacterCount(category.id);
+          console.log(`📊 ${category.name}: ${count} characters`);
+          return { ...category, count };
+        })
+      );
+
+      // Filter categories with at least 50 characters
+      const validCategories = categoriesWithCounts.filter(category => category.count >= 50);
+      console.log(`✅ ${validCategories.length} categories have 50+ characters:`, validCategories.map(c => c.name));
+
+      if (validCategories.length === 0) {
+        console.warn('⚠️ No categories have 50+ characters, showing all categories as fallback');
+        // Fallback to show all categories if none meet the criteria
+        validCategories.push(...categoriesWithCounts);
+      }
+
+      // Split valid categories into two groups
+      const firstHalf = validCategories.slice(0, Math.ceil(validCategories.length / 2));
+      const secondHalf = validCategories.slice(Math.ceil(validCategories.length / 2));
       
       // Generate first half of categories
       firstHalf.forEach(category => {
@@ -1850,6 +1897,9 @@ function generateExtraTagButtons() {
         const section = createCategorySection(category);
         midPageCTA.appendChild(section);
       });
+
+      // Store valid categories globally for other functions to use
+      window.validCategories = validCategories;
     }
     
     // Helper function to create category section
@@ -2107,9 +2157,10 @@ function processNetlifyData(characters, category, gridId, limit) {
       }, 3000);
     }
 
-    // UPDATED: Initialize character grids with enforced 10 character limit
+    // UPDATED: Initialize character grids only for valid categories (50+ characters)
     function initializeCharacterGrids() {
-      CONFIG.CATEGORIES.forEach(category => {
+      const categoriesToLoad = window.validCategories || CONFIG.CATEGORIES;
+      categoriesToLoad.forEach(category => {
         loadCharacters(category.id, `${category.id}-grid`, CONFIG.MAX_CHARACTERS_PER_CATEGORY);
       });
     }
@@ -2294,19 +2345,23 @@ if (window.netlifyIdentity) {
 }
 
     // ===== INITIALIZATION =====
-    document.addEventListener('DOMContentLoaded', () => {
-      console.log(`🚀 Initializing Narrin AI with max ${CONFIG.MAX_CHARACTERS_PER_CATEGORY} characters per category...`);
+    document.addEventListener('DOMContentLoaded', async () => {
+      console.log(`🚀 Initializing Narrin AI (only showing categories with 50+ characters)...`);
       
       // Initialize authentication check first
       initializeAuthenticationCheck();
       
-      // Generate dynamic content
-      generateCategoryButtons();
+      // Generate initial content (will be updated after category check)
       generateTagButtons();
       generateExtraTagButtons();
-      generateCharacterSections();
       
-      // Load character data with enforced limit
+      // First check which categories have enough characters, then generate sections
+      await generateCharacterSections();
+      
+      // Generate category buttons after we know which categories are valid
+      generateCategoryButtons();
+      
+      // Load character data only for valid categories
       initializeCharacterGrids();
       
       // Debug what gets loaded
