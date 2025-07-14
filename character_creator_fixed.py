@@ -533,10 +533,10 @@ def generate_additional_names(category, count):
         'mythology': ['God of War', 'Goddess of Love', 'Spirit of Nature', 'Divine Oracle', 'Sacred Guardian', 'Ancient Titan', 'Eternal Phoenix', 'Celestial Dragon', 'Thunder Deity', 'Moon Goddess', 'Sun God', 'Underworld Lord'],
         'educational': ['Math Professor', 'Science Teacher', 'History Scholar', 'Literature Expert', 'Physics Researcher', 'Chemistry Academic', 'Biology Educator', 'Geography Tutor', 'Philosophy Instructor', 'Psychology Mentor', 'Economics Guide', 'Art Teacher'],
         'ai-assistant': ['Data AI', 'Logic BOT', 'Smart ASSIST', 'Tech HELP', 'Code SMART', 'System INTEL', 'Neural CYBER', 'Quantum TECH', 'Binary DIGITAL', 'Cloud VIRTUAL', 'Network AUTO', 'Algorithm SYSTEM'],
-        'fitness-coach': ['Cardio Coach', 'Strength Trainer', 'Yoga Master', 'Pilates Expert', 'CrossFit Pro', 'Boxing Coach', 'Running Guru', 'Swimming Instructor', 'Cycling Specialist', 'HIIT Trainer', 'Flexibility Coach', 'Nutrition Expert'],
-        'business-coach': ['Marketing CEO', 'Sales Leader', 'Strategy Manager', 'Finance Executive', 'HR Director', 'Operations Chief', 'Product President', 'Startup Entrepreneur', 'Scale-up Founder', 'Innovation Advisor', 'Digital Consultant', 'Growth Hacker'],
-        'relationship-coach': ['Marriage Counselor', 'Dating Coach', 'Family Therapist', 'Couples Expert', 'Divorce Mediator', 'Communication Guide', 'Intimacy Advisor', 'Trust Builder', 'Conflict Resolver', 'Love Language Expert', 'Attachment Specialist', 'Emotional Intelligence Coach'],
-        'cooking-coach': ['Italian Chef', 'French Cook', 'Asian Cuisine Master', 'BBQ Pitmaster', 'Pastry Baker', 'Sushi Chef', 'Mexican Food Expert', 'Mediterranean Cook', 'Vegan Chef', 'Dessert Specialist', 'Bread Baker', 'Molecular Gastronomy Expert'],
+        'fitness-coach': ['Cardio Training', 'Strength Training', 'Yoga Instruction', 'Pilates Instruction', 'CrossFit Training', 'Boxing Training', 'Running Training', 'Swimming Instruction', 'Cycling Training', 'HIIT Training', 'Flexibility Training', 'Nutrition Counseling'],
+        'business-coach': ['Marketing Strategy', 'Sales Development', 'Strategic Planning', 'Financial Planning', 'Human Resources', 'Operations Management', 'Product Development', 'Startup Consulting', 'Scale-up Strategy', 'Innovation Consulting', 'Digital Transformation', 'Growth Strategy'],
+        'relationship-coach': ['Marriage Counseling', 'Dating Guidance', 'Family Therapy', 'Couples Therapy', 'Divorce Mediation', 'Communication Skills', 'Intimacy Counseling', 'Trust Building', 'Conflict Resolution', 'Love Languages', 'Attachment Theory', 'Emotional Intelligence'],
+        'cooking-coach': ['Italian Cuisine', 'French Cuisine', 'Asian Cuisine', 'BBQ Specialist', 'Pastry Arts', 'Sushi Expert', 'Mexican Cuisine', 'Mediterranean Cuisine', 'Vegan Cuisine', 'Dessert Arts', 'Bread Making', 'Molecular Gastronomy'],
         'writing-coach': ['Fiction Writer', 'Poetry Author', 'Screenplay Writer', 'Blog Editor', 'Novel Coach', 'Content Creator', 'Copy Expert', 'Technical Writer', 'Grant Writer', 'Memoir Coach', 'Children\'s Author', 'Academic Writer'],
         'parody': ['Political Satirist', 'Celebrity Impersonator', 'Movie Parodist', 'TV Show Mocker', 'Music Comedian', 'Stand-up Comic', 'Sketch Artist', 'Meme Creator', 'Social Media Joker', 'Roast Master', 'Impressionist', 'Comedy Writer'],
         'rpg': ['Tank Warrior', 'DPS Mage', 'Healer Cleric', 'Stealth Rogue', 'Support Paladin', 'Ranged Ranger', 'Melee Fighter', 'Crowd Control Wizard', 'Buffer Bard', 'Pet Master', 'Necromancer', 'Elementalist'],
@@ -591,14 +591,8 @@ def generate_additional_names(category, count):
         first_name_idx = i % len(first_names)
         first_name = first_names[first_name_idx]
         
-        # Als we patterns herhalen, gebruik variaties zonder nummers
-        if cycle > 0:
-            # Voeg variaties toe zoals Senior, Master, Expert, etc.
-            variations = ['Senior', 'Master', 'Expert', 'Lead', 'Chief', 'Head', 'Principal', 'Executive', 'Advanced', 'Elite']
-            variation = variations[cycle % len(variations)]
-            name = f"{variation} {first_name} {specialty}"
-        else:
-            name = f"{first_name} {specialty}"
+        # Als we patterns herhalen, gebruik verschillende voornamen
+        name = f"{first_name} {specialty}"
         
         names.append(name)
     
@@ -873,14 +867,14 @@ def generate_unique_characters(category, target_count, existing_names_set=None):
         still_needed = target_count - len(characters)
         log(Colors.RED, f"🚨 FALLBACK: Nog {still_needed} characters nodig voor {category}")
         
-        # Genereer simpele fallback namen zonder nummers
-        fallback_variations = ['Senior', 'Master', 'Expert', 'Lead', 'Chief', 'Head', 'Principal', 'Executive', 'Advanced', 'Elite', 'Pro', 'Specialist']
-        fallback_names = ['Alex', 'Sam', 'Chris', 'Jordan', 'Taylor', 'Casey', 'Riley', 'Quinn', 'Avery', 'Blake']
+        # Genereer simpele fallback namen zonder repetitieve woorden
+        fallback_names = ['Alex', 'Sam', 'Chris', 'Jordan', 'Taylor', 'Casey', 'Riley', 'Quinn', 'Avery', 'Blake', 'Cameron', 'Drew', 'Ellis', 'Finley', 'Gray', 'Harper']
+        fallback_specialties = ['Consulting', 'Guidance', 'Support', 'Mentoring', 'Training', 'Development', 'Strategy', 'Planning', 'Analysis', 'Innovation']
         
         for i in range(still_needed):
-            variation = fallback_variations[i % len(fallback_variations)]
             name = fallback_names[i % len(fallback_names)]
-            fallback_name = f"{variation} {name} {category.title()}"
+            specialty = fallback_specialties[i % len(fallback_specialties)]
+            fallback_name = f"{name} {specialty}"
             title, description = generate_title_description(fallback_name, category)
             characters.append({
                 'name': fallback_name,
