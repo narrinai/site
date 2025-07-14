@@ -574,26 +574,37 @@ def generate_additional_names(category, count):
     names = []
     name_index = 0
     
-    # Maak alle mogelijke combinaties en shuffle ze voor diversiteit
-    all_combinations = []
-    for pattern in patterns:
-        for first in first_names:
-            all_combinations.append(f"{first} {pattern}")
-    
-    # Shuffle voor willekeurige volgorde maar geen duplicates
+    # Strategie: 2-3 karakters per specialiteit, dan volgende specialiteit
     import random
-    random.shuffle(all_combinations)
+    characters_per_specialty = 3  # Elke specialiteit krijgt 2-3 karakters
     
-    # Neem zoveel als nodig, herhaal indien nodig
+    names = []
+    first_name_idx = 0
+    
     for i in range(count):
-        if i < len(all_combinations):
-            names.append(all_combinations[i])
+        # Welke specialiteit zijn we nu?
+        specialty_idx = (i // characters_per_specialty) % len(patterns)
+        specialty = patterns[specialty_idx]
+        
+        # Welke voornaam binnen deze specialiteit?
+        name_within_specialty = i % characters_per_specialty
+        first_name = first_names[(first_name_idx + name_within_specialty) % len(first_names)]
+        
+        # Als we alle specialiteiten hebben gehad, begin opnieuw maar met andere voornamen
+        if (i // characters_per_specialty) >= len(patterns):
+            cycle = (i // characters_per_specialty) // len(patterns)
+            if cycle > 0:
+                name = f"{first_name} {specialty} {cycle + 1}"
+            else:
+                name = f"{first_name} {specialty}"
         else:
-            # Als we meer nodig hebben dan beschikbare combinaties, voeg nummers toe
-            combo_idx = i % len(all_combinations)
-            cycle = (i // len(all_combinations)) + 1
-            base_name = all_combinations[combo_idx]
-            names.append(f"{base_name} {cycle + 1}")
+            name = f"{first_name} {specialty}"
+        
+        names.append(name)
+        
+        # Na elke specialiteit, verschuif de startpositie van voornamen
+        if (i + 1) % characters_per_specialty == 0:
+            first_name_idx += characters_per_specialty
     
     return names
 
