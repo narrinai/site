@@ -1961,6 +1961,61 @@
       flex-wrap: wrap;
     }
 
+/* Voice option styling */
+    .voice-options {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+      margin-top: var(--spacing-md);
+    }
+
+    .voice-option {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+      cursor: pointer;
+      padding: var(--spacing-md) var(--spacing-lg);
+      border: 2px solid var(--color-light-gray);
+      border-radius: var(--radius-md);
+      transition: all var(--transition-base);
+      background: var(--color-white);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .voice-option:hover {
+      border-color: var(--color-teal);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .voice-option.selected {
+      border-color: var(--color-teal);
+      background: var(--color-off-white);
+      box-shadow: var(--shadow-colored);
+    }
+
+    .voice-option input[type="radio"] {
+      margin: 0;
+      width: auto;
+    }
+
+    .voice-option-content {
+      flex: 1;
+    }
+
+    .voice-option-title {
+      font-weight: 600;
+      margin-bottom: var(--spacing-xs);
+      color: var(--color-navy);
+      font-size: var(--font-size-sm);
+    }
+
+    .voice-option-desc {
+      font-size: var(--font-size-xs);
+      color: var(--color-gray);
+      line-height: 1.4;
+    }
+
     .footer-link {
       color: var(--color-gray);
       text-decoration: none;
@@ -2354,6 +2409,70 @@
         </div>
       </div>
 
+<!-- Voice Selection Section -->
+     <div class="form-section">
+       <h2>🎙️ Voice Selection <span style="font-size: var(--font-size-sm); color: var(--color-gray); font-weight: normal;">(Optional)</span></h2>
+       
+       <div class="form-group">
+         <label>Character Voice</label>
+         <div class="voice-options">
+           <div class="voice-option selected" onclick="selectVoice('auto')">
+             <input type="radio" name="voiceSelection" value="auto" checked>
+             <div class="voice-option-content">
+               <div class="voice-option-title">🤖 Auto-Select</div>
+               <div class="voice-option-desc">We'll choose the perfect voice based on your character's personality</div>
+             </div>
+           </div>
+           
+           <div class="voice-option" onclick="selectVoice('custom')">
+             <input type="radio" name="voiceSelection" value="custom">
+             <div class="voice-option-content">
+               <div class="voice-option-title">🎯 Choose Voice</div>
+               <div class="voice-option-desc">Pick from our curated voice collection</div>
+             </div>
+           </div>
+           
+           <div class="voice-option" onclick="selectVoice('none')">
+             <input type="radio" name="voiceSelection" value="none">
+             <div class="voice-option-content">
+               <div class="voice-option-title">🔇 No Voice</div>
+               <div class="voice-option-desc">Text-only character</div>
+             </div>
+           </div>
+         </div>
+         
+         <!-- Custom Voice Selection (hidden by default) -->
+         <div id="customVoiceSelection" style="display: none; margin-top: var(--spacing-lg);">
+           <label for="voicePreset">Voice Type</label>
+           <select id="voicePreset" name="voicePreset">
+             <option value="">Choose a voice...</option>
+             <option value="male_professional">Professional Male</option>
+             <option value="male_friendly">Friendly Male</option>
+             <option value="male_wise">Wise Male</option>
+             <option value="male_energetic">Energetic Male</option>
+             <option value="male_calm">Calm Male</option>
+             <option value="female_professional">Professional Female</option>
+             <option value="female_friendly">Friendly Female</option>
+             <option value="female_wise">Wise Female</option>
+             <option value="female_energetic">Energetic Female</option>
+             <option value="female_nurturing">Nurturing Female</option>
+             <option value="neutral_ai">AI Assistant</option>
+             <option value="narrator">Narrator</option>
+             <option value="child_friendly">Child-Friendly</option>
+             <option value="dramatic">Dramatic</option>
+           </select>
+           
+           <div class="voice-preview" style="margin-top: var(--spacing-md);">
+             <button type="button" id="testVoiceBtn" class="btn btn-secondary-form" disabled>
+               🔊 Test Voice
+             </button>
+           </div>
+         </div>
+       </div>
+    
+
+     
+
       <!-- Character profile image -->
       <div class="form-section">
         <h2>👤 Character profile image <span style="font-size: var(--font-size-sm); color: var(--color-gray); font-weight: normal;">(Optional)</span></h2>
@@ -2542,6 +2661,191 @@
      bonding: [],
      quirks: []
    };
+
+// ===== VOICE SYSTEM (VEILIG VIA NETLIFY FUNCTIONS) =====
+   
+   // Voice Library Configuration
+   const voiceLibrary = {
+     // Mannelijke stemmen
+     'male_professional': 'iP95p4HMsOdaJ6J8s72v',     // Joshua - zakelijke man
+     'male_friendly': 'TxGEqnHWrfWFTfGW9XjX',         // Ethan - vriendelijke man
+     'male_wise': 'VR6AewLTigWG4xSOukaG',             // Arnold - oude wijze man
+     'male_energetic': 'pqHfZKP75CvOlQylNhV4',        // Bill - jonge energieke man
+     'male_calm': 'yoZ06aMxZJJ28mfd3POQ',             // Sam - rustige man
+     
+     // Vrouwelijke stemmen
+     'female_professional': 'EXAVITQu4vr4xnSDxMaL',   // Bella - zakelijke vrouw
+     'female_friendly': 'XrExE9yKIg1WjnnlVkGX',       // Freya - vriendelijke vrouw
+     'female_wise': 'oWAxZDx7w5VEj9dCyTzz',           // Grace - oude wijze vrouw
+     'female_energetic': 'pFZP5JQG7iQjIQuC4Bku',      // Lily - jonge energieke vrouw
+     'female_nurturing': 'XB0fDUnXU5powFXDhCwa',      // Charlotte - zorgzame vrouw
+     
+     // Speciale stemmen
+     'neutral_ai': 'iP95p4HMsOdaJ6J8s72v',            // Neutrale AI stem
+     'narrator': 'onwK4e9ZLuTAKqWW03F9',              // Verteller stem
+     'child_friendly': 'pFZP5JQG7iQjIQuC4Bku',        // Kindvriendelijke stem
+     'dramatic': 'oWAxZDx7w5VEj9dCyTzz',              // Dramatische stem
+     'default': 'iP95p4HMsOdaJ6J8s72v'                // Fallback
+   };
+
+   // VEILIGE TTS functie via Netlify Function
+   async function generateSpeech(text, voiceId) {
+     try {
+       const response = await fetch('/.netlify/functions/tts', {
+         method: 'POST',
+         headers: {
+           'Content-Type': 'application/json'
+         },
+         body: JSON.stringify({
+           text: text,
+           voice_id: voiceId
+         })
+       });
+
+       if (!response.ok) {
+         throw new Error(`TTS request failed: ${response.status}`);
+       }
+
+       const data = await response.json();
+       
+       if (!data.success) {
+         throw new Error(data.error || 'TTS generation failed');
+       }
+
+       // Convert base64 to blob
+       const audioBytes = atob(data.audio);
+       const audioArray = new Uint8Array(audioBytes.length);
+       for (let i = 0; i < audioBytes.length; i++) {
+         audioArray[i] = audioBytes.charCodeAt(i);
+       }
+       
+       return new Blob([audioArray], { type: 'audio/mpeg' });
+
+     } catch (error) {
+       console.error('TTS Error:', error);
+       throw error;
+     }
+   }
+
+   // Voice selection functions
+   function selectVoice(type) {
+     document.querySelectorAll('.voice-option').forEach(option => {
+       option.classList.remove('selected');
+     });
+     
+     event.target.closest('.voice-option').classList.add('selected');
+     document.querySelector(`input[value="${type}"]`).checked = true;
+     
+     const customSelection = document.getElementById('customVoiceSelection');
+     if (type === 'custom') {
+       customSelection.style.display = 'block';
+     } else {
+       customSelection.style.display = 'none';
+     }
+   }
+
+   // Auto voice assignment
+   function getAutoVoice(characterData) {
+     const { name, category, personalityState } = characterData;
+     
+     // Gender detection
+     const isFemale = detectFemaleCharacter(name, personalityState);
+     const gender = isFemale ? 'female' : 'male';
+     
+     // Type detection
+     let voiceType = 'friendly';
+     
+     if (category === 'ai-assistant' || category === 'educational') {
+       voiceType = 'professional';
+     } else if (category.includes('coach')) {
+       voiceType = personalityState.traits.includes('caring') ? 'nurturing' : 'professional';
+     } else if (personalityState.traits.includes('wise')) {
+       voiceType = 'wise';
+     } else if (personalityState.traits.includes('dramatic') || personalityState.sliders.mood > 70) {
+       voiceType = 'energetic';
+     } else if (personalityState.sliders.tempo < 30) {
+       voiceType = 'calm';
+     }
+     
+     const voiceKey = `${gender}_${voiceType}`;
+     return voiceLibrary[voiceKey] || voiceLibrary.default;
+   }
+
+   function detectFemaleCharacter(name, personalityState) {
+     const femaleNames = ['maria', 'anna', 'sarah', 'emma', 'sophie', 'alice', 'diana', 'elena', 'grace', 'lily', 'charlotte', 'maya', 'luna'];
+     const nameLower = name.toLowerCase();
+     
+     // Check name
+     if (femaleNames.some(fname => nameLower.includes(fname))) return true;
+     
+     // Check traits
+     if (personalityState.traits.includes('nurturing') || personalityState.traits.includes('caring')) {
+       return true;
+     }
+     
+     return false;
+   }
+
+   function getSelectedVoiceId() {
+     const voiceSelection = document.querySelector('input[name="voiceSelection"]:checked').value;
+     
+     if (voiceSelection === 'none') {
+       return null;
+     } else if (voiceSelection === 'custom') {
+       const voiceType = document.getElementById('voicePreset').value;
+       return voiceLibrary[voiceType] || null;
+     } else { // auto
+       const formData = {
+         name: document.getElementById('characterName').value,
+         category: document.getElementById('characterCategory').value,
+         personalityState: personalityState
+       };
+       return getAutoVoice(formData);
+     }
+   }
+
+   async function playTestVoice(text, voiceId) {
+     try {
+       const audioBlob = await generateSpeech(text, voiceId);
+       const audioUrl = URL.createObjectURL(audioBlob);
+       const audio = new Audio(audioUrl);
+       audio.play();
+       
+       audio.addEventListener('ended', () => {
+         URL.revokeObjectURL(audioUrl);
+       });
+     } catch (error) {
+       showError('Could not test voice. Please try again.');
+     }
+   }
+
+   // Setup voice test functionality
+   function setupVoiceTest() {
+     document.getElementById('voicePreset').addEventListener('change', (e) => {
+       const testBtn = document.getElementById('testVoiceBtn');
+       testBtn.disabled = !e.target.value;
+     });
+
+     document.getElementById('testVoiceBtn').addEventListener('click', async () => {
+       const voiceType = document.getElementById('voicePreset').value;
+       const voiceId = voiceLibrary[voiceType];
+       
+       if (voiceId) {
+         const testBtn = document.getElementById('testVoiceBtn');
+         const originalText = testBtn.textContent;
+         testBtn.textContent = '🔄 Playing...';
+         testBtn.disabled = true;
+         
+         const testText = "Hello! This is how I would sound when we chat together.";
+         await playTestVoice(testText, voiceId);
+         
+         setTimeout(() => {
+           testBtn.textContent = originalText;
+           testBtn.disabled = false;
+         }, 3000);
+       }
+     });
+   }
 
    // ===== NAVIGATION FUNCTIONALITY =====
    
@@ -3969,6 +4273,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupPersonalityButtons();
   setupCustomQuirks();
   setupPromptActions();
+  setupVoiceTest();
   loadTags();
   
   // Initialize preview
@@ -4345,7 +4650,9 @@ console.log('🔗 Generated slug:', slug);
       tags: selectedTags && selectedTags.length > 0 ? selectedTags.map(tag => tag.toLowerCase()).join(',') : '',
       visibility: formData.visibility,
 avatar_url: formData.avatarUrl || generateEmojiAvatar(formData.name, formData.category),      
-character_url: `https://narrin.ai/chat.html?char=${slug}`
+character_url: `https://narrin.ai/chat.html?char=${slug}`,
+      voice_id: getSelectedVoiceId(),
+      voice_type: document.querySelector('input[name="voiceSelection"]:checked').value
     };
     
     console.log('📤 Request data:', requestData);
