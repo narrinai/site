@@ -608,7 +608,7 @@ def generate_additional_names(category, count, existing_specialties=None):
         first_name_idx = i % len(first_names)
         first_name = first_names[first_name_idx]
         
-        name = f"{first_name} {specialty}"
+        name = f"{specialty} {first_name}"
         names.append(name)
         used_specialties.add(specialty)
     
@@ -630,10 +630,10 @@ def generate_unique_characters(category, target_count, existing_names_set=None):
         for char in base_chars:
             if char['name'] not in existing_names_set:
                 characters.append(char)
-                # Track de specialiteit
+                # Track de specialiteit (CHARACTER_DATA heeft hetzelfde formaat als NAME_POOLS)
                 name_parts = char['name'].split()
                 if len(name_parts) >= 2:
-                    specialty = ' '.join(name_parts[1:])
+                    specialty = name_parts[0]  # Eerste deel is specialty
                     used_specialties.add(specialty)
     
     # Gebruik name pool voor deze categorie
@@ -649,10 +649,11 @@ def generate_unique_characters(category, target_count, existing_names_set=None):
             if len(characters) >= target_count:
                 break
                 
-            # Check of deze specialiteit al bestaat
+            # Check of deze specialiteit al bestaat  
+            # Voor NAME_POOLS zijn namen zoals "Chef Charlie" - specialty is eerste deel
             name_parts = name.split()
             if len(name_parts) >= 2:
-                specialty = ' '.join(name_parts[1:])
+                specialty = name_parts[0]  # Voor NAME_POOLS: "Chef" uit "Chef Charlie"
                 if specialty in used_specialties:
                     continue  # Skip als specialiteit al bestaat
                 used_specialties.add(specialty)
@@ -860,13 +861,8 @@ def generate_unique_characters(category, target_count, existing_names_set=None):
             if len(characters) >= target_count:
                 break
             if extra_name not in [char['name'] for char in characters] and extra_name not in existing_names_set:
-                # Check of deze specialiteit al bestaat
-                name_parts = extra_name.split()
-                if len(name_parts) >= 2:
-                    specialty = ' '.join(name_parts[1:])
-                    if specialty in used_specialties:
-                        continue  # Skip als specialiteit al bestaat
-                    used_specialties.add(specialty)
+                # Voor extra_base_names skippen we specialty check omdat dit complexe namen zijn
+                # Deze namen zijn al zorgvuldig samengesteld om uniek te zijn
                 
                 title, description = generate_title_description(extra_name, category)
                 characters.append({
@@ -892,9 +888,10 @@ def generate_unique_characters(category, target_count, existing_names_set=None):
                 break
             if extra_name not in existing_names_set and extra_name not in used_names:
                 # Check of deze specialiteit al bestaat
+                # Voor generate_additional_names zijn namen zoals "Italian Cuisine Chris" - specialty is alles behalve laatste deel
                 name_parts = extra_name.split()
                 if len(name_parts) >= 2:
-                    specialty = ' '.join(name_parts[1:])
+                    specialty = ' '.join(name_parts[:-1])  # "Italian Cuisine" uit "Italian Cuisine Chris"
                     if specialty in used_specialties:
                         continue  # Skip als specialiteit al bestaat
                     used_specialties.add(specialty)
@@ -922,7 +919,7 @@ def generate_unique_characters(category, target_count, existing_names_set=None):
         for i in range(still_needed):
             name = fallback_names[i % len(fallback_names)]
             specialty = fallback_specialties[i % len(fallback_specialties)]
-            fallback_name = f"{name} {specialty}"
+            fallback_name = f"{specialty} {name}"
             title, description = generate_title_description(fallback_name, category)
             characters.append({
                 'name': fallback_name,
