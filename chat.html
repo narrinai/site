@@ -2433,8 +2433,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let isPlayingAudio = false;
 
     // VEILIGE TTS functie via Netlify Function
-    async function generateSpeech(text, voiceId) {
+    window.generateSpeech = async function(text, voiceId) {
       try {
+        console.log('📢 Calling TTS with:', { text: text.substring(0, 50) + '...', voiceId });
+        
         const response = await fetch('/.netlify/functions/tts', {
           method: 'POST',
           headers: {
@@ -2445,6 +2447,8 @@ document.addEventListener('DOMContentLoaded', () => {
             voice_id: voiceId
           })
         });
+        
+        console.log('📢 TTS response:', response.status, response.statusText);
 
         if (!response.ok) {
           throw new Error(`TTS request failed: ${response.status}`);
@@ -2472,7 +2476,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Manual voice playback
-    async function playMessageVoice(text, voiceId, buttonElement) {
+    window.playMessageVoice = async function(text, voiceId, buttonElement) {
       try {
         // Stop current audio if playing
         if (currentAudio) {
