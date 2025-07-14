@@ -74,8 +74,6 @@ class MissingAvatarUploader:
                     break
                 
                 page += 1
-                if page > 20:  # Safety limit
-                    break
                     
                 time.sleep(0.5)  # Rate limiting
                 
@@ -304,11 +302,12 @@ class MissingAvatarUploader:
         print(f"   ❌ All images failed for {character['name']}")
         return False
 
-    def run(self, test_limit=None):
-        """Main execution function"""
+    def run(self):
+        """Main execution function - NO LIMITS"""
         print("🚀 Character Avatar Uploader - Missing Avatars Only")
-        print("🎯 Processing characters that have NO Avatar_URL")
+        print("🎯 Processing ALL characters that have NO Avatar_URL")
         print("💾 Saving to avatars/ folder + updating Airtable")
+        print("⚡ NO LIMITS - Processing all characters without confirmation")
         
         # Load characters without avatars
         characters = self.load_characters_without_avatar()
@@ -317,28 +316,12 @@ class MissingAvatarUploader:
             print("\n🎉 All characters already have avatars!")
             return 0, 0
         
-        # Apply test limit if specified
-        if test_limit:
-            total_available = len(characters)
-            characters = characters[:test_limit]
-            print(f"\n🧪 TEST MODE: Processing first {len(characters)} of {total_available} characters")
-        else:
-            print(f"\n▶️ FULL MODE: Processing all {len(characters)} characters")
+        print(f"\n▶️ PROCESSING ALL {len(characters)} characters WITHOUT LIMITS")
         
         # Show which characters will be processed
         print(f"\n📋 Characters to process:")
         for i, char in enumerate(characters, 1):
             print(f"  {i:2d}. {char['name']}")
-        
-        # Confirmation prompt
-        if test_limit:
-            response = input(f"\n✅ Process these {len(characters)} characters? (y/N): ")
-        else:
-            response = input(f"\n⚠️  Process ALL {len(characters)} characters? (y/N): ")
-            
-        if response.lower() != 'y':
-            print("❌ Cancelled by user")
-            return 0, 0
         
         print(f"\n▶️ Starting processing...")
         
@@ -380,24 +363,10 @@ class MissingAvatarUploader:
         return success, failed
 
 if __name__ == "__main__":
-    import sys
-    
     print("🎯 Character Avatar Uploader for Missing Avatars")
-    print("📸 Only processes characters WITHOUT Avatar_URL")
+    print("📸 Processes ALL characters WITHOUT Avatar_URL")
     print("💾 Saves to avatars/ + updates Airtable")
-    
-    # Check for test mode
-    test_mode = '--test' in sys.argv or '--test-15' in sys.argv
-    
-    if test_mode:
-        print("\n🧪 TEST MODE: Processing first 15 characters only")
-        print("💡 Usage:")
-        print("   python script.py --test     # Test with first 15")
-        print("   python script.py           # Process all characters")
+    print("⚡ NO LIMITS - No test mode, no confirmation required")
     
     uploader = MissingAvatarUploader()
-    
-    if test_mode:
-        uploader.run(test_limit=15)
-    else:
-        uploader.run()
+    uploader.run()
