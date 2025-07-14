@@ -579,21 +579,23 @@ def generate_additional_names(category, count):
     
     names = []
     
+    # Strategie: Maximaal 2 characters per specialiteit, dan pas naar volgende
+    max_per_specialty = 2
+    
     for i in range(count):
-        # Bepaal welke cyclus we zitten (hoeveel keer hebben we alle patterns gehad?)
-        cycle = i // len(patterns)
-        
-        # Welke specialiteit binnen deze cyclus?
-        specialty_idx = i % len(patterns)
+        # Bepaal welke specialiteit we nu doen
+        specialty_idx = (i // max_per_specialty) % len(patterns)
         specialty = patterns[specialty_idx]
         
-        # Welke voornaam voor deze positie?
-        first_name_idx = i % len(first_names)
-        first_name = first_names[first_name_idx]
+        # Welke character binnen deze specialiteit (1e of 2e)
+        char_within_specialty = i % max_per_specialty
         
-        # Als we patterns herhalen, gebruik verschillende voornamen
+        # Welke voornaam gebruiken we?
+        # Start met een andere index voor elke specialiteit om spreiding te krijgen
+        base_name_idx = (specialty_idx * max_per_specialty + char_within_specialty) % len(first_names)
+        first_name = first_names[base_name_idx]
+        
         name = f"{first_name} {specialty}"
-        
         names.append(name)
     
     return names
