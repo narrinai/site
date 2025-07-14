@@ -18,6 +18,15 @@ exports.handler = async (event, context) => {
       };
     }
 
+    // Check if API key is configured
+    if (!process.env.ELEVENLABS_API_KEY) {
+      console.error('❌ ELEVENLABS_API_KEY not configured');
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: 'TTS service not configured' })
+      };
+    }
+
     // Rate limiting - max 500 chars
     if (text.length > 500) {
       return {
@@ -27,6 +36,8 @@ exports.handler = async (event, context) => {
     }
 
     // Call ElevenLabs API
+    console.log(`🎙️ TTS request: voice_id=${voice_id}, text_length=${text.length}`);
+    
     const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voice_id}`, {
       method: 'POST',
       headers: {
@@ -44,8 +55,12 @@ exports.handler = async (event, context) => {
       })
     });
 
+    console.log(`🎙️ ElevenLabs response: ${response.status} ${response.statusText}`);
+
     if (!response.ok) {
-      throw new Error(`ElevenLabs API error: ${response.status}`);
+      const errorText = await response.text();
+      console.error(`❌ ElevenLabs API error: ${response.status} - ${errorText}`);
+      throw new Error(`ElevenLabs API error: ${response.status} - ${errorText}`);
     }
 
     const audioBuffer = await response.arrayBuffer();

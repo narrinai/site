@@ -2509,7 +2509,15 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('Voice playback error:', error);
         buttonElement.classList.remove('playing');
         buttonElement.textContent = '🔊';
-        showError('Could not play voice. Please try again.');
+        
+        // Show more specific error messages
+        if (error.message.includes('TTS service not configured')) {
+          showError('Voice service is not configured. Please contact support.');
+        } else if (error.message.includes('408') || error.message.includes('timeout')) {
+          showError('Voice service timed out. Please try again.');
+        } else {
+          showError('Could not play voice. Please try again.');
+        }
       }
     }
 
