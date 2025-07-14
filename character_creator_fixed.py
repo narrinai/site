@@ -530,38 +530,67 @@ def select_random_tags(category, valid_tags, min_tags=3, max_tags=6):
 def generate_additional_names(category, count):
     """Genereer extra namen voor een categorie als er niet genoeg zijn"""
     base_patterns = {
-        'mythology': ['God', 'Goddess', 'Spirit', 'Divine', 'Sacred', 'Ancient', 'Eternal', 'Celestial'],
-        'educational': ['Professor', 'Dr.', 'Teacher', 'Scholar', 'Expert', 'Researcher', 'Academic', 'Educator'],
-        'ai-assistant': ['AI', 'BOT', 'ASSIST', 'HELP', 'SMART', 'INTEL', 'CYBER', 'TECH'],
-        'fitness-coach': ['Coach', 'Trainer', 'Fit', 'Strong', 'Power', 'Muscle', 'Active', 'Sport'],
-        'business-coach': ['CEO', 'Boss', 'Leader', 'Manager', 'Executive', 'Director', 'Chief', 'President'],
-        'relationship-coach': ['Love', 'Heart', 'Soul', 'Care', 'Bond', 'Unity', 'Trust', 'Connect'],
-        'cooking-coach': ['Chef', 'Cook', 'Baker', 'Kitchen', 'Recipe', 'Flavor', 'Taste', 'Cuisine'],
-        'writing-coach': ['Writer', 'Author', 'Poet', 'Editor', 'Story', 'Word', 'Script', 'Novel'],
-        'parody': ['Funny', 'Comedy', 'Joke', 'Laugh', 'Humor', 'Wit', 'Silly', 'Mock'],
-        'rpg': ['Hero', 'Warrior', 'Mage', 'Knight', 'Rogue', 'Paladin', 'Ranger', 'Fighter'],
-        'romance': ['Love', 'Sweet', 'Heart', 'Kiss', 'Hug', 'Dear', 'Honey', 'Sugar'],
-        'middle-aged': ['Mature', 'Wise', 'Experienced', 'Seasoned', 'Settled', 'Stable', 'Responsible', 'Reliable'],
-        'gen-z': ['Digital', 'Tech', 'Online', 'Social', 'Stream', 'Viral', 'Trend', 'App'],
-        'older': ['Elder', 'Senior', 'Wise', 'Grand', 'Vintage', 'Classic', 'Golden', 'Silver'],
-        'humor': ['Funny', 'Hilarious', 'Witty', 'Silly', 'Goofy', 'Crazy', 'Mad', 'Wild'],
-        'other': ['Helper', 'Support', 'Aid', 'Assist', 'Extra', 'Spare', 'Additional', 'Various'],
-        'fictional': ['Story', 'Tale', 'Character', 'Hero', 'Plot', 'Theme', 'Scene', 'Novel']
+        'mythology': ['God', 'Goddess', 'Spirit', 'Divine', 'Sacred', 'Ancient', 'Eternal', 'Celestial', 'Titan', 'Deity', 'Oracle', 'Prophet'],
+        'educational': ['Professor', 'Dr.', 'Teacher', 'Scholar', 'Expert', 'Researcher', 'Academic', 'Educator', 'Tutor', 'Instructor', 'Mentor', 'Guide'],
+        'ai-assistant': ['AI', 'BOT', 'ASSIST', 'HELP', 'SMART', 'INTEL', 'CYBER', 'TECH', 'DIGITAL', 'VIRTUAL', 'AUTO', 'SYSTEM'],
+        'fitness-coach': ['Coach', 'Trainer', 'Fit', 'Strong', 'Power', 'Muscle', 'Active', 'Sport', 'Gym', 'Health', 'Workout', 'Athletic'],
+        'business-coach': ['CEO', 'Boss', 'Leader', 'Manager', 'Executive', 'Director', 'Chief', 'President', 'Entrepreneur', 'Founder', 'Advisor', 'Consultant'],
+        'relationship-coach': ['Love', 'Heart', 'Soul', 'Care', 'Bond', 'Unity', 'Trust', 'Connect', 'Couple', 'Partner', 'Romance', 'Harmony'],
+        'cooking-coach': ['Chef', 'Cook', 'Baker', 'Kitchen', 'Recipe', 'Flavor', 'Taste', 'Cuisine', 'Gourmet', 'Culinary', 'Food', 'Dish'],
+        'writing-coach': ['Writer', 'Author', 'Poet', 'Editor', 'Story', 'Word', 'Script', 'Novel', 'Journalist', 'Blogger', 'Copywriter', 'Playwright'],
+        'parody': ['Funny', 'Comedy', 'Joke', 'Laugh', 'Humor', 'Wit', 'Silly', 'Mock', 'Satire', 'Spoof', 'Mimic', 'Jest'],
+        'rpg': ['Hero', 'Warrior', 'Mage', 'Knight', 'Rogue', 'Paladin', 'Ranger', 'Fighter', 'Wizard', 'Cleric', 'Barbarian', 'Archer'],
+        'romance': ['Love', 'Sweet', 'Heart', 'Kiss', 'Hug', 'Dear', 'Honey', 'Sugar', 'Darling', 'Beloved', 'Romantic', 'Passion'],
+        'middle-aged': ['Mature', 'Wise', 'Experienced', 'Seasoned', 'Settled', 'Stable', 'Responsible', 'Reliable', 'Established', 'Professional', 'Accomplished', 'Successful'],
+        'gen-z': ['Digital', 'Tech', 'Online', 'Social', 'Stream', 'Viral', 'Trend', 'App', 'Cyber', 'Web', 'Net', 'Cloud'],
+        'older': ['Elder', 'Senior', 'Wise', 'Grand', 'Vintage', 'Classic', 'Golden', 'Silver', 'Aged', 'Elderly', 'Grandfather', 'Grandmother'],
+        'humor': ['Funny', 'Hilarious', 'Witty', 'Silly', 'Goofy', 'Crazy', 'Mad', 'Wild', 'Comic', 'Amusing', 'Laughing', 'Jovial'],
+        'other': ['Helper', 'Support', 'Aid', 'Assist', 'Extra', 'Spare', 'Additional', 'Various', 'General', 'Universal', 'Common', 'Basic'],
+        'fictional': ['Story', 'Tale', 'Character', 'Hero', 'Plot', 'Theme', 'Scene', 'Novel', 'Fiction', 'Narrative', 'Legend', 'Myth'],
+        'accounting-coach': ['Accountant', 'Finance', 'Budget', 'Tax', 'CPA', 'Bookkeeper', 'Audit', 'Numbers', 'Money', 'Profit', 'Revenue', 'Cost'],
+        'study-coach': ['Study', 'Learn', 'Focus', 'Memory', 'Brain', 'Smart', 'Clever', 'Test', 'Exam', 'Grade', 'Score', 'Success'],
+        'language-coach': ['Language', 'Speak', 'Talk', 'Word', 'Grammar', 'Fluent', 'Accent', 'Voice', 'Communication', 'Expression', 'Pronunciation', 'Vocabulary'],
+        'career-coach': ['Career', 'Job', 'Work', 'Professional', 'Success', 'Growth', 'Advance', 'Promote', 'Achievement', 'Goal', 'Path', 'Journey'],
+        'original': ['Original', 'Unique', 'Creative', 'Innovative', 'Fresh', 'New', 'Novel', 'Different', 'Special', 'Rare', 'Individual', 'Custom'],
+        'negotiation-coach': ['Deal', 'Bargain', 'Trade', 'Agreement', 'Contract', 'Settlement', 'Compromise', 'Mediate', 'Resolve', 'Solution', 'Peace', 'Balance'],
+        'creativity-coach': ['Creative', 'Art', 'Design', 'Make', 'Build', 'Craft', 'Paint', 'Draw', 'Imagine', 'Inspire', 'Vision', 'Innovation'],
+        'mindfulness-coach': ['Calm', 'Peace', 'Zen', 'Serene', 'Tranquil', 'Mindful', 'Aware', 'Present', 'Focus', 'Center', 'Balance', 'Harmony']
     }
     
-    first_names = ['Alex', 'Sam', 'Chris', 'Jordan', 'Taylor', 'Casey', 'Riley', 'Quinn', 'Avery', 'Blake', 
-                   'Cameron', 'Drew', 'Ellis', 'Finley', 'Gray', 'Harper', 'Indigo', 'Kai', 'Lane', 'Max',
-                   'Nova', 'Ocean', 'Parker', 'River', 'Sage', 'Tate', 'Val', 'West', 'Zara', 'Eden',
-                   'Frost', 'Haven', 'Jazz', 'Lux', 'Neo', 'Orion', 'Phoenix', 'Reed', 'Storm', 'Vale']
+    # Veel meer first names om uniekheid te garanderen
+    first_names = [
+        'Alex', 'Sam', 'Chris', 'Jordan', 'Taylor', 'Casey', 'Riley', 'Quinn', 'Avery', 'Blake',
+        'Cameron', 'Drew', 'Ellis', 'Finley', 'Gray', 'Harper', 'Indigo', 'Kai', 'Lane', 'Max',
+        'Nova', 'Ocean', 'Parker', 'River', 'Sage', 'Tate', 'Val', 'West', 'Zara', 'Eden',
+        'Frost', 'Haven', 'Jazz', 'Lux', 'Neo', 'Orion', 'Phoenix', 'Reed', 'Storm', 'Vale',
+        'Ace', 'Bay', 'Cole', 'Dale', 'Echo', 'Faye', 'Glen', 'Hope', 'Iris', 'Jude',
+        'Kit', 'Lee', 'Mae', 'Noel', 'Opal', 'Penn', 'Quinn', 'Rue', 'Sky', 'True',
+        'Uma', 'Vera', 'Wade', 'Xara', 'Yale', 'Zen', 'Aria', 'Beau', 'Cleo', 'Dean',
+        'Ella', 'Finn', 'Gia', 'Hero', 'Iona', 'Jace', 'Knox', 'Luna', 'Mira', 'Nico'
+    ]
     
-    patterns = base_patterns.get(category, ['Expert', 'Master', 'Pro', 'Specialist', 'Guru', 'Ace', 'Star', 'Elite'])
+    patterns = base_patterns.get(category, ['Expert', 'Master', 'Pro', 'Specialist', 'Guru', 'Ace', 'Star', 'Elite', 'Champion', 'Leader', 'Guide', 'Mentor'])
     
     names = []
+    name_index = 0
+    
+    # Genereer unieke combinaties
     for i in range(count):
-        first = first_names[i % len(first_names)]
-        pattern = patterns[i % len(patterns)]
-        name = f"{first} {pattern}"
+        first_idx = name_index % len(first_names)
+        pattern_idx = (name_index // len(first_names)) % len(patterns)
+        
+        first = first_names[first_idx]
+        pattern = patterns[pattern_idx]
+        
+        # Voeg een nummer toe als we alle combinaties hebben gehad
+        if name_index >= len(first_names) * len(patterns):
+            number = (name_index // (len(first_names) * len(patterns))) + 1
+            name = f"{first} {pattern} {number}"
+        else:
+            name = f"{first} {pattern}"
+        
         names.append(name)
+        name_index += 1
     
     return names
 
@@ -570,6 +599,8 @@ def generate_unique_characters(category, target_count, existing_names_set=None):
     characters = []
     if existing_names_set is None:
         existing_names_set = set()
+    
+    log(Colors.BLUE, f"🎯 Genereer characters voor {category}, target: {target_count}")
     
     # Start met basis characters uit CHARACTER_DATA (nu leeg)
     if category in CHARACTER_DATA:
@@ -598,6 +629,8 @@ def generate_unique_characters(category, target_count, existing_names_set=None):
                 'title': title,
                 'description': description
             })
+        
+        log(Colors.CYAN, f"   📋 NAME_POOLS: {len(characters)} characters toegevoegd")
     
     # Probeer extra base namen als we er nog hebben - uitgebreid tot 150+ namen per categorie
     extra_base_names = {
@@ -797,24 +830,55 @@ def generate_unique_characters(category, target_count, existing_names_set=None):
                     'title': title,
                     'description': description
                 })
+        
+        log(Colors.CYAN, f"   🔧 extra_base_names: {len(characters)} totaal na extra names")
     
-    # Als we nog steeds niet genoeg hebben, genereer extra namen
+    # GUARANTEE: Als we nog steeds niet genoeg hebben, genereer altijd extra namen
     if len(characters) < target_count:
         needed = target_count - len(characters)
         log(Colors.YELLOW, f"⚠️  {category}: Genereer {needed} extra namen (totaal beschikbaar: {len(characters)})")
         
-        extra_names = generate_additional_names(category, needed)
+        # Genereer veel meer dan nodig om duplicates te vermijden
+        extra_names = generate_additional_names(category, needed + 50)
+        used_names = {char['name'] for char in characters}
+        
+        added_count = 0
         for extra_name in extra_names:
-            if extra_name not in existing_names_set and extra_name not in [char['name'] for char in characters]:
+            if len(characters) >= target_count:
+                break
+            if extra_name not in existing_names_set and extra_name not in used_names:
                 title, description = generate_title_description(extra_name, category)
                 characters.append({
                     'name': extra_name,
                     'title': title,
                     'description': description
                 })
+                used_names.add(extra_name)
+                added_count += 1
+        
+        log(Colors.GREEN, f"   ✅ Generated {added_count} extra names")
+    
+    # FINAL GUARANTEE: Als er nog steeds niet genoeg zijn, forceer het
+    if len(characters) < target_count:
+        still_needed = target_count - len(characters)
+        log(Colors.RED, f"🚨 FALLBACK: Nog {still_needed} characters nodig voor {category}")
+        
+        # Genereer simpele fallback namen met nummers
+        for i in range(still_needed):
+            fallback_name = f"{category.title()} Expert {len(characters) + 1}"
+            title, description = generate_title_description(fallback_name, category)
+            characters.append({
+                'name': fallback_name,
+                'title': title,
+                'description': description
+            })
     
     # Rapporteer hoeveel characters er beschikbaar zijn
-    log(Colors.CYAN, f"📊 {category}: {len(characters)} nieuwe characters gegenereerd (target was {target_count})")
+    final_count = len(characters)
+    log(Colors.CYAN, f"📊 {category}: {final_count} nieuwe characters gegenereerd (target was {target_count})")
+    
+    if final_count < target_count:
+        log(Colors.RED, f"❌ FOUT: Kon niet genoeg characters genereren voor {category}")
     
     return characters[:target_count]
 
