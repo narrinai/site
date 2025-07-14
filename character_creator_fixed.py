@@ -591,9 +591,12 @@ def generate_additional_names(category, count):
         first_name_idx = i % len(first_names)
         first_name = first_names[first_name_idx]
         
-        # Voeg cyclus nummer toe als we patterns herhalen
+        # Als we patterns herhalen, gebruik variaties zonder nummers
         if cycle > 0:
-            name = f"{first_name} {specialty} {cycle + 1}"
+            # Voeg variaties toe zoals Senior, Master, Expert, etc.
+            variations = ['Senior', 'Master', 'Expert', 'Lead', 'Chief', 'Head', 'Principal', 'Executive', 'Advanced', 'Elite']
+            variation = variations[cycle % len(variations)]
+            name = f"{variation} {first_name} {specialty}"
         else:
             name = f"{first_name} {specialty}"
         
@@ -870,9 +873,14 @@ def generate_unique_characters(category, target_count, existing_names_set=None):
         still_needed = target_count - len(characters)
         log(Colors.RED, f"🚨 FALLBACK: Nog {still_needed} characters nodig voor {category}")
         
-        # Genereer simpele fallback namen met nummers
+        # Genereer simpele fallback namen zonder nummers
+        fallback_variations = ['Senior', 'Master', 'Expert', 'Lead', 'Chief', 'Head', 'Principal', 'Executive', 'Advanced', 'Elite', 'Pro', 'Specialist']
+        fallback_names = ['Alex', 'Sam', 'Chris', 'Jordan', 'Taylor', 'Casey', 'Riley', 'Quinn', 'Avery', 'Blake']
+        
         for i in range(still_needed):
-            fallback_name = f"{category.title()} Expert {len(characters) + 1}"
+            variation = fallback_variations[i % len(fallback_variations)]
+            name = fallback_names[i % len(fallback_names)]
+            fallback_name = f"{variation} {name} {category.title()}"
             title, description = generate_title_description(fallback_name, category)
             characters.append({
                 'name': fallback_name,
