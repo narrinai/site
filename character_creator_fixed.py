@@ -574,23 +574,26 @@ def generate_additional_names(category, count):
     names = []
     name_index = 0
     
-    # Genereer unieke combinaties
+    # Maak alle mogelijke combinaties en shuffle ze voor diversiteit
+    all_combinations = []
+    for pattern in patterns:
+        for first in first_names:
+            all_combinations.append(f"{first} {pattern}")
+    
+    # Shuffle voor willekeurige volgorde maar geen duplicates
+    import random
+    random.shuffle(all_combinations)
+    
+    # Neem zoveel als nodig, herhaal indien nodig
     for i in range(count):
-        first_idx = name_index % len(first_names)
-        pattern_idx = (name_index // len(first_names)) % len(patterns)
-        
-        first = first_names[first_idx]
-        pattern = patterns[pattern_idx]
-        
-        # Voeg een nummer toe als we alle combinaties hebben gehad
-        if name_index >= len(first_names) * len(patterns):
-            number = (name_index // (len(first_names) * len(patterns))) + 1
-            name = f"{first} {pattern} {number}"
+        if i < len(all_combinations):
+            names.append(all_combinations[i])
         else:
-            name = f"{first} {pattern}"
-        
-        names.append(name)
-        name_index += 1
+            # Als we meer nodig hebben dan beschikbare combinaties, voeg nummers toe
+            combo_idx = i % len(all_combinations)
+            cycle = (i // len(all_combinations)) + 1
+            base_name = all_combinations[combo_idx]
+            names.append(f"{base_name} {cycle + 1}")
     
     return names
 
