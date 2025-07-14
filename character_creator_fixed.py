@@ -574,37 +574,30 @@ def generate_additional_names(category, count):
     names = []
     name_index = 0
     
-    # Strategie: 2-3 karakters per specialiteit, dan volgende specialiteit
+    # Strategie: Eerst alle verschillende specialiteiten doorlopen, dan pas herhalen
     import random
-    characters_per_specialty = 3  # Elke specialiteit krijgt 2-3 karakters
     
     names = []
-    first_name_idx = 0
     
     for i in range(count):
-        # Welke specialiteit zijn we nu?
-        specialty_idx = (i // characters_per_specialty) % len(patterns)
+        # Bepaal welke cyclus we zitten (hoeveel keer hebben we alle patterns gehad?)
+        cycle = i // len(patterns)
+        
+        # Welke specialiteit binnen deze cyclus?
+        specialty_idx = i % len(patterns)
         specialty = patterns[specialty_idx]
         
-        # Welke voornaam binnen deze specialiteit?
-        name_within_specialty = i % characters_per_specialty
-        first_name = first_names[(first_name_idx + name_within_specialty) % len(first_names)]
+        # Welke voornaam voor deze positie?
+        first_name_idx = i % len(first_names)
+        first_name = first_names[first_name_idx]
         
-        # Als we alle specialiteiten hebben gehad, begin opnieuw maar met andere voornamen
-        if (i // characters_per_specialty) >= len(patterns):
-            cycle = (i // characters_per_specialty) // len(patterns)
-            if cycle > 0:
-                name = f"{first_name} {specialty} {cycle + 1}"
-            else:
-                name = f"{first_name} {specialty}"
+        # Voeg cyclus nummer toe als we patterns herhalen
+        if cycle > 0:
+            name = f"{first_name} {specialty} {cycle + 1}"
         else:
             name = f"{first_name} {specialty}"
         
         names.append(name)
-        
-        # Na elke specialiteit, verschuif de startpositie van voornamen
-        if (i + 1) % characters_per_specialty == 0:
-            first_name_idx += characters_per_specialty
     
     return names
 
