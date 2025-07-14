@@ -2511,10 +2511,17 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Verbeterde typewriter met automatische TTS
-    async function typewriterWithVoice(element, text, voiceId = null, speed = 15) {
+    // Verbeterde typewriter met automatische TTS en fade-in effect
+    async function typewriterWithVoice(element, text, voiceId = null, speed = 20) {
       let i = 0;
       element.textContent = '';
+      element.style.opacity = '0';
+      
+      // Fade in the container
+      element.style.transition = 'opacity 0.3s ease-in';
+      setTimeout(() => {
+        element.style.opacity = '1';
+      }, 100);
       
       // Start TTS als voice beschikbaar is en tekst lang genoeg
       if (voiceId && text.length > 20) {
@@ -2541,10 +2548,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
       
-      // Typewriter effect
+      // Typewriter effect with fade-in
       const timer = setInterval(() => {
         if (i < text.length) {
-          element.textContent += text.charAt(i);
+          const currentChar = text.charAt(i);
+          
+          // Create span for character with fade-in effect
+          const charSpan = document.createElement('span');
+          charSpan.textContent = currentChar;
+          charSpan.style.opacity = '0';
+          charSpan.style.transition = 'opacity 0.2s ease-in';
+          element.appendChild(charSpan);
+          
+          // Fade in the character
+          setTimeout(() => {
+            charSpan.style.opacity = '1';
+          }, 10);
+          
           i++;
           
           const chatlog = document.getElementById("chatlog");
@@ -3072,6 +3092,17 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     return; // Usage limit reached, upgrade prompt already shown
   }
   
+  // Add visual feedback to send button
+  const sendButton = document.getElementById('sendButton');
+  const userInput = document.getElementById('userInput');
+  
+  if (sendButton && userInput.value.trim()) {
+    sendButton.style.background = 'var(--gradient-primary)';
+    sendButton.textContent = 'Sending...';
+    sendButton.disabled = true;
+    userInput.disabled = true;
+  }
+  
   sendMessage(event);
 }
 
@@ -3371,12 +3402,34 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       }
     }
 
-    // Typewriter effect for bot response
-function typewriterEffect(element, text, speed = 15) {
+    // Improved typewriter effect with fade-in animation
+function typewriterEffect(element, text, speed = 20) {
   let i = 0;
+  element.textContent = '';
+  element.style.opacity = '0';
+  
+  // Fade in the container
+  element.style.transition = 'opacity 0.3s ease-in';
+  setTimeout(() => {
+    element.style.opacity = '1';
+  }, 100);
+  
   const timer = setInterval(() => {
     if (i < text.length) {
-      element.textContent += text.charAt(i);
+      const currentChar = text.charAt(i);
+      
+      // Create span for character with fade-in effect
+      const charSpan = document.createElement('span');
+      charSpan.textContent = currentChar;
+      charSpan.style.opacity = '0';
+      charSpan.style.transition = 'opacity 0.2s ease-in';
+      element.appendChild(charSpan);
+      
+      // Fade in the character
+      setTimeout(() => {
+        charSpan.style.opacity = '1';
+      }, 10);
+      
       i++;
       
       // Auto-scroll tijdens typen
@@ -3537,6 +3590,20 @@ if (memories && memories.length > 0) {
   chatlog.scrollTop = chatlog.scrollHeight;
   userInput.value = "";
 
+  // Reset send button state
+  function resetSendButton() {
+    const sendButton = document.getElementById('sendButton');
+    const userInput = document.getElementById('userInput');
+    if (sendButton) {
+      sendButton.style.background = '';
+      sendButton.textContent = 'Send';
+      sendButton.disabled = false;
+    }
+    if (userInput) {
+      userInput.disabled = false;
+    }
+  }
+
   // Show typing indicator immediately
 showTypingIndicator();
 
@@ -3654,6 +3721,9 @@ console.log("🔍 Final reply used:", reply);
 
     // Hide typing indicator immediately when response is ready
 hideTypingIndicator();
+
+    // Reset send button state
+    resetSendButton();
 
     // DIRECT: Voeg character antwoord toe aan chat
     const divBot = document.createElement("p");
