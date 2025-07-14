@@ -2836,8 +2836,29 @@
          testBtn.textContent = '🔄 Playing...';
          testBtn.disabled = true;
          
-         const testText = "Hello! This is how I would sound when we chat together.";
-         await playTestVoice(testText, voiceId);
+         try {
+           const testText = "Hello! This is how I would sound when we chat together.";
+           await playTestVoice(testText, voiceId);
+         } catch (error) {
+           console.error('Voice test failed:', error);
+           testBtn.textContent = '❌ Voice test failed';
+           testBtn.disabled = false;
+           
+           // Show more specific error message
+           if (error.message.includes('400')) {
+             showError('Voice test failed: Invalid request. Please check your API configuration.', 'Voice Test Error');
+           } else if (error.message.includes('500')) {
+             showError('Voice test failed: Server error. Please try again later.', 'Voice Test Error');
+           } else {
+             showError('Voice test failed: Could not connect to voice service. Please check your internet connection.', 'Voice Test Error');
+           }
+           
+           // Reset button after 3 seconds
+           setTimeout(() => {
+             testBtn.textContent = originalText;
+           }, 3000);
+           return;
+         }
          
          setTimeout(() => {
            testBtn.textContent = originalText;
