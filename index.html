@@ -1027,6 +1027,33 @@
       color: white;
       margin-top: var(--spacing-3xl);
     }
+    
+    /* Mid-page CTA variant */
+    .create-character-cta.mid-page {
+      background: linear-gradient(135deg, var(--color-coral) 0%, var(--color-teal) 100%);
+      margin: var(--spacing-3xl) 0;
+      padding: var(--spacing-2xl);
+    }
+    
+    .create-character-cta.mid-page .cta-icon {
+      width: 60px;
+      height: 60px;
+      font-size: var(--font-size-2xl);
+      margin-bottom: var(--spacing-md);
+    }
+    
+    .create-character-cta.mid-page h2 {
+      font-size: var(--font-size-2xl);
+      margin-bottom: var(--spacing-sm);
+    }
+    
+    .create-character-cta.mid-page p {
+      font-size: var(--font-size-base);
+      margin-bottom: var(--spacing-lg);
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
 
     .cta-content {
       max-width: 600px;
@@ -1458,6 +1485,11 @@ body.has-referral-banner {
       <div id="characterSections">
         <!-- Dynamic character sections will be inserted here -->
       </div>
+      
+      <!-- Mid-page Create Character CTA -->
+      <div id="midPageCTA">
+        <!-- Will be inserted dynamically -->
+      </div>
 
 <!-- Extra Category/Tags Navigation - Before CTA -->
       <nav class="category-nav" aria-label="Explore more categories">
@@ -1521,16 +1553,25 @@ body.has-referral-banner {
   CHARACTERS_API: '/.netlify/functions/characters',
   MAX_CHARACTERS_PER_CATEGORY: 8,
   CATEGORIES: [
-  { id: 'historical', name: 'Historical', title: 'Historical Figures' },
-  { id: 'anime-manga', name: 'Anime', title: 'Anime Characters' }, 
-  { id: 'mythology', name: 'Mythology', title: 'Mythological Figures' },
-  { id: 'fictional', name: 'Fiction', title: 'Fictional Characters' },
-  { id: 'celebrity', name: 'Celebrities', title: 'Celebrities' },
-  { id: 'gaming', name: 'Gaming', title: 'Gaming Characters' },
+    { id: 'historical', name: 'Historical', title: 'Historical Figures' },
+    { id: 'anime-manga', name: 'Anime', title: 'Anime Characters' }, 
+    { id: 'mythology', name: 'Mythology', title: 'Mythological Figures' },
+    { id: 'fictional', name: 'Fiction', title: 'Fictional Characters' },
+    { id: 'celebrity', name: 'Celebrities', title: 'Celebrities' },
+    { id: 'gaming', name: 'Gaming', title: 'Gaming Characters' },
     { id: 'relationship-coach', name: 'Relationship Coach', title: 'Relationship Coaches' },
-  { id: 'career-coach', name: 'Career Coach', title: 'Career Coaches' },   
-  { id: 'creativity-coach', name: 'Creativity Coach', title: 'Creativity Coaches' }
-],
+    { id: 'career-coach', name: 'Career Coach', title: 'Career Coaches' },   
+    { id: 'creativity-coach', name: 'Creativity Coach', title: 'Creativity Coaches' },
+    { id: 'books', name: 'Books', title: 'Book Characters' },
+    { id: 'movies', name: 'Movies', title: 'Movie Characters' },
+    { id: 'tv-shows', name: 'TV Shows', title: 'TV Show Characters' },
+    { id: 'fitness-coach', name: 'Fitness Coach', title: 'Fitness Coaches' },
+    { id: 'mindfulness-coach', name: 'Mindfulness Coach', title: 'Mindfulness Coaches' },
+    { id: 'business-coach', name: 'Business Coach', title: 'Business Coaches' },
+    { id: 'life-coach', name: 'Life Coach', title: 'Life Coaches' },
+    { id: 'wellness-coach', name: 'Wellness Coach', title: 'Wellness Coaches' },
+    { id: 'spiritual-coach', name: 'Spiritual Coach', title: 'Spiritual Coaches' }
+  ],
   TAGS: [
     'wise', 'funny', 'helpful', 'mysterious', 'leader', 
     'creative', 'romantic', 'adventure', 'teacher', 'mentor',
@@ -1781,30 +1822,62 @@ function generateExtraTagButtons() {
   });
 }
 
-    // Generate character sections
+    // Generate character sections with mid-page CTA
     function generateCharacterSections() {
       const sectionsContainer = document.getElementById('characterSections');
+      const midPageCTA = document.getElementById('midPageCTA');
       sectionsContainer.innerHTML = '';
+      midPageCTA.innerHTML = '';
 
-      CONFIG.CATEGORIES.forEach(category => {
-        const section = document.createElement('section');
-        section.className = 'character-section';
-        section.setAttribute('aria-labelledby', `${category.id}-title`);
-
-        section.innerHTML = `
-          <div class="section-header">
-            <a href="category.html?cat=${category.id}" class="section-title">
-              <h2 id="${category.id}-title">${category.title}</h2>
-            </a>
-            <a href="category.html?cat=${category.id}" class="view-all">View all →</a>
-          </div>
-          <div class="character-grid" id="${category.id}-grid">
-            <div class="loading" aria-label="Loading characters"></div>
-          </div>
-        `;
-
+      // Split categories into two groups
+      const firstHalf = CONFIG.CATEGORIES.slice(0, 9); // First 9 categories
+      const secondHalf = CONFIG.CATEGORIES.slice(9); // Remaining categories
+      
+      // Generate first half of categories
+      firstHalf.forEach(category => {
+        const section = createCategorySection(category);
         sectionsContainer.appendChild(section);
       });
+      
+      // Add mid-page CTA
+      const ctaHTML = `
+        <section class="create-character-cta mid-page">
+          <div class="cta-content">
+            <div class="cta-icon">🎭</div>
+            <h2>Bring Your Ideas to Life</h2>
+            <p>Can't find the perfect character? Create your own AI personality with custom traits and conversation styles.</p>
+            <a href="create-character.html" class="btn btn-cta">Create Your Character</a>
+          </div>
+        </section>
+      `;
+      midPageCTA.innerHTML = ctaHTML;
+      
+      // Generate second half of categories
+      secondHalf.forEach(category => {
+        const section = createCategorySection(category);
+        midPageCTA.appendChild(section);
+      });
+    }
+    
+    // Helper function to create category section
+    function createCategorySection(category) {
+      const section = document.createElement('section');
+      section.className = 'character-section';
+      section.setAttribute('aria-labelledby', `${category.id}-title`);
+
+      section.innerHTML = `
+        <div class="section-header">
+          <a href="category.html?cat=${category.id}" class="section-title">
+            <h2 id="${category.id}-title">${category.title}</h2>
+          </a>
+          <a href="category.html?cat=${category.id}" class="view-all">View all →</a>
+        </div>
+        <div class="character-grid" id="${category.id}-grid">
+          <div class="loading" aria-label="Loading characters"></div>
+        </div>
+      `;
+
+      return section;
     }
 
     // ===== CHARACTER LOADING FUNCTIONS =====
