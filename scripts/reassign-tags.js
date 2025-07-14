@@ -34,7 +34,7 @@ const APPROVED_TAGS = [
 
 // Environment variabelen checken
 function checkEnvironment() {
-  const required = ['AIRTABLE_TOKEN', 'AIRTABLE_BASE_ID', 'AIRTABLE_TABLE_ID'];
+  const required = ['AIRTABLE_TOKEN', 'AIRTABLE_BASE_ID'];
   const missing = required.filter(env => !process.env[env]);
   
   if (missing.length > 0) {
@@ -208,7 +208,7 @@ async function fetchAllCharacters() {
   let batchCount = 0;
 
   do {
-    let url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_TABLE_ID}?maxRecords=100`;
+    let url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Characters?maxRecords=100`;
     if (offset) {
       url += `&offset=${offset}`;
     }
@@ -255,7 +255,7 @@ async function updateCharacters(updates) {
     
     console.log(`📝 Batch ${i + 1}/${batches.length} updaten (${batch.length} records)`);
 
-    const response = await makeRequest(`https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_TABLE_ID}`, {
+    const response = await makeRequest(`https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Characters`, {
       method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${process.env.AIRTABLE_TOKEN}`,

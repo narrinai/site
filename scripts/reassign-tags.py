@@ -41,7 +41,7 @@ APPROVED_TAGS = [
 
 def check_environment() -> None:
     """Controleer of alle vereiste environment variabelen aanwezig zijn."""
-    required = ['AIRTABLE_TOKEN', 'AIRTABLE_BASE_ID', 'AIRTABLE_TABLE_ID']
+    required = ['AIRTABLE_TOKEN', 'AIRTABLE_BASE_ID']
     missing = [env for env in required if not os.getenv(env)]
     
     if missing:
@@ -182,7 +182,7 @@ def fetch_all_characters() -> List[Dict[str, Any]]:
     print("📥 Characters ophalen van Airtable...")
     
     base_id = os.getenv('AIRTABLE_BASE_ID')
-    table_id = os.getenv('AIRTABLE_TABLE_ID')
+    table_name = 'Characters'  # Gebruik directe tabel naam zoals andere functies
     token = os.getenv('AIRTABLE_TOKEN')
     
     headers = {
@@ -195,7 +195,7 @@ def fetch_all_characters() -> List[Dict[str, Any]]:
     batch_count = 0
 
     while True:
-        url = f"https://api.airtable.com/v0/{base_id}/{table_id}?maxRecords=100"
+        url = f"https://api.airtable.com/v0/{base_id}/{table_name}?maxRecords=100"
         if offset:
             url += f"&offset={offset}"
 
@@ -228,7 +228,7 @@ def update_characters(updates: List[Dict[str, Any]]) -> int:
     print(f"📤 {len(updates)} characters updaten...")
     
     base_id = os.getenv('AIRTABLE_BASE_ID')
-    table_id = os.getenv('AIRTABLE_TABLE_ID')
+    table_name = 'Characters'  # Gebruik directe tabel naam zoals andere functies
     token = os.getenv('AIRTABLE_TOKEN')
     
     headers = {
@@ -245,7 +245,7 @@ def update_characters(updates: List[Dict[str, Any]]) -> int:
 
         try:
             response = requests.patch(
-                f"https://api.airtable.com/v0/{base_id}/{table_id}",
+                f"https://api.airtable.com/v0/{base_id}/{table_name}",
                 headers=headers,
                 json={'records': batch}
             )
