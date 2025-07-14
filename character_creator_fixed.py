@@ -617,6 +617,8 @@ def generate_additional_names(category, count, existing_specialties=None):
 def generate_unique_characters(category, target_count, existing_names_set=None):
     """Genereer unieke characters zonder cijfers in namen - genereer extra namen als nodig"""
     characters = []
+    used_specialties = set()  # Track alle gebruikte specialiteiten
+    
     if existing_names_set is None:
         existing_names_set = set()
     
@@ -628,6 +630,11 @@ def generate_unique_characters(category, target_count, existing_names_set=None):
         for char in base_chars:
             if char['name'] not in existing_names_set:
                 characters.append(char)
+                # Track de specialiteit
+                name_parts = char['name'].split()
+                if len(name_parts) >= 2:
+                    specialty = ' '.join(name_parts[1:])
+                    used_specialties.add(specialty)
     
     # Gebruik name pool voor deze categorie
     if category in NAME_POOLS:
@@ -638,8 +645,17 @@ def generate_unique_characters(category, target_count, existing_names_set=None):
         available_names = [name for name in available_names if name not in used_names and name not in existing_names_set]
         
         # Genereer characters tot target bereikt is OF geen namen meer beschikbaar
-        while len(characters) < target_count and available_names:
-            name = available_names.pop(0)
+        for name in available_names:
+            if len(characters) >= target_count:
+                break
+                
+            # Check of deze specialiteit al bestaat
+            name_parts = name.split()
+            if len(name_parts) >= 2:
+                specialty = ' '.join(name_parts[1:])
+                if specialty in used_specialties:
+                    continue  # Skip als specialiteit al bestaat
+                used_specialties.add(specialty)
             
             # Genereer passende titel en beschrijving
             title, description = generate_title_description(name, category)
@@ -844,6 +860,14 @@ def generate_unique_characters(category, target_count, existing_names_set=None):
             if len(characters) >= target_count:
                 break
             if extra_name not in [char['name'] for char in characters] and extra_name not in existing_names_set:
+                # Check of deze specialiteit al bestaat
+                name_parts = extra_name.split()
+                if len(name_parts) >= 2:
+                    specialty = ' '.join(name_parts[1:])
+                    if specialty in used_specialties:
+                        continue  # Skip als specialiteit al bestaat
+                    used_specialties.add(specialty)
+                
                 title, description = generate_title_description(extra_name, category)
                 characters.append({
                     'name': extra_name,
@@ -858,17 +882,8 @@ def generate_unique_characters(category, target_count, existing_names_set=None):
         needed = target_count - len(characters)
         log(Colors.YELLOW, f"⚠️  {category}: Genereer {needed} extra namen (totaal beschikbaar: {len(characters)})")
         
-        # Track welke specialiteiten we al hebben
-        existing_specialties = set()
-        for char in characters:
-            name_parts = char['name'].split()
-            if len(name_parts) >= 2:
-                # Neem alles behalve de voornaam als specialiteit
-                specialty = ' '.join(name_parts[1:])
-                existing_specialties.add(specialty)
-        
         # Genereer veel meer dan nodig om duplicates te vermijden
-        extra_names = generate_additional_names(category, needed + 50, existing_specialties)
+        extra_names = generate_additional_names(category, needed + 50, used_specialties)
         used_names = {char['name'] for char in characters}
         
         added_count = 0
@@ -876,6 +891,14 @@ def generate_unique_characters(category, target_count, existing_names_set=None):
             if len(characters) >= target_count:
                 break
             if extra_name not in existing_names_set and extra_name not in used_names:
+                # Check of deze specialiteit al bestaat
+                name_parts = extra_name.split()
+                if len(name_parts) >= 2:
+                    specialty = ' '.join(name_parts[1:])
+                    if specialty in used_specialties:
+                        continue  # Skip als specialiteit al bestaat
+                    used_specialties.add(specialty)
+                
                 title, description = generate_title_description(extra_name, category)
                 characters.append({
                     'name': extra_name,
