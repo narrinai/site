@@ -1118,12 +1118,17 @@
     overflow-y: visible;
     flex-wrap: nowrap;
     justify-content: flex-start;
-    padding: 0 var(--spacing-md) 0 var(--spacing-md);
-    padding-right: calc(var(--spacing-md) + 20px); /* Extra padding to prevent clipping */
+    padding: 0 var(--spacing-md);
     gap: var(--spacing-xs);
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
     scrollbar-color: var(--color-gray-light) transparent;
+  }
+  
+  .filters-container::after {
+    content: '';
+    flex-shrink: 0;
+    width: var(--spacing-lg); /* Add invisible spacer at end */
   }
 
   .filters-container::-webkit-scrollbar {
@@ -1727,9 +1732,9 @@ function generateCategoryButtons() {
   // Filter categories with 5+ characters in name
   const filteredCategories = categoriesToUse.filter(category => category.name.length >= 5);
 
-  // Determine how many to show based on screen size
+  // Determine how many to show based on screen size  
   const isMobile = window.innerWidth <= 768;
-  const categoriesToShow = isMobile ? filteredCategories.slice(0, 4) : filteredCategories;
+  const categoriesToShow = isMobile ? filteredCategories.slice(0, 3) : filteredCategories;
 
   // Top navigation
   categoriesToShow.forEach(category => {
@@ -1741,12 +1746,12 @@ function generateCategoryButtons() {
   });
 
   // Add "More..." button on mobile if there are more categories
-  if (isMobile && filteredCategories.length > 4) {
+  if (isMobile && filteredCategories.length > 3) {
     const moreButton = document.createElement('a');
     moreButton.href = 'category.html';
     moreButton.className = 'category-btn';
     moreButton.style.background = 'var(--color-gray)';
-    moreButton.textContent = `+${filteredCategories.length - 4} More...`;
+    moreButton.textContent = `+${filteredCategories.length - 3} More...`;
     categoryButtons.appendChild(moreButton);
   }
 
@@ -1860,12 +1865,12 @@ function generateExtraTagButtons() {
         })
       );
 
-      // Filter categories with at least 50 characters
-      const validCategories = categoriesWithCounts.filter(category => category.count >= 50);
-      console.log(`✅ ${validCategories.length} categories have 50+ characters:`, validCategories.map(c => c.name));
+      // Filter categories with at least 15 characters
+      const validCategories = categoriesWithCounts.filter(category => category.count >= 15);
+      console.log(`✅ ${validCategories.length} categories have 15+ characters:`, validCategories.map(c => c.name));
 
       if (validCategories.length === 0) {
-        console.warn('⚠️ No categories have 50+ characters, showing all categories as fallback');
+        console.warn('⚠️ No categories have 15+ characters, showing all categories as fallback');
         // Fallback to show all categories if none meet the criteria
         validCategories.push(...categoriesWithCounts);
       }
@@ -2349,22 +2354,47 @@ if (window.netlifyIdentity) {
   });
 }
 
+    // Show loading state for button containers
+    function showButtonLoadingState() {
+      const categoryButtons = document.getElementById('categoryButtons');
+      const tagsContainer = document.getElementById('tagsContainer');
+      const extraCategoryButtons = document.getElementById('extraCategoryButtons');
+      const extraTagsContainer = document.getElementById('extraTagsContainer');
+      
+      // Show loading spinner for category buttons
+      if (categoryButtons) {
+        categoryButtons.innerHTML = '<div class="loading" style="margin: 0 auto;" aria-label="Loading categories"></div>';
+      }
+      
+      // Hide tag containers initially
+      if (tagsContainer) {
+        tagsContainer.innerHTML = '';
+      }
+      if (extraCategoryButtons) {
+        extraCategoryButtons.innerHTML = '';
+      }
+      if (extraTagsContainer) {
+        extraTagsContainer.innerHTML = '';
+      }
+    }
+
     // ===== INITIALIZATION =====
     document.addEventListener('DOMContentLoaded', async () => {
-      console.log(`🚀 Initializing Narrin AI (only showing categories with 50+ characters)...`);
+      console.log(`🚀 Initializing Narrin AI (only showing categories with 15+ characters)...`);
       
       // Initialize authentication check first
       initializeAuthenticationCheck();
       
-      // Generate initial content (will be updated after category check)
-      generateTagButtons();
-      generateExtraTagButtons();
+      // Show loading state for buttons
+      showButtonLoadingState();
       
-      // First check which categories have enough characters, then generate sections
+      // First check which categories have enough characters, then generate all content
       await generateCharacterSections();
       
-      // Generate category buttons after we know which categories are valid
+      // Generate all buttons after we know which categories are valid
       generateCategoryButtons();
+      generateTagButtons();
+      generateExtraTagButtons();
       
       // Load character data only for valid categories
       initializeCharacterGrids();
