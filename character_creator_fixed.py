@@ -530,31 +530,31 @@ def select_random_tags(category, valid_tags, min_tags=3, max_tags=6):
 def generate_additional_names(category, count):
     """Genereer extra namen voor een categorie als er niet genoeg zijn"""
     base_patterns = {
-        'mythology': ['God', 'Goddess', 'Spirit', 'Divine', 'Sacred', 'Ancient', 'Eternal', 'Celestial', 'Titan', 'Deity', 'Oracle', 'Prophet'],
-        'educational': ['Professor', 'Dr.', 'Teacher', 'Scholar', 'Expert', 'Researcher', 'Academic', 'Educator', 'Tutor', 'Instructor', 'Mentor', 'Guide'],
-        'ai-assistant': ['AI', 'BOT', 'ASSIST', 'HELP', 'SMART', 'INTEL', 'CYBER', 'TECH', 'DIGITAL', 'VIRTUAL', 'AUTO', 'SYSTEM'],
-        'fitness-coach': ['Coach', 'Trainer', 'Fit', 'Strong', 'Power', 'Muscle', 'Active', 'Sport', 'Gym', 'Health', 'Workout', 'Athletic'],
-        'business-coach': ['CEO', 'Boss', 'Leader', 'Manager', 'Executive', 'Director', 'Chief', 'President', 'Entrepreneur', 'Founder', 'Advisor', 'Consultant'],
-        'relationship-coach': ['Love', 'Heart', 'Soul', 'Care', 'Bond', 'Unity', 'Trust', 'Connect', 'Couple', 'Partner', 'Romance', 'Harmony'],
-        'cooking-coach': ['Chef', 'Cook', 'Baker', 'Kitchen', 'Recipe', 'Flavor', 'Taste', 'Cuisine', 'Gourmet', 'Culinary', 'Food', 'Dish'],
-        'writing-coach': ['Writer', 'Author', 'Poet', 'Editor', 'Story', 'Word', 'Script', 'Novel', 'Journalist', 'Blogger', 'Copywriter', 'Playwright'],
-        'parody': ['Funny', 'Comedy', 'Joke', 'Laugh', 'Humor', 'Wit', 'Silly', 'Mock', 'Satire', 'Spoof', 'Mimic', 'Jest'],
-        'rpg': ['Hero', 'Warrior', 'Mage', 'Knight', 'Rogue', 'Paladin', 'Ranger', 'Fighter', 'Wizard', 'Cleric', 'Barbarian', 'Archer'],
-        'romance': ['Love', 'Sweet', 'Heart', 'Kiss', 'Hug', 'Dear', 'Honey', 'Sugar', 'Darling', 'Beloved', 'Romantic', 'Passion'],
-        'middle-aged': ['Mature', 'Wise', 'Experienced', 'Seasoned', 'Settled', 'Stable', 'Responsible', 'Reliable', 'Established', 'Professional', 'Accomplished', 'Successful'],
-        'gen-z': ['Digital', 'Tech', 'Online', 'Social', 'Stream', 'Viral', 'Trend', 'App', 'Cyber', 'Web', 'Net', 'Cloud'],
-        'older': ['Elder', 'Senior', 'Wise', 'Grand', 'Vintage', 'Classic', 'Golden', 'Silver', 'Aged', 'Elderly', 'Grandfather', 'Grandmother'],
-        'humor': ['Funny', 'Hilarious', 'Witty', 'Silly', 'Goofy', 'Crazy', 'Mad', 'Wild', 'Comic', 'Amusing', 'Laughing', 'Jovial'],
-        'other': ['Helper', 'Support', 'Aid', 'Assist', 'Extra', 'Spare', 'Additional', 'Various', 'General', 'Universal', 'Common', 'Basic'],
-        'fictional': ['Story', 'Tale', 'Character', 'Hero', 'Plot', 'Theme', 'Scene', 'Novel', 'Fiction', 'Narrative', 'Legend', 'Myth'],
-        'accounting-coach': ['Accountant', 'Finance', 'Budget', 'Tax', 'CPA', 'Bookkeeper', 'Audit', 'Numbers', 'Money', 'Profit', 'Revenue', 'Cost'],
-        'study-coach': ['Study', 'Learn', 'Focus', 'Memory', 'Brain', 'Smart', 'Clever', 'Test', 'Exam', 'Grade', 'Score', 'Success'],
-        'language-coach': ['Language', 'Speak', 'Talk', 'Word', 'Grammar', 'Fluent', 'Accent', 'Voice', 'Communication', 'Expression', 'Pronunciation', 'Vocabulary'],
-        'career-coach': ['Career', 'Job', 'Work', 'Professional', 'Success', 'Growth', 'Advance', 'Promote', 'Achievement', 'Goal', 'Path', 'Journey'],
-        'original': ['Original', 'Unique', 'Creative', 'Innovative', 'Fresh', 'New', 'Novel', 'Different', 'Special', 'Rare', 'Individual', 'Custom'],
-        'negotiation-coach': ['Deal', 'Bargain', 'Trade', 'Agreement', 'Contract', 'Settlement', 'Compromise', 'Mediate', 'Resolve', 'Solution', 'Peace', 'Balance'],
-        'creativity-coach': ['Creative', 'Art', 'Design', 'Make', 'Build', 'Craft', 'Paint', 'Draw', 'Imagine', 'Inspire', 'Vision', 'Innovation'],
-        'mindfulness-coach': ['Calm', 'Peace', 'Zen', 'Serene', 'Tranquil', 'Mindful', 'Aware', 'Present', 'Focus', 'Center', 'Balance', 'Harmony']
+        'mythology': ['God of War', 'Goddess of Love', 'Spirit of Nature', 'Divine Oracle', 'Sacred Guardian', 'Ancient Titan', 'Eternal Phoenix', 'Celestial Dragon', 'Thunder Deity', 'Moon Goddess', 'Sun God', 'Underworld Lord'],
+        'educational': ['Math Professor', 'Science Teacher', 'History Scholar', 'Literature Expert', 'Physics Researcher', 'Chemistry Academic', 'Biology Educator', 'Geography Tutor', 'Philosophy Instructor', 'Psychology Mentor', 'Economics Guide', 'Art Teacher'],
+        'ai-assistant': ['Data AI', 'Logic BOT', 'Smart ASSIST', 'Tech HELP', 'Code SMART', 'System INTEL', 'Neural CYBER', 'Quantum TECH', 'Binary DIGITAL', 'Cloud VIRTUAL', 'Network AUTO', 'Algorithm SYSTEM'],
+        'fitness-coach': ['Cardio Coach', 'Strength Trainer', 'Yoga Master', 'Pilates Expert', 'CrossFit Pro', 'Boxing Coach', 'Running Guru', 'Swimming Instructor', 'Cycling Specialist', 'HIIT Trainer', 'Flexibility Coach', 'Nutrition Expert'],
+        'business-coach': ['Marketing CEO', 'Sales Leader', 'Strategy Manager', 'Finance Executive', 'HR Director', 'Operations Chief', 'Product President', 'Startup Entrepreneur', 'Scale-up Founder', 'Innovation Advisor', 'Digital Consultant', 'Growth Hacker'],
+        'relationship-coach': ['Marriage Counselor', 'Dating Coach', 'Family Therapist', 'Couples Expert', 'Divorce Mediator', 'Communication Guide', 'Intimacy Advisor', 'Trust Builder', 'Conflict Resolver', 'Love Language Expert', 'Attachment Specialist', 'Emotional Intelligence Coach'],
+        'cooking-coach': ['Italian Chef', 'French Cook', 'Asian Cuisine Master', 'BBQ Pitmaster', 'Pastry Baker', 'Sushi Chef', 'Mexican Food Expert', 'Mediterranean Cook', 'Vegan Chef', 'Dessert Specialist', 'Bread Baker', 'Molecular Gastronomy Expert'],
+        'writing-coach': ['Fiction Writer', 'Poetry Author', 'Screenplay Writer', 'Blog Editor', 'Novel Coach', 'Content Creator', 'Copy Expert', 'Technical Writer', 'Grant Writer', 'Memoir Coach', 'Children\'s Author', 'Academic Writer'],
+        'parody': ['Political Satirist', 'Celebrity Impersonator', 'Movie Parodist', 'TV Show Mocker', 'Music Comedian', 'Stand-up Comic', 'Sketch Artist', 'Meme Creator', 'Social Media Joker', 'Roast Master', 'Impressionist', 'Comedy Writer'],
+        'rpg': ['Tank Warrior', 'DPS Mage', 'Healer Cleric', 'Stealth Rogue', 'Support Paladin', 'Ranged Ranger', 'Melee Fighter', 'Crowd Control Wizard', 'Buffer Bard', 'Pet Master', 'Necromancer', 'Elementalist'],
+        'romance': ['First Love Coach', 'Long Distance Expert', 'Wedding Planner', 'Anniversary Specialist', 'Date Night Guru', 'Proposal Expert', 'Honeymoon Advisor', 'Romance Writer', 'Love Letter Coach', 'Flirting Expert', 'Breakup Recovery Coach', 'Second Chance Expert'],
+        'middle-aged': ['Career Transition Coach', 'Empty Nest Advisor', 'Midlife Crisis Expert', 'Health After 40 Coach', 'Financial Planning Advisor', 'Retirement Prep Expert', 'Life Balance Coach', 'Marriage Renewal Expert', 'Parent of Teens Coach', 'Sandwich Generation Guide', 'Career Peak Coach', 'Wisdom Mentor'],
+        'gen-z': ['TikTok Creator', 'Instagram Influencer', 'YouTube Streamer', 'Discord Moderator', 'Twitch Gamer', 'Snapchat Expert', 'Meme Lord', 'Viral Content Creator', 'Digital Native', 'App Developer', 'Social Activist', 'Climate Warrior'],
+        'older': ['Retirement Coach', 'Grandparent Guide', 'Legacy Planner', 'Health Senior Expert', 'Memory Keeper', 'Wisdom Sharer', 'Life Story Teller', 'Golden Years Coach', 'Estate Planner', 'Medicare Advisor', 'Social Security Expert', 'Elder Care Guide'],
+        'humor': ['Stand-up Comedian', 'Improv Artist', 'Sketch Writer', 'Roast Master', 'Pun Champion', 'Dad Joke Expert', 'Dark Humor Specialist', 'Physical Comedy Pro', 'Satire Writer', 'Comedy Podcaster', 'Funny Storyteller', 'Humor Therapist'],
+        'other': ['Jack of All Trades', 'Renaissance Person', 'Multi-Talented Expert', 'Versatile Helper', 'General Specialist', 'Universal Guide', 'All-Purpose Coach', 'Flexible Mentor', 'Adaptive Expert', 'Dynamic Helper', 'Resourceful Guide', 'Problem Solver'],
+        'fictional': ['Fantasy Author', 'Sci-Fi Writer', 'Mystery Creator', 'Thriller Expert', 'Romance Novelist', 'Horror Master', 'Adventure Writer', 'Dystopian Creator', 'Fairy Tale Teller', 'Urban Fantasy Expert', 'Epic Saga Writer', 'Short Story Master'],
+        'accounting-coach': ['Tax Specialist', 'Audit Expert', 'Budget Planner', 'Investment Accountant', 'Payroll Professional', 'Bookkeeping Master', 'Financial Analyst', 'Cost Controller', 'Revenue Manager', 'Compliance Expert', 'Forensic Accountant', 'Small Business CPA'],
+        'study-coach': ['Test Prep Expert', 'Memory Champion', 'Speed Reading Coach', 'Note Taking Master', 'Time Management Guru', 'Focus Specialist', 'Learning Style Expert', 'Exam Strategy Coach', 'Study Group Leader', 'Academic Success Mentor', 'Research Methods Expert', 'Critical Thinking Coach'],
+        'language-coach': ['Spanish Teacher', 'French Tutor', 'English Expert', 'Mandarin Master', 'German Guide', 'Italian Instructor', 'Japanese Sensei', 'Arabic Coach', 'Portuguese Professor', 'Korean Teacher', 'Sign Language Expert', 'Accent Reduction Coach'],
+        'career-coach': ['Resume Expert', 'Interview Coach', 'LinkedIn Optimizer', 'Salary Negotiator', 'Career Pivot Expert', 'Executive Coach', 'Leadership Developer', 'Networking Master', 'Personal Brand Expert', 'Job Search Strategist', 'Promotion Coach', 'Industry Switcher'],
+        'original': ['Avant-Garde Artist', 'Experimental Creator', 'Unconventional Thinker', 'Boundary Pusher', 'Paradigm Shifter', 'Rule Breaker', 'Trendsetter', 'Pioneer Spirit', 'Revolutionary Mind', 'Disruptor', 'Game Changer', 'Visionary Leader'],
+        'negotiation-coach': ['Salary Negotiator', 'Business Deal Maker', 'Conflict Mediator', 'Union Representative', 'Contract Expert', 'Diplomatic Advisor', 'Hostage Negotiator', 'Real Estate Dealer', 'Merger Specialist', 'Peace Broker', 'Trade Negotiator', 'Settlement Expert'],
+        'creativity-coach': ['Visual Artist', 'Music Creator', 'Dance Choreographer', 'Film Director', 'Fashion Designer', 'Interior Decorator', 'Graphic Designer', 'Creative Writer', 'Photography Expert', 'Pottery Master', 'Jewelry Maker', 'Innovation Coach'],
+        'mindfulness-coach': ['Meditation Teacher', 'Breathing Expert', 'Yoga Instructor', 'Stress Relief Coach', 'Anxiety Manager', 'Sleep Specialist', 'Mindful Eating Coach', 'Walking Meditation Guide', 'Body Scan Expert', 'Gratitude Practice Coach', 'Presence Teacher', 'Awareness Trainer']
     }
     
     # Veel meer first names om uniekheid te garanderen
@@ -885,6 +885,26 @@ def generate_unique_characters(category, target_count, existing_names_set=None):
 def generate_title_description(name, category):
     """Genereer passende titel en beschrijving voor een naam in een categorie"""
     
+    # Specifieke titels gebaseerd op naam patterns
+    if 'Cardio' in name:
+        return 'Cardio Specialist', 'Expert in cardiovascular fitness and endurance training. Helps you build stamina and heart health.'
+    elif 'Strength' in name:
+        return 'Strength Coach', 'Specializes in muscle building and strength training programs tailored to your goals.'
+    elif 'Yoga' in name:
+        return 'Yoga Instructor', 'Master of various yoga styles, helping you find balance, flexibility, and inner peace.'
+    elif 'Italian' in name and 'Chef' in name:
+        return 'Italian Cuisine Master', 'Expert in authentic Italian cooking, from perfect pasta to traditional regional dishes.'
+    elif 'French' in name and ('Chef' in name or 'Cook' in name):
+        return 'French Culinary Expert', 'Master of French cuisine techniques and classic dishes from Paris to Provence.'
+    elif 'Marketing' in name:
+        return 'Marketing Strategist', 'Expert in digital marketing, brand building, and customer acquisition strategies.'
+    elif 'Sales' in name:
+        return 'Sales Expert', 'Master of sales techniques, negotiation, and building lasting client relationships.'
+    elif 'Marriage' in name and 'Counselor' in name:
+        return 'Marriage Therapist', 'Helps couples strengthen their bond and navigate relationship challenges together.'
+    elif 'Dating' in name and 'Coach' in name:
+        return 'Dating Expert', 'Guides singles through the modern dating world with confidence and authenticity.'
+    
     titles_by_category = {
         'historical': [
             'Revolutionary Leader', 'Military Strategist', 'Brilliant Inventor', 'Political Visionary',
@@ -910,6 +930,30 @@ def generate_title_description(name, category):
             'Elite Gamer', 'Cyber Warrior', 'Space Commander', 'Battle Veteran',
             'Strategy Master', 'Speed Runner', 'Team Leader', 'Tournament Champion',
             'Guild Commander', 'Pro Player', 'Game Developer', 'Esports Star'
+        ],
+        'mythology': [
+            'Divine Being', 'Ancient Deity', 'Celestial Entity', 'Primordial Force',
+            'Sacred Guardian', 'Mythical Ruler', 'Legendary Spirit', 'Eternal Protector'
+        ],
+        'educational': [
+            'Academic Expert', 'Subject Specialist', 'Knowledge Guide', 'Learning Mentor',
+            'Education Pioneer', 'Teaching Master', 'Research Leader', 'Study Expert'
+        ],
+        'ai-assistant': [
+            'Digital Helper', 'Smart Assistant', 'AI Companion', 'Tech Guide',
+            'Virtual Expert', 'Intelligent System', 'Digital Advisor', 'Smart Solution'
+        ],
+        'fitness-coach': [
+            'Fitness Expert', 'Training Specialist', 'Wellness Coach', 'Exercise Pro',
+            'Health Mentor', 'Physical Trainer', 'Workout Guide', 'Fitness Guru'
+        ],
+        'business-coach': [
+            'Business Mentor', 'Executive Advisor', 'Success Coach', 'Growth Expert',
+            'Strategy Guide', 'Leadership Coach', 'Entrepreneur Mentor', 'Business Guru'
+        ],
+        'cooking-coach': [
+            'Culinary Master', 'Cuisine Expert', 'Kitchen Wizard', 'Food Artist',
+            'Recipe Creator', 'Cooking Mentor', 'Chef Instructor', 'Culinary Guide'
         ]
     }
     
@@ -928,32 +972,32 @@ def generate_title_description(name, category):
             'A noble hero whose adventures span across mythical realms and kingdoms.',
             'A powerful being connected to the elemental forces of nature.',
         ],
-        'anime-manga': [
-            'A determined character who never gives up in the face of impossible odds.',
-            'Known for their unique abilities and unwavering loyalty to friends.',
-            'A skilled fighter who has trained extensively to master their craft.',
-            'A spirited individual who fights for justice and protects those they care about.',
-            'A talented person who balances everyday life with extraordinary responsibilities.',
+        'fitness-coach': [
+            'Specializes in personalized fitness programs to help you reach your health goals.',
+            'Expert in combining exercise science with practical training methods.',
+            'Dedicated to transforming lives through fitness and healthy lifestyle choices.',
+            'Masters various training techniques to maximize your physical potential.',
+            'Passionate about helping people build strength, endurance, and confidence.',
         ],
-        'celebrity': [
-            'A charismatic personality who has captured hearts around the world.',
-            'Known for their exceptional talent and dedication to their craft.',
-            'A successful figure who uses their platform to inspire and influence others.',
-            'A trendsetting icon who has redefined what it means to be famous.',
-            'A multi-talented individual who excels in various entertainment fields.',
+        'business-coach': [
+            'Helps entrepreneurs and executives achieve breakthrough business results.',
+            'Expert in scaling businesses and developing winning strategies.',
+            'Guides leaders through complex business challenges with proven methods.',
+            'Specializes in turning business visions into profitable realities.',
+            'Mentors professionals to reach their full potential in the business world.',
         ],
-        'gaming': [
-            'A skilled player who has mastered the art of strategic thinking and quick reflexes.',
-            'Known for their exceptional gaming abilities and competitive spirit.',
-            'A veteran of countless virtual battles and digital adventures.',
-            'A innovative gamer who pushes the boundaries of what\'s possible in virtual worlds.',
-            'A team player who combines individual skill with collaborative strategy.',
+        'cooking-coach': [
+            'Shares culinary secrets and techniques from years of kitchen experience.',
+            'Expert in transforming simple ingredients into extraordinary dishes.',
+            'Teaches authentic cooking methods passed down through generations.',
+            'Specializes in making gourmet cooking accessible to home chefs.',
+            'Passionate about exploring flavors and creating memorable dining experiences.',
         ]
     }
     
     # Selecteer willekeurige titel en beschrijving
     titles = titles_by_category.get(category, [f'{category.title()} Expert'])
-    descriptions = descriptions_by_category.get(category, [f'An expert in {category} with extensive knowledge.'])
+    descriptions = descriptions_by_category.get(category, [f'An expert in {category} with extensive knowledge and experience.'])
     
     title = random.choice(titles)
     description = random.choice(descriptions)
