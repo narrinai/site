@@ -527,8 +527,11 @@ def select_random_tags(category, valid_tags, min_tags=3, max_tags=6):
     
     return selected_tags
 
-def generate_additional_names(category, count):
+def generate_additional_names(category, count, existing_specialties=None):
     """Genereer extra namen voor een categorie als er niet genoeg zijn"""
+    if existing_specialties is None:
+        existing_specialties = set()
+    
     base_patterns = {
         'mythology': ['God of War', 'Goddess of Love', 'Spirit of Nature', 'Divine Oracle', 'Sacred Guardian', 'Ancient Titan', 'Eternal Phoenix', 'Celestial Dragon', 'Thunder Deity', 'Moon Goddess', 'Sun God', 'Underworld Lord'],
         'educational': ['Math Professor', 'Science Teacher', 'History Scholar', 'Literature Expert', 'Physics Researcher', 'Chemistry Academic', 'Biology Educator', 'Geography Tutor', 'Philosophy Instructor', 'Psychology Mentor', 'Economics Guide', 'Art Teacher'],
@@ -579,18 +582,35 @@ def generate_additional_names(category, count):
     
     names = []
     
-    # Strategie: Maximaal 1 character per specialiteit, dan pas naar volgende
+    # Filter out specialiteiten die al bestaan
+    available_patterns = [p for p in patterns if p not in existing_specialties]
+    
+    # Als er geen nieuwe patterns zijn, gebruik de originele lijst
+    if not available_patterns:
+        available_patterns = patterns
+    
+    # Shuffle voor willekeurige volgorde
+    random.shuffle(available_patterns)
+    
+    used_specialties = set()
+    
     for i in range(count):
-        # Bepaal welke specialiteit we nu doen
-        specialty_idx = i % len(patterns)
-        specialty = patterns[specialty_idx]
+        # Gebruik elke specialiteit maar 1x per 150 characters
+        specialty_idx = i % len(available_patterns)
+        specialty = available_patterns[specialty_idx]
         
-        # Welke voornaam gebruiken we?
+        # Als we alle patterns hebben gehad, reset en begin opnieuw
+        if specialty in used_specialties and len(used_specialties) >= len(available_patterns):
+            used_specialties.clear()
+            random.shuffle(available_patterns)
+        
+        # Voornaam selectie
         first_name_idx = i % len(first_names)
         first_name = first_names[first_name_idx]
         
         name = f"{first_name} {specialty}"
         names.append(name)
+        used_specialties.add(specialty)
     
     return names
 
@@ -838,8 +858,17 @@ def generate_unique_characters(category, target_count, existing_names_set=None):
         needed = target_count - len(characters)
         log(Colors.YELLOW, f"⚠️  {category}: Genereer {needed} extra namen (totaal beschikbaar: {len(characters)})")
         
+        # Track welke specialiteiten we al hebben
+        existing_specialties = set()
+        for char in characters:
+            name_parts = char['name'].split()
+            if len(name_parts) >= 2:
+                # Neem alles behalve de voornaam als specialiteit
+                specialty = ' '.join(name_parts[1:])
+                existing_specialties.add(specialty)
+        
         # Genereer veel meer dan nodig om duplicates te vermijden
-        extra_names = generate_additional_names(category, needed + 50)
+        extra_names = generate_additional_names(category, needed + 50, existing_specialties)
         used_names = {char['name'] for char in characters}
         
         added_count = 0
