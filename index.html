@@ -1118,7 +1118,8 @@
     overflow-y: visible;
     flex-wrap: nowrap;
     justify-content: flex-start;
-    padding: 0 var(--spacing-md);
+    padding: 0 var(--spacing-md) 0 var(--spacing-md);
+    padding-right: calc(var(--spacing-md) + 20px); /* Extra padding to prevent clipping */
     gap: var(--spacing-xs);
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
@@ -1975,6 +1976,21 @@ async function loadCharactersFromNetlify(category, gridId, limit = CONFIG.MAX_CH
   processNetlifyData(data.characters, category, gridId, 8);
 }
 
+// Helper function to check if character has valid avatar
+function hasValidAvatar(char) {
+  // Check for Airtable attachment field
+  if (char.Avatar_URL && Array.isArray(char.Avatar_URL) && char.Avatar_URL.length > 0) {
+    if (char.Avatar_URL[0] && char.Avatar_URL[0].url) {
+      return true;
+    }
+  }
+  // Check for direct string Avatar_URL
+  if (char.Avatar_URL && typeof char.Avatar_URL === 'string' && char.Avatar_URL.startsWith('http')) {
+    return true;
+  }
+  return false;
+}
+
 function processNetlifyData(characters, category, gridId, limit) {
   const grid = document.getElementById(gridId);
   
@@ -1989,31 +2005,20 @@ function processNetlifyData(characters, category, gridId, limit) {
       char.Category && char.Category.toLowerCase() === category.toLowerCase()
     );
     
-    // Filter for characters with avatars only
-    const charactersWithAvatars = categoryCharacters.filter(char => {
-      console.log(`🔍 Checking avatar for ${char.Name || char.name}:`, char.Avatar_URL);
+    // Sort characters - those with avatars first, then others
+    const sortedCharacters = categoryCharacters.sort((a, b) => {
+      const aHasAvatar = hasValidAvatar(a);
+      const bHasAvatar = hasValidAvatar(b);
       
-      // Check for Airtable attachment field
-      if (char.Avatar_URL && Array.isArray(char.Avatar_URL) && char.Avatar_URL.length > 0) {
-        if (char.Avatar_URL[0] && char.Avatar_URL[0].url) {
-          console.log(`✅ Found Airtable avatar for ${char.Name || char.name}:`, char.Avatar_URL[0].url);
-          return true;
-        }
-      }
-      // Check for direct string Avatar_URL
-      if (char.Avatar_URL && typeof char.Avatar_URL === 'string' && char.Avatar_URL.startsWith('http')) {
-        console.log(`✅ Found direct avatar for ${char.Name || char.name}:`, char.Avatar_URL);
-        return true;
-      }
-      
-      console.log(`❌ No valid avatar for ${char.Name || char.name}`);
-      return false;
+      if (aHasAvatar && !bHasAvatar) return -1;
+      if (!aHasAvatar && bHasAvatar) return 1;
+      return 0;
     });
     
-    // Take only the first 8 characters with avatars
-    const limitedCharacters = charactersWithAvatars.slice(0, 8);
+    // Take exactly 8 characters (prioritizing those with avatars)
+    const limitedCharacters = sortedCharacters.slice(0, 8);
     
-    console.log(`📋 Showing ${limitedCharacters.length} characters with avatars for ${category} (from ${categoryCharacters.length} total)`);
+    console.log(`📋 Showing ${limitedCharacters.length} characters for ${category} (from ${categoryCharacters.length} total, ${limitedCharacters.filter(hasValidAvatar).length} with avatars)`);
     
     limitedCharacters.forEach((character, index) => {
       console.log(`🔍 Character ${index + 1}:`, character.Name, character.Avatar_URL);
@@ -2026,8 +2031,8 @@ function processNetlifyData(characters, category, gridId, limit) {
       grid.innerHTML = `
         <div class="error-card no-data">
           <span class="error-icon">📭</span>
-          <div class="error-title">No ${category} characters with avatars found</div>
-          <div class="error-message">Check your Airtable Avatar_URL fields</div>
+          <div class="error-title">No ${category} characters found</div>
+          <div class="error-message">Check your Airtable data</div>
         </div>
       `;
     }
