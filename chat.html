@@ -1648,6 +1648,39 @@
   transform: translateY(-1px);
 }
 
+/* Voice play button in chat */
+    .voice-play-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      margin-left: 8px;
+      border-radius: 50%;
+      transition: background-color 0.2s;
+      font-size: 16px;
+      color: var(--color-teal);
+    }
+
+    .voice-play-btn:hover {
+      background-color: rgba(20, 184, 166, 0.1);
+      transform: scale(1.1);
+    }
+
+    .voice-play-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .voice-play-btn.playing {
+      color: var(--color-coral);
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
 @media (max-width: 768px) {
   .upgrade-modal {
     margin: var(--spacing-lg);
@@ -2393,6 +2426,137 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentCharacter = null;
     let characterSlug = null;
     
+    // ===== VOICE SYSTEM (VEILIG VIA NETLIFY FUNCTIONS) =====
+    let currentAudio = null;
+    let isPlayingAudio = false;
+
+    // VEILIGE TTS functie via Netlify Function
+    async function generateSpeech(text, voiceId) {
+      try {
+        const response = await fetch('/.netlify/functions/tts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            text: text,
+            voice_id: voiceId
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`TTS request failed: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        if (!data.success) {
+          throw new Error(data.error || 'TTS generation failed');
+        }
+
+        // Convert base64 to blob
+        const audioBytes = atob(data.audio);
+        const audioArray = new Uint8Array(audioBytes.length);
+        for (let i = 0; i < audioBytes.length; i++) {
+          audioArray[i] = audioBytes.charCodeAt(i);
+        }
+        
+        return new Blob([audioArray], { type: 'audio/mpeg' });
+
+      } catch (error) {
+        console.error('TTS Error:', error);
+        throw error;
+      }
+    }
+
+    // Manual voice playback
+    async function playMessageVoice(text, voiceId, buttonElement) {
+      try {
+        // Stop current audio if playing
+        if (currentAudio) {
+          currentAudio.pause();
+          currentAudio = null;
+          document.querySelectorAll('.voice-play-btn').forEach(btn => {
+            btn.classList.remove('playing');
+            btn.textContent = '🔊';
+          });
+        }
+        
+        buttonElement.classList.add('playing');
+        buttonElement.textContent = '⏸️';
+        
+        const audioBlob = await generateSpeech(text, voiceId);
+        const audioUrl = URL.createObjectURL(audioBlob);
+        currentAudio = new Audio(audioUrl);
+        
+        currentAudio.addEventListener('ended', () => {
+          URL.revokeObjectURL(audioUrl);
+          currentAudio = null;
+          buttonElement.classList.remove('playing');
+          buttonElement.textContent = '🔊';
+        });
+        
+        currentAudio.addEventListener('pause', () => {
+          buttonElement.classList.remove('playing');
+          buttonElement.textContent = '🔊';
+        });
+        
+        await currentAudio.play();
+        
+      } catch (error) {
+        console.error('Voice playback error:', error);
+        buttonElement.classList.remove('playing');
+        buttonElement.textContent = '🔊';
+        showError('Could not play voice. Please try again.');
+      }
+    }
+
+    // Verbeterde typewriter met automatische TTS
+    async function typewriterWithVoice(element, text, voiceId = null, speed = 15) {
+      let i = 0;
+      element.textContent = '';
+      
+      // Start TTS als voice beschikbaar is en tekst lang genoeg
+      if (voiceId && text.length > 20) {
+        try {
+          const audioBlob = await generateSpeech(text, voiceId);
+          const audioUrl = URL.createObjectURL(audioBlob);
+          const audio = new Audio(audioUrl);
+          
+          // Start audio halverwege typewriter
+          setTimeout(() => {
+            if (!isPlayingAudio) {
+              audio.play().catch(console.error);
+              isPlayingAudio = true;
+            }
+          }, (text.length * speed) / 3);
+          
+          audio.addEventListener('ended', () => {
+            URL.revokeObjectURL(audioUrl);
+            isPlayingAudio = false;
+          });
+          
+        } catch (error) {
+          console.error('TTS error:', error);
+        }
+      }
+      
+      // Typewriter effect
+      const timer = setInterval(() => {
+        if (i < text.length) {
+          element.textContent += text.charAt(i);
+          i++;
+          
+          const chatlog = document.getElementById("chatlog");
+          if (chatlog) {
+            chatlog.scrollTop = chatlog.scrollHeight;
+          }
+        } else {
+          clearInterval(timer);
+        }
+      }, speed);
+    }
+    
     // NIEUWE WEBHOOK URL
     const newWebhookUrl = "https://hook.eu2.make.com/36bygx4a2y4bkl97wkdjdmtn3o9ygjms";
 
@@ -2816,8 +2980,13 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       data.character.prompt = atob(data.character.prompt);
     }
 
+    // Ensure voice_id is available
+    if (!data.character.voice_id && data.character.voice_type !== 'none') {
+      console.log('No voice_id found, character will be text-only');
+    }
+
     currentCharacter = data.character;
-    setupCharacterInterface();
+    console.log('Character loaded with voice_id:', currentCharacter.voice_id);
     
   } catch (error) {
     console.error("Error loading character:", error);
@@ -3488,12 +3657,25 @@ hideTypingIndicator();
     // DIRECT: Voeg character antwoord toe aan chat
     const divBot = document.createElement("p");
     const avatarHtml = getAvatarHtml();
-    divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span>`;
+    
+    // Add voice play button if character has voice
+    let voiceButton = '';
+    if (currentCharacter.voice_id) {
+      voiceButton = ` <button class="voice-play-btn" onclick="playMessageVoice(\`${reply.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Listen to message">🔊</button>`;
+    }
+    
+    divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span>${voiceButton}`;
     chatlog.appendChild(divBot);
     chatlog.scrollTop = chatlog.scrollHeight;
 
     const typingSpan = divBot.querySelector('.typing-text');
-    typewriterEffect(typingSpan, reply);
+    
+    // Use voice-enabled typewriter if character has voice
+    if (currentCharacter.voice_id) {
+      typewriterWithVoice(typingSpan, reply, currentCharacter.voice_id);
+    } else {
+      typewriterEffect(typingSpan, reply);
+    }
 
     // Memory processing in background - VERBETERDE VERSIE
 if (data && data.success) {
