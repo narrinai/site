@@ -1853,14 +1853,15 @@ async function loadCharactersFromNetlify(category, gridId, limit = CONFIG.MAX_CH
     throw new Error(data.error || 'Unknown API error');
   }
 
-  // Process the data
-  processNetlifyData(data.characters, category, gridId, limit);
+  // Process the data - always limit to 8 characters with avatars
+  processNetlifyData(data.characters, category, gridId, 8);
 }
 
 function processNetlifyData(characters, category, gridId, limit) {
   const grid = document.getElementById(gridId);
   
   console.log(`📦 Processing ${characters.length} characters for ${category}`);
+  console.log(`📋 Sample character data:`, characters[0]);
   
   grid.innerHTML = '';
   
@@ -1872,16 +1873,22 @@ function processNetlifyData(characters, category, gridId, limit) {
     
     // Filter for characters with avatars only
     const charactersWithAvatars = categoryCharacters.filter(char => {
+      console.log(`🔍 Checking avatar for ${char.Name || char.name}:`, char.Avatar_URL);
+      
       // Check for Airtable attachment field
       if (char.Avatar_URL && Array.isArray(char.Avatar_URL) && char.Avatar_URL.length > 0) {
         if (char.Avatar_URL[0] && char.Avatar_URL[0].url) {
+          console.log(`✅ Found Airtable avatar for ${char.Name || char.name}:`, char.Avatar_URL[0].url);
           return true;
         }
       }
       // Check for direct string Avatar_URL
       if (char.Avatar_URL && typeof char.Avatar_URL === 'string' && char.Avatar_URL.startsWith('http')) {
+        console.log(`✅ Found direct avatar for ${char.Name || char.name}:`, char.Avatar_URL);
         return true;
       }
+      
+      console.log(`❌ No valid avatar for ${char.Name || char.name}`);
       return false;
     });
     
