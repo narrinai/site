@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Voice Debug</title>
+</head>
+<body>
+    <h1>Voice Debug Tool</h1>
+    <button onclick="testVoiceButton()">Test Voice Button Click</button>
+    <button onclick="testDirectTTS()">Test Direct TTS</button>
+    <div id="result"></div>
+    
+    <script>
+    // Simuleer de exacte functie uit chat.html
+    window.playMessageVoice = async function(text, voiceId, buttonElement) {
+        console.log('🎯 playMessageVoice called with:', { text, voiceId, buttonElement });
+        
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML += `<br>🎯 Voice function called: text="${text.substring(0, 50)}...", voiceId="${voiceId}"`;
+        
+        try {
+            buttonElement.classList.add('playing');
+            buttonElement.textContent = '⏸️';
+            
+            const audioBlob = await window.generateSpeech(text, voiceId);
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const audio = new Audio(audioUrl);
+            
+            audio.addEventListener('ended', () => {
+                URL.revokeObjectURL(audioUrl);
+                buttonElement.classList.remove('playing');
+                buttonElement.textContent = '🔊';
+                resultDiv.innerHTML += `<br>✅ Audio playback completed`;
+            });
+            
+            await audio.play();
+            resultDiv.innerHTML += `<br>▶️ Audio started playing`;
+            
+        } catch (error) {
+            console.error('Voice playback error:', error);
+            buttonElement.classList.remove('playing');
+            buttonElement.textContent = '🔊';
+            resultDiv.innerHTML += `<br>❌ Error: ${error.message}`;
+        }
+    };
+    
+    window.generateSpeech = async function(text, voiceId) {
+        console.log('📢 generateSpeech called with:', { text: text.substring(0, 50) + '...', voiceId });
+        
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML += `<br>📢 Generating speech for: "${text.substring(0, 30)}..."`;
+        
+        try {
+            const response = await fetch('/.netlify/functions/tts-simple', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    text: text,
+                    voice_id: voiceId
+                })
+            });
+            
+            resultDiv.innerHTML += `<br>📊 Response: ${response.status} ${response.statusText}`;
+            console.log('📢 TTS response:', response.status, response.statusText);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                resultDiv.innerHTML += `<br>💀 Error details: ${errorText}`;
+                throw new Error(`TTS request failed: ${response.status} - ${errorText}`);
+            }
+
+            const data = await response.json();
+            if (!data.success) {
+                throw new Error(data.error || 'TTS generation failed');
+            }
+
+            // Convert base64 to blob
+            const binaryString = atob(data.audio);
+            const audioArray = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                audioArray[i] = binaryString.charCodeAt(i);
+            }
+            
+            resultDiv.innerHTML += `<br>🎵 Audio blob created: ${audioArray.length} bytes`;
+            return new Blob([audioArray], { type: 'audio/mpeg' });
+
+        } catch (error) {
+            console.error('TTS Error:', error);
+            resultDiv.innerHTML += `<br>💥 generateSpeech error: ${error.message}`;
+            throw error;
+        }
+    };
+    
+    function testVoiceButton() {
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = 'Testing voice button...';
+        
+        // Simuleer button click
+        const fakeButton = document.createElement('button');
+        fakeButton.textContent = '🔊';
+        fakeButton.className = 'voice-play-btn';
+        
+        window.playMessageVoice('Ah, uitstekend nieuws dat het goed met je gaat – dat hoor ik graag.', 'uH01NDVLLmf6SaxfTd', fakeButton);
+    }
+    
+    function testDirectTTS() {
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = 'Testing direct TTS...';
+        
+        window.generateSpeech('Hello test', 'uH01NDVLLmf6SaxfTd')
+            .then(blob => {
+                resultDiv.innerHTML += `<br>✅ Success! Blob size: ${blob.size}`;
+                const audio = new Audio(URL.createObjectURL(blob));
+                audio.play();
+            })
+            .catch(error => {
+                resultDiv.innerHTML += `<br>❌ Failed: ${error.message}`;
+            });
+    }
+    </script>
+</body>
+</html>
