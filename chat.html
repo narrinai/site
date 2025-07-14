@@ -843,6 +843,8 @@
       background: var(--color-white);
       padding: var(--spacing-lg) var(--spacing-xl);
       border-radius: var(--radius-lg);
+      max-width: 900px;
+      margin: 0 auto;
       margin-bottom: var(--spacing-lg);
       box-shadow: var(--shadow-md);
       border: 2px solid var(--color-light-gray);
@@ -907,7 +909,7 @@
     }
 
     #chatlog {
-      height: 350px;
+      height: 450px;
       overflow-y: auto;
       background: var(--color-off-white);
       padding: var(--spacing-lg);
@@ -1155,7 +1157,7 @@
       }
 
       #chatlog {
-        height: 300px;
+        height: 400px;
         padding: var(--spacing-md);
         font-size: var(--font-size-xs);
       }
@@ -3320,7 +3322,14 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
         p.innerHTML = `<strong>You:</strong> ${message}`;
       } else {
         const avatarHtml = getAvatarHtml();
-        p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${message}`;
+        
+        // Add voice play button if character has voice
+        let voiceButton = '';
+        if (currentCharacter && currentCharacter.voice_id) {
+          voiceButton = ` <button class="voice-play-btn" onclick="playMessageVoice(\`${message.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Listen to message">🔊</button>`;
+        }
+        
+        p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${message}${voiceButton}`;
       }
       chatlog.appendChild(p);
       messagesProcessed++;
