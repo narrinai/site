@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TTS Test</title>
+</head>
+<body>
+    <h1>TTS API Test</h1>
+    <button onclick="testTTS()">Test TTS API</button>
+    <div id="result"></div>
+    
+    <script>
+    async function testTTS() {
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = 'Testing...';
+        
+        try {
+            // Test with a simple message
+            const response = await fetch('/.netlify/functions/tts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    text: 'Hello, this is a test message.',
+                    voice_id: 'uH01NDVLLmf6SaxfTd'
+                })
+            });
+            
+            resultDiv.innerHTML += `<br>Status: ${response.status} ${response.statusText}`;
+            
+            const data = await response.json();
+            resultDiv.innerHTML += `<br>Response: ${JSON.stringify(data, null, 2)}`;
+            
+            if (data.success && data.audio) {
+                // Create audio element
+                const audio = new Audio(`data:audio/mpeg;base64,${data.audio}`);
+                audio.play();
+                resultDiv.innerHTML += `<br>✅ Audio playing!`;
+            }
+            
+        } catch (error) {
+            resultDiv.innerHTML += `<br>❌ Error: ${error.message}`;
+            console.error('Test error:', error);
+        }
+    }
+    </script>
+</body>
+</html>
