@@ -27,6 +27,14 @@ exports.handler = async (event, context) => {
       };
     }
 
+    // Log API key status (without exposing the key)
+    console.log(`🔑 API key status: ${process.env.ELEVENLABS_API_KEY ? `configured (length: ${process.env.ELEVENLABS_API_KEY.length})` : 'not found'}`);
+    
+    // Validate voice_id format (ElevenLabs voice IDs are typically 20 characters)
+    if (voice_id.length < 10 || voice_id.length > 30) {
+      console.warn(`⚠️ Suspicious voice_id format: ${voice_id} (length: ${voice_id.length})`);
+    }
+
     // Rate limiting - max 500 chars
     if (text.length > 500) {
       return {
@@ -37,6 +45,10 @@ exports.handler = async (event, context) => {
 
     // Call ElevenLabs API
     console.log(`🎙️ TTS request: voice_id=${voice_id}, text_length=${text.length}`);
+    
+    // Create AbortController for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 second timeout
     
     const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voice_id}`, {
       method: 'POST',
@@ -52,8 +64,11 @@ exports.handler = async (event, context) => {
           stability: 0.5,
           similarity_boost: 0.5
         }
-      })
+      }),
+      signal: controller.signal
     });
+    
+    clearTimeout(timeoutId);
 
     console.log(`🎙️ ElevenLabs response: ${response.status} ${response.statusText}`);
 
@@ -81,11 +96,25 @@ exports.handler = async (event, context) => {
 
   } catch (error) {
     console.error('TTS Error:', error);
+    
+    // Handle different error types
+    let errorMessage = 'TTS generation failed';
+    let statusCode = 500;
+    
+    if (error.name === 'AbortError') {
+      errorMessage = 'TTS request timed out';
+      statusCode = 408;
+    } else if (error.message.includes('Failed to fetch')) {
+      errorMessage = 'Could not reach TTS service';
+      statusCode = 503;
+    }
+    
     return {
-      statusCode: 500,
+      statusCode: statusCode,
       body: JSON.stringify({ 
         success: false,
-        error: 'TTS generation failed' 
+        error: errorMessage,
+        details: error.message
       })
     };
   }
