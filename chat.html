@@ -2615,17 +2615,6 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => {
         element.style.opacity = '1';
       }, 100);
-      
-      // Add voice button after fade-in completes
-      if (voiceId) {
-        setTimeout(() => {
-          const voiceButtonDiv = document.createElement('div');
-          voiceButtonDiv.style.marginTop = '8px';
-          voiceButtonDiv.style.textAlign = 'left';
-          voiceButtonDiv.innerHTML = `<button class="voice-play-btn" onclick="window.playMessageVoice(\`${text.replace(/`/g, '\\`')}\`, '${voiceId}', this)" title="Listen to message">▶️</button>`;
-          element.parentElement.appendChild(voiceButtonDiv);
-        }, 900); // Na fade-in animatie
-      }
     }
     
     // NIEUWE WEBHOOK URL
@@ -3373,7 +3362,20 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
         /Vorige gesprekken en belangrijke informatie:/,
         /Chat history loaded successfully/,
         /\[Belangrijk geheugen/,
-        /📝|💬|🔍|⚠️|❌|✅|📜|🧠|🎯/
+        /📝|💬|🔍|⚠️|❌|✅|📜|🧠|🎯/,
+        /Starting memory processing/,
+        /Full API response/,
+        /Extracted record_id/,
+        /Available data keys/,
+        /POST https:\/\/.*\/tts-simple/,
+        /TTS response:/,
+        /TTS Error:/,
+        /Voice playback error:/,
+        /Generating new audio/,
+        /Update method used/,
+        /Memory successfully saved/,
+        /Updated record ID/,
+        /recPcanRn9fUBJyb/
       ];
       
       if (debugPatterns.some(pattern => pattern.test(message))) {
@@ -3771,7 +3773,11 @@ hideTypingIndicator();
     const divBot = document.createElement("p");
     const avatarHtml = getAvatarHtml();
     
-    divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span>`;
+    if (currentCharacter.voice_id) {
+      divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span><br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice(\`${reply.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Listen to message">▶️</button></div>`;
+    } else {
+      divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span>`;
+    }
     chatlog.appendChild(divBot);
     chatlog.scrollTop = chatlog.scrollHeight;
 
