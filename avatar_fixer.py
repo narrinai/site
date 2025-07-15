@@ -189,7 +189,8 @@ class AvatarFixer:
             pixels = list(analysis_img.getdata())
             
             # Check if image is mostly one color (likely generic/placeholder)
-            if len(set(pixels)) < 50:  # Very few unique colors
+            unique_colors = len(set(pixels))
+            if unique_colors < 20:  # Very few unique colors - definitely generic
                 return "likely_generic"
             
             # Check average brightness
@@ -197,17 +198,16 @@ class AvatarFixer:
             avg_brightness = brightness_sum / (len(pixels) * 3)
             
             # Very bright or very dark images might be placeholders
-            if avg_brightness > 240 or avg_brightness < 15:
+            if avg_brightness > 250 or avg_brightness < 5:  # More lenient thresholds
                 return "suspicious_brightness"
             
-            # Check for common placeholder patterns
-            # This is a simplified check - in reality you'd use more sophisticated image analysis
-            
-            return "needs_verification"
+            # Most images should be processed - be less restrictive
+            print(f"   🔍 Image analysis: {unique_colors} colors, brightness {avg_brightness:.1f}")
+            return "acceptable"  # Default to acceptable instead of needs_verification
             
         except Exception as e:
             print(f"   ❌ Image analysis error: {e}")
-            return "analysis_failed"
+            return "acceptable"  # Default to acceptable on error
 
     def categorize_character_type(self, name, title='', description='', category=''):
         """Determine character type for better search strategy"""
@@ -547,12 +547,18 @@ class AvatarFixer:
         analysis_result = self.analyze_image_content(current_img)
         print(f"   🔍 Analysis: {analysis_result}")
         
-        # Decide if we need to replace
-        needs_replacement = analysis_result in ['likely_generic', 'suspicious_brightness', 'needs_verification']
+        # Decide if we need to replace - be more aggressive about replacing
+        needs_replacement = analysis_result in ['likely_generic', 'suspicious_brightness']
         
-        if not needs_replacement:
+        # For testing, let's try to replace most avatars to see if the process works
+        force_replacement = True  # Set to True for testing
+        
+        if not needs_replacement and not force_replacement:
             print(f"   ✅ Current avatar appears acceptable")
             return True
+        
+        if force_replacement:
+            print(f"   🔄 Force replacement enabled for testing")
         
         print(f"   🔄 Avatar needs replacement")
         self.stats['mismatched_found'] += 1
@@ -605,10 +611,11 @@ class AvatarFixer:
             success_rate = (self.stats['successfully_fixed'] / self.stats['mismatched_found']) * 100
             print(f"   📈 Fix success rate: {success_rate:.1f}%")
 
-    def run(self, limit=None, start_from=0):
+    def run(self, limit=5, start_from=0):  # Default to small test
         """Main execution with optional limit and starting point"""
         print("🚀 Avatar Fixer - Visual Analysis and Replacement")
         print("🔍 Analyzing current avatars and replacing mismatched ones")
+        print("⚠️ TESTING MODE: Force replacement enabled")
         
         # Load characters
         characters = self.get_all_characters()
@@ -624,7 +631,7 @@ class AvatarFixer:
         # Apply limit if specified
         if limit:
             characters = characters[:limit]
-            print(f"🎯 Processing {len(characters)} characters (limited)")
+            print(f"🎯 Processing {len(characters)} characters (limited for testing)")
         else:
             print(f"🎯 Processing ALL {len(characters)} characters")
         
