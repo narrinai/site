@@ -1756,25 +1756,84 @@ function generateCategoryButtons() {
   // }
 }
 
+// Store tag counts globally
+let tagCharacterCounts = {};
+
+// Fetch all characters and count by tags
+async function fetchAndCountCharactersByTags() {
+  try {
+    console.log('🏷️ Fetching all characters to count tags...');
+    const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
+    url.searchParams.set('limit', '1000'); // Get many characters to count tags
+    
+    const response = await fetch(url.toString());
+    if (!response.ok) {
+      console.error('❌ Failed to fetch characters for tag counting');
+      return {};
+    }
+    
+    const data = await response.json();
+    if (!data.success || !data.characters) {
+      console.error('❌ Invalid response for tag counting');
+      return {};
+    }
+    
+    // Count characters per tag
+    const counts = {};
+    data.characters.forEach(character => {
+      if (character.Tags && Array.isArray(character.Tags)) {
+        character.Tags.forEach(tag => {
+          const tagLower = tag.toLowerCase();
+          counts[tagLower] = (counts[tagLower] || 0) + 1;
+        });
+      }
+    });
+    
+    console.log('📊 Tag character counts:', counts);
+    return counts;
+  } catch (error) {
+    console.error('❌ Error counting tags:', error);
+    return {};
+  }
+}
+
 // Generate tag buttons
-function generateTagButtons() {
+async function generateTagButtons() {
   const tagsContainer = document.getElementById('tagsContainer');
   tagsContainer.innerHTML = '';
 
-  // Filter tags with 5+ characters
-  const filteredTags = CONFIG.TAGS.filter(tag => tag.length >= 5);
+  // Get tag counts if not already fetched
+  if (Object.keys(tagCharacterCounts).length === 0) {
+    tagCharacterCounts = await fetchAndCountCharactersByTags();
+  }
+
+  // Filter tags with 5+ characters in name AND 15+ characters with that tag
+  const filteredTags = CONFIG.TAGS.filter(tag => {
+    const hasEnoughChars = tag.length >= 5;
+    const hasEnoughCharacters = (tagCharacterCounts[tag.toLowerCase()] || 0) >= 15;
+    return hasEnoughChars && hasEnoughCharacters;
+  });
+
+  console.log(`🏷️ Showing ${filteredTags.length} tags with 15+ characters`);
 
   filteredTags.forEach(tag => {
+    const count = tagCharacterCounts[tag.toLowerCase()] || 0;
     const button = document.createElement('a');
     button.href = `tags.html?tag=${tag}`;
     button.className = 'tag-btn';
     button.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
+    button.title = `${count} characters`; // Show count on hover
     tagsContainer.appendChild(button);
   });
+
+  // If no tags meet criteria, show a message
+  if (filteredTags.length === 0) {
+    tagsContainer.innerHTML = '<span style="color: var(--color-gray); font-size: var(--font-size-sm);">No popular tags available</span>';
+  }
 }
 
     // Generate extra tag buttons for bottom navigation
-function generateExtraTagButtons() {
+async function generateExtraTagButtons() {
   const extraTagsContainer = document.getElementById('extraTagsContainer');
   if (!extraTagsContainer) return;
 
@@ -1786,16 +1845,34 @@ function generateExtraTagButtons() {
     'philosopher', 'strategist', 'innovator', 'explorer', 'diplomat'
   ];
 
-  // Filter extra tags with 5+ characters
-  const filteredExtraTags = extraTags.filter(tag => tag.length >= 5);
+  // Get tag counts if not already fetched
+  if (Object.keys(tagCharacterCounts).length === 0) {
+    tagCharacterCounts = await fetchAndCountCharactersByTags();
+  }
+
+  // Filter extra tags with 5+ characters in name AND 15+ characters with that tag
+  const filteredExtraTags = extraTags.filter(tag => {
+    const hasEnoughChars = tag.length >= 5;
+    const hasEnoughCharacters = (tagCharacterCounts[tag.toLowerCase()] || 0) >= 15;
+    return hasEnoughChars && hasEnoughCharacters;
+  });
+
+  console.log(`🏷️ Showing ${filteredExtraTags.length} extra tags with 15+ characters`);
 
   filteredExtraTags.forEach(tag => {
+    const count = tagCharacterCounts[tag.toLowerCase()] || 0;
     const button = document.createElement('a');
     button.href = `tags.html?tag=${tag}`;
     button.className = 'tag-btn';
     button.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
+    button.title = `${count} characters`; // Show count on hover
     extraTagsContainer.appendChild(button);
   });
+
+  // If no tags meet criteria, don't show anything (since this is an extra section)
+  if (filteredExtraTags.length === 0) {
+    extraTagsContainer.innerHTML = '';
+  }
 }
 
     // Check character count for a category
@@ -2346,7 +2423,10 @@ if (window.netlifyIdentity) {
       
       // FAST LOADING: Show buttons immediately without character count checking
       generateCategoryButtons();
-      generateTagButtons();
+      
+      // Load tag buttons (these now check character counts)
+      await generateTagButtons();
+      await generateExtraTagButtons();
       
       // Generate character sections (this will check character counts for content)
       await generateCharacterSections();
