@@ -46,15 +46,15 @@ exports.handler = async (event, context) => {
     }
 
     // Get query parameters
-    const { category, limit = 500 } = event.queryStringParameters || {};
+    const { category, tag, limit = 500 } = event.queryStringParameters || {};
     
-    console.log('Request params:', { category, limit });
+    console.log('Request params:', { category, tag, limit });
 
     // Fetch all records using pagination if needed
     let allRecords = [];
     let offset = null;
     let requestCount = 0;
-    const maxRequests = 10; // Safety limit to prevent infinite loops
+    const maxRequests = 20; // Safety limit increased for large datasets
     
     do {
       requestCount++;
@@ -109,6 +109,8 @@ exports.handler = async (event, context) => {
       
       // Check if there are more records to fetch
       offset = data.offset;
+      console.log(`📄 Offset for next request: ${offset || 'None (finished)'}`);
+      console.log(`📊 Running total: ${allRecords.length} records`);
       
       // Safety check
       if (requestCount >= maxRequests) {
@@ -154,8 +156,23 @@ exports.handler = async (event, context) => {
       };
     });
 
+    // Filter by tag if specified (done in JavaScript since Airtable array filtering is complex)
+    let filteredCharacters = characters;
+    if (tag) {
+      console.log(`🏷️ Filtering characters by tag: ${tag}`);
+      filteredCharacters = characters.filter(character => {
+        if (character.Tags && Array.isArray(character.Tags)) {
+          return character.Tags.some(charTag => 
+            charTag.toLowerCase() === tag.toLowerCase()
+          );
+        }
+        return false;
+      });
+      console.log(`🏷️ Found ${filteredCharacters.length} characters with tag "${tag}"`);
+    }
+
     // Apply limit (increased for category/tags pages)
-    const limitedCharacters = characters.slice(0, parseInt(limit));
+    const limitedCharacters = filteredCharacters.slice(0, parseInt(limit));
     
     console.log(`📦 Returning ${limitedCharacters.length} characters`);
 
@@ -164,7 +181,7 @@ exports.handler = async (event, context) => {
       headers,
       body: JSON.stringify({
         success: true,
-        total: characters.length,
+        total: filteredCharacters.length,
         returned: limitedCharacters.length,
         characters: limitedCharacters
       })
