@@ -2526,7 +2526,7 @@ document.addEventListener('DOMContentLoaded', () => {
           currentAudio = null;
           document.querySelectorAll('.voice-play-btn').forEach(btn => {
             btn.classList.remove('playing');
-            btn.textContent = '🔊';
+            btn.textContent = '▶️';
           });
         }
         
@@ -2541,12 +2541,12 @@ document.addEventListener('DOMContentLoaded', () => {
           URL.revokeObjectURL(audioUrl);
           currentAudio = null;
           buttonElement.classList.remove('playing');
-          buttonElement.textContent = '🔊';
+          buttonElement.textContent = '▶️';
         });
         
         currentAudio.addEventListener('pause', () => {
           buttonElement.classList.remove('playing');
-          buttonElement.textContent = '🔊';
+          buttonElement.textContent = '▶️';
         });
         
         await currentAudio.play();
@@ -2554,7 +2554,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (error) {
         console.error('Voice playback error:', error);
         buttonElement.classList.remove('playing');
-        buttonElement.textContent = '🔊';
+        buttonElement.textContent = '▶️';
         
         // Show more specific error messages
         if (error.message.includes('TTS service not configured')) {
@@ -2567,62 +2567,18 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Verbeterde typewriter met automatische TTS en fade-in effect
-    async function typewriterWithVoice(element, text, voiceId = null, speed = 20) {
-      let i = 0;
+    // Snelle typewriter effect zonder automatische audio
+    function typewriterWithVoice(element, text, voiceId = null, speed = 8) {
       element.textContent = '';
-      element.style.opacity = '0';
+      let i = 0;
       
-      // Fade in the container
-      element.style.transition = 'opacity 0.3s ease-in';
-      setTimeout(() => {
-        element.style.opacity = '1';
-      }, 100);
-      
-      // Start TTS als voice beschikbaar is en tekst lang genoeg
-      if (voiceId && text.length > 20) {
-        try {
-          const audioBlob = await generateSpeech(text, voiceId);
-          const audioUrl = URL.createObjectURL(audioBlob);
-          const audio = new Audio(audioUrl);
-          
-          // Start audio halverwege typewriter
-          setTimeout(() => {
-            if (!isPlayingAudio) {
-              audio.play().catch(console.error);
-              isPlayingAudio = true;
-            }
-          }, (text.length * speed) / 3);
-          
-          audio.addEventListener('ended', () => {
-            URL.revokeObjectURL(audioUrl);
-            isPlayingAudio = false;
-          });
-          
-        } catch (error) {
-          console.error('TTS error:', error);
-        }
-      }
-      
-      // Typewriter effect with fade-in
+      // Eenvoudige typewriter effect
       const timer = setInterval(() => {
         if (i < text.length) {
-          const currentChar = text.charAt(i);
-          
-          // Create span for character with fade-in effect
-          const charSpan = document.createElement('span');
-          charSpan.textContent = currentChar;
-          charSpan.style.opacity = '0';
-          charSpan.style.transition = 'opacity 0.2s ease-in';
-          element.appendChild(charSpan);
-          
-          // Fade in the character
-          setTimeout(() => {
-            charSpan.style.opacity = '1';
-          }, 10);
-          
+          element.textContent += text.charAt(i);
           i++;
           
+          // Auto-scroll chatlog
           const chatlog = document.getElementById("chatlog");
           if (chatlog) {
             chatlog.scrollTop = chatlog.scrollHeight;
@@ -3380,7 +3336,7 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
         // Add voice play button if character has voice
         let voiceButton = '';
         if (currentCharacter && currentCharacter.voice_id) {
-          voiceButton = ` <button class="voice-play-btn" onclick="window.playMessageVoice(\`${message.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Listen to message">🔊</button>`;
+          voiceButton = ` <button class="voice-play-btn" onclick="window.playMessageVoice(\`${message.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Listen to message">▶️</button>`;
         }
         
         p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${message}${voiceButton}`;
@@ -3466,7 +3422,7 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     }
 
     // Improved typewriter effect with fade-in animation
-function typewriterEffect(element, text, speed = 20) {
+function typewriterEffect(element, text, speed = 8) {
   let i = 0;
   element.textContent = '';
   element.style.opacity = '0';
@@ -3795,7 +3751,7 @@ hideTypingIndicator();
     // Add voice play button if character has voice
     let voiceButton = '';
     if (currentCharacter.voice_id) {
-      voiceButton = ` <button class="voice-play-btn" onclick="window.playMessageVoice(\`${reply.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Listen to message">🔊</button>`;
+      voiceButton = ` <button class="voice-play-btn" onclick="window.playMessageVoice(\`${reply.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Listen to message">▶️</button>`;
     }
     
     divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span>${voiceButton}`;
