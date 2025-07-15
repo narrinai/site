@@ -1682,6 +1682,14 @@
       0%, 100% { opacity: 1; }
       50% { opacity: 0.6; }
     }
+    .voice-play-btn.loading {
+      color: var(--color-gray);
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
 
 @media (max-width: 768px) {
   .upgrade-modal {
@@ -2001,8 +2009,8 @@
 
     <div id="chatInterface" style="display: none;">
       <div class="page-header">
-        <h1>Discover Your Growth Journey</h1>
-        <p>Connect with an AI companion who truly understands you. Every conversation unlocks new possibilities on your path to becoming who you're meant to be.</p>
+        <h1>Chat With Your AI Companion</h1>
+        <p>Every conversation unlocks new possibilities on your path to becoming who you're meant to be.</p>
       </div>
 
       <div class="character-section">
@@ -2517,7 +2525,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Manual voice playback
+    // Voice cache voor snellere playback
+    const voiceCache = new Map();
+    
+    // Manual voice playback met caching en loading indicator
     window.playMessageVoice = async function(text, voiceId, buttonElement) {
       try {
         // Stop current audio if playing
@@ -2530,31 +2541,58 @@ document.addEventListener('DOMContentLoaded', () => {
           });
         }
         
+        // Toon loading indicator
+        buttonElement.classList.add('loading');
+        buttonElement.textContent = '⏳';
+        buttonElement.disabled = true;
+        
+        // Check cache eerst
+        const cacheKey = `${voiceId}_${text.substring(0, 100)}`;
+        let audioBlob;
+        
+        if (voiceCache.has(cacheKey)) {
+          console.log('🎵 Using cached audio');
+          audioBlob = voiceCache.get(cacheKey);
+        } else {
+          console.log('🎤 Generating new audio...');
+          audioBlob = await generateSpeech(text, voiceId);
+          // Cache de audio (max 50 items)
+          if (voiceCache.size >= 50) {
+            const firstKey = voiceCache.keys().next().value;
+            voiceCache.delete(firstKey);
+          }
+          voiceCache.set(cacheKey, audioBlob);
+        }
+        
+        // Verander naar play state
+        buttonElement.classList.remove('loading');
         buttonElement.classList.add('playing');
         buttonElement.textContent = '⏸️';
-        
-        const audioBlob = await generateSpeech(text, voiceId);
+        buttonElement.disabled = false;
         const audioUrl = URL.createObjectURL(audioBlob);
         currentAudio = new Audio(audioUrl);
         
         currentAudio.addEventListener('ended', () => {
           URL.revokeObjectURL(audioUrl);
           currentAudio = null;
-          buttonElement.classList.remove('playing');
+          buttonElement.classList.remove('playing', 'loading');
           buttonElement.textContent = '▶️';
+          buttonElement.disabled = false;
         });
         
         currentAudio.addEventListener('pause', () => {
-          buttonElement.classList.remove('playing');
+          buttonElement.classList.remove('playing', 'loading');
           buttonElement.textContent = '▶️';
+          buttonElement.disabled = false;
         });
         
         await currentAudio.play();
         
       } catch (error) {
         console.error('Voice playback error:', error);
-        buttonElement.classList.remove('playing');
+        buttonElement.classList.remove('playing', 'loading');
         buttonElement.textContent = '▶️';
+        buttonElement.disabled = false;
         
         // Show more specific error messages
         if (error.message.includes('TTS service not configured')) {
