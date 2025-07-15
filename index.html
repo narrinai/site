@@ -1766,17 +1766,23 @@ async function fetchAndCountCharactersByTags() {
     const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
     url.searchParams.set('limit', '1000'); // Get many characters to count tags
     
+    console.log('🔗 Tag counting URL:', url.toString());
+    
     const response = await fetch(url.toString());
     if (!response.ok) {
-      console.error('❌ Failed to fetch characters for tag counting');
+      console.error('❌ Failed to fetch characters for tag counting, status:', response.status);
       return {};
     }
     
     const data = await response.json();
+    console.log('📦 Tag counting API response:', data);
+    
     if (!data.success || !data.characters) {
-      console.error('❌ Invalid response for tag counting');
+      console.error('❌ Invalid response for tag counting:', data);
       return {};
     }
+    
+    console.log(`📋 Processing ${data.characters.length} characters for tag counting`);
     
     // Count characters per tag
     const counts = {};
@@ -1790,6 +1796,7 @@ async function fetchAndCountCharactersByTags() {
     });
     
     console.log('📊 Tag character counts:', counts);
+    console.log('🎨 Artist tag specifically has:', counts['artist'] || 0, 'characters');
     return counts;
   } catch (error) {
     console.error('❌ Error counting tags:', error);
@@ -1807,14 +1814,26 @@ async function generateTagButtons() {
     tagCharacterCounts = await fetchAndCountCharactersByTags();
   }
 
+  // If tag counting failed, don't show any tags
+  if (Object.keys(tagCharacterCounts).length === 0) {
+    console.log('❌ Tag counting failed, not showing any tags');
+    tagsContainer.innerHTML = '<span style="color: var(--color-gray); font-size: var(--font-size-sm);">Loading tags...</span>';
+    return;
+  }
+
   // Filter tags with 5+ characters in name AND 15+ characters with that tag
   const filteredTags = CONFIG.TAGS.filter(tag => {
     const hasEnoughChars = tag.length >= 5;
-    const hasEnoughCharacters = (tagCharacterCounts[tag.toLowerCase()] || 0) >= 15;
+    const tagCount = tagCharacterCounts[tag.toLowerCase()] || 0;
+    const hasEnoughCharacters = tagCount >= 15;
+    
+    // Debug each tag
+    console.log(`🏷️ Tag "${tag}": ${tagCount} characters (${hasEnoughChars ? 'name OK' : 'name too short'}, ${hasEnoughCharacters ? 'enough chars' : 'too few chars'})`);
+    
     return hasEnoughChars && hasEnoughCharacters;
   });
 
-  console.log(`🏷️ Showing ${filteredTags.length} tags with 15+ characters`);
+  console.log(`🏷️ Showing ${filteredTags.length} tags with 15+ characters:`, filteredTags);
 
   filteredTags.forEach(tag => {
     const count = tagCharacterCounts[tag.toLowerCase()] || 0;
@@ -1848,6 +1867,13 @@ async function generateExtraTagButtons() {
   // Get tag counts if not already fetched
   if (Object.keys(tagCharacterCounts).length === 0) {
     tagCharacterCounts = await fetchAndCountCharactersByTags();
+  }
+
+  // If tag counting failed, don't show any tags
+  if (Object.keys(tagCharacterCounts).length === 0) {
+    console.log('❌ Extra tag counting failed, not showing any extra tags');
+    extraTagsContainer.innerHTML = '';
+    return;
   }
 
   // Filter extra tags with 5+ characters in name AND 15+ characters with that tag

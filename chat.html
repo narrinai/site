@@ -2432,10 +2432,46 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentAudio = null;
     let isPlayingAudio = false;
 
+    // Voice ID validatie en fallback
+    function validateAndFixVoiceId(voiceId) {
+      // Bekende geldige voice IDs uit de voice library
+      const validVoiceIds = [
+        'iP95p4HMsOdaJ6J8s72v', 'TxGEqnHWrfWFTfGW9XjX', 'VR6AewLTigWG4xSOukaG', 
+        'pqHfZKP75CvOlQylNhV4', 'yoZ06aMxZJJ28mfd3POQ', 'EXAVITQu4vr4xnSDxMaL',
+        'XrExE9yKIg1WjnnlVkGX', 'oWAxZDx7w5VEj9dCyTzz', 'pFZP5JQG7iQjIQuC4Bku',
+        'XB0fDUnXU5powFXDhCwa', 'onwK4e9ZLuTAKqWW03F9', 'fvcBHKa2lxguQE5lB4uV',
+        'p3yi6sku4VQJg3uH6i6D', 'W8ouBcjTunaMJLYU2BvB', 'SyTRiCoyqTeFEk9z5HVW',
+        'wdGYtWKVlLmwTxGswfYd', 'SAhaRsW91OuPlKeINYop', 'by3rQdWs4XjziQwJ2sTL',
+        'qEN0DupmmmaueYJ8Eaz8'
+      ];
+      
+      // Bekende ongeldige voice IDs die vervangen moeten worden
+      const invalidVoiceIds = {
+        'uH01NDVLLmf6SaxfTd': 'XrExE9yKIg1WjnnlVkGX' // Freya - vriendelijke vrouwenstem
+      };
+      
+      // Check voor bekende ongeldige IDs
+      if (invalidVoiceIds[voiceId]) {
+        console.log(`🔄 Replacing invalid voice ID ${voiceId} with ${invalidVoiceIds[voiceId]}`);
+        return invalidVoiceIds[voiceId];
+      }
+      
+      // Check of voice ID geldig format heeft
+      if (!voiceId || typeof voiceId !== 'string' || voiceId.length < 10 || voiceId.length > 30) {
+        console.log(`🔄 Invalid voice ID format: ${voiceId}, using fallback`);
+        return 'XrExE9yKIg1WjnnlVkGX'; // Freya als default fallback
+      }
+      
+      // Return original als het valid lijkt
+      return voiceId;
+    }
+
     // VEILIGE TTS functie via Netlify Function
     window.generateSpeech = async function(text, voiceId) {
       try {
-        console.log('📢 Calling TTS with:', { text: text.substring(0, 50) + '...', voiceId });
+        // Valideer en corrigeer voice ID indien nodig
+        const validVoiceId = validateAndFixVoiceId(voiceId);
+        console.log('📢 Calling TTS with:', { text: text.substring(0, 50) + '...', original: voiceId, validated: validVoiceId });
         
         const response = await fetch('/.netlify/functions/tts-simple', {
           method: 'POST',
@@ -2444,7 +2480,7 @@ document.addEventListener('DOMContentLoaded', () => {
           },
           body: JSON.stringify({
             text: text,
-            voice_id: voiceId
+            voice_id: validVoiceId
           })
         });
         
