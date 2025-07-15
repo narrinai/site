@@ -1557,7 +1557,7 @@ body.has-referral-banner {
     const CONFIG = {
   // Netlify Function endpoint
   CHARACTERS_API: '/.netlify/functions/characters',
-  MAX_CHARACTERS_PER_CATEGORY: 8,
+  MAX_CHARACTERS_PER_CATEGORY: 24, // Increased for better category preview
   // Only show top 6 most popular categories for fast loading
   CATEGORIES: [
     { id: 'historical', name: 'Historical', title: 'Historical Figures' },
@@ -1787,6 +1787,8 @@ async function fetchAndCountCharactersByTags() {
     // Count characters per tag
     const counts = {};
     console.log(`📋 Sample character for tag analysis:`, data.characters[0]);
+    console.log(`📋 Sample character fields:`, Object.keys(data.characters[0] || {}));
+    console.log(`📋 First 3 characters Tags fields:`, data.characters.slice(0, 3).map(c => ({name: c.Name, tags: c.Tags})));
     
     data.characters.forEach((character, index) => {
       if (character.Tags && Array.isArray(character.Tags)) {
@@ -1862,9 +1864,20 @@ async function generateTagButtons() {
     tagsContainer.appendChild(button);
   });
 
-  // If no tags meet criteria, show a message
+  // If no tags meet criteria, show popular fallback tags
   if (filteredTags.length === 0) {
-    tagsContainer.innerHTML = '<span style="color: var(--color-gray); font-size: var(--font-size-sm);">No popular tags available</span>';
+    console.log('⚠️ No tags have 15+ characters, showing fallback popular tags');
+    const fallbackTags = ['wise', 'funny', 'helpful', 'creative', 'leader', 'mentor'];
+    
+    fallbackTags.forEach(tag => {
+      const count = tagCharacterCounts[tag.toLowerCase()] || 0;
+      const button = document.createElement('a');
+      button.href = `tags.html?tag=${tag}`;
+      button.className = 'tag-btn';
+      button.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
+      button.title = `${count} characters (fallback)`;
+      tagsContainer.appendChild(button);
+    });
   }
 }
 
@@ -2056,8 +2069,8 @@ async function loadCharactersFromNetlify(category, gridId, limit = CONFIG.MAX_CH
     throw new Error(data.error || 'Unknown API error');
   }
 
-  // Process the data - always limit to 8 characters with avatars
-  processNetlifyData(data.characters, category, gridId, 8);
+  // Process the data - always limit to configured number of characters with avatars
+  processNetlifyData(data.characters, category, gridId, CONFIG.MAX_CHARACTERS_PER_CATEGORY);
 }
 
 // Helper function to check if character has valid avatar
@@ -2099,8 +2112,8 @@ function processNetlifyData(characters, category, gridId, limit) {
       return 0;
     });
     
-    // Take exactly 8 characters (prioritizing those with avatars)
-    const limitedCharacters = sortedCharacters.slice(0, 8);
+    // Take configured number of characters (prioritizing those with avatars)
+    const limitedCharacters = sortedCharacters.slice(0, limit);
     
     console.log(`📋 Showing ${limitedCharacters.length} characters for ${category} (from ${categoryCharacters.length} total, ${limitedCharacters.filter(hasValidAvatar).length} with avatars)`);
     
