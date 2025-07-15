@@ -2447,7 +2447,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Bekende ongeldige voice IDs die vervangen moeten worden
       const invalidVoiceIds = {
-        'uH01NDVLLmf6SaxfTd': 'XrExE9yKIg1WjnnlVkGX' // Freya - vriendelijke vrouwenstem
+        'uH01NDVLLmf6SaxfTd': '21m00Tcm4TlvDq8ikWAM' // Rachel - standaard ElevenLabs voice
       };
       
       // Check voor bekende ongeldige IDs
@@ -2459,7 +2459,13 @@ document.addEventListener('DOMContentLoaded', () => {
       // Check of voice ID geldig format heeft
       if (!voiceId || typeof voiceId !== 'string' || voiceId.length < 10 || voiceId.length > 30) {
         console.log(`🔄 Invalid voice ID format: ${voiceId}, using fallback`);
-        return 'XrExE9yKIg1WjnnlVkGX'; // Freya als default fallback
+        return '21m00Tcm4TlvDq8ikWAM'; // Rachel - standaard ElevenLabs voice
+      }
+      
+      // Als voice ID niet bekend is, gebruik standaard ElevenLabs voice voor veiligheid
+      if (!validVoiceIds.includes(voiceId)) {
+        console.log(`⚠️ Unknown voice ID: ${voiceId}, using safe fallback`);
+        return '21m00Tcm4TlvDq8ikWAM'; // Rachel - standaard ElevenLabs voice
       }
       
       // Return original als het valid lijkt
