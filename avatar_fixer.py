@@ -209,8 +209,48 @@ class AvatarFixer:
             print(f"   ❌ Image analysis error: {e}")
             return "analysis_failed"
 
-    def search_correct_avatar(self, character_name, character_title='', category=''):
-        """Search for the correct avatar for this character"""
+    def categorize_character_type(self, name, title='', description='', category=''):
+        """Determine character type for better search strategy"""
+        text_to_check = f"{name} {title} {description} {category}".lower()
+        
+        # Historical figures
+        historical_indicators = [
+            'napoleon', 'caesar', 'cleopatra', 'churchill', 'washington', 'lincoln',
+            'einstein', 'darwin', 'shakespeare', 'leonardo', 'michelangelo', 'mozart',
+            'beethoven', 'gandhi', 'king', 'roosevelt', 'kennedy'
+        ]
+        
+        # Fictional characters from known franchises
+        fictional_indicators = [
+            'star wars', 'marvel', 'dc comics', 'disney', 'anime', 'game of thrones',
+            'lord of the rings', 'harry potter', 'superhero', 'jedi', 'sith'
+        ]
+        
+        # Coaches/professionals
+        coach_indicators = [
+            'coach', 'mentor', 'therapist', 'counselor', 'advisor', 'trainer',
+            'consultant', 'expert', 'specialist', 'instructor', 'guide'
+        ]
+        
+        # Mythological/legendary
+        mythological_indicators = [
+            'god', 'goddess', 'mythology', 'legend', 'mythical', 'deity',
+            'zeus', 'thor', 'odin', 'apollo', 'athena'
+        ]
+        
+        if any(indicator in text_to_check for indicator in historical_indicators):
+            return 'historical'
+        elif any(indicator in text_to_check for indicator in fictional_indicators):
+            return 'fictional'
+        elif any(indicator in text_to_check for indicator in coach_indicators):
+            return 'coach'
+        elif any(indicator in text_to_check for indicator in mythological_indicators):
+            return 'mythological'
+        else:
+            return 'unknown'
+
+    def search_correct_avatar(self, character_name, character_title='', category='', description=''):
+        """Search for the correct avatar with improved query strategies"""
         try:
             print(f"   🔍 Searching for correct avatar for: {character_name}")
             
@@ -219,44 +259,90 @@ class AvatarFixer:
                 print(f"      ❌ Missing Google API credentials")
                 return []
             
-            # Build search queries based on character info
+            # Determine character type for better search strategy
+            char_type = self.categorize_character_type(character_name, character_title, description, category)
+            print(f"      🎭 Character type detected: {char_type}")
+            
+            # Build optimized search queries based on character type
             queries = []
             
-            # Primary query with quotes for exact match
-            if character_title:
-                queries.append(f'"{character_name}" "{character_title}" portrait')
-                queries.append(f'"{character_name}" {character_title} character')
-            
-            queries.extend([
-                f'"{character_name}" portrait',
-                f'"{character_name}" character',
-                f'"{character_name}" face',
-                f'{character_name} portrait',
-                f'{character_name} character art',
-                f'{character_name} official art'
-            ])
-            
-            # Add category-specific terms
-            if 'coach' in category.lower():
+            if char_type == 'historical':
+                # For historical figures: focus on official portraits and paintings
                 queries.extend([
-                    f'{character_name} illustration',
-                    f'{character_name} icon',
-                    f'{character_name} professional'
+                    f'"{character_name}" official portrait painting',
+                    f'"{character_name}" historical portrait',
+                    f'"{character_name}" famous painting portrait',
+                    f'"{character_name}" official painting',
+                    f'"{character_name}" portrait art museum'
                 ])
+            
+            elif char_type == 'fictional':
+                # For fictional characters: focus on official character art
+                queries.extend([
+                    f'"{character_name}" official character art',
+                    f'"{character_name}" character design',
+                    f'"{character_name}" official artwork',
+                    f'"{character_name}" character portrait',
+                    f'"{character_name}" concept art official'
+                ])
+            
+            elif char_type == 'coach':
+                # For coaches: focus on professional illustrations, NO text
+                queries.extend([
+                    f'{character_name} professional illustration',
+                    f'{character_name} minimalist artwork',
+                    f'{character_name} clean illustration',
+                    f'{character_name} vector art professional',
+                    f'{character_name} simple portrait illustration'
+                ])
+            
+            elif char_type == 'mythological':
+                # For mythological figures: focus on classical art
+                queries.extend([
+                    f'"{character_name}" classical art painting',
+                    f'"{character_name}" mythology artwork',
+                    f'"{character_name}" classical portrait',
+                    f'"{character_name}" renaissance painting',
+                    f'"{character_name}" mythological art'
+                ])
+            
+            else:
+                # Default strategy for unknown types
+                queries.extend([
+                    f'"{character_name}" portrait',
+                    f'"{character_name}" official image',
+                    f'"{character_name}" professional photo',
+                    f'"{character_name}" headshot'
+                ])
+            
+            # Add title-specific queries if available
+            if character_title and char_type != 'coach':
+                queries.insert(0, f'"{character_name}" "{character_title}" portrait')
+                queries.insert(1, f'"{character_name}" {character_title} official')
             
             all_images = []
             
-            for query in queries[:3]:  # Reduce to 3 queries to avoid rate limits
+            for query in queries[:4]:  # Limit to 4 best queries
                 try:
-                    print(f"      📝 Query: {query}")
+                    # Add filters to avoid text-heavy images
+                    search_query = f"{query} -text -words -quote -meme -poster"
+                    print(f"      📝 Query: {search_query}")
                     
-                    result = self.search_service.cse().list(
-                        q=query,
-                        cx=self.google_cx,
-                        searchType='image',
-                        num=5,
-                        safe='active'
-                    ).execute()
+                    search_params = {
+                        'q': search_query,
+                        'cx': self.google_cx,
+                        'searchType': 'image',
+                        'num': 5,
+                        'safe': 'active',
+                        'imgType': 'photo' if char_type in ['historical'] else 'face',
+                        'imgSize': 'medium'
+                    }
+                    
+                    # For coaches, prefer clipart/drawings
+                    if char_type == 'coach':
+                        search_params['imgType'] = 'clipart'
+                    
+                    result = self.search_service.cse().list(**search_params).execute()
                     
                     items_found = len(result.get('items', []))
                     print(f"         📷 Found {items_found} results")
@@ -267,11 +353,27 @@ class AvatarFixer:
                     
                     for item in result.get('items', []):
                         url = item['link']
+                        title = item.get('title', '').lower()
                         
-                        # Skip our own domain and problematic domains
-                        skip_domains = ['narrin.ai', 'pinterest.com', 'shutterstock.com']
+                        # Enhanced domain filtering
+                        skip_domains = [
+                            'narrin.ai', 'pinterest.com', 'shutterstock.com', 'gettyimages.com',
+                            'istockphoto.com', 'stockphoto.com', 'depositphotos.com',
+                            'dreamstime.com', 'alamy.com', 'fotolia.com'
+                        ]
+                        
                         if any(domain in url.lower() for domain in skip_domains):
                             print(f"         ⏭️ Skipping blocked domain: {url.split('/')[2]}")
+                            continue
+                        
+                        # Skip images that likely contain text
+                        text_indicators = [
+                            'quote', 'meme', 'text', 'words', 'caption', 'title',
+                            'poster', 'banner', 'sign', 'typography', 'logo'
+                        ]
+                        
+                        if any(indicator in title or indicator in url.lower() for indicator in text_indicators):
+                            print(f"         ⏭️ Skipping text-heavy image: {title[:30]}...")
                             continue
                         
                         # Skip if we already have this URL
@@ -279,11 +381,12 @@ class AvatarFixer:
                             all_images.append({
                                 'url': url,
                                 'title': item.get('title', ''),
-                                'query': query
+                                'query': query,
+                                'char_type': char_type
                             })
-                            print(f"         ✅ Added: {url.split('/')[2]}")
+                            print(f"         ✅ Added: {url.split('/')[2]} - {title[:40]}")
                     
-                    time.sleep(1)  # Longer delay between queries
+                    time.sleep(1)  # Rate limiting
                     
                 except Exception as e:
                     print(f"      ❌ Query '{query}' failed: {e}")
@@ -293,8 +396,8 @@ class AvatarFixer:
                         break
                     continue
                 
-                # Stop if we have enough images
-                if len(all_images) >= 10:
+                # Stop if we have enough good images
+                if len(all_images) >= 12:
                     break
             
             print(f"   📊 Found {len(all_images)} potential replacement images")
@@ -455,7 +558,7 @@ class AvatarFixer:
         self.stats['mismatched_found'] += 1
         
         # Search for correct avatar
-        replacement_images = self.search_correct_avatar(name, title, category)
+        replacement_images = self.search_correct_avatar(name, title, category, fields.get('Description', ''))
         if not replacement_images:
             print(f"   ❌ No replacement images found")
             self.stats['failed_fixes'] += 1
