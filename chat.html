@@ -3328,6 +3328,21 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
         return;
       }
       
+      // Filter out debug messages that accidentally got saved as chat messages
+      const debugPatterns = [
+        /Processing message \d+:/,
+        /Final extracted:/,
+        /Vorige gesprekken en belangrijke informatie:/,
+        /Chat history loaded successfully/,
+        /\[Belangrijk geheugen/,
+        /📝|💬|🔍|⚠️|❌|✅|📜|🧠|🎯/
+      ];
+      
+      if (debugPatterns.some(pattern => pattern.test(message))) {
+        console.warn("🧹 Filtering out debug message:", message.substring(0, 50));
+        return;
+      }
+      
       const p = document.createElement("p");
       if (role === "user") {
         p.innerHTML = `<strong>You:</strong> ${message}`;
