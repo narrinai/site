@@ -1847,7 +1847,7 @@ async function generateTagButtons() {
   const filteredTags = CONFIG.TAGS.filter(tag => {
     const hasEnoughChars = tag.length >= 5;
     const tagCount = tagCharacterCounts[tag.toLowerCase()] || 0;
-    const hasEnoughCharacters = tagCount >= 15;
+    const hasEnoughCharacters = tagCount >= 5; // Temporarily lowered for testing
     
     // Debug each tag
     console.log(`🏷️ Tag "${tag}": ${tagCount} characters (${hasEnoughChars ? 'name OK' : 'name too short'}, ${hasEnoughCharacters ? 'enough chars' : 'too few chars'})`);
@@ -1912,7 +1912,7 @@ async function generateExtraTagButtons() {
   // Filter extra tags with 5+ characters in name AND 15+ characters with that tag
   const filteredExtraTags = extraTags.filter(tag => {
     const hasEnoughChars = tag.length >= 5;
-    const hasEnoughCharacters = (tagCharacterCounts[tag.toLowerCase()] || 0) >= 15;
+    const hasEnoughCharacters = (tagCharacterCounts[tag.toLowerCase()] || 0) >= 5; // Temporarily lowered for testing
     return hasEnoughChars && hasEnoughCharacters;
   });
 
