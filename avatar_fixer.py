@@ -214,6 +214,11 @@ class AvatarFixer:
         try:
             print(f"   🔍 Searching for correct avatar for: {character_name}")
             
+            # Test API connection first
+            if not self.google_api_key or not self.google_cx:
+                print(f"      ❌ Missing Google API credentials")
+                return []
+            
             # Build search queries based on character info
             queries = []
             
@@ -241,7 +246,7 @@ class AvatarFixer:
             
             all_images = []
             
-            for query in queries[:6]:  # Limit to 6 queries to avoid rate limits
+            for query in queries[:3]:  # Reduce to 3 queries to avoid rate limits
                 try:
                     print(f"      📝 Query: {query}")
                     
@@ -250,12 +255,15 @@ class AvatarFixer:
                         cx=self.google_cx,
                         searchType='image',
                         num=5,
-                        safe='active',
-                        imgSize='medium'
+                        safe='active'
                     ).execute()
                     
                     items_found = len(result.get('items', []))
                     print(f"         📷 Found {items_found} results")
+                    
+                    if items_found == 0:
+                        print(f"         ⚠️ No results for this query")
+                        continue
                     
                     for item in result.get('items', []):
                         url = item['link']
@@ -263,6 +271,7 @@ class AvatarFixer:
                         # Skip our own domain and problematic domains
                         skip_domains = ['narrin.ai', 'pinterest.com', 'shutterstock.com']
                         if any(domain in url.lower() for domain in skip_domains):
+                            print(f"         ⏭️ Skipping blocked domain: {url.split('/')[2]}")
                             continue
                         
                         # Skip if we already have this URL
@@ -272,15 +281,20 @@ class AvatarFixer:
                                 'title': item.get('title', ''),
                                 'query': query
                             })
+                            print(f"         ✅ Added: {url.split('/')[2]}")
                     
-                    time.sleep(0.5)  # Rate limiting
+                    time.sleep(1)  # Longer delay between queries
                     
                 except Exception as e:
-                    print(f"      ❌ Query failed: {e}")
+                    print(f"      ❌ Query '{query}' failed: {e}")
+                    print(f"         Error type: {type(e).__name__}")
+                    if "quota" in str(e).lower():
+                        print(f"         🚫 API quota exceeded - stopping search")
+                        break
                     continue
                 
                 # Stop if we have enough images
-                if len(all_images) >= 15:
+                if len(all_images) >= 10:
                     break
             
             print(f"   📊 Found {len(all_images)} potential replacement images")
@@ -288,30 +302,41 @@ class AvatarFixer:
             
         except Exception as e:
             print(f"   ❌ Search error: {e}")
+            print(f"      Error type: {type(e).__name__}")
             return []
 
     def download_and_process_image(self, image_url, character_name):
         """Download and process replacement image"""
         try:
+            print(f"      🌐 Downloading: {image_url[:50]}...")
             response = self.session.get(image_url, timeout=15)
             response.raise_for_status()
             
             # Check content type
             content_type = response.headers.get('content-type', '').lower()
             if 'text/html' in content_type:
+                print(f"      ❌ Got HTML instead of image")
                 return None
             
             # Check file size (2KB - 15MB)
             content_length = len(response.content)
-            if content_length < 2048 or content_length > 15 * 1024 * 1024:
+            if content_length < 2048:
+                print(f"      ❌ File too small: {content_length} bytes")
                 return None
+            if content_length > 15 * 1024 * 1024:
+                print(f"      ❌ File too large: {content_length} bytes")
+                return None
+            
+            print(f"      📏 File size: {content_length} bytes")
             
             # Open as image
             img = Image.open(BytesIO(response.content))
             
             # Check dimensions
             width, height = img.size
+            print(f"      📐 Dimensions: {width}x{height}")
             if width < 150 or height < 150:
+                print(f"      ❌ Image too small: {width}x{height}")
                 return None
             
             # Convert to RGB if needed
@@ -332,10 +357,14 @@ class AvatarFixer:
             img.save(img_bytes, format='WEBP', quality=85, optimize=True)
             img_bytes.seek(0)
             
+            processed_size = len(img_bytes.getvalue())
+            print(f"      ✅ Processed: {content_length} → {processed_size} bytes")
+            
             return img_bytes.getvalue()
             
         except Exception as e:
-            print(f"   ❌ Image processing error: {e}")
+            print(f"      ❌ Image processing error: {e}")
+            print(f"         Error type: {type(e).__name__}")
             return None
 
     def save_new_avatar(self, image_data, character_name):
@@ -375,17 +404,20 @@ class AvatarFixer:
         }
         
         try:
+            print(f"      🔄 Updating Airtable for character ID: {character_id}")
             response = requests.patch(url, json=data, headers=headers, timeout=30)
             
             if response.status_code == 200:
-                print(f"   ✅ Updated Airtable: {avatar_url_with_cache}")
+                print(f"      ✅ Updated Airtable: {avatar_url_with_cache}")
                 return True
             else:
-                print(f"   ❌ Airtable error: {response.status_code}")
+                print(f"      ❌ Airtable error: {response.status_code}")
+                print(f"         Response: {response.text[:200]}")
                 return False
                 
         except Exception as e:
-            print(f"   ❌ Update error: {e}")
+            print(f"      ❌ Update error: {e}")
+            print(f"         Error type: {type(e).__name__}")
             return False
 
     def fix_character_avatar(self, character):
