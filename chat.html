@@ -2567,26 +2567,27 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Snelle typewriter effect zonder automatische audio
+    // Fade-in effect voor berichten
     function typewriterWithVoice(element, text, voiceId = null, speed = 8) {
-      element.textContent = '';
-      let i = 0;
+      element.textContent = text;
+      element.style.opacity = '0';
+      element.style.transition = 'opacity 0.8s ease-in';
       
-      // Eenvoudige typewriter effect
-      const timer = setInterval(() => {
-        if (i < text.length) {
-          element.textContent += text.charAt(i);
-          i++;
-          
-          // Auto-scroll chatlog
-          const chatlog = document.getElementById("chatlog");
-          if (chatlog) {
-            chatlog.scrollTop = chatlog.scrollHeight;
-          }
-        } else {
-          clearInterval(timer);
-        }
-      }, speed);
+      // Fade in the text
+      setTimeout(() => {
+        element.style.opacity = '1';
+      }, 100);
+      
+      // Add voice button after fade-in completes
+      if (voiceId) {
+        setTimeout(() => {
+          const voiceButtonDiv = document.createElement('div');
+          voiceButtonDiv.style.marginTop = '8px';
+          voiceButtonDiv.style.textAlign = 'left';
+          voiceButtonDiv.innerHTML = `<button class="voice-play-btn" onclick="window.playMessageVoice(\`${text.replace(/`/g, '\\`')}\`, '${voiceId}', this)" title="Listen to message">▶️</button>`;
+          element.parentElement.appendChild(voiceButtonDiv);
+        }, 900); // Na fade-in animatie
+      }
     }
     
     // NIEUWE WEBHOOK URL
@@ -3333,13 +3334,11 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       } else {
         const avatarHtml = getAvatarHtml();
         
-        // Add voice play button if character has voice
-        let voiceButton = '';
         if (currentCharacter && currentCharacter.voice_id) {
-          voiceButton = ` <button class="voice-play-btn" onclick="window.playMessageVoice(\`${message.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Listen to message">▶️</button>`;
+          p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${message}<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice(\`${message.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Listen to message">▶️</button></div>`;
+        } else {
+          p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${message}`;
         }
-        
-        p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${message}${voiceButton}`;
       }
       chatlog.appendChild(p);
       messagesProcessed++;
@@ -3423,43 +3422,14 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
 
     // Improved typewriter effect with fade-in animation
 function typewriterEffect(element, text, speed = 8) {
-  let i = 0;
-  element.textContent = '';
+  element.textContent = text;
   element.style.opacity = '0';
+  element.style.transition = 'opacity 0.8s ease-in';
   
-  // Fade in the container
-  element.style.transition = 'opacity 0.3s ease-in';
+  // Fade in the text
   setTimeout(() => {
     element.style.opacity = '1';
   }, 100);
-  
-  const timer = setInterval(() => {
-    if (i < text.length) {
-      const currentChar = text.charAt(i);
-      
-      // Create span for character with fade-in effect
-      const charSpan = document.createElement('span');
-      charSpan.textContent = currentChar;
-      charSpan.style.opacity = '0';
-      charSpan.style.transition = 'opacity 0.2s ease-in';
-      element.appendChild(charSpan);
-      
-      // Fade in the character
-      setTimeout(() => {
-        charSpan.style.opacity = '1';
-      }, 10);
-      
-      i++;
-      
-      // Auto-scroll tijdens typen
-      const chatlog = document.getElementById("chatlog");
-      if (chatlog) {
-        chatlog.scrollTop = chatlog.scrollHeight;
-      }
-    } else {
-      clearInterval(timer);
-    }
-  }, speed);
 }
 
 // UNIVERSELE Authentication Check - Voeg toe aan chat.html
@@ -3748,13 +3718,7 @@ hideTypingIndicator();
     const divBot = document.createElement("p");
     const avatarHtml = getAvatarHtml();
     
-    // Add voice play button if character has voice
-    let voiceButton = '';
-    if (currentCharacter.voice_id) {
-      voiceButton = ` <button class="voice-play-btn" onclick="window.playMessageVoice(\`${reply.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Listen to message">▶️</button>`;
-    }
-    
-    divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span>${voiceButton}`;
+    divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span>`;
     chatlog.appendChild(divBot);
     chatlog.scrollTop = chatlog.scrollHeight;
 
