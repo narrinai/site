@@ -1786,12 +1786,18 @@ async function fetchAndCountCharactersByTags() {
     
     // Count characters per tag
     const counts = {};
-    data.characters.forEach(character => {
+    console.log(`📋 Sample character for tag analysis:`, data.characters[0]);
+    
+    data.characters.forEach((character, index) => {
       if (character.Tags && Array.isArray(character.Tags)) {
         character.Tags.forEach(tag => {
           const tagLower = tag.toLowerCase();
           counts[tagLower] = (counts[tagLower] || 0) + 1;
         });
+      } else if (character.Tags) {
+        console.log(`⚠️ Character ${index} has non-array Tags:`, character.Tags, typeof character.Tags);
+      } else {
+        console.log(`⚠️ Character ${index} has no Tags field:`, character.Name || character.name);
       }
     });
     
@@ -1814,10 +1820,20 @@ async function generateTagButtons() {
     tagCharacterCounts = await fetchAndCountCharactersByTags();
   }
 
-  // If tag counting failed, don't show any tags
+  // If tag counting failed, show debug info and fallback to showing all tags
   if (Object.keys(tagCharacterCounts).length === 0) {
-    console.log('❌ Tag counting failed, not showing any tags');
-    tagsContainer.innerHTML = '<span style="color: var(--color-gray); font-size: var(--font-size-sm);">Loading tags...</span>';
+    console.log('❌ Tag counting failed, showing all tags as fallback');
+    tagsContainer.innerHTML = '<span style="color: var(--color-red); font-size: var(--font-size-sm);">Tag counting failed - showing all tags</span>';
+    
+    // Fallback: show all tags
+    CONFIG.TAGS.filter(tag => tag.length >= 5).forEach(tag => {
+      const button = document.createElement('a');
+      button.href = `tags.html?tag=${tag}`;
+      button.className = 'tag-btn';
+      button.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
+      button.title = 'Count unknown (fallback mode)';
+      tagsContainer.appendChild(button);
+    });
     return;
   }
 
@@ -1869,7 +1885,7 @@ async function generateExtraTagButtons() {
     tagCharacterCounts = await fetchAndCountCharactersByTags();
   }
 
-  // If tag counting failed, don't show any tags
+  // If tag counting failed, don't show any extra tags (extra tags are optional)
   if (Object.keys(tagCharacterCounts).length === 0) {
     console.log('❌ Extra tag counting failed, not showing any extra tags');
     extraTagsContainer.innerHTML = '';

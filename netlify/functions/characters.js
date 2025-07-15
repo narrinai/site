@@ -116,7 +116,7 @@ exports.handler = async (event, context) => {
         break;
       }
       
-    } while (offset && allRecords.length < parseInt(limit));
+    } while (offset); // Continue until no more records available
     
     console.log(`🎯 Total records retrieved: ${allRecords.length}`);
 
