@@ -3670,41 +3670,55 @@ async function sendMessage(event) {
   
   console.log("🚀 sendMessage debug:", { token: !!token, uid: !!uid, email, user_id, characterSlug });
 
-  // Haal relevante herinneringen op
-console.log("🧠 Retrieving memories before sending message...");
-let memories = [];
-try {
-  memories = await getRelevantMemories(user_id, characterSlug, input);
-  console.log("✅ Memory retrieval completed:", memories?.length || 0, "memories found");
-} catch (error) {
-  console.error("❌ Memory retrieval failed:", error);
-  memories = []; // Fallback to empty array
-}
+  // Check if there's existing chat history first
+  const chatlog = document.getElementById("chatlog");
+  const existingMessages = chatlog.querySelectorAll('.message-group');
+  const hasExistingHistory = existingMessages.length > 0;
+  
+  console.log("💬 Existing chat history check:", {
+    existingMessages: existingMessages.length,
+    hasExistingHistory
+  });
 
-// DEBUG: Memory verification
-if (memories && memories.length > 0) {
-    console.log(`📚 Found ${memories.length} relevant memories:`);
-    memories.forEach((memory, i) => {
-        console.log(`  ${i+1}. [${memory.importance}] ${memory.summary?.substring(0, 80)}...`);
-    });
-// Verbeterde memory context formatting
-if (memories && memories.length > 0) {
-    const memoryTexts = memories.map(m => {
-        const summary = m.summary || m.message || '';
-        const importance = m.importance || 0;
-        return `[Belangrijk geheugen (${importance}/10): ${summary}]`;
-    });
-    
-    memoryContext = `\n\nVorige gesprekken en belangrijke informatie:\n${memoryTexts.join('\n')}\n\nGebruik deze informatie om persoonlijk te antwoorden.\n`;
-    
-    console.log("📝 Improved memory context:", memoryContext);
-} else {
+  // Haal relevante herinneringen op - maar alleen als er al chatgeschiedenis is
+  console.log("🧠 Retrieving memories before sending message...");
+  let memories = [];
+  let memoryContext = "";
+
+  if (hasExistingHistory) {
+    try {
+      memories = await getRelevantMemories(user_id, characterSlug, input);
+      console.log("✅ Memory retrieval completed:", memories?.length || 0, "memories found");
+    } catch (error) {
+      console.error("❌ Memory retrieval failed:", error);
+      memories = []; // Fallback to empty array
+    }
+
+    // DEBUG: Memory verification
+    if (memories && memories.length > 0) {
+        console.log(`📚 Found ${memories.length} relevant memories:`);
+        memories.forEach((memory, i) => {
+            console.log(`  ${i+1}. [${memory.importance}] ${memory.summary?.substring(0, 80)}...`);
+        });
+        
+        // Verbeterde memory context formatting - alleen als er memories zijn
+        const memoryTexts = memories.map(m => {
+            const summary = m.summary || m.message || '';
+            const importance = m.importance || 0;
+            return `[Belangrijk geheugen (${importance}/10): ${summary}]`;
+        });
+        
+        memoryContext = `\n\nVorige gesprekken en belangrijke informatie:\n${memoryTexts.join('\n')}\n\nGebruik deze informatie om persoonlijk te antwoorden.\n`;
+        
+        console.log("📝 Improved memory context:", memoryContext);
+    } else {
+        console.log("📭 No relevant memories found - not adding memory context");
+        memoryContext = "";
+    }
+  } else {
+    console.log("🆕 No existing chat history - skipping memory retrieval for fresh conversation");
     memoryContext = "";
-}    console.log("📝 Memory context being sent:", memoryContext);
-} else {
-    console.log("📭 No relevant memories found");
-    memoryContext = "";
-}
+  }
 
   const sendButton = document.getElementById("sendButton");
   sendButton.disabled = true;
