@@ -592,26 +592,24 @@ def generate_additional_names(category, count, existing_specialties=None):
     # Shuffle voor willekeurige volgorde
     random.shuffle(available_patterns)
     
-    used_specialties = set()
+    # BELANGRIJK: Gebruik elke specialty maar één keer
+    # Shuffle first names ook voor meer variatie
+    random.shuffle(first_names)
     
-    for i in range(count):
-        # Gebruik elke specialiteit maar 1x per 150 characters
-        specialty_idx = i % len(available_patterns)
-        specialty = available_patterns[specialty_idx]
-        
-        # Als we alle patterns hebben gehad, reset en begin opnieuw
-        if specialty in used_specialties and len(used_specialties) >= len(available_patterns):
-            used_specialties.clear()
-            random.shuffle(available_patterns)
-        
-        # Voornaam selectie
-        first_name_idx = i % len(first_names)
-        first_name = first_names[first_name_idx]
+    # Neem alleen het aantal patterns dat we nodig hebben (of alle beschikbare)
+    num_to_generate = min(count, len(available_patterns))
+    
+    for i in range(num_to_generate):
+        specialty = available_patterns[i]
+        first_name = first_names[i % len(first_names)]
         
         # Plaats naam achteraan: "Digital Transformation Sam" ipv "Sam Digital Transformation"
         name = f"{specialty} {first_name}"
         names.append(name)
-        used_specialties.add(specialty)
+    
+    # Als we meer namen nodig hebben dan patterns, log een waarschuwing
+    if count > len(available_patterns):
+        log(Colors.YELLOW, f"⚠️  Slechts {len(available_patterns)} unieke specialties beschikbaar voor {category}, gevraagd: {count}")
     
     return names
 
@@ -864,8 +862,8 @@ def generate_unique_characters(category, target_count, existing_names_set=None):
         for char in characters:
             name_parts = char['name'].split()
             if len(name_parts) >= 2:
-                # Neem alles behalve de voornaam als specialiteit
-                specialty = ' '.join(name_parts[1:])
+                # Nu staat de naam achteraan, dus neem alles behalve het laatste woord als specialiteit
+                specialty = ' '.join(name_parts[:-1])
                 existing_specialties.add(specialty)
         
         # Genereer veel meer dan nodig om duplicates te vermijden
@@ -897,17 +895,31 @@ def generate_unique_characters(category, target_count, existing_names_set=None):
         fallback_names = ['Alex', 'Sam', 'Chris', 'Jordan', 'Taylor', 'Casey', 'Riley', 'Quinn', 'Avery', 'Blake', 'Cameron', 'Drew', 'Ellis', 'Finley', 'Gray', 'Harper']
         fallback_specialties = ['Consulting', 'Guidance', 'Support', 'Mentoring', 'Training', 'Development', 'Strategy', 'Planning', 'Analysis', 'Innovation']
         
-        for i in range(still_needed):
-            name = fallback_names[i % len(fallback_names)]
-            specialty = fallback_specialties[i % len(fallback_specialties)]
-            # Plaats naam achteraan: "Consulting Alex" ipv "Alex Consulting"
-            fallback_name = f"{specialty} {name}"
-            title, description = generate_title_description(fallback_name, category)
-            characters.append({
-                'name': fallback_name,
-                'title': title,
-                'description': description
-            })
+        # Gebruik elke fallback specialty maar één keer
+        used_fallback_specialties = set()
+        for char in characters:
+            # Extraheer specialty uit bestaande namen
+            name_parts = char['name'].split(' ')
+            if len(name_parts) > 1:
+                # Alles behalve het laatste woord is de specialty
+                specialty = ' '.join(name_parts[:-1])
+                used_fallback_specialties.add(specialty)
+        
+        fallback_count = 0
+        for i in range(min(still_needed, len(fallback_specialties))):
+            specialty = fallback_specialties[i]
+            if specialty not in used_fallback_specialties:
+                name = fallback_names[fallback_count % len(fallback_names)]
+                # Plaats naam achteraan: "Consulting Alex" ipv "Alex Consulting"
+                fallback_name = f"{specialty} {name}"
+                title, description = generate_title_description(fallback_name, category)
+                characters.append({
+                    'name': fallback_name,
+                    'title': title,
+                    'description': description
+                })
+                used_fallback_specialties.add(specialty)
+                fallback_count += 1
     
     # Rapporteer hoeveel characters er beschikbaar zijn
     final_count = len(characters)
