@@ -608,7 +608,8 @@ def generate_additional_names(category, count, existing_specialties=None):
         first_name_idx = i % len(first_names)
         first_name = first_names[first_name_idx]
         
-        name = f"{first_name} {specialty}"
+        # Plaats naam achteraan: "Digital Transformation Sam" ipv "Sam Digital Transformation"
+        name = f"{specialty} {first_name}"
         names.append(name)
         used_specialties.add(specialty)
     
@@ -899,7 +900,8 @@ def generate_unique_characters(category, target_count, existing_names_set=None):
         for i in range(still_needed):
             name = fallback_names[i % len(fallback_names)]
             specialty = fallback_specialties[i % len(fallback_specialties)]
-            fallback_name = f"{name} {specialty}"
+            # Plaats naam achteraan: "Consulting Alex" ipv "Alex Consulting"
+            fallback_name = f"{specialty} {name}"
             title, description = generate_title_description(fallback_name, category)
             characters.append({
                 'name': fallback_name,
