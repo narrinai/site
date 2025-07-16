@@ -1651,6 +1651,46 @@
     let filteredCharacters = [];
     const charactersPerPage = 50; // Show 50 characters per page for better performance and loading speed
 
+    // ===== UTILITY FUNCTIONS =====
+    function getCleanCategoryName(categoryName) {
+      // Remove common suffixes and apply capitalization
+      let cleanName = categoryName.replace(/ Characters?$/i, '').replace(/ Coach(es)?$/i, '').replace(/ & Coach(es)?$/i, '');
+      
+      // Apply proper capitalization - capitalize first letter and handle common patterns
+      cleanName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+      
+      // Handle special cases for better display
+      if (cleanName.toLowerCase() === 'anime-manga') {
+        cleanName = 'Anime';
+      } else if (cleanName.toLowerCase() === 'al-assistant') {
+        cleanName = 'AI Assistant';
+      } else if (cleanName.toLowerCase() === 'business-coach') {
+        cleanName = 'Business';
+      } else if (cleanName.toLowerCase() === 'career-coach') {
+        cleanName = 'Career';
+      } else if (cleanName.toLowerCase() === 'fitness-coach') {
+        cleanName = 'Fitness';
+      } else if (cleanName.toLowerCase() === 'relationship-coach') {
+        cleanName = 'Relationship';
+      } else if (cleanName.toLowerCase() === 'negotiation-coach') {
+        cleanName = 'Negotiation';
+      } else if (cleanName.toLowerCase() === 'health-coach') {
+        cleanName = 'Health';
+      } else if (cleanName.toLowerCase() === 'spiritual-coach') {
+        cleanName = 'Spiritual';
+      } else if (cleanName.toLowerCase() === 'original') {
+        cleanName = 'Original';
+      } else if (cleanName.toLowerCase() === 'other') {
+        cleanName = 'Other';
+      } else if (cleanName.toLowerCase() === 'gaming') {
+        cleanName = 'Gaming';
+      } else if (cleanName.toLowerCase() === 'mythology') {
+        cleanName = 'Mythology';
+      }
+      
+      return cleanName;
+    }
+
     // ===== NAVIGATION FUNCTIONALITY =====
     
     // Mobile Search Elements
@@ -1802,9 +1842,9 @@
       
       // Get category configuration
       const config = CONFIG.CATEGORIES[currentCategory] || {
-        title: currentCategory.charAt(0).toUpperCase() + currentCategory.slice(1).replace('-', ' & '),
+        title: getCleanCategoryName(currentCategory),
         icon: '📁',
-        description: `Discover amazing ${currentCategory} characters`
+        description: `Discover amazing ${getCleanCategoryName(currentCategory)} characters`
       };
 
       console.log('📋 Category config:', config);
