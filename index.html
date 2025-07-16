@@ -753,28 +753,13 @@
       padding: var(--spacing-xs) var(--spacing-md);
       width: 100%;
       max-width: 100%;
-      overflow-x: auto;
-      overflow-y: visible;
+      overflow: visible;
     }
 
     .filters-container::after {
-      content: '';
-      flex-shrink: 0;
-      width: var(--spacing-md);
+      display: none;
     }
 
-    .filters-container::-webkit-scrollbar {
-      height: 4px;
-    }
-
-    .filters-container::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .filters-container::-webkit-scrollbar-thumb {
-      background: var(--color-gray-light);
-      border-radius: var(--radius-full);
-    }
 
     .filter-section {
       display: flex;
@@ -1122,34 +1107,15 @@
   }
 
   .filters-container {
-    overflow-x: auto;
-    overflow-y: visible;
-    flex-wrap: nowrap;
-    justify-content: flex-start;
+    overflow: visible;
+    flex-wrap: wrap;
+    justify-content: center;
     padding: 0 var(--spacing-md);
     gap: var(--spacing-xs);
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-    scrollbar-color: var(--color-gray-light) transparent;
   }
   
   .filters-container::after {
-    content: '';
-    flex-shrink: 0;
-    width: var(--spacing-lg); /* Add invisible spacer at end */
-  }
-
-  .filters-container::-webkit-scrollbar {
-    height: 4px;
-  }
-
-  .filters-container::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .filters-container::-webkit-scrollbar-thumb {
-    background: var(--color-gray-light);
-    border-radius: var(--radius-full);
+    display: none;
   }
 
   .filter-section {
@@ -1579,24 +1545,24 @@ body.has-referral-banner {
   MAX_CHARACTERS_PER_CATEGORY: 8, // Maximum 8 characters per category
   // Show multiple categories for comprehensive browsing
   CATEGORIES: [
-    { id: 'historical', name: 'Historical', title: 'Historical Figures' },
-    { id: 'anime-manga', name: 'Anime', title: 'Anime Characters' }, 
-    { id: 'fictional', name: 'Fiction', title: 'Fictional Characters' },
+    { id: 'historical', name: 'Historical', title: 'Historical' },
+    { id: 'anime-manga', name: 'Anime', title: 'Anime' }, 
+    { id: 'fictional', name: 'Fiction', title: 'Fiction' },
     { id: 'celebrity', name: 'Celebrities', title: 'Celebrities' },
-    { id: 'relationship-coach', name: 'Relationship Coach', title: 'Relationship Coaches' },
-    { id: 'fitness-coach', name: 'Fitness Coach', title: 'Fitness Coaches' },
-    { id: 'business-coach', name: 'Business Coach', title: 'Business Coaches' },
-    { id: 'gaming', name: 'Gaming', title: 'Gaming Characters' },
-    { id: 'mythology', name: 'Mythology', title: 'Mythological Characters' },
-    { id: 'health-coach', name: 'Health Coach', title: 'Health Coaches' },
-    { id: 'spiritual-coach', name: 'Spiritual Coach', title: 'Spiritual Coaches' },
-    { id: 'career-coach', name: 'Career Coach', title: 'Career Coaches' },
-    { id: 'education', name: 'Education', title: 'Educational Characters' },
-    { id: 'science', name: 'Science', title: 'Science Characters' },
-    { id: 'philosophy', name: 'Philosophy', title: 'Philosophical Characters' },
-    { id: 'sports', name: 'Sports', title: 'Sports Characters' },
-    { id: 'music', name: 'Music', title: 'Musical Characters' },
-    { id: 'art', name: 'Art', title: 'Art Characters' }
+    { id: 'relationship-coach', name: 'Relationship', title: 'Relationship' },
+    { id: 'fitness-coach', name: 'Fitness', title: 'Fitness' },
+    { id: 'business-coach', name: 'Business', title: 'Business' },
+    { id: 'gaming', name: 'Gaming', title: 'Gaming' },
+    { id: 'mythology', name: 'Mythology', title: 'Mythology' },
+    { id: 'health-coach', name: 'Health', title: 'Health' },
+    { id: 'spiritual-coach', name: 'Spiritual', title: 'Spiritual' },
+    { id: 'career-coach', name: 'Career', title: 'Career' },
+    { id: 'education', name: 'Education', title: 'Education' },
+    { id: 'science', name: 'Science', title: 'Science' },
+    { id: 'philosophy', name: 'Philosophy', title: 'Philosophy' },
+    { id: 'sports', name: 'Sports', title: 'Sports' },
+    { id: 'music', name: 'Music', title: 'Music' },
+    { id: 'art', name: 'Art', title: 'Art' }
   ],
   TAGS: [
     'wise', 'funny', 'helpful', 'mysterious', 'leader', 
@@ -1814,7 +1780,7 @@ async function fetchCategoriesFromAirtable() {
           categoriesMap.set(categoryId, {
             id: categoryId,
             name: displayName,
-            title: character.Category.includes('Coach') ? `${character.Category}es` : `${character.Category} Characters`,
+            title: displayName, // Use clean display name for title too
             count: 1
           });
         } else {
