@@ -1176,7 +1176,7 @@
       background: var(--color-white);
       border-top: 1px solid var(--color-light-gray);
       padding: var(--spacing-xl) var(--spacing-lg);
-      margin-top: var(--spacing-3xl);
+      margin-top: var(--spacing-xl);
     }
 
     .footer-content {
@@ -1527,9 +1527,17 @@ body.has-referral-banner {
       <!-- Bottom Category Navigation (Same as top) -->
       <nav class="category-nav" aria-label="Browse categories">
         <div class="filters-container">
+          <!-- Categories Section -->
           <div class="filter-section">
             <div class="category-buttons" id="bottomCategoryButtons">
               <!-- Dynamic category buttons will be inserted here -->
+            </div>
+          </div>
+          
+          <!-- Tags Section -->
+          <div class="filter-section">
+            <div class="tags-container" id="bottomTagsContainer">
+              <!-- Dynamic tag buttons will be inserted here -->
             </div>
           </div>
         </div>
@@ -1960,7 +1968,10 @@ async function fetchAndCountCharactersByTags() {
 async function generateTagButtons() {
   console.log('🏷️ generateTagButtons() function called');
   const tagsContainer = document.getElementById('tagsContainer');
+  const bottomTagsContainer = document.getElementById('bottomTagsContainer');
+  
   tagsContainer.innerHTML = '';
+  if (bottomTagsContainer) bottomTagsContainer.innerHTML = '';
 
   // Get tag counts if not already fetched
   if (Object.keys(tagCharacterCounts).length === 0) {
@@ -1998,30 +2009,39 @@ async function generateTagButtons() {
 
   console.log(`🏷️ Showing ${filteredTags.length} tags with 15+ characters:`, filteredTags);
 
-  filteredTags.forEach(tag => {
-    const count = tagCharacterCounts[tag.toLowerCase()] || 0;
-    const button = document.createElement('a');
-    button.href = `tags.html?tag=${tag}`;
-    button.className = 'tag-btn';
-    button.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
-    button.title = `${count} characters`; // Show count on hover
-    tagsContainer.appendChild(button);
-  });
-
-  // If no tags meet criteria, show popular fallback tags
-  if (filteredTags.length === 0) {
-    console.log('⚠️ No tags have 15+ characters, showing fallback popular tags');
-    const fallbackTags = ['wise', 'funny', 'helpful', 'creative', 'leader', 'mentor'];
-    
-    fallbackTags.forEach(tag => {
-      const count = tagCharacterCounts[tag.toLowerCase()] || 0;
-      const button = document.createElement('a');
-      button.href = `tags.html?tag=${tag}`;
-      button.className = 'tag-btn';
-      button.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
-      button.title = `${count} characters (fallback)`;
-      tagsContainer.appendChild(button);
-    });
+  // Helper function to populate tag buttons
+  const populateTagButtons = (container) => {
+    if (filteredTags.length > 0) {
+      filteredTags.forEach(tag => {
+        const count = tagCharacterCounts[tag.toLowerCase()] || 0;
+        const button = document.createElement('a');
+        button.href = `tags.html?tag=${tag}`;
+        button.className = 'tag-btn';
+        button.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
+        button.title = `${count} characters`; // Show count on hover
+        container.appendChild(button);
+      });
+    } else {
+      // If no tags meet criteria, show popular fallback tags
+      console.log('⚠️ No tags have 15+ characters, showing fallback popular tags');
+      const fallbackTags = ['wise', 'funny', 'helpful', 'creative', 'leader', 'mentor'];
+      
+      fallbackTags.forEach(tag => {
+        const count = tagCharacterCounts[tag.toLowerCase()] || 0;
+        const button = document.createElement('a');
+        button.href = `tags.html?tag=${tag}`;
+        button.className = 'tag-btn';
+        button.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
+        button.title = `${count} characters (fallback)`;
+        container.appendChild(button);
+      });
+    }
+  };
+  
+  // Populate both top and bottom tag containers
+  populateTagButtons(tagsContainer);
+  if (bottomTagsContainer) {
+    populateTagButtons(bottomTagsContainer);
   }
 }
 

@@ -2559,15 +2559,26 @@ document.addEventListener('DOMContentLoaded', () => {
           return; // Early return to pause instead of restart
         }
         
-        // Validate text length first (max 500 characters for TTS)
+        // Filter out text between asterisks (action descriptions)
+        function filterTTSText(text) {
+          if (!text) return '';
+          // Remove text between asterisks (e.g., *leunt naar voren*)
+          return text.replace(/\*[^*]*\*/g, '').trim();
+        }
+        
+        // Validate text length first (max 1000 characters for TTS)
         if (!text || text.length === 0) {
           throw new Error('No text to convert to speech');
         }
         
-        let ttsText = text;
-        if (text.length > 500) {
-          console.warn(`⚠️ Text too long for TTS (${text.length} chars), truncating to 500 for audio only`);
-          ttsText = text.substring(0, 497) + '...';
+        let ttsText = filterTTSText(text);
+        if (ttsText.length === 0) {
+          throw new Error('No readable text found after filtering');
+        }
+        
+        if (ttsText.length > 1000) {
+          console.warn(`⚠️ Text too long for TTS (${ttsText.length} chars), truncating to 1000 for audio only`);
+          ttsText = ttsText.substring(0, 997) + '...';
         }
         
         // Stop any other audio if playing
