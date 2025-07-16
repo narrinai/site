@@ -1215,6 +1215,15 @@
       border: 1px solid var(--color-light-gray);
       transition: all var(--transition-base);
     }
+    
+    @media (max-width: 768px) {
+      .preview-character {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--spacing-md);
+        padding: var(--spacing-md);
+      }
+    }
 
     .preview-character:hover {
       border-color: var(--color-teal);
@@ -1234,6 +1243,15 @@
       flex-shrink: 0;
       border: 3px solid var(--color-white);
       box-shadow: var(--shadow-md);
+    }
+    
+    @media (max-width: 768px) {
+      .preview-avatar {
+        width: 80px;
+        height: 80px;
+        font-size: var(--font-size-3xl);
+        margin-bottom: var(--spacing-sm);
+      }
     }
 
     .preview-avatar img {
@@ -1256,6 +1274,13 @@
       font-weight: 700;
       line-height: 1.2;
     }
+    
+    @media (max-width: 768px) {
+      .preview-info h3 {
+        font-size: var(--font-size-2xl);
+        margin-bottom: var(--spacing-sm);
+      }
+    }
 
     .preview-info p {
       margin: 0;
@@ -1263,12 +1288,27 @@
       font-size: var(--font-size-sm);
       line-height: 1.4;
     }
+    
+    @media (max-width: 768px) {
+      .preview-info p {
+        font-size: var(--font-size-base);
+        line-height: 1.5;
+        margin-bottom: var(--spacing-sm);
+      }
+    }
 
     .preview-tags {
       margin-top: var(--spacing-md);
       display: flex;
       flex-wrap: wrap;
       gap: var(--spacing-xs);
+    }
+    
+    @media (max-width: 768px) {
+      .preview-tags {
+        justify-content: center;
+        gap: var(--spacing-sm);
+      }
     }
 
     .preview-tag {
@@ -2533,6 +2573,12 @@
   <option value="fitness-coach">💪 Fitness Coach</option>
   <option value="mindfulness-coach">🧘 Mindfulness Coach</option>
   <option value="business-coach">💼 Business Coach</option>
+  <option value="health-coach">🏥 Health Coach</option>
+  <option value="spiritual-coach">✨ Spiritual Coach</option>
+  <option value="cooking-coach">👨‍🍳 Cooking Coach</option>
+  <option value="negotiation-coach">🤝 Negotiation Coach</option>
+  <option value="accounting-coach">📊 Accounting Coach</option>
+  <option value="education">📚 Education</option>
 </select>
        </div>
        
@@ -3789,7 +3835,13 @@ function generateSuggestedTags() {
     'creativity-coach': ['artistic', 'creative', 'inspiration', 'imagination', 'innovation', 'expression'],
     'fitness-coach': ['workout', 'training', 'health', 'exercise', 'strength', 'motivation'],
     'mindfulness-coach': ['meditation', 'zen', 'peaceful', 'calm', 'balance', 'inner-peace'],
-    'business-coach': ['leadership', 'entrepreneur', 'strategy', 'success', 'professional', 'growth']
+    'business-coach': ['leadership', 'entrepreneur', 'strategy', 'success', 'professional', 'growth'],
+    'health-coach': ['wellness', 'nutrition', 'healthy', 'healing', 'medical', 'lifestyle'],
+    'spiritual-coach': ['spiritual', 'enlightened', 'peaceful', 'wise', 'transcendent', 'divine'],
+    'cooking-coach': ['culinary', 'chef', 'delicious', 'gourmet', 'recipes', 'kitchen'],
+    'negotiation-coach': ['diplomatic', 'persuasive', 'strategic', 'analytical', 'skilled', 'professional'],
+    'accounting-coach': ['analytical', 'precise', 'professional', 'detail-oriented', 'financial', 'strategic'],
+    'education': ['teacher', 'knowledgeable', 'patient', 'educational', 'informative', 'helpful']
   };
   
   if (category && categoryTags[category]) {
@@ -4444,13 +4496,21 @@ document.addEventListener('DOMContentLoaded', () => {
      'movies-tv': ['🎬', '📺', '🎭', '🍿', '🎪', '🎨'],
      'mythology': ['⚡', '🔱', '🦅', '🐍', '🌙', '☀️'],
      'original': ['✨', '🌟', '💫', '🎯', '🎪', '🎭'],
+     'fictional': ['📚', '✨', '🎭', '📖', '🌟', '💫'],
      'ai-assistant': ['🤖', '💬', '🧠', '⚡', '💡', '🔧'],
-     'educational': ['📚', '🎓', '📝', '🔬', '🧮', '📐'],
+     'education': ['📚', '🎓', '📝', '🔬', '🧮', '📐'],
      'fitness-coach': ['💪', '🏃‍♂️', '🏋️‍♀️', '⚽', '🥇', '🔥'],
      'business-coach': ['💼', '📊', '💰', '🎯', '📈', '💡'],
      'language-coach': ['🗣️', '📖', '🌍', '💬', '✍️', '🎓'],
      'accounting-coach': ['💰', '📊', '🧮', '📈', '💼', '⚖️'],
      'career-coach': ['📈', '🎯', '💼', '🌟', '🚀', '🎓'],
+     'health-coach': ['🏥', '💊', '🩺', '💚', '🌿', '💪'],
+     'spiritual-coach': ['✨', '🧘‍♀️', '🕉️', '🌸', '💫', '🙏'],
+     'cooking-coach': ['👨‍🍳', '🍳', '🥘', '🍽️', '🔥', '👩‍🍳'],
+     'negotiation-coach': ['🤝', '💼', '⚖️', '🎯', '💡', '📋'],
+     'relationship-coach': ['💕', '💝', '👫', '💌', '🌹', '💖'],
+     'creativity-coach': ['🎨', '✨', '🎭', '🖌️', '💡', '🌈'],
+     'mindfulness-coach': ['🧘', '🕯️', '🌸', '☯️', '🍃', '🌙'],
      'negotiation-coach': ['🤝', '💬', '🎯', '⚖️', '🧠', '💡'],
      'creativity-coach': ['🎨', '💡', '✨', '🌈', '🎪', '🎭'],
      'study-coach': ['📚', '🎓', '📝', '🧠', '⏰', '🎯'],
