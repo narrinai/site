@@ -217,9 +217,10 @@ exports.handler = async (event, context) => {
     }
 
     // Apply limit (increased for category/tags pages)
-    const limitedCharacters = filteredCharacters.slice(0, parseInt(limit));
+    const requestedLimit = parseInt(limit) || 500;
+    const limitedCharacters = filteredCharacters.slice(0, requestedLimit);
     
-    console.log(`📦 Returning ${limitedCharacters.length} characters`);
+    console.log(`📦 Returning ${limitedCharacters.length} characters (requested: ${requestedLimit}, available: ${filteredCharacters.length})`);
 
     const responseData = {
       success: true,
