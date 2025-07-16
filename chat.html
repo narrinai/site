@@ -1877,6 +1877,10 @@
               <span>Character Memory</span>
             </div>
             <div class="usp-item">
+              <span class="usp-icon" aria-hidden="true">🎵</span>
+              <span>Voice Playback</span>
+            </div>
+            <div class="usp-item">
               <span class="usp-icon" aria-hidden="true">🔐</span>
               <span>Private Data</span>
             </div>
@@ -2545,6 +2549,204 @@ document.addEventListener('DOMContentLoaded', () => {
     // Voice cache voor snellere playback
     const voiceCache = new Map();
     
+    // Voice usage limit constants
+    const VOICE_LIMIT_FREE = 5;
+    const VOICE_STORAGE_KEY = 'voice_usage_count';
+    const VOICE_RESET_KEY = 'voice_usage_reset_date';
+    
+    // Check voice usage limit for Free plan users
+    function checkVoiceUsageLimit() {
+      // Check if user has premium plan
+      const isPremium = localStorage.getItem('user_plan') === 'premium' || 
+                       localStorage.getItem('user_plan') === 'pro' ||
+                       localStorage.getItem('isPremium') === 'true';
+      
+      if (isPremium) {
+        console.log('🎵 Premium user - unlimited voice usage');
+        return true;
+      }
+      
+      // Check daily voice usage for Free users
+      const today = new Date().toDateString();
+      const lastReset = localStorage.getItem(VOICE_RESET_KEY);
+      let currentCount = parseInt(localStorage.getItem(VOICE_STORAGE_KEY) || '0');
+      
+      // Reset counter if it's a new day
+      if (lastReset !== today) {
+        currentCount = 0;
+        localStorage.setItem(VOICE_STORAGE_KEY, '0');
+        localStorage.setItem(VOICE_RESET_KEY, today);
+      }
+      
+      console.log(`🎵 Voice usage: ${currentCount}/${VOICE_LIMIT_FREE} (Free plan)`);
+      
+      if (currentCount >= VOICE_LIMIT_FREE) {
+        console.log('🚫 Voice usage limit reached for Free plan');
+        return false;
+      }
+      
+      // Increment counter
+      currentCount++;
+      localStorage.setItem(VOICE_STORAGE_KEY, currentCount.toString());
+      
+      return true;
+    }
+    
+    // Show upgrade modal for voice limit exceeded
+    function showVoiceUpgradeModal() {
+      const modal = document.createElement('div');
+      modal.className = 'voice-upgrade-modal';
+      modal.innerHTML = `
+        <div class="voice-upgrade-content">
+          <div class="voice-upgrade-header">
+            <h3>🎵 Voice Limit Reached</h3>
+            <button class="voice-upgrade-close" onclick="closeVoiceUpgradeModal()">&times;</button>
+          </div>
+          <div class="voice-upgrade-body">
+            <p>You've reached your daily limit of <strong>5 voice plays</strong> on the Free plan.</p>
+            <p>Upgrade to <strong>Premium</strong> for unlimited voice playback and more features!</p>
+            <div class="voice-upgrade-benefits">
+              <div class="voice-benefit">✨ Unlimited voice playback</div>
+              <div class="voice-benefit">🚀 Faster responses</div>
+              <div class="voice-benefit">🎭 Priority character access</div>
+              <div class="voice-benefit">💬 Unlimited conversations</div>
+            </div>
+          </div>
+          <div class="voice-upgrade-buttons">
+            <button class="btn-secondary" onclick="closeVoiceUpgradeModal()">Maybe Later</button>
+            <button class="btn-primary" onclick="upgradeToPremuim()">Upgrade Now</button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      // Add styles
+      const style = document.createElement('style');
+      style.textContent = `
+        .voice-upgrade-modal {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.5);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 10000;
+        }
+        
+        .voice-upgrade-content {
+          background: white;
+          border-radius: 16px;
+          max-width: 500px;
+          width: 90%;
+          max-height: 80vh;
+          overflow-y: auto;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        .voice-upgrade-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 24px 24px 16px;
+          border-bottom: 1px solid var(--color-light-gray);
+        }
+        
+        .voice-upgrade-header h3 {
+          margin: 0;
+          color: var(--color-navy);
+          font-size: var(--font-size-xl);
+        }
+        
+        .voice-upgrade-close {
+          background: none;
+          border: none;
+          font-size: 24px;
+          cursor: pointer;
+          color: var(--color-gray);
+          padding: 4px;
+        }
+        
+        .voice-upgrade-close:hover {
+          color: var(--color-navy);
+        }
+        
+        .voice-upgrade-body {
+          padding: 24px;
+        }
+        
+        .voice-upgrade-body p {
+          margin: 0 0 16px 0;
+          color: var(--color-gray-dark);
+          line-height: 1.6;
+        }
+        
+        .voice-upgrade-benefits {
+          background: var(--color-off-white);
+          border-radius: 12px;
+          padding: 16px;
+          margin: 16px 0;
+        }
+        
+        .voice-benefit {
+          padding: 8px 0;
+          color: var(--color-navy);
+          font-weight: 500;
+        }
+        
+        .voice-upgrade-buttons {
+          display: flex;
+          gap: 12px;
+          padding: 16px 24px 24px;
+          justify-content: flex-end;
+        }
+        
+        .voice-upgrade-buttons .btn-secondary {
+          background: var(--color-light-gray);
+          color: var(--color-navy);
+          border: none;
+          padding: 12px 24px;
+          border-radius: 8px;
+          cursor: pointer;
+          font-weight: 500;
+        }
+        
+        .voice-upgrade-buttons .btn-primary {
+          background: var(--gradient-primary);
+          color: white;
+          border: none;
+          padding: 12px 24px;
+          border-radius: 8px;
+          cursor: pointer;
+          font-weight: 500;
+        }
+        
+        .voice-upgrade-buttons .btn-primary:hover {
+          transform: translateY(-2px);
+          box-shadow: var(--shadow-lg);
+        }
+      `;
+      
+      document.head.appendChild(style);
+    }
+    
+    // Close voice upgrade modal
+    window.closeVoiceUpgradeModal = function() {
+      const modal = document.querySelector('.voice-upgrade-modal');
+      if (modal) {
+        modal.remove();
+      }
+    }
+    
+    // Upgrade to premium function
+    window.upgradeToPremuim = function() {
+      closeVoiceUpgradeModal();
+      window.location.href = 'profile.html#upgrade';
+    }
+    
     // Manual voice playback met caching en loading indicator
     window.playMessageVoice = async function(text, voiceId, buttonElement) {
       try {
@@ -2557,6 +2759,12 @@ document.addEventListener('DOMContentLoaded', () => {
           buttonElement.textContent = '▶️';
           buttonElement.disabled = false;
           return; // Early return to pause instead of restart
+        }
+        
+        // Check voice usage limit for Free plan users
+        if (!checkVoiceUsageLimit()) {
+          showVoiceUpgradeModal();
+          return;
         }
         
         // Filter out text between asterisks (action descriptions)
