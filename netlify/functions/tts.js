@@ -35,12 +35,10 @@ exports.handler = async (event, context) => {
       console.warn(`⚠️ Suspicious voice_id format: ${voice_id} (length: ${voice_id.length})`);
     }
 
-    // Rate limiting - max 500 chars
-    if (text.length > 500) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: 'Text too long (max 500 characters)' })
-      };
+    // Rate limiting - max 300 chars to save credits
+    if (text.length > 300) {
+      console.log(`⚠️ Text truncated from ${text.length} to 300 chars to save credits`);
+      text = text.substring(0, 297) + '...'; // Truncate instead of rejecting
     }
 
     // Call ElevenLabs API
@@ -68,10 +66,12 @@ exports.handler = async (event, context) => {
       },
       body: JSON.stringify({
         text: text,
-        model_id: 'eleven_multilingual_v2',
+        model_id: 'eleven_flash_v2_5', // 50% cheaper than multilingual_v2
         voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.5
+          stability: 0.7, // Higher stability to avoid regenerations
+          similarity_boost: 0.75, // Better quality, prevents regenerations
+          style: 0, // Disable style to save processing
+          use_speaker_boost: false // Disable to save credits
         }
       }),
       signal: controller.signal

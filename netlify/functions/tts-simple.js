@@ -32,21 +32,22 @@ exports.handler = async (event, context) => {
     console.log(`🎙️ TTS request: voice_id=${voice_id}, text_length=${text.length}`);
     console.log(`🔑 API key available: ${!!process.env.ELEVENLABS_API_KEY}`);
 
-    // Rate limiting - max 500 chars
-    if (text.length > 500) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: 'Text too long (max 500 characters)' })
-      };
+    // Rate limiting - max 300 chars to save credits
+    let truncatedText = text;
+    if (text.length > 300) {
+      console.log(`⚠️ Text truncated from ${text.length} to 300 chars to save credits`);
+      truncatedText = text.substring(0, 297) + '...'; // Truncate instead of rejecting
     }
 
     // Prepare request data
     const postData = JSON.stringify({
-      text: text,
-      model_id: 'eleven_multilingual_v2',
+      text: truncatedText,
+      model_id: 'eleven_flash_v2_5', // 50% cheaper than multilingual_v2
       voice_settings: {
-        stability: 0.5,
-        similarity_boost: 0.5
+        stability: 0.7, // Higher stability to avoid regenerations
+        similarity_boost: 0.75, // Better quality, prevents regenerations
+        style: 0, // Disable style to save processing
+        use_speaker_boost: false // Disable to save credits
       }
     });
 
