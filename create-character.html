@@ -1134,6 +1134,20 @@
       line-height: 1.4;
     }
 
+    .radio-option.disabled {
+      opacity: 0.5;
+      pointer-events: none;
+      cursor: not-allowed;
+    }
+
+    .radio-option.disabled .radio-option-title {
+      color: var(--color-gray);
+    }
+
+    .radio-option.disabled .radio-option-desc {
+      color: var(--color-light-gray);
+    }
+
     .button-group {
       display: flex;
       gap: var(--spacing-md);
@@ -4109,21 +4123,50 @@ function updatePromptCounter() {
        option.addEventListener('change', () => {
          document.querySelectorAll('.avatar-option').forEach(opt => opt.classList.remove('active'));
          option.closest('.avatar-option').classList.add('active');
+         
+         // Reset private mode enforcement when switching away from upload method
+         if (option.value !== 'upload') {
+           resetPrivateModeEnforcement();
+         }
        });
      });
      
-     avatarFileInput.addEventListener('change', (e) => {
+     avatarFileInput.addEventListener('change', async (e) => {
        const file = e.target.files[0];
        if (file) {
          fileName.textContent = file.name;
+         
+         // Show immediate preview with local file
          const reader = new FileReader();
          reader.onload = (e) => {
-           currentAvatarUrl = e.target.result;
-           avatarImg.src = currentAvatarUrl;
+           avatarImg.src = e.target.result;
            avatarPreview.style.display = 'block';
            updatePreview();
          };
          reader.readAsDataURL(file);
+         
+         // Upload to Cloudinary with content moderation
+         try {
+           fileName.textContent = `${file.name} (uploading...)`;
+           
+           // Generate temporary slug for upload
+           const tempSlug = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+           
+           const uploadResult = await uploadToCloudinary(file, tempSlug);
+           
+           currentAvatarUrl = uploadResult.secure_url;
+           fileName.textContent = `${file.name} (uploaded successfully)`;
+           
+           if (uploadResult.forced_private) {
+             console.log('⚠️ Content moderation forced private mode');
+           }
+           
+         } catch (error) {
+           console.error('❌ Avatar upload failed:', error);
+           fileName.textContent = `${file.name} (upload failed)`;
+           showError('Avatar upload failed: ' + error.message, 'Upload Error');
+           currentAvatarUrl = ''; // Clear URL on failure
+         }
        }
      });
      
@@ -4188,7 +4231,7 @@ function updatePromptCounter() {
      document.getElementById('previewSection').style.display = hasContent ? 'block' : 'none';
    }
 
-// 🔧 CLOUDINARY AVATAR UPLOAD FUNCTION
+// 🔧 CLOUDINARY AVATAR UPLOAD FUNCTION WITH CONTENT MODERATION
 async function uploadToCloudinary(file, slug) {
   const formData = new FormData();
   formData.append('file', file);
@@ -4196,6 +4239,7 @@ async function uploadToCloudinary(file, slug) {
   formData.append('public_id', `avatars/${slug}`);
   formData.append('quality', 'auto');
   formData.append('fetch_format', 'auto');
+  formData.append('moderation', 'aws_rek'); // Enable AWS Rekognition content moderation
   
   const response = await fetch('https://api.cloudinary.com/v1_1/dqrmopzes/image/upload', {
     method: 'POST',
@@ -4209,7 +4253,70 @@ async function uploadToCloudinary(file, slug) {
   }
   
   const result = await response.json();
-  return result.secure_url;
+  
+  // Check for inappropriate content
+  if (result.moderation && result.moderation.length > 0) {
+    const moderationResults = result.moderation[0];
+    console.log('🔍 Content moderation results:', moderationResults);
+    
+    // Check for adult/explicit content
+    if (moderationResults.response && moderationResults.response.moderation_labels) {
+      const labels = moderationResults.response.moderation_labels;
+      const inappropriateLabels = ['Explicit Nudity', 'Suggestive', 'Graphic Male Nudity', 'Graphic Female Nudity'];
+      
+      const hasInappropriateContent = labels.some(label => 
+        inappropriateLabels.includes(label.name) && label.confidence > 80
+      );
+      
+      if (hasInappropriateContent) {
+        console.warn('⚠️ Inappropriate content detected, forcing private mode');
+        forcePrivateMode('Inappropriate content detected in avatar - character automatically set to private');
+        return { secure_url: result.secure_url, forced_private: true };
+      }
+    }
+  }
+  
+  return { secure_url: result.secure_url, forced_private: false };
+}
+
+// Force private mode when inappropriate content is detected
+function forcePrivateMode(reason) {
+  const privateRadio = document.querySelector('input[name="visibility"][value="private"]');
+  const publicRadio = document.querySelector('input[name="visibility"][value="public"]');
+  const publicOption = document.querySelector('.radio-option');
+  const privateOption = document.querySelectorAll('.radio-option')[1];
+  
+  // Switch to private mode
+  privateRadio.checked = true;
+  publicRadio.checked = false;
+  
+  // Update UI
+  publicOption.classList.remove('selected');
+  privateOption.classList.add('selected');
+  
+  // Disable public option
+  publicRadio.disabled = true;
+  publicOption.classList.add('disabled');
+  
+  // Show notification
+  showContentPolicyNotification(reason);
+}
+
+// Show content policy violation notification
+function showContentPolicyNotification(reason) {
+  showNotification('warning', 'Content Policy Violation', 
+    `${reason}. Characters with inappropriate content can only be created as private. The public option has been disabled for this character.`
+  );
+}
+
+// Reset private mode enforcement (e.g., when changing to emoji/URL avatar)
+function resetPrivateModeEnforcement() {
+  const publicRadio = document.querySelector('input[name="visibility"][value="public"]');
+  const publicOption = document.querySelector('.radio-option');
+  
+  // Re-enable public option
+  publicRadio.disabled = false;
+  publicOption.classList.remove('disabled');
 }
 
    // Login overlay functions
