@@ -2135,7 +2135,7 @@ async function generateExtraTagButtons() {
       console.log(`✅ Showing ${validCategories.length} categories from Airtable`);
 
       // Filter out unwanted categories
-      const excludedCategories = ['rpg', 'cooking', 'mindfulness', 'accounting', 'writing', 'study', 'other', 'creativity', 'fitness', 'original', 'negotiation', 'educational'];
+      const excludedCategories = ['rpg', 'cooking', 'mindfulness', 'accounting', 'writing', 'study', 'other', 'creativity', 'fitness', 'original', 'negotiation', 'educational', 'business'];
       const filteredCategories = validCategories.filter(cat => 
         !excludedCategories.includes(cat.id.toLowerCase())
       );
@@ -2240,7 +2240,7 @@ async function loadCharactersFromNetlify(category, gridId, limit = CONFIG.MAX_CH
   // Build API URL
   const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
   url.searchParams.set('category', category);
-  url.searchParams.set('limit', '50'); // Request more to ensure we have enough
+  url.searchParams.set('limit', '200'); // Request many more to ensure we have enough for each category
   
   console.log(`📡 Fetching from Netlify Function:`, url.toString());
   
@@ -2285,10 +2285,38 @@ function processNetlifyData(characters, category, gridId, limit) {
   grid.innerHTML = '';
   
   if (characters && characters.length > 0) {
-    // Filter for this category first
-    const categoryCharacters = characters.filter(char => 
-      char.Category && char.Category.toLowerCase() === category.toLowerCase()
-    );
+    // Filter for this category first - with better matching
+    const categoryCharacters = characters.filter(char => {
+      if (!char.Category) return false;
+      
+      // Convert to lowercase for comparison
+      const charCat = char.Category.toLowerCase();
+      const searchCat = category.toLowerCase();
+      
+      // Try exact match
+      if (charCat === searchCat) return true;
+      
+      // Try singular/plural variations
+      if (charCat === searchCat + 's' || charCat + 's' === searchCat) return true;
+      if (charCat === searchCat.slice(0, -1) || charCat.slice(0, -1) === searchCat) return true;
+      
+      // Try hyphenated vs non-hyphenated
+      const charCatNoHyphen = charCat.replace(/-/g, '');
+      const searchCatNoHyphen = searchCat.replace(/-/g, '');
+      if (charCatNoHyphen === searchCatNoHyphen) return true;
+      
+      return false;
+    });
+    
+    console.log(`🔍 Found ${categoryCharacters.length} characters for category "${category}"`);
+    
+    // Debug: show character details
+    console.log(`🎭 Characters in ${category}:`, categoryCharacters.slice(0, 20).map(c => ({
+      name: c.Name,
+      hasAvatar: hasValidAvatar(c),
+      avatarUrl: c.Avatar_URL,
+      category: c.Category
+    })));
     
     // Sort characters - those with avatars first, then others
     const sortedCharacters = categoryCharacters.sort((a, b) => {
@@ -2301,7 +2329,12 @@ function processNetlifyData(characters, category, gridId, limit) {
     });
     
     // Take configured number of characters (prioritizing those with avatars)
-    const limitedCharacters = sortedCharacters.slice(0, limit);
+    let limitedCharacters = sortedCharacters.slice(0, limit);
+    
+    // If we don't have enough characters, log a warning
+    if (limitedCharacters.length < limit && categoryCharacters.length >= limit) {
+      console.warn(`⚠️ Only ${limitedCharacters.length} characters available for ${category}, wanted ${limit}`);
+    }
     
     console.log(`📋 Showing ${limitedCharacters.length} characters for ${category} (from ${categoryCharacters.length} total, ${limitedCharacters.filter(hasValidAvatar).length} with avatars)`);
     
@@ -2421,7 +2454,7 @@ function processNetlifyData(characters, category, gridId, limit) {
       
       // Check grids after 3 seconds
       setTimeout(() => {
-        const excludedCategories = ['rpg', 'cooking', 'mindfulness', 'accounting', 'writing', 'study', 'other', 'creativity', 'fitness', 'original', 'negotiation', 'educational'];
+        const excludedCategories = ['rpg', 'cooking', 'mindfulness', 'accounting', 'writing', 'study', 'other', 'creativity', 'fitness', 'original', 'negotiation', 'educational', 'business'];
         const allCategories = window.validCategories || CONFIG.CATEGORIES;
         const filteredCategories = allCategories.filter(cat => 
           !excludedCategories.includes(cat.id.toLowerCase())
@@ -2473,7 +2506,7 @@ function processNetlifyData(characters, category, gridId, limit) {
       const categoriesToLoad = window.validCategories || CONFIG.CATEGORIES;
       
       // Filter out unwanted categories (same as in generateCharacterSections)
-      const excludedCategories = ['rpg', 'cooking', 'mindfulness', 'accounting', 'writing', 'study', 'other', 'creativity', 'fitness', 'original', 'negotiation', 'educational'];
+      const excludedCategories = ['rpg', 'cooking', 'mindfulness', 'accounting', 'writing', 'study', 'other', 'creativity', 'fitness', 'original', 'negotiation', 'educational', 'business'];
       const filteredCategories = categoriesToLoad.filter(cat => 
         !excludedCategories.includes(cat.id.toLowerCase())
       );
