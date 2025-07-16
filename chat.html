@@ -3387,30 +3387,46 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
         return;
       }
       
-      // Filter out debug messages that accidentally got saved as chat messages
-      const debugPatterns = [
-        /^Processing message \d+:/,
-        /^Final extracted:/,
-        /^Vorige gesprekken en belangrijke informatie:/,
-        /^Chat history loaded successfully/,
-        /^\[Belangrijk geheugen/,
-        /^Starting memory processing/,
-        /^Full API response/,
-        /^Extracted record_id/,
-        /^Available data keys/,
-        /^POST https:\/\/.*\/tts-simple/,
-        /^TTS response:/,
-        /^TTS Error:/,
-        /^Voice playback error:/,
-        /^Generating new audio/,
-        /^Update method used/,
-        /^Memory successfully saved/,
-        /^Updated record ID/,
-        /recPcanRn9fUBJyb/
-      ];
+      // More robust filtering to only show actual chat messages
+      const isDebugMessage = 
+        // Skip obvious system/debug messages, but be careful not to filter real user messages
+        (message.includes('Processing message') && message.includes(':')) ||
+        (message.includes('Final extracted') && message.includes('role=')) ||
+        (message.includes('CreatedTime') && message.includes('202') && message.includes('T')) ||
+        (message.includes('Vorige gesprekken en belangrijke informatie:')) ||
+        (message.includes('informatie en persoonlijke te antwoorden') && message.length > 200) ||
+        
+        // JSON data structures (but allow user messages that happen to contain braces)
+        (message.startsWith('{') && message.endsWith('}') && message.includes('"role"')) ||
+        (message.startsWith('[') && message.endsWith(']') && message.includes('"message"')) ||
+        
+        // Very specific system patterns
+        (message.includes('202') && message.includes('T') && message.includes('Z') && message.length < 50) || // ISO timestamps only
+        message.length > 2000 || // Extremely long messages are likely data dumps
+        
+        // Memory/debug specific with context
+        message.includes('Memory processed successfully') ||
+        message.includes('TTS response:') ||
+        message.includes('Voice playback error:') ||
+        
+        // Record ID patterns (very specific)
+        /^rec[A-Za-z0-9]{14}$/.test(message) || // Airtable record IDs
+        (message.startsWith('rec') && message.length === 17 && !message.includes(' '));
       
-      if (debugPatterns.some(pattern => pattern.test(message))) {
-        console.warn("🧹 Filtering out debug message:", message.substring(0, 50));
+      if (isDebugMessage) {
+        console.warn("🧹 Filtering out debug/system message:", message.substring(0, 50));
+        return;
+      }
+      
+      // Additional safety check - ensure we have valid content for display
+      if (message.trim().length < 1) {
+        console.warn("⚠️ Skipping empty message");
+        return;
+      }
+      
+      // Additional validation - only show messages that look like real chat
+      if (role !== 'user' && role !== 'assistant' && role !== 'ai assistant') {
+        console.warn("⚠️ Skipping message with invalid role:", role);
         return;
       }
       
