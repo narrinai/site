@@ -68,9 +68,9 @@ exports.handler = async (event, context) => {
       // Don't add category filter here - we'll filter in JavaScript instead
       // This ensures we get ALL records and can properly paginate
       
-      // Set maximum records per request (Airtable limit is 100)
-      // Use maximum possible to minimize API calls
-      params.set('maxRecords', '100');
+      // FORCE pagination by requesting less than total
+      // This should force Airtable to return an offset
+      params.set('maxRecords', '50');
       
       // Add offset for pagination
       if (offset) {
