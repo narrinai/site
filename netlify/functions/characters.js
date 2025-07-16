@@ -102,6 +102,7 @@ exports.handler = async (event, context) => {
       const data = await response.json();
       console.log(`✅ Retrieved ${data.records?.length || 0} records from request ${requestCount}`);
       console.log(`🔍 Response keys:`, Object.keys(data));
+      console.log(`🔍 Raw Airtable response:`, JSON.stringify(data, null, 2).substring(0, 500) + '...');
       
       // Add records to our collection
       if (data.records) {
