@@ -1649,7 +1649,7 @@
     let currentPage = 1;
     let allCharacters = [];
     let filteredCharacters = [];
-    const charactersPerPage = 100; // Show 100 characters per page for better performance
+    const charactersPerPage = 50; // Show 50 characters per page for better performance and loading speed
 
     // ===== NAVIGATION FUNCTIONALITY =====
     
@@ -1825,7 +1825,7 @@
         // Build API URL for Netlify Function
         const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
         url.searchParams.set('category', currentCategory);
-        url.searchParams.set('limit', '2000'); // Increased limit to get more characters
+        // No limit - get ALL characters for this category
         
         console.log(`📡 Fetching from Netlify Function:`, url.toString());
         
@@ -2066,6 +2066,16 @@
 
       let paginationHTML = '';
       
+      // Show total count
+      const startIndex = (currentPage - 1) * charactersPerPage + 1;
+      const endIndex = Math.min(currentPage * charactersPerPage, filteredCharacters.length);
+      
+      paginationHTML += `
+        <div style="text-align: center; margin-bottom: 1rem; color: var(--color-gray);">
+          Showing ${startIndex}-${endIndex} of ${filteredCharacters.length} characters
+        </div>
+      `;
+      
       // Previous button
       paginationHTML += `
         <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">
@@ -2073,17 +2083,35 @@
         </button>
       `;
 
-      // Page numbers
-      for (let i = 1; i <= totalPages; i++) {
-        if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
-          paginationHTML += `
-            <button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">
-              ${i}
-            </button>
-          `;
-        } else if (i === currentPage - 3 || i === currentPage + 3) {
+      // Page numbers (show fewer to avoid clutter)
+      const maxVisiblePages = 5;
+      let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+      let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+      
+      if (endPage - startPage < maxVisiblePages - 1) {
+        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+      }
+      
+      if (startPage > 1) {
+        paginationHTML += `<button class="pagination-btn" onclick="changePage(1)">1</button>`;
+        if (startPage > 2) {
           paginationHTML += '<span class="pagination-btn" disabled>...</span>';
         }
+      }
+      
+      for (let i = startPage; i <= endPage; i++) {
+        paginationHTML += `
+          <button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">
+            ${i}
+          </button>
+        `;
+      }
+      
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+          paginationHTML += '<span class="pagination-btn" disabled>...</span>';
+        }
+        paginationHTML += `<button class="pagination-btn" onclick="changePage(${totalPages})">${totalPages}</button>`;
       }
 
       // Next button

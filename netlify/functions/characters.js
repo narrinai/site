@@ -54,7 +54,7 @@ exports.handler = async (event, context) => {
     let allRecords = [];
     let offset = null;
     let requestCount = 0;
-    const maxRequests = 20; // Safety limit increased for large datasets
+    const maxRequests = 50; // Increased safety limit to get all records
     
     do {
       requestCount++;
@@ -70,6 +70,7 @@ exports.handler = async (event, context) => {
       }
       
       // Set maximum records per request (Airtable limit is 100)
+      // Use maximum possible to minimize API calls
       params.set('maxRecords', '100');
       
       // Add offset for pagination
