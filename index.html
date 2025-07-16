@@ -2134,8 +2134,15 @@ async function generateExtraTagButtons() {
       const validCategories = window.validCategories || CONFIG.CATEGORIES;
       console.log(`✅ Showing ${validCategories.length} categories from Airtable`);
 
+      // Filter out unwanted categories
+      const excludedCategories = ['rpg', 'cooking', 'mindfulness', 'accounting', 'writing', 'study', 'other', 'creativity', 'fitness', 'original', 'negotiation'];
+      const filteredCategories = validCategories.filter(cat => 
+        !excludedCategories.includes(cat.id.toLowerCase())
+      );
+      console.log(`🔍 Filtered to ${filteredCategories.length} categories after exclusions`);
+
       // Limit to maximum 8 categories on homepage
-      const categoriesToShow = validCategories.slice(0, 8);
+      const categoriesToShow = filteredCategories.slice(0, 8);
       console.log(`📊 Limiting to ${categoriesToShow.length} categories on homepage`);
 
       // Split categories into two groups
@@ -2401,7 +2408,12 @@ function processNetlifyData(characters, category, gridId, limit) {
       
       // Check grids after 3 seconds
       setTimeout(() => {
-        const categoriesToCheck = (window.validCategories || CONFIG.CATEGORIES).slice(0, 8);
+        const excludedCategories = ['rpg', 'cooking', 'mindfulness', 'accounting', 'writing', 'study', 'other', 'creativity', 'fitness', 'original', 'negotiation'];
+        const allCategories = window.validCategories || CONFIG.CATEGORIES;
+        const filteredCategories = allCategories.filter(cat => 
+          !excludedCategories.includes(cat.id.toLowerCase())
+        );
+        const categoriesToCheck = filteredCategories.slice(0, 8);
         categoriesToCheck.forEach(category => {
           const grid = document.getElementById(`${category.id}-grid`);
           const cards = grid.querySelectorAll('.character-card');
@@ -2432,9 +2444,16 @@ function processNetlifyData(characters, category, gridId, limit) {
     function initializeCharacterGrids() {
       console.log('🎬 initializeCharacterGrids called');
       const categoriesToLoad = window.validCategories || CONFIG.CATEGORIES;
+      
+      // Filter out unwanted categories (same as in generateCharacterSections)
+      const excludedCategories = ['rpg', 'cooking', 'mindfulness', 'accounting', 'writing', 'study', 'other', 'creativity', 'fitness', 'original', 'negotiation'];
+      const filteredCategories = categoriesToLoad.filter(cat => 
+        !excludedCategories.includes(cat.id.toLowerCase())
+      );
+      
       // Limit to maximum 8 categories on homepage
-      const limitedCategories = categoriesToLoad.slice(0, 8);
-      console.log(`📌 Loading ${limitedCategories.length} categories (max 8)`);
+      const limitedCategories = filteredCategories.slice(0, 8);
+      console.log(`📌 Loading ${limitedCategories.length} categories (max 8 after filtering)`);
       
       limitedCategories.forEach((category, index) => {
         console.log(`📦 Category ${index + 1}:`, category);
