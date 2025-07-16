@@ -83,15 +83,12 @@ let userMatch = false;
 
 // Handle linked record arrays
 if (Array.isArray(recordUserId)) {
-  // User is a linked record array, we need to check if user_id=42 links to this record
-  const userRecordId = recordUserId[0]; // Get the first linked record ID
-  console.log(`👤 User is linked record array: ${userRecordId}`);
-  
-  // For now, we'll assume all records in the current result set belong to the current user
-  // since we're getting them from their chat session
-  userMatch = true; // Temporary solution
-  
-  console.log(`👤 Linked record match (temp): ${userMatch}`);
+  // User is a linked record array, check if any linked record matches
+  userMatch = recordUserId.some(linkedUserId => {
+    return String(linkedUserId) === String(user_id) || 
+           String(linkedUserId).includes(String(user_id));
+  });
+  console.log(`👤 Linked record array match: ${userMatch} (checked against ${recordUserId})`);
 } else if (recordUserId) {
   // Direct user ID match
   userMatch = String(recordUserId) === String(user_id) || 
