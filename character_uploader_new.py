@@ -344,36 +344,6 @@ NAME_POOLS = {
         'Cleric Chris', 'Barbarian Ben', 'Bard Betty', 'Monk Mike', 'Druid Diana',
         'Sorcerer Sam', 'Wizard Will', 'Fighter Frank', 'Thief Tom', 'Assassin Anna',
         'Knight Kate', 'Archer Amy', 'Healer Holly', 'Tank Tom', 'DPS Dan'
-    ],
-    'romance': [
-        'Love Lucy', 'Romance Rick', 'Heart Helen', 'Passion Paul', 'Sweet Sue',
-        'Darling Dan', 'Honey Holly', 'Sugar Sam', 'Kiss Kate', 'Hug Henry',
-        'Cuddle Chris', 'Snuggle Sam', 'Embrace Emma', 'Caress Carl', 'Tender Tom',
-        'Gentle Grace', 'Soft Sarah', 'Warm Will', 'Cozy Cora', 'Intimate Ian'
-    ],
-    'middle-aged': [
-        'Mature Mike', 'Experienced Emma', 'Seasoned Sam', 'Veteran Vera', 'Wise Will',
-        'Settled Sue', 'Established Ed', 'Accomplished Anna', 'Successful Steve', 'Stable Sarah',
-        'Responsible Rick', 'Reliable Rita', 'Dependable Dan', 'Trustworthy Tom', 'Solid Sam',
-        'Grounded Grace', 'Balanced Ben', 'Centered Carl', 'Focused Frank', 'Steady Steve'
-    ],
-    'gen-z': [
-        'Digital Diana', 'Social Sam', 'Tech Tom', 'Online Olivia', 'Virtual Vera',
-        'Stream Steve', 'Snap Sarah', 'TikTok Tom', 'Insta Ian', 'Tweet Tina',
-        'Viral Victor', 'Meme Mary', 'Trend Tom', 'Influencer Ian', 'Creator Chris',
-        'Content Carl', 'Platform Paul', 'App Amy', 'Mobile Mike', 'Wireless Will'
-    ],
-    'older': [
-        'Elder Emma', 'Senior Sam', 'Grandpa Gary', 'Grandma Grace', 'Wise Will',
-        'Aged Anna', 'Elderly Ed', 'Vintage Vera', 'Classic Carl', 'Retro Rita',
-        'Traditional Tom', 'Old-School Oscar', 'Seasoned Sue', 'Experienced Eddie', 'Mature Mike',
-        'Golden Grace', 'Silver Sam', 'Platinum Paul', 'Diamond Diana', 'Precious Pete'
-    ],
-    'humor': [
-        'Funny Frank', 'Hilarious Henry', 'Witty Will', 'Clever Chris', 'Silly Sam',
-        'Goofy Grace', 'Quirky Quinn', 'Zany Zoe', 'Wacky Will', 'Nutty Nancy',
-        'Crazy Carl', 'Mad Mike', 'Wild Will', 'Bizarre Ben', 'Odd Oscar',
-        'Strange Steve', 'Weird Wendy', 'Funny Fiona', 'Comical Carl', 'Amusing Amy'
     ]
 }
 
@@ -815,26 +785,6 @@ def generate_unique_characters(category, target_count, existing_names_set=None):
         'rpg': [
             'Dungeon Master Dan', 'Campaign Carl', 'Dice Diana', 'Quest Queen Quinn', 'Adventure Anna',
             'Character Creator Chris', 'Story Sam', 'Game Master Gary', 'Role Rita', 'Fantasy Frank'
-        ],
-        'romance': [
-            'Romantic Ryan', 'Lovely Lucy', 'Sweetheart Sam', 'Charming Chris', 'Adorable Anna',
-            'Passionate Pete', 'Dreamy Diana', 'Swoony Sue', 'Heartbreaker Henry', 'Cupid Carl'
-        ],
-        'middle-aged': [
-            'Midlife Mike', 'Forty-Something Frank', 'Career Chris', 'Family Frank', 'Responsible Rita',
-            'Established Emma', 'Experienced Ed', 'Mature Mary', 'Settled Sam', 'Stable Steve'
-        ],
-        'gen-z': [
-            'Zoomer Zoe', 'Digital Dan', 'Social Sam', 'Tech Tina', 'Online Oscar',
-            'Streaming Steve', 'Gaming Grace', 'Meme Mike', 'Viral Vera', 'Trendy Tom'
-        ],
-        'older': [
-            'Grandpa George', 'Grandma Grace', 'Senior Sue', 'Elder Ed', 'Vintage Vera',
-            'Classic Carl', 'Retro Rita', 'Wisdom Will', 'Experience Emma', 'Golden Gary'
-        ],
-        'humor': [
-            'Comedian Carl', 'Jokester Jane', 'Funny Frank', 'Hilarious Henry', 'Witty Will',
-            'Silly Sam', 'Goofy Grace', 'Laughs Lucy', 'Chuckles Chuck', 'Giggles Gina'
         ]
     }
     
