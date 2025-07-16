@@ -2135,15 +2135,28 @@ async function generateExtraTagButtons() {
       console.log(`✅ Showing ${validCategories.length} categories from Airtable`);
 
       // Filter out unwanted categories
-      const excludedCategories = ['rpg', 'cooking', 'mindfulness', 'accounting', 'writing', 'study', 'other', 'creativity', 'fitness', 'original', 'negotiation'];
+      const excludedCategories = ['rpg', 'cooking', 'mindfulness', 'accounting', 'writing', 'study', 'other', 'creativity', 'fitness', 'original', 'negotiation', 'educational'];
       const filteredCategories = validCategories.filter(cat => 
         !excludedCategories.includes(cat.id.toLowerCase())
       );
       console.log(`🔍 Filtered to ${filteredCategories.length} categories after exclusions`);
 
+      // Priority categories that should appear first
+      const priorityCategories = ['humor', 'gen-z', 'romance', 'middle-aged'];
+      
+      // Sort categories to put priority ones first
+      const sortedCategories = filteredCategories.sort((a, b) => {
+        const aIsPriority = priorityCategories.includes(a.id.toLowerCase());
+        const bIsPriority = priorityCategories.includes(b.id.toLowerCase());
+        
+        if (aIsPriority && !bIsPriority) return -1;
+        if (!aIsPriority && bIsPriority) return 1;
+        return 0;
+      });
+
       // Limit to maximum 8 categories on homepage
-      const categoriesToShow = filteredCategories.slice(0, 8);
-      console.log(`📊 Limiting to ${categoriesToShow.length} categories on homepage`);
+      const categoriesToShow = sortedCategories.slice(0, 8);
+      console.log(`📊 Showing ${categoriesToShow.length} categories on homepage`);
 
       // Split categories into two groups
       const firstHalf = categoriesToShow.slice(0, Math.ceil(categoriesToShow.length / 2));
@@ -2408,12 +2421,26 @@ function processNetlifyData(characters, category, gridId, limit) {
       
       // Check grids after 3 seconds
       setTimeout(() => {
-        const excludedCategories = ['rpg', 'cooking', 'mindfulness', 'accounting', 'writing', 'study', 'other', 'creativity', 'fitness', 'original', 'negotiation'];
+        const excludedCategories = ['rpg', 'cooking', 'mindfulness', 'accounting', 'writing', 'study', 'other', 'creativity', 'fitness', 'original', 'negotiation', 'educational'];
         const allCategories = window.validCategories || CONFIG.CATEGORIES;
         const filteredCategories = allCategories.filter(cat => 
           !excludedCategories.includes(cat.id.toLowerCase())
         );
-        const categoriesToCheck = filteredCategories.slice(0, 8);
+        
+        // Priority categories that should appear first
+        const priorityCategories = ['humor', 'gen-z', 'romance', 'middle-aged'];
+        
+        // Sort categories to put priority ones first
+        const sortedCategories = filteredCategories.sort((a, b) => {
+          const aIsPriority = priorityCategories.includes(a.id.toLowerCase());
+          const bIsPriority = priorityCategories.includes(b.id.toLowerCase());
+          
+          if (aIsPriority && !bIsPriority) return -1;
+          if (!aIsPriority && bIsPriority) return 1;
+          return 0;
+        });
+        
+        const categoriesToCheck = sortedCategories.slice(0, 8);
         categoriesToCheck.forEach(category => {
           const grid = document.getElementById(`${category.id}-grid`);
           const cards = grid.querySelectorAll('.character-card');
@@ -2446,13 +2473,26 @@ function processNetlifyData(characters, category, gridId, limit) {
       const categoriesToLoad = window.validCategories || CONFIG.CATEGORIES;
       
       // Filter out unwanted categories (same as in generateCharacterSections)
-      const excludedCategories = ['rpg', 'cooking', 'mindfulness', 'accounting', 'writing', 'study', 'other', 'creativity', 'fitness', 'original', 'negotiation'];
+      const excludedCategories = ['rpg', 'cooking', 'mindfulness', 'accounting', 'writing', 'study', 'other', 'creativity', 'fitness', 'original', 'negotiation', 'educational'];
       const filteredCategories = categoriesToLoad.filter(cat => 
         !excludedCategories.includes(cat.id.toLowerCase())
       );
       
+      // Priority categories that should appear first
+      const priorityCategories = ['humor', 'gen-z', 'romance', 'middle-aged'];
+      
+      // Sort categories to put priority ones first
+      const sortedCategories = filteredCategories.sort((a, b) => {
+        const aIsPriority = priorityCategories.includes(a.id.toLowerCase());
+        const bIsPriority = priorityCategories.includes(b.id.toLowerCase());
+        
+        if (aIsPriority && !bIsPriority) return -1;
+        if (!aIsPriority && bIsPriority) return 1;
+        return 0;
+      });
+      
       // Limit to maximum 8 categories on homepage
-      const limitedCategories = filteredCategories.slice(0, 8);
+      const limitedCategories = sortedCategories.slice(0, 8);
       console.log(`📌 Loading ${limitedCategories.length} categories (max 8 after filtering)`);
       
       limitedCategories.forEach((category, index) => {
