@@ -1897,7 +1897,7 @@
         // Build API URL for Netlify Function
         const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
         url.searchParams.set('category', currentCategory);
-        // No limit - get ALL characters for this category
+        url.searchParams.set('limit', '500'); // Request up to 500 characters
         
         console.log(`📡 Fetching from Netlify Function:`, url.toString());
         
@@ -1909,6 +1909,13 @@
         
         const data = await response.json();
         console.log('✅ Netlify Function response:', data);
+        console.log('📊 Total characters received:', data.characters ? data.characters.length : 0);
+        console.log('📊 Response summary:', {
+          success: data.success,
+          total: data.total,
+          returned: data.returned,
+          charactersLength: data.characters ? data.characters.length : 0
+        });
         
         if (!data.success) {
           throw new Error(data.error || 'Unknown API error');
@@ -1942,11 +1949,15 @@
       }
 
       console.log('📦 Processing characters:', characters.length);
+      console.log('🔍 Current category:', currentCategory);
+      console.log('📋 Character categories:', characters.map(char => char.Category));
 
       // Filter for current category
       const categoryCharacters = characters.filter(char => 
         !char.Category || char.Category.toLowerCase() === currentCategory.toLowerCase()
       );
+      
+      console.log('✅ Characters after category filter:', categoryCharacters.length);
 
       // Process the characters
       allCharacters = categoryCharacters.map(character => ({
