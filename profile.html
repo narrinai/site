@@ -2413,25 +2413,6 @@
             </div>
           </div>
           
-          <!-- Referral Section -->
-          <div class="profile-item" data-field="referral" style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--color-light-gray);">
-            <span class="label">Your Referral Link:</span>
-            <div class="value" style="margin-top: 10px;">
-              <div class="referral-container" style="display: flex; align-items: center; gap: 10px;">
-                <input type="text" id="referral-link" readonly style="flex: 1; padding: 8px 12px; border: 1px solid var(--color-light-gray); border-radius: 8px; font-size: 14px; font-family: monospace;">
-                <button class="btn btn-secondary" onclick="copyReferralLink()" style="padding: 8px 16px; font-size: 14px;">
-                  📋 Copy
-                </button>
-              </div>
-              <div style="margin-top: 10px; font-size: 12px; color: var(--color-gray);">
-                Share this link! Both you and your friend get <strong>100 extra chats</strong> when they sign up.
-              </div>
-              <div id="referral-stats" style="margin-top: 10px; font-size: 14px;">
-                Total referral bonus earned: <strong id="referral-bonus">0</strong> chats
-              </div>
-            </div>
-          </div>
-          
           <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--color-light-gray); text-align: center;">
             <a href="#" id="logout-btn" onclick="handleLogout(); return false;">
               Log out
@@ -3143,13 +3124,6 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       console.log(`👤 ${isNewUser ? 'Creating NEW' : 'Updating EXISTING'} user: ${email}`);
       
       try {
-        // Generate referral code for new users
-        const referralCode = generateReferralCode(userId);
-        const referralUrl = `https://narrin.ai/?ref=${referralCode}`;
-        
-        // Check for referrer code in localStorage (set by index.html)
-        const referrerCode = localStorage.getItem('referrer_code');
-        
         const payload = {
           user_email: email,
           user_uid: userId,
@@ -3161,10 +3135,7 @@ function handleLoginSuccess(user, eventType = 'unknown') {
           },
           is_new_user: isNewUser,
           timestamp: new Date().toISOString(),
-          source: 'profile_page_auth',
-          referral_code: referralCode,
-          referral_url: referralUrl,
-          referred_by_code: referrerCode || null
+          source: 'profile_page_auth'
         };
         
         // Log webhook call
@@ -3773,23 +3744,6 @@ async function loadProfile() {
     const userPlan = data?.plan || 'Free';
     setField('plan', userPlan);
     
-    // Update referral info
-    const referralCode = data?.referral_code || generateReferralCode(uid);
-    const referralUrl = data?.referral_url || `https://narrin.ai/?ref=${referralCode}`;
-    const totalReferralBonus = data?.total_referral_bonus || 0;
-    
-    // Display referral link
-    const referralLinkInput = document.getElementById('referral-link');
-    if (referralLinkInput) {
-      referralLinkInput.value = referralUrl;
-    }
-    
-    // Display referral bonus
-    const referralBonusElement = document.getElementById('referral-bonus');
-    if (referralBonusElement) {
-      referralBonusElement.textContent = totalReferralBonus.toString();
-    }
-    
     // Update premium card
     updatePremiumCard(userPlan);
     
@@ -4083,55 +4037,6 @@ function setField(field, text) {
 
     function hideLoading() {
       document.body.classList.remove('loading');
-    }
-    
-    // Generate referral code from user ID
-    function generateReferralCode(userId) {
-      // Simple hash function to create a shorter code
-      let hash = 0;
-      for (let i = 0; i < userId.length; i++) {
-        const char = userId.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash; // Convert to 32bit integer
-      }
-      // Convert to base36 and take first 8 characters
-      return Math.abs(hash).toString(36).substring(0, 8).toUpperCase();
-    }
-    
-    // Copy referral link to clipboard
-    window.copyReferralLink = async function() {
-      const referralLinkInput = document.getElementById('referral-link');
-      if (!referralLinkInput) return;
-      
-      try {
-        // Select the text
-        referralLinkInput.select();
-        referralLinkInput.setSelectionRange(0, 99999); // For mobile devices
-        
-        // Copy to clipboard
-        await navigator.clipboard.writeText(referralLinkInput.value);
-        
-        // Show success message
-        showSuccess('Referral link copied to clipboard!');
-        
-        // Visual feedback on button
-        const copyButton = event.target.closest('button');
-        if (copyButton) {
-          const originalText = copyButton.innerHTML;
-          copyButton.innerHTML = '✅ Copied!';
-          copyButton.style.background = 'var(--color-teal)';
-          copyButton.style.color = 'white';
-          
-          setTimeout(() => {
-            copyButton.innerHTML = originalText;
-            copyButton.style.background = '';
-            copyButton.style.color = '';
-          }, 2000);
-        }
-      } catch (err) {
-        console.error('Failed to copy:', err);
-        showError('Failed to copy to clipboard');
-      }
     }
 
     // ===== NETLIFY IDENTITY BUTTON UPDATES =====

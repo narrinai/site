@@ -4089,13 +4089,8 @@ showTypingIndicator();
     // EXTRA DEBUG INFO
 console.log("📄 Raw response type:", typeof rawText);
 console.log("📄 Raw response length:", rawText.length);
-console.log("📄 First 500 chars:", rawText.substring(0, 500));
-console.log("📄 Last 500 chars:", rawText.substring(Math.max(0, rawText.length - 500)));
-
-// Log if response looks like audio metadata
-if (rawText.includes('duration') || rawText.includes('audio') || rawText.includes('timestamp')) {
-  console.warn("⚠️ Response may contain audio metadata instead of text");
-}
+console.log("📄 First 200 chars:", rawText.substring(0, 200));
+console.log("📄 Last 200 chars:", rawText.substring(rawText.length - 200));
 
     let data;
 try {
@@ -4142,19 +4137,10 @@ try {
     for (const pattern of patterns) {
       const match = rawText.match(pattern);
       if (match && match[1] && match[1].length > 10) { // Minimaal 10 karakters
-        const extractedText = match[1].replace(/\\"/g, '"').replace(/\\'/g, "'").replace(/\\n/g, '\n');
-        
-        // Check if the extracted text is NOT just a timestamp or duration
-        // Skip responses that look like [5.36] or similar patterns
-        if (!/^\[?\d+\.?\d*\]?$/.test(extractedText.trim()) && 
-            !/^\d+:\d+$/.test(extractedText.trim())) {
-          foundReply = extractedText;
-          console.log("✅ Found reply with pattern:", pattern.source);
-          console.log("✅ Extracted reply:", foundReply.substring(0, 100) + "...");
-          break;
-        } else {
-          console.warn("⚠️ Skipped timestamp/duration response:", extractedText);
-        }
+        foundReply = match[1].replace(/\\"/g, '"').replace(/\\'/g, "'").replace(/\\n/g, '\n');
+        console.log("✅ Found reply with pattern:", pattern.source);
+        console.log("✅ Extracted reply:", foundReply.substring(0, 100) + "...");
+        break;
       }
     }
     
@@ -4177,52 +4163,14 @@ try {
 }
 
     if (!data.success) {
-      console.error("❌ Chat request failed - data.success is false");
-      console.log("📄 Failed response data:", data);
       throw new Error("Chat request failed");
-    }
-    
-    // Additional validation - check if we have any valid response field
-    const hasValidResponse = data.reply || data.response || data.message || 
-                           data.text || data.content || data.ai_response || 
-                           data.bot_reply || data.assistant_message;
-    
-    if (!hasValidResponse) {
-      console.error("❌ No valid response field found in webhook response");
-      console.log("📄 Response data structure:", Object.keys(data));
-      console.log("📄 Full response data:", JSON.stringify(data, null, 2));
     }
 
     // Check if reply is empty or just whitespace
-let reply = (data.reply && data.reply.trim()) || 
-            (data.response && data.response.trim()) || 
-            (data.message && data.message.trim()) || 
-            "";
-
-// Validate that the reply is not just a timestamp or duration
-if (/^\[?\d+\.?\d*\]?$/.test(reply) || /^\d+:\d+$/.test(reply) || reply.length < 5) {
-  console.error("❌ Invalid response detected (timestamp/duration):", reply);
-  console.log("📄 Full response data for debugging:", data);
-  
-  // Try to find a valid text response in other fields
-  const possibleFields = ['text', 'content', 'ai_response', 'bot_reply', 'assistant_message'];
-  for (const field of possibleFields) {
-    if (data[field] && typeof data[field] === 'string' && data[field].length > 10) {
-      const candidateReply = data[field].trim();
-      if (!/^\[?\d+\.?\d*\]?$/.test(candidateReply) && !/^\d+:\d+$/.test(candidateReply)) {
-        reply = candidateReply;
-        console.log("✅ Found valid reply in field:", field);
-        break;
-      }
-    }
-  }
-  
-  // If still no valid reply, use fallback
-  if (!reply || reply.length < 5 || /^\[?\d+\.?\d*\]?$/.test(reply)) {
-    reply = "I want to be fully present for our conversation. It seems I'm having a moment of difficulty - could you share that with me once more? Your thoughts are important to me.";
-    console.warn("⚠️ Using fallback response due to invalid webhook response");
-  }
-}
+const reply = (data.reply && data.reply.trim()) || 
+              (data.response && data.response.trim()) || 
+              (data.message && data.message.trim()) || 
+              "I want to be fully present for our conversation. It seems I'm having a moment of difficulty - could you share that with me once more? Your thoughts are important to me.";
 
 console.log("🔍 Final reply used:", reply);
 

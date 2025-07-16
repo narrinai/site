@@ -1613,7 +1613,7 @@ body.has-referral-banner {
     const CONFIG = {
   // Netlify Function endpoint
   CHARACTERS_API: '/.netlify/functions/characters',
-  MAX_CHARACTERS_PER_CATEGORY: 7, // Maximum 7 characters per category
+  MAX_CHARACTERS_PER_CATEGORY: 8, // Maximum 8 characters per category
   // Show multiple categories for comprehensive browsing
   CATEGORIES: [
     { id: 'historical', name: 'Historical', title: 'Historical' },
@@ -1868,7 +1868,6 @@ async function fetchCategoriesFromAirtable() {
             title: displayName, // Use clean display name for title too
             count: 1
           });
-          console.log(`📁 Added category: ${categoryId} -> ${displayName}`);
         } else {
           categoriesMap.get(categoryId).count++;
         }
@@ -2172,13 +2171,9 @@ async function generateExtraTagButtons() {
       const validCategories = window.validCategories || CONFIG.CATEGORIES;
       console.log(`✅ Showing ${validCategories.length} categories from Airtable`);
 
-      // Limit to maximum 8 categories on homepage
-      const categoriesToShow = validCategories.slice(0, 8);
-      console.log(`📊 Limiting to ${categoriesToShow.length} categories on homepage`);
-
-      // Split categories into two groups
-      const firstHalf = categoriesToShow.slice(0, Math.ceil(categoriesToShow.length / 2));
-      const secondHalf = categoriesToShow.slice(Math.ceil(categoriesToShow.length / 2));
+      // Split valid categories into two groups
+      const firstHalf = validCategories.slice(0, Math.ceil(validCategories.length / 2));
+      const secondHalf = validCategories.slice(Math.ceil(validCategories.length / 2));
       
       // Generate first half of categories
       firstHalf.forEach(category => {
@@ -2233,13 +2228,7 @@ async function generateExtraTagButtons() {
     async function loadCharacters(category, gridId, limit = CONFIG.MAX_CHARACTERS_PER_CATEGORY) {
       const grid = document.getElementById(gridId);
       
-console.log(`🚀 Loading ${limit} characters from Netlify Function for category: ${category}`);
-      console.log(`📍 Grid ID: ${gridId}`);
-      
-      if (!grid) {
-        console.error(`❌ Grid element not found for ID: ${gridId}`);
-        return;
-      }      
+console.log(`🚀 Loading ${limit} characters from Netlify Function for category: ${category}`);      
       try {
         await loadCharactersFromNetlify(category, gridId, limit);
         console.log(`✅ Successfully loaded ${category} from Netlify Function`);
@@ -2261,10 +2250,10 @@ console.log(`🚀 Loading ${limit} characters from Netlify Function for category
 async function loadCharactersFromNetlify(category, gridId, limit = CONFIG.MAX_CHARACTERS_PER_CATEGORY) {
   const grid = document.getElementById(gridId);
 
-  // Build API URL - request more characters to ensure we have enough after filtering
+  // Build API URL
   const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
   url.searchParams.set('category', category);
-  url.searchParams.set('limit', '200'); // Request many more to ensure we have enough for each category
+  url.searchParams.set('limit', limit.toString());
   
   console.log(`📡 Fetching from Netlify Function:`, url.toString());
   
@@ -2274,29 +2263,13 @@ async function loadCharactersFromNetlify(category, gridId, limit = CONFIG.MAX_CH
     throw new Error(`HTTP error! status: ${response.status}`);
   }
   
-  let data;
-  try {
-    data = await response.json();
-    console.log('✅ Netlify Function response:', data);
-  } catch (jsonError) {
-    console.error('❌ Failed to parse JSON response:', jsonError);
-    const text = await response.text();
-    console.error('📄 Response text:', text);
-    throw new Error('Invalid JSON response from API');
-  }
+  const data = await response.json();
+  console.log('✅ Netlify Function response:', data);
   
   if (!data.success) {
-    console.error('❌ API returned error:', data.error);
     throw new Error(data.error || 'Unknown API error');
   }
-  
-  if (!data.characters || !Array.isArray(data.characters)) {
-    console.error('❌ No characters array in response:', data);
-    throw new Error('No characters data in API response');
-  }
 
-  console.log(`📊 Received ${data.characters.length} characters from API for category: ${category}`);
-  
   // Process the data - always limit to configured number of characters with avatars
   processNetlifyData(data.characters, category, gridId, CONFIG.MAX_CHARACTERS_PER_CATEGORY);
 }
@@ -2325,67 +2298,18 @@ function processNetlifyData(characters, category, gridId, limit) {
   grid.innerHTML = '';
   
   if (characters && characters.length > 0) {
-    // Double-check filtering for this category (in case Netlify function returns mixed results)
-    const categoryCharacters = characters.filter(char => {
-      if (!char.Category) return false;
-      
-      // Convert category to ID format (lowercase with hyphens) for comparison
-      const charCategoryId = char.Category.toLowerCase().replace(/\s+/g, '-');
-      const searchCategoryId = category.toLowerCase().replace(/\s+/g, '-');
-      
-      return charCategoryId === searchCategoryId;
-    });
+    // Filter for this category first
+    const categoryCharacters = characters.filter(char => 
+      char.Category && char.Category.toLowerCase() === category.toLowerCase()
+    );
     
-    console.log(`🔍 Filtered ${categoryCharacters.length} characters for category ${category} from ${characters.length} total`);
-    
-    // Define popular character names for each category
-    const popularCharacters = {
-      'fictional': ['Yoda', 'Sherlock Holmes', 'Gandalf', 'Hermione Granger', 'Darth Vader', 'Spider-Man', 'Batman', 'Wonder Woman'],
-      'historical': ['Abraham Lincoln', 'Albert Einstein', 'Leonardo da Vinci', 'Cleopatra', 'Winston Churchill', 'Nelson Mandela', 'Marie Curie', 'Napoleon Bonaparte'],
-      'anime-manga': ['Naruto', 'Goku', 'Luffy', 'Ichigo', 'Natsu', 'Edward Elric', 'Sailor Moon', 'Pikachu'],
-      'celebrity': ['Elon Musk', 'Oprah Winfrey', 'Will Smith', 'Taylor Swift', 'Dwayne Johnson', 'Jennifer Lawrence', 'Robert Downey Jr.', 'Emma Watson'],
-      'gaming': ['Mario', 'Link', 'Master Chief', 'Kratos', 'Sonic', 'Lara Croft', 'Pikachu', 'Solid Snake'],
-      'movies-tv': ['Tony Stark', 'Walter White', 'Jon Snow', 'Daenerys Targaryen', 'Luke Skywalker', 'James Bond', 'Indiana Jones', 'Hermione Granger'],
-      'mythology': ['Zeus', 'Odin', 'Thor', 'Athena', 'Loki', 'Hercules', 'Aphrodite', 'Poseidon'],
-      'original': ['Luna', 'Phoenix', 'Sage', 'Raven', 'Nova', 'Zara', 'Kai', 'Aria'],
-      'educational': ['Professor Einstein', 'Dr. Science', 'Master Chen', 'Professor Philosophy', 'Teacher Smith', 'Dr. History', 'Math Tutor', 'Language Coach'],
-      'fitness-coach': ['Fitness Guru', 'Yoga Master', 'Personal Trainer', 'Health Expert', 'Nutrition Coach', 'Workout Buddy', 'Wellness Guide', 'Strength Coach'],
-      'business-coach': ['Business Mentor', 'CEO Coach', 'Success Guide', 'Leadership Expert', 'Entrepreneur', 'Strategy Advisor', 'Sales Coach', 'Marketing Guru'],
-      'career-coach': ['Career Advisor', 'Job Coach', 'Interview Expert', 'Resume Writer', 'Networking Pro', 'Skills Trainer', 'Promotion Coach', 'Career Changer'],
-      'relationship-coach': ['Love Coach', 'Dating Expert', 'Marriage Counselor', 'Communication Guide', 'Romance Advisor', 'Couples Therapist', 'Dating Guru', 'Relationship Expert'],
-      'mindfulness-coach': ['Meditation Guide', 'Zen Master', 'Mindfulness Teacher', 'Stress Relief Coach', 'Inner Peace Guide', 'Calm Coach', 'Breathwork Expert', 'Awareness Trainer'],
-      'cooking-coach': ['Master Chef', 'Culinary Expert', 'Baking Guru', 'Recipe Creator', 'Food Stylist', 'Kitchen Helper', 'Cooking Tutor', 'Nutrition Chef'],
-      'writing-coach': ['Writing Mentor', 'Author Coach', 'Editor Pro', 'Story Guru', 'Grammar Guide', 'Creative Writer', 'Blog Coach', 'Publishing Expert'],
-      'accounting-coach': ['Tax Expert', 'Budget Coach', 'Finance Guru', 'Bookkeeping Pro', 'CPA Advisor', 'Money Manager', 'Audit Expert', 'Numbers Coach'],
-      'negotiation-coach': ['Deal Maker', 'Persuasion Expert', 'Conflict Resolver', 'Negotiation Pro', 'Mediator', 'Bargaining Coach', 'Diplomacy Expert', 'Agreement Facilitator'],
-      'language-coach': ['Polyglot', 'Grammar Guide', 'Pronunciation Coach', 'Conversation Partner', 'Language Tutor', 'Fluency Expert', 'Accent Coach', 'Vocabulary Builder'],
-      'health-coach': ['Wellness Guide', 'Health Expert', 'Lifestyle Coach', 'Preventive Care', 'Holistic Healer', 'Nutrition Advisor', 'Fitness Health', 'Mental Health'],
-      'spiritual-coach': ['Spiritual Guide', 'Meditation Master', 'Inner Peace', 'Soul Coach', 'Enlightenment Guide', 'Wisdom Teacher', 'Sacred Guide', 'Divine Mentor']
-    };
-
-    // Sort characters - prioritize popular ones first, then those with avatars
+    // Sort characters - those with avatars first, then others
     const sortedCharacters = categoryCharacters.sort((a, b) => {
-      const categoryPopular = popularCharacters[category.toLowerCase()] || [];
-      const aIsPopular = categoryPopular.some(popular => 
-        a.Name && a.Name.toLowerCase().includes(popular.toLowerCase()) || 
-        popular.toLowerCase().includes(a.Name.toLowerCase())
-      );
-      const bIsPopular = categoryPopular.some(popular => 
-        b.Name && b.Name.toLowerCase().includes(popular.toLowerCase()) || 
-        popular.toLowerCase().includes(b.Name.toLowerCase())
-      );
-      
-      // First priority: Popular characters
-      if (aIsPopular && !bIsPopular) return -1;
-      if (!aIsPopular && bIsPopular) return 1;
-      
-      // Second priority: Characters with avatars
       const aHasAvatar = hasValidAvatar(a);
       const bHasAvatar = hasValidAvatar(b);
       
       if (aHasAvatar && !bHasAvatar) return -1;
       if (!aHasAvatar && bHasAvatar) return 1;
-      
       return 0;
     });
     
@@ -2402,25 +2326,13 @@ function processNetlifyData(characters, category, gridId, limit) {
     });
     
     if (limitedCharacters.length === 0) {
-      console.warn(`⚠️ No characters found for category ${category}`);
-      // Try to show some characters anyway (unfiltered)
-      if (characters.length > 0) {
-        console.log(`🔄 Showing first ${limit} characters regardless of category as fallback`);
-        const fallbackCharacters = characters.slice(0, limit);
-        fallbackCharacters.forEach((character, index) => {
-          console.log(`🎯 Fallback character ${index + 1}:`, character.Name, 'Category:', character.Category);
-          const card = createCharacterCard(character);
-          grid.appendChild(card);
-        });
-      } else {
-        grid.innerHTML = `
-          <div class="error-card no-data">
-            <span class="error-icon">📭</span>
-            <div class="error-title">No ${category} characters found</div>
-            <div class="error-message">Check your Airtable data</div>
-          </div>
-        `;
-      }
+      grid.innerHTML = `
+        <div class="error-card no-data">
+          <span class="error-icon">📭</span>
+          <div class="error-title">No ${category} characters found</div>
+          <div class="error-message">Check your Airtable data</div>
+        </div>
+      `;
     }
   } else {
     console.warn('⚠️ No characters data found');
@@ -2548,18 +2460,10 @@ function processNetlifyData(characters, category, gridId, limit) {
       }, 3000);
     }
 
-    // UPDATED: Initialize character grids only for valid categories (max 8 categories)
+    // UPDATED: Initialize character grids only for valid categories (50+ characters)
     function initializeCharacterGrids() {
-      console.log('🎬 initializeCharacterGrids called');
       const categoriesToLoad = window.validCategories || CONFIG.CATEGORIES;
-      console.log('📊 Available categories:', categoriesToLoad);
-      
-      // Limit to maximum 8 categories on homepage
-      const limitedCategories = categoriesToLoad.slice(0, 8);
-      console.log(`📌 Loading ${limitedCategories.length} categories (max 8)`);
-      
-      limitedCategories.forEach((category, index) => {
-        console.log(`📦 Category ${index + 1}:`, category);
+      categoriesToLoad.forEach(category => {
         loadCharacters(category.id, `${category.id}-grid`, CONFIG.MAX_CHARACTERS_PER_CATEGORY);
       });
     }
@@ -2792,9 +2696,7 @@ if (window.netlifyIdentity) {
       initializeCharacterGrids();
       
       // Debug what gets loaded
-      setTimeout(() => {
-        debugLoadProcess();
-      }, 5000); // Wait 5 seconds to ensure all data is loaded
+      debugLoadProcess();
       
       console.log('✅ Initialization complete');
       // Check voor referral parameter bij pagina load
