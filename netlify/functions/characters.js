@@ -1,11 +1,18 @@
 // netlify/functions/characters.js
+
+// Simple in-memory cache for development
+// In production, consider using Redis or Netlify Blobs
+const cache = new Map();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes cache
+
 exports.handler = async (event, context) => {
   // CORS headers
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'Cache-Control': 'public, max-age=300' // Browser cache for 5 minutes
   };
 
   // Handle preflight OPTIONS request
@@ -46,15 +53,58 @@ exports.handler = async (event, context) => {
     }
 
     // Get query parameters
-    const { category, tag, limit = 500 } = event.queryStringParameters || {};
+    const { category, tag, limit = 500, slug } = event.queryStringParameters || {};
     
-    console.log('Request params:', { category, tag, limit });
+    console.log('Request params:', { category, tag, limit, slug });
 
-    // Fetch all records using pagination if needed
+    // Create cache key from parameters
+    const cacheKey = `${category || 'all'}-${tag || 'none'}-${slug || 'none'}-${limit}`;
+    
+    // Check cache first
+    const cachedData = cache.get(cacheKey);
+    if (cachedData) {
+      const { data, timestamp } = cachedData;
+      if (Date.now() - timestamp < CACHE_TTL) {
+        console.log('📦 Returning cached data for:', cacheKey);
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify(data)
+        };
+      } else {
+        // Remove expired cache
+        cache.delete(cacheKey);
+      }
+    }
+
+    // Build filterByFormula to reduce operations
+    let filterParts = [];
+    
+    // If looking for a specific slug (single character), optimize query
+    if (slug) {
+      filterParts.push(`{Slug} = '${slug}'`);
+    } else {
+      // Filter by category at Airtable level
+      if (category) {
+        filterParts.push(`LOWER({Category}) = '${category.toLowerCase()}'`);
+      }
+      
+      // Filter by tag at Airtable level
+      if (tag) {
+        filterParts.push(`FIND('${tag.toLowerCase()}', LOWER(ARRAYJOIN({Tags}, ','))) > 0`);
+      }
+    }
+    
+    // Combine filters with AND
+    const filterFormula = filterParts.length > 0 ? `AND(${filterParts.join(', ')})` : '';
+
+    // Fetch records with optimized query
     let allRecords = [];
     let offset = null;
     let requestCount = 0;
-    const maxRequests = 50; // Increased safety limit to get all records
+    const maxRequests = 10; // Reduced since we're filtering at source
+    const targetLimit = parseInt(limit);
+    let shouldContinue = true;
     
     do {
       requestCount++;
@@ -64,12 +114,32 @@ exports.handler = async (event, context) => {
       let url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_TABLE_ID}`;
       const params = new URLSearchParams();
       
-      // Don't add category filter here - we'll filter in JavaScript instead
-      // This ensures we get ALL records and can properly paginate
+      // Add filter to reduce records fetched
+      if (filterFormula) {
+        params.set('filterByFormula', filterFormula);
+        console.log(`🔍 Using filter: ${filterFormula}`);
+      }
       
-      // Set maximum records per request (Airtable limit is 100)
-      // Use maximum possible to minimize API calls
+      // Select only necessary fields to reduce data transfer
+      params.set('fields[]', 'Name');
+      params.set('fields[]', 'Character_Title');
+      params.set('fields[]', 'Character_Description');
+      params.set('fields[]', 'Category');
+      params.set('fields[]', 'Tags');
+      params.set('fields[]', 'Slug');
+      params.set('fields[]', 'Avatar_File');
+      params.set('fields[]', 'Avatar_URL');
+      params.set('fields[]', 'Character_URL');
+      params.set('fields[]', 'Character_ID');
+      params.set('fields[]', 'voice_id');
+      params.set('fields[]', 'voice_type');
+      
+      // Set maximum records per request
       params.set('maxRecords', '100');
+      
+      // Sort by Name to get consistent ordering
+      params.set('sort[0][field]', 'Name');
+      params.set('sort[0][direction]', 'asc');
       
       // Add offset for pagination
       if (offset) {
@@ -111,13 +181,19 @@ exports.handler = async (event, context) => {
       console.log(`📄 Offset for next request: ${offset || 'None (finished)'}`);
       console.log(`📊 Running total: ${allRecords.length} records`);
       
+      // Stop early if we have enough records for the requested limit
+      if (allRecords.length >= targetLimit) {
+        console.log(`✅ Reached target limit (${targetLimit}), stopping pagination early`);
+        shouldContinue = false;
+      }
+      
       // Safety check
       if (requestCount >= maxRequests) {
         console.log(`⚠️ Reached maximum request limit (${maxRequests}), stopping pagination`);
-        break;
+        shouldContinue = false;
       }
       
-    } while (offset); // Continue until no more records available
+    } while (offset && shouldContinue); // Continue until no more records or limit reached
     
     console.log(`🎯 Total records retrieved: ${allRecords.length}`);
 
@@ -155,44 +231,33 @@ exports.handler = async (event, context) => {
       };
     });
 
-    // Filter by category if specified (done in JavaScript to avoid Airtable pagination issues)
+    // No need for JavaScript filtering - already filtered at Airtable level
     let filteredCharacters = characters;
-    if (category) {
-      console.log(`📁 Filtering characters by category: ${category}`);
-      filteredCharacters = characters.filter(character => {
-        return character.Category && character.Category.toLowerCase() === category.toLowerCase();
-      });
-      console.log(`📁 Found ${filteredCharacters.length} characters in category "${category}"`);
-    }
     
-    // Further filter by tag if specified
-    if (tag) {
-      console.log(`🏷️ Filtering characters by tag: ${tag}`);
-      filteredCharacters = filteredCharacters.filter(character => {
-        if (character.Tags && Array.isArray(character.Tags)) {
-          return character.Tags.some(charTag => 
-            charTag.toLowerCase() === tag.toLowerCase()
-          );
-        }
-        return false;
-      });
-      console.log(`🏷️ Found ${filteredCharacters.length} characters with tag "${tag}"`);
-    }
-
     // Apply limit (increased for category/tags pages)
     const limitedCharacters = filteredCharacters.slice(0, parseInt(limit));
     
     console.log(`📦 Returning ${limitedCharacters.length} characters`);
 
+    // Prepare response data
+    const responseData = {
+      success: true,
+      total: filteredCharacters.length,
+      returned: limitedCharacters.length,
+      characters: limitedCharacters
+    };
+
+    // Store in cache
+    cache.set(cacheKey, {
+      data: responseData,
+      timestamp: Date.now()
+    });
+    console.log(`💾 Cached data for: ${cacheKey}`);
+
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({
-        success: true,
-        total: filteredCharacters.length,
-        returned: limitedCharacters.length,
-        characters: limitedCharacters
-      })
+      body: JSON.stringify(responseData)
     };
 
   } catch (error) {
