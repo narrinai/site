@@ -2303,13 +2303,54 @@ function processNetlifyData(characters, category, gridId, limit) {
       char.Category && char.Category.toLowerCase() === category.toLowerCase()
     );
     
-    // Sort characters - those with avatars first, then others
+    // Define popular character names for each category
+    const popularCharacters = {
+      'fictional': ['Yoda', 'Sherlock Holmes', 'Gandalf', 'Hermione Granger', 'Darth Vader', 'Spider-Man', 'Batman', 'Wonder Woman'],
+      'historical': ['Abraham Lincoln', 'Albert Einstein', 'Leonardo da Vinci', 'Cleopatra', 'Winston Churchill', 'Nelson Mandela', 'Marie Curie', 'Napoleon Bonaparte'],
+      'anime-manga': ['Naruto', 'Goku', 'Luffy', 'Ichigo', 'Natsu', 'Edward Elric', 'Sailor Moon', 'Pikachu'],
+      'celebrity': ['Elon Musk', 'Oprah Winfrey', 'Will Smith', 'Taylor Swift', 'Dwayne Johnson', 'Jennifer Lawrence', 'Robert Downey Jr.', 'Emma Watson'],
+      'gaming': ['Mario', 'Link', 'Master Chief', 'Kratos', 'Sonic', 'Lara Croft', 'Pikachu', 'Solid Snake'],
+      'movies-tv': ['Tony Stark', 'Walter White', 'Jon Snow', 'Daenerys Targaryen', 'Luke Skywalker', 'James Bond', 'Indiana Jones', 'Hermione Granger'],
+      'mythology': ['Zeus', 'Odin', 'Thor', 'Athena', 'Loki', 'Hercules', 'Aphrodite', 'Poseidon'],
+      'original': ['Luna', 'Phoenix', 'Sage', 'Raven', 'Nova', 'Zara', 'Kai', 'Aria'],
+      'educational': ['Professor Einstein', 'Dr. Science', 'Master Chen', 'Professor Philosophy', 'Teacher Smith', 'Dr. History', 'Math Tutor', 'Language Coach'],
+      'fitness-coach': ['Fitness Guru', 'Yoga Master', 'Personal Trainer', 'Health Expert', 'Nutrition Coach', 'Workout Buddy', 'Wellness Guide', 'Strength Coach'],
+      'business-coach': ['Business Mentor', 'CEO Coach', 'Success Guide', 'Leadership Expert', 'Entrepreneur', 'Strategy Advisor', 'Sales Coach', 'Marketing Guru'],
+      'career-coach': ['Career Advisor', 'Job Coach', 'Interview Expert', 'Resume Writer', 'Networking Pro', 'Skills Trainer', 'Promotion Coach', 'Career Changer'],
+      'relationship-coach': ['Love Coach', 'Dating Expert', 'Marriage Counselor', 'Communication Guide', 'Romance Advisor', 'Couples Therapist', 'Dating Guru', 'Relationship Expert'],
+      'mindfulness-coach': ['Meditation Guide', 'Zen Master', 'Mindfulness Teacher', 'Stress Relief Coach', 'Inner Peace Guide', 'Calm Coach', 'Breathwork Expert', 'Awareness Trainer'],
+      'cooking-coach': ['Master Chef', 'Culinary Expert', 'Baking Guru', 'Recipe Creator', 'Food Stylist', 'Kitchen Helper', 'Cooking Tutor', 'Nutrition Chef'],
+      'writing-coach': ['Writing Mentor', 'Author Coach', 'Editor Pro', 'Story Guru', 'Grammar Guide', 'Creative Writer', 'Blog Coach', 'Publishing Expert'],
+      'accounting-coach': ['Tax Expert', 'Budget Coach', 'Finance Guru', 'Bookkeeping Pro', 'CPA Advisor', 'Money Manager', 'Audit Expert', 'Numbers Coach'],
+      'negotiation-coach': ['Deal Maker', 'Persuasion Expert', 'Conflict Resolver', 'Negotiation Pro', 'Mediator', 'Bargaining Coach', 'Diplomacy Expert', 'Agreement Facilitator'],
+      'language-coach': ['Polyglot', 'Grammar Guide', 'Pronunciation Coach', 'Conversation Partner', 'Language Tutor', 'Fluency Expert', 'Accent Coach', 'Vocabulary Builder'],
+      'health-coach': ['Wellness Guide', 'Health Expert', 'Lifestyle Coach', 'Preventive Care', 'Holistic Healer', 'Nutrition Advisor', 'Fitness Health', 'Mental Health'],
+      'spiritual-coach': ['Spiritual Guide', 'Meditation Master', 'Inner Peace', 'Soul Coach', 'Enlightenment Guide', 'Wisdom Teacher', 'Sacred Guide', 'Divine Mentor']
+    };
+
+    // Sort characters - prioritize popular ones first, then those with avatars
     const sortedCharacters = categoryCharacters.sort((a, b) => {
+      const categoryPopular = popularCharacters[category.toLowerCase()] || [];
+      const aIsPopular = categoryPopular.some(popular => 
+        a.Name && a.Name.toLowerCase().includes(popular.toLowerCase()) || 
+        popular.toLowerCase().includes(a.Name.toLowerCase())
+      );
+      const bIsPopular = categoryPopular.some(popular => 
+        b.Name && b.Name.toLowerCase().includes(popular.toLowerCase()) || 
+        popular.toLowerCase().includes(b.Name.toLowerCase())
+      );
+      
+      // First priority: Popular characters
+      if (aIsPopular && !bIsPopular) return -1;
+      if (!aIsPopular && bIsPopular) return 1;
+      
+      // Second priority: Characters with avatars
       const aHasAvatar = hasValidAvatar(a);
       const bHasAvatar = hasValidAvatar(b);
       
       if (aHasAvatar && !bHasAvatar) return -1;
       if (!aHasAvatar && bHasAvatar) return 1;
+      
       return 0;
     });
     
