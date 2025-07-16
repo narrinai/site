@@ -371,7 +371,7 @@ exports.handler = async (event, context) => {
         if (user_email) {
           console.log('🔍 DEBUG: Searching for records with email:', user_email);
           
-          const emailUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=10`;
+          const emailUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=50`;
           
           const emailResponse = await fetch(emailUrl, {
             headers: {
@@ -395,11 +395,25 @@ exports.handler = async (event, context) => {
                 Message: fields.Message ? fields.Message.substring(0, 30) + '...' : 'no message'
               });
               
-              // Check if this record matches your email
-              if (recordEmail === user_email || 
-                  (Array.isArray(recordEmail) && recordEmail.includes(user_email))) {
-                console.log('🎯 FOUND MATCHING EMAIL! User ID is:', fields.User);
-                console.log('🎯 This is the numeric user_id you need to store:', fields.User);
+              // Check if this record matches your email or user identifiers
+              const recordUserUid = fields.UserUID || fields['UserUID (from User)'] || '';
+              const recordUserId = fields.User;
+              
+              const emailMatch = recordEmail === user_email || 
+                                (Array.isArray(recordEmail) && recordEmail.includes(user_email));
+              
+              const uidMatch = user_uid && (recordUserUid === user_uid || 
+                              (Array.isArray(recordUserUid) && recordUserUid.includes(user_uid)));
+              
+              const userIdMatch = user_id && (String(recordUserId) === String(user_id) || 
+                                 (Array.isArray(recordUserId) && recordUserId.includes(user_id)));
+              
+              if (emailMatch || uidMatch || userIdMatch) {
+                console.log('🎯 FOUND MATCHING RECORD!', {
+                  matchType: emailMatch ? 'email' : uidMatch ? 'uid' : 'userId',
+                  userIdFromRecord: fields.User,
+                  recordId: record.id
+                });
                 
                 // Als we een match vinden, probeer dit record te updaten
                 console.log('🔧 Attempting to update this matching record...');
