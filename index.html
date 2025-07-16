@@ -1613,7 +1613,7 @@ body.has-referral-banner {
     const CONFIG = {
   // Netlify Function endpoint
   CHARACTERS_API: '/.netlify/functions/characters',
-  MAX_CHARACTERS_PER_CATEGORY: 8, // Maximum 8 characters per category
+  MAX_CHARACTERS_PER_CATEGORY: 7, // Maximum 7 characters per category
   // Show multiple categories for comprehensive browsing
   CATEGORIES: [
     { id: 'historical', name: 'Historical', title: 'Historical' },
@@ -2171,9 +2171,13 @@ async function generateExtraTagButtons() {
       const validCategories = window.validCategories || CONFIG.CATEGORIES;
       console.log(`✅ Showing ${validCategories.length} categories from Airtable`);
 
-      // Split valid categories into two groups
-      const firstHalf = validCategories.slice(0, Math.ceil(validCategories.length / 2));
-      const secondHalf = validCategories.slice(Math.ceil(validCategories.length / 2));
+      // Limit to maximum 8 categories on homepage
+      const categoriesToShow = validCategories.slice(0, 8);
+      console.log(`📊 Limiting to ${categoriesToShow.length} categories on homepage`);
+
+      // Split categories into two groups
+      const firstHalf = categoriesToShow.slice(0, Math.ceil(categoriesToShow.length / 2));
+      const secondHalf = categoriesToShow.slice(Math.ceil(categoriesToShow.length / 2));
       
       // Generate first half of categories
       firstHalf.forEach(category => {
@@ -2501,10 +2505,12 @@ function processNetlifyData(characters, category, gridId, limit) {
       }, 3000);
     }
 
-    // UPDATED: Initialize character grids only for valid categories (50+ characters)
+    // UPDATED: Initialize character grids only for valid categories (max 8 categories)
     function initializeCharacterGrids() {
       const categoriesToLoad = window.validCategories || CONFIG.CATEGORIES;
-      categoriesToLoad.forEach(category => {
+      // Limit to maximum 8 categories on homepage
+      const limitedCategories = categoriesToLoad.slice(0, 8);
+      limitedCategories.forEach(category => {
         loadCharacters(category.id, `${category.id}-grid`, CONFIG.MAX_CHARACTERS_PER_CATEGORY);
       });
     }
