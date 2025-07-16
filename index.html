@@ -2123,13 +2123,24 @@ async function generateExtraTagButtons() {
       
       const validCategories = window.validCategories || CONFIG.CATEGORIES;
       console.log(`✅ Showing ${validCategories.length} categories from Airtable`);
+      console.log('📋 All categories:', validCategories.map(c => `${c.id} (${c.name})`).join(', '));
 
-      // Filter out unwanted categories
+      // Filter out unwanted categories - check both id and name
       const excludedCategories = ['rpg', 'cooking', 'mindfulness', 'accounting', 'writing', 'study', 'other', 'creativity', 'fitness', 'original', 'negotiation', 'educational', 'business'];
-      const filteredCategories = validCategories.filter(cat => 
-        !excludedCategories.includes(cat.id.toLowerCase())
-      );
+      const excludedNames = ['RPG', 'Cooking', 'Mindfulness', 'Accounting', 'Writing', 'Study', 'Other', 'Creativity', 'Fitness', 'Original', 'Negotiation', 'Educational', 'Business'];
+      
+      const filteredCategories = validCategories.filter(cat => {
+        const isExcludedById = excludedCategories.includes(cat.id.toLowerCase());
+        const isExcludedByName = excludedNames.some(name => cat.name.toLowerCase() === name.toLowerCase());
+        const isExcluded = isExcludedById || isExcludedByName;
+        
+        if (isExcluded) {
+          console.log(`❌ Excluding category: ${cat.id} (${cat.name})`);
+        }
+        return !isExcluded;
+      });
       console.log(`🔍 Filtered to ${filteredCategories.length} categories after exclusions`);
+      console.log('✅ Remaining categories:', filteredCategories.map(c => `${c.id} (${c.name})`).join(', '));
 
       // Priority categories that should appear first
       const priorityCategories = ['gen-z', 'middle-aged', 'romance', 'humor', 'celebrities', 'anime-manga', 'historical', 'fictional'];
@@ -2230,9 +2241,10 @@ async function loadCharactersFromNetlify(category, gridId, limit = CONFIG.MAX_CH
   // Build API URL
   const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
   url.searchParams.set('category', category);
-  url.searchParams.set('limit', '200'); // Request many more to ensure we have enough for each category
+  url.searchParams.set('limit', '100'); // Request a reasonable amount per category
   
-  console.log(`📡 Fetching from Netlify Function:`, url.toString());
+  console.log(`📡 Fetching from Netlify Function for category "${category}":`, url.toString());
+  console.log(`🔍 Request details: category="${category}", limit="${limit}"`);
   
   const response = await fetch(url.toString());
   
@@ -2301,12 +2313,20 @@ function processNetlifyData(characters, category, gridId, limit) {
     console.log(`🔍 Found ${categoryCharacters.length} characters for category "${category}"`);
     
     // Debug: show character details
-    console.log(`🎭 Characters in ${category}:`, categoryCharacters.slice(0, 20).map(c => ({
-      name: c.Name,
-      hasAvatar: hasValidAvatar(c),
-      avatarUrl: c.Avatar_URL,
-      category: c.Category
-    })));
+    if (categoryCharacters.length > 0) {
+      console.log(`🎭 Characters in ${category}:`, categoryCharacters.slice(0, 20).map(c => ({
+        name: c.Name,
+        hasAvatar: hasValidAvatar(c),
+        avatarUrl: c.Avatar_URL,
+        category: c.Category
+      })));
+    } else {
+      console.log(`❌ NO CHARACTERS FOUND for category "${category}"!`);
+      console.log('🔍 Debug: First 5 characters from API:', characters.slice(0, 5).map(c => ({
+        name: c.Name,
+        category: c.Category
+      })));
+    }
     
     // Sort characters - those with avatars first, then others
     const sortedCharacters = categoryCharacters.sort((a, b) => {
@@ -2497,9 +2517,13 @@ function processNetlifyData(characters, category, gridId, limit) {
       
       // Filter out unwanted categories (same as in generateCharacterSections)
       const excludedCategories = ['rpg', 'cooking', 'mindfulness', 'accounting', 'writing', 'study', 'other', 'creativity', 'fitness', 'original', 'negotiation', 'educational', 'business'];
-      const filteredCategories = categoriesToLoad.filter(cat => 
-        !excludedCategories.includes(cat.id.toLowerCase())
-      );
+      const excludedNames = ['RPG', 'Cooking', 'Mindfulness', 'Accounting', 'Writing', 'Study', 'Other', 'Creativity', 'Fitness', 'Original', 'Negotiation', 'Educational', 'Business'];
+      
+      const filteredCategories = categoriesToLoad.filter(cat => {
+        const isExcludedById = excludedCategories.includes(cat.id.toLowerCase());
+        const isExcludedByName = excludedNames.some(name => cat.name.toLowerCase() === name.toLowerCase());
+        return !isExcludedById && !isExcludedByName;
+      });
       
       // Priority categories that should appear first
       const priorityCategories = ['gen-z', 'middle-aged', 'romance', 'humor', 'celebrities', 'anime-manga', 'historical', 'fictional'];
