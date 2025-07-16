@@ -30,8 +30,7 @@ exports.handler = async (event, context) => {
     console.log('🚀 Function started');
     console.log('Environment check:', {
       hasToken: !!process.env.AIRTABLE_TOKEN,
-      hasBaseId: !!process.env.AIRTABLE_BASE_ID,
-      hasTableId: !!process.env.AIRTABLE_TABLE_ID
+      hasBaseId: !!process.env.AIRTABLE_BASE_ID
     });
 
     // Check environment variables
@@ -40,9 +39,6 @@ exports.handler = async (event, context) => {
     }
     if (!process.env.AIRTABLE_BASE_ID) {
       throw new Error('AIRTABLE_BASE_ID not found');
-    }
-    if (!process.env.AIRTABLE_TABLE_ID) {
-      throw new Error('AIRTABLE_TABLE_ID not found');
     }
 
     // Get query parameters
