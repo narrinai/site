@@ -2519,8 +2519,6 @@
             <option value="mystical_guide">Mystical Guide - Spiritual and enlightening</option>
             
             <!-- Legacy Voices (backup) -->
-            <option value="narrator">Narrator</option>
-            <option value="dramatic">Dramatic</option>
            </select>
            
            <div class="voice-preview" style="margin-top: var(--spacing-md);">
@@ -2592,6 +2590,10 @@
   <option value="negotiation-coach">🤝 Negotiation Coach</option>
   <option value="accounting-coach">📊 Accounting Coach</option>
   <option value="education">📚 Education</option>
+  <option value="writing-coach">✍️ Writing Coach</option>
+  <option value="language-coach">🗣️ Language Coach</option>
+  <option value="creativity-coach">🎨 Creativity Coach</option>
+  <option value="mindfulness-coach">🧘 Mindfulness Coach</option>
 </select>
        </div>
        
@@ -2730,9 +2732,7 @@
      
      // Speciale stemmen
      'neutral_ai': 'iP95p4HMsOdaJ6J8s72v',            // Neutrale AI stem
-     'narrator': 'onwK4e9ZLuTAKqWW03F9',              // Verteller stem
      'child_friendly': 'pFZP5JQG7iQjIQuC4Bku',        // Kindvriendelijke stem
-     'dramatic': 'oWAxZDx7w5VEj9dCyTzz',              // Dramatische stem
      'default': 'iP95p4HMsOdaJ6J8s72v',               // Fallback
      
      // NEW CHARACTER-SPECIFIC VOICES - UPDATE WITH YOUR ELEVENLABS VOICE IDs
@@ -2826,7 +2826,7 @@
        voiceType = personalityState.traits.includes('caring') ? 'nurturing' : 'professional';
      } else if (personalityState.traits.includes('wise')) {
        voiceType = 'wise';
-     } else if (personalityState.traits.includes('dramatic') || personalityState.sliders.mood > 70) {
+     } else if (personalityState.sliders.mood > 70) {
        voiceType = 'energetic';
      } else if (personalityState.sliders.tempo < 30) {
        voiceType = 'calm';
@@ -4268,8 +4268,8 @@ async function uploadToCloudinary(file, slug) {
       );
       
       if (hasInappropriateContent) {
-        console.warn('⚠️ Inappropriate content detected, forcing private mode');
-        forcePrivateMode('Inappropriate content detected in avatar - character automatically set to private');
+        console.warn('⚠️ Adult content detected, forcing private mode');
+        forcePrivateMode('Adult content detected in avatar - character automatically set to private for your personal use only');
         return { secure_url: result.secure_url, forced_private: true };
       }
     }
@@ -4301,10 +4301,10 @@ function forcePrivateMode(reason) {
   showContentPolicyNotification(reason);
 }
 
-// Show content policy violation notification
+// Show content policy notification
 function showContentPolicyNotification(reason) {
-  showNotification('warning', 'Content Policy Violation', 
-    `${reason}. Characters with inappropriate content can only be created as private. The public option has been disabled for this character.`
+  showNotification('info', 'Privacy Protection', 
+    `${reason}. This content has been set to private for your personal use. The character will not be visible to other users.`
   );
 }
 
