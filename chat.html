@@ -3398,35 +3398,39 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
         return;
       }
       
-      // More robust filtering to only show actual chat messages
+      // Less aggressive filtering - only filter obvious debug messages
       const isDebugMessage = 
-        // Skip obvious system/debug messages, but be careful not to filter real user messages
-        (message.includes('Processing message') && message.includes(':')) ||
-        (message.includes('Final extracted') && message.includes('role=')) ||
-        (message.includes('CreatedTime') && message.includes('202') && message.includes('T')) ||
-        (message.includes('Vorige gesprekken en belangrijke informatie:')) ||
-        (message.includes('informatie en persoonlijke te antwoorden') && message.length > 200) ||
+        // Very specific debug patterns only
+        message.startsWith('Processing message') ||
+        message.startsWith('Final extracted') ||
+        message.startsWith('Vorige gesprekken en belangrijke informatie:') ||
+        message.startsWith('🧹 Filtering out debug/system message:') ||
         
-        // JSON data structures (but allow user messages that happen to contain braces)
-        (message.startsWith('{') && message.endsWith('}') && message.includes('"role"')) ||
-        (message.startsWith('[') && message.endsWith(']') && message.includes('"message"')) ||
+        // JSON data structures that are clearly debug output
+        (message.startsWith('{') && message.endsWith('}') && message.includes('"role"') && message.includes('"message"')) ||
         
-        // Very specific system patterns
-        (message.includes('202') && message.includes('T') && message.includes('Z') && message.length < 50) || // ISO timestamps only
-        message.length > 2000 || // Extremely long messages are likely data dumps
-        
-        // Memory/debug specific with context
+        // System messages that are clearly debug
         message.includes('Memory processed successfully') ||
         message.includes('TTS response:') ||
         message.includes('Voice playback error:') ||
         
         // Record ID patterns (very specific)
-        /^rec[A-Za-z0-9]{14}$/.test(message) || // Airtable record IDs
-        (message.startsWith('rec') && message.length === 17 && !message.includes(' '));
+        /^rec[A-Za-z0-9]{14}$/.test(message.trim()) ||
+        
+        // Extremely long messages that are likely data dumps
+        message.length > 3000;
       
       if (isDebugMessage) {
         console.warn("🧹 Filtering out debug/system message:", message.substring(0, 50));
         return;
+      }
+      
+      // Debug log to see what messages are being processed
+      console.log(`💬 Processing chat message: role="${role}", message="${message.substring(0, 50)}..."`);
+      
+      // Don't filter normal user messages even if they contain certain keywords
+      if (role === 'user' && message.length < 1000) {
+        console.log(`✅ Allowing user message: "${message.substring(0, 50)}..."`);
       }
       
       // Additional safety check - ensure we have valid content for display
@@ -3869,6 +3873,15 @@ hideTypingIndicator();
     // Save chat messages to database
     try {
       console.log('💾 Saving chat messages to database...');
+      console.log('📤 Save payload:', {
+        user_email: email,
+        user_uid: uid,
+        user_token: !!token,
+        char: characterSlug,
+        user_message: input?.substring(0, 50) + '...',
+        ai_response: reply?.substring(0, 50) + '...'
+      });
+      
       const saveResponse = await fetch('/.netlify/functions/save-chat-message', {
         method: 'POST',
         headers: {
@@ -3884,11 +3897,14 @@ hideTypingIndicator();
         })
       });
       
+      console.log('📨 Save response status:', saveResponse.status);
+      
       if (saveResponse.ok) {
         const saveData = await saveResponse.json();
         console.log('✅ Messages saved successfully:', saveData);
       } else {
-        console.warn('⚠️ Failed to save messages:', saveResponse.status);
+        const errorText = await saveResponse.text();
+        console.error('❌ Failed to save messages:', saveResponse.status, errorText);
       }
     } catch (saveError) {
       console.error('❌ Error saving messages:', saveError);
