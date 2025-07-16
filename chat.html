@@ -2752,11 +2752,11 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         // Check if this button is currently playing and should be paused
         if (buttonElement.classList.contains('playing') && currentAudio) {
-          console.log('🤫 Pausing conversation...');
+          console.log('⏸️ Pausing conversation...');
           currentAudio.pause();
           currentAudio = null;
           buttonElement.classList.remove('playing');
-          buttonElement.textContent = '👂';
+          buttonElement.textContent = '▶️';
           buttonElement.disabled = false;
           return; // Early return to pause instead of restart
         }
@@ -2795,7 +2795,7 @@ document.addEventListener('DOMContentLoaded', () => {
           currentAudio = null;
           document.querySelectorAll('.voice-play-btn').forEach(btn => {
             btn.classList.remove('playing');
-            btn.textContent = '👂';
+            btn.textContent = '▶️';
           });
         }
         
@@ -2825,7 +2825,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Verander naar play state
         buttonElement.classList.remove('loading');
         buttonElement.classList.add('playing');
-        buttonElement.textContent = '🤫';
+        buttonElement.textContent = '⏸️';
         buttonElement.disabled = false;
         const audioUrl = URL.createObjectURL(audioBlob);
         currentAudio = new Audio(audioUrl);
@@ -2834,13 +2834,13 @@ document.addEventListener('DOMContentLoaded', () => {
           URL.revokeObjectURL(audioUrl);
           currentAudio = null;
           buttonElement.classList.remove('playing', 'loading');
-          buttonElement.textContent = '👂';
+          buttonElement.textContent = '▶️';
           buttonElement.disabled = false;
         });
         
         currentAudio.addEventListener('pause', () => {
           buttonElement.classList.remove('playing', 'loading');
-          buttonElement.textContent = '👂';
+          buttonElement.textContent = '▶️';
           buttonElement.disabled = false;
         });
         
@@ -2849,7 +2849,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (error) {
         console.error('Voice conversation error:', error);
         buttonElement.classList.remove('playing', 'loading');
-        buttonElement.textContent = '👂';
+        buttonElement.textContent = '▶️';
         buttonElement.disabled = false;
         
         // Show more specific error messages
@@ -3697,7 +3697,7 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
           const validatedVoiceId = validateAndFixVoiceId(currentCharacter.voice_id);
           if (validatedVoiceId) {
             // Only show play button if we have a valid voice ID
-            p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${message}<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice(\`${message.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">👂</button></div>`;
+            p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${message}<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice(\`${message.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
           } else {
             // Don't show play button for invalid voice IDs
             p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${message}`;
@@ -4103,7 +4103,7 @@ hideTypingIndicator();
       const validatedVoiceId = validateAndFixVoiceId(currentCharacter.voice_id);
       if (validatedVoiceId) {
         // Only show play button if we have a valid voice ID
-        divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span><br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice(\`${reply.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">👂</button></div>`;
+        divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span><br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice(\`${reply.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
       } else {
         // Don't show play button for invalid voice IDs
         divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span>`;
