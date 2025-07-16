@@ -1525,6 +1525,17 @@ body.has-referral-banner {
           <a href="create-character.html" class="btn btn-cta">Start Creating</a>
         </div>
       </section>
+
+      <!-- Bottom Category Navigation (Same as top) -->
+      <nav class="category-nav" aria-label="Browse categories">
+        <div class="filters-container">
+          <div class="filter-section">
+            <div class="category-buttons" id="bottomCategoryButtons">
+              <!-- Dynamic category buttons will be inserted here -->
+            </div>
+          </div>
+        </div>
+      </nav>
     </div>
   </main>
 
@@ -1750,9 +1761,30 @@ async function fetchCategoriesFromAirtable() {
       if (character.Category) {
         const categoryId = character.Category.toLowerCase().replace(/\s+/g, '-');
         if (!categoriesMap.has(categoryId)) {
+          // Clean up the name for display
+          let displayName = character.Category;
+          
+          // Remove common suffixes
+          displayName = displayName.replace(/ Characters?$/i, '');
+          displayName = displayName.replace(/ Coach(es)?$/i, '');
+          
+          // Special cases
+          if (displayName.toLowerCase() === 'anime-manga' || displayName.toLowerCase() === 'anime manga') {
+            displayName = 'Anime';
+          }
+          if (displayName.toLowerCase() === 'relationship') {
+            displayName = 'Relationship';
+          }
+          if (displayName.toLowerCase() === 'fitness') {
+            displayName = 'Fitness';
+          }
+          if (displayName.toLowerCase() === 'business') {
+            displayName = 'Business';
+          }
+          
           categoriesMap.set(categoryId, {
             id: categoryId,
-            name: character.Category,
+            name: displayName,
             title: character.Category.includes('Coach') ? `${character.Category}es` : `${character.Category} Characters`,
             count: 1
           });
@@ -1781,9 +1813,11 @@ async function fetchCategoriesFromAirtable() {
    // Generate category buttons - Show first 4 on mobile, all on desktop (only for valid categories)
 async function generateCategoryButtons() {
   const categoryButtons = document.getElementById('categoryButtons');
+  const bottomCategoryButtons = document.getElementById('bottomCategoryButtons');
   const extraCategoryButtons = document.getElementById('extraCategoryButtons');
   
   categoryButtons.innerHTML = '<div class="loading" style="margin: 0 auto;" aria-label="Loading categories"></div>';
+  if (bottomCategoryButtons) bottomCategoryButtons.innerHTML = '<div class="loading" style="margin: 0 auto;" aria-label="Loading categories"></div>';
   if (extraCategoryButtons) extraCategoryButtons.innerHTML = '';
 
   // Fetch categories from Airtable
@@ -1794,6 +1828,7 @@ async function generateCategoryButtons() {
   window.validCategories = categoriesToUse; // Store for other functions
   
   categoryButtons.innerHTML = ''; // Clear loading
+  if (bottomCategoryButtons) bottomCategoryButtons.innerHTML = ''; // Clear loading
   
   // Filter categories with 5+ characters in name
   const filteredCategories = categoriesToUse.filter(category => category.name.length >= 5);
@@ -1802,23 +1837,31 @@ async function generateCategoryButtons() {
   const isMobile = window.innerWidth <= 768;
   const categoriesToShow = isMobile ? filteredCategories.slice(0, 3) : filteredCategories;
 
-  // Top navigation
-  categoriesToShow.forEach(category => {
-    const button = document.createElement('a');
-    button.href = `category.html?cat=${category.id}`;
-    button.className = 'category-btn';
-    button.textContent = category.name;
-    categoryButtons.appendChild(button);
-  });
+  // Function to populate category buttons
+  const populateButtons = (container) => {
+    categoriesToShow.forEach(category => {
+      const button = document.createElement('a');
+      button.href = `category.html?cat=${category.id}`;
+      button.className = 'category-btn';
+      button.textContent = category.name;
+      container.appendChild(button);
+    });
 
-  // Add "More..." button on mobile if there are more categories
-  if (isMobile && filteredCategories.length > 3) {
-    const moreButton = document.createElement('a');
-    moreButton.href = 'category.html';
-    moreButton.className = 'category-btn';
-    moreButton.style.background = 'var(--color-gray)';
-    moreButton.textContent = `+${filteredCategories.length - 3} More...`;
-    categoryButtons.appendChild(moreButton);
+    // Add "More..." button on mobile if there are more categories
+    if (isMobile && filteredCategories.length > 3) {
+      const moreButton = document.createElement('a');
+      moreButton.href = 'category.html';
+      moreButton.className = 'category-btn';
+      moreButton.style.background = 'var(--color-gray)';
+      moreButton.textContent = `+${filteredCategories.length - 3} More...`;
+      container.appendChild(moreButton);
+    }
+  };
+
+  // Populate both top and bottom navigation
+  populateButtons(categoryButtons);
+  if (bottomCategoryButtons) {
+    populateButtons(bottomCategoryButtons);
   }
 }
 
