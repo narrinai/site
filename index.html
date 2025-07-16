@@ -1495,25 +1495,6 @@ body.has-referral-banner {
         <!-- Will be inserted dynamically -->
       </div>
 
-<!-- Extra Category/Tags Navigation - Before CTA -->
-      <nav class="category-nav" aria-label="Explore more categories">
-        <div class="filters-container">
-          <!-- Categories Section -->
-          <div class="filter-section">
-            <div class="category-buttons" id="extraCategoryButtons">
-              <!-- Extra category buttons will be inserted here -->
-            </div>
-          </div>
-          
-          <!-- Tags Section -->
-          <div class="filter-section">
-            <div class="tags-container" id="extraTagsContainer">
-              <!-- Extra tag buttons will be inserted here -->
-            </div>
-          </div>
-        </div>
-      </nav>
-
       <!-- Create Character CTA -->
       <section class="create-character-cta">
         <div class="cta-content">
@@ -1907,17 +1888,7 @@ async function generateCategoryButtons() {
     populateButtons(bottomCategoryButtons);
   }
   
-  // Populate extra category buttons with different categories
-  if (extraCategoryButtons && filteredCategories.length > 6) {
-    const extraCategories = filteredCategories.slice(6, 12); // Next 6 categories
-    extraCategories.forEach(category => {
-      const button = document.createElement('a');
-      button.href = `category.html?cat=${category.id}`;
-      button.className = 'category-btn';
-      button.textContent = category.name;
-      extraCategoryButtons.appendChild(button);
-    });
-  }
+  // Extra category buttons removed - no longer needed
 }
 
 // Store tag counts globally
@@ -2063,8 +2034,8 @@ async function generateTagButtons() {
 
     // Generate extra tag buttons for bottom navigation
 async function generateExtraTagButtons() {
-  const extraTagsContainer = document.getElementById('extraTagsContainer');
-  if (!extraTagsContainer) return;
+  // Extra tags container removed - no longer needed
+  return;
 
   extraTagsContainer.innerHTML = '';
 
@@ -2736,9 +2707,6 @@ if (window.netlifyIdentity) {
     function showButtonLoadingState() {
       const categoryButtons = document.getElementById('categoryButtons');
       const tagsContainer = document.getElementById('tagsContainer');
-      const extraCategoryButtons = document.getElementById('extraCategoryButtons');
-      const extraTagsContainer = document.getElementById('extraTagsContainer');
-      
       // Show loading spinner for category buttons
       if (categoryButtons) {
         categoryButtons.innerHTML = '<div class="loading" style="margin: 0 auto;" aria-label="Loading categories"></div>';
@@ -2747,12 +2715,6 @@ if (window.netlifyIdentity) {
       // Hide tag containers initially
       if (tagsContainer) {
         tagsContainer.innerHTML = '';
-      }
-      if (extraCategoryButtons) {
-        extraCategoryButtons.innerHTML = '';
-      }
-      if (extraTagsContainer) {
-        extraTagsContainer.innerHTML = '';
       }
     }
 
@@ -2771,8 +2733,7 @@ if (window.netlifyIdentity) {
       console.log('🚀 About to generate tag buttons...');
       await generateTagButtons();
       console.log('✅ Main tag buttons generated');
-      await generateExtraTagButtons();
-      console.log('✅ Extra tag buttons generated');
+      // Extra tag buttons removed - no longer needed
       
       // Generate character sections using Airtable categories
       await generateCharacterSections();
