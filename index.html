@@ -1574,7 +1574,7 @@ body.has-referral-banner {
     const CONFIG = {
   // Netlify Function endpoint
   CHARACTERS_API: '/.netlify/functions/characters',
-  MAX_CHARACTERS_PER_CATEGORY: 100, // Maximum 100 characters per category to show more variety
+  MAX_CHARACTERS_PER_CATEGORY: 8, // Maximum 8 characters per category
   // Show multiple categories for comprehensive browsing
   CATEGORIES: [
     { id: 'historical', name: 'Historical', title: 'Historical' },
@@ -2478,7 +2478,7 @@ async function loadCharactersFromNetlify(category, gridId, limit = CONFIG.MAX_CH
   // Build API URL
   const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
   url.searchParams.set('category', category);
-  url.searchParams.set('limit', '1000'); // Request up to 1000 characters per category
+  url.searchParams.set('limit', '200'); // Request many more to ensure we have enough for each category
   
   console.log(`📡 Fetching from Netlify Function for category "${category}":`, url.toString());
   console.log(`🔍 Request details: category="${category}", limit="${limit}"`);
