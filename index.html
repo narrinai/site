@@ -2345,7 +2345,7 @@ async function generateExtraTagButtons() {
         
         // Add priority categories first if they have enough characters
         priorityCategories.forEach(catId => {
-          if (categorized[catId] && categorized[catId].length >= 8) { // Show categories with at least 8 characters
+          if (categorized[catId] && categorized[catId].length >= 3) { // Show categories with at least 3 characters
             categoriesToShow.push(catId);
           }
         });
@@ -2353,7 +2353,7 @@ async function generateExtraTagButtons() {
         // Add other categories if needed
         Object.keys(categorized).forEach(catId => {
           if (!priorityCategories.includes(catId) && 
-              categorized[catId].length >= 8 &&
+              categorized[catId].length >= 3 &&
               categoriesToShow.length < 8) {
             categoriesToShow.push(catId);
           }
@@ -2413,8 +2413,9 @@ async function generateExtraTagButtons() {
           const gridId = `${catId}-grid`;
           const grid = document.getElementById(gridId);
           if (grid && categorized[catId]) {
+            // Always show up to 8 characters, but at least show what we have
             const charactersToShow = categorized[catId].slice(0, 8);
-            console.log(`📋 Displaying ${charactersToShow.length} characters for ${catId} in grid ${gridId}`);
+            console.log(`📋 Displaying ${charactersToShow.length} characters for ${catId} (out of ${categorized[catId].length} total) in grid ${gridId}`);
             console.log(`📋 First character example:`, charactersToShow[0]);
             displayCharactersInGrid(grid, charactersToShow);
           } else {
