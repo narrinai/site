@@ -41,9 +41,10 @@ exports.handler = async (event, context) => {
     if (!process.env.AIRTABLE_BASE_ID) {
       throw new Error('AIRTABLE_BASE_ID not found');
     }
-    if (!process.env.AIRTABLE_TABLE_ID) {
-      throw new Error('AIRTABLE_TABLE_ID not found');
-    }
+    // Skip AIRTABLE_TABLE_ID check since we're using hardcoded table name
+    // if (!process.env.AIRTABLE_TABLE_ID) {
+    //   throw new Error('AIRTABLE_TABLE_ID not found');
+    // }
 
     // Get query parameters
     const { category, tag, limit = 500 } = event.queryStringParameters || {};
