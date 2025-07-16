@@ -1578,7 +1578,7 @@ body.has-referral-banner {
     const CONFIG = {
   // Netlify Function endpoint
   CHARACTERS_API: '/.netlify/functions/characters',
-  MAX_CHARACTERS_PER_CATEGORY: 8, // Maximum 8 characters per category
+  MAX_CHARACTERS_PER_CATEGORY: 100, // Maximum 100 characters per category to show more variety
   // Show multiple categories for comprehensive browsing
   CATEGORIES: [
     { id: 'historical', name: 'Historical', title: 'Historical' },
@@ -2410,8 +2410,8 @@ async function generateExtraTagButtons() {
           const gridId = `${catId}-grid`;
           const grid = document.getElementById(gridId);
           if (grid && categorized[catId]) {
-            // Always show up to 8 characters, but at least show what we have
-            const charactersToShow = categorized[catId].slice(0, 8);
+            // Show up to configured maximum characters per category
+            const charactersToShow = categorized[catId].slice(0, CONFIG.MAX_CHARACTERS_PER_CATEGORY);
             console.log(`📋 Displaying ${charactersToShow.length} characters for ${catId} (out of ${categorized[catId].length} total) in grid ${gridId}`);
             console.log(`📋 First character example:`, charactersToShow[0]);
             displayCharactersInGrid(grid, charactersToShow);
@@ -2481,7 +2481,7 @@ async function loadCharactersFromNetlify(category, gridId, limit = CONFIG.MAX_CH
   // Build API URL
   const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
   url.searchParams.set('category', category);
-  url.searchParams.set('limit', '100'); // Request a reasonable amount per category
+  url.searchParams.set('limit', '1000'); // Request up to 1000 characters per category
   
   console.log(`📡 Fetching from Netlify Function for category "${category}":`, url.toString());
   console.log(`🔍 Request details: category="${category}", limit="${limit}"`);
