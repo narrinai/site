@@ -2548,6 +2548,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Manual voice playback met caching en loading indicator
     window.playMessageVoice = async function(text, voiceId, buttonElement) {
       try {
+        // Check if this button is currently playing and should be paused
+        if (buttonElement.classList.contains('playing') && currentAudio) {
+          console.log('⏸️ Pausing current audio...');
+          currentAudio.pause();
+          currentAudio = null;
+          buttonElement.classList.remove('playing');
+          buttonElement.textContent = '▶️';
+          buttonElement.disabled = false;
+          return; // Early return to pause instead of restart
+        }
+        
         // Validate text length first (max 500 characters for TTS)
         if (!text || text.length === 0) {
           throw new Error('No text to convert to speech');
@@ -2558,7 +2569,7 @@ document.addEventListener('DOMContentLoaded', () => {
           text = text.substring(0, 497) + '...';
         }
         
-        // Stop current audio if playing
+        // Stop any other audio if playing
         if (currentAudio) {
           currentAudio.pause();
           currentAudio = null;
@@ -3853,6 +3864,34 @@ hideTypingIndicator();
       typewriterWithVoice(typingSpan, reply, currentCharacter.voice_id);
     } else {
       typewriterEffect(typingSpan, reply);
+    }
+
+    // Save chat messages to database
+    try {
+      console.log('💾 Saving chat messages to database...');
+      const saveResponse = await fetch('/.netlify/functions/save-chat-message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_email: email,
+          user_uid: uid,
+          user_token: token,
+          char: characterSlug,
+          user_message: input, // Original user input without memory context
+          ai_response: reply
+        })
+      });
+      
+      if (saveResponse.ok) {
+        const saveData = await saveResponse.json();
+        console.log('✅ Messages saved successfully:', saveData);
+      } else {
+        console.warn('⚠️ Failed to save messages:', saveResponse.status);
+      }
+    } catch (saveError) {
+      console.error('❌ Error saving messages:', saveError);
     }
 
     // Memory processing in background - VERBETERDE VERSIE
