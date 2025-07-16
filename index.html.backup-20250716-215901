@@ -2212,147 +2212,6 @@ async function generateExtraTagButtons() {
 
     // ===== CHARACTER LOADING FUNCTIONS =====
 
-    // SIMPLIFIED: Load all characters at once and categorize client-side
-    async function loadAllCharactersSimplified() {
-      console.log('🚀 Loading all characters in one request...');
-      
-      try {
-        const response = await fetch('/.netlify/functions/characters?limit=2000');
-        const data = await response.json();
-        
-        if (!data.success || !data.characters) {
-          throw new Error('Failed to load characters');
-        }
-        
-        console.log(`✅ Loaded ${data.characters.length} characters total`);
-        
-        // Process and categorize characters
-        const categorized = {};
-        
-        // Category mappings
-        const categoryMappings = {
-          'celebrity': 'celebrities',
-          'celebrities': 'celebrities',
-          'anime': 'anime',
-          'anime-manga': 'anime',
-          'anime-character': 'anime',
-          'historical': 'historical',
-          'historical-figure': 'historical',
-          'relationship': 'relationship',
-          'relationship-coach': 'relationship',
-          'gaming': 'gaming',
-          'gaming-character': 'gaming',
-          'movies-tv': 'movies-tv',
-          'fictional': 'movies-tv',
-          'movie': 'movies-tv',
-          'musician': 'musicians',
-          'musicians': 'musicians',
-          'politician': 'politicians',
-          'politicians': 'politicians',
-          'technology': 'technology',
-          'philosophy': 'philosophy',
-          'language': 'language',
-          'student': 'student',
-          'gen-z': 'gen-z',
-          'middle-aged': 'middle-aged',
-          'romance': 'romance',
-          'humor': 'humor'
-        };
-        
-        // Excluded categories
-        const excludedCategories = [
-          'business', 'mindfulness', 'cooking', 'fitness', 'educational', 
-          'writing', 'original', 'rpg', 'accounting', 'study', 'other', 
-          'creativity', 'negotiation'
-        ];
-        
-        data.characters.forEach(character => {
-          if (!character.Category) return;
-          
-          // Normalize category
-          const lowerCat = character.Category.toLowerCase();
-          const normalizedCat = categoryMappings[lowerCat] || lowerCat;
-          
-          // Skip if excluded
-          if (excludedCategories.includes(normalizedCat)) {
-            return;
-          }
-          
-          // Initialize category if needed
-          if (!categorized[normalizedCat]) {
-            categorized[normalizedCat] = [];
-          }
-          
-          // Add character if has valid avatar
-          if (hasValidAvatar(character)) {
-            categorized[normalizedCat].push(character);
-          }
-        });
-        
-        console.log('📊 Categorized characters:', Object.keys(categorized).map(cat => 
-          `${cat}: ${categorized[cat].length}`
-        ).join(', '));
-        
-        // Display categories with priority order
-        const priorityCategories = ['celebrities', 'anime', 'historical', 'gaming', 'gen-z', 'middle-aged', 'romance', 'humor'];
-        const categoriesToShow = [];
-        
-        // Add priority categories first
-        priorityCategories.forEach(catId => {
-          if (categorized[catId] && categorized[catId].length >= 8) {
-            categoriesToShow.push(catId);
-          }
-        });
-        
-        // Add other categories if needed
-        Object.keys(categorized).forEach(catId => {
-          if (!priorityCategories.includes(catId) && 
-              categorized[catId].length >= 8 &&
-              categoriesToShow.length < 8) {
-            categoriesToShow.push(catId);
-          }
-        });
-        
-        console.log(`📊 Displaying ${categoriesToShow.length} categories with 8 characters each`);
-        
-        // Display characters in each category
-        categoriesToShow.forEach(catId => {
-          const gridId = `${catId}-grid`;
-          const grid = document.getElementById(gridId);
-          if (grid && categorized[catId]) {
-            displayCharactersInGrid(grid, categorized[catId].slice(0, 8));
-          }
-        });
-        
-      } catch (error) {
-        console.error('❌ Error loading characters:', error);
-      }
-    }
-    
-    function displayCharactersInGrid(grid, characters) {
-      grid.innerHTML = '';
-      
-      characters.forEach(char => {
-        const avatarUrl = Array.isArray(char.Avatar_URL) 
-          ? char.Avatar_URL[0]?.url 
-          : char.Avatar_URL;
-          
-        const card = document.createElement('a');
-        card.href = `chat.html?char=${char.Slug}`;
-        card.className = 'character-card';
-        card.innerHTML = `
-          <div class="card-image-wrapper">
-            <img src="${avatarUrl}" alt="${char.Name}" loading="lazy">
-            <div class="card-overlay">
-              <h3>${char.Name}</h3>
-              <p>${char.Character_Title || ''}</p>
-            </div>
-          </div>
-        `;
-        grid.appendChild(card);
-      });
-    }
-
     // UPDATED: Load characters function with enforced 10 character limit
     async function loadCharacters(category, gridId, limit = CONFIG.MAX_CHARACTERS_PER_CATEGORY) {
       const grid = document.getElementById(gridId);
@@ -2894,17 +2753,17 @@ if (window.netlifyIdentity) {
       await generateCategoryButtons();
       console.log('✅ Categories loaded from Airtable');
       
-      // Skip tag buttons to reduce API calls
-      console.log('🚀 Skipping tag buttons to reduce API calls');
-      // await generateTagButtons();
-      console.log('✅ Tag buttons skipped');
+      // Load tag buttons (these now check character counts)
+      console.log('🚀 About to generate tag buttons...');
+      await generateTagButtons();
+      console.log('✅ Main tag buttons generated');
+      // Extra tag buttons removed - no longer needed
       
       // Generate character sections using Airtable categories
       await generateCharacterSections();
       
-      // Load ALL characters at once - much more efficient
-      console.log('🚀 Loading all characters in one request...');
-      await loadAllCharactersSimplified();
+      // Load character data
+      initializeCharacterGrids();
       
       // Debug what gets loaded
       setTimeout(() => {
