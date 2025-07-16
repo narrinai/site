@@ -2494,7 +2494,27 @@
       data.characters.forEach(character => {
         if (character.Category) {
           const categoryId = character.Category.toLowerCase().replace(/\s+/g, '-');
-          const categoryName = character.Category.replace(/ Characters?$/i, '').replace(/ Coach(es)?$/i, '');
+          let categoryName = character.Category.replace(/ Characters?$/i, '').replace(/ Coach(es)?$/i, '');
+          
+          // Apply proper capitalization - capitalize first letter and handle common patterns
+          categoryName = categoryName.charAt(0).toUpperCase() + categoryName.slice(1);
+          
+          // Handle special cases for better display
+          if (categoryName.toLowerCase() === 'anime-manga') {
+            categoryName = 'Anime';
+          } else if (categoryName.toLowerCase() === 'al-assistant') {
+            categoryName = 'AI Assistant';
+          } else if (categoryName.toLowerCase() === 'business-coach') {
+            categoryName = 'Business';
+          } else if (categoryName.toLowerCase() === 'career-coach') {
+            categoryName = 'Career';
+          } else if (categoryName.toLowerCase() === 'fitness-coach') {
+            categoryName = 'Fitness';
+          } else if (categoryName.toLowerCase() === 'relationship-coach') {
+            categoryName = 'Relationship';
+          } else if (categoryName.toLowerCase() === 'negotiation-coach') {
+            categoryName = 'Negotiation';
+          }
           
           if (!categoryCounts.has(categoryId)) {
             categoryCounts.set(categoryId, {
