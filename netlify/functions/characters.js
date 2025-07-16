@@ -64,10 +64,8 @@ exports.handler = async (event, context) => {
       let url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_TABLE_ID}`;
       const params = new URLSearchParams();
       
-      // Add category filter if specified
-      if (category) {
-        params.set('filterByFormula', `{Category} = "${category}"`);
-      }
+      // Don't add category filter here - we'll filter in JavaScript instead
+      // This ensures we get ALL records and can properly paginate
       
       // Set maximum records per request (Airtable limit is 100)
       // Use maximum possible to minimize API calls
@@ -157,11 +155,20 @@ exports.handler = async (event, context) => {
       };
     });
 
-    // Filter by tag if specified (done in JavaScript since Airtable array filtering is complex)
+    // Filter by category if specified (done in JavaScript to avoid Airtable pagination issues)
     let filteredCharacters = characters;
+    if (category) {
+      console.log(`📁 Filtering characters by category: ${category}`);
+      filteredCharacters = characters.filter(character => {
+        return character.Category && character.Category.toLowerCase() === category.toLowerCase();
+      });
+      console.log(`📁 Found ${filteredCharacters.length} characters in category "${category}"`);
+    }
+    
+    // Further filter by tag if specified
     if (tag) {
       console.log(`🏷️ Filtering characters by tag: ${tag}`);
-      filteredCharacters = characters.filter(character => {
+      filteredCharacters = filteredCharacters.filter(character => {
         if (character.Tags && Array.isArray(character.Tags)) {
           return character.Tags.some(charTag => 
             charTag.toLowerCase() === tag.toLowerCase()
