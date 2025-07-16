@@ -3898,8 +3898,22 @@ async function sendMessage(event) {
   const token = window.currentUser.token;
   const uid = window.currentUser.uid;
   const user_id = localStorage.getItem("user_id");
+  const user_uid = localStorage.getItem("user_uid");
+  const user_email = localStorage.getItem("user_email");
   
-  console.log("🚀 sendMessage debug:", { token: !!token, uid: !!uid, email, user_id, characterSlug });
+  // Use fallback if user_id is not available
+  const effective_user_id = user_id || user_uid || user_email;
+  
+  console.log("🚀 sendMessage debug:", { 
+    token: !!token, 
+    uid: !!uid, 
+    email, 
+    user_id, 
+    user_uid, 
+    user_email,
+    effective_user_id,
+    characterSlug 
+  });
 
   // Check if there's existing chat history first
   const chatlog = document.getElementById("chatlog");
@@ -3918,7 +3932,7 @@ async function sendMessage(event) {
 
   // Always try to retrieve memories, regardless of existing history in current session
   try {
-    memories = await getRelevantMemories(user_id, characterSlug, input);
+    memories = await getRelevantMemories(effective_user_id, characterSlug, input);
     console.log("✅ Memory retrieval completed:", memories?.length || 0, "memories found");
   } catch (error) {
     console.error("❌ Memory retrieval failed:", error);

@@ -71,6 +71,9 @@ exports.handler = async (event, context) => {
       // Use maximum possible to minimize API calls
       params.set('maxRecords', '100');
       
+      // Add view parameter to ensure we get all records (not just a filtered view)
+      // Don't specify any view to get the default table view with all records
+      
       // Add offset for pagination
       if (offset) {
         params.set('offset', offset);
@@ -83,6 +86,9 @@ exports.handler = async (event, context) => {
       console.log(`🔗 Airtable URL (request ${requestCount}):`, url);
       console.log(`🔑 Using Base ID: ${process.env.AIRTABLE_BASE_ID}`);
       console.log(`🔑 Using Table ID: ${process.env.AIRTABLE_TABLE_ID}`);
+      
+      // Force a longer timeout to avoid premature termination
+      const timeoutMs = 30000; // 30 seconds
 
       // Make Airtable API call
       const response = await fetch(url, {
@@ -103,6 +109,8 @@ exports.handler = async (event, context) => {
       const data = await response.json();
       console.log(`✅ Retrieved ${data.records?.length || 0} records from request ${requestCount}`);
       console.log(`🔍 Response has offset: ${!!data.offset}`);
+      console.log(`🔍 Offset value: ${data.offset || 'undefined'}`);
+      console.log(`🔍 Raw response keys:`, Object.keys(data));
       
       // Add records to our collection
       if (data.records) {

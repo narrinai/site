@@ -67,6 +67,7 @@ exports.handler = async (event, context) => {
      
      for (const record of data.records) {
        const fields = record.fields || {};
+       console.log('📋 Checking record:', record.id, 'User:', fields.User, 'Character:', fields['Slug (from Character)']);
        
        // DEBUG: Log every record we're checking
        console.log(`📋 Checking record ${record.id}:`, {
