@@ -30,7 +30,8 @@ exports.handler = async (event, context) => {
     console.log('🚀 Function started');
     console.log('Environment check:', {
       hasToken: !!process.env.AIRTABLE_TOKEN,
-      hasBaseId: !!process.env.AIRTABLE_BASE_ID
+      hasBaseId: !!process.env.AIRTABLE_BASE_ID,
+      hasTableId: !!process.env.AIRTABLE_TABLE_ID
     });
 
     // Check environment variables
@@ -39,6 +40,9 @@ exports.handler = async (event, context) => {
     }
     if (!process.env.AIRTABLE_BASE_ID) {
       throw new Error('AIRTABLE_BASE_ID not found');
+    }
+    if (!process.env.AIRTABLE_TABLE_ID) {
+      throw new Error('AIRTABLE_TABLE_ID not found');
     }
 
     // Get query parameters
@@ -57,7 +61,7 @@ exports.handler = async (event, context) => {
       console.log(`📡 Making request ${requestCount} to Airtable...`);
       
       // Build Airtable URL for this request
-      let url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Characters`;
+      let url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_TABLE_ID}`;
       const params = new URLSearchParams();
       
       // Don't add category filter here - we'll filter in JavaScript instead
@@ -81,7 +85,7 @@ exports.handler = async (event, context) => {
       
       console.log(`🔗 Airtable URL (request ${requestCount}):`, url);
       console.log(`🔑 Using Base ID: ${process.env.AIRTABLE_BASE_ID}`);
-      console.log(`🔑 Using hardcoded table name: Characters`);
+      console.log(`🔑 Using Table ID: ${process.env.AIRTABLE_TABLE_ID}`);
       
       // Force a longer timeout to avoid premature termination
       const timeoutMs = 30000; // 30 seconds
