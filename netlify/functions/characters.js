@@ -1,11 +1,17 @@
 // netlify/functions/characters.js
+
+// Simple in-memory cache
+const cache = new Map();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
 exports.handler = async (event, context) => {
   // CORS headers
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'Cache-Control': 'public, max-age=300' // Browser cache for 5 minutes
   };
 
   // Handle preflight OPTIONS request
@@ -49,6 +55,20 @@ exports.handler = async (event, context) => {
     const { category, tag, limit = 500 } = event.queryStringParameters || {};
     
     console.log('Request params:', { category, tag, limit });
+    
+    // Create cache key
+    const cacheKey = `${category || 'all'}-${tag || 'none'}-${limit}`;
+    
+    // Check cache first
+    const cachedEntry = cache.get(cacheKey);
+    if (cachedEntry && (Date.now() - cachedEntry.timestamp < CACHE_TTL)) {
+      console.log('📦 Returning cached response for:', cacheKey);
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify(cachedEntry.data)
+      };
+    }
 
     // Fetch all records using pagination if needed
     let allRecords = [];
@@ -70,6 +90,15 @@ exports.handler = async (event, context) => {
       // Set maximum records per request (Airtable limit is 100)
       // Use maximum possible to minimize API calls
       params.set('maxRecords', '100');
+      
+      // Select only necessary fields to reduce payload size
+      const fields = [
+        'Name', 'Character_Title', 'Character_Description', 
+        'Category', 'Tags', 'Slug', 'Avatar_File', 'Avatar_URL',
+        'Character_URL', 'Character_ID', 'voice_id', 'voice_type'
+      ];
+      
+      fields.forEach(field => params.set('fields[]', field));
       
       // Add offset for pagination
       if (offset) {
@@ -110,6 +139,14 @@ exports.handler = async (event, context) => {
       offset = data.offset;
       console.log(`📄 Offset for next request: ${offset || 'None (finished)'}`);
       console.log(`📊 Running total: ${allRecords.length} records`);
+      
+      // Early stop if we have enough records
+      // For category pages, we typically need max 200-300 characters
+      const targetLimit = parseInt(limit) || 500;
+      if (allRecords.length >= Math.min(targetLimit + 100, 500)) {
+        console.log(`✅ Have enough records (${allRecords.length}), stopping early to save resources`);
+        break;
+      }
       
       // Safety check
       if (requestCount >= maxRequests) {
@@ -184,15 +221,24 @@ exports.handler = async (event, context) => {
     
     console.log(`📦 Returning ${limitedCharacters.length} characters`);
 
+    const responseData = {
+      success: true,
+      total: filteredCharacters.length,
+      returned: limitedCharacters.length,
+      characters: limitedCharacters
+    };
+    
+    // Store in cache
+    cache.set(cacheKey, {
+      data: responseData,
+      timestamp: Date.now()
+    });
+    console.log('💾 Cached response for:', cacheKey);
+
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({
-        success: true,
-        total: filteredCharacters.length,
-        returned: limitedCharacters.length,
-        characters: limitedCharacters
-      })
+      body: JSON.stringify(responseData)
     };
 
   } catch (error) {
