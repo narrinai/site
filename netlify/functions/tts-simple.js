@@ -105,6 +105,30 @@ exports.handler = async (event, context) => {
         res.on('end', () => {
           try {
             const audioBuffer = Buffer.concat(chunks);
+            
+            // Debug: check if we actually received audio data
+            console.log(`📊 Response content-type: ${res.headers['content-type']}`);
+            console.log(`📊 Response length: ${audioBuffer.length} bytes`);
+            console.log(`📊 First 100 bytes as string: ${audioBuffer.toString('utf8', 0, Math.min(100, audioBuffer.length))}`);
+            
+            // Check if response is actually audio
+            if (res.headers['content-type'] && !res.headers['content-type'].includes('audio')) {
+              console.error('❌ Received non-audio response:', audioBuffer.toString('utf8'));
+              resolve({
+                statusCode: 500,
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Access-Control-Allow-Origin': '*'
+                },
+                body: JSON.stringify({ 
+                  success: false,
+                  error: 'Received non-audio response from ElevenLabs',
+                  details: audioBuffer.toString('utf8').substring(0, 200)
+                })
+              });
+              return;
+            }
+            
             const base64Audio = audioBuffer.toString('base64');
             
             console.log(`✅ TTS success: Generated ${audioBuffer.length} bytes`);
