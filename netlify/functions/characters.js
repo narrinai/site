@@ -167,12 +167,43 @@ exports.handler = async (event, context) => {
       filteredCharacters = characters.filter(character => {
         if (!character.Category) return false;
         
-        // Try exact match first
-        if (character.Category.toLowerCase() === category.toLowerCase()) return true;
+        const dbCategory = character.Category.toLowerCase();
+        const requestedCategory = category.toLowerCase();
+        
+        // Direct exact match
+        if (dbCategory === requestedCategory) return true;
+        
+        // Category mappings for better matching
+        const categoryMappings = {
+          'celebrities': ['celebrity', 'celebrities'],
+          'anime': ['anime', 'anime-manga', 'anime-character'],
+          'historical': ['historical', 'historical-figure'],
+          'gaming': ['gaming', 'gaming-character'],
+          'relationship': ['relationship', 'relationship-coach'],
+          'movies-tv': ['movies-tv', 'fictional', 'movie'],
+          'fantasy': ['fantasy'],
+          'mythology': ['mythology'],
+          'language': ['language', 'language-coach'],
+          'career': ['career', 'career-coach'],
+          'romance': ['romance', 'fictional'],
+          'gen-z': ['gen-z']
+        };
+        
+        // Check if the requested category maps to the database category
+        if (categoryMappings[requestedCategory]) {
+          return categoryMappings[requestedCategory].includes(dbCategory);
+        }
+        
+        // Reverse mapping - check if database category maps to requested category
+        for (const [mappedCat, dbCats] of Object.entries(categoryMappings)) {
+          if (dbCats.includes(dbCategory) && mappedCat === requestedCategory) {
+            return true;
+          }
+        }
         
         // Try with 's' suffix (e.g., celebrity vs celebrities)
-        const categoryWithS = category.endsWith('s') ? category.slice(0, -1) : category + 's';
-        if (character.Category.toLowerCase() === categoryWithS.toLowerCase()) {
+        const categoryWithS = requestedCategory.endsWith('s') ? requestedCategory.slice(0, -1) : requestedCategory + 's';
+        if (dbCategory === categoryWithS) {
           return true;
         }
         
