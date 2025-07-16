@@ -81,6 +81,7 @@ exports.handler = async (event, context) => {
       }
       
       console.log(`🔗 Airtable URL (request ${requestCount}):`, url);
+      console.log(`🔑 Using Table ID: ${process.env.AIRTABLE_TABLE_ID}`);
 
       // Make Airtable API call
       const response = await fetch(url, {
@@ -100,16 +101,26 @@ exports.handler = async (event, context) => {
 
       const data = await response.json();
       console.log(`✅ Retrieved ${data.records?.length || 0} records from request ${requestCount}`);
+      console.log(`🔍 Response keys:`, Object.keys(data));
       
       // Add records to our collection
       if (data.records) {
         allRecords = allRecords.concat(data.records);
+        console.log(`➕ Added ${data.records.length} records to collection`);
+      } else {
+        console.log(`❌ No records field in response`);
       }
       
       // Check if there are more records to fetch
       offset = data.offset;
       console.log(`📄 Offset for next request: ${offset || 'None (finished)'}`);
       console.log(`📊 Running total: ${allRecords.length} records`);
+      
+      if (data.offset) {
+        console.log(`🔄 Will continue pagination because offset exists: ${data.offset}`);
+      } else {
+        console.log(`🛑 Pagination will stop - no offset in response`);
+      }
       
       // Safety check
       if (requestCount >= maxRequests) {
