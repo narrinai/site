@@ -3399,18 +3399,29 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
         return;
       }
       
-      // Minimal filtering - only filter very obvious debug messages
+      // Robust filtering to catch memory and debug messages
       const isDebugMessage = 
-        // Only filter messages that are clearly debug output
+        // Debug patterns
         message.startsWith('Processing message') ||
         message.startsWith('Final extracted') ||
         message.startsWith('🧹 Filtering out debug/system message:') ||
         
-        // Pure JSON objects that are clearly debug
-        (message.startsWith('{') && message.endsWith('}') && message.includes('"role"') && message.includes('"message"') && message.includes('CreatedTime')) ||
+        // Memory patterns - these are being saved as chat messages
+        message.includes('Vorige gesprekken en belangrijke informatie:') ||
+        message.includes('[Belangrijk geheugen (') ||
+        message.includes('Gebruik deze informatie om persoonlijk te antwoorden') ||
+        message.includes('what are you doing?]') && message.includes('[Belangrijk geheugen') ||
+        message.includes('whats on your mind?]') && message.includes('[Belangrijk geheugen') ||
+        message.includes('how is your day?]') && message.includes('[Belangrijk geheugen') ||
         
-        // Record ID patterns only
-        /^rec[A-Za-z0-9]{14}$/.test(message.trim());
+        // Pure JSON objects that are clearly debug
+        (message.startsWith('{') && message.endsWith('}') && message.includes('"role"') && message.includes('"message"')) ||
+        
+        // Record ID patterns
+        /^rec[A-Za-z0-9]{14}$/.test(message.trim()) ||
+        
+        // Very long messages with memory patterns
+        (message.length > 500 && message.includes('[Belangrijk geheugen'));
       
       if (isDebugMessage) {
         console.warn("🧹 Filtering out debug/system message:", message.substring(0, 50));
@@ -3717,7 +3728,8 @@ showTypingIndicator();
   try {
     const requestPayload = {
       action: "send_message",
-      text: memoryContext + input, // Voeg memory context toe aan de user input
+      text: memoryContext + input, // Voeg memory context toe aan de user input voor AI processing
+      user_message: input, // Bewaar alleen het echte gebruikersbericht
       Character_id: characterSlug,
       Slug: characterSlug,
       user_uid: uid,
