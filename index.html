@@ -1108,16 +1108,34 @@
   }
 
   .filters-container {
-    overflow: visible;
-    flex-wrap: wrap;
-    justify-content: center;
-    padding: var(--spacing-xs) var(--spacing-lg);
+    overflow-x: auto;
+    overflow-y: visible;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    padding: 0 var(--spacing-md);
     gap: var(--spacing-xs);
-    box-sizing: border-box;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-gray-light) transparent;
   }
   
   .filters-container::after {
-    display: none;
+    content: '';
+    flex-shrink: 0;
+    width: var(--spacing-lg);
+  }
+
+  .filters-container::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .filters-container::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .filters-container::-webkit-scrollbar-thumb {
+    background: var(--color-gray-light);
+    border-radius: var(--radius-full);
   }
 
   .filter-section {
