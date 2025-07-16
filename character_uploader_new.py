@@ -1130,14 +1130,21 @@ def main():
         total_skipped = 0
         
         # Alle categorieën controleren en aanvullen die onder 150 zitten
-        all_categories = list(category_counts.keys())
-        categories_to_fill = [cat for cat, count in category_counts.items() if count < 150]
+        # BELANGRIJK: Check ALLE categorieën, niet alleen die in category_counts staan
+        categories_to_fill = []
+        
+        # Check alle gedefinieerde categorieën
+        for category in CATEGORIES:
+            current_count = category_counts.get(category, 0)  # 0 als categorie niet bestaat
+            if current_count < 150:
+                categories_to_fill.append(category)
         
         if not categories_to_fill:
             log(Colors.GREEN, "🎉 Alle categorieën hebben al 150+ characters!")
             return
         
         log(Colors.YELLOW, f"📝 Categorieën die aangevuld moeten worden: {categories_to_fill}")
+        log(Colors.CYAN, f"📊 Totaal aantal categorieën om aan te vullen: {len(categories_to_fill)}")
         
         # Maak characters aan per categorie tot minimaal 150
         for category in categories_to_fill:
