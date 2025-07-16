@@ -735,56 +735,23 @@
 
     .page-header {
       text-align: center;
-      margin-bottom: var(--spacing-3xl);
-      position: relative;
-      padding: var(--spacing-2xl) 0;
-    }
-
-    .page-header::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 200px;
-      height: 200px;
-      background: radial-gradient(circle, rgba(20, 184, 166, 0.1) 0%, transparent 70%);
-      border-radius: 50%;
-      z-index: -1;
-      animation: pulse 4s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
-      50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.8; }
+      margin-bottom: var(--spacing-2xl);
     }
 
     .page-header h1 {
       font-family: var(--font-secondary);
-      font-size: clamp(var(--font-size-3xl), 5vw, var(--font-size-4xl));
-      margin: 0 0 var(--spacing-lg) 0;
-      font-weight: 900;
-      letter-spacing: -0.03em;
-      background: linear-gradient(135deg, 
-        var(--color-navy) 0%, 
-        var(--color-teal) 50%, 
-        var(--color-coral) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      position: relative;
-      text-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      font-size: var(--font-size-4xl);
+      margin: 0 0 var(--spacing-md) 0;
+      color: var(--color-navy);
+      font-weight: 800;
+      letter-spacing: -0.02em;
     }
 
     .page-header p {
       color: var(--color-gray);
-      font-size: var(--font-size-xl);
+      font-size: var(--font-size-lg);
       margin: 0;
-      font-weight: 500;
-      opacity: 0.9;
-      max-width: 600px;
-      margin: 0 auto;
-      line-height: 1.6;
+      font-weight: 400;
     }
 
     /* ===== CONTACT CONTENT ===== */
@@ -799,13 +766,62 @@
       margin-right: auto;
     }
 
+    /* Built with passion block - top styling */
+    .passion-block {
+      background: linear-gradient(135deg, 
+        var(--color-teal) 0%, 
+        var(--color-coral) 100%);
+      border-radius: var(--radius-xl);
+      padding: var(--spacing-2xl);
+      margin-bottom: var(--spacing-2xl);
+      color: var(--color-white);
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .passion-block::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(45deg, 
+        rgba(255, 255, 255, 0.1) 0%, 
+        transparent 50%, 
+        rgba(255, 255, 255, 0.1) 100%);
+      z-index: 1;
+    }
+
+    .passion-block-content {
+      position: relative;
+      z-index: 2;
+    }
+
+    .passion-block h3 {
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-2xl);
+      font-weight: 700;
+      margin-bottom: var(--spacing-sm);
+      color: var(--color-white);
+    }
+
+    .passion-block p {
+      font-size: var(--font-size-lg);
+      line-height: 1.6;
+      margin: 0;
+      color: rgba(255, 255, 255, 0.95);
+    }
+
     /* Contact Info Cards */
     .contact-info {
-      display: flex;
-      flex-direction: column;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: var(--spacing-xl);
       width: 100%;
-      max-width: 600px;
+      max-width: 800px;
     }
 
     .info-card {
@@ -985,10 +1001,22 @@
       }
 
       .page-header h1 {
-        font-size: var(--font-size-2xl);
+        font-size: var(--font-size-3xl);
       }
 
-      .page-header p {
+      .contact-info {
+        grid-template-columns: 1fr;
+      }
+
+      .passion-block {
+        padding: var(--spacing-xl);
+      }
+
+      .passion-block h3 {
+        font-size: var(--font-size-xl);
+      }
+
+      .passion-block p {
         font-size: var(--font-size-base);
       }
 
@@ -1150,8 +1178,16 @@
   <main class="container">
     <!-- Page Header -->
     <div class="page-header">
-      <h1 style="color: var(--color-navy); -webkit-text-fill-color: var(--color-navy); background: none;">Contact Us</h1>
+      <h1>Contact Us</h1>
       <p>Get in touch with our team. We're here to help you with any questions or support you need.</p>
+    </div>
+
+    <!-- Built with Passion - Top Block -->
+    <div class="passion-block">
+      <div class="passion-block-content">
+        <h3>💜 Built with Passion</h3>
+        <p>Narrin AI is built by a single developer with a deep passion for companion chat and a mission to combat loneliness. Our goal is to provide people with rich, meaningful experiences that go beyond their imagination, creating genuine connections in an increasingly digital world.</p>
+      </div>
     </div>
 
     <!-- Contact Content -->
@@ -1184,16 +1220,6 @@
           </div>
         </div>
       </div>
-
-      <!-- About the Platform -->
-      <div class="info-card" style="margin-top: var(--spacing-xl); max-width: 700px;">
-        <div class="info-card-content">
-          <div class="info-card-icon">💜</div>
-          <h3>Built with Passion</h3>
-          <p>Narrin AI is built by a single developer with a deep passion for companion chat and a mission to combat loneliness. Our goal is to provide people with rich, meaningful experiences that go beyond their imagination, creating genuine connections in an increasingly digital world.</p>
-        </div>
-      </div>
-
     </div>
 
     <!-- FAQ Section -->
@@ -1232,6 +1258,36 @@
         <div class="faq-item">
           <h3 class="faq-question">What devices are supported?</h3>
           <p class="faq-answer">Narrin AI works on all modern web browsers across desktop, tablet, and mobile devices. No app download required.</p>
+        </div>
+        
+        <div class="faq-item">
+          <h3 class="faq-question">What's included in the premium subscription?</h3>
+          <p class="faq-answer">Premium subscribers get unlimited conversations, priority support, advanced character customization options, and access to new features first.</p>
+        </div>
+        
+        <div class="faq-item">
+          <h3 class="faq-question">How do I start chatting with a character?</h3>
+          <p class="faq-answer">Simply browse our character gallery, click on any character that interests you, and start typing your message. The AI will respond in character immediately.</p>
+        </div>
+        
+        <div class="faq-item">
+          <h3 class="faq-question">Is voice chat available?</h3>
+          <p class="faq-answer">Voice features are coming soon! We're working on implementing text-to-speech and voice recognition to make conversations even more immersive.</p>
+        </div>
+        
+        <div class="faq-item">
+          <h3 class="faq-question">How detailed can I make my custom characters?</h3>
+          <p class="faq-answer">You can create highly detailed characters with custom personalities, backstories, speaking styles, and even specific knowledge areas. The more detail you provide, the more authentic the conversations.</p>
+        </div>
+        
+        <div class="faq-item">
+          <h3 class="faq-question">What are the usage limits and guidelines?</h3>
+          <p class="faq-answer">Free users get 10 messages per month, while premium users have unlimited access. All usage must comply with our <a href="terms-and-conditions.html" style="color: var(--color-teal); text-decoration: none;">Terms of Service</a> and <a href="privacy-policy.html" style="color: var(--color-teal); text-decoration: none;">Privacy Policy</a>.</p>
+        </div>
+        
+        <div class="faq-item">
+          <h3 class="faq-question">How is my data protected and regulated?</h3>
+          <p class="faq-answer">We follow strict data protection standards and comply with international privacy regulations. All conversations are encrypted and never shared. For full details, please review our <a href="privacy-policy.html" style="color: var(--color-teal); text-decoration: none;">Privacy Policy</a> and <a href="terms-and-conditions.html" style="color: var(--color-teal); text-decoration: none;">Terms & Conditions</a>.</p>
         </div>
       </div>
     </div>
