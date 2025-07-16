@@ -2240,7 +2240,7 @@ async function generateExtraTagButtons() {
       console.log('🚀 Loading all characters in one request...');
       
       try {
-        const response = await fetch('/.netlify/functions/characters?limit=2000');
+        const response = await fetch('/.netlify/functions/characters?limit=5000');
         const data = await response.json();
         
         if (!data.success || !data.characters) {
@@ -2252,36 +2252,33 @@ async function generateExtraTagButtons() {
         // Process and categorize characters
         const categorized = {};
         
-        // Category mappings - handle actual database categories
+        // Category mappings - based on actual Airtable categories from create-character.html
         const categoryMappings = {
-          // Actual database categories (what's in Airtable)
-          'celebrity': 'celebrities',
-          'anime-manga': 'anime',
-          'fictional': 'movies-tv', // Keep fictional as movies-tv for now
+          // Direct mapping from Airtable categories
           'historical': 'historical',
+          'anime-manga': 'anime',
+          'mythology': 'mythology', 
+          'fictional': 'fictional',
+          'celebrity': 'celebrities', // Show as "celebrities" but stored as "celebrity"
           'gaming': 'gaming',
-          'fantasy': 'fantasy',
-          'mythology': 'mythology',
           'relationship-coach': 'relationship',
-          'language-coach': 'language',
           'career-coach': 'career',
-          
-          // Additional mappings for consistency
-          'celebrities': 'celebrities',
-          'anime': 'anime',
-          'movies-tv': 'movies-tv',
-          'relationship': 'relationship',
-          'language': 'language',
-          'career': 'career',
-          'student': 'student',
-          'philosophy': 'philosophy',
-          'technology': 'technology',
-          'musicians': 'musicians',
-          'politicians': 'politicians',
-          'gen-z': 'gen-z',
-          'middle-aged': 'middle-aged',
-          'romance': 'romance',
-          'humor': 'humor'
+          'creativity-coach': 'creativity',
+          'fitness-coach': 'fitness',
+          'mindfulness-coach': 'mindfulness',
+          'business-coach': 'business',
+          'health-coach': 'health',
+          'spiritual-coach': 'spiritual',
+          'cooking-coach': 'cooking',
+          'negotiation-coach': 'negotiation',
+          'accounting-coach': 'accounting',
+          'education': 'education',
+          'writing-coach': 'writing',
+          'language-coach': 'language',
+          'fantasy': 'fantasy',
+          'other': 'other',
+          'study-coach': 'study',
+          'original': 'original'
         };
         
         // Excluded categories - based on actual database categories
@@ -2339,8 +2336,8 @@ async function generateExtraTagButtons() {
           `${cat}: ${categorized[cat].length}`
         ).join(', '));
         
-        // Display categories with priority order (updated to match available categories)
-        const priorityCategories = ['celebrities', 'anime', 'historical', 'gaming', 'movies-tv', 'fantasy', 'mythology', 'relationship'];
+        // Display categories with priority order (based on actual character counts)
+        const priorityCategories = ['historical', 'fictional', 'celebrities', 'anime', 'fantasy', 'gaming', 'relationship', 'mythology'];
         const categoriesToShow = [];
         
         // Add priority categories first if they have enough characters

@@ -81,6 +81,8 @@ exports.handler = async (event, context) => {
       }
       
       console.log(`🔗 Airtable URL (request ${requestCount}):`, url);
+      console.log(`🔑 Using Base ID: ${process.env.AIRTABLE_BASE_ID}`);
+      console.log(`🔑 Using Table ID: ${process.env.AIRTABLE_TABLE_ID}`);
 
       // Make Airtable API call
       const response = await fetch(url, {
