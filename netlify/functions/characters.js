@@ -189,22 +189,28 @@ exports.handler = async (event, context) => {
         const dbCategory = character.Category.toLowerCase();
         const requestedCategory = category.toLowerCase();
         
+        // Debug each character check
+        const isMatch = dbCategory === requestedCategory;
+        if (isMatch) {
+          console.log(`✅ Match found: "${dbCategory}" === "${requestedCategory}"`);
+        }
+        
         // Direct exact match
         if (dbCategory === requestedCategory) return true;
         
-        // Category mappings for better matching
+        // Category mappings for better matching - simplified
         const categoryMappings = {
           'celebrities': ['celebrity', 'celebrities'],
-          'anime': ['anime', 'anime-manga', 'anime-character'],
-          'historical': ['historical', 'historical-figure'],
-          'gaming': ['gaming', 'gaming-character'],
-          'relationship': ['relationship', 'relationship-coach'],
-          'movies-tv': ['movies-tv', 'fictional', 'movie'],
+          'anime': ['anime', 'anime-manga'],
+          'historical': ['historical'],
+          'gaming': ['gaming'],
+          'relationship': ['relationship'],
+          'movies-tv': ['movies-tv', 'fictional'],
           'fantasy': ['fantasy'],
           'mythology': ['mythology'],
-          'language': ['language', 'language-coach'],
-          'career': ['career', 'career-coach'],
-          'romance': ['romance', 'fictional'],
+          'language': ['language'],
+          'career': ['career'],
+          'romance': ['romance'],
           'gen-z': ['gen-z']
         };
         
