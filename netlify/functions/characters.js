@@ -122,6 +122,11 @@ exports.handler = async (event, context) => {
         console.log(`🔄 Will continue pagination because offset exists: ${data.offset}`);
       } else {
         console.log(`🛑 Pagination will stop - no offset in response`);
+        console.log(`🔍 Full response object keys:`, Object.keys(data));
+        console.log(`🔍 Records length:`, data.records?.length);
+        if (data.records?.length === 100) {
+          console.log(`⚠️ WARNING: Got exactly 100 records but no offset - this suggests pagination should continue!`);
+        }
       }
       
       // Safety check
