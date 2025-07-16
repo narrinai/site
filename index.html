@@ -750,9 +750,17 @@
       gap: var(--spacing-sm);
       justify-content: center;
       flex-wrap: wrap;
-      padding-bottom: var(--spacing-xs);
-      padding-top: var(--spacing-xs);
+      padding: var(--spacing-xs) var(--spacing-md);
       width: 100%;
+      max-width: 100%;
+      overflow-x: auto;
+      overflow-y: visible;
+    }
+
+    .filters-container::after {
+      content: '';
+      flex-shrink: 0;
+      width: var(--spacing-md);
     }
 
     .filters-container::-webkit-scrollbar {
@@ -1768,18 +1776,39 @@ async function fetchCategoriesFromAirtable() {
           displayName = displayName.replace(/ Characters?$/i, '');
           displayName = displayName.replace(/ Coach(es)?$/i, '');
           
-          // Special cases
-          if (displayName.toLowerCase() === 'anime-manga' || displayName.toLowerCase() === 'anime manga') {
-            displayName = 'Anime';
-          }
-          if (displayName.toLowerCase() === 'relationship') {
-            displayName = 'Relationship';
-          }
-          if (displayName.toLowerCase() === 'fitness') {
-            displayName = 'Fitness';
-          }
-          if (displayName.toLowerCase() === 'business') {
-            displayName = 'Business';
+          // Database name to user-friendly name mapping
+          const nameMapping = {
+            'al-assistant': 'AI Assistant',
+            'ai-assistant': 'AI Assistant',
+            'anime-manga': 'Anime',
+            'anime manga': 'Anime',
+            'business-coach': 'Business',
+            'business': 'Business',
+            'career-coach': 'Career',
+            'career': 'Career',
+            'fitness-coach': 'Fitness',
+            'fitness': 'Fitness',
+            'relationship-coach': 'Relationship',
+            'relationship': 'Relationship',
+            'health-coach': 'Health',
+            'health': 'Health',
+            'spiritual-coach': 'Spiritual',
+            'spiritual': 'Spiritual',
+            'negotiation-coach': 'Negotiation',
+            'negotiation': 'Negotiation',
+            'original': 'Original',
+            'other': 'Other',
+            'gaming': 'Gaming',
+            'mythology': 'Mythology'
+          };
+          
+          // Apply mapping
+          const lowerDisplayName = displayName.toLowerCase();
+          if (nameMapping[lowerDisplayName]) {
+            displayName = nameMapping[lowerDisplayName];
+          } else {
+            // Capitalize first letter for other cases
+            displayName = displayName.charAt(0).toUpperCase() + displayName.slice(1);
           }
           
           categoriesMap.set(categoryId, {
