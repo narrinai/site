@@ -1897,7 +1897,7 @@
         // Build API URL for Netlify Function
         const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
         url.searchParams.set('category', currentCategory);
-        // No limit - get ALL characters for this category
+        url.searchParams.set('limit', '1000'); // Get many characters for this category
         
         console.log(`📡 Fetching from Netlify Function:`, url.toString());
         
@@ -1944,9 +1944,29 @@
       console.log('📦 Processing characters:', characters.length);
 
       // Filter for current category
-      const categoryCharacters = characters.filter(char => 
-        !char.Category || char.Category.toLowerCase() === currentCategory.toLowerCase()
-      );
+      console.log(`🔍 Filtering for category: "${currentCategory}"`);
+      
+      // Debug: show unique categories in the data
+      const uniqueCategories = [...new Set(characters.map(c => c.Category).filter(Boolean))];
+      console.log(`📊 Available categories in data: ${uniqueCategories.join(', ')}`);
+      
+      const categoryCharacters = characters.filter(char => {
+        if (!char.Category) return false;
+        
+        // Try exact match first
+        if (char.Category.toLowerCase() === currentCategory.toLowerCase()) return true;
+        
+        // Try with 's' suffix (e.g., celebrity vs celebrities)
+        const categoryWithS = currentCategory.endsWith('s') ? currentCategory.slice(0, -1) : currentCategory + 's';
+        if (char.Category.toLowerCase() === categoryWithS.toLowerCase()) {
+          console.log(`✅ Matched with 's' variation: "${char.Category}" matches "${currentCategory}"`);
+          return true;
+        }
+        
+        return false;
+      });
+      
+      console.log(`📁 Found ${categoryCharacters.length} characters in category "${currentCategory}"`);
 
       // Process the characters
       allCharacters = categoryCharacters.map(character => ({

@@ -159,8 +159,24 @@ exports.handler = async (event, context) => {
     let filteredCharacters = characters;
     if (category) {
       console.log(`📁 Filtering characters by category: ${category}`);
+      
+      // Debug: show unique categories in the data
+      const uniqueCategories = [...new Set(characters.map(c => c.Category).filter(Boolean))];
+      console.log(`📊 Available categories in data (first 10): ${uniqueCategories.slice(0, 10).join(', ')}`);
+      
       filteredCharacters = characters.filter(character => {
-        return character.Category && character.Category.toLowerCase() === category.toLowerCase();
+        if (!character.Category) return false;
+        
+        // Try exact match first
+        if (character.Category.toLowerCase() === category.toLowerCase()) return true;
+        
+        // Try with 's' suffix (e.g., celebrity vs celebrities)
+        const categoryWithS = category.endsWith('s') ? category.slice(0, -1) : category + 's';
+        if (character.Category.toLowerCase() === categoryWithS.toLowerCase()) {
+          return true;
+        }
+        
+        return false;
       });
       console.log(`📁 Found ${filteredCharacters.length} characters in category "${category}"`);
     }
