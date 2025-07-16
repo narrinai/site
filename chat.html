@@ -2467,15 +2467,15 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Check of voice ID geldig format heeft (ElevenLabs voice IDs zijn alfanumeriek)
       const validFormat = /^[a-zA-Z0-9]{20,22}$/;
-      if (!voiceId || typeof voiceId !== 'string' || !validFormat.test(voiceId)) {
+      if (!voiceId || voiceId === null || voiceId === 'null' || typeof voiceId !== 'string' || !validFormat.test(voiceId)) {
         console.log(`🔄 Invalid voice ID format: "${voiceId}", using fallback`);
-        return '21m00Tcm4TlvDq8ikWAM'; // Rachel - standaard ElevenLabs voice
+        return null; // Return null instead of fallback to disable TTS
       }
       
-      // Als voice ID niet bekend is, gebruik standaard ElevenLabs voice voor veiligheid
+      // Als voice ID niet bekend is, return null to disable TTS
       if (!validVoiceIds.includes(voiceId)) {
-        console.log(`⚠️ Unknown voice ID: ${voiceId}, using safe fallback`);
-        return '21m00Tcm4TlvDq8ikWAM'; // Rachel - standaard ElevenLabs voice
+        console.log(`⚠️ Unknown voice ID: ${voiceId}, disabling TTS`);
+        return null; // Return null to disable TTS completely
       }
       
       // Return original als het valid lijkt
@@ -2488,6 +2488,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Valideer en corrigeer voice ID indien nodig
         const validVoiceId = validateAndFixVoiceId(voiceId);
         console.log('📢 Calling TTS with:', { text: text.substring(0, 50) + '...', original: voiceId, validated: validVoiceId });
+        
+        // If voice ID is invalid, throw error
+        if (!validVoiceId) {
+          throw new Error('No valid voice ID available for this character');
+        }
         
         const response = await fetch('/.netlify/functions/tts-simple', {
           method: 'POST',
@@ -2543,6 +2548,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Manual voice playback met caching en loading indicator
     window.playMessageVoice = async function(text, voiceId, buttonElement) {
       try {
+        // Validate text length first (max 500 characters for TTS)
+        if (!text || text.length === 0) {
+          throw new Error('No text to convert to speech');
+        }
+        
+        if (text.length > 500) {
+          console.warn(`⚠️ Text too long for TTS (${text.length} chars), truncating to 500`);
+          text = text.substring(0, 497) + '...';
+        }
+        
         // Stop current audio if playing
         if (currentAudio) {
           currentAudio.pause();
@@ -3374,24 +3389,23 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       
       // Filter out debug messages that accidentally got saved as chat messages
       const debugPatterns = [
-        /Processing message \d+:/,
-        /Final extracted:/,
-        /Vorige gesprekken en belangrijke informatie:/,
-        /Chat history loaded successfully/,
-        /\[Belangrijk geheugen/,
-        /📝|💬|🔍|⚠️|❌|✅|📜|🧠|🎯/,
-        /Starting memory processing/,
-        /Full API response/,
-        /Extracted record_id/,
-        /Available data keys/,
-        /POST https:\/\/.*\/tts-simple/,
-        /TTS response:/,
-        /TTS Error:/,
-        /Voice playback error:/,
-        /Generating new audio/,
-        /Update method used/,
-        /Memory successfully saved/,
-        /Updated record ID/,
+        /^Processing message \d+:/,
+        /^Final extracted:/,
+        /^Vorige gesprekken en belangrijke informatie:/,
+        /^Chat history loaded successfully/,
+        /^\[Belangrijk geheugen/,
+        /^Starting memory processing/,
+        /^Full API response/,
+        /^Extracted record_id/,
+        /^Available data keys/,
+        /^POST https:\/\/.*\/tts-simple/,
+        /^TTS response:/,
+        /^TTS Error:/,
+        /^Voice playback error:/,
+        /^Generating new audio/,
+        /^Update method used/,
+        /^Memory successfully saved/,
+        /^Updated record ID/,
         /recPcanRn9fUBJyb/
       ];
       
@@ -3409,8 +3423,8 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
         if (currentCharacter && currentCharacter.voice_id) {
           // Validate voice ID before showing play button
           const validatedVoiceId = validateAndFixVoiceId(currentCharacter.voice_id);
-          if (validatedVoiceId && validatedVoiceId !== '21m00Tcm4TlvDq8ikWAM') {
-            // Only show play button if we have a valid, non-fallback voice ID
+          if (validatedVoiceId) {
+            // Only show play button if we have a valid voice ID
             p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${message}<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice(\`${message.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Listen to message">▶️</button></div>`;
           } else {
             // Don't show play button for invalid voice IDs
@@ -3802,8 +3816,8 @@ hideTypingIndicator();
     if (currentCharacter.voice_id) {
       // Validate voice ID before showing play button
       const validatedVoiceId = validateAndFixVoiceId(currentCharacter.voice_id);
-      if (validatedVoiceId && validatedVoiceId !== '21m00Tcm4TlvDq8ikWAM') {
-        // Only show play button if we have a valid, non-fallback voice ID
+      if (validatedVoiceId) {
+        // Only show play button if we have a valid voice ID
         divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span><br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice(\`${reply.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Listen to message">▶️</button></div>`;
       } else {
         // Don't show play button for invalid voice IDs
