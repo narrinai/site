@@ -196,8 +196,23 @@ exports.handler = async (event, context) => {
     let filteredCharacters = characters;
     if (category) {
       console.log(`📁 Filtering characters by category: ${category}`);
+      
+      // Debug: show unique categories in the data
+      const uniqueCategories = [...new Set(characters.map(c => c.Category).filter(Boolean))];
+      console.log(`📊 Available categories in data: ${uniqueCategories.join(', ')}`);
+      
       filteredCharacters = characters.filter(character => {
-        return character.Category && character.Category.toLowerCase() === category.toLowerCase();
+        if (!character.Category) return false;
+        
+        // Convert category to ID format (lowercase with hyphens)
+        const characterCategoryId = character.Category.toLowerCase().replace(/\s+/g, '-');
+        const searchCategoryId = category.toLowerCase().replace(/\s+/g, '-');
+        
+        const matches = characterCategoryId === searchCategoryId;
+        if (!matches && character.Category) {
+          console.log(`❌ Category mismatch: "${characterCategoryId}" !== "${searchCategoryId}" (original: "${character.Category}")`);
+        }
+        return matches;
       });
       console.log(`📁 Found ${filteredCharacters.length} characters in category "${category}"`);
     }

@@ -2264,7 +2264,7 @@ async function loadCharactersFromNetlify(category, gridId, limit = CONFIG.MAX_CH
   // Build API URL - request more characters to ensure we have enough after filtering
   const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
   url.searchParams.set('category', category);
-  url.searchParams.set('limit', '50'); // Request more to ensure we have enough
+  url.searchParams.set('limit', '200'); // Request many more to ensure we have enough for each category
   
   console.log(`📡 Fetching from Netlify Function:`, url.toString());
   
@@ -2325,8 +2325,18 @@ function processNetlifyData(characters, category, gridId, limit) {
   grid.innerHTML = '';
   
   if (characters && characters.length > 0) {
-    // Characters are already filtered by category in the Netlify function
-    const categoryCharacters = characters;
+    // Double-check filtering for this category (in case Netlify function returns mixed results)
+    const categoryCharacters = characters.filter(char => {
+      if (!char.Category) return false;
+      
+      // Convert category to ID format (lowercase with hyphens) for comparison
+      const charCategoryId = char.Category.toLowerCase().replace(/\s+/g, '-');
+      const searchCategoryId = category.toLowerCase().replace(/\s+/g, '-');
+      
+      return charCategoryId === searchCategoryId;
+    });
+    
+    console.log(`🔍 Filtered ${categoryCharacters.length} characters for category ${category} from ${characters.length} total`);
     
     // Define popular character names for each category
     const popularCharacters = {
@@ -2392,13 +2402,25 @@ function processNetlifyData(characters, category, gridId, limit) {
     });
     
     if (limitedCharacters.length === 0) {
-      grid.innerHTML = `
-        <div class="error-card no-data">
-          <span class="error-icon">📭</span>
-          <div class="error-title">No ${category} characters found</div>
-          <div class="error-message">Check your Airtable data</div>
-        </div>
-      `;
+      console.warn(`⚠️ No characters found for category ${category}`);
+      // Try to show some characters anyway (unfiltered)
+      if (characters.length > 0) {
+        console.log(`🔄 Showing first ${limit} characters regardless of category as fallback`);
+        const fallbackCharacters = characters.slice(0, limit);
+        fallbackCharacters.forEach((character, index) => {
+          console.log(`🎯 Fallback character ${index + 1}:`, character.Name, 'Category:', character.Category);
+          const card = createCharacterCard(character);
+          grid.appendChild(card);
+        });
+      } else {
+        grid.innerHTML = `
+          <div class="error-card no-data">
+            <span class="error-icon">📭</span>
+            <div class="error-title">No ${category} characters found</div>
+            <div class="error-message">Check your Airtable data</div>
+          </div>
+        `;
+      }
     }
   } else {
     console.warn('⚠️ No characters data found');
