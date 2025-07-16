@@ -71,19 +71,6 @@ exports.handler = async (event, context) => {
       // Use maximum possible to minimize API calls
       params.set('maxRecords', '100');
       
-      // Select only necessary fields to reduce payload
-      params.set('fields[]', 'Name');
-      params.set('fields[]', 'Character_Title');
-      params.set('fields[]', 'Character_Description');
-      params.set('fields[]', 'Category');
-      params.set('fields[]', 'Tags');
-      params.set('fields[]', 'Slug');
-      params.set('fields[]', 'Avatar_File');
-      params.set('fields[]', 'Avatar_URL');
-      params.set('fields[]', 'Character_ID');
-      params.set('fields[]', 'voice_id');
-      params.set('fields[]', 'voice_type');
-      
       // Add offset for pagination
       if (offset) {
         params.set('offset', offset);
@@ -123,13 +110,6 @@ exports.handler = async (event, context) => {
       offset = data.offset;
       console.log(`📄 Offset for next request: ${offset || 'None (finished)'}`);
       console.log(`📊 Running total: ${allRecords.length} records`);
-      
-      // Stop early if we have enough records for homepage/category pages
-      // Most pages only need 50-100 characters
-      if (allRecords.length >= 300) {
-        console.log(`✅ Have enough records (${allRecords.length}), stopping early`);
-        break;
-      }
       
       // Safety check
       if (requestCount >= maxRequests) {
