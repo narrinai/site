@@ -2212,8 +2212,8 @@ async function generateExtraTagButtons() {
 
     // ===== CHARACTER LOADING FUNCTIONS =====
 
-    // SIMPLIFIED: Load all characters at once and categorize client-side
-    async function loadAllCharactersSimplified() {
+    // COMBINED: Load all characters and generate sections in one function
+    async function loadAllCharactersAndGenerateSections() {
       console.log('🚀 Loading all characters in one request...');
       
       try {
@@ -2229,41 +2229,44 @@ async function generateExtraTagButtons() {
         // Process and categorize characters
         const categorized = {};
         
-        // Category mappings
+        // Category mappings - handle actual database categories
         const categoryMappings = {
+          // Actual database categories
           'celebrity': 'celebrities',
+          'anime-manga': 'anime',
+          'fictional': 'movies-tv',
+          'historical': 'historical',
+          'gaming': 'gaming',
+          'fantasy': 'fantasy',
+          'mythology': 'mythology',
+          'relationship-coach': 'relationship',
+          'language-coach': 'language',
+          'career-coach': 'career',
+          
+          // Additional mappings for consistency
           'celebrities': 'celebrities',
           'anime': 'anime',
-          'anime-manga': 'anime',
-          'anime-character': 'anime',
-          'historical': 'historical',
-          'historical-figure': 'historical',
-          'relationship': 'relationship',
-          'relationship-coach': 'relationship',
-          'gaming': 'gaming',
-          'gaming-character': 'gaming',
           'movies-tv': 'movies-tv',
-          'fictional': 'movies-tv',
-          'movie': 'movies-tv',
-          'musician': 'musicians',
-          'musicians': 'musicians',
-          'politician': 'politicians',
-          'politicians': 'politicians',
-          'technology': 'technology',
-          'philosophy': 'philosophy',
+          'relationship': 'relationship',
           'language': 'language',
+          'career': 'career',
           'student': 'student',
+          'philosophy': 'philosophy',
+          'technology': 'technology',
+          'musicians': 'musicians',
+          'politicians': 'politicians',
           'gen-z': 'gen-z',
           'middle-aged': 'middle-aged',
           'romance': 'romance',
           'humor': 'humor'
         };
         
-        // Excluded categories
+        // Excluded categories - based on actual database categories
         const excludedCategories = [
-          'business', 'mindfulness', 'cooking', 'fitness', 'educational', 
-          'writing', 'original', 'rpg', 'accounting', 'study', 'other', 
-          'creativity', 'negotiation'
+          'business-coach', 'mindfulness-coach', 'cooking-coach', 
+          'fitness-coach', 'educational', 'writing-coach', 
+          'original', 'accounting-coach', 'study-coach', 
+          'other', 'creativity-coach', 'negotiation-coach'
         ];
         
         data.characters.forEach(character => {
@@ -2293,13 +2296,13 @@ async function generateExtraTagButtons() {
           `${cat}: ${categorized[cat].length}`
         ).join(', '));
         
-        // Display categories with priority order
-        const priorityCategories = ['celebrities', 'anime', 'historical', 'gaming', 'gen-z', 'middle-aged', 'romance', 'humor'];
+        // Display categories with priority order (updated to match available categories)
+        const priorityCategories = ['celebrities', 'anime', 'historical', 'gaming', 'movies-tv', 'fantasy', 'mythology', 'relationship'];
         const categoriesToShow = [];
         
-        // Add priority categories first
+        // Add priority categories first if they have enough characters
         priorityCategories.forEach(catId => {
-          if (categorized[catId] && categorized[catId].length >= 8) {
+          if (categorized[catId] && categorized[catId].length >= 3) { // Lowered threshold to 3 to see results
             categoriesToShow.push(catId);
           }
         });
@@ -2307,20 +2310,71 @@ async function generateExtraTagButtons() {
         // Add other categories if needed
         Object.keys(categorized).forEach(catId => {
           if (!priorityCategories.includes(catId) && 
-              categorized[catId].length >= 8 &&
+              categorized[catId].length >= 3 &&
               categoriesToShow.length < 8) {
             categoriesToShow.push(catId);
           }
         });
         
-        console.log(`📊 Displaying ${categoriesToShow.length} categories with 8 characters each`);
+        console.log(`📊 Displaying ${categoriesToShow.length} categories`);
         
-        // Display characters in each category
+        // Generate HTML sections for these categories
+        const sectionsContainer = document.getElementById('characterSections');
+        const midPageCTA = document.getElementById('midPageCTA');
+        if (sectionsContainer) sectionsContainer.innerHTML = '';
+        if (midPageCTA) midPageCTA.innerHTML = '';
+        
+        // Split categories into two halves
+        const firstHalf = categoriesToShow.slice(0, Math.ceil(categoriesToShow.length / 2));
+        const secondHalf = categoriesToShow.slice(Math.ceil(categoriesToShow.length / 2));
+        
+        // Generate first half of categories
+        firstHalf.forEach(catId => {
+          const categoryData = {
+            id: catId,
+            name: catId.charAt(0).toUpperCase() + catId.slice(1).replace(/-/g, ' '),
+            title: catId.charAt(0).toUpperCase() + catId.slice(1).replace(/-/g, ' ')
+          };
+          const section = createCategorySection(categoryData);
+          if (sectionsContainer) sectionsContainer.appendChild(section);
+        });
+        
+        // Add mid-page CTA
+        if (midPageCTA) {
+          const ctaHTML = `
+            <section class="create-character-cta mid-page">
+              <div class="cta-content">
+                <div class="cta-icon">🎭</div>
+                <h2>Bring Your Ideas to Life</h2>
+                <p>Can't find the perfect character? Create your own AI personality with custom traits and conversation styles.</p>
+                <a href="create-character.html" class="btn btn-cta">Create Your Character</a>
+              </div>
+            </section>
+          `;
+          midPageCTA.innerHTML = ctaHTML;
+        }
+        
+        // Generate second half of categories
+        secondHalf.forEach(catId => {
+          const categoryData = {
+            id: catId,
+            name: catId.charAt(0).toUpperCase() + catId.slice(1).replace(/-/g, ' '),
+            title: catId.charAt(0).toUpperCase() + catId.slice(1).replace(/-/g, ' ')
+          };
+          const section = createCategorySection(categoryData);
+          if (midPageCTA) midPageCTA.appendChild(section);
+        });
+        
+        // Now display characters in each category
         categoriesToShow.forEach(catId => {
           const gridId = `${catId}-grid`;
           const grid = document.getElementById(gridId);
           if (grid && categorized[catId]) {
-            displayCharactersInGrid(grid, categorized[catId].slice(0, 8));
+            const charactersToShow = categorized[catId].slice(0, 8);
+            console.log(`📋 Displaying ${charactersToShow.length} characters for ${catId} in grid ${gridId}`);
+            displayCharactersInGrid(grid, charactersToShow);
+          } else {
+            console.log(`⚠️ Grid not found for ${catId}, looking for element: ${gridId}`);
           }
         });
         
@@ -2899,12 +2953,9 @@ if (window.netlifyIdentity) {
       // await generateTagButtons();
       console.log('✅ Tag buttons skipped');
       
-      // Generate character sections using Airtable categories
-      await generateCharacterSections();
-      
-      // Load ALL characters at once - much more efficient
-      console.log('🚀 Loading all characters in one request...');
-      await loadAllCharactersSimplified();
+      // Generate character sections and load characters - all in one
+      console.log('🚀 Loading all characters and generating sections...');
+      await loadAllCharactersAndGenerateSections();
       
       // Debug what gets loaded
       setTimeout(() => {
