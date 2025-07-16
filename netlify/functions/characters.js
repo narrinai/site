@@ -54,7 +54,7 @@ exports.handler = async (event, context) => {
     let allRecords = [];
     let offset = null;
     let requestCount = 0;
-    const maxRequests = 50; // Increased safety limit to get all records
+    const maxRequests = 35; // Limit to prevent timeout (35 * 100 = 3500 records max)
     
     do {
       requestCount++;
@@ -100,16 +100,25 @@ exports.handler = async (event, context) => {
 
       const data = await response.json();
       console.log(`✅ Retrieved ${data.records?.length || 0} records from request ${requestCount}`);
+      console.log(`🔍 Response has offset: ${!!data.offset}`);
       
       // Add records to our collection
       if (data.records) {
         allRecords = allRecords.concat(data.records);
+        console.log(`📈 Added ${data.records.length} records, total now: ${allRecords.length}`);
       }
       
       // Check if there are more records to fetch
       offset = data.offset;
       console.log(`📄 Offset for next request: ${offset || 'None (finished)'}`);
       console.log(`📊 Running total: ${allRecords.length} records`);
+      
+      // Debug: Log if we're about to continue or stop
+      if (offset) {
+        console.log(`🔄 Will continue pagination - offset exists`);
+      } else {
+        console.log(`🛑 Stopping pagination - no more offset`);
+      }
       
       // Safety check
       if (requestCount >= maxRequests) {
