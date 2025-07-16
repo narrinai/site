@@ -1877,8 +1877,8 @@
               <span>Character Memory</span>
             </div>
             <div class="usp-item">
-              <span class="usp-icon" aria-hidden="true">🎵</span>
-              <span>Voice Playback</span>
+              <span class="usp-icon" aria-hidden="true">🗣️</span>
+              <span>Voice Chat</span>
             </div>
             <div class="usp-item">
               <span class="usp-icon" aria-hidden="true">🔐</span>
@@ -2546,7 +2546,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Voice cache voor snellere playback
+    // Voice cache voor snellere gesprekken
     const voiceCache = new Map();
     
     // Voice usage limit constants
@@ -2562,7 +2562,7 @@ document.addEventListener('DOMContentLoaded', () => {
                        localStorage.getItem('isPremium') === 'true';
       
       if (isPremium) {
-        console.log('🎵 Premium user - unlimited voice usage');
+        console.log('🗣️ Premium user - unlimited voice conversations');
         return true;
       }
       
@@ -2578,7 +2578,7 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem(VOICE_RESET_KEY, today);
       }
       
-      console.log(`🎵 Voice usage: ${currentCount}/${VOICE_LIMIT_FREE} (Free plan)`);
+      console.log(`🗣️ Voice conversations: ${currentCount}/${VOICE_LIMIT_FREE} (Free plan)`);
       
       if (currentCount >= VOICE_LIMIT_FREE) {
         console.log('🚫 Voice usage limit reached for Free plan');
@@ -2599,14 +2599,14 @@ document.addEventListener('DOMContentLoaded', () => {
       modal.innerHTML = `
         <div class="voice-upgrade-content">
           <div class="voice-upgrade-header">
-            <h3>🎵 Voice Limit Reached</h3>
+            <h3>🗣️ Voice Chat Limit Reached</h3>
             <button class="voice-upgrade-close" onclick="closeVoiceUpgradeModal()">&times;</button>
           </div>
           <div class="voice-upgrade-body">
-            <p>You've reached your daily limit of <strong>5 voice plays</strong> on the Free plan.</p>
-            <p>Upgrade to <strong>Premium</strong> for unlimited voice playback and more features!</p>
+            <p>You've reached your daily limit of <strong>5 voice conversations</strong> on the Free plan.</p>
+            <p>Upgrade to <strong>Premium</strong> for unlimited voice chat and more features!</p>
             <div class="voice-upgrade-benefits">
-              <div class="voice-benefit">✨ Unlimited voice playback</div>
+              <div class="voice-benefit">✨ Unlimited voice conversations</div>
               <div class="voice-benefit">🚀 Faster responses</div>
               <div class="voice-benefit">🎭 Priority character access</div>
               <div class="voice-benefit">💬 Unlimited conversations</div>
@@ -2747,16 +2747,16 @@ document.addEventListener('DOMContentLoaded', () => {
       window.location.href = 'profile.html#upgrade';
     }
     
-    // Manual voice playback met caching en loading indicator
+    // Manual voice conversation met caching en loading indicator
     window.playMessageVoice = async function(text, voiceId, buttonElement) {
       try {
         // Check if this button is currently playing and should be paused
         if (buttonElement.classList.contains('playing') && currentAudio) {
-          console.log('⏸️ Pausing current audio...');
+          console.log('🤫 Pausing conversation...');
           currentAudio.pause();
           currentAudio = null;
           buttonElement.classList.remove('playing');
-          buttonElement.textContent = '▶️';
+          buttonElement.textContent = '👂';
           buttonElement.disabled = false;
           return; // Early return to pause instead of restart
         }
@@ -2795,7 +2795,7 @@ document.addEventListener('DOMContentLoaded', () => {
           currentAudio = null;
           document.querySelectorAll('.voice-play-btn').forEach(btn => {
             btn.classList.remove('playing');
-            btn.textContent = '▶️';
+            btn.textContent = '👂';
           });
         }
         
@@ -2809,10 +2809,10 @@ document.addEventListener('DOMContentLoaded', () => {
         let audioBlob;
         
         if (voiceCache.has(cacheKey)) {
-          console.log('🎵 Using cached audio');
+          console.log('💭 Using saved voice...');
           audioBlob = voiceCache.get(cacheKey);
         } else {
-          console.log('🎤 Generating new audio...');
+          console.log('🗣️ Character is speaking...');
           audioBlob = await generateSpeech(ttsText, voiceId);
           // Cache de audio (max 50 items)
           if (voiceCache.size >= 50) {
@@ -2825,7 +2825,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Verander naar play state
         buttonElement.classList.remove('loading');
         buttonElement.classList.add('playing');
-        buttonElement.textContent = '⏸️';
+        buttonElement.textContent = '🤫';
         buttonElement.disabled = false;
         const audioUrl = URL.createObjectURL(audioBlob);
         currentAudio = new Audio(audioUrl);
@@ -2834,22 +2834,22 @@ document.addEventListener('DOMContentLoaded', () => {
           URL.revokeObjectURL(audioUrl);
           currentAudio = null;
           buttonElement.classList.remove('playing', 'loading');
-          buttonElement.textContent = '▶️';
+          buttonElement.textContent = '👂';
           buttonElement.disabled = false;
         });
         
         currentAudio.addEventListener('pause', () => {
           buttonElement.classList.remove('playing', 'loading');
-          buttonElement.textContent = '▶️';
+          buttonElement.textContent = '👂';
           buttonElement.disabled = false;
         });
         
         await currentAudio.play();
         
       } catch (error) {
-        console.error('Voice playback error:', error);
+        console.error('Voice conversation error:', error);
         buttonElement.classList.remove('playing', 'loading');
-        buttonElement.textContent = '▶️';
+        buttonElement.textContent = '👂';
         buttonElement.disabled = false;
         
         // Show more specific error messages
@@ -3262,7 +3262,21 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     if (!characterSlug) {
       showError("It looks like there's a connection issue. Let's get you to a safe space where you can find the right companion.");
     } else {
-      loadCharacter(characterSlug);
+      // Add timeout fallback for character loading
+      const loadingTimeout = setTimeout(() => {
+        console.error('⏰ Character loading timeout - forcing interface setup');
+        if (document.getElementById('loadingState').style.display !== 'none') {
+          showError("Character loading is taking longer than expected. Please try refreshing the page.");
+        }
+      }, 10000); // 10 second timeout
+      
+      loadCharacter(characterSlug).then(() => {
+        clearTimeout(loadingTimeout);
+      }).catch((error) => {
+        clearTimeout(loadingTimeout);
+        console.error('❌ Character loading failed:', error);
+        showError("Unable to load character. Please try again or contact support.");
+      });
     }
 
     async function loadCharacter(slug) {
@@ -3321,6 +3335,9 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     function setupCharacterInterface() {
       if (!currentCharacter) return;
 
+      // Initialize authentication check first
+      initializeAuthenticationCheck();
+
       document.title = `Chat with ${currentCharacter.name}`;
       document.getElementById('characterName').textContent = currentCharacter.name;
       document.getElementById('characterTitle').textContent = currentCharacter.character_title || '';
@@ -3350,9 +3367,11 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       const token = localStorage.getItem("user_token");
       const email = localStorage.getItem("user_email");
       const uid = localStorage.getItem("user_uid");
-      const isLoggedIn = window.isRegistered || (token && email && uid);
+      const isLoggedIn = window.isAuthenticated || window.isRegistered || (token && email && uid);
 
       console.log("isLoggedIn calculated:", isLoggedIn);
+      console.log("window.isAuthenticated:", window.isAuthenticated);
+      console.log("window.currentUser:", !!window.currentUser);
 
       if (isLoggedIn) {
         console.log("✅ User is logged in, calling fetchHistory()");
@@ -3678,11 +3697,11 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
           const validatedVoiceId = validateAndFixVoiceId(currentCharacter.voice_id);
           if (validatedVoiceId) {
             // Only show play button if we have a valid voice ID
-            p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${message}<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice(\`${message.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Listen to message">▶️</button></div>`;
+            p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${message}<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice(\`${message.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">👂</button></div>`;
           } else {
             // Don't show play button for invalid voice IDs
             p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${message}`;
-            console.warn(`⚠️ Voice playback disabled for ${currentCharacter?.name} - invalid voice ID: ${currentCharacter.voice_id}`);
+            console.warn(`⚠️ Voice chat disabled for ${currentCharacter?.name} - invalid voice ID: ${currentCharacter.voice_id}`);
           }
         } else {
           p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${message}`;
@@ -4086,11 +4105,11 @@ hideTypingIndicator();
       const validatedVoiceId = validateAndFixVoiceId(currentCharacter.voice_id);
       if (validatedVoiceId) {
         // Only show play button if we have a valid voice ID
-        divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span><br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice(\`${reply.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Listen to message">▶️</button></div>`;
+        divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span><br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice(\`${reply.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">👂</button></div>`;
       } else {
         // Don't show play button for invalid voice IDs
         divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span>`;
-        console.warn(`⚠️ Voice playback disabled for ${currentCharacter?.name} - invalid voice ID: ${currentCharacter.voice_id}`);
+        console.warn(`⚠️ Voice chat disabled for ${currentCharacter?.name} - invalid voice ID: ${currentCharacter.voice_id}`);
       }
     } else {
       divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span>`;
