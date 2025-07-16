@@ -54,7 +54,7 @@ exports.handler = async (event, context) => {
     let allRecords = [];
     let offset = null;
     let requestCount = 0;
-    const maxRequests = 35; // Limit to prevent timeout (35 * 100 = 3500 records max)
+    const maxRequests = 50; // Increased safety limit to get all records
     
     do {
       requestCount++;
@@ -71,9 +71,6 @@ exports.handler = async (event, context) => {
       // Use maximum possible to minimize API calls
       params.set('maxRecords', '100');
       
-      // Add view parameter to ensure we get all records (not just a filtered view)
-      // Don't specify any view to get the default table view with all records
-      
       // Add offset for pagination
       if (offset) {
         params.set('offset', offset);
@@ -84,11 +81,6 @@ exports.handler = async (event, context) => {
       }
       
       console.log(`🔗 Airtable URL (request ${requestCount}):`, url);
-      console.log(`🔑 Using Base ID: ${process.env.AIRTABLE_BASE_ID}`);
-      console.log(`🔑 Using Table ID: ${process.env.AIRTABLE_TABLE_ID}`);
-      
-      // Force a longer timeout to avoid premature termination
-      const timeoutMs = 30000; // 30 seconds
 
       // Make Airtable API call
       const response = await fetch(url, {
@@ -108,27 +100,16 @@ exports.handler = async (event, context) => {
 
       const data = await response.json();
       console.log(`✅ Retrieved ${data.records?.length || 0} records from request ${requestCount}`);
-      console.log(`🔍 Response has offset: ${!!data.offset}`);
-      console.log(`🔍 Offset value: ${data.offset || 'undefined'}`);
-      console.log(`🔍 Raw response keys:`, Object.keys(data));
       
       // Add records to our collection
       if (data.records) {
         allRecords = allRecords.concat(data.records);
-        console.log(`📈 Added ${data.records.length} records, total now: ${allRecords.length}`);
       }
       
       // Check if there are more records to fetch
       offset = data.offset;
       console.log(`📄 Offset for next request: ${offset || 'None (finished)'}`);
       console.log(`📊 Running total: ${allRecords.length} records`);
-      
-      // Debug: Log if we're about to continue or stop
-      if (offset) {
-        console.log(`🔄 Will continue pagination - offset exists`);
-      } else {
-        console.log(`🛑 Stopping pagination - no more offset`);
-      }
       
       // Safety check
       if (requestCount >= maxRequests) {
@@ -143,12 +124,6 @@ exports.handler = async (event, context) => {
     // Transform data to expected format
     const characters = (allRecords || []).map(record => {
       const fields = record.fields || {};
-      
-      // Debug avatar data
-      console.log(`Avatar data for ${fields.Name}:`, {
-        Avatar_File: fields.Avatar_File,
-        Avatar_URL: fields.Avatar_URL
-      });
       
       // Extract avatar URL properly
       let avatarUrl = '';
@@ -186,49 +161,12 @@ exports.handler = async (event, context) => {
       filteredCharacters = characters.filter(character => {
         if (!character.Category) return false;
         
-        const dbCategory = character.Category.toLowerCase();
-        const requestedCategory = category.toLowerCase();
-        
-        // Debug each character check
-        const isMatch = dbCategory === requestedCategory;
-        if (isMatch) {
-          console.log(`✅ Match found: "${dbCategory}" === "${requestedCategory}"`);
-        }
-        
-        // Direct exact match
-        if (dbCategory === requestedCategory) return true;
-        
-        // Category mappings for better matching - simplified
-        const categoryMappings = {
-          'celebrities': ['celebrity', 'celebrities'],
-          'anime': ['anime', 'anime-manga'],
-          'historical': ['historical'],
-          'gaming': ['gaming'],
-          'relationship': ['relationship'],
-          'movies-tv': ['movies-tv', 'fictional'],
-          'fantasy': ['fantasy'],
-          'mythology': ['mythology'],
-          'language': ['language'],
-          'career': ['career'],
-          'romance': ['romance'],
-          'gen-z': ['gen-z']
-        };
-        
-        // Check if the requested category maps to the database category
-        if (categoryMappings[requestedCategory]) {
-          return categoryMappings[requestedCategory].includes(dbCategory);
-        }
-        
-        // Reverse mapping - check if database category maps to requested category
-        for (const [mappedCat, dbCats] of Object.entries(categoryMappings)) {
-          if (dbCats.includes(dbCategory) && mappedCat === requestedCategory) {
-            return true;
-          }
-        }
+        // Try exact match first
+        if (character.Category.toLowerCase() === category.toLowerCase()) return true;
         
         // Try with 's' suffix (e.g., celebrity vs celebrities)
-        const categoryWithS = requestedCategory.endsWith('s') ? requestedCategory.slice(0, -1) : requestedCategory + 's';
-        if (dbCategory === categoryWithS) {
+        const categoryWithS = category.endsWith('s') ? category.slice(0, -1) : category + 's';
+        if (character.Category.toLowerCase() === categoryWithS.toLowerCase()) {
           return true;
         }
         
