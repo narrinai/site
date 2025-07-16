@@ -1635,7 +1635,7 @@
     let currentPage = 1;
     let allCharacters = [];
     let filteredCharacters = [];
-    const charactersPerPage = 500; // Increased to show more characters per page
+    const charactersPerPage = 100; // Show 100 characters per page for better performance
 
     // ===== NAVIGATION FUNCTIONALITY =====
     
@@ -1811,7 +1811,7 @@
         // Build API URL for Netlify Function
         const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
         url.searchParams.set('category', currentCategory);
-        // No limit - get all characters for category pages
+        url.searchParams.set('limit', '2000'); // Increased limit to get more characters
         
         console.log(`📡 Fetching from Netlify Function:`, url.toString());
         
@@ -2166,83 +2166,175 @@
     }
 
     // ===== CATEGORY NAVIGATION =====
-    function generateCategoryNavigation() {
+    async function generateCategoryNavigation() {
       const container = document.getElementById('categoryButtons');
       if (!container) return;
 
-      container.innerHTML = '';
+      container.innerHTML = '<div class="loading" style="margin: 0 auto;" aria-label="Loading categories"></div>';
       
       // Get current category from URL
       const urlParams = new URLSearchParams(window.location.search);
       const currentCategoryParam = urlParams.get('cat');
       
-      // Use the same categories as tags.html
-      const allCategories = [
-        { id: 'historical', name: 'Historical', title: 'Historical Figures' },
-        { id: 'fictional', name: 'Fiction', title: 'Fictional Characters' },
-        { id: 'celebrity', name: 'Celebrities', title: 'Celebrities' },
-        { id: 'anime-manga', name: 'Anime & Manga', title: 'Anime & Manga' },
-        { id: 'gaming', name: 'Gaming', title: 'Gaming Characters' },
-        { id: 'movies-tv', name: 'Movies & TV', title: 'Movies & TV' },
-        { id: 'books', name: 'Books', title: 'Book Characters' },
-        { id: 'mythology', name: 'Mythology', title: 'Mythological Figures' }
-      ];
-      
-      // Shuffle and take 5 random categories
-      const shuffledCategories = [...allCategories].sort(() => Math.random() - 0.5);
-      const selectedCategories = shuffledCategories.slice(0, 5);
-      
-      selectedCategories.forEach(category => {
-        const link = document.createElement('a');
-        link.href = `category.html?cat=${category.id}`;
-        link.className = `category-btn ${currentCategoryParam === category.id ? 'active' : ''}`;
-        link.textContent = category.name;
-        container.appendChild(link);
+      try {
+        // Fetch categories with character counts from Airtable
+        const categoriesWithCounts = await fetchCategoriesWithCounts();
+        
+        // Filter categories with 5+ characters
+        const validCategories = categoriesWithCounts.filter(cat => cat.count >= 5);
+        
+        container.innerHTML = ''; // Clear loading
+        
+        // Show first 8 categories with 5+ characters
+        const categoriesToShow = validCategories.slice(0, 8);
+        
+        categoriesToShow.forEach(category => {
+          const link = document.createElement('a');
+          link.href = `category.html?cat=${category.id}`;
+          link.className = `category-btn ${currentCategoryParam === category.id ? 'active' : ''}`;
+          link.textContent = category.name;
+          link.title = `${category.count} characters`;
+          container.appendChild(link);
+        });
+        
+        console.log(`✅ Showing ${categoriesToShow.length} categories with 5+ characters`);
+      } catch (error) {
+        console.error('❌ Error loading categories:', error);
+        container.innerHTML = '<span style="color: red;">Error loading categories</span>';
+      }
+    }
+
+    // Fetch categories with character counts
+    async function fetchCategoriesWithCounts() {
+      console.log('🔍 Fetching categories with character counts...');
+      const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
+      url.searchParams.set('limit', '1000'); // Get many characters to count
+
+      const response = await fetch(url.toString());
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (!data.success || !data.characters) {
+        throw new Error('Invalid response format');
+      }
+
+      // Count characters per category
+      const categoryCounts = new Map();
+      data.characters.forEach(character => {
+        if (character.Category) {
+          const categoryId = character.Category.toLowerCase().replace(/\s+/g, '-');
+          const categoryName = character.Category.replace(/ Characters?$/i, '').replace(/ Coach(es)?$/i, '');
+          
+          if (!categoryCounts.has(categoryId)) {
+            categoryCounts.set(categoryId, {
+              id: categoryId,
+              name: categoryName,
+              count: 1
+            });
+          } else {
+            categoryCounts.get(categoryId).count++;
+          }
+        }
       });
+
+      // Convert to array and sort by count
+      return Array.from(categoryCounts.values())
+        .filter(cat => {
+          const lowerName = cat.name.toLowerCase();
+          return !lowerName.includes('movie') && !lowerName.includes('life coach');
+        })
+        .sort((a, b) => b.count - a.count);
     }
 
     // Generate tag buttons
-    function generateTagButtons() {
+    async function generateTagButtons() {
       const tagsContainer = document.getElementById('tagsContainer');
       if (!tagsContainer) return;
 
-      tagsContainer.innerHTML = '';
+      tagsContainer.innerHTML = '<div class="loading" style="margin: 0 auto;" aria-label="Loading tags"></div>';
 
-      // Use the same tags as tags.html
-      const allTags = [
-        'wise', 'funny', 'helpful', 'mysterious', 'leader',
-        'creative', 'romantic', 'adventure', 'teacher', 'mentor',
-        'villain', 'hero', 'scientist', 'artist', 'warrior',
-        'genius', 'inspiring', 'determined', 'noble', 'brave',
-        'clever', 'charming', 'powerful', 'ancient', 'legendary'
-      ];
+      try {
+        // Fetch tags with character counts from Airtable
+        const tagsWithCounts = await fetchTagsWithCounts();
+        
+        // Filter tags with 5+ characters
+        const validTags = tagsWithCounts.filter(tag => tag.count >= 5);
+        
+        tagsContainer.innerHTML = ''; // Clear loading
+        
+        // Show first 8 tags with 5+ characters
+        const tagsToShow = validTags.slice(0, 8);
+        
+        tagsToShow.forEach(tag => {
+          const button = document.createElement('a');
+          button.href = `tags.html?tag=${tag.name}`;
+          button.className = 'tag-btn';
+          button.textContent = tag.name.charAt(0).toUpperCase() + tag.name.slice(1);
+          button.title = `${tag.count} characters`;
+          tagsContainer.appendChild(button);
+        });
+        
+        console.log(`✅ Showing ${tagsToShow.length} tags with 5+ characters`);
+      } catch (error) {
+        console.error('❌ Error loading tags:', error);
+        tagsContainer.innerHTML = '<span style="color: red;">Error loading tags</span>';
+      }
+    }
 
-      // Shuffle and take 15 random tags
-      const shuffledTags = [...allTags].sort(() => Math.random() - 0.5);
-      const selectedTags = shuffledTags.slice(0, 15);
+    // Fetch tags with character counts
+    async function fetchTagsWithCounts() {
+      console.log('🔍 Fetching tags with character counts...');
+      const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
+      url.searchParams.set('limit', '1000'); // Get many characters to count
 
-      selectedTags.forEach(tag => {
-        const button = document.createElement('a');
-        button.href = `tags.html?tag=${tag}`;
-        button.className = 'tag-btn';
-        button.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
-        tagsContainer.appendChild(button);
+      const response = await fetch(url.toString());
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (!data.success || !data.characters) {
+        throw new Error('Invalid response format');
+      }
+
+      // Count characters per tag
+      const tagCounts = new Map();
+      data.characters.forEach(character => {
+        if (character.Tags && Array.isArray(character.Tags)) {
+          character.Tags.forEach(tag => {
+            const tagLower = tag.toLowerCase();
+            if (!tagCounts.has(tagLower)) {
+              tagCounts.set(tagLower, {
+                name: tagLower,
+                count: 1
+              });
+            } else {
+              tagCounts.get(tagLower).count++;
+            }
+          });
+        }
       });
+
+      // Convert to array and sort by count
+      return Array.from(tagCounts.values())
+        .sort((a, b) => b.count - a.count);
     }
 
     // ===== INITIALIZATION =====
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', async function() {
       console.log('🚀 Category page initializing...');
       
       initializePage();
       setupEventListeners(); 
       loadCharacters();
       
-      // Generate category navigation
-      generateCategoryNavigation();
+      // Generate category navigation (async)
+      await generateCategoryNavigation();
       
-      // Generate tag buttons
-      generateTagButtons();
+      // Generate tag buttons (async)
+      await generateTagButtons();
       
       console.log('✅ Category page initialization complete');
     });
