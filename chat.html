@@ -4138,7 +4138,31 @@ hideTypingIndicator();
       typewriterEffect(typingSpan, reply);
     }
 
-    // Messages should be saved by the Make.com webhook automatically
+    // Save messages directly to ensure they persist correctly
+    try {
+      console.log('💾 Saving chat messages directly...');
+      
+      const saveResponse = await fetch('/.netlify/functions/save-chat-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_message: input, // Clean user message without memory context
+          character_message: reply,
+          user_id: effective_user_id,
+          user_email: user_email,
+          character_slug: characterSlug,
+          character_name: currentCharacter.name
+        })
+      });
+      
+      if (saveResponse.ok) {
+        console.log('✅ Messages saved successfully');
+      } else {
+        console.log('⚠️ Direct save failed, relying on webhook');
+      }
+    } catch (saveError) {
+      console.error('❌ Save error:', saveError);
+    }
 
     // Memory processing in background - VERBETERDE VERSIE
 if (data && data.success) {
