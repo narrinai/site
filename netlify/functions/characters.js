@@ -61,7 +61,7 @@ exports.handler = async (event, context) => {
       console.log(`📡 Making request ${requestCount} to Airtable...`);
       
       // Build Airtable URL for this request
-      let url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_TABLE_ID}`;
+      let url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Characters`;
       const params = new URLSearchParams();
       
       // Don't add category filter here - we'll filter in JavaScript instead
@@ -85,7 +85,7 @@ exports.handler = async (event, context) => {
       
       console.log(`🔗 Airtable URL (request ${requestCount}):`, url);
       console.log(`🔑 Using Base ID: ${process.env.AIRTABLE_BASE_ID}`);
-      console.log(`🔑 Using Table ID: ${process.env.AIRTABLE_TABLE_ID}`);
+      console.log(`🔑 Using hardcoded table name: Characters`);
       
       // Force a longer timeout to avoid premature termination
       const timeoutMs = 30000; // 30 seconds
