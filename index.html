@@ -1878,7 +1878,7 @@ async function generateCategoryButtons() {
 
   // Determine how many to show based on screen size  
   const isMobile = window.innerWidth <= 768;
-  const categoriesToShow = isMobile ? filteredCategories.slice(0, 3) : filteredCategories;
+  const categoriesToShow = isMobile ? filteredCategories.slice(0, 3) : filteredCategories.slice(0, 6); // Max 2 rows of 3 on desktop
 
   // Function to populate category buttons
   const populateButtons = (container) => {
@@ -1905,6 +1905,18 @@ async function generateCategoryButtons() {
   populateButtons(categoryButtons);
   if (bottomCategoryButtons) {
     populateButtons(bottomCategoryButtons);
+  }
+  
+  // Populate extra category buttons with different categories
+  if (extraCategoryButtons && filteredCategories.length > 6) {
+    const extraCategories = filteredCategories.slice(6, 12); // Next 6 categories
+    extraCategories.forEach(category => {
+      const button = document.createElement('a');
+      button.href = `category.html?cat=${category.id}`;
+      button.className = 'category-btn';
+      button.textContent = category.name;
+      extraCategoryButtons.appendChild(button);
+    });
   }
 }
 
@@ -2009,10 +2021,14 @@ async function generateTagButtons() {
 
   console.log(`🏷️ Showing ${filteredTags.length} tags with 15+ characters:`, filteredTags);
 
+  // Limit tags to 6 for desktop (2 rows of 3)
+  const isMobile = window.innerWidth <= 768;
+  const tagsToShow = isMobile ? filteredTags.slice(0, 3) : filteredTags.slice(0, 6);
+
   // Helper function to populate tag buttons
   const populateTagButtons = (container) => {
-    if (filteredTags.length > 0) {
-      filteredTags.forEach(tag => {
+    if (tagsToShow.length > 0) {
+      tagsToShow.forEach(tag => {
         const count = tagCharacterCounts[tag.toLowerCase()] || 0;
         const button = document.createElement('a');
         button.href = `tags.html?tag=${tag}`;
@@ -2079,7 +2095,10 @@ async function generateExtraTagButtons() {
 
   console.log(`🏷️ Showing ${filteredExtraTags.length} extra tags with 15+ characters`);
 
-  filteredExtraTags.forEach(tag => {
+  // Limit extra tags to 6 (2 rows of 3)
+  const limitedExtraTags = filteredExtraTags.slice(0, 6);
+
+  limitedExtraTags.forEach(tag => {
     const count = tagCharacterCounts[tag.toLowerCase()] || 0;
     const button = document.createElement('a');
     button.href = `tags.html?tag=${tag}`;
@@ -2142,7 +2161,7 @@ async function generateExtraTagButtons() {
       console.log(`🔍 Filtered to ${filteredCategories.length} categories after exclusions`);
 
       // Priority categories that should appear first
-      const priorityCategories = ['humor', 'gen-z', 'romance', 'middle-aged'];
+      const priorityCategories = ['gen-z', 'middle-aged', 'romance', 'humor', 'celebrities', 'anime-manga', 'historical', 'fictional'];
       
       // Sort categories to put priority ones first
       const sortedCategories = filteredCategories.sort((a, b) => {
@@ -2461,7 +2480,7 @@ function processNetlifyData(characters, category, gridId, limit) {
         );
         
         // Priority categories that should appear first
-        const priorityCategories = ['humor', 'gen-z', 'romance', 'middle-aged'];
+        const priorityCategories = ['gen-z', 'middle-aged', 'romance', 'humor', 'celebrities', 'anime-manga', 'historical', 'fictional'];
         
         // Sort categories to put priority ones first
         const sortedCategories = filteredCategories.sort((a, b) => {
@@ -2512,7 +2531,7 @@ function processNetlifyData(characters, category, gridId, limit) {
       );
       
       // Priority categories that should appear first
-      const priorityCategories = ['humor', 'gen-z', 'romance', 'middle-aged'];
+      const priorityCategories = ['gen-z', 'middle-aged', 'romance', 'humor', 'celebrities', 'anime-manga', 'historical', 'fictional'];
       
       // Sort categories to put priority ones first
       const sortedCategories = filteredCategories.sort((a, b) => {
