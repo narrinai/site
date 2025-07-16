@@ -202,11 +202,26 @@
       justify-content: center;
     }
 
-    /* USPs Container - Desktop */
+    /* USPs Container - Desktop - Vertical Carousel */
     .nav-usps {
       display: flex;
       align-items: center;
       gap: var(--spacing-xl);
+      height: 44px;
+      overflow: hidden;
+      position: relative;
+    }
+    .usp-carousel {
+      display: flex;
+      flex-direction: column;
+      animation: uspCarousel 12s infinite;
+      gap: var(--spacing-xl);
+    }
+    @keyframes uspCarousel {
+      0%, 25% { transform: translateY(0); }
+      30%, 55% { transform: translateY(-60px); }
+      60%, 85% { transform: translateY(-120px); }
+      90%, 100% { transform: translateY(-180px); }
     }
 
     .usp-item {
@@ -223,12 +238,25 @@
       font-size: var(--font-size-lg);
       color: var(--color-teal);
     }
+    /* Mobile USP Carousel adjustments */
+    @media (max-width: 768px) {
+      .nav-usps {
+        height: 32px;
+      }
+      .usp-item {
+        font-size: var(--font-size-xs);
+        gap: var(--spacing-xs);
+      }
+      .usp-icon {
+        font-size: var(--font-size-sm);
+      }
+    }
 
     /* Search Bar - Desktop */
     .nav-search {
       position: relative;
       width: 100%;
-      max-width: 400px;
+      max-width: 600px;
     }
 
     .nav-search-input {
@@ -1866,23 +1894,25 @@
 
         <!-- Desktop Navigation Center -->
         <nav class="nav-center" role="navigation" aria-label="Main navigation">
-          <!-- USPs - All visible on desktop -->
+          <!-- USPs - Vertical Carousel -->
           <div class="nav-usps" aria-label="Key features">
-            <div class="usp-item">
-              <span class="usp-icon" aria-hidden="true">🔒</span>
-              <span>100% Safe</span>
-            </div>
-            <div class="usp-item">
-              <span class="usp-icon" aria-hidden="true">🧠</span>
-              <span>Character Memory</span>
-            </div>
-            <div class="usp-item">
-              <span class="usp-icon" aria-hidden="true">🗣️</span>
-              <span>Voice Chat</span>
-            </div>
-            <div class="usp-item">
-              <span class="usp-icon" aria-hidden="true">🔐</span>
-              <span>Private Data</span>
+            <div class="usp-carousel">
+              <div class="usp-item">
+                <span class="usp-icon" aria-hidden="true">⚡</span>
+                <span>Lightning Fast</span>
+              </div>
+              <div class="usp-item">
+                <span class="usp-icon" aria-hidden="true">🎯</span>
+                <span>Highly Accurate</span>
+              </div>
+              <div class="usp-item">
+                <span class="usp-icon" aria-hidden="true">🔒</span>
+                <span>100% Private</span>
+              </div>
+              <div class="usp-item">
+                <span class="usp-icon" aria-hidden="true">▶️</span>
+                <span>Voice Chat</span>
+              </div>
             </div>
           </div>
 
@@ -2566,19 +2596,27 @@ document.addEventListener('DOMContentLoaded', () => {
         return true;
       }
       
-      // Check daily voice usage for Free users
-      const today = new Date().toDateString();
+      // Check 30-day voice usage for Free users
+      const today = new Date();
       const lastReset = localStorage.getItem(VOICE_RESET_KEY);
       let currentCount = parseInt(localStorage.getItem(VOICE_STORAGE_KEY) || '0');
       
-      // Reset counter if it's a new day
-      if (lastReset !== today) {
-        currentCount = 0;
-        localStorage.setItem(VOICE_STORAGE_KEY, '0');
-        localStorage.setItem(VOICE_RESET_KEY, today);
+      // Reset counter if 30 days have passed
+      if (lastReset) {
+        const resetDate = new Date(lastReset);
+        const daysSinceReset = Math.floor((today - resetDate) / (1000 * 60 * 60 * 24));
+        
+        if (daysSinceReset >= 30) {
+          currentCount = 0;
+          localStorage.setItem(VOICE_STORAGE_KEY, '0');
+          localStorage.setItem(VOICE_RESET_KEY, today.toISOString());
+        }
+      } else {
+        // First time - set reset date
+        localStorage.setItem(VOICE_RESET_KEY, today.toISOString());
       }
       
-      console.log(`🗣️ Voice conversations: ${currentCount}/${VOICE_LIMIT_FREE} (Free plan)`);
+      console.log(`🗣️ Voice conversations: ${currentCount}/${VOICE_LIMIT_FREE} per 30 days (Free plan)`);
       
       if (currentCount >= VOICE_LIMIT_FREE) {
         console.log('🚫 Voice usage limit reached for Free plan');
@@ -2603,13 +2641,29 @@ document.addEventListener('DOMContentLoaded', () => {
             <button class="voice-upgrade-close" onclick="closeVoiceUpgradeModal()">&times;</button>
           </div>
           <div class="voice-upgrade-body">
-            <p>You've reached your daily limit of <strong>5 voice conversations</strong> on the Free plan.</p>
+            <p>You've reached your limit of <strong>5 voice conversations</strong> per 30 days on the Free plan.</p>
             <p>Upgrade to <strong>Premium</strong> for unlimited voice chat and more features!</p>
             <div class="voice-upgrade-benefits">
-              <div class="voice-benefit">✨ Unlimited voice conversations</div>
-              <div class="voice-benefit">🚀 Faster responses</div>
-              <div class="voice-benefit">🎭 Priority character access</div>
-              <div class="voice-benefit">💬 Unlimited conversations</div>
+              <div class="voice-benefit">
+                <div class="checkmark"></div>
+                <div class="benefit-text">Unlimited Chat Messages</div>
+              </div>
+              <div class="voice-benefit">
+                <div class="checkmark"></div>
+                <div class="benefit-text">Unlimited Voice Chat</div>
+              </div>
+              <div class="voice-benefit">
+                <div class="checkmark"></div>
+                <div class="benefit-text">Extensive Character Memory</div>
+              </div>
+              <div class="voice-benefit">
+                <div class="checkmark"></div>
+                <div class="benefit-text">Early Access to New Features</div>
+              </div>
+              <div class="voice-benefit">
+                <div class="checkmark"></div>
+                <div class="benefit-text">Priority Character Access</div>
+              </div>
             </div>
           </div>
           <div class="voice-upgrade-buttons">
@@ -2687,14 +2741,46 @@ document.addEventListener('DOMContentLoaded', () => {
         .voice-upgrade-benefits {
           background: var(--color-off-white);
           border-radius: 12px;
-          padding: 16px;
-          margin: 16px 0;
+          padding: 20px;
+          margin: 20px 0;
         }
         
         .voice-benefit {
+          display: flex;
+          align-items: center;
+          margin-bottom: 12px;
           padding: 8px 0;
+        }
+        
+        .voice-benefit:last-child {
+          margin-bottom: 0;
+        }
+        
+        .checkmark {
+          width: 20px;
+          height: 20px;
+          background: rgba(20, 184, 166, 0.1);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-right: 12px;
+          flex-shrink: 0;
+          border: 2px solid var(--color-teal);
+        }
+        
+        .checkmark::after {
+          content: '✓';
+          color: var(--color-teal);
+          font-weight: 800;
+          font-size: 12px;
+        }
+        
+        .benefit-text {
           color: var(--color-navy);
+          font-size: 14px;
           font-weight: 500;
+          font-family: var(--font-primary);
         }
         
         .voice-upgrade-buttons {

@@ -191,11 +191,26 @@
      justify-content: center;
    }
 
-   /* USPs Container - Desktop */
+   /* USPs Container - Desktop - Vertical Carousel */
    .nav-usps {
      display: flex;
      align-items: center;
      gap: var(--spacing-xl);
+     height: 44px;
+     overflow: hidden;
+     position: relative;
+   }
+   .usp-carousel {
+     display: flex;
+     flex-direction: column;
+     animation: uspCarousel 12s infinite;
+     gap: var(--spacing-xl);
+   }
+   @keyframes uspCarousel {
+     0%, 25% { transform: translateY(0); }
+     30%, 55% { transform: translateY(-60px); }
+     60%, 85% { transform: translateY(-120px); }
+     90%, 100% { transform: translateY(-180px); }
    }
 
    .usp-item {
@@ -212,12 +227,25 @@
      font-size: var(--font-size-lg);
      color: var(--color-teal);
    }
+   /* Mobile USP Carousel adjustments */
+   @media (max-width: 768px) {
+     .nav-usps {
+       height: 32px;
+     }
+     .usp-item {
+       font-size: var(--font-size-xs);
+       gap: var(--spacing-xs);
+     }
+     .usp-icon {
+       font-size: var(--font-size-sm);
+     }
+   }
 
    /* Search Bar - Desktop */
    .nav-search {
      position: relative;
      width: 100%;
-     max-width: 400px;
+     max-width: 600px;
    }
 
    .nav-search-input {
@@ -958,6 +986,27 @@
 
        <!-- Desktop Navigation Center (hidden on mobile) -->
        <nav class="nav-center" role="navigation" aria-label="Main navigation">
+         <!-- USPs - Vertical Carousel -->
+         <div class="nav-usps" aria-label="Key features">
+           <div class="usp-carousel">
+             <div class="usp-item">
+               <span class="usp-icon" aria-hidden="true">⚡</span>
+               <span>Lightning Fast</span>
+             </div>
+             <div class="usp-item">
+               <span class="usp-icon" aria-hidden="true">🎯</span>
+               <span>Highly Accurate</span>
+             </div>
+             <div class="usp-item">
+               <span class="usp-icon" aria-hidden="true">🔒</span>
+               <span>100% Private</span>
+             </div>
+             <div class="usp-item">
+               <span class="usp-icon" aria-hidden="true">▶️</span>
+               <span>Voice Chat</span>
+             </div>
+           </div>
+         </div>
          <!-- Search Bar -->
          <form class="nav-search" role="search">
            <input 
