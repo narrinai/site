@@ -73,12 +73,26 @@ exports.handler = async (event, context) => {
           res.on('data', chunk => errorData += chunk);
           res.on('end', () => {
             console.error(`❌ ElevenLabs API error: ${res.statusCode} - ${errorData}`);
+            
+            // Pass through the actual status code from ElevenLabs
+            const responseCode = res.statusCode === 401 ? 401 : 
+                               res.statusCode === 400 ? 400 : 
+                               res.statusCode === 403 ? 403 : 500;
+            
             resolve({
-              statusCode: 500,
+              statusCode: responseCode,
+              headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+              },
               body: JSON.stringify({ 
                 success: false,
                 error: `ElevenLabs API error: ${res.statusCode}`,
-                details: errorData
+                details: errorData,
+                message: res.statusCode === 401 ? 'Invalid API key' :
+                        res.statusCode === 400 ? 'Invalid request - check voice ID' :
+                        res.statusCode === 403 ? 'API key quota exceeded' :
+                        'Service error'
               })
             });
           });

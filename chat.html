@@ -2450,7 +2450,8 @@ document.addEventListener('DOMContentLoaded', () => {
         'XB0fDUnXU5powFXDhCwa', 'onwK4e9ZLuTAKqWW03F9', 'fvcBHKa2lxguQE5lB4uV',
         'p3yi6sku4VQJg3uH6i6D', 'W8ouBcjTunaMJLYU2BvB', 'SyTRiCoyqTeFEk9z5HVW',
         'wdGYtWKVlLmwTxGswfYd', 'SAhaRsW91OuPlKeINYop', 'by3rQdWs4XjziQwJ2sTL',
-        'qEN0DupmmmaueYJ8Eaz8'
+        'qEN0DupmmmaueYJ8Eaz8', '21m00Tcm4TlvDq8ikWAM', 'pNInz6ObpgDQGcFmaJgB',
+        'AZnzlk1XvdvUeBnXmlld', 'CYw3kZ02Hs0563khs1Fj', 'D38z5RcWu1voky8WS1ja'
       ];
       
       // Bekende ongeldige voice IDs die vervangen moeten worden
@@ -2464,9 +2465,10 @@ document.addEventListener('DOMContentLoaded', () => {
         return invalidVoiceIds[voiceId];
       }
       
-      // Check of voice ID geldig format heeft
-      if (!voiceId || typeof voiceId !== 'string' || voiceId.length < 10 || voiceId.length > 30) {
-        console.log(`🔄 Invalid voice ID format: ${voiceId}, using fallback`);
+      // Check of voice ID geldig format heeft (ElevenLabs voice IDs zijn alfanumeriek)
+      const validFormat = /^[a-zA-Z0-9]{20,22}$/;
+      if (!voiceId || typeof voiceId !== 'string' || !validFormat.test(voiceId)) {
+        console.log(`🔄 Invalid voice ID format: "${voiceId}", using fallback`);
         return '21m00Tcm4TlvDq8ikWAM'; // Rachel - standaard ElevenLabs voice
       }
       
@@ -2501,12 +2503,22 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('📢 TTS response:', response.status, response.statusText);
 
         if (!response.ok) {
-          throw new Error(`TTS request failed: ${response.status}`);
+          // Try to get more detailed error information
+          let errorDetails = '';
+          try {
+            const errorData = await response.json();
+            errorDetails = errorData.details || errorData.error || '';
+            console.error('❌ TTS API Error Details:', errorData);
+          } catch (e) {
+            errorDetails = await response.text();
+          }
+          throw new Error(`TTS request failed: ${response.status} - ${errorDetails}`);
         }
 
         const data = await response.json();
         
         if (!data.success) {
+          console.error('❌ TTS API returned success=false:', data);
           throw new Error(data.error || 'TTS generation failed');
         }
 
@@ -2599,8 +2611,13 @@ document.addEventListener('DOMContentLoaded', () => {
           showError('Voice service is not configured. Please contact support.');
         } else if (error.message.includes('408') || error.message.includes('timeout')) {
           showError('Voice service timed out. Please try again.');
+        } else if (error.message.includes('400')) {
+          showError('Invalid voice configuration. Please try refreshing the page.');
+          console.error('❌ Voice ID issue - Current character voice_id:', currentCharacter?.voice_id);
+        } else if (error.message.includes('500')) {
+          showError('Voice service error. Please try again later.');
         } else {
-          showError('Could not play voice. Please try again.');
+          showError('Could not play voice: ' + (error.message || 'Unknown error'));
         }
       }
     }
@@ -3390,7 +3407,16 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
         const avatarHtml = getAvatarHtml();
         
         if (currentCharacter && currentCharacter.voice_id) {
-          p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${message}<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice(\`${message.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Listen to message">▶️</button></div>`;
+          // Validate voice ID before showing play button
+          const validatedVoiceId = validateAndFixVoiceId(currentCharacter.voice_id);
+          if (validatedVoiceId && validatedVoiceId !== '21m00Tcm4TlvDq8ikWAM') {
+            // Only show play button if we have a valid, non-fallback voice ID
+            p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${message}<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice(\`${message.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Listen to message">▶️</button></div>`;
+          } else {
+            // Don't show play button for invalid voice IDs
+            p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${message}`;
+            console.warn(`⚠️ Voice playback disabled for ${currentCharacter?.name} - invalid voice ID: ${currentCharacter.voice_id}`);
+          }
         } else {
           p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${message}`;
         }
@@ -3774,7 +3800,16 @@ hideTypingIndicator();
     const avatarHtml = getAvatarHtml();
     
     if (currentCharacter.voice_id) {
-      divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span><br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice(\`${reply.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Listen to message">▶️</button></div>`;
+      // Validate voice ID before showing play button
+      const validatedVoiceId = validateAndFixVoiceId(currentCharacter.voice_id);
+      if (validatedVoiceId && validatedVoiceId !== '21m00Tcm4TlvDq8ikWAM') {
+        // Only show play button if we have a valid, non-fallback voice ID
+        divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span><br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice(\`${reply.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Listen to message">▶️</button></div>`;
+      } else {
+        // Don't show play button for invalid voice IDs
+        divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span>`;
+        console.warn(`⚠️ Voice playback disabled for ${currentCharacter?.name} - invalid voice ID: ${currentCharacter.voice_id}`);
+      }
     } else {
       divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span>`;
     }

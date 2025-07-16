@@ -1557,8 +1557,8 @@ body.has-referral-banner {
     const CONFIG = {
   // Netlify Function endpoint
   CHARACTERS_API: '/.netlify/functions/characters',
-  MAX_CHARACTERS_PER_CATEGORY: 15, // Optimal number per category row
-  // Show 9 popular categories for comprehensive browsing
+  MAX_CHARACTERS_PER_CATEGORY: 8, // Maximum 8 characters per category
+  // Show multiple categories for comprehensive browsing
   CATEGORIES: [
     { id: 'historical', name: 'Historical', title: 'Historical Figures' },
     { id: 'anime-manga', name: 'Anime', title: 'Anime Characters' }, 
@@ -1568,7 +1568,16 @@ body.has-referral-banner {
     { id: 'fitness-coach', name: 'Fitness Coach', title: 'Fitness Coaches' },
     { id: 'business-coach', name: 'Business Coach', title: 'Business Coaches' },
     { id: 'gaming', name: 'Gaming', title: 'Gaming Characters' },
-    { id: 'mythology', name: 'Mythology', title: 'Mythological Characters' }
+    { id: 'mythology', name: 'Mythology', title: 'Mythological Characters' },
+    { id: 'health-coach', name: 'Health Coach', title: 'Health Coaches' },
+    { id: 'spiritual-coach', name: 'Spiritual Coach', title: 'Spiritual Coaches' },
+    { id: 'career-coach', name: 'Career Coach', title: 'Career Coaches' },
+    { id: 'education', name: 'Education', title: 'Educational Characters' },
+    { id: 'science', name: 'Science', title: 'Science Characters' },
+    { id: 'philosophy', name: 'Philosophy', title: 'Philosophical Characters' },
+    { id: 'sports', name: 'Sports', title: 'Sports Characters' },
+    { id: 'music', name: 'Music', title: 'Musical Characters' },
+    { id: 'art', name: 'Art', title: 'Art Characters' }
   ],
   TAGS: [
     'wise', 'funny', 'helpful', 'mysterious', 'leader', 
@@ -1716,16 +1725,75 @@ body.has-referral-banner {
 
     // ===== DYNAMIC CONTENT GENERATION =====
 
+// Fetch unique categories from Airtable
+async function fetchCategoriesFromAirtable() {
+  try {
+    console.log('🔍 Fetching all characters to extract categories...');
+    const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
+    url.searchParams.set('limit', '1000'); // Get many characters to extract all categories
+    
+    const response = await fetch(url.toString());
+    if (!response.ok) {
+      console.error('❌ Failed to fetch categories, status:', response.status);
+      return [];
+    }
+    
+    const data = await response.json();
+    if (!data.success || !data.characters) {
+      console.error('❌ Invalid response for categories:', data);
+      return [];
+    }
+    
+    // Extract unique categories
+    const categoriesMap = new Map();
+    data.characters.forEach(character => {
+      if (character.Category) {
+        const categoryId = character.Category.toLowerCase().replace(/\s+/g, '-');
+        if (!categoriesMap.has(categoryId)) {
+          categoriesMap.set(categoryId, {
+            id: categoryId,
+            name: character.Category,
+            title: character.Category.includes('Coach') ? `${character.Category}es` : `${character.Category} Characters`,
+            count: 1
+          });
+        } else {
+          categoriesMap.get(categoryId).count++;
+        }
+      }
+    });
+    
+    // Convert to array and filter out movies and life coaches
+    const categories = Array.from(categoriesMap.values())
+      .filter(cat => {
+        const lowerName = cat.name.toLowerCase();
+        return !lowerName.includes('movie') && !lowerName.includes('life coach') && !lowerName.includes('life-coach');
+      })
+      .sort((a, b) => b.count - a.count); // Sort by count descending
+    
+    console.log(`✅ Found ${categories.length} unique categories (excluding movies/life coaches)`);
+    return categories;
+  } catch (error) {
+    console.error('❌ Error fetching categories:', error);
+    return [];
+  }
+}
+
    // Generate category buttons - Show first 4 on mobile, all on desktop (only for valid categories)
-function generateCategoryButtons() {
+async function generateCategoryButtons() {
   const categoryButtons = document.getElementById('categoryButtons');
   const extraCategoryButtons = document.getElementById('extraCategoryButtons');
   
-  categoryButtons.innerHTML = '';
+  categoryButtons.innerHTML = '<div class="loading" style="margin: 0 auto;" aria-label="Loading categories"></div>';
   if (extraCategoryButtons) extraCategoryButtons.innerHTML = '';
 
-  // Use valid categories (with 50+ characters) if available, otherwise use all categories
-  const categoriesToUse = window.validCategories || CONFIG.CATEGORIES;
+  // Fetch categories from Airtable
+  const airtableCategories = await fetchCategoriesFromAirtable();
+  
+  // Use Airtable categories if available, otherwise fallback to CONFIG
+  const categoriesToUse = airtableCategories.length > 0 ? airtableCategories : CONFIG.CATEGORIES;
+  window.validCategories = categoriesToUse; // Store for other functions
+  
+  categoryButtons.innerHTML = ''; // Clear loading
   
   // Filter categories with 5+ characters in name
   const filteredCategories = categoriesToUse.filter(category => category.name.length >= 5);
@@ -1752,11 +1820,6 @@ function generateCategoryButtons() {
     moreButton.textContent = `+${filteredCategories.length - 3} More...`;
     categoryButtons.appendChild(moreButton);
   }
-
-  // Disable extra category buttons for faster loading
-  // if (extraCategoryButtons) {
-  //   extraCategoryButtons.innerHTML = '';
-  // }
 }
 
 // Store tag counts globally
@@ -1957,18 +2020,21 @@ async function generateExtraTagButtons() {
       }
     }
 
-    // Generate character sections with mid-page CTA (only for categories with 50+ characters)
+    // Generate character sections with mid-page CTA
     async function generateCharacterSections() {
       const sectionsContainer = document.getElementById('characterSections');
       const midPageCTA = document.getElementById('midPageCTA');
       sectionsContainer.innerHTML = '';
       midPageCTA.innerHTML = '';
 
-      console.log('🚀 Using predefined top 6 categories for fast loading...');
+      // Wait for categories to be loaded if not already available
+      if (!window.validCategories || window.validCategories.length === 0) {
+        console.log('⏳ Waiting for categories to be loaded...');
+        await generateCategoryButtons();
+      }
       
-      // Use all configured categories without checking counts for speed
-      const validCategories = CONFIG.CATEGORIES;
-      console.log(`✅ Showing ${validCategories.length} top categories:`, validCategories.map(c => c.name));
+      const validCategories = window.validCategories || CONFIG.CATEGORIES;
+      console.log(`✅ Showing ${validCategories.length} categories from Airtable`);
 
       // Split valid categories into two groups
       const firstHalf = validCategories.slice(0, Math.ceil(validCategories.length / 2));
@@ -1998,9 +2064,6 @@ async function generateExtraTagButtons() {
         const section = createCategorySection(category);
         midPageCTA.appendChild(section);
       });
-
-      // Store valid categories globally for other functions to use
-      window.validCategories = validCategories;
     }
     
     // Helper function to create category section
@@ -2480,8 +2543,9 @@ if (window.netlifyIdentity) {
       // Initialize authentication check first
       initializeAuthenticationCheck();
       
-      // FAST LOADING: Show buttons immediately without character count checking
-      generateCategoryButtons();
+      // Load categories from Airtable first
+      await generateCategoryButtons();
+      console.log('✅ Categories loaded from Airtable');
       
       // Load tag buttons (these now check character counts)
       console.log('🚀 About to generate tag buttons...');
@@ -2490,7 +2554,7 @@ if (window.netlifyIdentity) {
       await generateExtraTagButtons();
       console.log('✅ Extra tag buttons generated');
       
-      // Generate character sections (this will check character counts for content)
+      // Generate character sections using Airtable categories
       await generateCharacterSections();
       
       // Load character data
