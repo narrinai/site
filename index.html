@@ -1980,11 +1980,11 @@ async function generateTagButtons() {
 
   // If tag counting failed, show debug info and fallback to showing all tags
   if (Object.keys(tagCharacterCounts).length === 0) {
-    console.log('❌ Tag counting failed, showing all tags as fallback');
-    tagsContainer.innerHTML = '<span style="color: var(--color-red); font-size: var(--font-size-sm);">Tag counting failed - showing all tags</span>';
+    console.log('⚠️ Tag counting failed, showing popular tags as fallback');
     
-    // Fallback: show all tags
-    CONFIG.TAGS.filter(tag => tag.length >= 5).forEach(tag => {
+    // Fallback: show popular tags
+    const popularTags = ['wise', 'funny', 'helpful', 'creative', 'leader', 'mentor', 'inspiring', 'genius'];
+    popularTags.forEach(tag => {
       const button = document.createElement('a');
       button.href = `tags.html?tag=${tag}`;
       button.className = 'tag-btn';
@@ -2134,9 +2134,13 @@ async function generateExtraTagButtons() {
       const validCategories = window.validCategories || CONFIG.CATEGORIES;
       console.log(`✅ Showing ${validCategories.length} categories from Airtable`);
 
-      // Split valid categories into two groups
-      const firstHalf = validCategories.slice(0, Math.ceil(validCategories.length / 2));
-      const secondHalf = validCategories.slice(Math.ceil(validCategories.length / 2));
+      // Limit to maximum 8 categories on homepage
+      const categoriesToShow = validCategories.slice(0, 8);
+      console.log(`📊 Limiting to ${categoriesToShow.length} categories on homepage`);
+
+      // Split categories into two groups
+      const firstHalf = categoriesToShow.slice(0, Math.ceil(categoriesToShow.length / 2));
+      const secondHalf = categoriesToShow.slice(Math.ceil(categoriesToShow.length / 2));
       
       // Generate first half of categories
       firstHalf.forEach(category => {
@@ -2216,7 +2220,7 @@ async function loadCharactersFromNetlify(category, gridId, limit = CONFIG.MAX_CH
   // Build API URL
   const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
   url.searchParams.set('category', category);
-  url.searchParams.set('limit', limit.toString());
+  url.searchParams.set('limit', '50'); // Request more to ensure we have enough
   
   console.log(`📡 Fetching from Netlify Function:`, url.toString());
   
@@ -2397,7 +2401,8 @@ function processNetlifyData(characters, category, gridId, limit) {
       
       // Check grids after 3 seconds
       setTimeout(() => {
-        CONFIG.CATEGORIES.forEach(category => {
+        const categoriesToCheck = (window.validCategories || CONFIG.CATEGORIES).slice(0, 8);
+        categoriesToCheck.forEach(category => {
           const grid = document.getElementById(`${category.id}-grid`);
           const cards = grid.querySelectorAll('.character-card');
           console.log(`📊 ${category.id}: ${cards.length} cards loaded (max allowed: ${CONFIG.MAX_CHARACTERS_PER_CATEGORY})`);
@@ -2425,8 +2430,14 @@ function processNetlifyData(characters, category, gridId, limit) {
 
     // UPDATED: Initialize character grids only for valid categories (50+ characters)
     function initializeCharacterGrids() {
+      console.log('🎬 initializeCharacterGrids called');
       const categoriesToLoad = window.validCategories || CONFIG.CATEGORIES;
-      categoriesToLoad.forEach(category => {
+      // Limit to maximum 8 categories on homepage
+      const limitedCategories = categoriesToLoad.slice(0, 8);
+      console.log(`📌 Loading ${limitedCategories.length} categories (max 8)`);
+      
+      limitedCategories.forEach((category, index) => {
+        console.log(`📦 Category ${index + 1}:`, category);
         loadCharacters(category.id, `${category.id}-grid`, CONFIG.MAX_CHARACTERS_PER_CATEGORY);
       });
     }
@@ -2659,7 +2670,9 @@ if (window.netlifyIdentity) {
       initializeCharacterGrids();
       
       // Debug what gets loaded
-      debugLoadProcess();
+      setTimeout(() => {
+        debugLoadProcess();
+      }, 5000); // Wait 5 seconds to ensure all data is loaded
       
       console.log('✅ Initialization complete');
       // Check voor referral parameter bij pagina load
