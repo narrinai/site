@@ -2286,10 +2286,8 @@ async function generateExtraTagButtons() {
             categorized[normalizedCat] = [];
           }
           
-          // Add character if has valid avatar
-          if (hasValidAvatar(character)) {
-            categorized[normalizedCat].push(character);
-          }
+          // Add character (check avatar later for display, don't filter here)
+          categorized[normalizedCat].push(character);
         });
         
         console.log('📊 Categorized characters:', Object.keys(categorized).map(cat => 
@@ -2302,7 +2300,7 @@ async function generateExtraTagButtons() {
         
         // Add priority categories first if they have enough characters
         priorityCategories.forEach(catId => {
-          if (categorized[catId] && categorized[catId].length >= 3) { // Lowered threshold to 3 to see results
+          if (categorized[catId] && categorized[catId].length >= 1) { // Show categories with at least 1 character
             categoriesToShow.push(catId);
           }
         });
@@ -2310,7 +2308,7 @@ async function generateExtraTagButtons() {
         // Add other categories if needed
         Object.keys(categorized).forEach(catId => {
           if (!priorityCategories.includes(catId) && 
-              categorized[catId].length >= 3 &&
+              categorized[catId].length >= 1 &&
               categoriesToShow.length < 8) {
             categoriesToShow.push(catId);
           }
@@ -2372,9 +2370,11 @@ async function generateExtraTagButtons() {
           if (grid && categorized[catId]) {
             const charactersToShow = categorized[catId].slice(0, 8);
             console.log(`📋 Displaying ${charactersToShow.length} characters for ${catId} in grid ${gridId}`);
+            console.log(`📋 First character example:`, charactersToShow[0]);
             displayCharactersInGrid(grid, charactersToShow);
           } else {
             console.log(`⚠️ Grid not found for ${catId}, looking for element: ${gridId}`);
+            console.log(`⚠️ Available elements:`, Array.from(document.querySelectorAll('[id*="grid"]')).map(el => el.id));
           }
         });
         
@@ -2394,17 +2394,19 @@ async function generateExtraTagButtons() {
         const card = document.createElement('a');
         card.href = `chat.html?char=${char.Slug}`;
         card.className = 'character-card';
+        
+        // Use the correct HTML structure that matches the CSS
         card.innerHTML = `
-          <div class="card-image-wrapper">
-            <img src="${avatarUrl}" alt="${char.Name}" loading="lazy">
-            <div class="card-overlay">
-              <h3>${char.Name}</h3>
-              <p>${char.Character_Title || ''}</p>
-            </div>
+          <div class="character-avatar">
+            <img src="${avatarUrl}" alt="${char.Name}" loading="lazy" onerror="this.style.display='none'">
           </div>
+          <div class="character-name">${char.Name}</div>
+          <div class="character-title">${char.Character_Title || ''}</div>
         `;
         grid.appendChild(card);
       });
+      
+      console.log(`✅ Added ${characters.length} character cards to grid`);
     }
 
     // UPDATED: Load characters function with enforced 10 character limit
