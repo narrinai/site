@@ -952,6 +952,26 @@ def generate_title_description(name, category):
         'cooking-coach': [
             'Culinary Master', 'Cuisine Expert', 'Kitchen Wizard', 'Food Artist',
             'Recipe Creator', 'Cooking Mentor', 'Chef Instructor', 'Culinary Guide'
+        ],
+        'romance': [
+            'Romance Expert', 'Love Coach', 'Relationship Specialist', 'Dating Advisor',
+            'Heart Healer', 'Love Mentor', 'Romance Guide', 'Relationship Expert'
+        ],
+        'gen-z': [
+            'Digital Native', 'Social Media Expert', 'Gen Z Voice', 'Youth Culture Guide',
+            'Trend Expert', 'Digital Creator', 'Young Influencer', 'Modern Mentor'
+        ],
+        'middle-aged': [
+            'Life Coach', 'Midlife Expert', 'Experience Guide', 'Transition Specialist',
+            'Wisdom Mentor', 'Life Navigator', 'Growth Advisor', 'Mature Mentor'
+        ],
+        'older': [
+            'Senior Advisor', 'Wisdom Keeper', 'Life Expert', 'Elder Guide',
+            'Experience Master', 'Legacy Mentor', 'Senior Specialist', 'Golden Years Expert'
+        ],
+        'humor': [
+            'Comedy Expert', 'Humor Specialist', 'Laughter Coach', 'Fun Mentor',
+            'Comedy Guide', 'Humor Master', 'Entertainment Pro', 'Laughter Expert'
         ]
     }
     
@@ -990,6 +1010,41 @@ def generate_title_description(name, category):
             'Teaches authentic cooking methods passed down through generations.',
             'Specializes in making gourmet cooking accessible to home chefs.',
             'Passionate about exploring flavors and creating memorable dining experiences.',
+        ],
+        'romance': [
+            'Expert in matters of the heart, helping people find and nurture meaningful connections.',
+            'Specializes in guiding individuals through the complexities of modern relationships.',
+            'Passionate about helping people create lasting love and deep emotional bonds.',
+            'Dedicated to teaching the art of romance and building healthy relationships.',
+            'Helps navigate the journey of love from first dates to lasting partnerships.',
+        ],
+        'gen-z': [
+            'Digital native who understands the pulse of youth culture and modern trends.',
+            'Expert in social media, technology, and the evolving digital landscape.',
+            'Bridges generational gaps with insight into Gen Z values and communication.',
+            'Passionate about empowering young voices and fostering digital creativity.',
+            'Guides through the complexities of growing up in the digital age.',
+        ],
+        'middle-aged': [
+            'Experienced guide through midlife transitions and personal growth opportunities.',
+            'Helps navigate career changes, family dynamics, and life balance challenges.',
+            'Expert in turning midlife questions into opportunities for renewal and growth.',
+            'Specializes in helping people find purpose and passion in their middle years.',
+            'Dedicated to supporting individuals through life\'s second act with wisdom and grace.',
+        ],
+        'older': [
+            'Wise mentor sharing decades of life experience and hard-won wisdom.',
+            'Expert in navigating the golden years with dignity, purpose, and joy.',
+            'Helps bridge generational understanding while honoring life\'s journey.',
+            'Specializes in legacy building and sharing accumulated knowledge.',
+            'Dedicated to proving that the best chapters of life can come at any age.',
+        ],
+        'humor': [
+            'Master of laughter who brings joy and lightness to every interaction.',
+            'Expert in finding humor in life\'s situations and spreading positive energy.',
+            'Uses comedy to heal, connect, and bring perspective to challenges.',
+            'Specializes in turning frowns upside down with wit and clever observations.',
+            'Dedicated to proving that laughter truly is the best medicine.',
         ]
     }
     
