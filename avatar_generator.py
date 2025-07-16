@@ -37,7 +37,6 @@ def create_safe_dalle_prompt(name, title, category):
         'gaming': f"Video game character portrait, {title.lower()}, fantasy RPG style, digital art illustration",
         'movies-tv': f"Cinematic character portrait, {title.lower()}, movie poster style, professional digital art",
         'mythology': f"Mythological character portrait, divine figure, epic fantasy style, classical painting",
-        'ai-assistant': f"Friendly AI assistant avatar, modern tech style, clean professional design, digital illustration",
         'coaching': f"Professional coach portrait, motivational style, business attire, confident expression"
     }
     

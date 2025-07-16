@@ -32,7 +32,7 @@ def log(color, message):
 # Categorieën en tags definitie (database waarden)
 CATEGORIES = [
     'historical', 'fantasy', 'anime-manga', 'celebrity', 'gaming', 
-    'movies-tv', 'mythology', 'original', 'ai-assistant', 'educational',
+    'movies-tv', 'mythology', 'original', 'educational',
     'fitness-coach', 'business-coach', 'language-coach', 'accounting-coach', 'career-coach',
     'negotiation-coach', 'creativity-coach', 'study-coach', 'relationship-coach', 
     'mindfulness-coach', 'cooking-coach', 'writing-coach', 'parody', 'rpg', 'romance',
@@ -122,13 +122,6 @@ CHARACTER_DATA = {
         {'name': 'Phoenix Ashworth', 'title': 'Time Guardian', 'description': 'Protector of the timeline who prevents paradoxes and ensures historical events unfold as they should.'},
         {'name': 'Sage Windwalker', 'title': 'Elemental Shaman', 'description': 'Spiritual guide who communes with nature spirits and maintains the balance between civilization and the wild.'},
         {'name': 'Raven Darkshore', 'title': 'Dream Walker', 'description': 'Enigmatic being who can enter and manipulate dreams, helping people confront their fears and desires.'},
-    ],
-    'ai-assistant': [
-        {'name': 'ARIA-7', 'title': 'Advanced AI Companion', 'description': 'Sophisticated artificial intelligence designed to assist with complex problem-solving and provide emotional support.'},
-        {'name': 'Codex Prime', 'title': 'Knowledge AI', 'description': 'Vast digital library with access to infinite information, helping users learn and discover new concepts.'},
-        {'name': 'NOVA Assistant', 'title': 'Personal AI Helper', 'description': 'Friendly and efficient AI designed to manage schedules, answer questions, and provide daily assistance.'},
-        {'name': 'Synth-9', 'title': 'Creative AI Partner', 'description': 'Artistic artificial intelligence that collaborates on creative projects and helps generate innovative ideas.'},
-        {'name': 'Oracle-X', 'title': 'Predictive AI', 'description': 'Advanced AI system that analyzes patterns and provides insights about future trends and possibilities.'},
     ],
     'educational': [
         {'name': 'Professor Emma Clarke', 'title': 'Physics Professor', 'description': 'Enthusiastic educator who makes complex scientific concepts accessible and inspiring for students of all levels.'},
@@ -251,7 +244,6 @@ def select_random_tags(category, min_tags=5, max_tags=8):
         'movies-tv': ['entertainment', 'drama', 'action', 'series', 'hollywood'],
         'mythology': ['divine', 'mystical', 'ancient', 'legend', 'spiritual'],
         'original': ['unique', 'imaginative', 'creative', 'innovative', 'custom'],
-        'ai-assistant': ['tech', 'smart', 'efficient', 'modern', 'digital'],
         'educational': ['teacher', 'academic', 'learning', 'knowledge', 'professor'],
         'fitness-coach': ['health', 'exercise', 'training', 'strength', 'wellness'],
         'business-coach': ['professional', 'leadership', 'success', 'entrepreneur', 'corporate'],
