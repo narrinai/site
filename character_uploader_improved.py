@@ -119,7 +119,22 @@ def get_categories_from_airtable():
             simplified_categories.append(cat)
     
     log(Colors.GREEN, f"✅ {len(simplified_categories)} toegestane categorieën gevonden")
-    return sorted(simplified_categories)
+    
+    # Prioriteer bepaalde categorieën
+    priority_categories = ['Romance', 'Spiritual', 'Health', 'Humor']
+    
+    # Sorteer zodat priority categorieën eerst komen
+    prioritized = []
+    others = []
+    
+    for cat in simplified_categories:
+        if any(p.lower() == cat.lower() for p in priority_categories):
+            prioritized.append(cat)
+        else:
+            others.append(cat)
+    
+    # Sorteer beide lijsten en combineer (priority eerst)
+    return sorted(prioritized) + sorted(others)
 
 def get_existing_tags_from_airtable():
     """Haal alle unieke tags op uit Airtable"""
@@ -470,6 +485,8 @@ def main():
         
         # Haal categorieën uit Airtable
         categories = get_categories_from_airtable()
+        
+        log(Colors.CYAN, f"📋 Volgorde van categorieën: {categories[:4]} (eerst), dan de rest...")
         
         # Haal bestaande characters op
         existing_names, category_counts = get_existing_characters_by_category()
