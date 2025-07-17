@@ -8,6 +8,12 @@ exports.handler = async (event, context) => {
   };
 
   console.log('🚀 DEBUG Function started, method:', event.httpMethod);
+  console.log('🔑 Environment check at start:', {
+    hasToken: !!process.env.AIRTABLE_TOKEN,
+    hasBaseId: !!process.env.AIRTABLE_BASE_ID,
+    hasTableId: !!process.env.AIRTABLE_TABLE_ID,
+    timestamp: new Date().toISOString()
+  });
 
   // Handle OPTIONS request
   if (event.httpMethod === 'OPTIONS') {
