@@ -20,6 +20,7 @@ load_dotenv()
 # Airtable configuratie
 AIRTABLE_TOKEN = os.getenv('AIRTABLE_TOKEN') or os.getenv('AIRTABLE_API_KEY')
 AIRTABLE_BASE = os.getenv('AIRTABLE_BASE_ID')
+AIRTABLE_TABLE = os.getenv('AIRTABLE_TABLE_ID', 'Characters')  # Default naar 'Characters' als niet ingesteld
 
 if not AIRTABLE_TOKEN or not AIRTABLE_BASE:
     raise ValueError("AIRTABLE_TOKEN en AIRTABLE_BASE_ID moeten zijn ingesteld in .env bestand")
@@ -54,7 +55,7 @@ BUDDY_TAGS = ['casual', 'relaxed', 'chill', 'easygoing', 'humorous', 'playful', 
 
 def get_categories_from_airtable():
     """Haal alle unieke categorieën op uit Airtable"""
-    url = f"https://api.airtable.com/v0/{AIRTABLE_BASE}/Characters"
+    url = f"https://api.airtable.com/v0/{AIRTABLE_BASE}/{AIRTABLE_TABLE}"
     headers = {
         'Authorization': f'Bearer {AIRTABLE_TOKEN}',
         'Content-Type': 'application/json'
@@ -89,18 +90,40 @@ def get_categories_from_airtable():
             log(Colors.RED, f"❌ Fout bij ophalen categorieën: {e}")
             break
     
-    # Filter alleen de nieuwe simpele categorieën (zonder -coach suffix)
+    # Alleen deze specifieke categorieën gebruiken
+    allowed_categories = [
+        'Historical',
+        'Anime & Manga', 
+        'Mythology',
+        'Fictional',
+        'Celebrities',
+        'Gaming',
+        'Relationship',
+        'Career',
+        'Fitness',
+        'Mindfulness',
+        'Business',
+        'Health',
+        'Spiritual',
+        'Cooking',
+        'Negotiation',
+        'Education',
+        'Language',
+        'Romance'
+    ]
+    
+    # Filter alleen toegestane categorieën (case-insensitive)
     simplified_categories = []
     for cat in categories:
-        if cat and not cat.endswith('-coach'):
+        if cat and any(allowed.lower() == cat.lower() for allowed in allowed_categories):
             simplified_categories.append(cat)
     
-    log(Colors.GREEN, f"✅ {len(simplified_categories)} categorieën gevonden")
+    log(Colors.GREEN, f"✅ {len(simplified_categories)} toegestane categorieën gevonden")
     return sorted(simplified_categories)
 
 def get_existing_characters_by_category():
     """Haal alle bestaande characters op uit Airtable, gegroepeerd per categorie"""
-    url = f"https://api.airtable.com/v0/{AIRTABLE_BASE}/Characters"
+    url = f"https://api.airtable.com/v0/{AIRTABLE_BASE}/{AIRTABLE_TABLE}"
     headers = {
         'Authorization': f'Bearer {AIRTABLE_TOKEN}',
         'Content-Type': 'application/json'
@@ -183,28 +206,26 @@ def generate_title_description(name, category, character_type):
     
     category_contexts = {
         'historical': 'historical knowledge and timeless wisdom',
-        'fantasy': 'magical adventures and mythical quests',
-        'anime-manga': 'anime culture and manga stories',
-        'celebrity': 'entertainment and celebrity lifestyle',
-        'gaming': 'gaming strategies and virtual worlds',
-        'movies-tv': 'film and television entertainment',
+        'anime & manga': 'anime culture and manga stories',
         'mythology': 'ancient myths and legendary tales',
-        'romance': 'love, relationships, and emotional connections',
-        'humor': 'comedy, jokes, and light-hearted fun',
         'fictional': 'imaginative stories and creative narratives',
-        'gen-z': 'modern trends and youth culture',
-        'business': 'entrepreneurship and business strategies',
-        'fitness': 'health, wellness, and physical training',
-        'cooking': 'culinary arts and delicious recipes',
-        'mindfulness': 'meditation, peace, and mental wellness',
-        'language': 'language learning and communication',
-        'career': 'professional development and career growth',
+        'celebrities': 'entertainment and celebrity lifestyle',
+        'gaming': 'gaming strategies and virtual worlds',
         'relationship': 'personal connections and emotional bonds',
+        'career': 'professional development and career growth',
+        'fitness': 'health, wellness, and physical training',
+        'mindfulness': 'meditation, peace, and mental wellness',
+        'business': 'entrepreneurship and business strategies',
+        'health': 'wellness, medical knowledge, and healthy living',
+        'spiritual': 'spirituality, inner growth, and enlightenment',
+        'cooking': 'culinary arts and delicious recipes',
         'negotiation': 'deal-making and conflict resolution',
-        'educational': 'learning, knowledge, and academic excellence'
+        'education': 'learning, knowledge, and academic excellence',
+        'language': 'language learning and communication',
+        'romance': 'love, relationships, and emotional connections'
     }
     
-    context = category_contexts.get(category, 'general assistance and support')
+    context = category_contexts.get(category.lower(), 'general assistance and support')
     
     if character_type == 'companion':
         titles = [
@@ -314,7 +335,7 @@ def create_character(category, existing_names):
 
 def create_character_in_airtable(character_data):
     """Voeg character toe aan Airtable"""
-    url = f"https://api.airtable.com/v0/{AIRTABLE_BASE}/Characters"
+    url = f"https://api.airtable.com/v0/{AIRTABLE_BASE}/{AIRTABLE_TABLE}"
     headers = {
         'Authorization': f'Bearer {AIRTABLE_TOKEN}',
         'Content-Type': 'application/json'
@@ -328,6 +349,10 @@ def create_character_in_airtable(character_data):
         response = requests.post(url, headers=headers, json=payload)
         response.raise_for_status()
         return response.json()
+    except requests.exceptions.HTTPError as e:
+        # Log de volledige error response voor debugging
+        log(Colors.RED, f"❌ HTTP Error {response.status_code}: {response.text}")
+        raise Exception(f"Fout bij aanmaken character: {e}")
     except Exception as e:
         raise Exception(f"Fout bij aanmaken character: {e}")
 
@@ -337,6 +362,12 @@ def main():
         log(Colors.CYAN, "🚀 Character Uploader Improved gestart")
         log(Colors.CYAN, f"📊 Voegt maximaal {MAX_CHARACTERS_TO_ADD} characters toe per categorie")
         log(Colors.CYAN, f"🎯 Character type verdeling: {CHARACTER_TYPE_WEIGHTS}")
+        
+        # Debug environment variabelen
+        log(Colors.BLUE, f"🔧 Environment check:")
+        log(Colors.BLUE, f"   AIRTABLE_BASE_ID: {AIRTABLE_BASE[:10]}..." if AIRTABLE_BASE else "   ❌ AIRTABLE_BASE_ID not set!")
+        log(Colors.BLUE, f"   AIRTABLE_TABLE_ID: {AIRTABLE_TABLE}")
+        log(Colors.BLUE, f"   AIRTABLE_TOKEN: {'✅ Set' if AIRTABLE_TOKEN else '❌ Not set!'}")
         
         # Haal categorieën uit Airtable
         categories = get_categories_from_airtable()
