@@ -1878,7 +1878,7 @@ async function generateCategoryButtons() {
 
   // Determine how many to show based on screen size  
   const isMobile = window.innerWidth <= 768;
-  const categoriesToShow = isMobile ? filteredCategories.slice(0, 3) : filteredCategories.slice(0, 6); // Max 2 rows of 3 on desktop
+  const categoriesToShow = isMobile ? filteredCategories.slice(0, 3) : filteredCategories.slice(0, 8); // Show 8 categories like category.html
 
   // Function to populate category buttons
   const populateButtons = (container) => {
@@ -2478,7 +2478,7 @@ async function loadCharactersFromNetlify(category, gridId, limit = CONFIG.MAX_CH
   // Build API URL
   const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
   url.searchParams.set('category', category);
-  url.searchParams.set('limit', '200'); // Request many more to ensure we have enough for each category
+  url.searchParams.set('limit', '100'); // Reduced for faster initial load
   
   console.log(`📡 Fetching from Netlify Function for category "${category}":`, url.toString());
   console.log(`🔍 Request details: category="${category}", limit="${limit}"`);

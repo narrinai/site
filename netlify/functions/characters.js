@@ -1,8 +1,8 @@
 // netlify/functions/characters.js
 
-// Simple in-memory cache
+// Simple in-memory cache with longer TTL for better performance
 const cache = new Map();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL = 30 * 60 * 1000; // 30 minutes - characters don't change often
 
 exports.handler = async (event, context) => {
   // CORS headers
@@ -11,7 +11,8 @@ exports.handler = async (event, context) => {
     'Access-Control-Allow-Headers': 'Content-Type',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
     'Content-Type': 'application/json',
-    'Cache-Control': 'public, max-age=300' // Browser cache for 5 minutes
+    'Cache-Control': 'public, max-age=1800', // Browser cache for 30 minutes
+    'X-Content-Type-Options': 'nosniff'
   };
 
   // Handle preflight OPTIONS request
@@ -53,24 +54,22 @@ exports.handler = async (event, context) => {
     // }
 
     // Get query parameters
-    const { category, tag, limit = 5000 } = event.queryStringParameters || {};
+    const { category, tag, limit = 5000, mode } = event.queryStringParameters || {};
     
-    console.log('Request params:', { category, tag, limit });
+    console.log('Request params:', { category, tag, limit, mode });
 
-    // Create cache key
-    const cacheKey = `${category || 'all'}-${tag || 'none'}-${limit}`;
+    // Create cache key including mode
+    const cacheKey = `${category || 'all'}-${tag || 'none'}-${limit}-${mode || 'full'}`;
     
-    // Check cache first - but only in production
-    if (process.env.CONTEXT === 'production') {
-      const cachedEntry = cache.get(cacheKey);
-      if (cachedEntry && (Date.now() - cachedEntry.timestamp < CACHE_TTL)) {
-        console.log('📦 Returning cached response for:', cacheKey);
-        return {
-          statusCode: 200,
-          headers,
-          body: JSON.stringify(cachedEntry.data)
-        };
-      }
+    // Always check cache, not just in production - for better performance
+    const cachedEntry = cache.get(cacheKey);
+    if (cachedEntry && (Date.now() - cachedEntry.timestamp < CACHE_TTL)) {
+      console.log('📦 Returning cached response for:', cacheKey);
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify(cachedEntry.data)
+      };
     }
 
     // Fetch all records using pagination if needed
