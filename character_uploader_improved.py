@@ -90,33 +90,56 @@ def get_categories_from_airtable():
             log(Colors.RED, f"❌ Fout bij ophalen categorieën: {e}")
             break
     
-    # Alleen deze specifieke categorieën gebruiken
-    allowed_categories = [
-        'Historical',
-        'Anime & Manga', 
-        'Mythology',
-        'Fictional',
-        'Celebrities',
-        'Gaming',
-        'Relationship',
-        'Career',
-        'Fitness',
-        'Mindfulness',
-        'Business',
-        'Health',
-        'Spiritual',
-        'Cooking',
-        'Negotiation',
-        'Education',
-        'Language',
-        'Romance'
-    ]
+    # Alleen deze specifieke categorieën gebruiken (inclusief mapping voor oude namen)
+    category_mapping = {
+        'historical': 'Historical',
+        'anime & manga': 'Anime & Manga',
+        'anime-manga': 'Anime & Manga',
+        'mythology': 'Mythology',
+        'fictional': 'Fictional',
+        'celebrities': 'Celebrities',
+        'celebrity': 'Celebrities',
+        'gaming': 'Gaming',
+        'relationship': 'Relationship',
+        'relationship-coach': 'Relationship',
+        'career': 'Career',
+        'career-coach': 'Career',
+        'fitness': 'Fitness',
+        'fitness-coach': 'Fitness',
+        'mindfulness': 'Mindfulness',
+        'mindfulness-coach': 'Mindfulness',
+        'business': 'Business',
+        'business-coach': 'Business',
+        'health': 'Health',
+        'health-coach': 'Health',
+        'spiritual': 'Spiritual',
+        'spiritual-coach': 'Spiritual',
+        'cooking': 'Cooking',
+        'cooking-coach': 'Cooking',
+        'negotiation': 'Negotiation',
+        'negotiation-coach': 'Negotiation',
+        'education': 'Education',
+        'educational': 'Education',
+        'language': 'Language',
+        'language-coach': 'Language',
+        'romance': 'Romance'
+    }
     
-    # Filter alleen toegestane categorieën (case-insensitive)
+    # Debug: toon alle categorieën uit Airtable
+    log(Colors.BLUE, f"📝 Alle categorieën uit Airtable: {sorted(categories)}")
+    
+    # Filter en map categorieën naar de juiste namen
     simplified_categories = []
     for cat in categories:
-        if cat and any(allowed.lower() == cat.lower() for allowed in allowed_categories):
-            simplified_categories.append(cat)
+        if cat:
+            # Kijk of deze categorie in onze mapping staat
+            mapped_cat = category_mapping.get(cat.lower())
+            if mapped_cat:
+                simplified_categories.append(mapped_cat)
+                if cat.lower() != mapped_cat.lower():
+                    log(Colors.CYAN, f"   🔄 Categorie '{cat}' gemapped naar '{mapped_cat}'")
+            else:
+                log(Colors.YELLOW, f"   ⚠️  Categorie '{cat}' niet toegestaan of niet gevonden")
     
     log(Colors.GREEN, f"✅ {len(simplified_categories)} toegestane categorieën gevonden")
     
