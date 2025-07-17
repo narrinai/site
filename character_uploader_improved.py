@@ -427,7 +427,7 @@ def create_character(category, existing_names, valid_tags):
         'Slug': slug,
         'Character_URL': f"https://narrin.ai/chat/{slug}",
         'Prompt': prompt,
-        'Visibility': 'Public'
+        'Visibility': 'public'
     }
     
     return character_data
