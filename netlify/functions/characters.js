@@ -1,11 +1,17 @@
 // netlify/functions/characters.js
+
+// Simple in-memory cache
+const cache = new Map();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
 exports.handler = async (event, context) => {
   // CORS headers
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'Cache-Control': 'public, max-age=300' // Browser cache for 5 minutes
   };
 
   // Handle preflight OPTIONS request
@@ -51,6 +57,20 @@ exports.handler = async (event, context) => {
     
     console.log('Request params:', { category, tag, limit });
 
+    // Create cache key
+    const cacheKey = `${category || 'all'}-${tag || 'none'}-${limit}`;
+    
+    // Check cache first
+    const cachedEntry = cache.get(cacheKey);
+    if (cachedEntry && (Date.now() - cachedEntry.timestamp < CACHE_TTL)) {
+      console.log('📦 Returning cached response for:', cacheKey);
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify(cachedEntry.data)
+      };
+    }
+
     // Fetch all records using pagination if needed
     let allRecords = [];
     let offset = null;
@@ -71,6 +91,12 @@ exports.handler = async (event, context) => {
       // Use higher limit for pagination to reduce requests
       // Airtable max is 100 per request
       params.set('pageSize', '100');
+      
+      // Only fetch necessary fields to reduce payload size
+      const fields = ['Name', 'Character_Title', 'Character_Description', 
+                     'Category', 'Tags', 'Slug', 'Avatar_File', 'Avatar_URL',
+                     'Character_URL', 'Character_ID', 'voice_id', 'voice_type'];
+      fields.forEach(field => params.set('fields[]', field));
       
       // Add offset for pagination
       if (offset) {
@@ -102,8 +128,7 @@ exports.handler = async (event, context) => {
 
       const data = await response.json();
       console.log(`✅ Retrieved ${data.records?.length || 0} records from request ${requestCount}`);
-      console.log(`🔍 Response keys:`, Object.keys(data));
-      console.log(`🔍 Raw Airtable response:`, JSON.stringify(data, null, 2).substring(0, 500) + '...');
+      // Removed verbose logging for better performance
       
       // Add records to our collection
       if (data.records) {
@@ -213,15 +238,25 @@ exports.handler = async (event, context) => {
     
     console.log(`📦 Returning ${limitedCharacters.length} characters (requested: ${requestedLimit}, available: ${filteredCharacters.length})`);
 
+    // Prepare response data
+    const responseData = {
+      success: true,
+      total: filteredCharacters.length,
+      returned: limitedCharacters.length,
+      characters: limitedCharacters
+    };
+
+    // Store in cache
+    cache.set(cacheKey, {
+      timestamp: Date.now(),
+      data: responseData
+    });
+    console.log('💾 Cached response for:', cacheKey);
+
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({
-        success: true,
-        total: filteredCharacters.length,
-        returned: limitedCharacters.length,
-        characters: limitedCharacters
-      })
+      body: JSON.stringify(responseData)
     };
 
   } catch (error) {
