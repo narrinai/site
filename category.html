@@ -934,11 +934,12 @@
       align-items: center;
     }
 
-    .category-buttons,
-    .tags-container {
+    .category-buttons {
       display: flex;
       gap: var(--spacing-sm);
-      flex-shrink: 0;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
     }
 
     .category-btn {
@@ -1001,9 +1002,10 @@
         -webkit-overflow-scrolling: touch;
       }
 
-      .category-buttons,
-      .tags-container {
+      .category-buttons {
         gap: var(--spacing-xs);
+        flex-wrap: nowrap;
+        justify-content: flex-start;
       }
 
       .category-btn,
@@ -1554,13 +1556,6 @@
       <div class="filter-section">
         <div class="category-buttons" id="categoryButtons">
           <!-- Dynamic category buttons will be inserted here -->
-        </div>
-      </div>
-      
-      <!-- Tags Section -->
-      <div class="filter-section">
-        <div class="tags-container" id="tagsContainer">
-          <!-- Dynamic tag buttons will be inserted here -->
         </div>
       </div>
     </div>
@@ -2176,21 +2171,31 @@
       const urlParams = new URLSearchParams(window.location.search);
       const currentCategoryParam = urlParams.get('cat');
       
-      // Use the same categories as tags.html
+      // Use the same categories as index.html
       const allCategories = [
-        { id: 'historical', name: 'Historical', title: 'Historical Figures' },
-        { id: 'fictional', name: 'Fiction', title: 'Fictional Characters' },
-        { id: 'celebrity', name: 'Celebrities', title: 'Celebrities' },
-        { id: 'anime-manga', name: 'Anime & Manga', title: 'Anime & Manga' },
-        { id: 'gaming', name: 'Gaming', title: 'Gaming Characters' },
-        { id: 'movies-tv', name: 'Movies & TV', title: 'Movies & TV' },
-        { id: 'books', name: 'Books', title: 'Book Characters' },
-        { id: 'mythology', name: 'Mythology', title: 'Mythological Figures' }
+        { id: 'historical', name: 'Historical', title: 'Historical' },
+        { id: 'anime-manga', name: 'Anime', title: 'Anime' },
+        { id: 'gen-z', name: 'Gen-Z', title: 'Gen-Z' },
+        { id: 'romance', name: 'Romance', title: 'Romance' },
+        { id: 'fictional', name: 'Fictional', title: 'Fictional' },
+        { id: 'humor', name: 'Humor', title: 'Humor' },
+        { id: 'cooking', name: 'Cooking', title: 'Cooking' },
+        { id: 'mindfulness', name: 'Mindfulness', title: 'Mindfulness' },
+        { id: 'relationship', name: 'Relationship', title: 'Relationship' },
+        { id: 'negotiation', name: 'Negotiation', title: 'Negotiation' },
+        { id: 'business', name: 'Business', title: 'Business' },
+        { id: 'career', name: 'Career', title: 'Career' },
+        { id: 'mythology', name: 'Mythology', title: 'Mythology' },
+        { id: 'gaming', name: 'Gaming', title: 'Gaming' },
+        { id: 'celebrity', name: 'Celebrity', title: 'Celebrity' },
+        { id: 'fantasy', name: 'Fantasy', title: 'Fantasy' },
+        { id: 'educational', name: 'Educational', title: 'Educational' },
+        { id: 'fitness', name: 'Fitness', title: 'Fitness' },
+        { id: 'language', name: 'Language', title: 'Language' }
       ];
       
-      // Shuffle and take 5 random categories
-      const shuffledCategories = [...allCategories].sort(() => Math.random() - 0.5);
-      const selectedCategories = shuffledCategories.slice(0, 5);
+      // Show all categories without shuffling
+      const selectedCategories = allCategories;
       
       selectedCategories.forEach(category => {
         const link = document.createElement('a');
@@ -2201,33 +2206,9 @@
       });
     }
 
-    // Generate tag buttons
+    // Generate tag buttons - disabled as we only show categories
     function generateTagButtons() {
-      const tagsContainer = document.getElementById('tagsContainer');
-      if (!tagsContainer) return;
-
-      tagsContainer.innerHTML = '';
-
-      // Use the same tags as tags.html
-      const allTags = [
-        'wise', 'funny', 'helpful', 'mysterious', 'leader',
-        'creative', 'romantic', 'adventure', 'teacher', 'mentor',
-        'villain', 'hero', 'scientist', 'artist', 'warrior',
-        'genius', 'inspiring', 'determined', 'noble', 'brave',
-        'clever', 'charming', 'powerful', 'ancient', 'legendary'
-      ];
-
-      // Shuffle and take 15 random tags
-      const shuffledTags = [...allTags].sort(() => Math.random() - 0.5);
-      const selectedTags = shuffledTags.slice(0, 15);
-
-      selectedTags.forEach(tag => {
-        const button = document.createElement('a');
-        button.href = `tags.html?tag=${tag}`;
-        button.className = 'tag-btn';
-        button.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
-        tagsContainer.appendChild(button);
-      });
+      // Tags are not shown anymore
     }
 
     // ===== INITIALIZATION =====
