@@ -168,16 +168,8 @@ exports.handler = async (event, context) => {
     const characters = (allRecords || []).map(record => {
       const fields = record.fields || {};
       
-      // Extract avatar URL properly - debug what fields we actually have
+      // Extract avatar URL properly
       let avatarUrl = '';
-      
-      // Debug: log available fields for first character
-      if (allRecords.indexOf(record) === 0) {
-        console.log(`🔍 First character fields:`, Object.keys(fields));
-        console.log(`🔍 Avatar_File:`, fields.Avatar_File);
-        console.log(`🔍 Avatar_URL:`, fields.Avatar_URL);
-      }
-      
       if (fields.Avatar_File && Array.isArray(fields.Avatar_File) && fields.Avatar_File.length > 0) {
         avatarUrl = fields.Avatar_File[0].url || '';
       } else if (fields.Avatar_URL && typeof fields.Avatar_URL === 'string') {
@@ -189,7 +181,7 @@ exports.handler = async (event, context) => {
         Name: fields.Name || '',
         Character_Title: fields.Character_Title || '',
         Character_Description: fields.Character_Description || '',
-        Category: fields.Category || '',
+        Category: fields.Category || 'historical',
         Tags: fields.Tags || [],
         Slug: fields.Slug || '',
         Avatar_URL: avatarUrl,
