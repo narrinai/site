@@ -1679,7 +1679,7 @@
     let filteredCharacters = [];
     let availableTags = [];
     let activeTags = [];
-    const charactersPerPage = 20; // Show 20 characters per page for better performance
+    const charactersPerPage = 20; // Show 20 characters per page for better performance and loading speed
 
     // ===== NAVIGATION FUNCTIONALITY =====
     
@@ -2209,9 +2209,9 @@
         card.innerHTML = `
           <div class="character-avatar">
             <img src="${character.avatarUrl}" 
-                 alt="${character.name}"
-                 loading="lazy"
-                 onerror="this.style.display='none'; this.parentNode.innerHTML='👤';">
+                 alt="${character.name}" 
+                 onload="console.log('✅ Avatar loaded for ${character.name}');"
+                 onerror="console.error('❌ Avatar failed for ${character.name}'); this.style.display='none'; this.parentNode.innerHTML='👤';">
           </div>
           <div class="character-name">${character.name}</div>
           <div class="character-title">${character.title}</div>

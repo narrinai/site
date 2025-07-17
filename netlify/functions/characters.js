@@ -1,18 +1,11 @@
 // netlify/functions/characters.js
-
-// Simple in-memory cache with longer TTL for better performance
-const cache = new Map();
-const CACHE_TTL = 30 * 60 * 1000; // 30 minutes - characters don't change often
-
 exports.handler = async (event, context) => {
   // CORS headers
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Content-Type': 'application/json',
-    'Cache-Control': 'public, max-age=1800', // Browser cache for 30 minutes
-    'X-Content-Type-Options': 'nosniff'
+    'Content-Type': 'application/json'
   };
 
   // Handle preflight OPTIONS request
@@ -54,23 +47,9 @@ exports.handler = async (event, context) => {
     // }
 
     // Get query parameters
-    const { category, tag, limit = 5000, mode } = event.queryStringParameters || {};
+    const { category, tag, limit = 5000 } = event.queryStringParameters || {};
     
-    console.log('Request params:', { category, tag, limit, mode });
-
-    // Create cache key including mode
-    const cacheKey = `${category || 'all'}-${tag || 'none'}-${limit}-${mode || 'full'}`;
-    
-    // Always check cache, not just in production - for better performance
-    const cachedEntry = cache.get(cacheKey);
-    if (cachedEntry && (Date.now() - cachedEntry.timestamp < CACHE_TTL)) {
-      console.log('📦 Returning cached response for:', cacheKey);
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify(cachedEntry.data)
-      };
-    }
+    console.log('Request params:', { category, tag, limit });
 
     // Fetch all records using pagination if needed
     let allRecords = [];
@@ -92,12 +71,6 @@ exports.handler = async (event, context) => {
       // Use higher limit for pagination to reduce requests
       // Airtable max is 100 per request
       params.set('pageSize', '100');
-      
-      // Only fetch necessary fields to reduce payload size
-      const fields = ['Name', 'Character_Title', 'Character_Description', 
-                     'Category', 'Tags', 'Slug', 'Avatar_File', 'Avatar_URL',
-                     'Character_URL', 'Character_ID', 'voice_id', 'voice_type'];
-      fields.forEach(field => params.set('fields[]', field));
       
       // Add offset for pagination
       if (offset) {
@@ -129,7 +102,8 @@ exports.handler = async (event, context) => {
 
       const data = await response.json();
       console.log(`✅ Retrieved ${data.records?.length || 0} records from request ${requestCount}`);
-      // Removed verbose logging for better performance
+      console.log(`🔍 Response keys:`, Object.keys(data));
+      console.log(`🔍 Raw Airtable response:`, JSON.stringify(data, null, 2).substring(0, 500) + '...');
       
       // Add records to our collection
       if (data.records) {
@@ -200,29 +174,17 @@ exports.handler = async (event, context) => {
       
       // Debug: show unique categories in the data
       const uniqueCategories = [...new Set(characters.map(c => c.Category).filter(Boolean))];
-      console.log(`📊 Total unique categories: ${uniqueCategories.length}`);
-      console.log(`📊 Available categories in data (first 20): ${uniqueCategories.slice(0, 20).join(', ')}`);
-      
-      // Count how many characters have no category
-      const noCategoryCount = characters.filter(c => !c.Category).length;
-      console.log(`⚠️ Characters without category: ${noCategoryCount}`);
+      console.log(`📊 Available categories in data (first 10): ${uniqueCategories.slice(0, 10).join(', ')}`);
       
       filteredCharacters = characters.filter(character => {
         if (!character.Category) return false;
         
-        const charCategory = character.Category.toLowerCase().trim();
-        const requestedCategory = category.toLowerCase().trim();
-        
         // Try exact match first
-        if (charCategory === requestedCategory) return true;
+        if (character.Category.toLowerCase() === category.toLowerCase()) return true;
         
         // Try with 's' suffix (e.g., celebrity vs celebrities)
-        const categoryWithS = requestedCategory.endsWith('s') ? 
-          requestedCategory.slice(0, -1) : requestedCategory + 's';
-        const categoryWithoutS = requestedCategory.endsWith('s') ? 
-          requestedCategory.slice(0, -1) : requestedCategory;
-          
-        if (charCategory === categoryWithS || charCategory === categoryWithoutS) {
+        const categoryWithS = category.endsWith('s') ? category.slice(0, -1) : category + 's';
+        if (character.Category.toLowerCase() === categoryWithS.toLowerCase()) {
           return true;
         }
         
@@ -251,25 +213,15 @@ exports.handler = async (event, context) => {
     
     console.log(`📦 Returning ${limitedCharacters.length} characters (requested: ${requestedLimit}, available: ${filteredCharacters.length})`);
 
-    // Prepare response data
-    const responseData = {
-      success: true,
-      total: filteredCharacters.length,
-      returned: limitedCharacters.length,
-      characters: limitedCharacters
-    };
-
-    // Store in cache
-    cache.set(cacheKey, {
-      timestamp: Date.now(),
-      data: responseData
-    });
-    console.log('💾 Cached response for:', cacheKey);
-
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify(responseData)
+      body: JSON.stringify({
+        success: true,
+        total: filteredCharacters.length,
+        returned: limitedCharacters.length,
+        characters: limitedCharacters
+      })
     };
 
   } catch (error) {
