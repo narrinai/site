@@ -189,8 +189,7 @@ exports.handler = async (event, context) => {
         Character_URL: fields.Character_URL || `chat.html?char=${fields.Slug || 'unknown'}`,
         Character_ID: fields.Character_ID || record.id,
         voice_id: fields.voice_id || null,
-        voice_type: fields.voice_type || 'none',
-        _hasRealCategory: !!fields.Category  // Track if category was actually in data
+        voice_type: fields.voice_type || 'none'
       };
     });
 
@@ -209,12 +208,6 @@ exports.handler = async (event, context) => {
       console.log(`⚠️ Characters without category: ${noCategoryCount}`);
       
       filteredCharacters = characters.filter(character => {
-        // For historical category, only include characters that ACTUALLY have historical in data
-        if (category === 'historical' && character.Category === 'historical' && !character._hasRealCategory) {
-          // This is a default value, not a real historical character
-          return false;
-        }
-        
         if (!character.Category) return false;
         
         const charCategory = character.Category.toLowerCase().trim();
