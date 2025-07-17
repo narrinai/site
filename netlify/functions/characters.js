@@ -46,85 +46,49 @@ exports.handler = async (event, context) => {
     }
 
     // Get query parameters
-    const { category, tag, limit = 500 } = event.queryStringParameters || {};
+    const { category, limit = 50 } = event.queryStringParameters || {};
     
-    console.log('Request params:', { category, tag, limit });
+    console.log('Request params:', { category, limit });
 
-    // Fetch all records using pagination if needed
-    let allRecords = [];
-    let offset = null;
-    let requestCount = 0;
-    const maxRequests = 50; // Increased safety limit to get all records
+    // Build Airtable URL
+    let url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_TABLE_ID}`;
     
-    do {
-      requestCount++;
-      console.log(`📡 Making request ${requestCount} to Airtable...`);
-      
-      // Build Airtable URL for this request
-      let url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_TABLE_ID}`;
-      const params = new URLSearchParams();
-      
-      // Add category filter if specified
-      if (category) {
-        params.set('filterByFormula', `{Category} = "${category}"`);
-      }
-      
-      // Set maximum records per request (Airtable limit is 100)
-      // Use maximum possible to minimize API calls
-      params.set('maxRecords', '100');
-      
-      // Add offset for pagination
-      if (offset) {
-        params.set('offset', offset);
-      }
-      
-      if (params.toString()) {
-        url += `?${params.toString()}`;
-      }
-      
-      console.log(`🔗 Airtable URL (request ${requestCount}):`, url);
-
-      // Make Airtable API call
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${process.env.AIRTABLE_TOKEN}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      console.log(`📊 Airtable response status (request ${requestCount}):`, response.status);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ Airtable error:', errorText);
-        throw new Error(`Airtable API error: ${response.status} - ${errorText}`);
-      }
-
-      const data = await response.json();
-      console.log(`✅ Retrieved ${data.records?.length || 0} records from request ${requestCount}`);
-      
-      // Add records to our collection
-      if (data.records) {
-        allRecords = allRecords.concat(data.records);
-      }
-      
-      // Check if there are more records to fetch
-      offset = data.offset;
-      console.log(`📄 Offset for next request: ${offset || 'None (finished)'}`);
-      console.log(`📊 Running total: ${allRecords.length} records`);
-      
-      // Safety check
-      if (requestCount >= maxRequests) {
-        console.log(`⚠️ Reached maximum request limit (${maxRequests}), stopping pagination`);
-        break;
-      }
-      
-    } while (offset); // Continue until no more records available
+    // Add category filter if specified
+    if (category) {
+      const filterFormula = `{Category} = "${category}"`;
+      url += `?filterByFormula=${encodeURIComponent(filterFormula)}`;
+    }
     
-    console.log(`🎯 Total records retrieved: ${allRecords.length}`);
+    // Add limit if specified (remove max limit for category/tags pages)
+    if (limit && parseInt(limit) > 0) {
+      const maxLimit = parseInt(limit);
+      const separator = category ? '&' : '?';
+      url += `${separator}maxRecords=${maxLimit}`;
+    }
+    
+    console.log('🔗 Airtable URL:', url);
+
+    // Make Airtable API call
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${process.env.AIRTABLE_TOKEN}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    console.log('📊 Airtable response status:', response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Airtable error:', errorText);
+      throw new Error(`Airtable API error: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log(`✅ Retrieved ${data.records?.length || 0} records from Airtable`);
 
     // Transform data to expected format
-    const characters = (allRecords || []).map(record => {
+    const characters = (data.records || []).map(record => {
       const fields = record.fields || {};
       
       // Debug avatar data
@@ -157,23 +121,8 @@ exports.handler = async (event, context) => {
       };
     });
 
-    // Filter by tag if specified (done in JavaScript since Airtable array filtering is complex)
-    let filteredCharacters = characters;
-    if (tag) {
-      console.log(`🏷️ Filtering characters by tag: ${tag}`);
-      filteredCharacters = characters.filter(character => {
-        if (character.Tags && Array.isArray(character.Tags)) {
-          return character.Tags.some(charTag => 
-            charTag.toLowerCase() === tag.toLowerCase()
-          );
-        }
-        return false;
-      });
-      console.log(`🏷️ Found ${filteredCharacters.length} characters with tag "${tag}"`);
-    }
-
-    // Apply limit (increased for category/tags pages)
-    const limitedCharacters = filteredCharacters.slice(0, parseInt(limit));
+    // Apply limit
+    const limitedCharacters = characters.slice(0, parseInt(limit));
     
     console.log(`📦 Returning ${limitedCharacters.length} characters`);
 
@@ -182,7 +131,7 @@ exports.handler = async (event, context) => {
       headers,
       body: JSON.stringify({
         success: true,
-        total: filteredCharacters.length,
+        total: characters.length,
         returned: limitedCharacters.length,
         characters: limitedCharacters
       })

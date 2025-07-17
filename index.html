@@ -736,7 +736,7 @@
       max-width: 1400px;
       margin: 0 auto;
       width: 100%;
-      overflow: visible;
+      overflow: hidden;
     }
 
     /* Category Navigation */
@@ -750,25 +750,28 @@
       gap: var(--spacing-sm);
       justify-content: center;
       flex-wrap: wrap;
-      padding: var(--spacing-xs) var(--spacing-3xl);
+      padding-bottom: var(--spacing-xs);
+      padding-top: var(--spacing-xs);
       width: 100%;
-      max-width: 100%;
-      overflow: visible;
-      box-sizing: border-box;
     }
 
-    .filters-container::after {
-      content: '';
-      flex-shrink: 0;
-      width: var(--spacing-md);
+    .filters-container::-webkit-scrollbar {
+      height: 4px;
     }
 
+    .filters-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .filters-container::-webkit-scrollbar-thumb {
+      background: var(--color-gray-light);
+      border-radius: var(--radius-full);
+    }
 
     .filter-section {
       display: flex;
       gap: var(--spacing-sm);
-      flex-wrap: wrap;
-      justify-content: center;
+      flex-shrink: 0;
       position: relative;
     }
 
@@ -776,8 +779,7 @@
     .tags-container {
       display: flex;
       gap: var(--spacing-sm);
-      flex-wrap: wrap;
-      justify-content: center;
+      flex-shrink: 0;
       position: relative;
     }
 
@@ -1019,18 +1021,18 @@
     /* Create Character CTA */
     .create-character-cta {
       background: var(--gradient-primary);
-      padding: var(--spacing-xl);
+      padding: var(--spacing-3xl);
       border-radius: var(--radius-xl);
       text-align: center;
       color: white;
-      margin-top: var(--spacing-xl);
+      margin-top: var(--spacing-3xl);
     }
     
     /* Mid-page CTA variant */
     .create-character-cta.mid-page {
       background: linear-gradient(135deg, var(--color-coral) 0%, var(--color-teal) 100%);
-      margin: var(--spacing-xl) 0;
-      padding: var(--spacing-lg);
+      margin: var(--spacing-3xl) 0;
+      padding: var(--spacing-2xl);
     }
     
     .create-character-cta.mid-page .cta-icon {
@@ -1126,7 +1128,7 @@
   .filters-container::after {
     content: '';
     flex-shrink: 0;
-    width: var(--spacing-lg);
+    width: var(--spacing-lg); /* Add invisible spacer at end */
   }
 
   .filters-container::-webkit-scrollbar {
@@ -1523,17 +1525,6 @@ body.has-referral-banner {
           <a href="create-character.html" class="btn btn-cta">Start Creating</a>
         </div>
       </section>
-
-      <!-- Bottom Category Navigation (Same as top) -->
-      <nav class="category-nav" aria-label="Browse categories">
-        <div class="filters-container">
-          <div class="filter-section">
-            <div class="category-buttons" id="bottomCategoryButtons">
-              <!-- Dynamic category buttons will be inserted here -->
-            </div>
-          </div>
-        </div>
-      </nav>
     </div>
   </main>
 
@@ -1566,27 +1557,15 @@ body.has-referral-banner {
     const CONFIG = {
   // Netlify Function endpoint
   CHARACTERS_API: '/.netlify/functions/characters',
-  MAX_CHARACTERS_PER_CATEGORY: 8, // Maximum 8 characters per category
-  // Show multiple categories for comprehensive browsing
+  MAX_CHARACTERS_PER_CATEGORY: 8,
+  // Only show top 6 most popular categories for fast loading
   CATEGORIES: [
-    { id: 'historical', name: 'Historical', title: 'Historical' },
-    { id: 'anime-manga', name: 'Anime', title: 'Anime' }, 
-    { id: 'fictional', name: 'Fiction', title: 'Fiction' },
+    { id: 'historical', name: 'Historical', title: 'Historical Figures' },
+    { id: 'anime-manga', name: 'Anime', title: 'Anime Characters' }, 
+    { id: 'fictional', name: 'Fiction', title: 'Fictional Characters' },
     { id: 'celebrity', name: 'Celebrities', title: 'Celebrities' },
-    { id: 'relationship-coach', name: 'Relationship', title: 'Relationship' },
-    { id: 'fitness-coach', name: 'Fitness', title: 'Fitness' },
-    { id: 'business-coach', name: 'Business', title: 'Business' },
-    { id: 'gaming', name: 'Gaming', title: 'Gaming' },
-    { id: 'mythology', name: 'Mythology', title: 'Mythology' },
-    { id: 'health-coach', name: 'Health', title: 'Health' },
-    { id: 'spiritual-coach', name: 'Spiritual', title: 'Spiritual' },
-    { id: 'career-coach', name: 'Career', title: 'Career' },
-    { id: 'education', name: 'Education', title: 'Education' },
-    { id: 'science', name: 'Science', title: 'Science' },
-    { id: 'philosophy', name: 'Philosophy', title: 'Philosophy' },
-    { id: 'sports', name: 'Sports', title: 'Sports' },
-    { id: 'music', name: 'Music', title: 'Music' },
-    { id: 'art', name: 'Art', title: 'Art' }
+    { id: 'relationship-coach', name: 'Relationship Coach', title: 'Relationship Coaches' },
+    { id: 'fitness-coach', name: 'Fitness Coach', title: 'Fitness Coaches' }
   ],
   TAGS: [
     'wise', 'funny', 'helpful', 'mysterious', 'leader', 
@@ -1734,136 +1713,16 @@ body.has-referral-banner {
 
     // ===== DYNAMIC CONTENT GENERATION =====
 
-// Fetch unique categories from Airtable
-async function fetchCategoriesFromAirtable() {
-  try {
-    console.log('🔍 Fetching all characters to extract categories...');
-    const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
-    url.searchParams.set('limit', '1000'); // Get many characters to extract all categories
-    
-    const response = await fetch(url.toString());
-    if (!response.ok) {
-      console.error('❌ Failed to fetch categories, status:', response.status);
-      return [];
-    }
-    
-    const data = await response.json();
-    if (!data.success || !data.characters) {
-      console.error('❌ Invalid response for categories:', data);
-      return [];
-    }
-    
-    // Extract unique categories
-    const categoriesMap = new Map();
-    data.characters.forEach(character => {
-      if (character.Category) {
-        const categoryId = character.Category.toLowerCase().replace(/\s+/g, '-');
-        if (!categoriesMap.has(categoryId)) {
-          // Clean up the name for display
-          let displayName = character.Category;
-          
-          // Remove common suffixes and coach references
-          displayName = displayName.replace(/ Characters?$/i, '');
-          displayName = displayName.replace(/ Coach(es)?$/i, '');
-          displayName = displayName.replace(/-coach$/i, '');
-          displayName = displayName.replace(/^coach-/i, '');
-          displayName = displayName.replace(/Coach$/i, '');
-          displayName = displayName.replace(/^Coach /i, '');
-          
-          // Database name to user-friendly name mapping
-          const nameMapping = {
-            'al-assistant': 'AI Assistant',
-            'ai-assistant': 'AI Assistant',
-            'anime-manga': 'Anime',
-            'anime manga': 'Anime',
-            'business-coach': 'Business',
-            'business': 'Business',
-            'career-coach': 'Career',
-            'career': 'Career',
-            'cooking-coach': 'Cooking',
-            'cooking': 'Cooking',
-            'fitness-coach': 'Fitness',
-            'fitness': 'Fitness',
-            'relationship-coach': 'Relationship',
-            'relationship': 'Relationship',
-            'negotiation-coach': 'Negotiation',
-            'negotiation': 'Negotiation',
-            'accounting-coach': 'Accounting',
-            'accounting': 'Accounting',
-            'health-coach': 'Health',
-            'health': 'Health',
-            'spiritual-coach': 'Spiritual',
-            'spiritual': 'Spiritual',
-            'negotiation-coach': 'Negotiation',
-            'negotiation': 'Negotiation',
-            'original': 'Original',
-            'other': 'Other',
-            'gaming': 'Gaming',
-            'mythology': 'Mythology'
-          };
-          
-          // Apply mapping
-          const lowerDisplayName = displayName.toLowerCase();
-          if (nameMapping[lowerDisplayName]) {
-            displayName = nameMapping[lowerDisplayName];
-          } else {
-            // Auto-clean common patterns for unmapped categories
-            displayName = displayName.replace(/-/g, ' '); // Replace hyphens with spaces
-            displayName = displayName.replace(/\bcoach\b/gi, ''); // Remove standalone 'coach' word
-            displayName = displayName.replace(/\s+/g, ' '); // Clean up multiple spaces
-            displayName = displayName.trim(); // Remove leading/trailing spaces
-            
-            // Capitalize first letter for other cases
-            displayName = displayName.charAt(0).toUpperCase() + displayName.slice(1);
-          }
-          
-          categoriesMap.set(categoryId, {
-            id: categoryId,
-            name: displayName,
-            title: displayName, // Use clean display name for title too
-            count: 1
-          });
-        } else {
-          categoriesMap.get(categoryId).count++;
-        }
-      }
-    });
-    
-    // Convert to array and filter out movies and life coaches
-    const categories = Array.from(categoriesMap.values())
-      .filter(cat => {
-        const lowerName = cat.name.toLowerCase();
-        return !lowerName.includes('movie') && !lowerName.includes('life coach') && !lowerName.includes('life-coach');
-      })
-      .sort((a, b) => b.count - a.count); // Sort by count descending
-    
-    console.log(`✅ Found ${categories.length} unique categories (excluding movies/life coaches)`);
-    return categories;
-  } catch (error) {
-    console.error('❌ Error fetching categories:', error);
-    return [];
-  }
-}
-
    // Generate category buttons - Show first 4 on mobile, all on desktop (only for valid categories)
-async function generateCategoryButtons() {
+function generateCategoryButtons() {
   const categoryButtons = document.getElementById('categoryButtons');
-  const bottomCategoryButtons = document.getElementById('bottomCategoryButtons');
   const extraCategoryButtons = document.getElementById('extraCategoryButtons');
   
-  categoryButtons.innerHTML = '<div class="loading" style="margin: 0 auto;" aria-label="Loading categories"></div>';
-  if (bottomCategoryButtons) bottomCategoryButtons.innerHTML = '<div class="loading" style="margin: 0 auto;" aria-label="Loading categories"></div>';
+  categoryButtons.innerHTML = '';
   if (extraCategoryButtons) extraCategoryButtons.innerHTML = '';
 
-  // Fetch categories from Airtable
-  const airtableCategories = await fetchCategoriesFromAirtable();
-  
-  // Use Airtable categories if available, otherwise fallback to CONFIG
-  const categoriesToUse = airtableCategories.length > 0 ? airtableCategories : CONFIG.CATEGORIES;
-  window.validCategories = categoriesToUse; // Store for other functions
-  
-  categoryButtons.innerHTML = ''; // Clear loading
-  if (bottomCategoryButtons) bottomCategoryButtons.innerHTML = ''; // Clear loading
+  // Use valid categories (with 50+ characters) if available, otherwise use all categories
+  const categoriesToUse = window.validCategories || CONFIG.CATEGORIES;
   
   // Filter categories with 5+ characters in name
   const filteredCategories = categoriesToUse.filter(category => category.name.length >= 5);
@@ -1872,161 +1731,50 @@ async function generateCategoryButtons() {
   const isMobile = window.innerWidth <= 768;
   const categoriesToShow = isMobile ? filteredCategories.slice(0, 3) : filteredCategories;
 
-  // Function to populate category buttons
-  const populateButtons = (container) => {
-    categoriesToShow.forEach(category => {
-      const button = document.createElement('a');
-      button.href = `category.html?cat=${category.id}`;
-      button.className = 'category-btn';
-      button.textContent = category.name;
-      container.appendChild(button);
-    });
+  // Top navigation
+  categoriesToShow.forEach(category => {
+    const button = document.createElement('a');
+    button.href = `category.html?cat=${category.id}`;
+    button.className = 'category-btn';
+    button.textContent = category.name;
+    categoryButtons.appendChild(button);
+  });
 
-    // Add "More..." button on mobile if there are more categories
-    if (isMobile && filteredCategories.length > 3) {
-      const moreButton = document.createElement('a');
-      moreButton.href = 'category.html';
-      moreButton.className = 'category-btn';
-      moreButton.style.background = 'var(--color-gray)';
-      moreButton.textContent = `+${filteredCategories.length - 3} More...`;
-      container.appendChild(moreButton);
-    }
-  };
-
-  // Populate both top and bottom navigation
-  populateButtons(categoryButtons);
-  if (bottomCategoryButtons) {
-    populateButtons(bottomCategoryButtons);
+  // Add "More..." button on mobile if there are more categories
+  if (isMobile && filteredCategories.length > 3) {
+    const moreButton = document.createElement('a');
+    moreButton.href = 'category.html';
+    moreButton.className = 'category-btn';
+    moreButton.style.background = 'var(--color-gray)';
+    moreButton.textContent = `+${filteredCategories.length - 3} More...`;
+    categoryButtons.appendChild(moreButton);
   }
-}
 
-// Store tag counts globally
-let tagCharacterCounts = {};
-
-// Fetch all characters and count by tags
-async function fetchAndCountCharactersByTags() {
-  try {
-    console.log('🏷️ Fetching all characters to count tags...');
-    const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
-    url.searchParams.set('limit', '1000'); // Get many characters to count tags
-    
-    console.log('🔗 Tag counting URL:', url.toString());
-    
-    const response = await fetch(url.toString());
-    if (!response.ok) {
-      console.error('❌ Failed to fetch characters for tag counting, status:', response.status);
-      return {};
-    }
-    
-    const data = await response.json();
-    console.log('📦 Tag counting API response:', data);
-    
-    if (!data.success || !data.characters) {
-      console.error('❌ Invalid response for tag counting:', data);
-      return {};
-    }
-    
-    console.log(`📋 Processing ${data.characters.length} characters for tag counting`);
-    
-    // Count characters per tag
-    const counts = {};
-    console.log(`📋 Sample character for tag analysis:`, data.characters[0]);
-    console.log(`📋 Sample character fields:`, Object.keys(data.characters[0] || {}));
-    console.log(`📋 First 3 characters Tags fields:`, data.characters.slice(0, 3).map(c => ({name: c.Name, tags: c.Tags})));
-    
-    data.characters.forEach((character, index) => {
-      if (character.Tags && Array.isArray(character.Tags)) {
-        character.Tags.forEach(tag => {
-          const tagLower = tag.toLowerCase();
-          counts[tagLower] = (counts[tagLower] || 0) + 1;
-        });
-      } else if (character.Tags) {
-        console.log(`⚠️ Character ${index} has non-array Tags:`, character.Tags, typeof character.Tags);
-      } else {
-        console.log(`⚠️ Character ${index} has no Tags field:`, character.Name || character.name);
-      }
-    });
-    
-    console.log('📊 Tag character counts:', counts);
-    console.log('🎨 Artist tag specifically has:', counts['artist'] || 0, 'characters');
-    return counts;
-  } catch (error) {
-    console.error('❌ Error counting tags:', error);
-    return {};
-  }
+  // Disable extra category buttons for faster loading
+  // if (extraCategoryButtons) {
+  //   extraCategoryButtons.innerHTML = '';
+  // }
 }
 
 // Generate tag buttons
-async function generateTagButtons() {
-  console.log('🏷️ generateTagButtons() function called');
+function generateTagButtons() {
   const tagsContainer = document.getElementById('tagsContainer');
   tagsContainer.innerHTML = '';
 
-  // Get tag counts if not already fetched
-  if (Object.keys(tagCharacterCounts).length === 0) {
-    tagCharacterCounts = await fetchAndCountCharactersByTags();
-  }
-
-  // If tag counting failed, show debug info and fallback to showing all tags
-  if (Object.keys(tagCharacterCounts).length === 0) {
-    console.log('❌ Tag counting failed, showing all tags as fallback');
-    tagsContainer.innerHTML = '<span style="color: var(--color-red); font-size: var(--font-size-sm);">Tag counting failed - showing all tags</span>';
-    
-    // Fallback: show all tags
-    CONFIG.TAGS.filter(tag => tag.length >= 5).forEach(tag => {
-      const button = document.createElement('a');
-      button.href = `tags.html?tag=${tag}`;
-      button.className = 'tag-btn';
-      button.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
-      button.title = 'Count unknown (fallback mode)';
-      tagsContainer.appendChild(button);
-    });
-    return;
-  }
-
-  // Filter tags with 5+ characters in name AND 15+ characters with that tag
-  const filteredTags = CONFIG.TAGS.filter(tag => {
-    const hasEnoughChars = tag.length >= 5;
-    const tagCount = tagCharacterCounts[tag.toLowerCase()] || 0;
-    const hasEnoughCharacters = tagCount >= 5; // Temporarily lowered for testing
-    
-    // Debug each tag
-    console.log(`🏷️ Tag "${tag}": ${tagCount} characters (${hasEnoughChars ? 'name OK' : 'name too short'}, ${hasEnoughCharacters ? 'enough chars' : 'too few chars'})`);
-    
-    return hasEnoughChars && hasEnoughCharacters;
-  });
-
-  console.log(`🏷️ Showing ${filteredTags.length} tags with 15+ characters:`, filteredTags);
+  // Filter tags with 5+ characters
+  const filteredTags = CONFIG.TAGS.filter(tag => tag.length >= 5);
 
   filteredTags.forEach(tag => {
-    const count = tagCharacterCounts[tag.toLowerCase()] || 0;
     const button = document.createElement('a');
     button.href = `tags.html?tag=${tag}`;
     button.className = 'tag-btn';
     button.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
-    button.title = `${count} characters`; // Show count on hover
     tagsContainer.appendChild(button);
   });
-
-  // If no tags meet criteria, show popular fallback tags
-  if (filteredTags.length === 0) {
-    console.log('⚠️ No tags have 15+ characters, showing fallback popular tags');
-    const fallbackTags = ['wise', 'funny', 'helpful', 'creative', 'leader', 'mentor'];
-    
-    fallbackTags.forEach(tag => {
-      const count = tagCharacterCounts[tag.toLowerCase()] || 0;
-      const button = document.createElement('a');
-      button.href = `tags.html?tag=${tag}`;
-      button.className = 'tag-btn';
-      button.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
-      button.title = `${count} characters (fallback)`;
-      tagsContainer.appendChild(button);
-    });
-  }
 }
 
     // Generate extra tag buttons for bottom navigation
-async function generateExtraTagButtons() {
+function generateExtraTagButtons() {
   const extraTagsContainer = document.getElementById('extraTagsContainer');
   if (!extraTagsContainer) return;
 
@@ -2038,41 +1786,16 @@ async function generateExtraTagButtons() {
     'philosopher', 'strategist', 'innovator', 'explorer', 'diplomat'
   ];
 
-  // Get tag counts if not already fetched
-  if (Object.keys(tagCharacterCounts).length === 0) {
-    tagCharacterCounts = await fetchAndCountCharactersByTags();
-  }
-
-  // If tag counting failed, don't show any extra tags (extra tags are optional)
-  if (Object.keys(tagCharacterCounts).length === 0) {
-    console.log('❌ Extra tag counting failed, not showing any extra tags');
-    extraTagsContainer.innerHTML = '';
-    return;
-  }
-
-  // Filter extra tags with 5+ characters in name AND 15+ characters with that tag
-  const filteredExtraTags = extraTags.filter(tag => {
-    const hasEnoughChars = tag.length >= 5;
-    const hasEnoughCharacters = (tagCharacterCounts[tag.toLowerCase()] || 0) >= 5; // Temporarily lowered for testing
-    return hasEnoughChars && hasEnoughCharacters;
-  });
-
-  console.log(`🏷️ Showing ${filteredExtraTags.length} extra tags with 15+ characters`);
+  // Filter extra tags with 5+ characters
+  const filteredExtraTags = extraTags.filter(tag => tag.length >= 5);
 
   filteredExtraTags.forEach(tag => {
-    const count = tagCharacterCounts[tag.toLowerCase()] || 0;
     const button = document.createElement('a');
     button.href = `tags.html?tag=${tag}`;
     button.className = 'tag-btn';
     button.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
-    button.title = `${count} characters`; // Show count on hover
     extraTagsContainer.appendChild(button);
   });
-
-  // If no tags meet criteria, don't show anything (since this is an extra section)
-  if (filteredExtraTags.length === 0) {
-    extraTagsContainer.innerHTML = '';
-  }
 }
 
     // Check character count for a category
@@ -2098,21 +1821,18 @@ async function generateExtraTagButtons() {
       }
     }
 
-    // Generate character sections with mid-page CTA
+    // Generate character sections with mid-page CTA (only for categories with 50+ characters)
     async function generateCharacterSections() {
       const sectionsContainer = document.getElementById('characterSections');
       const midPageCTA = document.getElementById('midPageCTA');
       sectionsContainer.innerHTML = '';
       midPageCTA.innerHTML = '';
 
-      // Wait for categories to be loaded if not already available
-      if (!window.validCategories || window.validCategories.length === 0) {
-        console.log('⏳ Waiting for categories to be loaded...');
-        await generateCategoryButtons();
-      }
+      console.log('🚀 Using predefined top 6 categories for fast loading...');
       
-      const validCategories = window.validCategories || CONFIG.CATEGORIES;
-      console.log(`✅ Showing ${validCategories.length} categories from Airtable`);
+      // Use all configured categories without checking counts for speed
+      const validCategories = CONFIG.CATEGORIES;
+      console.log(`✅ Showing ${validCategories.length} top categories:`, validCategories.map(c => c.name));
 
       // Split valid categories into two groups
       const firstHalf = validCategories.slice(0, Math.ceil(validCategories.length / 2));
@@ -2142,6 +1862,9 @@ async function generateExtraTagButtons() {
         const section = createCategorySection(category);
         midPageCTA.appendChild(section);
       });
+
+      // Store valid categories globally for other functions to use
+      window.validCategories = validCategories;
     }
     
     // Helper function to create category section
@@ -2213,8 +1936,8 @@ async function loadCharactersFromNetlify(category, gridId, limit = CONFIG.MAX_CH
     throw new Error(data.error || 'Unknown API error');
   }
 
-  // Process the data - always limit to configured number of characters with avatars
-  processNetlifyData(data.characters, category, gridId, CONFIG.MAX_CHARACTERS_PER_CATEGORY);
+  // Process the data - always limit to 8 characters with avatars
+  processNetlifyData(data.characters, category, gridId, 8);
 }
 
 // Helper function to check if character has valid avatar
@@ -2256,8 +1979,8 @@ function processNetlifyData(characters, category, gridId, limit) {
       return 0;
     });
     
-    // Take configured number of characters (prioritizing those with avatars)
-    const limitedCharacters = sortedCharacters.slice(0, limit);
+    // Take exactly 8 characters (prioritizing those with avatars)
+    const limitedCharacters = sortedCharacters.slice(0, 8);
     
     console.log(`📋 Showing ${limitedCharacters.length} characters for ${category} (from ${categoryCharacters.length} total, ${limitedCharacters.filter(hasValidAvatar).length} with avatars)`);
     
@@ -2621,18 +2344,11 @@ if (window.netlifyIdentity) {
       // Initialize authentication check first
       initializeAuthenticationCheck();
       
-      // Load categories from Airtable first
-      await generateCategoryButtons();
-      console.log('✅ Categories loaded from Airtable');
+      // FAST LOADING: Show buttons immediately without character count checking
+      generateCategoryButtons();
+      generateTagButtons();
       
-      // Load tag buttons (these now check character counts)
-      console.log('🚀 About to generate tag buttons...');
-      await generateTagButtons();
-      console.log('✅ Main tag buttons generated');
-      await generateExtraTagButtons();
-      console.log('✅ Extra tag buttons generated');
-      
-      // Generate character sections using Airtable categories
+      // Generate character sections (this will check character counts for content)
       await generateCharacterSections();
       
       // Load character data

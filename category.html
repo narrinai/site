@@ -191,26 +191,11 @@
       justify-content: center;
     }
 
-    /* USPs Container - Desktop - Vertical Carousel */
+    /* USPs Container - Desktop */
     .nav-usps {
       display: flex;
       align-items: center;
       gap: var(--spacing-xl);
-      height: 44px;
-      overflow: hidden;
-      position: relative;
-    }
-    .usp-carousel {
-      display: flex;
-      flex-direction: column;
-      animation: uspCarousel 12s infinite;
-      gap: var(--spacing-xl);
-    }
-    @keyframes uspCarousel {
-      0%, 25% { transform: translateY(0); }
-      30%, 55% { transform: translateY(-60px); }
-      60%, 85% { transform: translateY(-120px); }
-      90%, 100% { transform: translateY(-180px); }
     }
 
     .usp-item {
@@ -227,25 +212,12 @@
       font-size: var(--font-size-lg);
       color: var(--color-teal);
     }
-    /* Mobile USP Carousel adjustments */
-    @media (max-width: 768px) {
-      .nav-usps {
-        height: 32px;
-      }
-      .usp-item {
-        font-size: var(--font-size-xs);
-        gap: var(--spacing-xs);
-      }
-      .usp-icon {
-        font-size: var(--font-size-sm);
-      }
-    }
 
     /* Search Bar - Desktop */
     .nav-search {
       position: relative;
       width: 100%;
-      max-width: 600px;
+      max-width: 400px;
     }
 
     .nav-search-input {
@@ -936,9 +908,10 @@
       display: flex;
       gap: var(--spacing-sm);
       align-items: center;
-      justify-content: center;
       padding: 0 var(--spacing-lg);
-      flex-wrap: wrap;
+      overflow-x: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-gray-light) transparent;
     }
 
     .filters-container::-webkit-scrollbar {
@@ -965,8 +938,7 @@
     .tags-container {
       display: flex;
       gap: var(--spacing-sm);
-      flex-wrap: wrap;
-      justify-content: center;
+      flex-shrink: 0;
     }
 
     .category-btn {
@@ -1026,26 +998,12 @@
       .filters-container {
         padding: 0 var(--spacing-md);
         gap: var(--spacing-sm);
-        overflow-x: auto;
-        overflow-y: visible;
-        flex-wrap: nowrap;
-        justify-content: flex-start;
         -webkit-overflow-scrolling: touch;
-        scrollbar-width: thin;
-        scrollbar-color: var(--color-gray-light) transparent;
-      }
-
-      .filters-container::after {
-        content: '';
-        flex-shrink: 0;
-        width: var(--spacing-lg);
       }
 
       .category-buttons,
       .tags-container {
         gap: var(--spacing-xs);
-        flex-wrap: nowrap;
-        flex-shrink: 0;
       }
 
       .category-btn,
@@ -1422,25 +1380,19 @@
 
         <!-- Desktop Navigation Center -->
         <nav class="nav-center" role="navigation" aria-label="Main navigation">
-          <!-- USPs - Vertical Carousel -->
+          <!-- USPs - All visible on desktop -->
           <div class="nav-usps" aria-label="Key features">
-            <div class="usp-carousel">
-              <div class="usp-item">
-                <span class="usp-icon" aria-hidden="true">⚡</span>
-                <span>Lightning Fast</span>
-              </div>
-              <div class="usp-item">
-                <span class="usp-icon" aria-hidden="true">🎯</span>
-                <span>Highly Accurate</span>
-              </div>
-              <div class="usp-item">
-                <span class="usp-icon" aria-hidden="true">🔒</span>
-                <span>100% Private</span>
-              </div>
-              <div class="usp-item">
-                <span class="usp-icon" aria-hidden="true">▶️</span>
-                <span>Voice Chat</span>
-              </div>
+            <div class="usp-item">
+              <span class="usp-icon" aria-hidden="true">🔒</span>
+              <span>100% Safe</span>
+            </div>
+            <div class="usp-item">
+              <span class="usp-icon" aria-hidden="true">🧠</span>
+              <span>Character Memory</span>
+            </div>
+            <div class="usp-item">
+              <span class="usp-icon" aria-hidden="true">🔐</span>
+              <span>Private Data</span>
             </div>
           </div>
 
@@ -1683,45 +1635,7 @@
     let currentPage = 1;
     let allCharacters = [];
     let filteredCharacters = [];
-    const charactersPerPage = 20; // Show 20 characters per page for better performance and loading speed
-
-    // ===== UTILITY FUNCTIONS =====
-    function getCleanCategoryName(categoryName) {
-      // Remove common suffixes and apply capitalization
-      let cleanName = categoryName.replace(/ Characters?$/i, '').replace(/ Coach(es)?$/i, '').replace(/ & Coach(es)?$/i, '');
-      
-      // Apply proper capitalization - capitalize first letter and handle common patterns
-      cleanName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
-      
-      // Handle special cases for better display
-      if (cleanName.toLowerCase() === 'anime-manga') {
-        cleanName = 'Anime';
-      } else if (cleanName.toLowerCase() === 'business-coach') {
-        cleanName = 'Business';
-      } else if (cleanName.toLowerCase() === 'career-coach') {
-        cleanName = 'Career';
-      } else if (cleanName.toLowerCase() === 'fitness-coach') {
-        cleanName = 'Fitness';
-      } else if (cleanName.toLowerCase() === 'relationship-coach') {
-        cleanName = 'Relationship';
-      } else if (cleanName.toLowerCase() === 'negotiation-coach') {
-        cleanName = 'Negotiation';
-      } else if (cleanName.toLowerCase() === 'health-coach') {
-        cleanName = 'Health';
-      } else if (cleanName.toLowerCase() === 'spiritual-coach') {
-        cleanName = 'Spiritual';
-      } else if (cleanName.toLowerCase() === 'original') {
-        cleanName = 'Original';
-      } else if (cleanName.toLowerCase() === 'other') {
-        cleanName = 'Other';
-      } else if (cleanName.toLowerCase() === 'gaming') {
-        cleanName = 'Gaming';
-      } else if (cleanName.toLowerCase() === 'mythology') {
-        cleanName = 'Mythology';
-      }
-      
-      return cleanName;
-    }
+    const charactersPerPage = 24;
 
     // ===== NAVIGATION FUNCTIONALITY =====
     
@@ -1874,9 +1788,9 @@
       
       // Get category configuration
       const config = CONFIG.CATEGORIES[currentCategory] || {
-        title: getCleanCategoryName(currentCategory),
+        title: currentCategory.charAt(0).toUpperCase() + currentCategory.slice(1).replace('-', ' & '),
         icon: '📁',
-        description: `Discover amazing ${getCleanCategoryName(currentCategory)} characters`
+        description: `Discover amazing ${currentCategory} characters`
       };
 
       console.log('📋 Category config:', config);
@@ -1897,7 +1811,7 @@
         // Build API URL for Netlify Function
         const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
         url.searchParams.set('category', currentCategory);
-        url.searchParams.set('limit', '5000'); // Get all characters for this category
+        // No limit - get all characters for category pages
         
         console.log(`📡 Fetching from Netlify Function:`, url.toString());
         
@@ -1944,29 +1858,9 @@
       console.log('📦 Processing characters:', characters.length);
 
       // Filter for current category
-      console.log(`🔍 Filtering for category: "${currentCategory}"`);
-      
-      // Debug: show unique categories in the data
-      const uniqueCategories = [...new Set(characters.map(c => c.Category).filter(Boolean))];
-      console.log(`📊 Available categories in data: ${uniqueCategories.join(', ')}`);
-      
-      const categoryCharacters = characters.filter(char => {
-        if (!char.Category) return false;
-        
-        // Try exact match first
-        if (char.Category.toLowerCase() === currentCategory.toLowerCase()) return true;
-        
-        // Try with 's' suffix (e.g., celebrity vs celebrities)
-        const categoryWithS = currentCategory.endsWith('s') ? currentCategory.slice(0, -1) : currentCategory + 's';
-        if (char.Category.toLowerCase() === categoryWithS.toLowerCase()) {
-          console.log(`✅ Matched with 's' variation: "${char.Category}" matches "${currentCategory}"`);
-          return true;
-        }
-        
-        return false;
-      });
-      
-      console.log(`📁 Found ${categoryCharacters.length} characters in category "${currentCategory}"`);
+      const categoryCharacters = characters.filter(char => 
+        !char.Category || char.Category.toLowerCase() === currentCategory.toLowerCase()
+      );
 
       // Process the characters
       allCharacters = categoryCharacters.map(character => ({
@@ -2158,16 +2052,6 @@
 
       let paginationHTML = '';
       
-      // Show total count
-      const startIndex = (currentPage - 1) * charactersPerPage + 1;
-      const endIndex = Math.min(currentPage * charactersPerPage, filteredCharacters.length);
-      
-      paginationHTML += `
-        <div style="text-align: center; margin-bottom: 1rem; color: var(--color-gray);">
-          Showing ${startIndex}-${endIndex} of ${filteredCharacters.length} characters
-        </div>
-      `;
-      
       // Previous button
       paginationHTML += `
         <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">
@@ -2175,35 +2059,17 @@
         </button>
       `;
 
-      // Page numbers (show fewer to avoid clutter)
-      const maxVisiblePages = 5;
-      let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-      let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-      
-      if (endPage - startPage < maxVisiblePages - 1) {
-        startPage = Math.max(1, endPage - maxVisiblePages + 1);
-      }
-      
-      if (startPage > 1) {
-        paginationHTML += `<button class="pagination-btn" onclick="changePage(1)">1</button>`;
-        if (startPage > 2) {
+      // Page numbers
+      for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+          paginationHTML += `
+            <button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">
+              ${i}
+            </button>
+          `;
+        } else if (i === currentPage - 3 || i === currentPage + 3) {
           paginationHTML += '<span class="pagination-btn" disabled>...</span>';
         }
-      }
-      
-      for (let i = startPage; i <= endPage; i++) {
-        paginationHTML += `
-          <button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">
-            ${i}
-          </button>
-        `;
-      }
-      
-      if (endPage < totalPages) {
-        if (endPage < totalPages - 1) {
-          paginationHTML += '<span class="pagination-btn" disabled>...</span>';
-        }
-        paginationHTML += `<button class="pagination-btn" onclick="changePage(${totalPages})">${totalPages}</button>`;
       }
 
       // Next button
@@ -2300,193 +2166,83 @@
     }
 
     // ===== CATEGORY NAVIGATION =====
-    async function generateCategoryNavigation() {
+    function generateCategoryNavigation() {
       const container = document.getElementById('categoryButtons');
       if (!container) return;
 
-      container.innerHTML = '<div class="loading" style="margin: 0 auto;" aria-label="Loading categories"></div>';
+      container.innerHTML = '';
       
       // Get current category from URL
       const urlParams = new URLSearchParams(window.location.search);
       const currentCategoryParam = urlParams.get('cat');
       
-      try {
-        // Fetch categories with character counts from Airtable
-        const categoriesWithCounts = await fetchCategoriesWithCounts();
-        
-        // Filter categories with 5+ characters
-        const validCategories = categoriesWithCounts.filter(cat => cat.count >= 5);
-        
-        container.innerHTML = ''; // Clear loading
-        
-        // Show first 8 categories with 5+ characters
-        const categoriesToShow = validCategories.slice(0, 8);
-        
-        categoriesToShow.forEach(category => {
-          const link = document.createElement('a');
-          link.href = `category.html?cat=${category.id}`;
-          link.className = `category-btn ${currentCategoryParam === category.id ? 'active' : ''}`;
-          link.textContent = category.name;
-          link.title = `${category.count} characters`;
-          container.appendChild(link);
-        });
-        
-        console.log(`✅ Showing ${categoriesToShow.length} categories with 5+ characters`);
-      } catch (error) {
-        console.error('❌ Error loading categories:', error);
-        container.innerHTML = '<span style="color: red;">Error loading categories</span>';
-      }
-    }
-
-    // Fetch categories with character counts
-    async function fetchCategoriesWithCounts() {
-      console.log('🔍 Fetching categories with character counts...');
-      const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
-      url.searchParams.set('limit', '5000'); // Get all characters to count
-
-      const response = await fetch(url.toString());
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      if (!data.success || !data.characters) {
-        throw new Error('Invalid response format');
-      }
-
-      // Count characters per category
-      const categoryCounts = new Map();
-      data.characters.forEach(character => {
-        if (character.Category) {
-          const categoryId = character.Category.toLowerCase().replace(/\s+/g, '-');
-          let categoryName = character.Category.replace(/ Characters?$/i, '').replace(/ & Coach(es)?$/i, '');
-          
-          // Apply proper capitalization - capitalize first letter and handle common patterns
-          categoryName = categoryName.charAt(0).toUpperCase() + categoryName.slice(1);
-          
-          // Handle special cases for better display
-          if (categoryName.toLowerCase() === 'anime-manga') {
-            categoryName = 'Anime';
-          } else if (categoryName.toLowerCase() === 'business-coach') {
-            categoryName = 'Business';
-          } else if (categoryName.toLowerCase() === 'career-coach') {
-            categoryName = 'Career';
-          } else if (categoryName.toLowerCase() === 'fitness-coach') {
-            categoryName = 'Fitness';
-          } else if (categoryName.toLowerCase() === 'relationship-coach') {
-            categoryName = 'Relationship';
-          } else if (categoryName.toLowerCase() === 'negotiation-coach') {
-            categoryName = 'Negotiation';
-          }
-          
-          if (!categoryCounts.has(categoryId)) {
-            categoryCounts.set(categoryId, {
-              id: categoryId,
-              name: categoryName,
-              count: 1
-            });
-          } else {
-            categoryCounts.get(categoryId).count++;
-          }
-        }
+      // Use the same categories as tags.html
+      const allCategories = [
+        { id: 'historical', name: 'Historical', title: 'Historical Figures' },
+        { id: 'fictional', name: 'Fiction', title: 'Fictional Characters' },
+        { id: 'celebrity', name: 'Celebrities', title: 'Celebrities' },
+        { id: 'anime-manga', name: 'Anime & Manga', title: 'Anime & Manga' },
+        { id: 'gaming', name: 'Gaming', title: 'Gaming Characters' },
+        { id: 'movies-tv', name: 'Movies & TV', title: 'Movies & TV' },
+        { id: 'books', name: 'Books', title: 'Book Characters' },
+        { id: 'mythology', name: 'Mythology', title: 'Mythological Figures' }
+      ];
+      
+      // Shuffle and take 5 random categories
+      const shuffledCategories = [...allCategories].sort(() => Math.random() - 0.5);
+      const selectedCategories = shuffledCategories.slice(0, 5);
+      
+      selectedCategories.forEach(category => {
+        const link = document.createElement('a');
+        link.href = `category.html?cat=${category.id}`;
+        link.className = `category-btn ${currentCategoryParam === category.id ? 'active' : ''}`;
+        link.textContent = category.name;
+        container.appendChild(link);
       });
-
-      // Convert to array and sort by count
-      return Array.from(categoryCounts.values())
-        .filter(cat => {
-          const lowerName = cat.name.toLowerCase();
-          return !lowerName.includes('movie') && !lowerName.includes('life coach');
-        })
-        .sort((a, b) => b.count - a.count);
     }
 
     // Generate tag buttons
-    async function generateTagButtons() {
+    function generateTagButtons() {
       const tagsContainer = document.getElementById('tagsContainer');
       if (!tagsContainer) return;
 
-      tagsContainer.innerHTML = '<div class="loading" style="margin: 0 auto;" aria-label="Loading tags"></div>';
+      tagsContainer.innerHTML = '';
 
-      try {
-        // Fetch tags with character counts from Airtable
-        const tagsWithCounts = await fetchTagsWithCounts();
-        
-        // Filter tags with 5+ characters
-        const validTags = tagsWithCounts.filter(tag => tag.count >= 5);
-        
-        tagsContainer.innerHTML = ''; // Clear loading
-        
-        // Show first 8 tags with 5+ characters
-        const tagsToShow = validTags.slice(0, 8);
-        
-        tagsToShow.forEach(tag => {
-          const button = document.createElement('a');
-          button.href = `tags.html?tag=${tag.name}`;
-          button.className = 'tag-btn';
-          button.textContent = tag.name.charAt(0).toUpperCase() + tag.name.slice(1);
-          button.title = `${tag.count} characters`;
-          tagsContainer.appendChild(button);
-        });
-        
-        console.log(`✅ Showing ${tagsToShow.length} tags with 5+ characters`);
-      } catch (error) {
-        console.error('❌ Error loading tags:', error);
-        tagsContainer.innerHTML = '<span style="color: red;">Error loading tags</span>';
-      }
-    }
+      // Use the same tags as tags.html
+      const allTags = [
+        'wise', 'funny', 'helpful', 'mysterious', 'leader',
+        'creative', 'romantic', 'adventure', 'teacher', 'mentor',
+        'villain', 'hero', 'scientist', 'artist', 'warrior',
+        'genius', 'inspiring', 'determined', 'noble', 'brave',
+        'clever', 'charming', 'powerful', 'ancient', 'legendary'
+      ];
 
-    // Fetch tags with character counts
-    async function fetchTagsWithCounts() {
-      console.log('🔍 Fetching tags with character counts...');
-      const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
-      url.searchParams.set('limit', '5000'); // Get all characters to count
+      // Shuffle and take 15 random tags
+      const shuffledTags = [...allTags].sort(() => Math.random() - 0.5);
+      const selectedTags = shuffledTags.slice(0, 15);
 
-      const response = await fetch(url.toString());
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      if (!data.success || !data.characters) {
-        throw new Error('Invalid response format');
-      }
-
-      // Count characters per tag
-      const tagCounts = new Map();
-      data.characters.forEach(character => {
-        if (character.Tags && Array.isArray(character.Tags)) {
-          character.Tags.forEach(tag => {
-            const tagLower = tag.toLowerCase();
-            if (!tagCounts.has(tagLower)) {
-              tagCounts.set(tagLower, {
-                name: tagLower,
-                count: 1
-              });
-            } else {
-              tagCounts.get(tagLower).count++;
-            }
-          });
-        }
+      selectedTags.forEach(tag => {
+        const button = document.createElement('a');
+        button.href = `tags.html?tag=${tag}`;
+        button.className = 'tag-btn';
+        button.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
+        tagsContainer.appendChild(button);
       });
-
-      // Convert to array and sort by count
-      return Array.from(tagCounts.values())
-        .sort((a, b) => b.count - a.count);
     }
 
     // ===== INITIALIZATION =====
-    document.addEventListener('DOMContentLoaded', async function() {
+    document.addEventListener('DOMContentLoaded', function() {
       console.log('🚀 Category page initializing...');
       
       initializePage();
       setupEventListeners(); 
       loadCharacters();
       
-      // Generate category navigation (async)
-      await generateCategoryNavigation();
+      // Generate category navigation
+      generateCategoryNavigation();
       
-      // Generate tag buttons (async)
-      await generateTagButtons();
+      // Generate tag buttons
+      generateTagButtons();
       
       console.log('✅ Category page initialization complete');
     });
