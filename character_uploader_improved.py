@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Character Uploader - Improved Version
 - Haalt categorieën uit Airtable
@@ -10,7 +11,6 @@ import json
 import requests
 import os
 import time
-from datetime import datetime
 import random
 from dotenv import load_dotenv
 
@@ -327,8 +327,7 @@ def create_character(category, existing_names):
         'Tags': tags,
         'Character_ID': character_id,
         'Slug': slug,
-        'Character_URL': f"https://narrin.ai/chat/{slug}",
-        'Created_Date': datetime.now().isoformat()
+        'Character_URL': f"https://narrin.ai/chat/{slug}"
     }
     
     return character_data
