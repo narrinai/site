@@ -199,17 +199,34 @@ exports.handler = async (event, context) => {
       
       // Debug: show unique categories in the data
       const uniqueCategories = [...new Set(characters.map(c => c.Category).filter(Boolean))];
-      console.log(`📊 Available categories in data (first 10): ${uniqueCategories.slice(0, 10).join(', ')}`);
+      console.log(`📊 Total unique categories: ${uniqueCategories.length}`);
+      console.log(`📊 Available categories in data (first 20): ${uniqueCategories.slice(0, 20).join(', ')}`);
+      
+      // Count how many characters have no category
+      const noCategoryCount = characters.filter(c => !c.Category).length;
+      console.log(`⚠️ Characters without category: ${noCategoryCount}`);
       
       filteredCharacters = characters.filter(character => {
         if (!character.Category) return false;
         
+        const charCategory = character.Category.toLowerCase().trim();
+        const requestedCategory = category.toLowerCase().trim();
+        
+        // Debug each character
+        if (character.Name && character.Name.includes('Napoleon')) {
+          console.log(`🔍 Debug Napoleon: category="${character.Category}" vs requested="${category}"`);
+        }
+        
         // Try exact match first
-        if (character.Category.toLowerCase() === category.toLowerCase()) return true;
+        if (charCategory === requestedCategory) return true;
         
         // Try with 's' suffix (e.g., celebrity vs celebrities)
-        const categoryWithS = category.endsWith('s') ? category.slice(0, -1) : category + 's';
-        if (character.Category.toLowerCase() === categoryWithS.toLowerCase()) {
+        const categoryWithS = requestedCategory.endsWith('s') ? 
+          requestedCategory.slice(0, -1) : requestedCategory + 's';
+        const categoryWithoutS = requestedCategory.endsWith('s') ? 
+          requestedCategory.slice(0, -1) : requestedCategory;
+          
+        if (charCategory === categoryWithS || charCategory === categoryWithoutS) {
           return true;
         }
         
