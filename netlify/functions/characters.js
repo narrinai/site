@@ -60,15 +60,17 @@ exports.handler = async (event, context) => {
     // Create cache key
     const cacheKey = `${category || 'all'}-${tag || 'none'}-${limit}`;
     
-    // Check cache first
-    const cachedEntry = cache.get(cacheKey);
-    if (cachedEntry && (Date.now() - cachedEntry.timestamp < CACHE_TTL)) {
-      console.log('📦 Returning cached response for:', cacheKey);
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify(cachedEntry.data)
-      };
+    // Check cache first - but only in production
+    if (process.env.CONTEXT === 'production') {
+      const cachedEntry = cache.get(cacheKey);
+      if (cachedEntry && (Date.now() - cachedEntry.timestamp < CACHE_TTL)) {
+        console.log('📦 Returning cached response for:', cacheKey);
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify(cachedEntry.data)
+        };
+      }
     }
 
     // Fetch all records using pagination if needed
@@ -188,7 +190,8 @@ exports.handler = async (event, context) => {
         Character_URL: fields.Character_URL || `chat.html?char=${fields.Slug || 'unknown'}`,
         Character_ID: fields.Character_ID || record.id,
         voice_id: fields.voice_id || null,
-        voice_type: fields.voice_type || 'none'
+        voice_type: fields.voice_type || 'none',
+        _hasRealCategory: !!fields.Category  // Track if category was actually in data
       };
     });
 
@@ -207,15 +210,16 @@ exports.handler = async (event, context) => {
       console.log(`⚠️ Characters without category: ${noCategoryCount}`);
       
       filteredCharacters = characters.filter(character => {
+        // For historical category, only include characters that ACTUALLY have historical in data
+        if (category === 'historical' && character.Category === 'historical' && !character._hasRealCategory) {
+          // This is a default value, not a real historical character
+          return false;
+        }
+        
         if (!character.Category) return false;
         
         const charCategory = character.Category.toLowerCase().trim();
         const requestedCategory = category.toLowerCase().trim();
-        
-        // Debug each character
-        if (character.Name && character.Name.includes('Napoleon')) {
-          console.log(`🔍 Debug Napoleon: category="${character.Category}" vs requested="${category}"`);
-        }
         
         // Try exact match first
         if (charCategory === requestedCategory) return true;
