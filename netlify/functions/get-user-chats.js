@@ -1,4 +1,5 @@
-// netlify/functions/get-user-chats.js - DEBUG VERSION
+// netlify/functions/get-user-chats.js - DEBUG VERSION 
+// Updated to use new Airtable token
 exports.handler = async (event, context) => {
   const headers = {
     'Access-Control-Allow-Origin': '*',
