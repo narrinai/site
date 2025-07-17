@@ -1,10 +1,16 @@
 // Direct Airtable API call to get character avatars
 const https = require('https');
 
-// Airtable credentials
-const AIRTABLE_TOKEN = 'patxeVJCLQH53flsH.821cb409f4264bd63eec0185093933e5d718d96d5e1b865aa8901c6b5ff398ac';
-const AIRTABLE_BASE_ID = 'app7aSv140x93FY8r';
+// Airtable credentials - NEVER HARDCODE API KEYS!
+const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
+const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID || 'app7aSv140x93FY8r';
 const AIRTABLE_TABLE_ID = 'tblsYou5hdY3yJfNv'; // Characters table ID
+
+if (!AIRTABLE_TOKEN) {
+  console.error('❌ SECURITY: AIRTABLE_TOKEN environment variable is required');
+  console.error('Usage: AIRTABLE_TOKEN=your_token node scripts/fetch-airtable-avatars.js');
+  process.exit(1);
+}
 
 // List of characters to find
 const charactersToFind = {
