@@ -1989,7 +1989,7 @@
         // Build API URL for Netlify Function (get all characters)
         const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
         // Don't set category filter - we want all characters
-        // No limit - get all characters for tags page
+        url.searchParams.set('limit', '5000'); // Get all characters for tags page
         
         console.log(`📡 Fetching from Netlify Function:`, url.toString());
         
@@ -2511,7 +2511,7 @@
     async function fetchCategoriesWithCounts() {
       console.log('🔍 Fetching categories with character counts...');
       const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
-      url.searchParams.set('limit', '1000'); // Get many characters to count
+      url.searchParams.set('limit', '5000'); // Get all characters to count
 
       const response = await fetch(url.toString());
       if (!response.ok) {

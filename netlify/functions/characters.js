@@ -47,7 +47,7 @@ exports.handler = async (event, context) => {
     // }
 
     // Get query parameters
-    const { category, tag, limit = 500 } = event.queryStringParameters || {};
+    const { category, tag, limit = 5000 } = event.queryStringParameters || {};
     
     console.log('Request params:', { category, tag, limit });
 
@@ -68,9 +68,9 @@ exports.handler = async (event, context) => {
       // Don't add category filter here - we'll filter in JavaScript instead
       // This ensures we get ALL records and can properly paginate
       
-      // FORCE pagination by requesting less than total
-      // This should force Airtable to return an offset
-      params.set('maxRecords', '50');
+      // Use higher limit for pagination to reduce requests
+      // Airtable max is 100 per request
+      params.set('pageSize', '100');
       
       // Add offset for pagination
       if (offset) {
