@@ -776,30 +776,9 @@
     .tags-container {
       display: flex;
       gap: var(--spacing-sm);
-      overflow-x: auto;
-      overflow-y: hidden;
-      scroll-behavior: smooth;
-      scrollbar-width: thin;
-      -webkit-overflow-scrolling: touch;
+      flex-wrap: wrap;
+      justify-content: center;
       position: relative;
-      padding-bottom: 8px;
-    }
-    
-    .category-buttons::-webkit-scrollbar,
-    .tags-container::-webkit-scrollbar {
-      height: 6px;
-    }
-    
-    .category-buttons::-webkit-scrollbar-track,
-    .tags-container::-webkit-scrollbar-track {
-      background: var(--color-off-white);
-      border-radius: 3px;
-    }
-    
-    .category-buttons::-webkit-scrollbar-thumb,
-    .tags-container::-webkit-scrollbar-thumb {
-      background: var(--color-gray-light);
-      border-radius: 3px;
     }
 
     .category-btn {
@@ -812,8 +791,6 @@
       border-radius: var(--radius-md);
       transition: all var(--transition-base);
       box-shadow: var(--shadow-colored);
-      white-space: nowrap;
-      flex-shrink: 0;
     }
 
     .tag-btn {
@@ -1351,6 +1328,10 @@ body.has-referral-banner {
           <!-- USPs - All visible on desktop -->
           <div class="nav-usps" aria-label="Key features">
             <div class="usp-item">
+              <span class="usp-icon" aria-hidden="true">🔒</span>
+              <span>100% Safe</span>
+            </div>
+            <div class="usp-item">
               <span class="usp-icon" aria-hidden="true">🧠</span>
               <span>Character Memory</span>
             </div>
@@ -1513,6 +1494,25 @@ body.has-referral-banner {
       <div id="midPageCTA">
         <!-- Will be inserted dynamically -->
       </div>
+
+<!-- Extra Category/Tags Navigation - Before CTA -->
+      <nav class="category-nav" aria-label="Explore more categories">
+        <div class="filters-container">
+          <!-- Categories Section -->
+          <div class="filter-section">
+            <div class="category-buttons" id="extraCategoryButtons">
+              <!-- Extra category buttons will be inserted here -->
+            </div>
+          </div>
+          
+          <!-- Tags Section -->
+          <div class="filter-section">
+            <div class="tags-container" id="extraTagsContainer">
+              <!-- Extra tag buttons will be inserted here -->
+            </div>
+          </div>
+        </div>
+      </nav>
 
       <!-- Create Character CTA -->
       <section class="create-character-cta">
@@ -1878,7 +1878,7 @@ async function generateCategoryButtons() {
 
   // Determine how many to show based on screen size  
   const isMobile = window.innerWidth <= 768;
-  const categoriesToShow = isMobile ? filteredCategories.slice(0, 3) : filteredCategories.slice(0, 8); // Show 8 categories like category.html
+  const categoriesToShow = isMobile ? filteredCategories.slice(0, 3) : filteredCategories;
 
   // Function to populate category buttons
   const populateButtons = (container) => {
@@ -1906,8 +1906,6 @@ async function generateCategoryButtons() {
   if (bottomCategoryButtons) {
     populateButtons(bottomCategoryButtons);
   }
-  
-  // Extra category buttons removed - no longer needed
 }
 
 // Store tag counts globally
@@ -1982,11 +1980,11 @@ async function generateTagButtons() {
 
   // If tag counting failed, show debug info and fallback to showing all tags
   if (Object.keys(tagCharacterCounts).length === 0) {
-    console.log('⚠️ Tag counting failed, showing popular tags as fallback');
+    console.log('❌ Tag counting failed, showing all tags as fallback');
+    tagsContainer.innerHTML = '<span style="color: var(--color-red); font-size: var(--font-size-sm);">Tag counting failed - showing all tags</span>';
     
-    // Fallback: show popular tags
-    const popularTags = ['wise', 'funny', 'helpful', 'creative', 'leader', 'mentor', 'inspiring', 'genius'];
-    popularTags.forEach(tag => {
+    // Fallback: show all tags
+    CONFIG.TAGS.filter(tag => tag.length >= 5).forEach(tag => {
       const button = document.createElement('a');
       button.href = `tags.html?tag=${tag}`;
       button.className = 'tag-btn';
@@ -2011,14 +2009,10 @@ async function generateTagButtons() {
 
   console.log(`🏷️ Showing ${filteredTags.length} tags with 15+ characters:`, filteredTags);
 
-  // Limit tags to 6 for desktop (2 rows of 3)
-  const isMobile = window.innerWidth <= 768;
-  const tagsToShow = isMobile ? filteredTags.slice(0, 3) : filteredTags.slice(0, 6);
-
   // Helper function to populate tag buttons
   const populateTagButtons = (container) => {
-    if (tagsToShow.length > 0) {
-      tagsToShow.forEach(tag => {
+    if (filteredTags.length > 0) {
+      filteredTags.forEach(tag => {
         const count = tagCharacterCounts[tag.toLowerCase()] || 0;
         const button = document.createElement('a');
         button.href = `tags.html?tag=${tag}`;
@@ -2053,8 +2047,8 @@ async function generateTagButtons() {
 
     // Generate extra tag buttons for bottom navigation
 async function generateExtraTagButtons() {
-  // Extra tags container removed - no longer needed
-  return;
+  const extraTagsContainer = document.getElementById('extraTagsContainer');
+  if (!extraTagsContainer) return;
 
   extraTagsContainer.innerHTML = '';
 
@@ -2085,10 +2079,7 @@ async function generateExtraTagButtons() {
 
   console.log(`🏷️ Showing ${filteredExtraTags.length} extra tags with 15+ characters`);
 
-  // Limit extra tags to 6 (2 rows of 3)
-  const limitedExtraTags = filteredExtraTags.slice(0, 6);
-
-  limitedExtraTags.forEach(tag => {
+  filteredExtraTags.forEach(tag => {
     const count = tagCharacterCounts[tag.toLowerCase()] || 0;
     const button = document.createElement('a');
     button.href = `tags.html?tag=${tag}`;
@@ -2142,45 +2133,10 @@ async function generateExtraTagButtons() {
       
       const validCategories = window.validCategories || CONFIG.CATEGORIES;
       console.log(`✅ Showing ${validCategories.length} categories from Airtable`);
-      console.log('📋 All categories:', validCategories.map(c => `${c.id} (${c.name})`).join(', '));
 
-      // Filter out unwanted categories - check both id and name
-      const excludedCategories = ['rpg', 'cooking', 'mindfulness', 'accounting', 'writing', 'study', 'other', 'creativity', 'fitness', 'original', 'negotiation', 'educational', 'business'];
-      const excludedNames = ['RPG', 'Cooking', 'Mindfulness', 'Accounting', 'Writing', 'Study', 'Other', 'Creativity', 'Fitness', 'Original', 'Negotiation', 'Educational', 'Business'];
-      
-      const filteredCategories = validCategories.filter(cat => {
-        const isExcludedById = excludedCategories.includes(cat.id.toLowerCase());
-        const isExcludedByName = excludedNames.some(name => cat.name.toLowerCase() === name.toLowerCase());
-        const isExcluded = isExcludedById || isExcludedByName;
-        
-        if (isExcluded) {
-          console.log(`❌ Excluding category: ${cat.id} (${cat.name})`);
-        }
-        return !isExcluded;
-      });
-      console.log(`🔍 Filtered to ${filteredCategories.length} categories after exclusions`);
-      console.log('✅ Remaining categories:', filteredCategories.map(c => `${c.id} (${c.name})`).join(', '));
-
-      // Priority categories that should appear first
-      const priorityCategories = ['gen-z', 'middle-aged', 'romance', 'humor', 'celebrities', 'anime-manga', 'historical', 'fictional'];
-      
-      // Sort categories to put priority ones first
-      const sortedCategories = filteredCategories.sort((a, b) => {
-        const aIsPriority = priorityCategories.includes(a.id.toLowerCase());
-        const bIsPriority = priorityCategories.includes(b.id.toLowerCase());
-        
-        if (aIsPriority && !bIsPriority) return -1;
-        if (!aIsPriority && bIsPriority) return 1;
-        return 0;
-      });
-
-      // Limit to maximum 8 categories on homepage
-      const categoriesToShow = sortedCategories.slice(0, 8);
-      console.log(`📊 Showing ${categoriesToShow.length} categories on homepage`);
-
-      // Split categories into two groups
-      const firstHalf = categoriesToShow.slice(0, Math.ceil(categoriesToShow.length / 2));
-      const secondHalf = categoriesToShow.slice(Math.ceil(categoriesToShow.length / 2));
+      // Split valid categories into two groups
+      const firstHalf = validCategories.slice(0, Math.ceil(validCategories.length / 2));
+      const secondHalf = validCategories.slice(Math.ceil(validCategories.length / 2));
       
       // Generate first half of categories
       firstHalf.forEach(category => {
@@ -2231,224 +2187,6 @@ async function generateExtraTagButtons() {
 
     // ===== CHARACTER LOADING FUNCTIONS =====
 
-    // COMBINED: Load all characters and generate sections in one function
-    async function loadAllCharactersAndGenerateSections() {
-      console.log('🚀 Loading all characters in one request...');
-      
-      try {
-        const response = await fetch('/.netlify/functions/characters?limit=5000');
-        const data = await response.json();
-        
-        if (!data.success || !data.characters) {
-          throw new Error('Failed to load characters');
-        }
-        
-        console.log(`✅ Loaded ${data.characters.length} characters total`);
-        console.log(`⚠️ Expected 3443 characters but got ${data.characters.length} - checking for pagination issue`);
-        
-        // Process and categorize characters
-        const categorized = {};
-        
-        // Category mappings - based on actual Airtable categories from create-character.html
-        const categoryMappings = {
-          // Direct mapping from Airtable categories
-          'historical': 'historical',
-          'anime-manga': 'anime',
-          'mythology': 'mythology', 
-          'fictional': 'fictional',
-          'celebrity': 'celebrities', // Show as "celebrities" but stored as "celebrity"
-          'gaming': 'gaming',
-          'relationship-coach': 'relationship',
-          'career-coach': 'career',
-          'creativity-coach': 'creativity',
-          'fitness-coach': 'fitness',
-          'mindfulness-coach': 'mindfulness',
-          'business-coach': 'business',
-          'health-coach': 'health',
-          'spiritual-coach': 'spiritual',
-          'cooking-coach': 'cooking',
-          'negotiation-coach': 'negotiation',
-          'accounting-coach': 'accounting',
-          'education': 'education',
-          'writing-coach': 'writing',
-          'language-coach': 'language',
-          'fantasy': 'fantasy',
-          'other': 'other',
-          'study-coach': 'study',
-          'original': 'original'
-        };
-        
-        // Excluded categories - based on actual database categories
-        const excludedCategories = [
-          'business-coach', 'mindfulness-coach', 'cooking-coach', 
-          'fitness-coach', 'educational', 'writing-coach', 
-          'original', 'accounting-coach', 'study-coach', 
-          'other', 'creativity-coach', 'negotiation-coach'
-        ];
-        
-        data.characters.forEach(character => {
-          if (!character.Category) return;
-          
-          // Normalize category
-          const lowerCat = character.Category.toLowerCase();
-          let normalizedCat = categoryMappings[lowerCat] || lowerCat;
-          
-          // Skip if excluded
-          if (excludedCategories.includes(normalizedCat)) {
-            return;
-          }
-          
-          // Smart category assignment for gen-z and romance
-          const charName = (character.Name || '').toLowerCase();
-          const charTitle = (character.Character_Title || '').toLowerCase();
-          const charDesc = (character.Character_Description || '').toLowerCase();
-          
-          // Look for gen-z indicators in name/title/description
-          if (charName.includes('gen z') || charName.includes('gen-z') || charName.includes('genz') ||
-              charTitle.includes('gen z') || charTitle.includes('gen-z') || charTitle.includes('genz') ||
-              charDesc.includes('gen z') || charDesc.includes('gen-z') || charDesc.includes('genz') ||
-              charName.includes('tiktoker') || charName.includes('influencer') || charName.includes('streamer') ||
-              charTitle.includes('tiktoker') || charTitle.includes('influencer') || charTitle.includes('streamer')) {
-            normalizedCat = 'gen-z';
-          }
-          
-          // Look for romance indicators in name/title/description
-          if (charName.includes('romance') || charName.includes('lover') || charName.includes('boyfriend') || charName.includes('girlfriend') ||
-              charTitle.includes('romance') || charTitle.includes('lover') || charTitle.includes('boyfriend') || charTitle.includes('girlfriend') ||
-              charDesc.includes('romance') || charDesc.includes('lover') || charDesc.includes('romantic') ||
-              charName.includes('dating') || charTitle.includes('dating') || charDesc.includes('dating')) {
-            normalizedCat = 'romance';
-          }
-          
-          // Initialize category if needed
-          if (!categorized[normalizedCat]) {
-            categorized[normalizedCat] = [];
-          }
-          
-          // Add character (check avatar later for display, don't filter here)
-          categorized[normalizedCat].push(character);
-        });
-        
-        console.log('📊 Categorized characters:', Object.keys(categorized).map(cat => 
-          `${cat}: ${categorized[cat].length}`
-        ).join(', '));
-        
-        // Display categories with priority order (based on actual character counts)
-        const priorityCategories = ['historical', 'fictional', 'celebrities', 'anime', 'fantasy', 'gaming', 'relationship', 'mythology'];
-        const categoriesToShow = [];
-        
-        // Add priority categories first if they have enough characters
-        priorityCategories.forEach(catId => {
-          if (categorized[catId] && categorized[catId].length >= 5) { // Show categories with at least 5 characters for better quality
-            categoriesToShow.push(catId);
-          }
-        });
-        
-        // Add other categories if needed
-        Object.keys(categorized).forEach(catId => {
-          if (!priorityCategories.includes(catId) && 
-              categorized[catId].length >= 5 &&
-              categoriesToShow.length < 8) {
-            categoriesToShow.push(catId);
-          }
-        });
-        
-        console.log(`📊 Displaying ${categoriesToShow.length} categories`);
-        
-        // Generate HTML sections for these categories
-        const sectionsContainer = document.getElementById('characterSections');
-        const midPageCTA = document.getElementById('midPageCTA');
-        if (sectionsContainer) sectionsContainer.innerHTML = '';
-        if (midPageCTA) midPageCTA.innerHTML = '';
-        
-        // Split categories into two halves
-        const firstHalf = categoriesToShow.slice(0, Math.ceil(categoriesToShow.length / 2));
-        const secondHalf = categoriesToShow.slice(Math.ceil(categoriesToShow.length / 2));
-        
-        // Generate first half of categories
-        firstHalf.forEach(catId => {
-          const categoryData = {
-            id: catId,
-            name: catId.charAt(0).toUpperCase() + catId.slice(1).replace(/-/g, ' '),
-            title: catId.charAt(0).toUpperCase() + catId.slice(1).replace(/-/g, ' ')
-          };
-          const section = createCategorySection(categoryData);
-          if (sectionsContainer) sectionsContainer.appendChild(section);
-        });
-        
-        // Add mid-page CTA
-        if (midPageCTA) {
-          const ctaHTML = `
-            <section class="create-character-cta mid-page">
-              <div class="cta-content">
-                <div class="cta-icon">🎭</div>
-                <h2>Bring Your Ideas to Life</h2>
-                <p>Can't find the perfect character? Create your own AI personality with custom traits and conversation styles.</p>
-                <a href="create-character.html" class="btn btn-cta">Create Your Character</a>
-              </div>
-            </section>
-          `;
-          midPageCTA.innerHTML = ctaHTML;
-        }
-        
-        // Generate second half of categories
-        secondHalf.forEach(catId => {
-          const categoryData = {
-            id: catId,
-            name: catId.charAt(0).toUpperCase() + catId.slice(1).replace(/-/g, ' '),
-            title: catId.charAt(0).toUpperCase() + catId.slice(1).replace(/-/g, ' ')
-          };
-          const section = createCategorySection(categoryData);
-          if (midPageCTA) midPageCTA.appendChild(section);
-        });
-        
-        // Now display characters in each category
-        categoriesToShow.forEach(catId => {
-          const gridId = `${catId}-grid`;
-          const grid = document.getElementById(gridId);
-          if (grid && categorized[catId]) {
-            // Show up to configured maximum characters per category
-            const charactersToShow = categorized[catId].slice(0, CONFIG.MAX_CHARACTERS_PER_CATEGORY);
-            console.log(`📋 Displaying ${charactersToShow.length} characters for ${catId} (out of ${categorized[catId].length} total) in grid ${gridId}`);
-            console.log(`📋 First character example:`, charactersToShow[0]);
-            displayCharactersInGrid(grid, charactersToShow);
-          } else {
-            console.log(`⚠️ Grid not found for ${catId}, looking for element: ${gridId}`);
-            console.log(`⚠️ Available elements:`, Array.from(document.querySelectorAll('[id*="grid"]')).map(el => el.id));
-          }
-        });
-        
-      } catch (error) {
-        console.error('❌ Error loading characters:', error);
-      }
-    }
-    
-    function displayCharactersInGrid(grid, characters) {
-      grid.innerHTML = '';
-      
-      characters.forEach(char => {
-        const avatarUrl = Array.isArray(char.Avatar_URL) 
-          ? char.Avatar_URL[0]?.url 
-          : char.Avatar_URL;
-          
-        const card = document.createElement('a');
-        card.href = `chat.html?char=${char.Slug}`;
-        card.className = 'character-card';
-        
-        // Use the correct HTML structure that matches the CSS
-        card.innerHTML = `
-          <div class="character-avatar">
-            <img src="${avatarUrl}" alt="${char.Name}" loading="lazy" onerror="this.style.display='none'">
-          </div>
-          <div class="character-name">${char.Name}</div>
-          <div class="character-title">${char.Character_Title || ''}</div>
-        `;
-        grid.appendChild(card);
-      });
-      
-      console.log(`✅ Added ${characters.length} character cards to grid`);
-    }
-
     // UPDATED: Load characters function with enforced 10 character limit
     async function loadCharacters(category, gridId, limit = CONFIG.MAX_CHARACTERS_PER_CATEGORY) {
       const grid = document.getElementById(gridId);
@@ -2478,10 +2216,9 @@ async function loadCharactersFromNetlify(category, gridId, limit = CONFIG.MAX_CH
   // Build API URL
   const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
   url.searchParams.set('category', category);
-  url.searchParams.set('limit', '100'); // Reduced for faster initial load
+  url.searchParams.set('limit', limit.toString());
   
-  console.log(`📡 Fetching from Netlify Function for category "${category}":`, url.toString());
-  console.log(`🔍 Request details: category="${category}", limit="${limit}"`);
+  console.log(`📡 Fetching from Netlify Function:`, url.toString());
   
   const response = await fetch(url.toString());
   
@@ -2524,46 +2261,10 @@ function processNetlifyData(characters, category, gridId, limit) {
   grid.innerHTML = '';
   
   if (characters && characters.length > 0) {
-    // Filter for this category first - with better matching
-    const categoryCharacters = characters.filter(char => {
-      if (!char.Category) return false;
-      
-      // Convert to lowercase for comparison
-      const charCat = char.Category.toLowerCase();
-      const searchCat = category.toLowerCase();
-      
-      // Try exact match
-      if (charCat === searchCat) return true;
-      
-      // Try singular/plural variations
-      if (charCat === searchCat + 's' || charCat + 's' === searchCat) return true;
-      if (charCat === searchCat.slice(0, -1) || charCat.slice(0, -1) === searchCat) return true;
-      
-      // Try hyphenated vs non-hyphenated
-      const charCatNoHyphen = charCat.replace(/-/g, '');
-      const searchCatNoHyphen = searchCat.replace(/-/g, '');
-      if (charCatNoHyphen === searchCatNoHyphen) return true;
-      
-      return false;
-    });
-    
-    console.log(`🔍 Found ${categoryCharacters.length} characters for category "${category}"`);
-    
-    // Debug: show character details
-    if (categoryCharacters.length > 0) {
-      console.log(`🎭 Characters in ${category}:`, categoryCharacters.slice(0, 20).map(c => ({
-        name: c.Name,
-        hasAvatar: hasValidAvatar(c),
-        avatarUrl: c.Avatar_URL,
-        category: c.Category
-      })));
-    } else {
-      console.log(`❌ NO CHARACTERS FOUND for category "${category}"!`);
-      console.log('🔍 Debug: First 5 characters from API:', characters.slice(0, 5).map(c => ({
-        name: c.Name,
-        category: c.Category
-      })));
-    }
+    // Filter for this category first
+    const categoryCharacters = characters.filter(char => 
+      char.Category && char.Category.toLowerCase() === category.toLowerCase()
+    );
     
     // Sort characters - those with avatars first, then others
     const sortedCharacters = categoryCharacters.sort((a, b) => {
@@ -2576,12 +2277,7 @@ function processNetlifyData(characters, category, gridId, limit) {
     });
     
     // Take configured number of characters (prioritizing those with avatars)
-    let limitedCharacters = sortedCharacters.slice(0, limit);
-    
-    // If we don't have enough characters, log a warning
-    if (limitedCharacters.length < limit && categoryCharacters.length >= limit) {
-      console.warn(`⚠️ Only ${limitedCharacters.length} characters available for ${category}, wanted ${limit}`);
-    }
+    const limitedCharacters = sortedCharacters.slice(0, limit);
     
     console.log(`📋 Showing ${limitedCharacters.length} characters for ${category} (from ${categoryCharacters.length} total, ${limitedCharacters.filter(hasValidAvatar).length} with avatars)`);
     
@@ -2701,27 +2397,7 @@ function processNetlifyData(characters, category, gridId, limit) {
       
       // Check grids after 3 seconds
       setTimeout(() => {
-        const excludedCategories = ['rpg', 'cooking', 'mindfulness', 'accounting', 'writing', 'study', 'other', 'creativity', 'fitness', 'original', 'negotiation', 'educational', 'business'];
-        const allCategories = window.validCategories || CONFIG.CATEGORIES;
-        const filteredCategories = allCategories.filter(cat => 
-          !excludedCategories.includes(cat.id.toLowerCase())
-        );
-        
-        // Priority categories that should appear first
-        const priorityCategories = ['gen-z', 'middle-aged', 'romance', 'humor', 'celebrities', 'anime-manga', 'historical', 'fictional'];
-        
-        // Sort categories to put priority ones first
-        const sortedCategories = filteredCategories.sort((a, b) => {
-          const aIsPriority = priorityCategories.includes(a.id.toLowerCase());
-          const bIsPriority = priorityCategories.includes(b.id.toLowerCase());
-          
-          if (aIsPriority && !bIsPriority) return -1;
-          if (!aIsPriority && bIsPriority) return 1;
-          return 0;
-        });
-        
-        const categoriesToCheck = sortedCategories.slice(0, 8);
-        categoriesToCheck.forEach(category => {
+        CONFIG.CATEGORIES.forEach(category => {
           const grid = document.getElementById(`${category.id}-grid`);
           const cards = grid.querySelectorAll('.character-card');
           console.log(`📊 ${category.id}: ${cards.length} cards loaded (max allowed: ${CONFIG.MAX_CHARACTERS_PER_CATEGORY})`);
@@ -2749,38 +2425,8 @@ function processNetlifyData(characters, category, gridId, limit) {
 
     // UPDATED: Initialize character grids only for valid categories (50+ characters)
     function initializeCharacterGrids() {
-      console.log('🎬 initializeCharacterGrids called');
       const categoriesToLoad = window.validCategories || CONFIG.CATEGORIES;
-      
-      // Filter out unwanted categories (same as in generateCharacterSections)
-      const excludedCategories = ['rpg', 'cooking', 'mindfulness', 'accounting', 'writing', 'study', 'other', 'creativity', 'fitness', 'original', 'negotiation', 'educational', 'business'];
-      const excludedNames = ['RPG', 'Cooking', 'Mindfulness', 'Accounting', 'Writing', 'Study', 'Other', 'Creativity', 'Fitness', 'Original', 'Negotiation', 'Educational', 'Business'];
-      
-      const filteredCategories = categoriesToLoad.filter(cat => {
-        const isExcludedById = excludedCategories.includes(cat.id.toLowerCase());
-        const isExcludedByName = excludedNames.some(name => cat.name.toLowerCase() === name.toLowerCase());
-        return !isExcludedById && !isExcludedByName;
-      });
-      
-      // Priority categories that should appear first
-      const priorityCategories = ['gen-z', 'middle-aged', 'romance', 'humor', 'celebrities', 'anime-manga', 'historical', 'fictional'];
-      
-      // Sort categories to put priority ones first
-      const sortedCategories = filteredCategories.sort((a, b) => {
-        const aIsPriority = priorityCategories.includes(a.id.toLowerCase());
-        const bIsPriority = priorityCategories.includes(b.id.toLowerCase());
-        
-        if (aIsPriority && !bIsPriority) return -1;
-        if (!aIsPriority && bIsPriority) return 1;
-        return 0;
-      });
-      
-      // Limit to maximum 8 categories on homepage
-      const limitedCategories = sortedCategories.slice(0, 8);
-      console.log(`📌 Loading ${limitedCategories.length} categories (max 8 after filtering)`);
-      
-      limitedCategories.forEach((category, index) => {
-        console.log(`📦 Category ${index + 1}:`, category);
+      categoriesToLoad.forEach(category => {
         loadCharacters(category.id, `${category.id}-grid`, CONFIG.MAX_CHARACTERS_PER_CATEGORY);
       });
     }
@@ -2968,6 +2614,9 @@ if (window.netlifyIdentity) {
     function showButtonLoadingState() {
       const categoryButtons = document.getElementById('categoryButtons');
       const tagsContainer = document.getElementById('tagsContainer');
+      const extraCategoryButtons = document.getElementById('extraCategoryButtons');
+      const extraTagsContainer = document.getElementById('extraTagsContainer');
+      
       // Show loading spinner for category buttons
       if (categoryButtons) {
         categoryButtons.innerHTML = '<div class="loading" style="margin: 0 auto;" aria-label="Loading categories"></div>';
@@ -2976,6 +2625,12 @@ if (window.netlifyIdentity) {
       // Hide tag containers initially
       if (tagsContainer) {
         tagsContainer.innerHTML = '';
+      }
+      if (extraCategoryButtons) {
+        extraCategoryButtons.innerHTML = '';
+      }
+      if (extraTagsContainer) {
+        extraTagsContainer.innerHTML = '';
       }
     }
 
@@ -2990,19 +2645,21 @@ if (window.netlifyIdentity) {
       await generateCategoryButtons();
       console.log('✅ Categories loaded from Airtable');
       
-      // Skip tag buttons to reduce API calls
-      console.log('🚀 Skipping tag buttons to reduce API calls');
-      // await generateTagButtons();
-      console.log('✅ Tag buttons skipped');
+      // Load tag buttons (these now check character counts)
+      console.log('🚀 About to generate tag buttons...');
+      await generateTagButtons();
+      console.log('✅ Main tag buttons generated');
+      await generateExtraTagButtons();
+      console.log('✅ Extra tag buttons generated');
       
-      // Generate character sections and load characters - all in one
-      console.log('🚀 Loading all characters and generating sections...');
-      await loadAllCharactersAndGenerateSections();
+      // Generate character sections using Airtable categories
+      await generateCharacterSections();
+      
+      // Load character data
+      initializeCharacterGrids();
       
       // Debug what gets loaded
-      setTimeout(() => {
-        debugLoadProcess();
-      }, 5000); // Wait 5 seconds to ensure all data is loaded
+      debugLoadProcess();
       
       console.log('✅ Initialization complete');
       // Check voor referral parameter bij pagina load
