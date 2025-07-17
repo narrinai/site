@@ -41,13 +41,12 @@ exports.handler = async (event, context) => {
     if (!process.env.AIRTABLE_BASE_ID) {
       throw new Error('AIRTABLE_BASE_ID not found');
     }
-    // Skip AIRTABLE_TABLE_ID check since we're using hardcoded table name
-    // if (!process.env.AIRTABLE_TABLE_ID) {
-    //   throw new Error('AIRTABLE_TABLE_ID not found');
-    // }
+    if (!process.env.AIRTABLE_TABLE_ID) {
+      throw new Error('AIRTABLE_TABLE_ID not found');
+    }
 
     // Get query parameters
-    const { category, tag, limit = 5000 } = event.queryStringParameters || {};
+    const { category, tag, limit = 500 } = event.queryStringParameters || {};
     
     console.log('Request params:', { category, tag, limit });
 
@@ -61,16 +60,18 @@ exports.handler = async (event, context) => {
       requestCount++;
       console.log(`📡 Making request ${requestCount} to Airtable...`);
       
-      // Build Airtable URL for this request - TEST with hardcoded table name
-      let url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Characters`;
+      // Build Airtable URL for this request
+      let url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_TABLE_ID}`;
       const params = new URLSearchParams();
       
-      // Don't add category filter here - we'll filter in JavaScript instead
-      // This ensures we get ALL records and can properly paginate
+      // Add category filter if specified
+      if (category) {
+        params.set('filterByFormula', `{Category} = "${category}"`);
+      }
       
-      // Use higher limit for pagination to reduce requests
-      // Airtable max is 100 per request
-      params.set('pageSize', '100');
+      // Set maximum records per request (Airtable limit is 100)
+      // Use maximum possible to minimize API calls
+      params.set('maxRecords', '100');
       
       // Add offset for pagination
       if (offset) {
@@ -82,7 +83,6 @@ exports.handler = async (event, context) => {
       }
       
       console.log(`🔗 Airtable URL (request ${requestCount}):`, url);
-      console.log(`🔑 Using hardcoded table name: Characters (was: ${process.env.AIRTABLE_TABLE_ID})`);
 
       // Make Airtable API call
       const response = await fetch(url, {
@@ -102,32 +102,16 @@ exports.handler = async (event, context) => {
 
       const data = await response.json();
       console.log(`✅ Retrieved ${data.records?.length || 0} records from request ${requestCount}`);
-      console.log(`🔍 Response keys:`, Object.keys(data));
-      console.log(`🔍 Raw Airtable response:`, JSON.stringify(data, null, 2).substring(0, 500) + '...');
       
       // Add records to our collection
       if (data.records) {
         allRecords = allRecords.concat(data.records);
-        console.log(`➕ Added ${data.records.length} records to collection`);
-      } else {
-        console.log(`❌ No records field in response`);
       }
       
       // Check if there are more records to fetch
       offset = data.offset;
       console.log(`📄 Offset for next request: ${offset || 'None (finished)'}`);
       console.log(`📊 Running total: ${allRecords.length} records`);
-      
-      if (data.offset) {
-        console.log(`🔄 Will continue pagination because offset exists: ${data.offset}`);
-      } else {
-        console.log(`🛑 Pagination will stop - no offset in response`);
-        console.log(`🔍 Full response object keys:`, Object.keys(data));
-        console.log(`🔍 Records length:`, data.records?.length);
-        if (data.records?.length === 100) {
-          console.log(`⚠️ WARNING: Got exactly 100 records but no offset - this suggests pagination should continue!`);
-        }
-      }
       
       // Safety check
       if (requestCount >= maxRequests) {
@@ -142,6 +126,12 @@ exports.handler = async (event, context) => {
     // Transform data to expected format
     const characters = (allRecords || []).map(record => {
       const fields = record.fields || {};
+      
+      // Debug avatar data
+      console.log(`Avatar data for ${fields.Name}:`, {
+        Avatar_File: fields.Avatar_File,
+        Avatar_URL: fields.Avatar_URL
+      });
       
       // Extract avatar URL properly
       let avatarUrl = '';
@@ -167,36 +157,11 @@ exports.handler = async (event, context) => {
       };
     });
 
-    // Filter by category if specified (done in JavaScript to avoid Airtable pagination issues)
+    // Filter by tag if specified (done in JavaScript since Airtable array filtering is complex)
     let filteredCharacters = characters;
-    if (category) {
-      console.log(`📁 Filtering characters by category: ${category}`);
-      
-      // Debug: show unique categories in the data
-      const uniqueCategories = [...new Set(characters.map(c => c.Category).filter(Boolean))];
-      console.log(`📊 Available categories in data (first 10): ${uniqueCategories.slice(0, 10).join(', ')}`);
-      
-      filteredCharacters = characters.filter(character => {
-        if (!character.Category) return false;
-        
-        // Try exact match first
-        if (character.Category.toLowerCase() === category.toLowerCase()) return true;
-        
-        // Try with 's' suffix (e.g., celebrity vs celebrities)
-        const categoryWithS = category.endsWith('s') ? category.slice(0, -1) : category + 's';
-        if (character.Category.toLowerCase() === categoryWithS.toLowerCase()) {
-          return true;
-        }
-        
-        return false;
-      });
-      console.log(`📁 Found ${filteredCharacters.length} characters in category "${category}"`);
-    }
-    
-    // Further filter by tag if specified
     if (tag) {
       console.log(`🏷️ Filtering characters by tag: ${tag}`);
-      filteredCharacters = filteredCharacters.filter(character => {
+      filteredCharacters = characters.filter(character => {
         if (character.Tags && Array.isArray(character.Tags)) {
           return character.Tags.some(charTag => 
             charTag.toLowerCase() === tag.toLowerCase()
@@ -208,10 +173,9 @@ exports.handler = async (event, context) => {
     }
 
     // Apply limit (increased for category/tags pages)
-    const requestedLimit = parseInt(limit) || 500;
-    const limitedCharacters = filteredCharacters.slice(0, requestedLimit);
+    const limitedCharacters = filteredCharacters.slice(0, parseInt(limit));
     
-    console.log(`📦 Returning ${limitedCharacters.length} characters (requested: ${requestedLimit}, available: ${filteredCharacters.length})`);
+    console.log(`📦 Returning ${limitedCharacters.length} characters`);
 
     return {
       statusCode: 200,
