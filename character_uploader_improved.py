@@ -37,8 +37,8 @@ def log(color, message):
     """Print gekleurde berichten naar console"""
     print(f"{color}{message}{Colors.RESET}")
 
-# Maximum aantal characters per categorie
-MAX_CHARACTERS_PER_CATEGORY = 15
+# Maximum aantal characters om TOE TE VOEGEN per categorie
+MAX_CHARACTERS_TO_ADD = 15
 
 # Character type weights - alleen companions en vrienden
 CHARACTER_TYPE_WEIGHTS = {
@@ -335,7 +335,7 @@ def main():
     """Hoofdfunctie"""
     try:
         log(Colors.CYAN, "🚀 Character Uploader Improved gestart")
-        log(Colors.CYAN, f"📊 Maximum {MAX_CHARACTERS_PER_CATEGORY} characters per categorie")
+        log(Colors.CYAN, f"📊 Voegt maximaal {MAX_CHARACTERS_TO_ADD} characters toe per categorie")
         log(Colors.CYAN, f"🎯 Character type verdeling: {CHARACTER_TYPE_WEIGHTS}")
         
         # Haal categorieën uit Airtable
@@ -350,18 +350,15 @@ def main():
         # Process elke categorie
         for category in categories:
             current_count = category_counts.get(category, 0)
-            needed = max(0, MAX_CHARACTERS_PER_CATEGORY - current_count)
+            to_add = MAX_CHARACTERS_TO_ADD  # Voeg altijd het maximum toe
             
             log(Colors.BLUE, f"\n🎯 Categorie: {category}")
-            log(Colors.CYAN, f"   📊 Huidige aantal: {current_count}, Nodig: {needed}")
-            
-            if needed == 0:
-                log(Colors.YELLOW, f"   ⚠️  {category} heeft al {MAX_CHARACTERS_PER_CATEGORY} characters")
-                continue
+            log(Colors.CYAN, f"   📊 Huidige aantal: {current_count}")
+            log(Colors.CYAN, f"   ➕ Toe te voegen: {to_add}")
             
             created_in_category = 0
             
-            for i in range(needed):
+            for i in range(to_add):
                 try:
                     # Maak nieuw character
                     character_data = create_character(category, existing_names)
@@ -377,7 +374,7 @@ def main():
                     created_in_category += 1
                     total_created += 1
                     
-                    log(Colors.GREEN, f"   ✅ [{created_in_category}/{needed}] {character_data['Name']} - {character_data['Character_Title']}")
+                    log(Colors.GREEN, f"   ✅ [{created_in_category}/{to_add}] {character_data['Name']} - {character_data['Character_Title']}")
                     
                     # Kleine vertraging om API rate limits te respecteren
                     time.sleep(0.2)
