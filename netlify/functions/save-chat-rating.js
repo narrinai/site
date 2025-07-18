@@ -121,7 +121,7 @@ exports.handler = async (event, context) => {
 
     console.log('💾 Saving rating to ChatRatings');
 
-    const createResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatRatings`, {
+    const createResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/tblXglk25SzZ3UYAt`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${AIRTABLE_TOKEN}`,

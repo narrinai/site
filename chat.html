@@ -4874,8 +4874,12 @@ hideTypingIndicator();
       console.error('❌ Save error:', saveError);
     }
 
-    // Check if we should show rating
-    await checkAndShowRating();
+    // Check if we should show rating - but don't let it break the chat
+    try {
+      await checkAndShowRating();
+    } catch (ratingError) {
+      console.error('⚠️ Rating check failed, but continuing chat:', ratingError);
+    }
 
     // Memory processing in background - VERBETERDE VERSIE
 if (data && data.success) {

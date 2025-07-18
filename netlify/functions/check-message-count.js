@@ -39,8 +39,9 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Get user ID
-    const userResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=AND({Email}='${user_email}',{NetlifyUID}='${user_uid}')`, {
+    // Get user ID - escape single quotes in email
+    const escapedEmail = user_email.replace(/'/g, "\\'");
+    const userResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=AND({Email}='${escapedEmail}',{NetlifyUID}='${user_uid}')`, {
       headers: {
         'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
         'Content-Type': 'application/json'
@@ -58,8 +59,9 @@ exports.handler = async (event, context) => {
 
     const user_id = userData.records[0].id;
 
-    // Get character ID
-    const characterResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula={Slug}='${char}'`, {
+    // Get character ID - escape single quotes in slug
+    const escapedChar = char.replace(/'/g, "\\'");
+    const characterResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula={Slug}='${escapedChar}'`, {
       headers: {
         'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
         'Content-Type': 'application/json'
@@ -108,22 +110,32 @@ exports.handler = async (event, context) => {
 
     // Get last rating to check if already rated at this count
     if (shouldShowRating) {
-      const lastRatingResponse = await fetch(
-        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatRatings?filterByFormula=AND({User}='${user_id}',{Character}='${character_id}',{MessageCount}=${messageCount})&maxRecords=1`,
-        {
-          headers: {
-            'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
-            'Content-Type': 'application/json'
+      try {
+        const lastRatingResponse = await fetch(
+          `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/tblXglk25SzZ3UYAt?filterByFormula=AND({User}='${user_id}',{Character}='${character_id}',{MessageCount}=${messageCount})&maxRecords=1`,
+          {
+            headers: {
+              'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+              'Content-Type': 'application/json'
+            }
           }
-        }
-      );
+        );
 
-      if (lastRatingResponse.ok) {
-        const lastRatingData = await lastRatingResponse.json();
-        if (lastRatingData.records.length > 0) {
-          // Already rated at this message count
+        if (lastRatingResponse.ok) {
+          const lastRatingData = await lastRatingResponse.json();
+          if (lastRatingData.records.length > 0) {
+            // Already rated at this message count
+            shouldShowRating = false;
+          }
+        } else if (lastRatingResponse.status === 404) {
+          // ChatRatings table doesn't exist - skip rating check
+          console.log('⚠️ ChatRatings table not found, skipping rating check');
           shouldShowRating = false;
         }
+      } catch (ratingCheckError) {
+        console.error('⚠️ Error checking previous ratings:', ratingCheckError);
+        // Don't show rating if we can't check
+        shouldShowRating = false;
       }
     }
 
