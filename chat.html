@@ -3777,27 +3777,38 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     
 }
     
-    const params = new URLSearchParams(window.location.search);
-    characterSlug = params.get("char");
+    // Initialize character loading on page load
+    function initializeChat() {
+      const params = new URLSearchParams(window.location.search);
+      characterSlug = params.get("char");
 
-    if (!characterSlug) {
-      showError("It looks like there's a connection issue. Let's get you to a safe space where you can find the right companion.");
+      if (!characterSlug) {
+        showError("It looks like there's a connection issue. Let's get you to a safe space where you can find the right companion.");
+      } else {
+        // Add timeout fallback for character loading
+        const loadingTimeout = setTimeout(() => {
+          console.error('⏰ Character loading timeout - forcing interface setup');
+          if (document.getElementById('loadingState').style.display !== 'none') {
+            showError("Character loading is taking longer than expected. Please try refreshing the page.");
+          }
+        }, 10000); // 10 second timeout
+        
+        loadCharacter(characterSlug).then(() => {
+          clearTimeout(loadingTimeout);
+        }).catch((error) => {
+          clearTimeout(loadingTimeout);
+          console.error('❌ Character loading failed:', error);
+          showError("Unable to load character. Please try again or contact support.");
+        });
+      }
+    }
+    
+    // Call initializeChat when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeChat);
     } else {
-      // Add timeout fallback for character loading
-      const loadingTimeout = setTimeout(() => {
-        console.error('⏰ Character loading timeout - forcing interface setup');
-        if (document.getElementById('loadingState').style.display !== 'none') {
-          showError("Character loading is taking longer than expected. Please try refreshing the page.");
-        }
-      }, 10000); // 10 second timeout
-      
-      loadCharacter(characterSlug).then(() => {
-        clearTimeout(loadingTimeout);
-      }).catch((error) => {
-        clearTimeout(loadingTimeout);
-        console.error('❌ Character loading failed:', error);
-        showError("Unable to load character. Please try again or contact support.");
-      });
+      // DOM is already ready
+      initializeChat();
     }
 
     async function loadCharacter(slug) {
@@ -3868,6 +3879,7 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     setupCharacterInterface();
     
     // Load chat history after character is loaded
+    console.log('🔄 Loading chat history after character load...');
     await loadChatHistory();
     
     // Check if AI avatar needs to be generated
