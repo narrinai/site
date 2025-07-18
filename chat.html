@@ -2815,6 +2815,80 @@ document.addEventListener('DOMContentLoaded', () => {
     const VOICE_STORAGE_KEY = 'voice_usage_count';
     const VOICE_RESET_KEY = 'voice_usage_reset_date';
     
+    // Generate conversation starter based on character
+    function generateConversationStarter() {
+      if (!currentCharacter) return null;
+      
+      // Default starters that can be customized per character type
+      const starters = {
+        // Friendly, warm characters
+        friendly: [
+          "Hey there! How's your day going?",
+          "Hi! What's on your mind today?",
+          "Hello! How are you feeling right now?",
+          "Hey! What brings you here today?"
+        ],
+        // Professional, helpful characters
+        professional: [
+          "Hello! How can I assist you today?",
+          "Good to meet you! What can I help you with?",
+          "Welcome! What would you like to talk about?",
+          "Hi there! How may I be of service?"
+        ],
+        // Creative, artistic characters
+        creative: [
+          "Hey! Ready to explore something creative today?",
+          "Hi there! What inspires you lately?",
+          "Hello! What creative adventures shall we embark on?",
+          "Welcome! What sparks your imagination today?"
+        ],
+        // Wise, mentor-like characters
+        wise: [
+          "Welcome, my friend. What wisdom do you seek?",
+          "Hello there. What's weighing on your heart?",
+          "Greetings. What questions bring you here today?",
+          "Welcome. What would you like to explore together?"
+        ],
+        // Playful, fun characters
+        playful: [
+          "Heyyy! Ready for some fun? What's your name?",
+          "Hiya! What exciting things are happening with you?",
+          "Hello hello! What shall we chat about today?",
+          "Hey there! Tell me something awesome about yourself!"
+        ],
+        // Default fallback
+        default: [
+          "Hello! How are you today?",
+          "Hi there! What's your name?",
+          "Hey! How's everything going?",
+          "Hello! What would you like to chat about?"
+        ]
+      };
+      
+      // Determine character type based on title/description
+      let characterType = 'default';
+      const lowerTitle = (currentCharacter.character_title || '').toLowerCase();
+      const lowerDesc = (currentCharacter.description || '').toLowerCase();
+      
+      if (lowerTitle.includes('friend') || lowerTitle.includes('companion') || lowerDesc.includes('friendly')) {
+        characterType = 'friendly';
+      } else if (lowerTitle.includes('coach') || lowerTitle.includes('mentor') || lowerTitle.includes('teacher')) {
+        characterType = 'wise';
+      } else if (lowerTitle.includes('artist') || lowerTitle.includes('creative') || lowerTitle.includes('designer')) {
+        characterType = 'creative';
+      } else if (lowerTitle.includes('assistant') || lowerTitle.includes('helper') || lowerTitle.includes('expert')) {
+        characterType = 'professional';
+      } else if (lowerTitle.includes('fun') || lowerTitle.includes('play') || lowerDesc.includes('playful')) {
+        characterType = 'playful';
+      }
+      
+      // Pick a random starter from the appropriate category
+      const categoryStarters = starters[characterType];
+      const starter = categoryStarters[Math.floor(Math.random() * categoryStarters.length)];
+      
+      return starter;
+    }
+    
     // Load chat history function
     async function loadChatHistory() {
       try {
@@ -2842,6 +2916,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (!response.ok) {
           console.warn('⚠️ Could not load chat history');
+          // Show conversation starter for new chat
+          showConversationStarter();
           return;
         }
         
@@ -2873,12 +2949,45 @@ document.addEventListener('DOMContentLoaded', () => {
           
           chatlog.scrollTop = chatlog.scrollHeight;
         } else {
-          console.log('📭 No chat history found');
+          console.log('📭 No chat history found - showing conversation starter');
+          // Show conversation starter for new chat
+          showConversationStarter();
         }
         
       } catch (error) {
         console.error('❌ Error loading chat history:', error);
+        // Show conversation starter on error
+        showConversationStarter();
       }
+    }
+    
+    // Show conversation starter
+    function showConversationStarter() {
+      const starter = generateConversationStarter();
+      if (!starter) return;
+      
+      const chatlog = document.getElementById("chatlog");
+      const starterMessage = document.createElement("p");
+      const avatarHtml = getAvatarHtml();
+      
+      starterMessage.className = 'starter-message';
+      starterMessage.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span>`;
+      
+      if (currentCharacter.voice_id) {
+        starterMessage.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span><br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice(\`${starter.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
+      }
+      
+      chatlog.appendChild(starterMessage);
+      
+      // Use typewriter effect for the starter
+      const typingSpan = starterMessage.querySelector('.typing-text');
+      if (currentCharacter.voice_id) {
+        typewriterWithVoice(typingSpan, starter, currentCharacter.voice_id);
+      } else {
+        typewriterEffect(typingSpan, starter);
+      }
+      
+      chatlog.scrollTop = chatlog.scrollHeight;
     }
     
     // Check voice usage limit for Free plan users
