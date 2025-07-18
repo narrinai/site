@@ -2898,6 +2898,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (!token || !uid || !email || !characterSlug) {
           console.log('⚠️ Missing credentials for loading chat history');
+          // Show conversation starter when not logged in
+          showConversationStarter();
           return;
         }
         
@@ -2916,6 +2918,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (!response.ok) {
           console.warn('⚠️ Could not load chat history');
+          // Clear chatlog before showing starter
+          const chatlog = document.getElementById("chatlog");
+          chatlog.innerHTML = '';
           // Show conversation starter for new chat
           showConversationStarter();
           return;
@@ -2950,12 +2955,18 @@ document.addEventListener('DOMContentLoaded', () => {
           chatlog.scrollTop = chatlog.scrollHeight;
         } else {
           console.log('📭 No chat history found - showing conversation starter');
+          // Clear chatlog before showing starter
+          const chatlog = document.getElementById("chatlog");
+          chatlog.innerHTML = '';
           // Show conversation starter for new chat
           showConversationStarter();
         }
         
       } catch (error) {
         console.error('❌ Error loading chat history:', error);
+        // Clear chatlog before showing starter
+        const chatlog = document.getElementById("chatlog");
+        chatlog.innerHTML = '';
         // Show conversation starter on error
         showConversationStarter();
       }
@@ -2967,10 +2978,18 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!starter) return;
       
       const chatlog = document.getElementById("chatlog");
+      
+      // Check if a starter message already exists
+      if (chatlog.querySelector('.starter-message')) {
+        console.log('🔄 Starter message already exists, skipping');
+        return;
+      }
+      
       const starterMessage = document.createElement("p");
       const avatarHtml = getAvatarHtml();
       
       starterMessage.className = 'starter-message';
+      starterMessage.setAttribute('data-starter', 'true');
       starterMessage.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span>`;
       
       if (currentCharacter.voice_id) {
@@ -2981,13 +3000,20 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Use typewriter effect for the starter
       const typingSpan = starterMessage.querySelector('.typing-text');
-      if (currentCharacter.voice_id) {
-        typewriterWithVoice(typingSpan, starter, currentCharacter.voice_id);
-      } else {
-        typewriterEffect(typingSpan, starter);
-      }
+      
+      // Add a small delay to ensure the element is rendered
+      setTimeout(() => {
+        if (currentCharacter.voice_id) {
+          typewriterWithVoice(typingSpan, starter, currentCharacter.voice_id);
+        } else {
+          typewriterEffect(typingSpan, starter);
+        }
+      }, 100);
       
       chatlog.scrollTop = chatlog.scrollHeight;
+      
+      // Mark that we've shown the starter
+      window.conversationStarterShown = true;
     }
     
     // Check voice usage limit for Free plan users
