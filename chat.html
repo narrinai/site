@@ -3037,6 +3037,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Show conversation starter
     function showConversationStarter() {
       console.log('🎯 showConversationStarter called');
+      console.log('🎯 currentCharacter at showConversationStarter:', currentCharacter);
+      
+      if (!currentCharacter) {
+        console.log('⚠️ No currentCharacter available, cannot show starter');
+        return;
+      }
+      
       const starter = generateConversationStarter();
       console.log('🎯 Generated starter:', starter);
       if (!starter) {
@@ -3845,12 +3852,20 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       currentCharacter.avatar_url = currentCharacter.Avatar_URL;
     }
     
+    // Normalize name field
+    if (!currentCharacter.name && currentCharacter.Name) {
+      currentCharacter.name = currentCharacter.Name;
+    }
+    
     console.log('Character loaded:', currentCharacter);
     console.log('Character voice_id:', currentCharacter.voice_id);
     console.log('Character voice_type:', currentCharacter.voice_type);
     console.log('Character avatar_url:', currentCharacter.avatar_url);
     console.log('Full character data:', JSON.stringify(currentCharacter, null, 2));
     setupCharacterInterface();
+    
+    // Load chat history after character is loaded
+    await loadChatHistory();
     
     // Check if AI avatar needs to be generated
     console.log('🔍 Checking needs_ai_avatar:', currentCharacter.needs_ai_avatar);
@@ -3926,10 +3941,10 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       console.log("window.currentUser:", !!window.currentUser);
 
       if (isLoggedIn) {
-        console.log("✅ User is logged in, calling fetchHistory()");
-        fetchHistory();
+        console.log("✅ User is logged in - history will be loaded by loadCharacter");
+        // Don't call fetchHistory here - it's already called in loadCharacter
       } else {
-        console.log("❌ User not logged in, skipping fetchHistory()");
+        console.log("❌ User not logged in, skipping history load");
       }
     }
 
@@ -4362,9 +4377,8 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
 
     window.addEventListener("DOMContentLoaded", () => {
       if (window.isRegistered) {
-        setTimeout(() => {
-          if (currentCharacter) fetchHistory();
-        }, 500);
+        // History is now loaded by loadCharacter
+        console.log("✅ DOMContentLoaded - history loading handled by loadCharacter");
       }
     });
 
