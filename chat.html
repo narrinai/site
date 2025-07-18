@@ -3470,10 +3470,21 @@ document.addEventListener('DOMContentLoaded', () => {
           const textNode = document.createTextNode(char);
           element.appendChild(textNode);
           
+          // Auto-scroll to keep new text visible
+          const chatlog = document.getElementById("chatlog");
+          if (chatlog) {
+            chatlog.scrollTop = chatlog.scrollHeight;
+          }
+          
           index++;
           setTimeout(addNextChar, speed);
         } else {
           console.log('✅ Typewriter with voice completed. Total chars typed:', index);
+          // Final scroll to ensure everything is visible
+          const chatlog = document.getElementById("chatlog");
+          if (chatlog) {
+            chatlog.scrollTop = chatlog.scrollHeight;
+          }
         }
       }
       
@@ -4444,10 +4455,21 @@ function typewriterEffect(element, text, speed = 20) {
       const textNode = document.createTextNode(char);
       element.appendChild(textNode);
       
+      // Auto-scroll on newlines, periods, or every 10 characters to keep text visible smoothly
+      const chatlog = document.getElementById("chatlog");
+      if (chatlog && (char === '\n' || char === '.' || index % 10 === 0)) {
+        chatlog.scrollTop = chatlog.scrollHeight;
+      }
+      
       index++;
       setTimeout(addNextChar, speed);
     } else {
       console.log('✅ Typewriter completed. Total chars typed:', index);
+      // Final scroll to ensure everything is visible
+      const chatlog = document.getElementById("chatlog");
+      if (chatlog) {
+        chatlog.scrollTop = chatlog.scrollHeight;
+      }
     }
   }
   
