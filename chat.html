@@ -217,26 +217,13 @@
       justify-content: flex-start;
     }
 
-    /* USPs Container - Desktop - Vertical Carousel */
+    /* USPs Container - Desktop */
     .nav-usps {
       display: flex;
       align-items: center;
       gap: var(--spacing-xl);
-      height: 44px;
-      overflow: hidden;
+      height: auto;
       position: relative;
-    }
-    .usp-carousel {
-      display: flex;
-      flex-direction: column;
-      animation: uspCarousel 12s infinite;
-      gap: var(--spacing-xl);
-    }
-    @keyframes uspCarousel {
-      0%, 25% { transform: translateY(0); }
-      30%, 55% { transform: translateY(-60px); }
-      60%, 85% { transform: translateY(-120px); }
-      90%, 100% { transform: translateY(-180px); }
     }
 
     .usp-item {
@@ -2157,25 +2144,19 @@
 
         <!-- Desktop Navigation Center -->
         <nav class="nav-center" role="navigation" aria-label="Main navigation">
-          <!-- USPs - Vertical Carousel -->
+          <!-- USPs - Random Display -->
           <div class="nav-usps" aria-label="Key features">
-            <div class="usp-carousel">
-              <div class="usp-item">
-                <span class="usp-icon" aria-hidden="true">⚡</span>
-                <span>Lightning Fast</span>
-              </div>
-              <div class="usp-item">
-                <span class="usp-icon" aria-hidden="true">🎯</span>
-                <span>Highly Accurate</span>
-              </div>
-              <div class="usp-item">
-                <span class="usp-icon" aria-hidden="true">🔒</span>
-                <span>100% Private</span>
-              </div>
-              <div class="usp-item">
-                <span class="usp-icon" aria-hidden="true">▶️</span>
-                <span>Voice Chat</span>
-              </div>
+            <div class="usp-item" data-usp="voice" style="display: none;">
+              <span class="usp-icon" aria-hidden="true">▶️</span>
+              <span>Voice Chat</span>
+            </div>
+            <div class="usp-item" data-usp="memory" style="display: none;">
+              <span class="usp-icon" aria-hidden="true">🧠</span>
+              <span>Character Memory</span>
+            </div>
+            <div class="usp-item" data-usp="private" style="display: none;">
+              <span class="usp-icon" aria-hidden="true">🔐</span>
+              <span>Private Data</span>
             </div>
           </div>
 
@@ -2713,6 +2694,17 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Set up click handlers
       setupNavigationClickHandlers();
+      
+      // Show random USP (including Highly Accurate and 100% Private for chat.html)
+      const uspItems = document.querySelectorAll('.usp-item');
+      if (uspItems.length > 0) {
+        // Hide all USPs first
+        uspItems.forEach(item => item.style.display = 'none');
+        
+        // Show a random one
+        const randomIndex = Math.floor(Math.random() * uspItems.length);
+        uspItems[randomIndex].style.display = 'flex';
+      }
       
       if (window.netlifyIdentity) {
         window.netlifyIdentity.on('init', user => {
