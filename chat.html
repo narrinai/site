@@ -1318,6 +1318,168 @@
       font-size: var(--font-size-xs);
     }
 
+    /* ===== RATING SYSTEM STYLES ===== */
+    .rating-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(30, 41, 59, 0.8);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: var(--z-modal);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: all var(--transition-base);
+    }
+
+    .rating-overlay.active {
+      display: flex;
+      opacity: 1;
+    }
+
+    .rating-modal {
+      background: var(--color-white);
+      border-radius: var(--radius-xl);
+      padding: var(--spacing-2xl);
+      box-shadow: var(--shadow-xl);
+      max-width: 90vw;
+      width: 100%;
+      max-width: 450px;
+      transform: scale(0.9) translateY(20px);
+      transition: all var(--transition-base);
+    }
+
+    .rating-overlay.active .rating-modal {
+      transform: scale(1) translateY(0);
+    }
+
+    .rating-header {
+      text-align: center;
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .rating-title {
+      font-size: var(--font-size-2xl);
+      font-weight: 700;
+      font-family: var(--font-secondary);
+      color: var(--color-navy);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .rating-subtitle {
+      font-size: var(--font-size-base);
+      color: var(--color-gray);
+      line-height: 1.5;
+    }
+
+    .rating-stars {
+      display: flex;
+      justify-content: center;
+      gap: var(--spacing-sm);
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .rating-star {
+      font-size: 40px;
+      cursor: pointer;
+      color: #ddd;
+      transition: all var(--transition-fast);
+      user-select: none;
+      line-height: 1;
+    }
+
+    .rating-star:hover {
+      transform: scale(1.1);
+    }
+
+    .rating-star.active {
+      color: #ffd700;
+      transform: scale(1.05);
+    }
+
+    .rating-star.hover {
+      color: #ffed4e;
+    }
+
+    .rating-feedback {
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .rating-feedback-label {
+      display: block;
+      font-size: var(--font-size-sm);
+      color: var(--color-gray);
+      margin-bottom: var(--spacing-sm);
+      font-weight: 500;
+    }
+
+    .rating-feedback-input {
+      width: 100%;
+      padding: var(--spacing-md);
+      border: 2px solid var(--color-light-gray);
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-base);
+      font-family: var(--font-primary);
+      resize: vertical;
+      min-height: 80px;
+      transition: border-color var(--transition-base);
+    }
+
+    .rating-feedback-input:focus {
+      outline: none;
+      border-color: var(--color-teal);
+    }
+
+    .rating-actions {
+      display: flex;
+      gap: var(--spacing-md);
+      justify-content: flex-end;
+    }
+
+    .rating-btn {
+      padding: var(--spacing-sm) var(--spacing-lg);
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-base);
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      font-family: var(--font-primary);
+    }
+
+    .rating-btn-skip {
+      background: transparent;
+      color: var(--color-gray);
+      border: 2px solid var(--color-light-gray);
+    }
+
+    .rating-btn-skip:hover {
+      border-color: var(--color-gray-light);
+      color: var(--color-gray-dark);
+    }
+
+    .rating-btn-submit {
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      padding: var(--spacing-sm) var(--spacing-xl);
+    }
+
+    .rating-btn-submit:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-colored);
+    }
+
+    .rating-btn-submit:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
     /* Mobile footer adjustments */
     @media (max-width: 768px) {
       .footer-links {
@@ -1881,6 +2043,38 @@
       <p class="notification-message" id="notificationMessage">Operation completed successfully!</p>
       <div class="notification-buttons" id="notificationButtons">
         <button class="notification-btn primary" id="notificationOkBtn">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rating System Modal -->
+  <div class="rating-overlay" id="ratingOverlay">
+    <div class="rating-modal">
+      <div class="rating-header">
+        <h3 class="rating-title">How was your conversation?</h3>
+        <p class="rating-subtitle">Your feedback helps us improve the experience</p>
+      </div>
+      
+      <div class="rating-stars" id="ratingStars">
+        <span class="rating-star" data-rating="1">★</span>
+        <span class="rating-star" data-rating="2">★</span>
+        <span class="rating-star" data-rating="3">★</span>
+        <span class="rating-star" data-rating="4">★</span>
+        <span class="rating-star" data-rating="5">★</span>
+      </div>
+      
+      <div class="rating-feedback">
+        <label class="rating-feedback-label" for="ratingFeedback">Any additional feedback? (optional)</label>
+        <textarea 
+          class="rating-feedback-input" 
+          id="ratingFeedback" 
+          placeholder="Tell us what you think..."
+        ></textarea>
+      </div>
+      
+      <div class="rating-actions">
+        <button class="rating-btn rating-btn-skip" onclick="skipRating()">Skip</button>
+        <button class="rating-btn rating-btn-submit" id="submitRatingBtn" onclick="submitRating()" disabled>Submit</button>
       </div>
     </div>
   </div>
@@ -4146,12 +4340,12 @@ hideTypingIndicator();
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user_message: input, // Clean user message without memory context
-          character_message: reply,
-          user_id: effective_user_id,
           user_email: user_email,
-          character_slug: characterSlug,
-          character_name: currentCharacter.name
+          user_uid: user_uid,
+          user_token: token,
+          char: characterSlug,
+          user_message: input,
+          ai_response: reply
         })
       });
       
@@ -4163,6 +4357,9 @@ hideTypingIndicator();
     } catch (saveError) {
       console.error('❌ Save error:', saveError);
     }
+
+    // Check if we should show rating
+    await checkAndShowRating();
 
     // Memory processing in background - VERBETERDE VERSIE
 if (data && data.success) {
@@ -4467,5 +4664,136 @@ function getLastMessages(count = 3) {
       </div>
     </div>
   </footer>
+  
+  <script>
+    // ===== RATING SYSTEM FUNCTIONALITY =====
+    let selectedRating = 0;
+    let messageCount = 0;
+    
+    // Initialize rating stars
+    document.addEventListener('DOMContentLoaded', () => {
+      const stars = document.querySelectorAll('.rating-star');
+      const submitBtn = document.getElementById('submitRatingBtn');
+      
+      stars.forEach(star => {
+        star.addEventListener('click', () => {
+          selectedRating = parseInt(star.dataset.rating);
+          updateStarDisplay(selectedRating);
+          submitBtn.disabled = false;
+        });
+        
+        star.addEventListener('mouseenter', () => {
+          const hoverRating = parseInt(star.dataset.rating);
+          updateStarDisplay(hoverRating, true);
+        });
+      });
+      
+      document.getElementById('ratingStars').addEventListener('mouseleave', () => {
+        updateStarDisplay(selectedRating);
+      });
+    });
+    
+    function updateStarDisplay(rating, isHover = false) {
+      const stars = document.querySelectorAll('.rating-star');
+      stars.forEach((star, index) => {
+        star.classList.remove('active', 'hover');
+        if (index < rating) {
+          star.classList.add(isHover ? 'hover' : 'active');
+        }
+      });
+    }
+    
+    async function checkAndShowRating() {
+      const user_email = localStorage.getItem('user_email');
+      const user_uid = localStorage.getItem('user_uid');
+      const characterSlug = window.location.search.split('=')[1];
+      
+      if (!user_email || !user_uid || !characterSlug) return;
+      
+      try {
+        const response = await fetch('/.netlify/functions/check-message-count', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_email,
+            user_uid,
+            char: characterSlug
+          })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          messageCount = data.message_count;
+          
+          if (data.should_show_rating) {
+            console.log('⭐ Showing rating modal after', messageCount, 'messages');
+            // Delay to let conversation flow finish
+            setTimeout(() => showRatingModal(), 2000);
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error checking message count:', error);
+      }
+    }
+    
+    function showRatingModal() {
+      const overlay = document.getElementById('ratingOverlay');
+      overlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      
+      // Reset state
+      selectedRating = 0;
+      updateStarDisplay(0);
+      document.getElementById('ratingFeedback').value = '';
+      document.getElementById('submitRatingBtn').disabled = true;
+    }
+    
+    function skipRating() {
+      const overlay = document.getElementById('ratingOverlay');
+      overlay.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+    
+    async function submitRating() {
+      if (!selectedRating) return;
+      
+      const user_email = localStorage.getItem('user_email');
+      const user_uid = localStorage.getItem('user_uid');
+      const characterSlug = window.location.search.split('=')[1];
+      const feedback = document.getElementById('ratingFeedback').value;
+      
+      const submitBtn = document.getElementById('submitRatingBtn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+      
+      try {
+        const response = await fetch('/.netlify/functions/save-chat-rating', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_email,
+            user_uid,
+            char: characterSlug,
+            rating: selectedRating,
+            message_count: messageCount,
+            feedback: feedback
+          })
+        });
+        
+        if (response.ok) {
+          console.log('✅ Rating saved successfully');
+          showSuccess('Thank you for your feedback!');
+          skipRating();
+        } else {
+          throw new Error('Failed to save rating');
+        }
+      } catch (error) {
+        console.error('❌ Error saving rating:', error);
+        showError('Sorry, we couldn\'t save your rating. Please try again.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit';
+      }
+    }
+  </script>
 </body>
 </html>

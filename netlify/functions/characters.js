@@ -69,9 +69,8 @@ exports.handler = async (event, context) => {
         params.set('filterByFormula', `{Category} = "${category}"`);
       }
       
-      // Set maximum records per request (Airtable limit is 100)
-      // Use maximum possible to minimize API calls
-      params.set('maxRecords', '100');
+      // Don't limit with maxRecords - we want ALL records
+      // The pagination loop will handle getting everything
       
       // Add offset for pagination
       if (offset) {
