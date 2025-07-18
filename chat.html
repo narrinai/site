@@ -3444,19 +3444,15 @@ document.addEventListener('DOMContentLoaded', () => {
       function addNextChar() {
         if (index < text.length) {
           const char = text[index];
-          const span = document.createElement('span');
-          span.textContent = char;
-          span.className = 'typewriter-char';
-          span.style.opacity = '0';
-          element.appendChild(span);
           
-          // Fade in the character
-          requestAnimationFrame(() => {
-            span.style.opacity = '1';
-          });
+          // Use text node instead of span for better handling of special characters
+          const textNode = document.createTextNode(char);
+          element.appendChild(textNode);
           
           index++;
           setTimeout(addNextChar, speed);
+        } else {
+          console.log('✅ Typewriter with voice completed. Total chars typed:', index);
         }
       }
       
@@ -4389,19 +4385,15 @@ function typewriterEffect(element, text, speed = 20) {
   function addNextChar() {
     if (index < text.length) {
       const char = text[index];
-      const span = document.createElement('span');
-      span.textContent = char;
-      span.className = 'typewriter-char';
-      span.style.opacity = '0';
-      element.appendChild(span);
       
-      // Fade in the character
-      requestAnimationFrame(() => {
-        span.style.opacity = '1';
-      });
+      // Use text node instead of span for better handling of special characters
+      const textNode = document.createTextNode(char);
+      element.appendChild(textNode);
       
       index++;
       setTimeout(addNextChar, speed);
+    } else {
+      console.log('✅ Typewriter completed. Total chars typed:', index);
     }
   }
   
@@ -4558,13 +4550,13 @@ async function sendMessage(event) {
           return `[Belangrijk geheugen (${importance}/10): ${summary}]`;
       });
       
-      memoryContext = `\n\nVorige gesprekken en belangrijke informatie:\n${memoryTexts.join('\n')}\n\nGebruik deze informatie om persoonlijk te antwoorden. BELANGRIJK: Varieer je antwoorden - begin NIET elke zin met dezelfde woorden zoals "Ah well," of "Oh," of andere herhalende patronen. Wees creatief en natuurlijk in je reacties.\n`;
+      memoryContext = `\n\nVorige gesprekken en belangrijke informatie:\n${memoryTexts.join('\n')}\n\nGebruik deze informatie om persoonlijk te antwoorden. BELANGRIJK: Houd je antwoorden natuurlijk en gevarieerd (meestal 3-5 zinnen). Focus op een goede, inhoudelijke conversatie als een echte companion. VERMIJD roleplaying acties zoals *leunt voorover* of *glimlacht* - praat gewoon als een vriend. Varieer je antwoorden - begin NIET elke zin met dezelfde woorden. Bouw een persoonlijke relatie op door echt te luisteren en thoughtful te reageren.\n`;
       
       console.log("📝 Improved memory context:", memoryContext);
   } else {
       console.log("📭 No relevant memories found - adding variation instructions only");
-      // Still add variation instructions even without memories
-      memoryContext = "\n\nBELANGRIJK: Varieer je antwoorden - begin NIET elke zin met dezelfde woorden zoals \"Ah well,\" of \"Oh,\" of andere herhalende patronen. Wees creatief en natuurlijk in je reacties, alsof je een echt persoon bent met verschillende manieren om te reageren.\n";
+      // Still add variation and companion instructions even without memories
+      memoryContext = "\n\nBELANGRIJK: Houd je antwoorden natuurlijk en gevarieerd (meestal 3-5 zinnen). Focus op een goede, inhoudelijke conversatie als een echte companion. VERMIJD roleplaying acties zoals *leunt voorover* of *glimlacht* - praat gewoon als een vriend. Varieer je antwoorden - begin NIET elke zin met dezelfde woorden. Bouw een persoonlijke relatie op door echt te luisteren en thoughtful te reageren.\n";
   }
 
   const sendButton = document.getElementById("sendButton");
@@ -4714,34 +4706,8 @@ let reply = (data.reply && data.reply.trim()) ||
               (data.message && data.message.trim()) || 
               "I want to be fully present for our conversation. It seems I'm having a moment of difficulty - could you share that with me once more? Your thoughts are important to me.";
 
-// Limit reply to 500 characters
-if (reply.length > 500) {
-  // Find a good breaking point (end of sentence) within the limit
-  let cutoff = 500;
-  const sentenceEnders = ['. ', '! ', '? ', '." ', '!" ', '?" '];
-  
-  // Look for sentence endings before the 500 char limit
-  for (let i = Math.min(reply.length, 500) - 1; i > 400; i--) {
-    for (const ender of sentenceEnders) {
-      if (reply.substring(i - ender.length + 1, i + 1) === ender) {
-        cutoff = i + 1;
-        break;
-      }
-    }
-    if (cutoff !== 500) break;
-  }
-  
-  // If no sentence ending found, try to break at a word boundary
-  if (cutoff === 500) {
-    const lastSpace = reply.lastIndexOf(' ', 500);
-    if (lastSpace > 400) {
-      cutoff = lastSpace;
-    }
-  }
-  
-  reply = reply.substring(0, cutoff).trim();
-  console.log(`✂️ Reply trimmed from ${data.reply?.length || 0} to ${reply.length} characters`);
-}
+// No longer limiting reply length - AI should give concise answers through prompt engineering
+console.log(`📏 Reply length: ${reply.length} characters`);
 
 // Extra debug info
 console.log("🔍 Original data.reply:", data.reply);
@@ -4778,6 +4744,13 @@ hideTypingIndicator();
     chatlog.scrollTop = chatlog.scrollHeight;
 
     const typingSpan = divBot.querySelector('.typing-text');
+    
+    // Escape HTML entities to prevent breaking
+    const escapeHtml = (text) => {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    };
     
     // Use voice-enabled typewriter if character has voice
     if (currentCharacter.voice_id) {

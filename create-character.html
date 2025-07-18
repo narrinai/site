@@ -2592,11 +2592,9 @@
         <h2>👤 Character profile image <span style="font-size: var(--font-size-sm); color: var(--color-gray); font-weight: normal;">(Optional)</span></h2>
         
         <div class="form-group">
-          <label>Image</label>
+          <label>Upload Image</label>
           <div class="avatar-input-options">
             <div class="avatar-option">
-              <input type="radio" id="avatarUpload" name="avatarMethod" value="upload" checked>
-              <label for="avatarUpload">Upload Image</label>
               <input type="file" id="avatarFileInput" name="avatarFileInput" 
                      accept="image/*" style="display: none;">
               <button type="button" class="upload-button" onclick="triggerFileUpload()">
@@ -2604,13 +2602,6 @@
               </button>
               <span class="file-name" id="fileName">No file chosen</span>
             </div>
-            
-            <div class="avatar-option">
-              <input type="radio" id="avatarUrl" name="avatarMethod" value="url">
-              <label for="avatarUrl">Image URL</label>
-                           <input type="url" id="avatarUrlInput" name="avatarUrlInput" 
-                    placeholder="https://example.com/character-image.jpg">
-           </div>
          </div>
          
          <div class="avatar-preview" id="avatarPreview">
@@ -4161,24 +4152,10 @@ function updatePromptCounter() {
 
    // Avatar functionality
    function setupAvatarFunctionality() {
-     const avatarOptions = document.querySelectorAll('input[name="avatarMethod"]');
      const avatarFileInput = document.getElementById('avatarFileInput');
-     const avatarUrlInput = document.getElementById('avatarUrlInput');
      const avatarPreview = document.getElementById('avatarPreview');
      const avatarImg = document.getElementById('avatarImg');
      const fileName = document.getElementById('fileName');
-     
-     avatarOptions.forEach(option => {
-       option.addEventListener('change', () => {
-         document.querySelectorAll('.avatar-option').forEach(opt => opt.classList.remove('active'));
-         option.closest('.avatar-option').classList.add('active');
-         
-         // Reset private mode enforcement when switching away from upload method
-         if (option.value !== 'upload') {
-           resetPrivateModeEnforcement();
-         }
-       });
-     });
      
      avatarFileInput.addEventListener('change', async (e) => {
        const file = e.target.files[0];
@@ -4194,7 +4171,7 @@ function updatePromptCounter() {
          };
          reader.readAsDataURL(file);
          
-         // Upload to Cloudinary with content moderation
+         // Upload to Cloudinary
          try {
            fileName.textContent = `${file.name} (uploading...)`;
            
@@ -4206,30 +4183,12 @@ function updatePromptCounter() {
            currentAvatarUrl = uploadResult.secure_url;
            fileName.textContent = `${file.name} (uploaded successfully)`;
            
-           if (uploadResult.forced_private) {
-             console.log('⚠️ Content moderation forced private mode');
-           }
-           
          } catch (error) {
            console.error('❌ Avatar upload failed:', error);
            fileName.textContent = `${file.name} (upload failed)`;
            showError('Avatar upload failed: ' + error.message, 'Upload Error');
            currentAvatarUrl = ''; // Clear URL on failure
          }
-       }
-     });
-     
-     avatarUrlInput.addEventListener('input', () => {
-       const url = avatarUrlInput.value.trim();
-       if (url) {
-         currentAvatarUrl = url;
-         avatarImg.src = url;
-         avatarPreview.style.display = 'block';
-         updatePreview();
-       } else {
-         avatarPreview.style.display = 'none';
-         currentAvatarUrl = '';
-         updatePreview();
        }
      });
    }
@@ -4280,7 +4239,7 @@ function updatePromptCounter() {
      document.getElementById('previewSection').style.display = hasContent ? 'block' : 'none';
    }
 
-// 🔧 CLOUDINARY AVATAR UPLOAD FUNCTION WITH CONTENT MODERATION
+// 🔧 CLOUDINARY AVATAR UPLOAD FUNCTION
 async function uploadToCloudinary(file, slug) {
   const formData = new FormData();
   formData.append('file', file);
@@ -4288,7 +4247,7 @@ async function uploadToCloudinary(file, slug) {
   formData.append('public_id', `avatars/${slug}`);
   formData.append('quality', 'auto');
   formData.append('fetch_format', 'auto');
-  formData.append('moderation', 'aws_rek'); // Enable AWS Rekognition content moderation
+  // Note: moderation parameter removed - not allowed with unsigned uploads
   
   const response = await fetch('https://api.cloudinary.com/v1_1/dqrmopzes/image/upload', {
     method: 'POST',
@@ -4302,28 +4261,6 @@ async function uploadToCloudinary(file, slug) {
   }
   
   const result = await response.json();
-  
-  // Check for inappropriate content
-  if (result.moderation && result.moderation.length > 0) {
-    const moderationResults = result.moderation[0];
-    console.log('🔍 Content moderation results:', moderationResults);
-    
-    // Check for adult/explicit content
-    if (moderationResults.response && moderationResults.response.moderation_labels) {
-      const labels = moderationResults.response.moderation_labels;
-      const inappropriateLabels = ['Explicit Nudity', 'Suggestive', 'Graphic Male Nudity', 'Graphic Female Nudity'];
-      
-      const hasInappropriateContent = labels.some(label => 
-        inappropriateLabels.includes(label.name) && label.confidence > 80
-      );
-      
-      if (hasInappropriateContent) {
-        console.warn('⚠️ Adult content detected, forcing private mode');
-        forcePrivateMode('Adult content detected in avatar - character automatically set to private for your personal use only');
-        return { secure_url: result.secure_url, forced_private: true };
-      }
-    }
-  }
   
   return { secure_url: result.secure_url, forced_private: false };
 }
@@ -4358,15 +4295,6 @@ function showContentPolicyNotification(reason) {
   );
 }
 
-// Reset private mode enforcement (e.g., when changing to emoji/URL avatar)
-function resetPrivateModeEnforcement() {
-  const publicRadio = document.querySelector('input[name="visibility"][value="public"]');
-  const publicOption = document.querySelector('.radio-option');
-  
-  // Re-enable public option
-  publicRadio.disabled = false;
-  publicOption.classList.remove('disabled');
-}
 
    // Login overlay functions
    function showLoginOverlay() {

@@ -78,23 +78,32 @@ exports.handler = async (event, context) => {
          Summary: fields.Summary ? fields.Summary.substring(0, 50) + '...' : 'no summary'
        });
        
-       // Check user match (User field in Airtable) - FIXED for linked records
+       // Check user match - properly handle all field types
 const recordUserId = fields.User;
+const recordUserEmail = fields.User_Email || fields.user_email;
+const recordUserUid = fields.User_UID || fields.user_uid;
 let userMatch = false;
 
-// Handle linked record arrays
-if (Array.isArray(recordUserId)) {
-  // User is a linked record array - for now assume match until we implement proper user linking
-  // This is necessary because Airtable stores User as linked records
-  userMatch = true; 
-  console.log(`👤 Linked record array - assuming match for now: ${userMatch} (User field: ${recordUserId})`);
+// Check various user identification methods
+if (recordUserEmail && user_id) {
+  // Email-based matching (most reliable)
+  userMatch = String(recordUserEmail).toLowerCase() === String(user_id).toLowerCase();
+  console.log(`👤 Email match check: ${recordUserEmail} === ${user_id} = ${userMatch}`);
+} else if (recordUserUid && user_id) {
+  // UID-based matching
+  userMatch = String(recordUserUid) === String(user_id);
+  console.log(`👤 UID match check: ${recordUserUid} === ${user_id} = ${userMatch}`);
+} else if (Array.isArray(recordUserId)) {
+  // Linked record array - DO NOT assume match
+  console.log(`👤 Linked record array detected - proper user filtering not implemented for linked records`);
+  userMatch = false; // Changed from true to false for security
 } else if (recordUserId) {
   // Direct user ID match
   userMatch = String(recordUserId) === String(user_id) || 
              parseInt(recordUserId) === parseInt(user_id);
   console.log(`👤 Direct user match check: ${recordUserId} === ${user_id} = ${userMatch}`);
 } else {
-  console.log(`👤 No user field found`);
+  console.log(`👤 No user identification found in record`);
 }
        if (!userMatch) {
          console.log(`❌ User mismatch, skipping record`);
