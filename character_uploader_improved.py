@@ -130,12 +130,15 @@ def get_categories_from_airtable():
     
     # Filter en map categorieën naar de juiste namen
     simplified_categories = []
+    category_original_names = {}  # Bewaar originele namen voor Airtable
+    
     for cat in categories:
         if cat:
             # Kijk of deze categorie in onze mapping staat
             mapped_cat = category_mapping.get(cat.lower())
             if mapped_cat:
                 simplified_categories.append(mapped_cat)
+                category_original_names[mapped_cat] = cat  # Bewaar originele naam
                 if cat.lower() != mapped_cat.lower():
                     log(Colors.CYAN, f"   🔄 Categorie '{cat}' gemapped naar '{mapped_cat}'")
             else:
@@ -157,7 +160,10 @@ def get_categories_from_airtable():
             others.append(cat)
     
     # Sorteer beide lijsten en combineer (priority eerst)
-    return sorted(prioritized) + sorted(others)
+    final_categories = sorted(prioritized) + sorted(others)
+    
+    # Return zowel de categorieën als de mapping
+    return final_categories, category_original_names
 
 def get_existing_tags_from_airtable():
     """Haal alle unieke tags op uit Airtable"""
@@ -423,7 +429,7 @@ def generate_slug(name):
     """Genereer slug uit naam"""
     return generate_character_id(name)
 
-def create_character(category, existing_names, valid_tags):
+def create_character(category, existing_names, valid_tags, original_category_name=None):
     """Maak een nieuw character aan met gewogen type selectie"""
     # Kies character type gebaseerd op gewichten
     types = list(CHARACTER_TYPE_WEIGHTS.keys())
@@ -455,11 +461,14 @@ def create_character(category, existing_names, valid_tags):
     
     tags = random.sample(possible_tags, min(3, len(possible_tags)))
     
+    # Gebruik originele categorienaam voor Airtable
+    airtable_category = original_category_name if original_category_name else category
+    
     character_data = {
         'Name': name,
         'Character_Title': title,
         'Character_Description': description,
-        'Category': category,
+        'Category': airtable_category,
         'Tags': tags,
         'Character_ID': character_id,
         'Slug': slug,
@@ -507,7 +516,7 @@ def main():
         log(Colors.BLUE, f"   AIRTABLE_TOKEN: {'✅ Set' if AIRTABLE_TOKEN else '❌ Not set!'}")
         
         # Haal categorieën uit Airtable
-        categories = get_categories_from_airtable()
+        categories, category_original_names = get_categories_from_airtable()
         
         log(Colors.CYAN, f"📋 Volgorde van categorieën: {categories[:4]} (eerst), dan de rest...")
         
@@ -534,7 +543,12 @@ def main():
             for i in range(to_add):
                 try:
                     # Maak nieuw character
-                    character_data = create_character(category, existing_names, valid_tags)
+                    original_cat = category_original_names.get(category, category)
+                    character_data = create_character(category, existing_names, valid_tags, original_cat)
+                    
+                    # Debug: toon welke data we proberen te sturen
+                    log(Colors.BLUE, f"   📝 Character data voor {character_data['Name']}:")
+                    log(Colors.BLUE, f"      Category: '{character_data['Category']}' (origineel: '{original_cat}')")
                     
                     if not character_data:
                         log(Colors.YELLOW, f"   ⚠️  Kon geen unieke naam genereren")
