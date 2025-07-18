@@ -100,9 +100,9 @@ exports.handler = async (event, context) => {
     // Check if rating should be shown
     let shouldShowRating = false;
     
-    if (messageCount === 10) {
+    if (messageCount === 5) {
       shouldShowRating = true;
-    } else if (messageCount > 10 && (messageCount - 10) % 50 === 0) {
+    } else if (messageCount > 5 && (messageCount - 5) % 50 === 0) {
       shouldShowRating = true;
     }
 
