@@ -2936,6 +2936,16 @@ document.addEventListener('DOMContentLoaded', () => {
           
           // Display all messages from history
           data.history.forEach(msg => {
+            // Filter out memory context messages
+            if (msg.message && (
+              msg.message.includes('Vorige gesprekken en belangrijke informatie:') ||
+              msg.message.includes('[Belangrijk geheugen (') ||
+              msg.message.includes('Gebruik deze informatie om persoonlijk te antwoorden')
+            )) {
+              console.log('🧹 Filtering out memory context from history:', msg.message.substring(0, 50) + '...');
+              return; // Skip this message
+            }
+            
             const p = document.createElement("p");
             
             if (msg.role === 'user') {
@@ -4460,7 +4470,9 @@ showTypingIndicator();
     const requestPayload = {
       action: "send_message",
       text: memoryContext + input, // Voeg memory context toe aan de user input voor AI processing
-      user_message: input, // Bewaar alleen het echte gebruikersbericht
+      user_message: input, // Bewaar alleen het echte gebruikersbericht (ALLEEN DIT OPSLAAN IN DATABASE!)
+      raw_user_input: input, // Extra veld voor zekerheid - dit is wat de gebruiker echt typte
+      memory_context: memoryContext, // Aparte veld voor memory context
       Character_id: characterSlug,
       Slug: characterSlug,
       user_uid: uid,
