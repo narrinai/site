@@ -2966,13 +2966,18 @@ document.addEventListener('DOMContentLoaded', () => {
           data.history.forEach(msg => {
             // Filter out memory context messages
             if (msg.message && (
+              msg.message.includes('Previous conversations and important information') ||
               msg.message.includes('Vorige gesprekken en belangrijke informatie:') ||
               msg.message.includes('[Belangrijk geheugen (') ||
+              msg.message.includes('[INSTRUCTION: Always respond in English by default') ||
+              msg.message.includes('Use this information to respond personally') ||
               msg.message.includes('Gebruik deze informatie om persoonlijk te antwoorden') ||
               msg.message.includes('BELANGRIJK: Varieer je antwoorden') ||
+              msg.message.includes('IMPORTANT: Keep your responses natural') ||
               msg.message.includes('begin NIET elke zin met dezelfde woorden') ||
               msg.message.includes('Vorige gesprekken en bel') || // Partial match
               msg.message.startsWith('BELANGRIJK:') ||
+              msg.message.startsWith('IMPORTANT:') ||
               (msg.message.includes('Varieer') && msg.message.includes('antwoorden')) ||
               // Check if message starts with memory context pattern
               /^\s*\n*Vorige gesprekken/i.test(msg.message) ||
@@ -4174,13 +4179,18 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
         message.startsWith('🧹 Filtering out debug/system message:') ||
         
         // Memory patterns - these are being saved as chat messages
+        message.includes('Previous conversations and important information') ||
         message.includes('Vorige gesprekken en belangrijke informatie:') ||
         message.includes('[Belangrijk geheugen (') ||
+        message.includes('[INSTRUCTION: Always respond in English by default') ||
+        message.includes('Use this information to respond personally') ||
         message.includes('Gebruik deze informatie om persoonlijk te antwoorden') ||
         message.includes('BELANGRIJK: Varieer je antwoorden') ||
+        message.includes('IMPORTANT: Keep your responses natural') ||
         message.includes('begin NIET elke zin met dezelfde woorden') ||
         message.includes('Vorige gesprekken en bel') || // Partial match
         message.startsWith('BELANGRIJK:') ||
+        message.startsWith('IMPORTANT:') ||
         (message.includes('Varieer') && message.includes('antwoorden')) ||
         /^\s*\n*Vorige gesprekken/i.test(message) ||
         /^\s*\n*BELANGRIJK:/i.test(message) ||
@@ -4556,13 +4566,14 @@ async function sendMessage(event) {
           return `[Belangrijk geheugen (${importance}/10): ${summary}]`;
       });
       
-      memoryContext = `\n\nVorige gesprekken en belangrijke informatie:\n${memoryTexts.join('\n')}\n\nGebruik deze informatie om persoonlijk te antwoorden. BELANGRIJK: Houd je antwoorden natuurlijk en gevarieerd (meestal 3-5 zinnen). Focus op een goede, inhoudelijke conversatie als een echte companion. VERMIJD roleplaying acties zoals *leunt voorover* of *glimlacht* - praat gewoon als een vriend. Varieer je antwoorden - begin NIET elke zin met dezelfde woorden. Bouw een persoonlijke relatie op door echt te luisteren en thoughtful te reageren.\n`;
+      // Create memory context instructions with English as default
+      memoryContext = `\n\nPrevious conversations and important information:\n${memoryTexts.join('\n')}\n\n[INSTRUCTION: Always respond in English by default. Only switch to Dutch if the user writes in Dutch. Match the language of the user's most recent message.]\n\nUse this information to respond personally. IMPORTANT: Keep your responses natural and varied (usually 3-5 sentences). Focus on a good, meaningful conversation as a true companion. AVOID roleplay actions like *leans forward* or *smiles* - just talk like a friend. Vary your responses - do NOT start every sentence with the same words. Build a personal relationship by truly listening and responding thoughtfully.\n`;
       
       console.log("📝 Improved memory context:", memoryContext);
   } else {
       console.log("📭 No relevant memories found - adding variation instructions only");
       // Still add variation and companion instructions even without memories
-      memoryContext = "\n\nBELANGRIJK: Houd je antwoorden natuurlijk en gevarieerd (meestal 3-5 zinnen). Focus op een goede, inhoudelijke conversatie als een echte companion. VERMIJD roleplaying acties zoals *leunt voorover* of *glimlacht* - praat gewoon als een vriend. Varieer je antwoorden - begin NIET elke zin met dezelfde woorden. Bouw een persoonlijke relatie op door echt te luisteren en thoughtful te reageren.\n";
+      memoryContext = "\n\n[INSTRUCTION: Always respond in English by default. Only switch to Dutch if the user writes in Dutch. Match the language of the user's most recent message.]\n\nIMPORTANT: Keep your responses natural and varied (usually 3-5 sentences). Focus on a good, meaningful conversation as a true companion. AVOID roleplay actions like *leans forward* or *smiles* - just talk like a friend. Vary your responses - do NOT start every sentence with the same words. Build a personal relationship by truly listening and responding thoughtfully.\n";
   }
 
   const sendButton = document.getElementById("sendButton");
