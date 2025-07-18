@@ -107,7 +107,7 @@ exports.handler = async (event, context) => {
     let offset = null;
     
     do {
-      let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${user_id}',{Character}='${character_id}')&sort[0][field]=CreatedTime&sort[0][direction]=asc`;
+      let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND(FIND('${user_id}',ARRAYJOIN({User}))>0,FIND('${character_id}',ARRAYJOIN({Character}))>0)&sort[0][field]=CreatedTime&sort[0][direction]=asc`;
       
       if (offset) {
         url += `&offset=${offset}`;

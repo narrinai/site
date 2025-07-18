@@ -2927,6 +2927,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const uid = localStorage.getItem("user_uid");
         const email = localStorage.getItem("user_email");
         
+        console.log('📚 loadChatHistory called with:', {
+          hasToken: !!token,
+          hasUid: !!uid,
+          hasEmail: !!email,
+          characterSlug: characterSlug
+        });
+        
         if (!token || !uid || !email || !characterSlug) {
           console.log('⚠️ Missing credentials for loading chat history');
           // Show conversation starter when not logged in
@@ -2958,6 +2965,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         const data = await response.json();
+        console.log('📊 Chat history response:', data);
         
         if (data.success && data.history && data.history.length > 0) {
           console.log(`✅ Loaded ${data.history.length} messages from history`);

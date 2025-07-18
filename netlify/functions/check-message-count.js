@@ -80,8 +80,9 @@ exports.handler = async (event, context) => {
     const character_id = characterData.records[0].id;
 
     // Count messages in ChatHistory
+    console.log('📊 Counting messages for user:', user_id, 'character:', character_id);
     const messageCountResponse = await fetch(
-      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${user_id}',{Character}='${character_id}',{Role}='user')&fields[]=Role`,
+      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND(FIND('${user_id}',ARRAYJOIN({User}))>0,FIND('${character_id}',ARRAYJOIN({Character}))>0,{Role}='user')&fields[]=Role`,
       {
         headers: {
           'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -112,7 +113,7 @@ exports.handler = async (event, context) => {
     if (shouldShowRating) {
       try {
         const lastRatingResponse = await fetch(
-          `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/tblXglk25SzZ3UYAt?filterByFormula=AND({User}='${user_id}',{Character}='${character_id}',{MessageCount}=${messageCount})&maxRecords=1`,
+          `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/tblXglk25SzZ3UYAt?filterByFormula=AND(FIND('${user_id}',ARRAYJOIN({User}))>0,FIND('${character_id}',ARRAYJOIN({Character}))>0,{MessageCount}=${messageCount})&maxRecords=1`,
           {
             headers: {
               'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
