@@ -2940,7 +2940,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (msg.message && (
               msg.message.includes('Vorige gesprekken en belangrijke informatie:') ||
               msg.message.includes('[Belangrijk geheugen (') ||
-              msg.message.includes('Gebruik deze informatie om persoonlijk te antwoorden')
+              msg.message.includes('Gebruik deze informatie om persoonlijk te antwoorden') ||
+              msg.message.includes('BELANGRIJK: Varieer je antwoorden') ||
+              msg.message.includes('begin NIET elke zin met dezelfde woorden')
             )) {
               console.log('🧹 Filtering out memory context from history:', msg.message.substring(0, 50) + '...');
               return; // Skip this message
@@ -4113,6 +4115,8 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
         message.includes('Vorige gesprekken en belangrijke informatie:') ||
         message.includes('[Belangrijk geheugen (') ||
         message.includes('Gebruik deze informatie om persoonlijk te antwoorden') ||
+        message.includes('BELANGRIJK: Varieer je antwoorden') ||
+        message.includes('begin NIET elke zin met dezelfde woorden') ||
         message.includes('what are you doing?]') && message.includes('[Belangrijk geheugen') ||
         message.includes('whats on your mind?]') && message.includes('[Belangrijk geheugen') ||
         message.includes('how is your day?]') && message.includes('[Belangrijk geheugen') ||
@@ -4430,12 +4434,13 @@ async function sendMessage(event) {
           return `[Belangrijk geheugen (${importance}/10): ${summary}]`;
       });
       
-      memoryContext = `\n\nVorige gesprekken en belangrijke informatie:\n${memoryTexts.join('\n')}\n\nGebruik deze informatie om persoonlijk te antwoorden.\n`;
+      memoryContext = `\n\nVorige gesprekken en belangrijke informatie:\n${memoryTexts.join('\n')}\n\nGebruik deze informatie om persoonlijk te antwoorden. BELANGRIJK: Varieer je antwoorden - begin NIET elke zin met dezelfde woorden zoals "Ah well," of "Oh," of andere herhalende patronen. Wees creatief en natuurlijk in je reacties.\n`;
       
       console.log("📝 Improved memory context:", memoryContext);
   } else {
-      console.log("📭 No relevant memories found - not adding memory context");
-      memoryContext = "";
+      console.log("📭 No relevant memories found - adding variation instructions only");
+      // Still add variation instructions even without memories
+      memoryContext = "\n\nBELANGRIJK: Varieer je antwoorden - begin NIET elke zin met dezelfde woorden zoals \"Ah well,\" of \"Oh,\" of andere herhalende patronen. Wees creatief en natuurlijk in je reacties, alsof je een echt persoon bent met verschillende manieren om te reageren.\n";
   }
 
   const sendButton = document.getElementById("sendButton");
