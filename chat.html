@@ -1953,6 +1953,13 @@
   }
 }
 
+    /* Hide the name field in Netlify Identity widget */
+    .netlify-identity-widget input[name="name"],
+    .netlify-identity-widget input[placeholder="Optional"],
+    .netlify-identity-widget .formGroup:first-child {
+      display: none !important;
+    }
+
   </style>
 
   <!-- Netlify Identity Widget -->
@@ -3875,7 +3882,7 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
 
       document.title = `Chat with ${currentCharacter.name}`;
       document.getElementById('characterName').textContent = currentCharacter.name;
-      document.getElementById('characterTitle').textContent = currentCharacter.character_title || '';
+      document.getElementById('characterTitle').textContent = currentCharacter.character_title || currentCharacter.title || currentCharacter.Character_Title || '';
 
       const avatarElement = document.getElementById('characterAvatar');
       const needsAIAvatar = currentCharacter.needs_ai_avatar || 
@@ -4028,6 +4035,7 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
 
     if (!resp.ok) {
       console.error("❌ fetchHistory response not ok:", resp.status, resp.statusText);
+      showConversationStarter();
       return;
     }
 
@@ -4134,6 +4142,7 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
 
     if (!data || !data.success) {
       console.error("❌ All parsing strategies failed or API returned success: false");
+      showConversationStarter();
       return;
     }
 
@@ -4148,6 +4157,7 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       console.log("🔧 Converted history object to array with", history.length, "items");
     } else {
       console.log("ℹ️ No history data found - starting fresh chat");
+      showConversationStarter();
       return;
     }
 
