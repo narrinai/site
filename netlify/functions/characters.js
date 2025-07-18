@@ -46,7 +46,7 @@ exports.handler = async (event, context) => {
     }
 
     // Get query parameters
-    const { category, tag, limit = 500 } = event.queryStringParameters || {};
+    const { category, tag, limit = 3000 } = event.queryStringParameters || {};
     
     console.log('Request params:', { category, tag, limit });
 
