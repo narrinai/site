@@ -3808,7 +3808,7 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     setupCharacterInterface();
     
     // Check if AI avatar needs to be generated
-    if (currentCharacter.avatar_url === 'PENDING_AI_GENERATION' || currentCharacter.needs_ai_avatar) {
+    if (currentCharacter.needs_ai_avatar) {
       console.log('🎨 Character needs AI avatar generation');
       generateAvatarInBackground();
     }
@@ -3833,7 +3833,7 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       document.getElementById('characterTitle').textContent = currentCharacter.character_title || '';
 
       const avatarElement = document.getElementById('characterAvatar');
-      if (currentCharacter.avatar_url === 'PENDING_AI_GENERATION' || currentCharacter.needs_ai_avatar) {
+      if (currentCharacter.needs_ai_avatar) {
         // Show loading state for avatar
         avatarElement.innerHTML = `
           <div class="avatar-loading">

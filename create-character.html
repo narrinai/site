@@ -2718,7 +2718,7 @@
 
      <!-- Buttons -->
      <div class="button-group">
-       <button type="submit" class="btn-primary-form">Create Character</button>
+       <button type="submit" class="btn-primary-form" id="submitButton">Create Character</button>
      </div>
    </form>
  </div>
@@ -4666,11 +4666,17 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
   e.preventDefault();
   console.log('🚀 Form submission started...');
   
+  // Get submit button immediately
+  const submitBtn = document.getElementById('submitButton');
+  
   // Prevent double submission
-  if (isSubmitting) {
+  if (isSubmitting || submitBtn.disabled) {
     console.log('⚠️ Form already being submitted, ignoring...');
     return;
   }
+  
+  // Immediately disable button
+  submitBtn.disabled = true;
   
   // Set flags to prevent both double submission and unload warning
   isSubmitting = true;
@@ -4705,8 +4711,9 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
   localStorage.setItem('pending_character_creation', JSON.stringify(characterData));
   localStorage.setItem('redirect_after_login', 'create-character.html');
   
-  // Reset submission flag
+  // Reset submission flag and re-enable button
   isSubmitting = false;
+  submitBtn.disabled = false;
   
   showLoginOverlay();
   return;
@@ -4740,12 +4747,13 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
   
   // Validate form data
   if (!validateFormData(formData)) {
+    // Re-enable button on validation failure
+    submitBtn.disabled = false;
+    isSubmitting = false;
     return;
   }
   
-  // Set submitting flag and disable form
-  isSubmitting = true;
-  const submitBtn = e.target.querySelector('button[type="submit"]');
+  // Store original button text
   const originalText = submitBtn.textContent;
   
   try {
@@ -4763,10 +4771,11 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
     
     console.log('📤 Sending character data to API...');
     
-    // If no avatar URL is provided, use placeholder that indicates AI generation needed
+    // If no avatar URL is provided, use temporary emoji avatar
     if (!formData.avatarUrl) {
       console.log('🎨 No avatar provided, will generate AI portrait when chat loads');
-      formData.avatarUrl = 'PENDING_AI_GENERATION';
+      // Use emoji avatar as temporary placeholder
+      formData.avatarUrl = generateEmojiAvatar(formData.name, formData.category);
       formData.needs_ai_avatar = true;
     }
     
