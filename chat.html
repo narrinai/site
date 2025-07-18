@@ -4639,13 +4639,13 @@ async function sendMessage(event) {
       });
       
       // Create memory context instructions with English as default
-      memoryContext = `\n\nPrevious conversations and important information:\n${memoryTexts.join('\n')}\n\n[INSTRUCTION: Always respond in English by default. Only switch to Dutch if the user writes in Dutch. Match the language of the user's most recent message.]\n\nUse this information to respond personally. IMPORTANT: Keep your responses natural and varied (usually 3-5 sentences). Focus on a good, meaningful conversation as a true companion. AVOID roleplay actions like *leans forward* or *smiles* - just talk like a friend. Vary your responses - do NOT start every sentence with the same words. Build a personal relationship by truly listening and responding thoughtfully.\n`;
+      memoryContext = `\n\nPrevious conversations and important information:\n${memoryTexts.join('\n')}\n\n[CRITICAL INSTRUCTION: Match the language of the user's message EXACTLY. If user writes in Dutch, respond ONLY in Dutch. If user writes in English, respond ONLY in English. NEVER mix languages in a single response. NEVER add English phrases or actions when responding in Dutch.]\n\nUse this information to respond personally. IMPORTANT: Keep your responses natural and varied (usually 3-5 sentences). Focus on a good, meaningful conversation as a true companion. ABSOLUTELY AVOID roleplay actions like *leans forward* or *smiles* or *grinning* - NO asterisk actions whatsoever. Just talk naturally like a friend would. Vary your responses - do NOT start every sentence with the same words. Build a personal relationship by truly listening and responding thoughtfully.\n`;
       
       console.log("📝 Improved memory context:", memoryContext);
   } else {
       console.log("📭 No relevant memories found - adding variation instructions only");
       // Still add variation and companion instructions even without memories
-      memoryContext = "\n\n[INSTRUCTION: Always respond in English by default. Only switch to Dutch if the user writes in Dutch. Match the language of the user's most recent message.]\n\nIMPORTANT: Keep your responses natural and varied (usually 3-5 sentences). Focus on a good, meaningful conversation as a true companion. AVOID roleplay actions like *leans forward* or *smiles* - just talk like a friend. Vary your responses - do NOT start every sentence with the same words. Build a personal relationship by truly listening and responding thoughtfully.\n";
+      memoryContext = "\n\n[CRITICAL INSTRUCTION: Match the language of the user's message EXACTLY. If user writes in Dutch, respond ONLY in Dutch. If user writes in English, respond ONLY in English. NEVER mix languages in a single response. NEVER add English phrases or actions when responding in Dutch.]\n\nIMPORTANT: Keep your responses natural and varied (usually 3-5 sentences). Focus on a good, meaningful conversation as a true companion. ABSOLUTELY AVOID roleplay actions like *leans forward* or *smiles* or *grinning* - NO asterisk actions whatsoever. Just talk naturally like a friend would. Vary your responses - do NOT start every sentence with the same words. Build a personal relationship by truly listening and responding thoughtfully.\n";
   }
 
   const sendButton = document.getElementById("sendButton");
@@ -5224,7 +5224,12 @@ function getLastMessages(count = 3) {
       const user_uid = localStorage.getItem('user_uid');
       const characterSlug = window.location.search.split('=')[1];
       
-      if (!user_email || !user_uid || !characterSlug) return;
+      console.log('⭐ Checking if rating should be shown:', { user_email, user_uid, characterSlug });
+      
+      if (!user_email || !user_uid || !characterSlug) {
+        console.log('⚠️ Missing credentials for rating check');
+        return;
+      }
       
       try {
         const response = await fetch('/.netlify/functions/check-message-count', {
@@ -5239,13 +5244,18 @@ function getLastMessages(count = 3) {
         
         if (response.ok) {
           const data = await response.json();
+          console.log('📊 Message count response:', data);
           messageCount = data.message_count;
           
           if (data.should_show_rating) {
             console.log('⭐ Showing rating modal after', messageCount, 'messages');
             // Delay to let conversation flow finish
             setTimeout(() => showRatingModal(), 2000);
+          } else {
+            console.log('ℹ️ Not showing rating - messageCount:', messageCount, 'shouldShow:', data.should_show_rating);
           }
+        } else {
+          console.log('❌ Rating check response not OK:', response.status);
         }
       } catch (error) {
         console.error('❌ Error checking message count:', error);
