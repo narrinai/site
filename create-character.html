@@ -1184,12 +1184,40 @@
       color: var(--color-white);
       flex: 1;
       box-shadow: var(--shadow-colored);
+      position: relative;
+      overflow: hidden;
     }
 
-    .btn-primary-form:hover {
+    .btn-primary-form:hover:not(:disabled) {
       opacity: 0.9;
       transform: translateY(-2px);
       box-shadow: var(--shadow-xl);
+    }
+    
+    .btn-primary-form:disabled {
+      cursor: not-allowed;
+      opacity: 0.9;
+    }
+    
+    /* Loading progress bar */
+    .btn-primary-form.loading::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, 
+        rgba(255,255,255,0) 0%, 
+        rgba(255,255,255,0.2) 50%, 
+        rgba(255,255,255,0) 100%);
+      animation: loadingProgress 20s ease-out forwards;
+    }
+    
+    @keyframes loadingProgress {
+      to {
+        left: 100%;
+      }
     }
 
     .btn-secondary-form {
@@ -4738,7 +4766,8 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
     // Generate AI avatar if no avatar URL is provided
     if (!formData.avatarUrl) {
       console.log('🎨 No avatar provided, generating AI portrait...');
-      submitBtn.textContent = 'Generating AI Avatar...';
+      submitBtn.textContent = 'Generating AI Companion...';
+      submitBtn.classList.add('loading');
       try {
         const avatarResponse = await fetch('/.netlify/functions/generate-avatar', {
           method: 'POST',
@@ -4766,6 +4795,7 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
         formData.avatarUrl = generateEmojiAvatar(formData.name, formData.category);
       }
       submitBtn.textContent = 'Creating Character...';
+      submitBtn.classList.remove('loading');
     }
     
     // Create character
@@ -4817,6 +4847,7 @@ if (!characterSlug && formData.name) {
     isSubmitting = false;
     submitBtn.textContent = originalText;
     submitBtn.disabled = false;
+    submitBtn.classList.remove('loading');
     
     // Re-enable form elements
     const formElements = e.target.querySelectorAll('input, textarea, select, button');
