@@ -2964,7 +2964,13 @@ document.addEventListener('DOMContentLoaded', () => {
               msg.message.includes('[Belangrijk geheugen (') ||
               msg.message.includes('Gebruik deze informatie om persoonlijk te antwoorden') ||
               msg.message.includes('BELANGRIJK: Varieer je antwoorden') ||
-              msg.message.includes('begin NIET elke zin met dezelfde woorden')
+              msg.message.includes('begin NIET elke zin met dezelfde woorden') ||
+              msg.message.includes('Vorige gesprekken en bel') || // Partial match
+              msg.message.startsWith('BELANGRIJK:') ||
+              (msg.message.includes('Varieer') && msg.message.includes('antwoorden')) ||
+              // Check if message starts with memory context pattern
+              /^\s*\n*Vorige gesprekken/i.test(msg.message) ||
+              /^\s*\n*BELANGRIJK:/i.test(msg.message)
             )) {
               console.log('🧹 Filtering out memory context from history:', msg.message.substring(0, 50) + '...');
               return; // Skip this message
@@ -4152,6 +4158,11 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
         message.includes('Gebruik deze informatie om persoonlijk te antwoorden') ||
         message.includes('BELANGRIJK: Varieer je antwoorden') ||
         message.includes('begin NIET elke zin met dezelfde woorden') ||
+        message.includes('Vorige gesprekken en bel') || // Partial match
+        message.startsWith('BELANGRIJK:') ||
+        (message.includes('Varieer') && message.includes('antwoorden')) ||
+        /^\s*\n*Vorige gesprekken/i.test(message) ||
+        /^\s*\n*BELANGRIJK:/i.test(message) ||
         message.includes('what are you doing?]') && message.includes('[Belangrijk geheugen') ||
         message.includes('whats on your mind?]') && message.includes('[Belangrijk geheugen') ||
         message.includes('how is your day?]') && message.includes('[Belangrijk geheugen') ||
@@ -4563,12 +4574,18 @@ async function sendMessage(event) {
 showTypingIndicator();
 
   try {
+    // BELANGRIJKE OPMERKING VOOR WEBHOOK:
+    // - 'text' bevat memory context + user input (gebruik dit ALLEEN voor AI processing)
+    // - 'user_message' bevat ALLEEN wat de gebruiker typte (gebruik dit voor database opslag)
+    // - 'clean_user_message' is een backup met alleen gebruiker input
+    
     const requestPayload = {
       action: "send_message",
-      text: memoryContext + input, // Voeg memory context toe aan de user input voor AI processing
-      user_message: input, // Bewaar alleen het echte gebruikersbericht (ALLEEN DIT OPSLAAN IN DATABASE!)
-      raw_user_input: input, // Extra veld voor zekerheid - dit is wat de gebruiker echt typte
-      memory_context: memoryContext, // Aparte veld voor memory context
+      text: memoryContext + input, // Voor AI processing - NIET opslaan in database!
+      user_message: input, // ALLEEN DIT opslaan als user message in ChatHistory!
+      clean_user_message: input, // Backup: schone gebruiker input zonder memory context
+      display_message: input, // Nog een backup: wat getoond moet worden als user message
+      memory_context: memoryContext, // Aparte veld voor memory context - NIET opslaan als message!
       Character_id: characterSlug,
       Slug: characterSlug,
       user_uid: uid,
