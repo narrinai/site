@@ -1964,7 +1964,9 @@
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const netlifyIdentity = window.netlifyIdentity;
-      netlifyIdentity.init();
+      netlifyIdentity.init({
+        namePlaceholder: 'Optional'
+      });
 
       netlifyIdentity.on("init", (user) => {
         if (user) {
@@ -3824,9 +3826,21 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     }
 
     currentCharacter = data.character;
+    
+    // Normalize avatar URL field - webhook returns character_url which contains the avatar
+    if (!currentCharacter.avatar_url && currentCharacter.character_url) {
+      currentCharacter.avatar_url = currentCharacter.character_url;
+    }
+    
+    // Also check for Avatar_URL (uppercase from Airtable)
+    if (!currentCharacter.avatar_url && currentCharacter.Avatar_URL) {
+      currentCharacter.avatar_url = currentCharacter.Avatar_URL;
+    }
+    
     console.log('Character loaded:', currentCharacter);
     console.log('Character voice_id:', currentCharacter.voice_id);
     console.log('Character voice_type:', currentCharacter.voice_type);
+    console.log('Character avatar_url:', currentCharacter.avatar_url);
     console.log('Full character data:', JSON.stringify(currentCharacter, null, 2));
     setupCharacterInterface();
     
@@ -4260,6 +4274,12 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
 
     chatlog.scrollTop = chatlog.scrollHeight;
     console.log(`📜 Chat history loaded successfully - ${messagesProcessed} messages displayed`);
+    
+    // If no messages were displayed, show conversation starter
+    if (messagesProcessed === 0) {
+      console.log('📭 No chat history found - showing conversation starter');
+      showConversationStarter();
+    }
     
   } catch (err) {
     console.error("❌ Exception in fetchHistory:", err);
