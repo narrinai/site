@@ -4427,10 +4427,39 @@ try {
     }
 
     // Check if reply is empty or just whitespace
-const reply = (data.reply && data.reply.trim()) || 
+let reply = (data.reply && data.reply.trim()) || 
               (data.response && data.response.trim()) || 
               (data.message && data.message.trim()) || 
               "I want to be fully present for our conversation. It seems I'm having a moment of difficulty - could you share that with me once more? Your thoughts are important to me.";
+
+// Limit reply to 500 characters
+if (reply.length > 500) {
+  // Find a good breaking point (end of sentence) within the limit
+  let cutoff = 500;
+  const sentenceEnders = ['. ', '! ', '? ', '." ', '!" ', '?" '];
+  
+  // Look for sentence endings before the 500 char limit
+  for (let i = Math.min(reply.length, 500) - 1; i > 400; i--) {
+    for (const ender of sentenceEnders) {
+      if (reply.substring(i - ender.length + 1, i + 1) === ender) {
+        cutoff = i + 1;
+        break;
+      }
+    }
+    if (cutoff !== 500) break;
+  }
+  
+  // If no sentence ending found, try to break at a word boundary
+  if (cutoff === 500) {
+    const lastSpace = reply.lastIndexOf(' ', 500);
+    if (lastSpace > 400) {
+      cutoff = lastSpace;
+    }
+  }
+  
+  reply = reply.substring(0, cutoff).trim();
+  console.log(`✂️ Reply trimmed from ${data.reply?.length || 0} to ${reply.length} characters`);
+}
 
 console.log("🔍 Final reply used:", reply);
 
