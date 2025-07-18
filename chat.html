@@ -3014,10 +3014,16 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Show conversation starter
     function showConversationStarter() {
+      console.log('🎯 showConversationStarter called');
       const starter = generateConversationStarter();
-      if (!starter) return;
+      console.log('🎯 Generated starter:', starter);
+      if (!starter) {
+        console.log('⚠️ No starter generated');
+        return;
+      }
       
       const chatlog = document.getElementById("chatlog");
+      console.log('🎯 Chatlog element:', chatlog);
       
       // Check if a starter message already exists
       if (chatlog.querySelector('.starter-message')) {
@@ -3814,7 +3820,14 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     setupCharacterInterface();
     
     // Check if AI avatar needs to be generated
-    if (currentCharacter.needs_ai_avatar) {
+    console.log('🔍 Checking needs_ai_avatar:', currentCharacter.needs_ai_avatar);
+    console.log('🔍 Current avatar_url:', currentCharacter.avatar_url);
+    
+    // Check if avatar is an emoji SVG (needs AI generation)
+    const needsAIAvatar = currentCharacter.needs_ai_avatar || 
+                         (currentCharacter.avatar_url && currentCharacter.avatar_url.includes('data:image/svg+xml'));
+    
+    if (needsAIAvatar) {
       console.log('🎨 Character needs AI avatar generation');
       generateAvatarInBackground();
     }
@@ -3839,7 +3852,10 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       document.getElementById('characterTitle').textContent = currentCharacter.character_title || '';
 
       const avatarElement = document.getElementById('characterAvatar');
-      if (currentCharacter.needs_ai_avatar) {
+      const needsAIAvatar = currentCharacter.needs_ai_avatar || 
+                           (currentCharacter.avatar_url && currentCharacter.avatar_url.includes('data:image/svg+xml'));
+      
+      if (needsAIAvatar) {
         // Show loading state for avatar
         avatarElement.innerHTML = `
           <div class="avatar-loading">

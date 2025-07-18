@@ -662,6 +662,11 @@
 
     /* Mobile Styles */
     @media (max-width: 768px) {
+      /* Hide USPs on mobile for create-character page */
+      .nav-usps {
+        display: none !important;
+      }
+      
       .header-container {
         padding: 0 var(--spacing-md);
       }
@@ -2163,15 +2168,27 @@
 
       <!-- Desktop Navigation Center -->
       <nav class="nav-center" role="navigation" aria-label="Main navigation">
-        <!-- USPs - All visible on desktop -->
+        <!-- USPs - Random Display -->
         <div class="nav-usps" aria-label="Key features">
-          <div class="usp-item">
+          <div class="usp-item" data-usp="memory" style="display: none;">
             <span class="usp-icon" aria-hidden="true">🧠</span>
             <span>Character Memory</span>
           </div>
-          <div class="usp-item">
+          <div class="usp-item" data-usp="private" style="display: none;">
             <span class="usp-icon" aria-hidden="true">🔐</span>
             <span>Private Data</span>
+          </div>
+          <div class="usp-item" data-usp="voice" style="display: none;">
+            <span class="usp-icon" aria-hidden="true">🗣️</span>
+            <span>Voice Chat</span>
+          </div>
+          <div class="usp-item" data-usp="accurate" style="display: none;">
+            <span class="usp-icon" aria-hidden="true">🎯</span>
+            <span>Highly Accurate</span>
+          </div>
+          <div class="usp-item" data-usp="100private" style="display: none;">
+            <span class="usp-icon" aria-hidden="true">🔒</span>
+            <span>100% Private</span>
           </div>
         </div>
 
@@ -4880,6 +4897,12 @@ character_url: `https://narrin.ai/chat.html?char=${slug}`,
     };
     
     console.log('📤 Request data:', requestData);
+    console.log('📤 Request timestamp:', new Date().toISOString());
+    
+    // Extra validation before sending
+    if (!requestData.name || !requestData.slug) {
+      throw new Error('Missing required fields: name or slug');
+    }
     
     const response = await fetch('https://hook.eu2.make.com/c36jubkn9rbbqg0ovgfbx2ca1iwgf16q', {
       method: 'POST',
@@ -4961,6 +4984,19 @@ window.addEventListener('beforeunload', (e) => {
 // Initialize form change tracking
 document.addEventListener('DOMContentLoaded', () => {
   trackFormChanges();
+  
+  // Show random USP on desktop only (excluding Lightning Fast)
+  if (window.innerWidth > 768) {
+    const uspItems = document.querySelectorAll('.usp-item');
+    if (uspItems.length > 0) {
+      // Hide all USPs first
+      uspItems.forEach(item => item.style.display = 'none');
+      
+      // Show a random one
+      const randomIndex = Math.floor(Math.random() * uspItems.length);
+      uspItems[randomIndex].style.display = 'flex';
+    }
+  }
 });
 
  </script>

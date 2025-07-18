@@ -202,9 +202,10 @@
      align-items: center;
      flex: 1;
      justify-content: center;
+     gap: var(--spacing-2xl);
    }
 
-   /* USPs Container - Desktop - Vertical Carousel */
+   /* USPs Container - Desktop - Single Random USP */
    .nav-usps {
      display: flex;
      align-items: center;
@@ -212,18 +213,6 @@
      height: 44px;
      overflow: hidden;
      position: relative;
-   }
-   .usp-carousel {
-     display: flex;
-     flex-direction: column;
-     animation: uspCarousel 12s infinite;
-     gap: var(--spacing-xl);
-   }
-   @keyframes uspCarousel {
-     0%, 25% { transform: translateY(0); }
-     30%, 55% { transform: translateY(-60px); }
-     60%, 85% { transform: translateY(-120px); }
-     90%, 100% { transform: translateY(-180px); }
    }
 
    .usp-item {
@@ -999,6 +988,30 @@
 
        <!-- Desktop Navigation Center (hidden on mobile) -->
        <nav class="nav-center" role="navigation" aria-label="Main navigation">
+         <!-- USPs Carousel -->
+         <div class="nav-usps">
+           <div class="usp-item" style="display: none;">
+             <span class="usp-icon">🎯</span>
+             <span>Highly Accurate</span>
+           </div>
+           <div class="usp-item" style="display: none;">
+             <span class="usp-icon">🔒</span>
+             <span>100% Private</span>
+           </div>
+           <div class="usp-item" style="display: none;">
+             <span class="usp-icon">▶️</span>
+             <span>Voice Chat</span>
+           </div>
+           <div class="usp-item" style="display: none;">
+             <span class="usp-icon">🧠</span>
+             <span>Character Memory</span>
+           </div>
+           <div class="usp-item" style="display: none;">
+             <span class="usp-icon">🔐</span>
+             <span>Private Data</span>
+           </div>
+         </div>
+         
          <!-- Search Bar -->
          <form class="nav-search" role="search">
            <input 
@@ -1429,6 +1442,13 @@
    // Initialize mobile features
    document.addEventListener('DOMContentLoaded', () => {
      startUspCarousel();
+     
+     // Show random USP on page load
+     const uspItems = document.querySelectorAll('.nav-usps .usp-item');
+     if (uspItems.length > 0) {
+       const randomIndex = Math.floor(Math.random() * uspItems.length);
+       uspItems[randomIndex].style.display = 'flex';
+     }
    });
  </script>
 

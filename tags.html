@@ -1426,17 +1426,25 @@
 
         <!-- Desktop Navigation Center -->
         <nav class="nav-center" role="navigation" aria-label="Main navigation">
-          <!-- USPs - All visible on desktop -->
+          <!-- USPs - Single random USP shown on page load -->
           <div class="nav-usps" aria-label="Key features">
-            <div class="usp-item">
+            <div class="usp-item" style="display: none;">
+              <span class="usp-icon" aria-hidden="true">🎯</span>
+              <span>Highly Accurate</span>
+            </div>
+            <div class="usp-item" style="display: none;">
+              <span class="usp-icon" aria-hidden="true">🔒</span>
+              <span>100% Private</span>
+            </div>
+            <div class="usp-item" style="display: none;">
               <span class="usp-icon" aria-hidden="true">🗣️</span>
               <span>Voice Chat</span>
             </div>
-            <div class="usp-item">
+            <div class="usp-item" style="display: none;">
               <span class="usp-icon" aria-hidden="true">🧠</span>
               <span>Character Memory</span>
             </div>
-            <div class="usp-item">
+            <div class="usp-item" style="display: none;">
               <span class="usp-icon" aria-hidden="true">🔐</span>
               <span>Private Data</span>
             </div>
@@ -2541,6 +2549,13 @@
     // ===== INITIALIZATION =====
     document.addEventListener('DOMContentLoaded', function() {
       console.log('🚀 Tags page initializing...');
+      
+      // Show random USP on page load
+      const uspItems = document.querySelectorAll('.nav-usps .usp-item');
+      if (uspItems.length > 0) {
+        const randomIndex = Math.floor(Math.random() * uspItems.length);
+        uspItems[randomIndex].style.display = 'flex';
+      }
       
       initializePage();
       setupEventListeners();
