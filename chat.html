@@ -1908,6 +1908,28 @@
   }
 }
 
+/* Typewriter effect styles */
+.typewriter-char {
+  display: inline;
+  transition: opacity 0.3s ease-out;
+}
+
+/* Smooth text appearance */
+.typing-text span {
+  animation: fadeInChar 0.3s ease-out forwards;
+}
+
+@keyframes fadeInChar {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
   </style>
 
   <!-- Netlify Identity Widget -->
@@ -2793,6 +2815,72 @@ document.addEventListener('DOMContentLoaded', () => {
     const VOICE_STORAGE_KEY = 'voice_usage_count';
     const VOICE_RESET_KEY = 'voice_usage_reset_date';
     
+    // Load chat history function
+    async function loadChatHistory() {
+      try {
+        const token = localStorage.getItem("user_token");
+        const uid = localStorage.getItem("user_uid");
+        const email = localStorage.getItem("user_email");
+        
+        if (!token || !uid || !email || !characterSlug) {
+          console.log('⚠️ Missing credentials for loading chat history');
+          return;
+        }
+        
+        console.log('📚 Loading chat history...');
+        
+        const response = await fetch('/.netlify/functions/get-chat-history', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_email: email,
+            user_uid: uid,
+            user_token: token,
+            char: characterSlug
+          })
+        });
+        
+        if (!response.ok) {
+          console.warn('⚠️ Could not load chat history');
+          return;
+        }
+        
+        const data = await response.json();
+        
+        if (data.success && data.history && data.history.length > 0) {
+          console.log(`✅ Loaded ${data.history.length} messages from history`);
+          
+          const chatlog = document.getElementById("chatlog");
+          chatlog.innerHTML = ''; // Clear existing messages
+          
+          // Display all messages from history
+          data.history.forEach(msg => {
+            const p = document.createElement("p");
+            
+            if (msg.role === 'user') {
+              p.innerHTML = `<strong>You:</strong> ${msg.message}`;
+            } else {
+              const avatarHtml = getAvatarHtml();
+              if (currentCharacter.voice_id) {
+                p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${msg.message}<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice(\`${msg.message.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
+              } else {
+                p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${msg.message}`;
+              }
+            }
+            
+            chatlog.appendChild(p);
+          });
+          
+          chatlog.scrollTop = chatlog.scrollHeight;
+        } else {
+          console.log('📭 No chat history found');
+        }
+        
+      } catch (error) {
+        console.error('❌ Error loading chat history:', error);
+      }
+    }
+    
     // Check voice usage limit for Free plan users
     function checkVoiceUsageLimit() {
       // Check if user has premium plan
@@ -3163,16 +3251,32 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Fade-in effect voor berichten
-    function typewriterWithVoice(element, text, voiceId = null, speed = 8) {
-      element.textContent = text;
-      element.style.opacity = '0';
-      element.style.transition = 'opacity 0.8s ease-in';
+    // Fade-in effect voor berichten met typewriter effect
+    function typewriterWithVoice(element, text, voiceId = null, speed = 20) {
+      element.innerHTML = '';
+      element.style.opacity = '1';
+      let index = 0;
       
-      // Fade in the text
-      setTimeout(() => {
-        element.style.opacity = '1';
-      }, 100);
+      function addNextChar() {
+        if (index < text.length) {
+          const char = text[index];
+          const span = document.createElement('span');
+          span.textContent = char;
+          span.className = 'typewriter-char';
+          span.style.opacity = '0';
+          element.appendChild(span);
+          
+          // Fade in the character
+          requestAnimationFrame(() => {
+            span.style.opacity = '1';
+          });
+          
+          index++;
+          setTimeout(addNextChar, speed);
+        }
+      }
+      
+      addNextChar();
     }
     
     // NIEUWE WEBHOOK URL
@@ -3533,6 +3637,9 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     console.log('Character voice_type:', currentCharacter.voice_type);
     console.log('Full character data:', JSON.stringify(currentCharacter, null, 2));
     setupCharacterInterface();
+    
+    // Load chat history after character is loaded
+    await loadChatHistory();
     
   } catch (error) {
     console.error("Error loading character:", error);
@@ -4001,15 +4108,31 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     }
 
     // Improved typewriter effect with fade-in animation
-function typewriterEffect(element, text, speed = 8) {
-  element.textContent = text;
-  element.style.opacity = '0';
-  element.style.transition = 'opacity 0.8s ease-in';
+function typewriterEffect(element, text, speed = 20) {
+  element.innerHTML = '';
+  element.style.opacity = '1';
+  let index = 0;
   
-  // Fade in the text
-  setTimeout(() => {
-    element.style.opacity = '1';
-  }, 100);
+  function addNextChar() {
+    if (index < text.length) {
+      const char = text[index];
+      const span = document.createElement('span');
+      span.textContent = char;
+      span.className = 'typewriter-char';
+      span.style.opacity = '0';
+      element.appendChild(span);
+      
+      // Fade in the character
+      requestAnimationFrame(() => {
+        span.style.opacity = '1';
+      });
+      
+      index++;
+      setTimeout(addNextChar, speed);
+    }
+  }
+  
+  addNextChar();
 }
 
 // UNIVERSELE Authentication Check - Voeg toe aan chat.html
