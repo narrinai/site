@@ -4763,39 +4763,11 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
     
     console.log('📤 Sending character data to API...');
     
-    // Generate AI avatar if no avatar URL is provided
+    // If no avatar URL is provided, use placeholder that indicates AI generation needed
     if (!formData.avatarUrl) {
-      console.log('🎨 No avatar provided, generating AI portrait...');
-      submitBtn.textContent = 'Generating AI Companion...';
-      submitBtn.classList.add('loading');
-      try {
-        const avatarResponse = await fetch('/.netlify/functions/generate-avatar', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            characterName: formData.name,
-            characterTitle: formData.title,
-            category: formData.category
-          })
-        });
-        
-        const avatarData = await avatarResponse.json();
-        
-        if (avatarData.success && avatarData.imageUrl) {
-          console.log('✅ AI avatar generated successfully');
-          formData.avatarUrl = avatarData.imageUrl;
-          currentAvatarUrl = avatarData.imageUrl;
-        } else {
-          console.log('⚠️ AI avatar generation failed, using emoji fallback');
-          formData.avatarUrl = generateEmojiAvatar(formData.name, formData.category);
-        }
-      } catch (avatarError) {
-        console.error('❌ Avatar generation error:', avatarError);
-        console.log('⚠️ Using emoji fallback due to error');
-        formData.avatarUrl = generateEmojiAvatar(formData.name, formData.category);
-      }
-      submitBtn.textContent = 'Creating Character...';
-      submitBtn.classList.remove('loading');
+      console.log('🎨 No avatar provided, will generate AI portrait when chat loads');
+      formData.avatarUrl = 'PENDING_AI_GENERATION';
+      formData.needs_ai_avatar = true;
     }
     
     // Create character
@@ -4894,7 +4866,8 @@ console.log('🔗 Generated slug:', slug);
 avatar_url: formData.avatarUrl,      
 character_url: `https://narrin.ai/chat.html?char=${slug}`,
       voice_id: getSelectedVoiceId(),
-      voice_type: document.querySelector('input[name="voiceSelection"]:checked').value
+      voice_type: document.querySelector('input[name="voiceSelection"]:checked').value,
+      needs_ai_avatar: formData.needs_ai_avatar || false
     };
     
     console.log('📤 Request data:', requestData);

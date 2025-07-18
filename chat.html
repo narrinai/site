@@ -826,7 +826,7 @@
       font-size: var(--font-size-2xl);
       flex-shrink: 0;
       border: 3px solid var(--color-light-gray);
-      transition: all var(--transition-base);
+      transition: all var(--transition-base), opacity 0.3s ease;
       position: relative;
     }
 
@@ -835,6 +835,28 @@
       height: 100%;
       border-radius: var(--radius-full);
       object-fit: cover;
+    }
+    
+    /* Avatar loading state */
+    .avatar-loading {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .avatar-loading .spinner {
+      width: 30px;
+      height: 30px;
+      border: 3px solid var(--color-light-gray);
+      border-top-color: var(--color-teal);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
 
     /* Online indicator for character avatar */
@@ -3785,6 +3807,12 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     console.log('Full character data:', JSON.stringify(currentCharacter, null, 2));
     setupCharacterInterface();
     
+    // Check if AI avatar needs to be generated
+    if (currentCharacter.avatar_url === 'PENDING_AI_GENERATION' || currentCharacter.needs_ai_avatar) {
+      console.log('🎨 Character needs AI avatar generation');
+      generateAvatarInBackground();
+    }
+    
     // Load chat history after character is loaded
     await loadChatHistory();
     
@@ -3805,7 +3833,14 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       document.getElementById('characterTitle').textContent = currentCharacter.character_title || '';
 
       const avatarElement = document.getElementById('characterAvatar');
-      if (currentCharacter.avatar_url) {
+      if (currentCharacter.avatar_url === 'PENDING_AI_GENERATION' || currentCharacter.needs_ai_avatar) {
+        // Show loading state for avatar
+        avatarElement.innerHTML = `
+          <div class="avatar-loading">
+            <div class="spinner"></div>
+          </div>
+        `;
+      } else if (currentCharacter.avatar_url) {
         avatarElement.innerHTML = `<img src="${currentCharacter.avatar_url}" alt="${currentCharacter.name}">`;
       } else {
         avatarElement.innerHTML = '👤';
@@ -4193,6 +4228,62 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
         return `<img class="avatar" src="${currentCharacter.avatar_url}" alt="avatar">`;
       }
       return '<span class="message-avatar">👤</span>';
+    }
+    
+    // Generate AI avatar in background
+    async function generateAvatarInBackground() {
+      try {
+        console.log('🎨 Starting background avatar generation...');
+        
+        const response = await fetch('/.netlify/functions/generate-avatar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            characterName: currentCharacter.name,
+            characterTitle: currentCharacter.character_title || '',
+            category: currentCharacter.category || 'original'
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.imageUrl) {
+          console.log('✅ AI avatar generated successfully');
+          
+          // Update the character's avatar URL
+          currentCharacter.avatar_url = data.imageUrl;
+          
+          // Update the avatar display with fade effect
+          const avatarElement = document.getElementById('characterAvatar');
+          avatarElement.style.opacity = '0';
+          
+          setTimeout(() => {
+            avatarElement.innerHTML = `<img src="${data.imageUrl}" alt="${currentCharacter.name}">`;
+            avatarElement.style.opacity = '1';
+          }, 300);
+          
+          // TODO: Update the avatar URL in Airtable via webhook
+          updateCharacterAvatarInDatabase(data.imageUrl);
+        } else {
+          console.log('⚠️ Avatar generation failed, keeping loading state');
+        }
+      } catch (error) {
+        console.error('❌ Error generating avatar:', error);
+        // Keep the loading spinner or show a default avatar
+        const avatarElement = document.getElementById('characterAvatar');
+        avatarElement.innerHTML = '👤';
+      }
+    }
+    
+    // Update avatar in database
+    async function updateCharacterAvatarInDatabase(avatarUrl) {
+      try {
+        // This would call a webhook or Netlify function to update Airtable
+        console.log('📝 Would update avatar in database:', avatarUrl);
+        // TODO: Implement the actual update logic
+      } catch (error) {
+        console.error('❌ Error updating avatar in database:', error);
+      }
     }
 
     window.addEventListener("DOMContentLoaded", () => {
