@@ -4736,36 +4736,21 @@ showTypingIndicator();
     // - 'user_message' bevat ALLEEN wat de gebruiker typte (gebruik dit voor database opslag)
     // - 'clean_user_message' is een backup met alleen gebruiker input
     
-    // Smart routing: Determine model based on context
-    let suggestedModel = 'gpt-4o-mini'; // Default
+    // No model routing - using fixed model in Make.com
+    // Keeping emotional complexity for potential future use
     let emotionalComplexity = 0.5;
     
-    if (relationshipContext) {
-      // New relationships use cheaper model
-      if (relationshipContext.totalMessages < 3) {
-        suggestedModel = 'gpt-4o-mini';
-      } 
-      // Deep relationships or emotional moments use premium model
-      else if (relationshipContext.phase === 'deep' || relationshipContext.phase === 'established') {
-        suggestedModel = 'claude-3.5-sonnet';
-        emotionalComplexity = 0.8;
-      }
-      // Check for emotional keywords
-      else if (input.toLowerCase().match(/love|hurt|sad|happy|excited|angry|feel/)) {
-        suggestedModel = 'claude-3.5-sonnet';
-        emotionalComplexity = 0.9;
-      }
+    if (relationshipContext && input.toLowerCase().match(/love|hurt|sad|happy|excited|angry|feel/)) {
+      emotionalComplexity = 0.9;
     }
-    
-    console.log(`🤖 Model routing: ${suggestedModel} (complexity: ${emotionalComplexity})`);
     
     const requestPayload = {
       action: "send_message",
       text: input, // Clean user input only
       user_message: input, // Voor database opslag
       memory_context: memoryContext, // Memory context apart voor de webhook om toe te voegen aan prompt
-      suggested_model: suggestedModel, // Model suggestion for webhook
-      emotional_complexity: emotionalComplexity, // Emotional complexity score
+      // Model selection happens in Make.com, not here
+      emotional_complexity: emotionalComplexity, // Emotional complexity score for analytics only
       relationship_phase: relationshipContext?.phase || 'new',
       total_messages: relationshipContext?.totalMessages || 0,
       Character_id: characterSlug,
