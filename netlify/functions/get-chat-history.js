@@ -32,6 +32,13 @@ exports.handler = async (event, context) => {
       user_token: !!user_token, 
       char 
     });
+    
+    // Debug: Log exact values
+    console.log('📊 Exact values:', {
+      user_email,
+      user_uid,
+      char
+    });
 
     if (!user_email || !user_uid || !user_token || !char) {
       return {
@@ -103,11 +110,13 @@ exports.handler = async (event, context) => {
     console.log('✅ Found character with ID:', character_id);
 
     // Stap 3: Haal chat history op voor deze gebruiker en character
+    // If ChatHistory uses lookup fields, filter by those
     let allChatHistory = [];
     let offset = null;
     
     do {
-      let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND(FIND('${user_id}',ARRAYJOIN({User}))>0,FIND('${character_id}',ARRAYJOIN({Character}))>0)&sort[0][field]=CreatedTime&sort[0][direction]=asc`;
+      // Try filtering by User ID and Character slug directly if they're stored as text
+      let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${user_id}',{Character}='${char}')&sort[0][field]=CreatedTime&sort[0][direction]=asc`;
       
       if (offset) {
         url += `&offset=${offset}`;
