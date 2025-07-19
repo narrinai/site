@@ -104,13 +104,13 @@ exports.handler = async (event, context) => {
 
     const messagesData = await messagesResponse.json();
     
-    if (messagesData.records.length < 10 && !force_summary) {
+    if (messagesData.records.length < 5 && !force_summary) {
       return {
         statusCode: 200,
         headers,
         body: JSON.stringify({ 
           success: true, 
-          message: 'Not enough messages for summary (need at least 10)' 
+          message: 'Not enough messages for summary (need at least 5)' 
         })
       };
     }
