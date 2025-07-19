@@ -81,8 +81,10 @@ exports.handler = async (event, context) => {
 
     // Count messages in ChatHistory
     console.log('📊 Counting messages for user:', user_id, 'character:', character_id);
-    const messageCountResponse = await fetch(
-      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND(FIND('${user_id}',ARRAYJOIN({User}))>0,FIND('${character_id}',ARRAYJOIN({Character}))>0,{Role}='user')&fields[]=Role`,
+    
+    // First get all messages for this user/character combination
+    const allMessagesResponse = await fetch(
+      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND(FIND('${user_id}',ARRAYJOIN({User}))>0,FIND('${character_id}',ARRAYJOIN({Character}))>0)`,
       {
         headers: {
           'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -91,12 +93,20 @@ exports.handler = async (event, context) => {
       }
     );
 
-    if (!messageCountResponse.ok) {
-      throw new Error(`Failed to count messages: ${messageCountResponse.status}`);
+    if (!allMessagesResponse.ok) {
+      throw new Error(`Failed to fetch messages: ${allMessagesResponse.status}`);
     }
 
-    const messageData = await messageCountResponse.json();
-    const messageCount = messageData.records.length;
+    const allMessagesData = await allMessagesResponse.json();
+    console.log('📊 Total messages found:', allMessagesData.records.length);
+    
+    // Filter for user messages only
+    const userMessages = allMessagesData.records.filter(record => record.fields.Role === 'user');
+    const messageCount = userMessages.length;
+    console.log('📊 User messages count:', messageCount);
+    
+    // Debug: show roles of all messages
+    console.log('📊 Message roles:', allMessagesData.records.map(r => r.fields.Role));
 
     console.log(`✅ User has ${messageCount} messages with character`);
 

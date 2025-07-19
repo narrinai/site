@@ -2968,10 +2968,12 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const data = await response.json();
         console.log('📊 Chat history response:', data);
+        console.log('📊 Full history data:', JSON.stringify(data, null, 2));
         
         if (data.success && data.history && data.history.length > 0) {
           console.log(`✅ Loaded ${data.history.length} messages from history`);
           console.log('📜 First few messages:', data.history.slice(0, 3));
+          console.log('📜 All messages:', data.history.map((m, i) => `${i}: ${m.role} - ${m.message?.substring(0, 50)}...`));
           
           const chatlog = document.getElementById("chatlog");
           chatlog.innerHTML = ''; // Clear existing messages
@@ -4650,8 +4652,21 @@ async function sendMessage(event) {
 
   // Always try to retrieve memories, regardless of existing history in current session
   try {
-    memories = await getRelevantMemories(effective_user_id, characterSlug, input);
+    const memoryResponse = await getRelevantMemories(effective_user_id, characterSlug, input);
+    
+    // Enhanced: Extract memories and relationship context
+    if (memoryResponse && typeof memoryResponse === 'object') {
+      memories = memoryResponse.memories || memoryResponse || [];
+      relationshipContext = memoryResponse.relationshipContext || null;
+      recentSummary = memoryResponse.recentSummary || null;
+    } else {
+      memories = memoryResponse || [];
+    }
+    
     console.log("✅ Memory retrieval completed:", memories?.length || 0, "memories found");
+    if (relationshipContext) {
+      console.log("🤝 Relationship context:", relationshipContext.phase, `(${relationshipContext.totalMessages} messages)`);
+    }
   } catch (error) {
     console.error("❌ Memory retrieval failed:", error);
     memories = []; // Fallback to empty array
@@ -4672,13 +4687,19 @@ async function sendMessage(event) {
       });
       
       // Create memory context instructions with English as default
-      memoryContext = `\n\nPrevious conversations and important information:\n${memoryTexts.join('\n')}\n\n[CRITICAL INSTRUCTION: Match the language of the user's message EXACTLY. If user writes in Dutch, respond ONLY in Dutch. If user writes in English, respond ONLY in English. NEVER mix languages in a single response. NEVER add English phrases or actions when responding in Dutch.]\n\nUse this information to respond personally. IMPORTANT: Keep your responses natural and varied (usually 3-5 sentences). Focus on a good, meaningful conversation as a true companion. ABSOLUTELY AVOID roleplay actions like *leans forward* or *smiles* or *grinning* - NO asterisk actions whatsoever. Just talk naturally like a friend would. Vary your responses - do NOT start every sentence with the same words. Build a personal relationship by truly listening and responding thoughtfully.\n`;
+      // Enhanced memory context with relationship info
+      let contextPrefix = '';
+      if (relationshipContext) {
+        contextPrefix = `[Relationship: ${relationshipContext.phase}, ${relationshipContext.totalMessages} chats]\n`;
+      }
+      
+      memoryContext = `\n\n${contextPrefix}Context: ${memoryTexts.join(' | ')}\n\n[Language: Match user's language exactly]\n\nRespond naturally (3-5 sentences). No roleplay actions (*smiles* etc). Vary responses.\n`;
       
       console.log("📝 Improved memory context:", memoryContext);
   } else {
       console.log("📭 No relevant memories found - adding variation instructions only");
       // Still add variation and companion instructions even without memories
-      memoryContext = "\n\n[CRITICAL INSTRUCTION: Match the language of the user's message EXACTLY. If user writes in Dutch, respond ONLY in Dutch. If user writes in English, respond ONLY in English. NEVER mix languages in a single response. NEVER add English phrases or actions when responding in Dutch.]\n\nIMPORTANT: Keep your responses natural and varied (usually 3-5 sentences). Focus on a good, meaningful conversation as a true companion. ABSOLUTELY AVOID roleplay actions like *leans forward* or *smiles* or *grinning* - NO asterisk actions whatsoever. Just talk naturally like a friend would. Vary your responses - do NOT start every sentence with the same words. Build a personal relationship by truly listening and responding thoughtfully.\n";
+      memoryContext = "\n\n[Language: Match user's language exactly]\n\nRespond naturally (3-5 sentences). No roleplay actions (*smiles* etc). Vary responses.\n";
   }
 
   const sendButton = document.getElementById("sendButton");
@@ -4715,23 +4736,44 @@ showTypingIndicator();
     // - 'user_message' bevat ALLEEN wat de gebruiker typte (gebruik dit voor database opslag)
     // - 'clean_user_message' is een backup met alleen gebruiker input
     
+    // Smart routing: Determine model based on context
+    let suggestedModel = 'gpt-4o-mini'; // Default
+    let emotionalComplexity = 0.5;
+    
+    if (relationshipContext) {
+      // New relationships use cheaper model
+      if (relationshipContext.totalMessages < 3) {
+        suggestedModel = 'gpt-4o-mini';
+      } 
+      // Deep relationships or emotional moments use premium model
+      else if (relationshipContext.phase === 'deep' || relationshipContext.phase === 'established') {
+        suggestedModel = 'claude-3.5-sonnet';
+        emotionalComplexity = 0.8;
+      }
+      // Check for emotional keywords
+      else if (input.toLowerCase().match(/love|hurt|sad|happy|excited|angry|feel/)) {
+        suggestedModel = 'claude-3.5-sonnet';
+        emotionalComplexity = 0.9;
+      }
+    }
+    
+    console.log(`🤖 Model routing: ${suggestedModel} (complexity: ${emotionalComplexity})`);
+    
     const requestPayload = {
       action: "send_message",
-      text: memoryContext + input, // Voor AI processing - NIET opslaan in database!
-      user_message: input, // ALLEEN DIT opslaan als user message in ChatHistory!
-      clean_user_message: input, // Backup: schone gebruiker input zonder memory context
-      display_message: input, // Nog een backup: wat getoond moet worden als user message
-      memory_context: memoryContext, // Aparte veld voor memory context - NIET opslaan als message!
+      text: input, // Clean user input only
+      user_message: input, // Voor database opslag
+      memory_context: memoryContext, // Memory context apart voor de webhook om toe te voegen aan prompt
+      suggested_model: suggestedModel, // Model suggestion for webhook
+      emotional_complexity: emotionalComplexity, // Emotional complexity score
+      relationship_phase: relationshipContext?.phase || 'new',
+      total_messages: relationshipContext?.totalMessages || 0,
       Character_id: characterSlug,
       Slug: characterSlug,
       user_uid: uid,
       user_token: token,
       user_email: email,
-      user_id: user_id || null,
-      // Additional fields to ensure webhook saves clean data
-      raw_user_input: input, // Another field to ensure clean user input is available
-      ai_context: memoryContext, // Separate field for AI context only
-      save_message: input // Explicit field for what should be saved to database
+      user_id: user_id || null
     };
     
     console.log("📤 sendMessage FULL payload:", requestPayload);
@@ -4911,6 +4953,22 @@ hideTypingIndicator();
       console.error('❌ Save error:', saveError);
     }
 
+    // Update relationship tracking
+    try {
+      await updateRelationship(user_email, uid, token, characterSlug, reply);
+    } catch (relError) {
+      console.error('⚠️ Relationship update failed:', relError);
+    }
+    
+    // Generate summary every 20 messages
+    if (relationshipContext && relationshipContext.totalMessages % 20 === 0) {
+      try {
+        await generateConversationSummary(user_email, uid, token, characterSlug);
+      } catch (sumError) {
+        console.error('⚠️ Summary generation failed:', sumError);
+      }
+    }
+    
     // Check if we should show rating - but don't let it break the chat
     try {
       await checkAndShowRating();
@@ -5223,6 +5281,63 @@ function getLastMessages(count = 3) {
   </footer>
   
   <script>
+    // ===== RELATIONSHIP TRACKING FUNCTIONS =====
+    async function updateRelationship(email, uid, token, characterSlug, aiResponse) {
+      try {
+        // Extract emotional state from response
+        let emotionalState = 'neutral';
+        if (aiResponse.toLowerCase().match(/happy|excited|great|wonderful|love/)) {
+          emotionalState = 'positive';
+        } else if (aiResponse.toLowerCase().match(/sad|sorry|hurt|angry|upset/)) {
+          emotionalState = 'negative';
+        }
+        
+        // Extract topics (simple keyword extraction)
+        const topics = [];
+        const topicKeywords = ['work', 'family', 'love', 'health', 'hobby', 'travel', 'food', 'music', 'movie', 'book'];
+        topicKeywords.forEach(keyword => {
+          if (aiResponse.toLowerCase().includes(keyword)) {
+            topics.push(keyword);
+          }
+        });
+        
+        await fetch('/.netlify/functions/update-relationship', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: effective_user_id,
+            character_id: characterSlug,
+            emotional_state: emotionalState,
+            topics: topics,
+            message_count: 1
+          })
+        });
+        
+        console.log('✅ Relationship updated');
+      } catch (error) {
+        console.error('❌ Failed to update relationship:', error);
+      }
+    }
+    
+    async function generateConversationSummary(email, uid, token, characterSlug) {
+      try {
+        const response = await fetch('/.netlify/functions/conversation-summary', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: effective_user_id,
+            character_id: characterSlug
+          })
+        });
+        
+        if (response.ok) {
+          console.log('✅ Conversation summary generated');
+        }
+      } catch (error) {
+        console.error('❌ Failed to generate summary:', error);
+      }
+    }
+    
     // ===== RATING SYSTEM FUNCTIONALITY =====
     let selectedRating = 0;
     let messageCount = 0;

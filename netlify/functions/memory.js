@@ -188,12 +188,75 @@ if (recordUserEmail && user_id) {
        });
      }
      
+     // Enhanced: Get relationship context
+     let relationshipContext = null;
+     try {
+       console.log('🤝 Fetching relationship context...');
+       const relationshipUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula=AND(FIND('${user_id}',ARRAYJOIN({User}))>0)`;
+       
+       const relationshipResponse = await fetch(relationshipUrl, {
+         headers: {
+           'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+           'Content-Type': 'application/json'
+         }
+       });
+       
+       if (relationshipResponse.ok) {
+         const relationshipData = await relationshipResponse.json();
+         if (relationshipData.records.length > 0) {
+           const rel = relationshipData.records[0].fields;
+           relationshipContext = {
+             phase: rel.Relationship_Phase || 'new',
+             totalMessages: rel.Total_Messages || 0,
+             averageEmotion: rel.Average_Emotional_Score || 0.5,
+             lastInteraction: rel.Last_Interaction,
+             keySummary: rel.Key_Memories_Summary || '',
+             topics: rel.Last_Topics || []
+           };
+           console.log('✅ Relationship context loaded:', relationshipContext.phase);
+         }
+       }
+     } catch (relError) {
+       console.error('⚠️ Failed to fetch relationship context:', relError);
+     }
+     
+     // Enhanced: Get recent conversation summary
+     let recentSummary = null;
+     try {
+       const summaryUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ConversationSummaries?filterByFormula=FIND('${user_id}',ARRAYJOIN({User}))>0&sort[0][field]=Conversation_Date&sort[0][direction]=desc&maxRecords=1`;
+       
+       const summaryResponse = await fetch(summaryUrl, {
+         headers: {
+           'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+           'Content-Type': 'application/json'
+         }
+       });
+       
+       if (summaryResponse.ok) {
+         const summaryData = await summaryResponse.json();
+         if (summaryData.records.length > 0) {
+           const sum = summaryData.records[0].fields;
+           recentSummary = {
+             summary: sum.Summary,
+             topics: sum.Topics_Discussed || [],
+             sentiment: sum.Sentiment_Score || 0,
+             date: sum.Conversation_Date
+           };
+           console.log('✅ Recent conversation summary loaded');
+         }
+       }
+     } catch (sumError) {
+       console.error('⚠️ Failed to fetch conversation summary:', sumError);
+     }
+     
      return {
        statusCode: 200,
        headers: { 'Content-Type': 'application/json' },
        body: JSON.stringify({
          success: true,
          memories: limitedMemories,
+         relationshipContext,
+         recentSummary,
          count: limitedMemories.length,
          total_with_memory_data: memories.length,
          message: `Found ${limitedMemories.length} relevant memories`
