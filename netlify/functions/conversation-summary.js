@@ -34,7 +34,7 @@ exports.handler = async (event, context) => {
     console.log('📝 Creating conversation summary:', { user_id, character_id });
 
     // Get last 20 messages from ChatHistory
-    const messagesUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND(FIND('${user_id}',ARRAYJOIN({User}))>0,FIND('${character_id}',ARRAYJOIN({Character}))>0)&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=20`;
+    const messagesUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${user_id}',{Character}='${character_id}')&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=20`;
     
     const messagesResponse = await fetch(messagesUrl, {
       headers: {

@@ -34,8 +34,51 @@ exports.handler = async (event, context) => {
     
     console.log('🔄 Updating relationship:', { user_id, character_id });
 
-    // Check if relationship record exists
-    const checkUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula=AND(FIND('${user_id}',ARRAYJOIN({User}))>0,FIND('${character_id}',ARRAYJOIN({Character}))>0)`;
+    // First we need to find the actual Airtable record IDs
+    // Get User record by User_ID
+    const userUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={User_ID}='${user_id}'&maxRecords=1`;
+    const userResponse = await fetch(userUrl, {
+      headers: {
+        'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!userResponse.ok) {
+      throw new Error(`Failed to find user: ${userResponse.status}`);
+    }
+    
+    const userData = await userResponse.json();
+    if (userData.records.length === 0) {
+      throw new Error(`User not found with ID: ${user_id}`);
+    }
+    
+    const userRecordId = userData.records[0].id;
+    console.log('✅ Found user record:', userRecordId);
+    
+    // Get Character record by slug
+    const charUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula={Slug}='${character_id}'&maxRecords=1`;
+    const charResponse = await fetch(charUrl, {
+      headers: {
+        'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!charResponse.ok) {
+      throw new Error(`Failed to find character: ${charResponse.status}`);
+    }
+    
+    const charData = await charResponse.json();
+    if (charData.records.length === 0) {
+      throw new Error(`Character not found with slug: ${character_id}`);
+    }
+    
+    const charRecordId = charData.records[0].id;
+    console.log('✅ Found character record:', charRecordId);
+    
+    // Check if relationship record exists using the lookup fields
+    const checkUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula=AND({User_ID (from User)}='${user_id}',{Slug (from Character)}='${character_id}')`;
     
     const checkResponse = await fetch(checkUrl, {
       headers: {
@@ -64,8 +107,8 @@ exports.handler = async (event, context) => {
         body: JSON.stringify({
           records: [{
             fields: {
-              User: [user_id],
-              Character: [character_id],
+              User: [userRecordId],  // Linked record to Users table
+              Character: [charRecordId],  // Linked record to Characters table
               First_Interaction: now,
               Last_Interaction: now,
               Total_Messages: 1,
