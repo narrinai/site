@@ -101,8 +101,8 @@ exports.handler = async (event, context) => {
     if (user_message && user_message.trim()) {
       recordsToCreate.push({
         fields: {
-          User: [user_id],
-          Character: [character_id],
+          User: customUserId,  // Use custom User_ID as text, not linked record
+          Character: char,     // Use character slug as text, not linked record
           Role: 'user',
           Message: user_message.trim(),
           CreatedTime: new Date().toISOString()
@@ -114,8 +114,8 @@ exports.handler = async (event, context) => {
     if (ai_response && ai_response.trim()) {
       recordsToCreate.push({
         fields: {
-          User: [user_id],
-          Character: [character_id],
+          User: customUserId,  // Use custom User_ID as text, not linked record
+          Character: char,     // Use character slug as text, not linked record
           Role: 'assistant',
           Message: ai_response.trim(),
           CreatedTime: new Date().toISOString()
