@@ -2992,7 +2992,9 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log(`📝 Displaying message ${index + 1}:`, msg.role, msg.message.substring(0, 50) + '...');
             
             // Filter out messages that contain CRITICAL INSTRUCTION or memory context
-            if (msg.message && (
+            // Also skip empty user messages that were placeholders for conversation starters
+            if ((msg.role === 'user' && (!msg.message || msg.message.trim() === '')) ||
+                (msg.message && (
               msg.message.includes('[CRITICAL INSTRUCTION:') ||
               msg.message.includes('Previous conversations and important information') ||
               msg.message.includes('Vorige gesprekken en belangrijke informatie:') ||
@@ -3010,8 +3012,8 @@ document.addEventListener('DOMContentLoaded', () => {
               // Check if message starts with memory context pattern
               /^\s*\n*Vorige gesprekken/i.test(msg.message) ||
               /^\s*\n*BELANGRIJK:/i.test(msg.message)
-            )) {
-              console.log('🧹 Filtering out memory context from history:', msg.message.substring(0, 50) + '...');
+            ))) {
+              console.log('🧹 Filtering out memory context or empty message from history:', msg.message?.substring(0, 50) + '...');
               return; // Skip this message
             }
             
@@ -3043,6 +3045,8 @@ document.addEventListener('DOMContentLoaded', () => {
           });
           
           chatlog.scrollTop = chatlog.scrollHeight;
+          // Mark that we've loaded chat history
+          window.chatHistoryLoaded = true;
         } else {
           console.log('📭 No chat history found - showing conversation starter');
           // Clear chatlog before showing starter
@@ -3067,6 +3071,18 @@ document.addEventListener('DOMContentLoaded', () => {
     function showConversationStarter() {
       console.log('🎯 showConversationStarter called');
       console.log('🎯 currentCharacter at showConversationStarter:', currentCharacter);
+      
+      // Check if chat history has already been loaded
+      if (window.chatHistoryLoaded) {
+        console.log('⚠️ Chat history already loaded, skipping conversation starter');
+        return;
+      }
+      
+      // Check if conversation starter has already been shown
+      if (window.conversationStarterShown) {
+        console.log('⚠️ Conversation starter already shown, skipping');
+        return;
+      }
       
       // Check if there's already content in the chatlog
       const chatlog = document.getElementById("chatlog");
@@ -3128,6 +3144,9 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Mark that we've shown the starter
       window.conversationStarterShown = true;
+      
+      // Save the conversation starter to chat history
+      saveConversationStarter(starter);
     }
     
     // Check voice usage limit for Free plan users
@@ -4062,6 +4081,12 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
  async function fetchHistory() {
   console.log("🚨 ULTRA ROBUST VERSION: fetchHistory() aangeroepen");
   
+  // Check if chat history has already been loaded by loadChatHistory
+  if (window.chatHistoryLoaded) {
+    console.log("✅ Chat history already loaded by loadChatHistory, skipping fetchHistory");
+    return;
+  }
+  
   const token = localStorage.getItem("user_token");
   const uid   = localStorage.getItem("user_uid");
   const email = localStorage.getItem("user_email");
@@ -4360,6 +4385,9 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     chatlog.scrollTop = chatlog.scrollHeight;
     console.log(`📜 Chat history loaded successfully - ${messagesProcessed} messages displayed`);
     
+    // Mark that we've loaded chat history
+    window.chatHistoryLoaded = true;
+    
     // If no messages were displayed, show conversation starter
     if (messagesProcessed === 0) {
       console.log('📭 No chat history found - showing conversation starter');
@@ -4376,6 +4404,44 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
         return `<img class="avatar" src="${currentCharacter.avatar_url}" alt="avatar">`;
       }
       return '<span class="message-avatar">👤</span>';
+    }
+    
+    // Save conversation starter to chat history
+    async function saveConversationStarter(starterMessage) {
+      try {
+        const token = localStorage.getItem("user_token");
+        const uid = localStorage.getItem("user_uid");
+        const email = localStorage.getItem("user_email");
+        
+        if (!token || !uid || !email || !characterSlug) {
+          console.log('⚠️ Cannot save conversation starter - missing auth');
+          return;
+        }
+        
+        console.log('💾 Saving conversation starter to chat history...');
+        
+        const saveResponse = await fetch('/.netlify/functions/save-chat-message', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_email: email,
+            user_uid: uid,
+            user_token: token,
+            char: characterSlug,
+            user_message: '',  // Empty user message for starter
+            ai_response: starterMessage,
+            is_starter: true  // Flag to identify this as a starter
+          })
+        });
+        
+        if (saveResponse.ok) {
+          console.log('✅ Conversation starter saved successfully');
+        } else {
+          console.log('⚠️ Failed to save conversation starter');
+        }
+      } catch (error) {
+        console.error('❌ Error saving conversation starter:', error);
+      }
     }
     
     // Generate AI avatar in background
