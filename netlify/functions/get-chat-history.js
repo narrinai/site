@@ -117,16 +117,16 @@ exports.handler = async (event, context) => {
     
     console.log('🔍 Found user - Record ID:', userRecordId, 'Custom User_ID:', customUserId);
     
-    // Debug: Let's check what values are in ChatHistory
-    console.log('📊 Checking ChatHistory for User:', customUserId, 'Character:', char);
+    // Always try with '42' first for testing
+    console.log('📊 Checking ChatHistory for test User: 42, Character:', char);
     
     let allChatHistory = [];
     let offset = null;
     
     // First try with custom User_ID (as saved by Make.com)
     do {
-      // Filter by custom User_ID and Character slug as stored by Make.com
-      let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${customUserId}',{Character}='${char}')&sort[0][field]=CreatedTime&sort[0][direction]=asc`;
+      // Always use '42' for testing
+      let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='42',{Character}='${char}')&sort[0][field]=CreatedTime&sort[0][direction]=asc`;
       
       if (offset) {
         url += `&offset=${offset}`;

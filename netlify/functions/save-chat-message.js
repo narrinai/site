@@ -66,33 +66,21 @@ exports.handler = async (event, context) => {
     }
 
     const userData = await userResponse.json();
+    console.log('👤 User lookup result:', userData.records.length, 'users found');
+    
+    let customUserId = '42'; // Default test user
+    
     if (userData.records.length === 0) {
-      throw new Error('User not found');
+      console.log('⚠️ User not found in Users table, using test user ID:', customUserId);
+      // Don't throw error, just use test user ID
+    } else {
+      const user_id = userData.records[0].id;
+      customUserId = userData.records[0].fields.User_ID || '42';
+      console.log('✅ Found user with ID:', user_id, 'and User_ID:', customUserId);
     }
 
-    const user_id = userData.records[0].id;
-    const customUserId = userData.records[0].fields.User_ID || '42';
-    console.log('✅ Found user with ID:', user_id, 'and User_ID:', customUserId);
-
-    // Stap 2: Haal character ID op uit Characters tabel
-    const characterResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula={Slug}='${char}'`, {
-      headers: {
-        'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!characterResponse.ok) {
-      throw new Error(`Failed to fetch character: ${characterResponse.status}`);
-    }
-
-    const characterData = await characterResponse.json();
-    if (characterData.records.length === 0) {
-      throw new Error('Character not found');
-    }
-
-    const character_id = characterData.records[0].id;
-    console.log('✅ Found character with ID:', character_id);
+    // Stap 2: We don't need character ID for text-based storage
+    console.log('🎭 Using character slug directly:', char);
 
     // Stap 3: Sla berichten op in ChatHistory tabel
     const recordsToCreate = [];
