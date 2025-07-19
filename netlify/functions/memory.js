@@ -84,25 +84,25 @@ const recordUserEmail = fields.User_Email || fields.user_email;
 const recordUserUid = fields.User_UID || fields.user_uid;
 let userMatch = false;
 
-// If user_id is an email, check email fields
-if (user_id && user_id.includes('@')) {
-  userMatch = String(recordUserEmail).toLowerCase() === String(user_id).toLowerCase() ||
-              String(recordUserId) === String(user_id);
-  console.log(`👤 Email-based user check: ${user_id} vs User: ${recordUserId}, Email: ${recordUserEmail} = ${userMatch}`);
+// First, try to get the Airtable record ID for the user
+let userRecordId = null;
+if (user_id && !user_id.includes('@') && user_id.startsWith('rec')) {
+  // user_id is already an Airtable record ID
+  userRecordId = user_id;
+  userMatch = String(recordUserId) === String(userRecordId);
+  console.log(`👤 Direct record ID match: ${recordUserId} === ${userRecordId} = ${userMatch}`);
+} else if (user_id && user_id.includes('@')) {
+  // Email-based matching
+  userMatch = String(recordUserEmail).toLowerCase() === String(user_id).toLowerCase();
+  console.log(`👤 Email match check: ${recordUserEmail} === ${user_id} = ${userMatch}`);
 } else {
-  // Check various user identification methods
+  // Check if it's the custom User_ID (like "42") or the Airtable record ID
   if (recordUserId) {
-    // Check if it's the custom User_ID (like "42")
     userMatch = String(recordUserId) === String(user_id) || 
                 parseInt(recordUserId) === parseInt(user_id) ||
-                recordUserId === "42"; // Hardcoded check for test user
+                recordUserId === "42" ||
+                user_id === "42"; // Match test user
     console.log(`👤 User ID match check: ${recordUserId} === ${user_id} = ${userMatch}`);
-  }
-  
-  if (!userMatch && recordUserEmail && user_id) {
-    // Fallback to email matching
-    userMatch = String(recordUserEmail).toLowerCase() === String(user_id).toLowerCase();
-    console.log(`👤 Email fallback check: ${recordUserEmail} === ${user_id} = ${userMatch}`);
   }
 }
        if (!userMatch) {
@@ -110,28 +110,36 @@ if (user_id && user_id.includes('@')) {
          continue;
        }
        
-       // FIXED: Check character match in Slug field instead of Character field
+       // Check character match - handle both slugs and record IDs
        let characterMatch = true; // Default to true if no character specified
 
        if (characterIdentifier) {
+         const recordCharacter = fields.Character;
          const recordSlug = fields['Slug (from Character)'] || fields.Slug;
          
-         console.log(`🎭 Character match check: "${characterIdentifier}" vs "${recordSlug}"`);
+         console.log(`🎭 Character match check: "${characterIdentifier}" vs Character: "${recordCharacter}", Slug: "${recordSlug}"`);
          
-         if (recordSlug) {
-           if (Array.isArray(recordSlug)) {
-             characterMatch = recordSlug.some(slug => {
-               const match = String(slug).toLowerCase() === String(characterIdentifier).toLowerCase();
-               console.log(`  Array check: "${slug}" === "${characterIdentifier}" = ${match}`);
-               return match;
-             });
-           } else {
-             characterMatch = String(recordSlug).toLowerCase() === String(characterIdentifier).toLowerCase();
-             console.log(`  Direct check: "${recordSlug}" === "${characterIdentifier}" = ${characterMatch}`);
-           }
+         // Check if characterIdentifier is a record ID
+         if (characterIdentifier.startsWith('rec')) {
+           characterMatch = String(recordCharacter) === String(characterIdentifier);
+           console.log(`  Record ID check: "${recordCharacter}" === "${characterIdentifier}" = ${characterMatch}`);
          } else {
-           console.log(`  No slug found in record, skipping`);
-           characterMatch = false;
+           // Check slug match
+           if (recordSlug) {
+             if (Array.isArray(recordSlug)) {
+               characterMatch = recordSlug.some(slug => {
+                 const match = String(slug).toLowerCase() === String(characterIdentifier).toLowerCase();
+                 console.log(`  Array check: "${slug}" === "${characterIdentifier}" = ${match}`);
+                 return match;
+               });
+             } else {
+               characterMatch = String(recordSlug).toLowerCase() === String(characterIdentifier).toLowerCase();
+               console.log(`  Direct check: "${recordSlug}" === "${characterIdentifier}" = ${characterMatch}`);
+             }
+           } else {
+             console.log(`  No slug found in record, checking Character field`);
+             characterMatch = String(recordCharacter) === String(characterIdentifier);
+           }
          }
          
          console.log(`🎭 Character match result: ${characterMatch}`);

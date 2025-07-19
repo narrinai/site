@@ -107,6 +107,7 @@ exports.handler = async (event, context) => {
     }
 
     const character_id = characterData.records[0].id;
+    const characterRecordId = characterData.records[0].id;
     console.log('✅ Found character with ID:', character_id);
 
     // Stap 3: Haal chat history op voor deze gebruiker en character
@@ -117,16 +118,16 @@ exports.handler = async (event, context) => {
     
     console.log('🔍 Found user - Record ID:', userRecordId, 'Custom User_ID:', customUserId);
     
-    // Always try with '42' first for testing
-    console.log('📊 Checking ChatHistory for test User: 42, Character:', char);
+    // Try multiple approaches to find chat history
+    console.log('📊 Checking ChatHistory with multiple strategies...');
     
     let allChatHistory = [];
     let offset = null;
     
-    // First try with custom User_ID (as saved by Make.com)
+    // Strategy 1: Try with Airtable record IDs (as saved by Make.com)
     do {
-      // Always use '42' for testing
-      let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='42',{Character}='${char}')&sort[0][field]=CreatedTime&sort[0][direction]=asc`;
+      // Try with both record IDs first
+      let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${userRecordId}',{Character}='${characterRecordId}')&sort[0][field]=CreatedTime&sort[0][direction]=asc`;
       
       if (offset) {
         url += `&offset=${offset}`;
@@ -151,25 +152,45 @@ exports.handler = async (event, context) => {
       
     } while (offset);
 
-    console.log('💬 Total chat history records found:', allChatHistory.length);
+    console.log('💬 Total chat history records found with record IDs:', allChatHistory.length);
     
-    // If no records found with custom User_ID, try with email as fallback
-    if (allChatHistory.length === 0 && user_email) {
-      console.log('🔄 No records found with User_ID, trying with email:', user_email);
+    // If no records found with record IDs, try with custom User_ID and slug
+    if (allChatHistory.length === 0) {
+      console.log('🔄 No records found with record IDs, trying with User_ID and slug...');
       
-      const emailUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${user_email}',{Character}='${char}')&sort[0][field]=CreatedTime&sort[0][direction]=asc`;
+      const customUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${customUserId}',{Character}='${char}')&sort[0][field]=CreatedTime&sort[0][direction]=asc`;
       
-      const emailResponse = await fetch(emailUrl, {
+      const customResponse = await fetch(customUrl, {
         headers: {
           'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
           'Content-Type': 'application/json'
         }
       });
       
-      if (emailResponse.ok) {
-        const emailData = await emailResponse.json();
-        allChatHistory = emailData.records || [];
-        console.log('📊 Found with email fallback:', allChatHistory.length);
+      if (customResponse.ok) {
+        const customData = await customResponse.json();
+        allChatHistory = customData.records || [];
+        console.log('📊 Found with custom User_ID:', allChatHistory.length);
+      }
+    }
+    
+    // Final fallback: try with just "42" and slug
+    if (allChatHistory.length === 0) {
+      console.log('🔄 Final fallback: trying with 42 and slug...');
+      
+      const fallbackUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='42',{Character}='${char}')&sort[0][field]=CreatedTime&sort[0][direction]=asc`;
+      
+      const fallbackResponse = await fetch(fallbackUrl, {
+        headers: {
+          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (fallbackResponse.ok) {
+        const fallbackData = await fallbackResponse.json();
+        allChatHistory = fallbackData.records || [];
+        console.log('📊 Found with fallback 42:', allChatHistory.length);
       }
     }
 
