@@ -117,6 +117,9 @@ exports.handler = async (event, context) => {
     
     console.log('🔍 Found user - Record ID:', userRecordId, 'Custom User_ID:', customUserId);
     
+    // Debug: Let's check what values are in ChatHistory
+    console.log('📊 Checking ChatHistory for User:', customUserId, 'Character:', char);
+    
     let allChatHistory = [];
     let offset = null;
     
@@ -149,6 +152,26 @@ exports.handler = async (event, context) => {
     } while (offset);
 
     console.log('💬 Total chat history records found:', allChatHistory.length);
+    
+    // If no records found with custom User_ID, try with email as fallback
+    if (allChatHistory.length === 0 && user_email) {
+      console.log('🔄 No records found with User_ID, trying with email:', user_email);
+      
+      const emailUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${user_email}',{Character}='${char}')&sort[0][field]=CreatedTime&sort[0][direction]=asc`;
+      
+      const emailResponse = await fetch(emailUrl, {
+        headers: {
+          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (emailResponse.ok) {
+        const emailData = await emailResponse.json();
+        allChatHistory = emailData.records || [];
+        console.log('📊 Found with email fallback:', allChatHistory.length);
+      }
+    }
 
     // Stap 4: Format de chat history voor frontend
     const formattedHistory = allChatHistory.map(record => ({

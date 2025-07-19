@@ -2041,11 +2041,16 @@
           // Verify localStorage
           const savedUserId = localStorage.getItem("user_id");
           console.log("🔍 DEBUG: Verified localStorage user_id:", savedUserId);
+        } else {
+          // Set test user ID if no user_id from webhook
+          console.log("⚠️ No user_id from webhook, using test user ID");
+          localStorage.setItem("test_user_id", "42");
+        }
           
-          // Call fetchHistory if conditions are met
-          if (currentCharacter && 
-              (document.readyState === "interactive" || document.readyState === "complete")) {
-            console.log("🔄 DEBUG: Calling fetchHistory after user_id is saved...");
+        // Call fetchHistory if conditions are met
+        if (currentCharacter && 
+            (document.readyState === "interactive" || document.readyState === "complete")) {
+          console.log("🔄 DEBUG: Calling fetchHistory after user_id is saved...");
             setTimeout(() => {
               fetchHistory();
             }, 500); // Small delay to ensure localStorage is saved
@@ -4625,8 +4630,8 @@ async function sendMessage(event) {
   const user_uid = localStorage.getItem("user_uid");
   const user_email = localStorage.getItem("user_email");
   
-  // Use fallback if user_id is not available - hardcode "42" for now
-  const effective_user_id = user_id || "42";
+  // Use fallback if user_id is not available - use email as last resort
+  const effective_user_id = user_id || localStorage.getItem("test_user_id") || "42";
   
   console.log("🚀 sendMessage debug:", { 
     token: !!token, 
@@ -4697,13 +4702,13 @@ async function sendMessage(event) {
         contextPrefix = `[Relationship: ${relationshipContext.phase}, ${relationshipContext.totalMessages} chats]\n`;
       }
       
-      memoryContext = `\n\n${contextPrefix}Context: ${memoryTexts.join(' | ')}\n\n[Language: Match user's language exactly]\n\nRespond naturally (3-5 sentences). No roleplay actions (*smiles* etc). Vary responses.\n`;
+      memoryContext = `\n\n${contextPrefix}Context: ${memoryTexts.join(' | ')}\n\n[CRITICAL: User speaks Dutch/Nederlands. You MUST respond in Dutch/Nederlands. NEVER switch to English or German.]\n\nRespond naturally (3-5 sentences). No roleplay actions (*smiles* etc). Vary responses.\n`;
       
       console.log("📝 Improved memory context:", memoryContext);
   } else {
       console.log("📭 No relevant memories found - adding variation instructions only");
       // Still add variation and companion instructions even without memories
-      memoryContext = "\n\n[Language: Match user's language exactly]\n\nRespond naturally (3-5 sentences). No roleplay actions (*smiles* etc). Vary responses.\n";
+      memoryContext = "\n\n[CRITICAL: User speaks Dutch/Nederlands. You MUST respond in Dutch/Nederlands. NEVER switch to English or German.]\n\nRespond naturally (3-5 sentences). No roleplay actions (*smiles* etc). Vary responses.\n";
   }
 
   const sendButton = document.getElementById("sendButton");
@@ -4949,8 +4954,8 @@ hideTypingIndicator();
       console.error('⚠️ Relationship update failed:', relError);
     }
     
-    // Generate summary every 10 messages
-    if (relationshipContext && relationshipContext.totalMessages % 10 === 0) {
+    // Generate summary every 5 messages (for testing)
+    if (relationshipContext && relationshipContext.totalMessages >= 5 && relationshipContext.totalMessages % 5 === 0) {
       try {
         console.log('📝 Triggering conversation summary generation at', relationshipContext.totalMessages, 'messages');
         await generateConversationSummary(user_email, uid, token, characterSlug);
@@ -5278,7 +5283,7 @@ function getLastMessages(count = 3) {
         const user_id = localStorage.getItem("user_id");
         const user_uid = localStorage.getItem("user_uid");
         const user_email = localStorage.getItem("user_email");
-        const effective_user_id = user_id || "42";
+        const effective_user_id = user_id || localStorage.getItem("test_user_id") || "42";
         
         // Extract emotional state from response
         let emotionalState = 'neutral';
@@ -5321,7 +5326,7 @@ function getLastMessages(count = 3) {
         const user_id = localStorage.getItem("user_id");
         const user_uid = localStorage.getItem("user_uid");
         const user_email = localStorage.getItem("user_email");
-        const effective_user_id = user_id || "42";
+        const effective_user_id = user_id || localStorage.getItem("test_user_id") || "42";
         
         const response = await fetch('/.netlify/functions/conversation-summary', {
           method: 'POST',

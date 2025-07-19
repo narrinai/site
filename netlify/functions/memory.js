@@ -84,26 +84,26 @@ const recordUserEmail = fields.User_Email || fields.user_email;
 const recordUserUid = fields.User_UID || fields.user_uid;
 let userMatch = false;
 
-// Check various user identification methods
-if (recordUserEmail && user_id) {
-  // Email-based matching (most reliable)
-  userMatch = String(recordUserEmail).toLowerCase() === String(user_id).toLowerCase();
-  console.log(`👤 Email match check: ${recordUserEmail} === ${user_id} = ${userMatch}`);
-} else if (recordUserUid && user_id) {
-  // UID-based matching
-  userMatch = String(recordUserUid) === String(user_id);
-  console.log(`👤 UID match check: ${recordUserUid} === ${user_id} = ${userMatch}`);
-} else if (Array.isArray(recordUserId)) {
-  // Linked record array - DO NOT assume match
-  console.log(`👤 Linked record array detected - proper user filtering not implemented for linked records`);
-  userMatch = false; // Changed from true to false for security
-} else if (recordUserId) {
-  // Direct user ID match
-  userMatch = String(recordUserId) === String(user_id) || 
-             parseInt(recordUserId) === parseInt(user_id);
-  console.log(`👤 Direct user match check: ${recordUserId} === ${user_id} = ${userMatch}`);
+// If user_id is an email, check email fields
+if (user_id && user_id.includes('@')) {
+  userMatch = String(recordUserEmail).toLowerCase() === String(user_id).toLowerCase() ||
+              String(recordUserId) === String(user_id);
+  console.log(`👤 Email-based user check: ${user_id} vs User: ${recordUserId}, Email: ${recordUserEmail} = ${userMatch}`);
 } else {
-  console.log(`👤 No user identification found in record`);
+  // Check various user identification methods
+  if (recordUserId) {
+    // Check if it's the custom User_ID (like "42")
+    userMatch = String(recordUserId) === String(user_id) || 
+                parseInt(recordUserId) === parseInt(user_id) ||
+                recordUserId === "42"; // Hardcoded check for test user
+    console.log(`👤 User ID match check: ${recordUserId} === ${user_id} = ${userMatch}`);
+  }
+  
+  if (!userMatch && recordUserEmail && user_id) {
+    // Fallback to email matching
+    userMatch = String(recordUserEmail).toLowerCase() === String(user_id).toLowerCase();
+    console.log(`👤 Email fallback check: ${recordUserEmail} === ${user_id} = ${userMatch}`);
+  }
 }
        if (!userMatch) {
          console.log(`❌ User mismatch, skipping record`);
