@@ -110,13 +110,18 @@ exports.handler = async (event, context) => {
     console.log('✅ Found character with ID:', character_id);
 
     // Stap 3: Haal chat history op voor deze gebruiker en character
-    // If ChatHistory uses lookup fields, filter by those
+    // First, let's get the User_ID from the user record
+    const userRecord = userData.records[0];
+    const customUserId = userRecord.fields.User_ID || '42'; // Use the custom User_ID field
+    
+    console.log('🔍 Using custom User_ID for filter:', customUserId);
+    
     let allChatHistory = [];
     let offset = null;
     
     do {
-      // Try filtering by User ID and Character slug directly if they're stored as text
-      let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${user_id}',{Character}='${char}')&sort[0][field]=CreatedTime&sort[0][direction]=asc`;
+      // Filter by custom User_ID and Character slug as stored by Make.com
+      let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${customUserId}',{Character}='${char}')&sort[0][field]=CreatedTime&sort[0][direction]=asc`;
       
       if (offset) {
         url += `&offset=${offset}`;

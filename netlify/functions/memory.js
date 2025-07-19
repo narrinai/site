@@ -192,7 +192,7 @@ if (recordUserEmail && user_id) {
      let relationshipContext = null;
      try {
        console.log('🤝 Fetching relationship context...');
-       const relationshipUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula=AND(FIND('${user_id}',ARRAYJOIN({User}))>0)`;
+       const relationshipUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula=AND({User_ID (from User)}='${user_id}',{Slug (from Character)}='${characterIdentifier}')`;
        
        const relationshipResponse = await fetch(relationshipUrl, {
          headers: {
@@ -223,7 +223,7 @@ if (recordUserEmail && user_id) {
      // Enhanced: Get recent conversation summary
      let recentSummary = null;
      try {
-       const summaryUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ConversationSummaries?filterByFormula=FIND('${user_id}',ARRAYJOIN({User}))>0&sort[0][field]=Conversation_Date&sort[0][direction]=desc&maxRecords=1`;
+       const summaryUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ConversationSummaries?filterByFormula=AND({User_ID (from User)}='${user_id}',{Slug (from Character)}='${characterIdentifier}')&sort[0][field]=Conversation_Date&sort[0][direction]=desc&maxRecords=1`;
        
        const summaryResponse = await fetch(summaryUrl, {
          headers: {

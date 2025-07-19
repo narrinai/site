@@ -33,7 +33,50 @@ exports.handler = async (event, context) => {
     
     console.log('📝 Creating conversation summary:', { user_id, character_id });
 
-    // Get last 20 messages from ChatHistory
+    // First, get the Airtable record IDs for User and Character
+    // Get User record by User_ID
+    const userUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={User_ID}='${user_id}'&maxRecords=1`;
+    const userResponse = await fetch(userUrl, {
+      headers: {
+        'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!userResponse.ok) {
+      throw new Error(`Failed to find user: ${userResponse.status}`);
+    }
+    
+    const userData = await userResponse.json();
+    if (userData.records.length === 0) {
+      throw new Error(`User not found with User_ID: ${user_id}`);
+    }
+    
+    const userRecordId = userData.records[0].id;
+    console.log('✅ Found user record:', userRecordId);
+    
+    // Get Character record by slug
+    const charUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula={Slug}='${character_id}'&maxRecords=1`;
+    const charResponse = await fetch(charUrl, {
+      headers: {
+        'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!charResponse.ok) {
+      throw new Error(`Failed to find character: ${charResponse.status}`);
+    }
+    
+    const charData = await charResponse.json();
+    if (charData.records.length === 0) {
+      throw new Error(`Character not found with slug: ${character_id}`);
+    }
+    
+    const charRecordId = charData.records[0].id;
+    console.log('✅ Found character record:', charRecordId);
+
+    // Get last 20 messages from ChatHistory using custom User_ID
     const messagesUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${user_id}',{Character}='${character_id}')&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=20`;
     
     const messagesResponse = await fetch(messagesUrl, {
@@ -138,8 +181,8 @@ Keep it under 150 words. Format as JSON with fields: summary, topics (array), em
       body: JSON.stringify({
         records: [{
           fields: {
-            User: [user_id],
-            Character: [character_id],
+            User: [userRecordId],  // Use the Airtable record ID
+            Character: [charRecordId],  // Use the Airtable record ID
             Conversation_Date: new Date().toISOString(),
             Summary: analysis.summary,
             Emotional_Highlights: analysis.emotional_highlights,
@@ -157,8 +200,8 @@ Keep it under 150 words. Format as JSON with fields: summary, topics (array), em
       throw new Error(`Failed to save summary: ${createSummaryResponse.status}`);
     }
 
-    // Update Key_Memories_Summary in CharacterRelationships
-    const updateRelationshipUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula=AND(FIND('${user_id}',ARRAYJOIN({User}))>0,FIND('${character_id}',ARRAYJOIN({Character}))>0)`;
+    // Update Key_Memories_Summary in CharacterRelationships using lookup fields
+    const updateRelationshipUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula=AND({User_ID (from User)}='${user_id}',{Slug (from Character)}='${character_id}')`;
     
     const relationshipResponse = await fetch(updateRelationshipUrl, {
       headers: {
