@@ -2969,14 +2969,18 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (data.success && data.history && data.history.length > 0) {
           console.log(`✅ Loaded ${data.history.length} messages from history`);
+          console.log('📜 First few messages:', data.history.slice(0, 3));
           
           const chatlog = document.getElementById("chatlog");
           chatlog.innerHTML = ''; // Clear existing messages
           
           // Display all messages from history
-          data.history.forEach(msg => {
-            // Filter out memory context messages
+          data.history.forEach((msg, index) => {
+            console.log(`📝 Displaying message ${index + 1}:`, msg.role, msg.message.substring(0, 50) + '...');
+            
+            // Filter out messages that contain CRITICAL INSTRUCTION or memory context
             if (msg.message && (
+              msg.message.includes('[CRITICAL INSTRUCTION:') ||
               msg.message.includes('Previous conversations and important information') ||
               msg.message.includes('Vorige gesprekken en belangrijke informatie:') ||
               msg.message.includes('[Belangrijk geheugen (') ||
@@ -2998,16 +3002,27 @@ document.addEventListener('DOMContentLoaded', () => {
               return; // Skip this message
             }
             
+            // Clean user messages that have CRITICAL INSTRUCTION prefixed
+            let cleanMessage = msg.message;
+            if (msg.role === 'user' && cleanMessage.includes('[CRITICAL INSTRUCTION:')) {
+              // Find the end of the CRITICAL INSTRUCTION block
+              const instructionEnd = cleanMessage.lastIndexOf(']\n\n');
+              if (instructionEnd !== -1) {
+                cleanMessage = cleanMessage.substring(instructionEnd + 3).trim();
+                console.log('🧹 Cleaned user message from CRITICAL INSTRUCTION:', cleanMessage);
+              }
+            }
+            
             const p = document.createElement("p");
             
             if (msg.role === 'user') {
-              p.innerHTML = `<strong>You:</strong> ${msg.message}`;
+              p.innerHTML = `<strong>You:</strong> ${cleanMessage}`;
             } else {
               const avatarHtml = getAvatarHtml();
               if (currentCharacter.voice_id) {
-                p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${msg.message}<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice(\`${msg.message.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
+                p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${cleanMessage}<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice(\`${cleanMessage.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
               } else {
-                p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${msg.message}`;
+                p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${cleanMessage}`;
               }
             }
             
@@ -3038,6 +3053,16 @@ document.addEventListener('DOMContentLoaded', () => {
     function showConversationStarter() {
       console.log('🎯 showConversationStarter called');
       console.log('🎯 currentCharacter at showConversationStarter:', currentCharacter);
+      
+      // Check if there's already content in the chatlog
+      const chatlog = document.getElementById("chatlog");
+      const existingMessages = chatlog.children.length;
+      console.log('🎯 Existing messages in chatlog:', existingMessages);
+      
+      if (existingMessages > 0) {
+        console.log('⚠️ Chat already has messages, skipping conversation starter');
+        return;
+      }
       
       if (!currentCharacter) {
         console.log('⚠️ No currentCharacter available, cannot show starter');
@@ -3903,9 +3928,6 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       generateAvatarInBackground();
     }
     
-    // Load chat history after character is loaded
-    await loadChatHistory();
-    
   } catch (error) {
     console.error("Error loading character:", error);
     showError("We're having trouble connecting you right now. Please know that we're here for you - let's try again in a moment.");
@@ -4702,7 +4724,11 @@ showTypingIndicator();
       user_uid: uid,
       user_token: token,
       user_email: email,
-      user_id: user_id || null
+      user_id: user_id || null,
+      // Additional fields to ensure webhook saves clean data
+      raw_user_input: input, // Another field to ensure clean user input is available
+      ai_context: memoryContext, // Separate field for AI context only
+      save_message: input // Explicit field for what should be saved to database
     };
     
     console.log("📤 sendMessage FULL payload:", requestPayload);
