@@ -5269,6 +5269,12 @@ function getLastMessages(count = 3) {
     // ===== RELATIONSHIP TRACKING FUNCTIONS =====
     async function updateRelationship(email, uid, token, characterSlug, aiResponse) {
       try {
+        // Get effective user ID
+        const user_id = localStorage.getItem("user_id");
+        const user_uid = localStorage.getItem("user_uid");
+        const user_email = localStorage.getItem("user_email");
+        const effective_user_id = user_id || user_uid || user_email;
+        
         // Extract emotional state from response
         let emotionalState = 'neutral';
         if (aiResponse.toLowerCase().match(/happy|excited|great|wonderful|love/)) {
@@ -5306,6 +5312,12 @@ function getLastMessages(count = 3) {
     
     async function generateConversationSummary(email, uid, token, characterSlug) {
       try {
+        // Get effective user ID
+        const user_id = localStorage.getItem("user_id");
+        const user_uid = localStorage.getItem("user_uid");
+        const user_email = localStorage.getItem("user_email");
+        const effective_user_id = user_id || user_uid || user_email;
+        
         const response = await fetch('/.netlify/functions/conversation-summary', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
