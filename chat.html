@@ -2957,8 +2957,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!response.ok) {
           console.warn('⚠️ Could not load chat history');
           // Clear chatlog before showing starter
-          const chatlog = document.getElementById("chatlog");
-          chatlog.innerHTML = '';
+          const notOkChatlog = document.getElementById("chatlog");
+          if (notOkChatlog) {
+            notOkChatlog.innerHTML = '';
+          }
           // Show conversation starter for new chat
           showConversationStarter();
           return;
@@ -3033,7 +3035,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
           console.log('📭 No chat history found - showing conversation starter');
           // Clear chatlog before showing starter
-          const chatlog = document.getElementById("chatlog");
           chatlog.innerHTML = '';
           // Show conversation starter for new chat
           showConversationStarter();
@@ -3042,8 +3043,10 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (error) {
         console.error('❌ Error loading chat history:', error);
         // Clear chatlog before showing starter
-        const chatlog = document.getElementById("chatlog");
-        chatlog.innerHTML = '';
+        const errorChatlog = document.getElementById("chatlog");
+        if (errorChatlog) {
+          errorChatlog.innerHTML = '';
+        }
         // Show conversation starter on error
         showConversationStarter();
       }
