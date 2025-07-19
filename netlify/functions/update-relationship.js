@@ -35,8 +35,20 @@ exports.handler = async (event, context) => {
     console.log('🔄 Updating relationship:', { user_id, character_id });
 
     // First we need to find the actual Airtable record IDs
-    // Get User record by User_ID
-    const userUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={User_ID}='${user_id}'&maxRecords=1`;
+    // Handle different user identification methods
+    let userFilter;
+    if (user_id && user_id.includes('@')) {
+      // It's an email address
+      userFilter = `{Email}='${user_id}'`;
+    } else if (user_id) {
+      // Try User_ID field first
+      userFilter = `{User_ID}='${user_id}'`;
+    } else {
+      throw new Error('No valid user identifier provided');
+    }
+    
+    const userUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=${userFilter}&maxRecords=1`;
+    console.log('🔍 Looking up user with filter:', userFilter);
     const userResponse = await fetch(userUrl, {
       headers: {
         'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -54,7 +66,8 @@ exports.handler = async (event, context) => {
     }
     
     const userRecordId = userData.records[0].id;
-    console.log('✅ Found user record:', userRecordId);
+    const customUserId = userData.records[0].fields.User_ID || userData.records[0].fields.Email || user_id;
+    console.log('✅ Found user record:', userRecordId, 'with identifier:', customUserId);
     
     // Get Character record by slug
     const charUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula={Slug}='${character_id}'&maxRecords=1`;
@@ -77,8 +90,8 @@ exports.handler = async (event, context) => {
     const charRecordId = charData.records[0].id;
     console.log('✅ Found character record:', charRecordId);
     
-    // Check if relationship record exists using the lookup fields
-    const checkUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula=AND({User_ID (from User)}='${user_id}',{Slug (from Character)}='${character_id}')`;
+    // Check if relationship record exists using the lookup fields with the actual User_ID value
+    const checkUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula=AND({User_ID (from User)}='${customUserId}',{Slug (from Character)}='${character_id}')`;
     
     const checkResponse = await fetch(checkUrl, {
       headers: {

@@ -34,8 +34,19 @@ exports.handler = async (event, context) => {
     console.log('📝 Creating conversation summary:', { user_id, character_id });
 
     // First, get the Airtable record IDs for User and Character
-    // Get User record by User_ID
-    const userUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={User_ID}='${user_id}'&maxRecords=1`;
+    // Handle different user identification methods
+    let userFilter;
+    if (user_id && user_id.includes('@')) {
+      // It's an email address
+      userFilter = `{Email}='${user_id}'`;
+    } else if (user_id) {
+      // Try User_ID field
+      userFilter = `{User_ID}='${user_id}'`;
+    } else {
+      throw new Error('No valid user identifier provided');
+    }
+    
+    const userUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=${userFilter}&maxRecords=1`;
     const userResponse = await fetch(userUrl, {
       headers: {
         'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -53,7 +64,8 @@ exports.handler = async (event, context) => {
     }
     
     const userRecordId = userData.records[0].id;
-    console.log('✅ Found user record:', userRecordId);
+    const customUserId = userData.records[0].fields.User_ID || userData.records[0].fields.Email || user_id;
+    console.log('✅ Found user record:', userRecordId, 'with identifier:', customUserId);
     
     // Get Character record by slug
     const charUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula={Slug}='${character_id}'&maxRecords=1`;
@@ -77,7 +89,7 @@ exports.handler = async (event, context) => {
     console.log('✅ Found character record:', charRecordId);
 
     // Get last 20 messages from ChatHistory using custom User_ID
-    const messagesUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${user_id}',{Character}='${character_id}')&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=20`;
+    const messagesUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${customUserId}',{Character}='${character_id}')&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=20`;
     
     const messagesResponse = await fetch(messagesUrl, {
       headers: {
@@ -201,7 +213,7 @@ Keep it under 150 words. Format as JSON with fields: summary, topics (array), em
     }
 
     // Update Key_Memories_Summary in CharacterRelationships using lookup fields
-    const updateRelationshipUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula=AND({User_ID (from User)}='${user_id}',{Slug (from Character)}='${character_id}')`;
+    const updateRelationshipUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula=AND({User_ID (from User)}='${customUserId}',{Slug (from Character)}='${character_id}')`;
     
     const relationshipResponse = await fetch(updateRelationshipUrl, {
       headers: {

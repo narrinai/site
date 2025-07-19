@@ -71,7 +71,8 @@ exports.handler = async (event, context) => {
     }
 
     const user_id = userData.records[0].id;
-    console.log('✅ Found user with ID:', user_id);
+    const customUserId = userData.records[0].fields.User_ID || '42';
+    console.log('✅ Found user with ID:', user_id, 'and User_ID:', customUserId);
 
     // Stap 2: Haal character ID op uit Characters tabel
     const characterResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula={Slug}='${char}'`, {

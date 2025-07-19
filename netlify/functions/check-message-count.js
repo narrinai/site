@@ -58,33 +58,14 @@ exports.handler = async (event, context) => {
     }
 
     const user_id = userData.records[0].id;
+    const customUserId = userData.records[0].fields.User_ID || '42'; // Get the custom User_ID
 
-    // Get character ID - escape single quotes in slug
-    const escapedChar = char.replace(/'/g, "\\'");
-    const characterResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula={Slug}='${escapedChar}'`, {
-      headers: {
-        'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!characterResponse.ok) {
-      throw new Error(`Failed to fetch character: ${characterResponse.status}`);
-    }
-
-    const characterData = await characterResponse.json();
-    if (characterData.records.length === 0) {
-      throw new Error('Character not found');
-    }
-
-    const character_id = characterData.records[0].id;
-
-    // Count messages in ChatHistory
-    console.log('📊 Counting messages for user:', user_id, 'character:', character_id);
+    // Count messages in ChatHistory using custom User_ID and character slug
+    console.log('📊 Counting messages for user:', customUserId, 'character:', char);
     
-    // First get all messages for this user/character combination
+    // First get all messages for this user/character combination using the actual field values
     const allMessagesResponse = await fetch(
-      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND(FIND('${user_id}',ARRAYJOIN({User}))>0,FIND('${character_id}',ARRAYJOIN({Character}))>0)`,
+      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${customUserId}',{Character}='${char}')`,
       {
         headers: {
           'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -123,7 +104,7 @@ exports.handler = async (event, context) => {
     if (shouldShowRating) {
       try {
         const lastRatingResponse = await fetch(
-          `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/tblXglk25SzZ3UYAt?filterByFormula=AND(FIND('${user_id}',ARRAYJOIN({User}))>0,FIND('${character_id}',ARRAYJOIN({Character}))>0,{MessageCount}=${messageCount})&maxRecords=1`,
+          `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/tblXglk25SzZ3UYAt?filterByFormula=AND({User}='${customUserId}',{Character}='${char}',{MessageCount}=${messageCount})&maxRecords=1`,
           {
             headers: {
               'Authorization': `Bearer ${AIRTABLE_TOKEN}`,

@@ -110,15 +110,17 @@ exports.handler = async (event, context) => {
     console.log('✅ Found character with ID:', character_id);
 
     // Stap 3: Haal chat history op voor deze gebruiker en character
-    // First, let's get the User_ID from the user record
+    // Get both the Airtable record ID and custom User_ID
     const userRecord = userData.records[0];
+    const userRecordId = userRecord.id;
     const customUserId = userRecord.fields.User_ID || '42'; // Use the custom User_ID field
     
-    console.log('🔍 Using custom User_ID for filter:', customUserId);
+    console.log('🔍 Found user - Record ID:', userRecordId, 'Custom User_ID:', customUserId);
     
     let allChatHistory = [];
     let offset = null;
     
+    // First try with custom User_ID (as saved by Make.com)
     do {
       // Filter by custom User_ID and Character slug as stored by Make.com
       let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${customUserId}',{Character}='${char}')&sort[0][field]=CreatedTime&sort[0][direction]=asc`;
