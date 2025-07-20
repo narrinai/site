@@ -91,8 +91,35 @@ exports.handler = async (event, context) => {
     let userRecordId = null;
     
     if (userData.records.length === 0) {
-      console.log('⚠️ User not found in Users table, using test user ID:', userIdForSave);
-      // Don't throw error, just use test user ID
+      console.log('⚠️ User not found in Users table, creating new user...');
+      
+      // Create a new user record
+      const createUserResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          records: [{
+            fields: {
+              Email: user_email,
+              NetlifyUID: user_uid || '',
+              User_ID: Date.now().toString(), // Generate unique ID
+              CreatedTime: new Date().toISOString()
+            }
+          }]
+        })
+      });
+      
+      if (createUserResponse.ok) {
+        const createData = await createUserResponse.json();
+        userRecordId = createData.records[0].id;
+        userIdForSave = createData.records[0].fields.User_ID;
+        console.log('✅ Created new user with ID:', userIdForSave);
+      } else {
+        console.log('❌ Failed to create user, using test user ID:', userIdForSave);
+      }
     } else {
       userRecordId = userData.records[0].id;
       const customUserId = userData.records[0].fields.User_ID || '42';

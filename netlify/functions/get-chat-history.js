@@ -114,12 +114,41 @@ exports.handler = async (event, context) => {
     }
 
     if (userData.records.length === 0) {
+      // Try one more time with case-insensitive email search
+      console.log('🔄 Final attempt: case-insensitive email search...');
+      const caseInsensitiveUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=LOWER({Email})='${user_email.toLowerCase()}'`;
+      console.log('🔗 Case-insensitive URL:', caseInsensitiveUrl);
+      
+      const finalResponse = await fetch(caseInsensitiveUrl, {
+        headers: {
+          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (finalResponse.ok) {
+        const finalData = await finalResponse.json();
+        if (finalData.records.length > 0) {
+          userData = finalData;
+          console.log('✅ Found user with case-insensitive search');
+        }
+      }
+    }
+    
+    if (userData.records.length === 0) {
+      console.log('❌ User not found after all attempts');
+      console.log('📧 Searched for email:', user_email);
+      console.log('🔍 No chat history can be loaded without a user record');
+      
+      // Return empty history instead of error to allow new conversations
       return {
-        statusCode: 404,
+        statusCode: 200,
         headers,
         body: JSON.stringify({ 
-          success: false, 
-          error: 'User not found with email: ' + user_email 
+          success: true, 
+          history: [],
+          total: 0,
+          message: 'No user record found - returning empty history'
         })
       };
     }
