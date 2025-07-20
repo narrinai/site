@@ -915,7 +915,8 @@
       padding: var(--spacing-lg) var(--spacing-xl);
       border-radius: var(--radius-lg);
       max-width: 900px;
-      margin: 0 auto var(--spacing-lg);
+      margin: 0 auto;
+      margin-top: var(--spacing-lg);
       box-shadow: var(--shadow-md);
       border: 2px solid var(--color-light-gray);
       transition: all var(--transition-base);
@@ -2365,14 +2366,6 @@
         </div>
       </div>
 
-      <!-- Conversation Topics Section -->
-      <div class="conversation-topics" id="conversationTopics" style="display: none;">
-        <h3>Suggested conversation topics:</h3>
-        <div class="topic-buttons" id="topicButtons">
-          <!-- Dynamically generated topic buttons will appear here -->
-        </div>
-      </div>
-
       <div class="chat-section">
         <div id="chatlog"></div>
         <div class="input-group">
@@ -2393,6 +2386,14 @@
             AI responses may contain errors or inappropriate content. Use at your own risk.
             Read our <a href="privacy-policy.html" class="disclaimer-link">privacy policy</a> and <a href="terms-and-conditions.html" class="disclaimer-link">terms and conditions</a> for full details.
           </div>
+        </div>
+      </div>
+      
+      <!-- Conversation Topics Section (below chat) -->
+      <div class="conversation-topics" id="conversationTopics" style="display: none;">
+        <h3 id="topicsTitle">Continue the conversation:</h3>
+        <div class="topic-buttons" id="topicButtons">
+          <!-- Dynamically generated topic buttons will appear here -->
         </div>
       </div>
     </div>
@@ -4820,29 +4821,196 @@ function clearAuthData() {
 }
 
 // ===== CONVERSATION TOPICS FUNCTIONALITY =====
-function generateConversationTopics() {
+let conversationMemory = []; // Store recent conversation topics
+let currentTopics = []; // Store current displayed topics
+
+async function generateConversationTopics() {
   if (!currentCharacter) return;
   
   const topicsSection = document.getElementById('conversationTopics');
   const topicButtonsContainer = document.getElementById('topicButtons');
+  const topicsTitle = document.getElementById('topicsTitle');
   
   // Clear existing topics
   topicButtonsContainer.innerHTML = '';
   
-  // Generate topics based on character
-  const topics = getTopicsForCharacter(currentCharacter);
+  // Get memory-based and personalized topics
+  const topics = await getPersonalizedTopics(currentCharacter);
+  currentTopics = topics;
+  
+  // Update title based on conversation state
+  const chatlog = document.getElementById('chatlog');
+  if (!chatlog || chatlog.children.length === 0) {
+    topicsTitle.textContent = "Start your conversation with:";
+  } else if (conversationMemory.length > 0) {
+    topicsTitle.textContent = "Keep exploring:";
+  } else {
+    topicsTitle.textContent = "Continue the conversation:";
+  }
   
   // Create topic buttons
-  topics.forEach(topic => {
+  topics.forEach((topic, index) => {
     const button = document.createElement('button');
     button.className = 'topic-btn';
     button.textContent = topic;
-    button.onclick = () => handleTopicClick(topic);
+    button.onclick = () => handleTopicClick(topic, index);
     topicButtonsContainer.appendChild(button);
   });
   
   // Show topics section
   topicsSection.style.display = 'block';
+}
+
+async function getPersonalizedTopics(character) {
+  // Try to get memory-based topics first
+  const memoryTopics = await getMemoryBasedTopics();
+  
+  // Get base topics for the character
+  const baseTopics = getTopicsForCharacter(character);
+  
+  // Combine memory topics with base topics
+  let allTopics = [...memoryTopics, ...baseTopics];
+  
+  // Remove duplicates and limit to 5 topics
+  allTopics = [...new Set(allTopics)].slice(0, 5);
+  
+  // If we don't have enough topics, add some generic ones
+  if (allTopics.length < 3) {
+    const genericTopics = [
+      "What's on your mind today?",
+      "Let's explore something new",
+      "Share your thoughts"
+    ];
+    allTopics = [...allTopics, ...genericTopics].slice(0, 5);
+  }
+  
+  return allTopics;
+}
+
+async function getMemoryBasedTopics() {
+  const memoryTopics = [];
+  
+  try {
+    // Analyze recent chat messages
+    const recentTopics = analyzeRecentConversation();
+    memoryTopics.push(...recentTopics);
+    
+    // Get user's memory data if available
+    const token = localStorage.getItem('user_token');
+    const uid = localStorage.getItem('user_uid');
+    const email = localStorage.getItem('user_email');
+    
+    if (token && uid && email && currentCharacter) {
+      // Fetch recent memories
+      const response = await fetch('/.netlify/functions/memory', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_email: email,
+          user_uid: uid,
+          user_token: token,
+          character_id: currentCharacter.id || currentCharacter.Name,
+          action: 'get'
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.memories && data.memories.length > 0) {
+          // Extract topics from memories
+          data.memories.forEach(memory => {
+            if (memory.context && memory.importance >= 5) {
+              // Generate follow-up topics based on important memories
+              if (memory.context.includes('goal')) {
+                memoryTopics.push("How's your progress on your goals?");
+              }
+              if (memory.context.includes('challenge') || memory.context.includes('struggle')) {
+                memoryTopics.push("Let's revisit that challenge we discussed");
+              }
+              if (memory.context.includes('success') || memory.context.includes('achievement')) {
+                memoryTopics.push("Tell me more about your recent wins");
+              }
+              if (memory.emotional_state) {
+                memoryTopics.push(`Last time you felt ${memory.emotional_state}. How are you now?`);
+              }
+            }
+          });
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching memory topics:', error);
+  }
+  
+  // Add topics from recent conversation
+  if (conversationMemory.length > 0) {
+    const recentTopic = conversationMemory[conversationMemory.length - 1];
+    memoryTopics.push(`Continue our discussion about: ${recentTopic}`);
+  }
+  
+  return memoryTopics.slice(0, 3); // Return max 3 memory-based topics
+}
+
+function analyzeRecentConversation() {
+  const topics = [];
+  const chatlog = document.getElementById('chatlog');
+  
+  if (!chatlog) return topics;
+  
+  // Get last 5 messages
+  const messages = Array.from(chatlog.children).slice(-5);
+  const messageTexts = messages.map(msg => msg.textContent.toLowerCase());
+  
+  // Analyze patterns in recent conversation
+  const conversationText = messageTexts.join(' ');
+  
+  // Check for specific themes and suggest follow-ups
+  if (conversationText.includes('goal') || conversationText.includes('plan')) {
+    topics.push("Let's break down your goals into actionable steps");
+  }
+  
+  if (conversationText.includes('feel') || conversationText.includes('emotion')) {
+    topics.push("How can we work through these feelings together?");
+  }
+  
+  if (conversationText.includes('help') || conversationText.includes('advice')) {
+    topics.push("What specific area would you like more guidance on?");
+  }
+  
+  if (conversationText.includes('story') || conversationText.includes('experience')) {
+    topics.push("I'd love to hear more details about that");
+  }
+  
+  if (conversationText.includes('challenge') || conversationText.includes('difficult')) {
+    topics.push("What strategies have you tried so far?");
+  }
+  
+  if (conversationText.includes('success') || conversationText.includes('achieve')) {
+    topics.push("What's your next milestone?");
+  }
+  
+  if (conversationText.includes('learn') || conversationText.includes('understand')) {
+    topics.push("What would you like to explore deeper?");
+  }
+  
+  // Add contextual follow-ups based on character type
+  if (currentCharacter) {
+    const category = currentCharacter.Category || currentCharacter.category || "";
+    
+    if (category === "Life Coach" && conversationText.includes('habit')) {
+      topics.push("Let's create a habit tracking plan");
+    }
+    
+    if (category === "Mental Health" && conversationText.includes('stress')) {
+      topics.push("Would you like to try a calming exercise?");
+    }
+    
+    if (category === "Business" && conversationText.includes('career')) {
+      topics.push("What's your ideal career trajectory?");
+    }
+  }
+  
+  return topics.slice(0, 2); // Return max 2 context-based topics
 }
 
 function getTopicsForCharacter(character) {
@@ -4940,13 +5108,21 @@ function getTopicsForCharacter(character) {
   return allTopics.sort(() => Math.random() - 0.5).slice(0, 5);
 }
 
-function handleTopicClick(topic) {
+function handleTopicClick(topic, index) {
+  // Store the topic in conversation memory
+  conversationMemory.push(topic);
+  if (conversationMemory.length > 10) {
+    conversationMemory.shift(); // Keep only last 10 topics
+  }
+  
   // Set the topic as the message and send it
   const userInput = document.getElementById('userInput');
   userInput.value = topic;
   
-  // Hide topics after selection
-  document.getElementById('conversationTopics').style.display = 'none';
+  // Don't hide topics, but regenerate them after a short delay
+  setTimeout(() => {
+    generateConversationTopics();
+  }, 500);
   
   // Send the message
   handleSendClick(event);
@@ -4970,18 +5146,12 @@ function resetInactivityTimer() {
     clearTimeout(inactivityTimer);
   }
   
-  // Hide topics when user is active
-  const topicsSection = document.getElementById('conversationTopics');
-  if (topicsSection) {
-    topicsSection.style.display = 'none';
-  }
-  
-  // Set new timer
+  // Set new timer to refresh topics after inactivity
   inactivityTimer = setTimeout(() => {
-    // Only show topics if there are messages in the chat
+    // Refresh topics with new suggestions after inactivity
     const chatlog = document.getElementById('chatlog');
     if (chatlog && chatlog.children.length > 0) {
-      showConversationTopics();
+      generateConversationTopics();
     }
   }, INACTIVITY_DELAY);
 }
@@ -5308,6 +5478,11 @@ hideTypingIndicator();
     
     // Reset inactivity timer when AI responds
     resetInactivityTimer();
+    
+    // Update conversation topics after AI response
+    setTimeout(() => {
+      generateConversationTopics();
+    }, 2000); // Wait 2 seconds after response
 
     const typingSpan = divBot.querySelector('.typing-text');
     
