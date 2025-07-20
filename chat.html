@@ -968,6 +968,138 @@
       transform: translateY(0);
     }
 
+    /* Support Escalation Styles */
+    .support-escalation {
+      background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+      border: 2px solid var(--color-teal);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-lg);
+      margin: var(--spacing-md) 0;
+      box-shadow: var(--shadow-md);
+    }
+
+    .support-header {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .support-icon {
+      font-size: var(--font-size-2xl);
+    }
+
+    .support-header h4 {
+      font-size: var(--font-size-lg);
+      font-weight: 700;
+      color: var(--color-dark-gray);
+      margin: 0;
+    }
+
+    .support-escalation p {
+      color: var(--color-gray);
+      margin-bottom: var(--spacing-md);
+      line-height: 1.6;
+    }
+
+    .support-resources {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .resource-item {
+      background: var(--color-white);
+      padding: var(--spacing-md);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .resource-item strong {
+      display: block;
+      color: var(--color-dark-gray);
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .resource-contact {
+      color: var(--color-teal);
+      margin: var(--spacing-xs) 0;
+      font-weight: 500;
+    }
+
+    .resource-contact a {
+      color: var(--color-teal);
+      text-decoration: none;
+    }
+
+    .resource-contact a:hover {
+      text-decoration: underline;
+    }
+
+    .resource-item small {
+      color: var(--color-gray);
+      display: block;
+      margin-top: var(--spacing-xs);
+    }
+
+    .support-footer {
+      text-align: center;
+      padding-top: var(--spacing-sm);
+      border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .support-footer small {
+      color: var(--color-gray);
+      font-style: italic;
+    }
+
+    /* Gentle Check-in Styles */
+    .gentle-checkin {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border: 1px solid var(--color-light-gray);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-md);
+      margin: var(--spacing-md) 0;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .checkin-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: var(--spacing-sm);
+    }
+
+    .checkin-icon {
+      font-size: var(--font-size-xl);
+    }
+
+    .checkin-content p {
+      color: var(--color-gray);
+      margin: 0;
+      line-height: 1.6;
+      max-width: 500px;
+    }
+
+    .checkin-dismiss {
+      background: var(--color-teal);
+      color: var(--color-white);
+      border: none;
+      padding: var(--spacing-xs) var(--spacing-md);
+      border-radius: var(--radius-full);
+      font-size: var(--font-size-sm);
+      cursor: pointer;
+      transition: all var(--transition-base);
+      margin-top: var(--spacing-sm);
+    }
+
+    .checkin-dismiss:hover {
+      background: var(--color-dark-teal);
+      transform: translateY(-1px);
+    }
+
     .loading-state {
       text-align: center;
       padding: var(--spacing-3xl) var(--spacing-xl);
@@ -2384,6 +2516,11 @@
             AI characters cannot provide professional advice. For medical, legal, financial, or mental health concerns, always consult licensed professionals. 
             Never make important decisions based on AI responses. You are 100% responsible for your own decisions and actions.
             AI responses may contain errors or inappropriate content. Use at your own risk.
+            <br><br>
+            <strong>Need immediate help?</strong> 
+            <a href="#" onclick="showSupportEscalation('immediate'); return false;" class="disclaimer-link">Crisis resources available here</a> | 
+            US: 988 | NL: 0800-0113
+            <br><br>
             Read our <a href="privacy-policy.html" class="disclaimer-link">privacy policy</a> and <a href="terms-and-conditions.html" class="disclaimer-link">terms and conditions</a> for full details.
           </div>
         </div>
@@ -5172,6 +5309,194 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+// ===== HUMAN SUPPORT ESCALATION SYSTEM =====
+const crisisKeywords = {
+  immediate: [
+    'suicide', 'kill myself', 'end my life', 'want to die', 'better off dead',
+    'harm myself', 'self harm', 'cutting', 'overdose', 'not worth living'
+  ],
+  urgent: [
+    'severely depressed', 'panic attack', 'can\'t breathe', 'emergency',
+    'crisis', 'desperate', 'can\'t take it', 'breaking down', 'losing control'
+  ],
+  concerning: [
+    'very depressed', 'hopeless', 'worthless', 'no point', 'give up',
+    'anxious', 'scared', 'alone', 'nobody cares', 'hate myself'
+  ]
+};
+
+const supportResources = {
+  immediate: {
+    title: "Please reach out for immediate help",
+    message: "I'm concerned about what you're sharing. While I'm here to listen, you deserve professional support right now.",
+    resources: [
+      { name: "988 Suicide & Crisis Lifeline", number: "988", description: "24/7 crisis support (US)" },
+      { name: "113 Zelfmoordpreventie", number: "0800-0113", description: "24/7 crisis hulp (Nederland)" },
+      { name: "Crisis Text Line", number: "Text HOME to 741741", description: "24/7 text support" },
+      { name: "International Crisis Lines", url: "https://findahelpline.com", description: "Find help in your country" }
+    ]
+  },
+  urgent: {
+    title: "Professional support recommended",
+    message: "It sounds like you're going through a really difficult time. Professional support can make a real difference.",
+    resources: [
+      { name: "SAMHSA National Helpline", number: "1-800-662-4357", description: "Mental health referrals (US)" },
+      { name: "Psychology Today", url: "https://www.psychologytoday.com/therapists", description: "Find a therapist near you" },
+      { name: "BetterHelp", url: "https://www.betterhelp.com", description: "Online therapy platform" }
+    ]
+  },
+  concerning: {
+    title: "Additional support available",
+    message: "I hear that you're struggling. Remember that professional support is always available when you need it.",
+    resources: [
+      { name: "NAMI Helpline", number: "1-800-950-6264", description: "Mental health information & support" },
+      { name: "7 Cups", url: "https://www.7cups.com", description: "Free emotional support" },
+      { name: "Headspace", url: "https://www.headspace.com", description: "Meditation and mindfulness" }
+    ]
+  }
+};
+
+function checkForCrisisContent(message) {
+  const lowerMessage = message.toLowerCase();
+  
+  // Check for immediate crisis keywords
+  for (const keyword of crisisKeywords.immediate) {
+    if (lowerMessage.includes(keyword)) {
+      return 'immediate';
+    }
+  }
+  
+  // Check for urgent keywords
+  for (const keyword of crisisKeywords.urgent) {
+    if (lowerMessage.includes(keyword)) {
+      return 'urgent';
+    }
+  }
+  
+  // Check for concerning keywords
+  for (const keyword of crisisKeywords.concerning) {
+    if (lowerMessage.includes(keyword)) {
+      return 'concerning';
+    }
+  }
+  
+  return null;
+}
+
+function showSupportEscalation(level) {
+  const support = supportResources[level];
+  if (!support) return;
+  
+  // Create escalation UI
+  const escalationDiv = document.createElement('div');
+  escalationDiv.className = 'support-escalation';
+  escalationDiv.innerHTML = `
+    <div class="support-header">
+      <span class="support-icon">💙</span>
+      <h4>${support.title}</h4>
+    </div>
+    <p>${support.message}</p>
+    <div class="support-resources">
+      ${support.resources.map(resource => `
+        <div class="resource-item">
+          <strong>${resource.name}</strong>
+          ${resource.number ? `<div class="resource-contact">📞 ${resource.number}</div>` : ''}
+          ${resource.url ? `<div class="resource-contact">🔗 <a href="${resource.url}" target="_blank">Visit website</a></div>` : ''}
+          <small>${resource.description}</small>
+        </div>
+      `).join('')}
+    </div>
+    <div class="support-footer">
+      <small>Your wellbeing matters. These resources provide confidential, professional support.</small>
+    </div>
+  `;
+  
+  // Add to chatlog
+  const chatlog = document.getElementById('chatlog');
+  chatlog.appendChild(escalationDiv);
+  chatlog.scrollTop = chatlog.scrollHeight;
+  
+  // Log for safety monitoring (could be sent to backend)
+  console.log(`Support escalation shown: ${level}`, {
+    timestamp: new Date().toISOString(),
+    character: currentCharacter?.name
+  });
+}
+
+// Monitor conversation patterns over time
+let conversationMood = {
+  negative: 0,
+  positive: 0,
+  lastCheck: Date.now()
+};
+
+function analyzeConversationMood(message) {
+  const lowerMessage = message.toLowerCase();
+  
+  // Negative indicators
+  const negativeWords = ['sad', 'depressed', 'anxious', 'worried', 'scared', 'alone', 
+                         'hopeless', 'tired', 'exhausted', 'overwhelmed', 'stress',
+                         'cry', 'tears', 'pain', 'hurt', 'struggle', 'difficult'];
+  
+  // Positive indicators  
+  const positiveWords = ['happy', 'good', 'great', 'excited', 'joy', 'smile',
+                         'laugh', 'love', 'grateful', 'thankful', 'better',
+                         'improve', 'progress', 'achieve', 'success', 'hope'];
+  
+  // Count mood indicators
+  let negCount = 0;
+  let posCount = 0;
+  
+  negativeWords.forEach(word => {
+    if (lowerMessage.includes(word)) negCount++;
+  });
+  
+  positiveWords.forEach(word => {
+    if (lowerMessage.includes(word)) posCount++;
+  });
+  
+  // Update mood tracking
+  conversationMood.negative += negCount;
+  conversationMood.positive += posCount;
+  
+  // Check if mood is concerning (too negative over time)
+  const totalMood = conversationMood.negative + conversationMood.positive;
+  if (totalMood > 10) {
+    const negativeRatio = conversationMood.negative / totalMood;
+    
+    if (negativeRatio > 0.8) {
+      // Very negative conversation pattern
+      return 'concerning';
+    } else if (negativeRatio > 0.6) {
+      // Somewhat negative pattern
+      return 'monitor';
+    }
+  }
+  
+  return null;
+}
+
+// Add gentle check-in if conversation seems consistently negative
+function showGentleCheckIn() {
+  const checkInDiv = document.createElement('div');
+  checkInDiv.className = 'gentle-checkin';
+  checkInDiv.innerHTML = `
+    <div class="checkin-content">
+      <span class="checkin-icon">💜</span>
+      <p>I've noticed our conversation has been touching on some heavy topics. 
+         Just a gentle reminder that it's okay to take breaks, and professional 
+         support is always available if you need someone to talk to.</p>
+      <button onclick="this.parentElement.parentElement.style.display='none';" class="checkin-dismiss">
+        I understand, thanks
+      </button>
+    </div>
+  `;
+  
+  const chatlog = document.getElementById('chatlog');
+  chatlog.appendChild(checkInDiv);
+  chatlog.scrollTop = chatlog.scrollHeight;
+}
+
 async function sendMessage(event) {
   event?.preventDefault();
   
@@ -5292,6 +5617,35 @@ async function sendMessage(event) {
   
   // Reset inactivity timer when message is sent
   resetInactivityTimer();
+  
+  // Check for crisis content
+  const crisisLevel = checkForCrisisContent(input);
+  if (crisisLevel) {
+    showSupportEscalation(crisisLevel);
+    
+    // Add context to the AI prompt if crisis detected
+    if (crisisLevel === 'immediate' || crisisLevel === 'urgent') {
+      // Modify the message to include crisis context
+      const crisisContext = `[IMPORTANT CONTEXT: The user appears to be in distress. Please:
+1. Respond with deep empathy and validate their feelings
+2. Avoid giving medical or therapeutic advice
+3. Gently acknowledge that professional support could be helpful
+4. Keep a warm, supportive tone
+5. Don't minimize their experience] 
+
+User message: ${input}`;
+      input = crisisContext;
+    }
+  }
+  
+  // Analyze conversation mood
+  const moodPattern = analyzeConversationMood(input);
+  if (moodPattern === 'concerning' && !document.querySelector('.gentle-checkin')) {
+    // Show gentle check-in if not already shown
+    setTimeout(() => {
+      showGentleCheckIn();
+    }, 3000); // Show after 3 seconds
+  }
 
   // Reset send button state
   function resetSendButton() {
