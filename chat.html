@@ -2964,7 +2964,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         if (!response.ok) {
-          console.warn('⚠️ Could not load chat history');
+          console.warn('⚠️ Could not load chat history - Status:', response.status, response.statusText);
+          
+          // Try to get error details
+          try {
+            const errorData = await response.json();
+            console.error('❌ Chat history error details:', errorData);
+          } catch (e) {
+            console.error('❌ Could not parse error response:', e);
+          }
+          
           // Clear chatlog before showing starter
           const notOkChatlog = document.getElementById("chatlog");
           if (notOkChatlog) {

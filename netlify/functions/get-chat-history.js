@@ -23,6 +23,22 @@ exports.handler = async (event, context) => {
     };
   }
 
+  // Check environment variables
+  if (!AIRTABLE_TOKEN || !AIRTABLE_BASE_ID) {
+    console.error('❌ Missing environment variables:', {
+      hasToken: !!AIRTABLE_TOKEN,
+      hasBaseId: !!AIRTABLE_BASE_ID
+    });
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ 
+        success: false, 
+        error: 'Server configuration error: Missing Airtable credentials' 
+      })
+    };
+  }
+
   try {
     const { user_email, user_uid, user_token, char } = JSON.parse(event.body);
     
@@ -52,7 +68,11 @@ exports.handler = async (event, context) => {
     }
 
     // Stap 1: Haal user_id op uit Users tabel
-    const userResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=AND({Email}='${user_email}',{NetlifyUID}='${user_uid}')`, {
+    console.log('🔍 Looking up user with:', { user_email, user_uid });
+    const userUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=AND({Email}='${user_email}',{NetlifyUID}='${user_uid}')`;
+    console.log('🔗 User lookup URL:', userUrl);
+    
+    const userResponse = await fetch(userUrl, {
       headers: {
         'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
         'Content-Type': 'application/json'
@@ -60,7 +80,9 @@ exports.handler = async (event, context) => {
     });
 
     if (!userResponse.ok) {
-      throw new Error(`Failed to fetch user: ${userResponse.status}`);
+      const errorText = await userResponse.text();
+      console.error('❌ User fetch failed:', userResponse.status, errorText);
+      throw new Error(`Failed to fetch user: ${userResponse.status} - ${errorText}`);
     }
 
     const userData = await userResponse.json();
@@ -81,7 +103,11 @@ exports.handler = async (event, context) => {
     console.log('✅ Found user with ID:', user_id);
 
     // Stap 2: Haal character ID op uit Characters tabel
-    const characterResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula={Slug}='${char}'`, {
+    console.log('🔍 Looking up character with slug:', char);
+    const characterUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula={Slug}='${char}'`;
+    console.log('🔗 Character lookup URL:', characterUrl);
+    
+    const characterResponse = await fetch(characterUrl, {
       headers: {
         'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
         'Content-Type': 'application/json'
@@ -89,7 +115,9 @@ exports.handler = async (event, context) => {
     });
 
     if (!characterResponse.ok) {
-      throw new Error(`Failed to fetch character: ${characterResponse.status}`);
+      const errorText = await characterResponse.text();
+      console.error('❌ Character fetch failed:', characterResponse.status, errorText);
+      throw new Error(`Failed to fetch character: ${characterResponse.status} - ${errorText}`);
     }
 
     const characterData = await characterResponse.json();
