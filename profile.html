@@ -938,29 +938,48 @@
     /* ===== PREMIUM UPGRADE CARD ===== */
     .premium-card {
       width: 100%;
-      background: var(--gradient-primary);
-      padding: var(--spacing-2xl);
+      background: var(--color-white);
+      border: 2px solid var(--color-light-gray);
       border-radius: var(--radius-lg);
-      text-align: center;
-      color: white !important;
       margin-bottom: var(--spacing-lg);
       height: auto;
-      display: flex;
-      align-items: center;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
     }
     
-    /* Force all text in premium card to be white */
-    .premium-card * {
-      color: white !important;
+    .premium-header {
+      background: var(--color-light-gray);
+      padding: var(--spacing-md) var(--spacing-xl);
+      border-bottom: 1px solid var(--color-light-gray);
     }
     
-    /* Except for downgrade link */
-    .premium-card .downgrade-link {
-      color: var(--color-gray) !important;
+    .premium-header h3 {
+      margin: 0;
+      font-size: var(--font-size-lg);
+      font-weight: 700;
+      color: var(--color-dark-gray);
+      font-family: var(--font-secondary);
     }
     
-    .premium-card .downgrade-link:hover {
-      color: var(--color-danger) !important;
+    .premium-content {
+      padding: var(--spacing-2xl);
+      text-align: center;
+    }
+    
+    .downgrade-text {
+      margin-top: var(--spacing-sm);
+      font-size: var(--font-size-sm);
+    }
+    
+    .downgrade-link {
+      color: var(--color-gray);
+      text-decoration: none;
+      font-size: var(--font-size-sm);
+    }
+    
+    .downgrade-link:hover {
+      color: var(--color-danger);
+      text-decoration: underline;
     }
     
     /* Premium icon */
@@ -1014,7 +1033,7 @@
       align-items: center;
       margin-bottom: var(--spacing-sm);
       font-size: var(--font-size-base);
-      color: white;
+      color: var(--color-dark-gray);
       line-height: 1.5;
     }
     
@@ -1026,26 +1045,25 @@
     .checkmark {
       width: 20px;
       height: 20px;
-      background: rgba(255, 255, 255, 0.9);
+      background: var(--color-teal);
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       margin-right: var(--spacing-md);
       flex-shrink: 0;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
     
     .checkmark::after {
       content: '✓';
-      color: var(--color-teal);
+      color: white;
       font-weight: 800;
       font-size: 12px;
     }
     
     .benefit-text {
       font-weight: 500;
-      color: white;
+      color: var(--color-dark-gray);
     }
     
     /* Upgrade Button */
@@ -1109,8 +1127,8 @@
     
     /* CTA Button styling - matching index.html */
     .btn-cta {
-      background: rgba(255, 255, 255, 0.9);
-      color: var(--color-teal);
+      background: var(--gradient-primary);
+      color: white;
       font-weight: 700;
       padding: var(--spacing-md) var(--spacing-2xl);
       font-size: var(--font-size-base);
@@ -1119,6 +1137,7 @@
       transition: all var(--transition-base);
       min-height: var(--touch-target);
       white-space: nowrap;
+      box-shadow: var(--shadow-colored);
       border: none;
       cursor: pointer;
       display: inline-flex;
@@ -1129,7 +1148,6 @@
     }
     
     .btn-cta:hover {
-      background: white;
       transform: translateY(-2px);
       box-shadow: var(--shadow-lg);
     }
@@ -1202,7 +1220,7 @@
       font-size: var(--font-size-2xl);
       font-weight: 600;
       color: var(--color-navy);
-      margin-bottom: var(--spacing-xs);
+      margin-bottom: var(--spacing-lg);
     }
 
     .premium-subtitle {
@@ -1225,12 +1243,6 @@
       gap: var(--spacing-sm);
     }
     
-    .premium-price {
-      font-size: var(--font-size-xl) !important;
-      font-weight: 600;
-      margin: 0 0 var(--spacing-xl) 0 !important;
-      opacity: 0.95 !important;
-    }
 
     /* Premium Active State */
     .premium-active {
@@ -1242,12 +1254,12 @@
       display: inline-flex;
       align-items: center;
       gap: var(--spacing-sm);
-      background: rgba(255, 255, 255, 0.2);
-      border: 1px solid rgba(255, 255, 255, 0.3);
+      background: var(--gradient-primary);
+      color: white;
       padding: var(--spacing-sm) var(--spacing-lg);
       border-radius: var(--radius-full);
       margin-bottom: var(--spacing-md);
-      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow-colored);
     }
 
     .premium-status-icon {
@@ -1307,15 +1319,12 @@
       background: linear-gradient(135deg, var(--color-teal) 0%, var(--color-coral) 100%);
       padding: var(--spacing-2xl);
       border-radius: var(--radius-xl);
-      margin-top: var(--spacing-2xl);
-      margin-bottom: var(--spacing-xl);
+      margin: var(--spacing-2xl) calc(-1 * var(--spacing-xl));
       text-align: center;
       position: relative;
       box-shadow: var(--shadow-lg);
       overflow: hidden;
-      max-width: calc(100% - var(--spacing-xl) * 2);
-      margin-left: auto;
-      margin-right: auto;
+      width: calc(100% + var(--spacing-xl) * 2);
     }
     
     .developer-block p {
@@ -2622,12 +2631,10 @@
 
         <!-- Premium Upgrade Card -->
         <div class="premium-card">
+          <div class="premium-header">
+            <h3>Narrin AI Premium</h3>
+          </div>
           <div class="premium-content">
-            <!-- Premium icon -->
-            <div class="premium-icon">👑</div>
-            
-            <!-- Premium header -->
-            <h2>Narrin AI Premium</h2>
             <p class="premium-price">$14.99/month</p>
             
             <!-- Benefits -->
@@ -2666,9 +2673,11 @@
                 <span class="premium-status-icon">✓</span>
                 <span class="premium-status-text">Narrin AI Premium Active</span>
               </div>
-              <a href="#" class="downgrade-link" onclick="handleDowngrade(); return false;">
-                Downgrade to Free plan
-              </a>
+              <p class="downgrade-text">
+                <a href="#" class="downgrade-link" onclick="handleDowngrade(); return false;">
+                  Downgrade to Free plan and 10 messages/month
+                </a>
+              </p>
             </div>
           </div>
         </div>
