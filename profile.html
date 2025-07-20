@@ -927,7 +927,7 @@
     /* ===== PROFILE CONTENT LAYOUT ===== */
     .profile-content {
       display: grid;
-      grid-template-columns: 1fr 400px;
+      grid-template-columns: 1fr 1fr;
       gap: var(--spacing-xl);
       align-items: start;
     }
@@ -1311,6 +1311,54 @@
     .downgrade-link:hover {
       color: var(--color-danger);
       text-decoration: underline;
+    }
+    
+    /* Developer Block - matching contact.html style */
+    .developer-block {
+      background: linear-gradient(135deg, var(--color-teal) 0%, var(--color-coral) 100%);
+      padding: var(--spacing-2xl);
+      border-radius: var(--radius-xl);
+      margin-top: var(--spacing-2xl);
+      margin-bottom: var(--spacing-xl);
+      text-align: center;
+      position: relative;
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+    }
+    
+    .developer-block::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 200%;
+      height: 200%;
+      background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(255, 255, 255, 0.03) 10px,
+        rgba(255, 255, 255, 0.03) 20px
+      );
+      animation: pattern-shift 30s linear infinite;
+      pointer-events: none;
+    }
+    
+    .developer-block p {
+      position: relative;
+      z-index: 1;
+      color: rgba(255, 255, 255, 0.95);
+      font-size: var(--font-size-lg);
+      line-height: 1.8;
+      margin: 0;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    @keyframes pattern-shift {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(20px, 20px); }
     }
     
     /* Crown icon (simplified) */
@@ -2612,11 +2660,13 @@
             <h2>Narrin AI Premium</h2>
             <p class="premium-price">$14.99/month</p>
             
-            <!-- Minimal benefits -->
+            <!-- Benefits -->
             <div class="benefits-compact">
-              <p class="benefit-compact">✓ Unlimited messages & voice chat</p>
-              <p class="benefit-compact">✓ Character memory & priority access</p>
-              <p class="benefit-compact">💜 Support independent development</p>
+              <p class="benefit-compact">✓ Unlimited Chat Messages</p>
+              <p class="benefit-compact">✓ Unlimited Voice Chat</p>
+              <p class="benefit-compact">✓ Extensive Character Memory</p>
+              <p class="benefit-compact">✓ Early Access to New Features</p>
+              <p class="benefit-compact">✓ Priority Character Access</p>
             </div>
           
           <!-- Upgrade actions -->
@@ -2635,6 +2685,11 @@
             </div>
           </div>
         </div>
+      </div>
+      
+      <!-- Developer Message Block -->
+      <div class="developer-block">
+        <p>💜 Narrin AI is built by a single developer with passion for companion chat and AI. Your support helps cover voice, text & hosting costs and enables continuous improvements.</p>
       </div>
       
       <div id="error" style="display:none;"></div>
