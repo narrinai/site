@@ -929,43 +929,27 @@
     /* ===== PREMIUM UPGRADE CARD ===== */
     .premium-card {
       width: 100%;
-      background: var(--color-white);
-      border-radius: var(--radius-lg);
-      position: relative;
-      overflow: hidden;
-      box-shadow: var(--shadow-md);
-      border: 2px solid var(--color-light-gray);
-      margin-bottom: var(--spacing-xl);
-      transition: all var(--transition-base);
-    }
-    
-    .premium-card:hover {
-      border-color: var(--color-teal);
-      box-shadow: var(--shadow-lg);
-    }
-    
-    /* Gradient accent bar at the top */
-    .premium-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(135deg, var(--color-teal) 0%, var(--color-accent) 100%);
-    }
-    
-    /* Premium content container */
-    .premium-content {
-      padding: var(--spacing-2xl);
+      background: var(--gradient-primary);
+      padding: var(--spacing-3xl);
+      border-radius: var(--radius-xl);
       text-align: center;
+      color: white;
+      margin-bottom: var(--spacing-lg);
     }
     
-    /* Premium badge */
-    .premium-badge {
-      display: inline-flex;
+    /* Premium icon - matching cta-icon */
+    .premium-icon {
+      width: 80px;
+      height: 80px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: var(--radius-lg);
+      display: flex;
       align-items: center;
-      gap: 8px;
+      justify-content: center;
+      font-size: var(--font-size-3xl);
+      margin: 0 auto var(--spacing-xl);
+      backdrop-filter: blur(10px);
+    }
       background: linear-gradient(135deg, var(--color-teal), var(--color-accent));
       color: var(--color-white);
       padding: 8px 20px;
@@ -1020,7 +1004,7 @@
       align-items: flex-start;
       margin-bottom: var(--spacing-md);
       font-size: var(--font-size-base);
-      color: var(--color-navy);
+      color: white;
       line-height: 1.5;
     }
     
@@ -1032,18 +1016,19 @@
     .checkmark {
       width: 24px;
       height: 24px;
-      background: linear-gradient(135deg, var(--color-teal), var(--color-accent));
+      background: rgba(255, 255, 255, 0.3);
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       margin-right: var(--spacing-sm);
       flex-shrink: 0;
+      backdrop-filter: blur(10px);
     }
     
     .checkmark::after {
       content: '✓';
-      color: var(--color-white);
+      color: white;
       font-weight: 700;
       font-size: 14px;
     }
@@ -1111,14 +1096,67 @@
       z-index: 1;
     }
     
-    /* Developer message styling */
+    /* CTA Button styling - matching index.html */
+    .btn-cta {
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--color-teal);
+      font-weight: 700;
+      padding: var(--spacing-md) var(--spacing-2xl);
+      font-size: var(--font-size-base);
+      text-decoration: none;
+      border-radius: var(--radius-md);
+      transition: all var(--transition-base);
+      min-height: var(--touch-target);
+      white-space: nowrap;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .btn-cta:hover {
+      background: white;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    /* Developer message styling - updated for gradient background */
     .developer-message {
-      background: linear-gradient(135deg, rgba(20, 184, 166, 0.08) 0%, rgba(249, 115, 22, 0.08) 100%);
-      border: 1px solid rgba(20, 184, 166, 0.2);
+      margin-bottom: var(--spacing-2xl);
       padding: var(--spacing-lg);
-      border-radius: var(--radius-lg);
-      margin-bottom: var(--spacing-xl);
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-md);
+      backdrop-filter: blur(10px);
       text-align: center;
+    }
+    
+    .developer-message p {
+      margin: 0;
+      font-size: var(--font-size-sm);
+      line-height: 1.6;
+      color: rgba(255, 255, 255, 0.9);
+    }
+    
+    /* Premium content container */
+    .premium-content {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    .premium-content h2 {
+      color: white;
+      font-size: var(--font-size-2xl);
+      margin: 0 0 var(--spacing-md) 0;
+      font-weight: 700;
+    }
+    
+    .premium-content > p {
+      color: white;
+      opacity: 0.9;
+      margin-bottom: var(--spacing-2xl);
     }
 
     .developer-message p {
@@ -2438,7 +2476,7 @@
       </div>
       <nav class="mobile-menu-nav" role="navigation" aria-label="Mobile navigation">
         <a href="index.html" class="mobile-menu-link">
-          <span class="mobile-menu-link-icon">🏠</span>
+          <span class="mobile-menu-link-icon">👥</span>
           Characters
         </a>
         <a href="chat-overview.html" class="mobile-menu-link">
@@ -2523,17 +2561,18 @@
 
         <!-- Premium Upgrade Card -->
         <div class="premium-card">
-          <!-- Developer message -->
-          <div class="developer-message">
-            <p>💜 Narrin AI is built by a single developer with passion for companion chat and AI. Your support helps cover voice, text & hosting costs and enables continuous improvements.</p>
-          </div>
-          
-          <!-- Premium header -->
-          <div class="premium-header">
-            <h2 class="premium-title">Narrin AI Premium</h2>
-            <div class="premium-price">$14.99/month</div>
-            <p class="premium-subtitle">Everything you need for meaningful AI conversations</p>
-          </div>
+          <div class="premium-content">
+            <!-- Premium icon -->
+            <div class="premium-icon">👑</div>
+            
+            <!-- Developer message -->
+            <div class="developer-message">
+              <p>💜 Narrin AI is built by a single developer with passion for companion chat and AI. Your support helps cover voice, text & hosting costs and enables continuous improvements.</p>
+            </div>
+            
+            <!-- Premium header -->
+            <h2>Narrin AI Premium</h2>
+            <p>$14.99/month - Everything you need for meaningful AI conversations</p>
           
           <!-- Benefits section -->
           <div class="benefits-section">
@@ -2563,7 +2602,7 @@
           
           <!-- Upgrade actions -->
           <div class="upgrade-actions">
-            <button class="upgrade-button" id="upgradeButton" onclick="handleUpgrade()">
+            <button class="btn btn-cta" id="upgradeButton" onclick="handleUpgrade()">
               Upgrade to Premium
             </button>
             <div class="premium-active" id="premiumActive" style="display: none;">
