@@ -800,6 +800,7 @@
       display: flex;
       align-items: center;
       gap: var(--spacing-md);
+      position: relative;
     }
 
     .character-avatar {
@@ -890,6 +891,46 @@
       color: var(--color-gray);
       font-size: var(--font-size-sm);
       font-weight: 500;
+    }
+
+    .customize-character-btn {
+      position: absolute;
+      top: var(--spacing-sm);
+      right: var(--spacing-sm);
+      background: var(--color-white);
+      border: 1px solid var(--color-light-gray);
+      color: var(--color-gray);
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      font-size: var(--font-size-base);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .customize-character-btn:hover {
+      background: var(--color-teal);
+      color: var(--color-white);
+      border-color: var(--color-teal);
+      transform: scale(1.1);
+      box-shadow: var(--shadow-md);
+    }
+
+    .custom-indicator {
+      position: absolute;
+      bottom: var(--spacing-sm);
+      right: var(--spacing-sm);
+      background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+      color: var(--color-dark-gray);
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border-radius: var(--radius-full);
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      box-shadow: var(--shadow-sm);
     }
 
     .chat-section {
@@ -1098,6 +1139,168 @@
     .checkin-dismiss:hover {
       background: var(--color-dark-teal);
       transform: translateY(-1px);
+    }
+
+    /* Character Customization Modal Styles */
+    .customization-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      backdrop-filter: blur(5px);
+    }
+
+    .customization-modal-content {
+      background: var(--color-white);
+      border-radius: var(--radius-xl);
+      width: 90%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-xl);
+    }
+
+    .customization-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--spacing-xl);
+      border-bottom: 1px solid var(--color-light-gray);
+    }
+
+    .customization-header h2 {
+      margin: 0;
+      font-size: var(--font-size-xl);
+      color: var(--color-dark-gray);
+    }
+
+    .close-modal {
+      background: none;
+      border: none;
+      font-size: var(--font-size-2xl);
+      color: var(--color-gray);
+      cursor: pointer;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-full);
+      transition: all var(--transition-base);
+    }
+
+    .close-modal:hover {
+      background: var(--color-light-gray);
+      color: var(--color-dark-gray);
+    }
+
+    .customization-body {
+      padding: var(--spacing-xl);
+    }
+
+    .customization-intro {
+      color: var(--color-gray);
+      margin-bottom: var(--spacing-xl);
+      line-height: 1.6;
+    }
+
+    .form-group {
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: var(--spacing-sm);
+      font-weight: 600;
+      color: var(--color-dark-gray);
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: var(--spacing-sm) var(--spacing-md);
+      border: 2px solid var(--color-light-gray);
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-base);
+      transition: all var(--transition-base);
+      font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--color-teal);
+      box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.1);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .customization-actions {
+      display: flex;
+      gap: var(--spacing-md);
+      justify-content: flex-end;
+      margin-top: var(--spacing-xl);
+      padding-top: var(--spacing-xl);
+      border-top: 1px solid var(--color-light-gray);
+    }
+
+    .btn-primary,
+    .btn-secondary {
+      padding: var(--spacing-sm) var(--spacing-xl);
+      border-radius: var(--radius-full);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      border: none;
+      font-size: var(--font-size-base);
+    }
+
+    .btn-primary {
+      background: var(--color-teal);
+      color: var(--color-white);
+    }
+
+    .btn-primary:hover {
+      background: var(--color-dark-teal);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-secondary {
+      background: var(--color-light-gray);
+      color: var(--color-dark-gray);
+    }
+
+    .btn-secondary:hover {
+      background: var(--color-gray);
+      color: var(--color-white);
+    }
+
+    .btn-delete {
+      padding: var(--spacing-sm) var(--spacing-xl);
+      border-radius: var(--radius-full);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      border: none;
+      font-size: var(--font-size-base);
+      background: #ff4444;
+      color: var(--color-white);
+    }
+
+    .btn-delete:hover {
+      background: #cc0000;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
     }
 
     .loading-state {
@@ -2495,6 +2698,9 @@
             <h2 id="characterName">Connecting...</h2>
             <p id="characterTitle"></p>
           </div>
+          <button class="customize-character-btn" id="customizeCharacterBtn" onclick="openCustomizationModal()" title="Customize this character">
+            ⚙️
+          </button>
         </div>
       </div>
 
@@ -2532,6 +2738,62 @@
         <div class="topic-buttons" id="topicButtons">
           <!-- Dynamically generated topic buttons will appear here -->
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Character Customization Modal -->
+  <div class="customization-modal" id="customizationModal" style="display: none;">
+    <div class="customization-modal-content">
+      <div class="customization-header">
+        <h2>Customize Character</h2>
+        <button class="close-modal" onclick="closeCustomizationModal()">×</button>
+      </div>
+      
+      <div class="customization-body">
+        <p class="customization-intro">
+          Make this character your own! Your customized version will be saved privately for you,
+          while the original character remains unchanged for others.
+        </p>
+        
+        <form id="customizationForm">
+          <div class="form-group">
+            <label for="customName">Character Name</label>
+            <input type="text" id="customName" placeholder="Give your character a name" maxlength="50">
+          </div>
+          
+          <div class="form-group">
+            <label for="customTitle">Character Title</label>
+            <input type="text" id="customTitle" placeholder="Brief description (e.g., Your Personal Life Coach)" maxlength="100">
+          </div>
+          
+          <div class="form-group">
+            <label for="customPersonality">Personality & Behavior</label>
+            <textarea id="customPersonality" rows="4" placeholder="Describe how this character should behave and communicate with you..."></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label for="customPrompt">Custom Instructions</label>
+            <textarea id="customPrompt" rows="6" placeholder="Add specific instructions for your character. For example:
+- Always greet me by my nickname
+- Focus on practical advice
+- Use humor to lighten the mood
+- Ask follow-up questions
+- Remember my goals"></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label for="customStarter">Conversation Starter</label>
+            <input type="text" id="customStarter" placeholder="How should the character greet you?" maxlength="200">
+          </div>
+          
+          <div class="customization-actions">
+            <button type="button" class="btn-delete" onclick="deleteCustomization()" style="display: none;" id="deleteCustomBtn">Delete Customization</button>
+            <div style="flex: 1;"></div>
+            <button type="button" class="btn-secondary" onclick="closeCustomizationModal()">Cancel</button>
+            <button type="submit" class="btn-primary">Save Customization</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -4216,6 +4478,9 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       currentCharacter.avatar_url = currentCharacter.Avatar_URL;
     }
     
+    // Check for customizations
+    checkForCustomization();
+    
     // Generate conversation topics after character is loaded
     generateConversationTopics();
     
@@ -5307,7 +5572,175 @@ document.addEventListener('DOMContentLoaded', () => {
   if (sendButton) {
     sendButton.addEventListener('click', resetInactivityTimer);
   }
+  
+  // Initialize customization form
+  initializeCustomizationForm();
 });
+
+// ===== CHARACTER CUSTOMIZATION SYSTEM =====
+let customizedCharacters = JSON.parse(localStorage.getItem('customizedCharacters') || '{}');
+
+function openCustomizationModal() {
+  if (!currentCharacter) return;
+  
+  const modal = document.getElementById('customizationModal');
+  const form = document.getElementById('customizationForm');
+  
+  // Pre-fill form with current character data or existing customization
+  const characterId = currentCharacter.id || currentCharacter.Name;
+  const existingCustom = customizedCharacters[characterId];
+  const deleteBtn = document.getElementById('deleteCustomBtn');
+  
+  if (existingCustom) {
+    // Load existing customization
+    document.getElementById('customName').value = existingCustom.name || currentCharacter.name || '';
+    document.getElementById('customTitle').value = existingCustom.title || currentCharacter.Title || '';
+    document.getElementById('customPersonality').value = existingCustom.personality || '';
+    document.getElementById('customPrompt').value = existingCustom.prompt || '';
+    document.getElementById('customStarter').value = existingCustom.conversation_starter || '';
+    
+    // Show delete button
+    deleteBtn.style.display = 'block';
+  } else {
+    // Pre-fill with original character data
+    document.getElementById('customName').value = currentCharacter.name || currentCharacter.Name || '';
+    document.getElementById('customTitle').value = currentCharacter.Title || '';
+    document.getElementById('customPersonality').value = '';
+    document.getElementById('customPrompt').value = '';
+    document.getElementById('customStarter').value = currentCharacter.conversation_starter || '';
+    
+    // Hide delete button
+    deleteBtn.style.display = 'none';
+  }
+  
+  modal.style.display = 'flex';
+}
+
+function closeCustomizationModal() {
+  document.getElementById('customizationModal').style.display = 'none';
+}
+
+function initializeCustomizationForm() {
+  const form = document.getElementById('customizationForm');
+  if (!form) return;
+  
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    if (!currentCharacter) return;
+    
+    const characterId = currentCharacter.id || currentCharacter.Name;
+    
+    // Gather customization data
+    const customization = {
+      characterId: characterId,
+      originalName: currentCharacter.name || currentCharacter.Name,
+      name: document.getElementById('customName').value.trim(),
+      title: document.getElementById('customTitle').value.trim(),
+      personality: document.getElementById('customPersonality').value.trim(),
+      prompt: document.getElementById('customPrompt').value.trim(),
+      conversation_starter: document.getElementById('customStarter').value.trim(),
+      created_at: new Date().toISOString(),
+      avatar_url: currentCharacter.avatar_url // Keep original avatar
+    };
+    
+    // Save to localStorage
+    customizedCharacters[characterId] = customization;
+    localStorage.setItem('customizedCharacters', JSON.stringify(customizedCharacters));
+    
+    // Apply customization to current character
+    applyCustomization(customization);
+    
+    // Close modal
+    closeCustomizationModal();
+    
+    // Show success notification
+    showNotification('success', 'Character Customized!', 
+      `${customization.name} has been customized just for you. Your changes are saved locally.`);
+    
+    // Clear chat to start fresh with customized character
+    if (confirm('Would you like to start a fresh conversation with your customized character?')) {
+      clearChatHistory();
+    }
+  });
+}
+
+function applyCustomization(customization) {
+  if (!currentCharacter) return;
+  
+  // Apply customization to current character object
+  if (customization.name) currentCharacter.name = customization.name;
+  if (customization.title) currentCharacter.Title = customization.title;
+  if (customization.conversation_starter) currentCharacter.conversation_starter = customization.conversation_starter;
+  
+  // Build enhanced prompt
+  let enhancedPrompt = currentCharacter.prompt || '';
+  
+  if (customization.personality) {
+    enhancedPrompt = `${enhancedPrompt}\n\nPersonality: ${customization.personality}`;
+  }
+  
+  if (customization.prompt) {
+    enhancedPrompt = `${enhancedPrompt}\n\nAdditional Instructions: ${customization.prompt}`;
+  }
+  
+  currentCharacter.customPrompt = enhancedPrompt;
+  currentCharacter.isCustomized = true;
+  
+  // Update UI
+  document.getElementById('characterName').textContent = customization.name || currentCharacter.name;
+  document.getElementById('characterTitle').textContent = customization.title || currentCharacter.Title;
+  
+  // Add customization indicator
+  const characterHeader = document.getElementById('characterHeader');
+  if (!characterHeader.querySelector('.custom-indicator')) {
+    const indicator = document.createElement('span');
+    indicator.className = 'custom-indicator';
+    indicator.textContent = '✨ Customized';
+    indicator.title = 'This character has been customized for you';
+    characterHeader.appendChild(indicator);
+  }
+}
+
+function clearChatHistory() {
+  const chatlog = document.getElementById('chatlog');
+  chatlog.innerHTML = '';
+  
+  // Reset conversation memory
+  conversationMemory = [];
+  conversationMood = { negative: 0, positive: 0, lastCheck: Date.now() };
+  
+  // Show conversation starter
+  showConversationStarter();
+}
+
+// Check for customization on character load
+function checkForCustomization() {
+  if (!currentCharacter) return;
+  
+  const characterId = currentCharacter.id || currentCharacter.Name;
+  const customization = customizedCharacters[characterId];
+  
+  if (customization) {
+    applyCustomization(customization);
+  }
+}
+
+// Delete customization
+function deleteCustomization() {
+  if (!currentCharacter) return;
+  
+  const characterId = currentCharacter.id || currentCharacter.Name;
+  
+  if (confirm('Are you sure you want to delete your customization? This will restore the original character.')) {
+    // Remove from storage
+    delete customizedCharacters[characterId];
+    localStorage.setItem('customizedCharacters', JSON.stringify(customizedCharacters));
+    
+    // Reload the page to restore original character
+    location.reload();
+  }
+}
 
 // ===== HUMAN SUPPORT ESCALATION SYSTEM =====
 const crisisKeywords = {
@@ -5692,7 +6125,10 @@ showTypingIndicator();
       user_uid: uid,
       user_token: token,
       user_email: email,
-      user_id: user_id || null
+      user_id: user_id || null,
+      // Include custom prompt if character has been customized
+      custom_prompt: currentCharacter?.customPrompt || null,
+      is_customized: currentCharacter?.isCustomized || false
     };
     
     console.log("📤 sendMessage FULL payload:", requestPayload);
