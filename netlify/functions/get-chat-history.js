@@ -71,7 +71,7 @@ exports.handler = async (event, context) => {
     console.log('🔍 Looking up user with:', { user_email, user_uid });
     
     // First try with NetlifyUID
-    let userUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=AND({Email}='${user_email}',{NetlifyUID}='${user_uid}')`;
+    let userUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=${encodeURIComponent(`AND({Email}='${user_email}',{NetlifyUID}='${user_uid}')`)}`;
     console.log('🔗 User lookup URL (with NetlifyUID):', userUrl);
     
     let userResponse = await fetch(userUrl, {
@@ -89,12 +89,20 @@ exports.handler = async (event, context) => {
 
     let userData = await userResponse.json();
     console.log('👤 User lookup result (with NetlifyUID):', userData.records.length, 'users found');
+    if (userData.records.length > 0) {
+      console.log('✅ User found with NetlifyUID match');
+      console.log('📧 User email:', userData.records[0].fields.Email);
+      console.log('🆔 User_ID:', userData.records[0].fields.User_ID);
+    }
 
     // If not found with NetlifyUID, try with email only
     if (userData.records.length === 0) {
       console.log('🔄 No user found with NetlifyUID, trying with email only...');
-      userUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={Email}='${user_email}'`;
+      // Properly encode the email for URL
+      const encodedEmail = encodeURIComponent(user_email);
+      userUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=${encodeURIComponent(`{Email}='${user_email}'`)}`;
       console.log('🔗 User lookup URL (email only):', userUrl);
+      console.log('📧 Looking for email:', user_email);
       
       userResponse = await fetch(userUrl, {
         headers: {
@@ -111,12 +119,17 @@ exports.handler = async (event, context) => {
       
       userData = await userResponse.json();
       console.log('👤 User lookup result (email only):', userData.records.length, 'users found');
+      if (userData.records.length > 0) {
+        console.log('✅ User found with email-only match');
+        console.log('📧 User email:', userData.records[0].fields.Email);
+        console.log('🆔 User_ID:', userData.records[0].fields.User_ID);
+      }
     }
 
     if (userData.records.length === 0) {
       // Try one more time with case-insensitive email search
       console.log('🔄 Final attempt: case-insensitive email search...');
-      const caseInsensitiveUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=LOWER({Email})='${user_email.toLowerCase()}'`;
+      const caseInsensitiveUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=${encodeURIComponent(`LOWER({Email})='${user_email.toLowerCase()}'`)}`;
       console.log('🔗 Case-insensitive URL:', caseInsensitiveUrl);
       
       const finalResponse = await fetch(caseInsensitiveUrl, {
