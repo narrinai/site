@@ -2952,15 +2952,20 @@ document.addEventListener('DOMContentLoaded', () => {
         
         console.log('📚 Loading chat history...');
         
+        // Debug: Log the exact request data
+        const requestData = {
+          user_email: email,
+          user_uid: uid,
+          user_token: token,
+          char: characterSlug
+        };
+        console.log('📤 Sending to get-chat-history:', requestData);
+        console.log('📤 Character slug:', characterSlug);
+        
         const response = await fetch('/.netlify/functions/get-chat-history', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            user_email: email,
-            user_uid: uid,
-            user_token: token,
-            char: characterSlug
-          })
+          body: JSON.stringify(requestData)
         });
         
         if (!response.ok) {
@@ -2970,8 +2975,23 @@ document.addEventListener('DOMContentLoaded', () => {
           try {
             const errorData = await response.json();
             console.error('❌ Chat history error details:', errorData);
+            
+            // Log specific error for debugging
+            if (errorData.error) {
+              console.error('❌ Specific error:', errorData.error);
+              
+              // Show user-friendly error message
+              if (errorData.error.includes('Missing Airtable credentials')) {
+                console.error('🔴 Server configuration issue - Airtable credentials not set');
+              } else if (errorData.error.includes('User not found')) {
+                console.error('🔴 User not found in database');
+              } else if (errorData.error.includes('Character not found')) {
+                console.error('🔴 Character not found in database');
+              }
+            }
           } catch (e) {
             console.error('❌ Could not parse error response:', e);
+            // Note: Cannot read response body twice - it's already consumed
           }
           
           // Clear chatlog before showing starter
@@ -2987,6 +3007,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await response.json();
         console.log('📊 Chat history response:', data);
         console.log('📊 Full history data:', JSON.stringify(data, null, 2));
+        
+        // Check if the response indicates an error even with 200 status
+        if (!data.success && data.error) {
+          console.error('❌ Chat history API error:', data.error);
+          
+          // Show user-friendly error message
+          if (data.error.includes('Missing Airtable credentials')) {
+            console.error('🔴 Server configuration issue - Airtable credentials not set');
+          } else if (data.error.includes('User not found')) {
+            console.error('🔴 User not found in database');
+          } else if (data.error.includes('Character not found')) {
+            console.error('🔴 Character not found in database');
+          }
+          
+          // Clear chatlog before showing starter
+          const errorChatlog = document.getElementById("chatlog");
+          if (errorChatlog) {
+            errorChatlog.innerHTML = '';
+          }
+          showConversationStarter();
+          return;
+        }
         
         if (data.success && data.history && data.history.length > 0) {
           console.log(`✅ Loaded ${data.history.length} messages from history`);
