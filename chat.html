@@ -909,6 +909,64 @@
       box-shadow: var(--shadow-lg);
     }
 
+    /* Conversation Topics Styles */
+    .conversation-topics {
+      background: var(--color-white);
+      padding: var(--spacing-lg) var(--spacing-xl);
+      border-radius: var(--radius-lg);
+      max-width: 900px;
+      margin: 0 auto var(--spacing-lg);
+      box-shadow: var(--shadow-md);
+      border: 2px solid var(--color-light-gray);
+      transition: all var(--transition-base);
+    }
+
+    .conversation-topics:hover {
+      border-color: var(--color-teal);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .conversation-topics h3 {
+      font-size: var(--font-size-lg);
+      font-weight: 700;
+      color: var(--color-dark-gray);
+      margin-bottom: var(--spacing-md);
+      text-align: center;
+    }
+
+    .topic-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-sm);
+      justify-content: center;
+    }
+
+    .topic-btn {
+      background: var(--color-light-gray);
+      color: var(--color-dark-gray);
+      border: 2px solid transparent;
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-radius: var(--radius-full);
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      max-width: 100%;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    .topic-btn:hover {
+      background: var(--color-teal);
+      color: var(--color-white);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .topic-btn:active {
+      transform: translateY(0);
+    }
+
     .loading-state {
       text-align: center;
       padding: var(--spacing-3xl) var(--spacing-xl);
@@ -1191,7 +1249,8 @@
       }
 
       .character-section,
-      .chat-section {
+      .chat-section,
+      .conversation-topics {
         padding: var(--spacing-lg) var(--spacing-lg);
       }
 
@@ -2306,6 +2365,14 @@
         </div>
       </div>
 
+      <!-- Conversation Topics Section -->
+      <div class="conversation-topics" id="conversationTopics" style="display: none;">
+        <h3>Suggested conversation topics:</h3>
+        <div class="topic-buttons" id="topicButtons">
+          <!-- Dynamically generated topic buttons will appear here -->
+        </div>
+      </div>
+
       <div class="chat-section">
         <div id="chatlog"></div>
         <div class="input-group">
@@ -3196,6 +3263,9 @@ document.addEventListener('DOMContentLoaded', () => {
       // Mark that we've shown the starter
       window.conversationStarterShown = true;
       
+      // Show conversation topics for new conversations
+      showConversationTopics();
+      
       // Save the conversation starter to chat history
       saveConversationStarter(starter);
     }
@@ -4008,6 +4078,9 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       currentCharacter.avatar_url = currentCharacter.Avatar_URL;
     }
     
+    // Generate conversation topics after character is loaded
+    generateConversationTopics();
+    
     // Normalize name field
     if (!currentCharacter.name && currentCharacter.Name) {
       currentCharacter.name = currentCharacter.Name;
@@ -4746,6 +4819,189 @@ function clearAuthData() {
   window.currentUser = null;
 }
 
+// ===== CONVERSATION TOPICS FUNCTIONALITY =====
+function generateConversationTopics() {
+  if (!currentCharacter) return;
+  
+  const topicsSection = document.getElementById('conversationTopics');
+  const topicButtonsContainer = document.getElementById('topicButtons');
+  
+  // Clear existing topics
+  topicButtonsContainer.innerHTML = '';
+  
+  // Generate topics based on character
+  const topics = getTopicsForCharacter(currentCharacter);
+  
+  // Create topic buttons
+  topics.forEach(topic => {
+    const button = document.createElement('button');
+    button.className = 'topic-btn';
+    button.textContent = topic;
+    button.onclick = () => handleTopicClick(topic);
+    topicButtonsContainer.appendChild(button);
+  });
+  
+  // Show topics section
+  topicsSection.style.display = 'block';
+}
+
+function getTopicsForCharacter(character) {
+  // Base topics that work for most characters
+  const baseTopics = [
+    "Tell me about yourself",
+    "What inspires you?",
+    "Share your best advice"
+  ];
+  
+  // Add character-specific topics based on their category/type
+  const categoryTopics = {
+    "Life Coach": [
+      "Help me set goals",
+      "I need motivation",
+      "How to build better habits",
+      "Overcoming challenges"
+    ],
+    "Mental Health": [
+      "I'm feeling stressed",
+      "How to practice self-care",
+      "Building resilience",
+      "Finding inner peace"
+    ],
+    "Business": [
+      "Career advice",
+      "Leadership tips",
+      "Starting a business",
+      "Work-life balance"
+    ],
+    "Creative": [
+      "Spark my creativity",
+      "Overcoming creative blocks",
+      "Finding inspiration",
+      "Developing my craft"
+    ],
+    "Fitness": [
+      "Workout motivation",
+      "Healthy habits",
+      "Nutrition tips",
+      "Setting fitness goals"
+    ],
+    "Spiritual": [
+      "Finding purpose",
+      "Mindfulness practice",
+      "Spiritual growth",
+      "Daily reflection"
+    ],
+    "Relationship": [
+      "Communication tips",
+      "Building trust",
+      "Relationship advice",
+      "Understanding emotions"
+    ],
+    "Education": [
+      "Study strategies",
+      "Learning new skills",
+      "Academic guidance",
+      "Career planning"
+    ],
+    "Entertainment": [
+      "Tell me a story",
+      "Let's play a game",
+      "Share something fun",
+      "Surprise me"
+    ],
+    "Philosophy": [
+      "Life's big questions",
+      "Ethical dilemmas",
+      "Meaning of life",
+      "Philosophical insights"
+    ],
+    "Science": [
+      "Explain a concept",
+      "Latest discoveries",
+      "How things work",
+      "Scientific thinking"
+    ],
+    "Technology": [
+      "Tech trends",
+      "Digital skills",
+      "Future innovations",
+      "Tech advice"
+    ]
+  };
+  
+  // Get category-specific topics
+  const category = character.Category || character.category || "";
+  const specificTopics = categoryTopics[category] || [];
+  
+  // Combine and return a selection of topics
+  const allTopics = [...baseTopics, ...specificTopics];
+  
+  // Return a random selection of 4-6 topics
+  return allTopics.sort(() => Math.random() - 0.5).slice(0, 5);
+}
+
+function handleTopicClick(topic) {
+  // Set the topic as the message and send it
+  const userInput = document.getElementById('userInput');
+  userInput.value = topic;
+  
+  // Hide topics after selection
+  document.getElementById('conversationTopics').style.display = 'none';
+  
+  // Send the message
+  handleSendClick(event);
+}
+
+// Function to show topics again (can be called after certain conditions)
+function showConversationTopics() {
+  const topicsSection = document.getElementById('conversationTopics');
+  if (topicsSection && currentCharacter) {
+    generateConversationTopics();
+  }
+}
+
+// Inactivity timer for showing topics
+let inactivityTimer = null;
+const INACTIVITY_DELAY = 30000; // 30 seconds
+
+function resetInactivityTimer() {
+  // Clear existing timer
+  if (inactivityTimer) {
+    clearTimeout(inactivityTimer);
+  }
+  
+  // Hide topics when user is active
+  const topicsSection = document.getElementById('conversationTopics');
+  if (topicsSection) {
+    topicsSection.style.display = 'none';
+  }
+  
+  // Set new timer
+  inactivityTimer = setTimeout(() => {
+    // Only show topics if there are messages in the chat
+    const chatlog = document.getElementById('chatlog');
+    if (chatlog && chatlog.children.length > 0) {
+      showConversationTopics();
+    }
+  }, INACTIVITY_DELAY);
+}
+
+// Track user activity
+document.addEventListener('DOMContentLoaded', () => {
+  // Reset timer on user input
+  const userInput = document.getElementById('userInput');
+  if (userInput) {
+    userInput.addEventListener('input', resetInactivityTimer);
+    userInput.addEventListener('focus', resetInactivityTimer);
+  }
+  
+  // Reset timer on send button click
+  const sendButton = document.getElementById('sendButton');
+  if (sendButton) {
+    sendButton.addEventListener('click', resetInactivityTimer);
+  }
+});
+
 async function sendMessage(event) {
   event?.preventDefault();
   
@@ -4863,6 +5119,9 @@ async function sendMessage(event) {
   chatlog.appendChild(divUser);
   chatlog.scrollTop = chatlog.scrollHeight;
   userInput.value = "";
+  
+  // Reset inactivity timer when message is sent
+  resetInactivityTimer();
 
   // Reset send button state
   function resetSendButton() {
@@ -5046,6 +5305,9 @@ hideTypingIndicator();
     }
     chatlog.appendChild(divBot);
     chatlog.scrollTop = chatlog.scrollHeight;
+    
+    // Reset inactivity timer when AI responds
+    resetInactivityTimer();
 
     const typingSpan = divBot.querySelector('.typing-text');
     
