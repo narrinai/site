@@ -172,6 +172,11 @@
       transition: all var(--transition-base);
     }
 
+    .header.scrolled {
+      box-shadow: var(--shadow-md);
+      background: rgba(255, 255, 255, 0.98);
+    }
+
     .header-container {
       max-width: 1400px;
       margin: 0 auto;
@@ -242,19 +247,6 @@
     .usp-icon {
       font-size: var(--font-size-lg);
       color: var(--color-teal);
-    }
-    /* Mobile USP Carousel adjustments */
-    @media (max-width: 768px) {
-      .nav-usps {
-        height: 32px;
-      }
-      .usp-item {
-        font-size: var(--font-size-xs);
-        gap: var(--spacing-xs);
-      }
-      .usp-icon {
-        font-size: var(--font-size-sm);
-      }
     }
 
     /* Search Bar - Desktop */
@@ -380,6 +372,19 @@
     .btn-primary:hover {
       transform: translateY(-2px);
       box-shadow: var(--shadow-lg);
+    }
+
+    .btn-cta {
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--color-teal);
+      font-weight: 700;
+      padding: var(--spacing-md) var(--spacing-2xl);
+      font-size: var(--font-size-base);
+    }
+
+    .btn-cta:hover {
+      background: white;
+      transform: translateY(-2px);
     }
 
     /* Mobile Navigation Container */
@@ -2350,6 +2355,21 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
+      // Header scroll effect
+      const header = document.querySelector('.header');
+      let lastScroll = 0;
+      
+      window.addEventListener('scroll', () => {
+        const currentScroll = window.pageYOffset;
+        
+        if (currentScroll > 50) {
+          header.classList.add('scrolled');
+        } else {
+          header.classList.remove('scrolled');
+        }
+        
+        lastScroll = currentScroll;
+      });
       const netlifyIdentity = window.netlifyIdentity;
       netlifyIdentity.init({
         namePlaceholder: 'Optional'
