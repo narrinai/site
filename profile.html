@@ -929,160 +929,238 @@
     /* ===== PREMIUM UPGRADE CARD ===== */
     .premium-card {
       width: 100%;
-      height: auto;
-      min-height: 400px;
-      background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%);
-      border-radius: 20px;
+      background: var(--color-white);
+      border-radius: var(--radius-lg);
       position: relative;
       overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 44px 32px;
-      box-sizing: border-box;
-      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
-      margin-bottom: var(--spacing-lg);
+      box-shadow: var(--shadow-md);
+      border: 2px solid var(--color-light-gray);
+      margin-bottom: var(--spacing-xl);
+      transition: all var(--transition-base);
     }
-
-    /* Background decorative elements */
+    
+    .premium-card:hover {
+      border-color: var(--color-teal);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    /* Gradient accent bar at the top */
     .premium-card::before {
       content: '';
       position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-                  radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
-      animation: float 20s ease-in-out infinite;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(135deg, var(--color-teal) 0%, var(--color-accent) 100%);
     }
-
-    @keyframes float {
-      0%, 100% { transform: rotate(0deg) scale(1); }
-      50% { transform: rotate(180deg) scale(1.1); }
-    }
-
-    /* Premium crown icon */
-    .crown-icon {
-      position: absolute;
-      top: 16px;
-      right: 24px;
-      font-size: 28px;
-      opacity: 0.3;
-      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
-    }
-
-    /* Main content */
+    
+    /* Premium content container */
     .premium-content {
-      position: relative;
-      z-index: 2;
+      padding: var(--spacing-2xl);
       text-align: center;
-      color: white;
-      width: 100%;
     }
-
+    
+    /* Premium badge */
     .premium-badge {
-      display: inline-block;
-      background: rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      padding: 10px 24px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, var(--color-teal), var(--color-accent));
+      color: var(--color-white);
+      padding: 8px 20px;
       border-radius: 50px;
-      font-size: 18px;
+      font-size: var(--font-size-sm);
       font-weight: 700;
-      margin-top: 20px;
-      margin-bottom: 24px;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      text-shadow: none;
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: var(--font-secondary);
       letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: var(--spacing-lg);
     }
-
+    
+    .premium-badge::before {
+      content: '👑';
+      font-size: 16px;
+    }
+    
+    /* Premium heading */
+    .premium-content h3 {
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-2xl);
+      color: var(--color-navy);
+      font-weight: 700;
+      margin: 0 0 var(--spacing-md) 0;
+      letter-spacing: -0.01em;
+    }
+    
+    /* Premium description */
+    .premium-content p {
+      color: var(--color-gray);
+      font-size: var(--font-size-base);
+      line-height: 1.6;
+      margin: 0 0 var(--spacing-xl) 0;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    /* Benefits list */
     .benefits-list {
       list-style: none;
       padding: 0;
-      margin: 0 0 20px 0;
+      margin: 0 0 var(--spacing-xl) 0;
       text-align: left;
-      max-width: 320px;
+      max-width: 360px;
+      margin-left: auto;
+      margin-right: auto;
     }
-
+    
     .benefit-item {
       display: flex;
-      align-items: center;
-      margin-bottom: 10px;
-      font-size: 14px;
-      font-weight: 600;
-      line-height: 1.3;
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      align-items: flex-start;
+      margin-bottom: var(--spacing-md);
+      font-size: var(--font-size-base);
+      color: var(--color-navy);
+      line-height: 1.5;
     }
-
+    
     .benefit-item:last-child {
       margin-bottom: 0;
     }
-
+    
+    /* Checkmark icon */
     .checkmark {
-      width: 20px;
-      height: 20px;
-      background: rgba(255, 255, 255, 0.9);
+      width: 24px;
+      height: 24px;
+      background: linear-gradient(135deg, var(--color-teal), var(--color-accent));
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-right: 10px;
+      margin-right: var(--spacing-sm);
       flex-shrink: 0;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
-
+    
     .checkmark::after {
       content: '✓';
-      color: #14b8a6;
-      font-weight: 800;
-      font-size: 12px;
+      color: var(--color-white);
+      font-weight: 700;
+      font-size: 14px;
     }
-
+    
     .benefit-text {
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      font-weight: 500;
     }
-
+    
     /* Upgrade Button */
     .upgrade-button {
-      background: white;
-      color: #14b8a6;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 16px;
+      background: linear-gradient(135deg, var(--color-teal), var(--color-accent));
+      color: var(--color-white);
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-base);
       font-weight: 700;
-      padding: 14px 28px;
+      padding: 14px 32px;
       border: none;
-      border-radius: 14px;
-      margin-top: 16px;
+      border-radius: var(--radius-base);
       cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+      transition: all var(--transition-base);
       text-decoration: none;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      gap: 8px;
       letter-spacing: -0.01em;
       width: 100%;
+      max-width: 280px;
+      position: relative;
+      overflow: hidden;
     }
-
+    
+    .upgrade-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.2);
+      transition: left 0.3s ease;
+    }
+    
+    .upgrade-button:hover::before {
+      left: 100%;
+    }
+    
     .upgrade-button:hover {
-      background: #f8f9fa;
       transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 6px 20px rgba(20, 184, 166, 0.3);
     }
-
+    
     .upgrade-button:disabled {
       opacity: 0.7;
       cursor: not-allowed;
       transform: none;
     }
+    
+    .upgrade-button:disabled:hover {
+      box-shadow: none;
+    }
+    
+    .upgrade-button span {
+      position: relative;
+      z-index: 1;
+    }
+    
+    /* Developer message styling */
+    .developer-message {
+      background: linear-gradient(135deg, rgba(20, 184, 166, 0.08) 0%, rgba(249, 115, 22, 0.08) 100%);
+      border: 1px solid rgba(20, 184, 166, 0.2);
+      padding: var(--spacing-lg);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--spacing-xl);
+      text-align: center;
+    }
 
-    .upgrade-button::after {
-      content: '✨';
-      font-size: 14px;
+    .developer-message p {
+      color: var(--color-navy);
+      font-size: var(--font-size-sm);
+      line-height: 1.6;
+      margin: 0;
+      font-weight: 500;
+    }
+
+    /* Premium header */
+    .premium-header {
+      text-align: center;
+      margin-bottom: var(--spacing-2xl);
+    }
+
+    .premium-title {
+      font-size: var(--font-size-3xl);
+      font-weight: 800;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: var(--spacing-xs);
+      font-family: var(--font-secondary);
+    }
+
+    .premium-price {
+      font-size: var(--font-size-2xl);
+      font-weight: 600;
+      color: var(--color-navy);
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .premium-subtitle {
+      color: var(--color-gray);
+      font-size: var(--font-size-sm);
+    }
+
+    /* Benefits section */
+    .benefits-section {
+      margin-bottom: var(--spacing-2xl);
     }
 
     /* Premium Active State */
@@ -1091,25 +1169,53 @@
       width: 100%;
     }
 
+    .premium-status {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      background: linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, rgba(249, 115, 22, 0.1) 100%);
+      border: 1px solid rgba(20, 184, 166, 0.3);
+      padding: var(--spacing-sm) var(--spacing-lg);
+      border-radius: var(--radius-full);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .premium-status-icon {
+      color: var(--color-teal);
+      font-weight: bold;
+    }
+
+    .premium-status-text {
+      color: var(--color-navy);
+      font-weight: 600;
+      font-size: var(--font-size-sm);
+    }
+    
     .premium-status-button {
-      background: rgba(255, 255, 255, 0.9);
-      color: #22c55e;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 16px;
+      background: var(--color-white);
+      color: var(--color-success);
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-base);
       font-weight: 700;
-      padding: 14px 28px;
-      border-radius: 14px;
-      margin-bottom: 16px;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+      padding: 14px 32px;
+      border-radius: var(--radius-base);
+      margin-bottom: var(--spacing-md);
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      gap: 8px;
       letter-spacing: -0.01em;
       width: 100%;
-      border: 2px solid rgba(34, 197, 94, 0.3);
+      max-width: 280px;
+      border: 2px solid var(--color-success);
+      cursor: default;
     }
-
+    
+    .premium-status-button::before {
+      content: '✓';
+      font-weight: 700;
+    }
+    
     .downgrade-link {
       color: var(--color-gray);
       text-decoration: none;
@@ -1117,54 +1223,44 @@
       cursor: pointer;
       transition: color var(--transition-base);
       font-weight: 500;
-      margin-bottom: 20px;
-      display: block;
+      display: inline-block;
+      margin-top: var(--spacing-sm);
     }
-
+    
     .downgrade-link:hover {
-      color: var(--color-teal);
+      color: var(--color-danger);
       text-decoration: underline;
     }
-
-    /* Subtle sparkle animation */
-    .sparkle {
-      position: absolute;
-      color: rgba(255, 255, 255, 0.6);
-      font-size: 10px;
-      animation: sparkle 3s ease-in-out infinite;
+    
+    /* Crown icon (simplified) */
+    .crown-icon {
+      display: none; /* Hidden in the clean design */
     }
-
-    .sparkle:nth-child(1) { top: 12%; left: 12%; animation-delay: 0s; }
-    .sparkle:nth-child(2) { top: 20%; right: 15%; animation-delay: 1s; }
-    .sparkle:nth-child(3) { bottom: 15%; left: 15%; animation-delay: 2s; }
-    .sparkle:nth-child(4) { bottom: 25%; right: 12%; animation-delay: 0.5s; }
-
-    @keyframes sparkle {
-      0%, 100% { 
-        opacity: 0.3; 
-        transform: scale(1) rotate(0deg); 
-      }
-      50% { 
-        opacity: 1; 
-        transform: scale(1.2) rotate(180deg); 
-      }
-    }
-
-    /* Subtle gradient overlay for depth */
+    
+    /* Remove unused animations and elements */
+    .sparkle,
     .gradient-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(
-        135deg, 
-        rgba(255, 255, 255, 0.1) 0%, 
-        transparent 30%, 
-        transparent 70%, 
-        rgba(0, 0, 0, 0.1) 100%
-      );
-      pointer-events: none;
+      display: none;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .premium-content {
+        padding: var(--spacing-xl);
+      }
+      
+      .premium-content h3 {
+        font-size: var(--font-size-xl);
+      }
+      
+      .benefits-list {
+        max-width: 100%;
+      }
+      
+      .upgrade-button,
+      .premium-status-button {
+        max-width: 100%;
+      }
     }
     
     .form-section {
@@ -2427,59 +2523,56 @@
 
         <!-- Premium Upgrade Card -->
         <div class="premium-card">
-          <!-- Background sparkles -->
-          <div class="sparkle">✨</div>
-          <div class="sparkle">⭐</div>
-          <div class="sparkle">✨</div>
-          <div class="sparkle">⭐</div>
+          <!-- Developer message -->
+          <div class="developer-message">
+            <p>💜 Narrin AI is built by a single developer with passion for companion chat and AI. Your support helps cover voice, text & hosting costs and enables continuous improvements.</p>
+          </div>
           
-          <!-- Crown icon -->
-          <div class="crown-icon">👑</div>
+          <!-- Premium header -->
+          <div class="premium-header">
+            <h2 class="premium-title">Narrin AI Premium</h2>
+            <div class="premium-price">$14.99/month</div>
+            <p class="premium-subtitle">Everything you need for meaningful AI conversations</p>
+          </div>
           
-          <!-- Gradient overlay -->
-          <div class="gradient-overlay"></div>
-          
-          <!-- Main content -->
-          <div class="premium-content">
-            <!-- Developer message -->
-            <div style="text-align: center; color: white; margin: 0 0 20px 0; font-size: 13px; line-height: 1.5; opacity: 0.95;">
-              <p style="margin: 0;">💜 Narrin AI is built by a single developer with passion for companion chat and AI. Your support helps cover voice, text & hosting costs and enables continuous improvements.</p>
-            </div>
-            
-            <div class="premium-badge">PREMIUM $14.99/month</div>
-            
+          <!-- Benefits section -->
+          <div class="benefits-section">
             <ul class="benefits-list">
               <li class="benefit-item">
                 <div class="checkmark"></div>
-                <div class="benefit-text">Unlimited Chat Messages</div>
+                <span class="benefit-text">Unlimited Chat Messages</span>
               </li>
               <li class="benefit-item">
                 <div class="checkmark"></div>
-                <div class="benefit-text">Unlimited Voice Chat</div>
+                <span class="benefit-text">Unlimited Voice Chat</span>
               </li>
               <li class="benefit-item">
                 <div class="checkmark"></div>
-                <div class="benefit-text">Extensive Character Memory</div>
+                <span class="benefit-text">Extensive Character Memory</span>
               </li>
               <li class="benefit-item">
                 <div class="checkmark"></div>
-                <div class="benefit-text">Early Access to New Features</div>
+                <span class="benefit-text">Early Access to New Features</span>
               </li>
               <li class="benefit-item">
                 <div class="checkmark"></div>
-                <div class="benefit-text">Priority Character Access</div>
+                <span class="benefit-text">Priority Character Access</span>
               </li>
             </ul>
-            
+          </div>
+          
+          <!-- Upgrade actions -->
+          <div class="upgrade-actions">
             <button class="upgrade-button" id="upgradeButton" onclick="handleUpgrade()">
-              Upgrade to Narrin AI Premium
+              Upgrade to Premium
             </button>
             <div class="premium-active" id="premiumActive" style="display: none;">
-              <div class="premium-status-button">
-                ✓ Narrin AI Premium
+              <div class="premium-status">
+                <span class="premium-status-icon">✓</span>
+                <span class="premium-status-text">Narrin AI Premium Active</span>
               </div>
               <a href="#" class="downgrade-link" onclick="handleDowngrade(); return false;">
-                Downgrade to Free plan and 100 messages/month.
+                Downgrade to Free plan
               </a>
             </div>
           </div>

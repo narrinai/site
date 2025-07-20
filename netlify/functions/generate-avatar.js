@@ -129,7 +129,7 @@ exports.handler = async (event, context) => {
 
 // Helper function to create appropriate portrait prompts
 function createPortraitPrompt(characterName, characterTitle, category) {
-  let basePrompt = 'Professional portrait photograph, ';
+  let basePrompt = 'Single person portrait photograph, one face only, no text, no grids, no lines, no watermarks, ';
   
   // Category-specific styles
   const categoryStyles = {
@@ -158,10 +158,10 @@ function createPortraitPrompt(characterName, characterTitle, category) {
   }
   
   // Add quality modifiers
-  fullPrompt += 'high quality, detailed face, professional lighting, centered composition, square aspect ratio';
+  fullPrompt += 'high quality, detailed single face, professional lighting, centered composition, square aspect ratio, clean image without overlays';
   
-  // Add safety modifiers
-  fullPrompt += ', appropriate for all audiences, no offensive content';
+  // Add safety modifiers and exclusions
+  fullPrompt += ', appropriate for all audiences, no offensive content, no split screens, no multiple views, no comparison images, no before/after, single person only';
   
   return fullPrompt;
 }
