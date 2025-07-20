@@ -54,7 +54,8 @@ exports.handler = async (event, context) => {
     }
 
     // Stap 1: Haal user_id op uit Users tabel
-    const userResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=AND({Email}='${user_email}',{NetlifyUID}='${user_uid}')`, {
+    // First try with NetlifyUID
+    let userResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=AND({Email}='${user_email}',{NetlifyUID}='${user_uid}')`, {
       headers: {
         'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
         'Content-Type': 'application/json'
@@ -65,8 +66,26 @@ exports.handler = async (event, context) => {
       throw new Error(`Failed to fetch user: ${userResponse.status}`);
     }
 
-    const userData = await userResponse.json();
-    console.log('👤 User lookup result:', userData.records.length, 'users found');
+    let userData = await userResponse.json();
+    console.log('👤 User lookup result (with NetlifyUID):', userData.records.length, 'users found');
+    
+    // If not found with NetlifyUID, try with email only
+    if (userData.records.length === 0) {
+      console.log('🔄 No user found with NetlifyUID, trying with email only...');
+      userResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={Email}='${user_email}'`, {
+        headers: {
+          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!userResponse.ok) {
+        throw new Error(`Failed to fetch user by email: ${userResponse.status}`);
+      }
+      
+      userData = await userResponse.json();
+      console.log('👤 User lookup result (email only):', userData.records.length, 'users found');
+    }
     
     let userIdForSave = '42'; // Default test user
     let userRecordId = null;
@@ -77,12 +96,12 @@ exports.handler = async (event, context) => {
     } else {
       userRecordId = userData.records[0].id;
       const customUserId = userData.records[0].fields.User_ID || '42';
-      // Use record ID for saving (to match Make.com)
-      userIdForSave = userRecordId;
-      console.log('✅ Found user - Record ID:', userRecordId, 'Custom User_ID:', customUserId);
+      // Use custom User_ID for saving (based on ChatHistory table structure)
+      userIdForSave = customUserId;
+      console.log('✅ Found user - Record ID:', userRecordId, 'Custom User_ID:', customUserId, 'Using:', userIdForSave);
     }
 
-    // Stap 2: Get character record ID
+    // Stap 2: Get character name from Characters table
     const characterResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula={Slug}='${char}'`, {
       headers: {
         'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -90,13 +109,14 @@ exports.handler = async (event, context) => {
       }
     });
 
-    let characterIdForSave = char; // Default to slug
+    let characterNameForSave = char; // Default to slug if not found
     
     if (characterResponse.ok) {
       const characterData = await characterResponse.json();
       if (characterData.records.length > 0) {
-        characterIdForSave = characterData.records[0].id;
-        console.log('🎭 Found character record ID:', characterIdForSave);
+        const characterRecord = characterData.records[0];
+        characterNameForSave = characterRecord.fields.Name || char;
+        console.log('🎭 Found character - Name:', characterNameForSave, 'Slug:', char);
       } else {
         console.log('🎭 Character not found, using slug:', char);
       }
@@ -109,8 +129,8 @@ exports.handler = async (event, context) => {
     if (user_message && user_message.trim()) {
       recordsToCreate.push({
         fields: {
-          User: userIdForSave,  // Use record ID to match Make.com
-          Character: characterIdForSave,  // Use record ID to match Make.com
+          User: userIdForSave,  // Use custom User_ID
+          Character: characterNameForSave,  // Use character name
           Role: 'user',
           Message: user_message.trim(),
           CreatedTime: new Date().toISOString()
@@ -122,8 +142,8 @@ exports.handler = async (event, context) => {
     if (ai_response && ai_response.trim()) {
       recordsToCreate.push({
         fields: {
-          User: userIdForSave,  // Use record ID to match Make.com
-          Character: characterIdForSave,  // Use record ID to match Make.com
+          User: userIdForSave,  // Use custom User_ID
+          Character: characterNameForSave,  // Use character name
           Role: 'assistant',
           Message: ai_response.trim(),
           CreatedTime: new Date().toISOString()

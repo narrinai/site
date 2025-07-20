@@ -64,8 +64,12 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Get user ID from Users table
-    const userResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=AND({Email}='${user_email}',{NetlifyUID}='${user_uid}')`, {
+    // Get user ID from Users table - escape single quotes in email
+    const escapedEmail = user_email.replace(/'/g, "\\'");
+    
+    // First try with both Email and NetlifyUID
+    console.log('🔍 Attempting user lookup with Email and NetlifyUID');
+    let userResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=AND({Email}='${escapedEmail}',{NetlifyUID}='${user_uid}')`, {
       headers: {
         'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
         'Content-Type': 'application/json'
@@ -76,15 +80,39 @@ exports.handler = async (event, context) => {
       throw new Error(`Failed to fetch user: ${userResponse.status}`);
     }
 
-    const userData = await userResponse.json();
+    let userData = await userResponse.json();
+    
+    // If no user found with NetlifyUID, try with email only
     if (userData.records.length === 0) {
-      throw new Error('User not found');
+      console.log('⚠️ No user found with NetlifyUID, trying email-only lookup');
+      
+      userResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={Email}='${escapedEmail}'`, {
+        headers: {
+          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!userResponse.ok) {
+        throw new Error(`Failed to fetch user by email: ${userResponse.status}`);
+      }
+
+      userData = await userResponse.json();
+      
+      if (userData.records.length === 0) {
+        throw new Error('User not found with email or NetlifyUID');
+      }
+      
+      console.log('✅ User found with email-only lookup');
+    } else {
+      console.log('✅ User found with Email and NetlifyUID');
     }
 
     const user_id = userData.records[0].id;
-    console.log('✅ Found user with ID:', user_id);
+    const customUserId = userData.records[0].fields.User_ID || '42'; // Get the custom User_ID
+    console.log('✅ Found user with ID:', user_id, 'Custom User_ID:', customUserId);
 
-    // Get character ID from Characters table
+    // Get character name from Characters table using slug
     const characterResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula={Slug}='${char}'`, {
       headers: {
         'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -102,13 +130,14 @@ exports.handler = async (event, context) => {
     }
 
     const character_id = characterData.records[0].id;
-    console.log('✅ Found character with ID:', character_id);
+    const characterName = characterData.records[0].fields.Name;
+    console.log('✅ Found character with ID:', character_id, 'Name:', characterName);
 
     // Save rating to ChatRatings table
     const ratingRecord = {
       fields: {
-        User: [user_id],
-        Character: [character_id],
+        User: customUserId,  // Use custom User_ID not Airtable record ID
+        Character: characterName,  // Use character name not Airtable record ID
         Rating: rating,
         MessageCount: message_count || 0
       }

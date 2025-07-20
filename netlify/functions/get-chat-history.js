@@ -69,10 +69,12 @@ exports.handler = async (event, context) => {
 
     // Stap 1: Haal user_id op uit Users tabel
     console.log('🔍 Looking up user with:', { user_email, user_uid });
-    const userUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=AND({Email}='${user_email}',{NetlifyUID}='${user_uid}')`;
-    console.log('🔗 User lookup URL:', userUrl);
     
-    const userResponse = await fetch(userUrl, {
+    // First try with NetlifyUID
+    let userUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=AND({Email}='${user_email}',{NetlifyUID}='${user_uid}')`;
+    console.log('🔗 User lookup URL (with NetlifyUID):', userUrl);
+    
+    let userResponse = await fetch(userUrl, {
       headers: {
         'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
         'Content-Type': 'application/json'
@@ -85,8 +87,31 @@ exports.handler = async (event, context) => {
       throw new Error(`Failed to fetch user: ${userResponse.status} - ${errorText}`);
     }
 
-    const userData = await userResponse.json();
-    console.log('👤 User lookup result:', userData.records.length, 'users found');
+    let userData = await userResponse.json();
+    console.log('👤 User lookup result (with NetlifyUID):', userData.records.length, 'users found');
+
+    // If not found with NetlifyUID, try with email only
+    if (userData.records.length === 0) {
+      console.log('🔄 No user found with NetlifyUID, trying with email only...');
+      userUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={Email}='${user_email}'`;
+      console.log('🔗 User lookup URL (email only):', userUrl);
+      
+      userResponse = await fetch(userUrl, {
+        headers: {
+          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!userResponse.ok) {
+        const errorText = await userResponse.text();
+        console.error('❌ User fetch with email only failed:', userResponse.status, errorText);
+        throw new Error(`Failed to fetch user by email: ${userResponse.status} - ${errorText}`);
+      }
+      
+      userData = await userResponse.json();
+      console.log('👤 User lookup result (email only):', userData.records.length, 'users found');
+    }
 
     if (userData.records.length === 0) {
       return {
@@ -94,7 +119,7 @@ exports.handler = async (event, context) => {
         headers,
         body: JSON.stringify({ 
           success: false, 
-          error: 'User not found' 
+          error: 'User not found with email: ' + user_email 
         })
       };
     }
@@ -135,8 +160,8 @@ exports.handler = async (event, context) => {
     }
 
     const character_id = characterData.records[0].id;
-    const characterRecordId = characterData.records[0].id;
-    console.log('✅ Found character with ID:', character_id);
+    const characterName = characterData.records[0].fields.Name;
+    console.log('✅ Found character with ID:', character_id, 'Name:', characterName);
 
     // Stap 3: Haal chat history op voor deze gebruiker en character
     // Get both the Airtable record ID and custom User_ID
@@ -146,16 +171,19 @@ exports.handler = async (event, context) => {
     
     console.log('🔍 Found user - Record ID:', userRecordId, 'Custom User_ID:', customUserId);
     
+    // Escape single quotes in character name for Airtable formula
+    const escapedCharacterName = characterName.replace(/'/g, "\\'");
+    
     // Try multiple approaches to find chat history
     console.log('📊 Checking ChatHistory with multiple strategies...');
     
     let allChatHistory = [];
     let offset = null;
     
-    // Strategy 1: Try with Airtable record IDs (as saved by Make.com)
+    // Strategy 1: Try with custom User_ID and character name (based on ChatHistory table structure)
     do {
-      // Try with both record IDs first
-      let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${userRecordId}',{Character}='${characterRecordId}')&sort[0][field]=CreatedTime&sort[0][direction]=asc`;
+      // Use custom User_ID and character name
+      let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${customUserId}',{Character}='${escapedCharacterName}')&sort[0][field]=CreatedTime&sort[0][direction]=asc`;
       
       if (offset) {
         url += `&offset=${offset}`;
@@ -180,13 +208,13 @@ exports.handler = async (event, context) => {
       
     } while (offset);
 
-    console.log('💬 Total chat history records found with record IDs:', allChatHistory.length);
+    console.log('💬 Total chat history records found with User_ID and character name:', allChatHistory.length);
     
-    // If no records found with record IDs, try with custom User_ID and slug
+    // If no records found, try with default user "42" and character name
     if (allChatHistory.length === 0) {
-      console.log('🔄 No records found with record IDs, trying with User_ID and slug...');
+      console.log('🔄 No records found with custom User_ID, trying with default user ID 42...');
       
-      const customUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${customUserId}',{Character}='${char}')&sort[0][field]=CreatedTime&sort[0][direction]=asc`;
+      const customUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='42',{Character}='${escapedCharacterName}')&sort[0][field]=CreatedTime&sort[0][direction]=asc`;
       
       const customResponse = await fetch(customUrl, {
         headers: {
@@ -198,27 +226,7 @@ exports.handler = async (event, context) => {
       if (customResponse.ok) {
         const customData = await customResponse.json();
         allChatHistory = customData.records || [];
-        console.log('📊 Found with custom User_ID:', allChatHistory.length);
-      }
-    }
-    
-    // Final fallback: try with just "42" and slug
-    if (allChatHistory.length === 0) {
-      console.log('🔄 Final fallback: trying with 42 and slug...');
-      
-      const fallbackUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='42',{Character}='${char}')&sort[0][field]=CreatedTime&sort[0][direction]=asc`;
-      
-      const fallbackResponse = await fetch(fallbackUrl, {
-        headers: {
-          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (fallbackResponse.ok) {
-        const fallbackData = await fallbackResponse.json();
-        allChatHistory = fallbackData.records || [];
-        console.log('📊 Found with fallback 42:', allChatHistory.length);
+        console.log('📊 Found with default user ID 42:', allChatHistory.length);
       }
     }
 
