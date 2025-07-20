@@ -3963,8 +3963,16 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       data = JSON.parse(responseText);
     } catch (parseError) {
       console.error("JSON parsing error:", parseError);
-      console.error("Response was:", responseText.substring(0, 500));
-      throw new Error("Invalid response format from server");
+      console.error("Response preview:", responseText.substring(0, 500));
+      
+      // Log the exact position where parsing failed
+      const errorPosition = parseError.message.match(/position (\d+)/);
+      if (errorPosition) {
+        const pos = parseInt(errorPosition[1]);
+        console.error("Error at position", pos, "near:", responseText.substring(Math.max(0, pos - 50), pos + 50));
+      }
+      
+      throw new Error("Character data contains invalid JSON. This is a server configuration issue. Please contact support.");
     }
     
     console.log("Character API response:", data);
