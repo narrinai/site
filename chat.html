@@ -5458,6 +5458,17 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       currentCharacter.name = currentCharacter.Name;
     }
     
+    // Normalize title field - check multiple possible field names
+    if (!currentCharacter.title) {
+      if (currentCharacter.Title) {
+        currentCharacter.title = currentCharacter.Title;
+      } else if (currentCharacter.Character_Title) {
+        currentCharacter.title = currentCharacter.Character_Title;
+      } else if (currentCharacter.character_title) {
+        currentCharacter.title = currentCharacter.character_title;
+      }
+    }
+    
     console.log('Character loaded:', currentCharacter);
     console.log('Character voice_id:', currentCharacter.voice_id);
     console.log('Character voice_type:', currentCharacter.voice_type);
