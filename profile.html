@@ -2216,17 +2216,22 @@
       position: absolute;
       top: var(--spacing-xl);
       right: var(--spacing-2xl);
-      background: var(--color-teal);
+      background: var(--gradient-primary);
       color: var(--color-white);
-      padding: var(--spacing-sm) var(--spacing-xl);
-      border-radius: var(--radius-full);
-      font-size: var(--font-size-lg);
-      font-weight: 700;
-      font-family: var(--font-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
-      border: 2px solid rgba(255, 255, 255, 0.2);
+      padding: var(--spacing-xs) var(--spacing-md);
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      font-family: var(--font-primary);
+      text-transform: none;
+      letter-spacing: normal;
+      box-shadow: var(--shadow-colored);
+      transition: all var(--transition-base);
+    }
+    
+    .referral-badge:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
     }
     
     .referral-content {
@@ -2276,23 +2281,22 @@
       display: flex;
       align-items: center;
       gap: var(--spacing-xs);
-      padding: var(--spacing-sm) var(--spacing-md);
-      background: var(--color-white);
-      color: var(--color-navy);
-      border: 2px solid var(--color-teal);
+      padding: var(--spacing-xs) var(--spacing-md);
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      border: none;
       border-radius: var(--radius-md);
       font-size: var(--font-size-sm);
       font-weight: 600;
       cursor: pointer;
       transition: all var(--transition-base);
       white-space: nowrap;
+      box-shadow: var(--shadow-colored);
     }
     
     .copy-btn:hover {
-      background: var(--color-teal);
-      color: var(--color-white);
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
     }
     
     .copy-btn:active {
@@ -2300,7 +2304,7 @@
     }
     
     .copy-btn.copied {
-      background: var(--color-teal);
+      background: var(--gradient-primary);
       color: var(--color-white);
     }
     
@@ -2317,17 +2321,16 @@
     .share-btn {
       display: flex;
       align-items: center;
-      gap: var(--spacing-sm);
-      padding: var(--spacing-md) var(--spacing-lg);
+      gap: var(--spacing-xs);
+      padding: var(--spacing-xs) var(--spacing-md);
       border: none;
-      border-radius: var(--radius-lg);
+      border-radius: var(--radius-md);
       font-size: var(--font-size-sm);
       font-weight: 600;
       cursor: pointer;
       transition: all var(--transition-base);
-      flex: 1;
-      min-width: 180px;
       justify-content: center;
+      box-shadow: var(--shadow-colored);
     }
     
     .share-whatsapp {
@@ -2337,7 +2340,7 @@
     
     .share-whatsapp:hover {
       background: #1DA851;
-      transform: translateY(-2px);
+      transform: translateY(-4px);
       box-shadow: var(--shadow-lg);
     }
     
@@ -2348,7 +2351,7 @@
     
     .share-twitter:hover {
       background: #1a8cd8;
-      transform: translateY(-2px);
+      transform: translateY(-4px);
       box-shadow: var(--shadow-lg);
     }
     
@@ -2359,7 +2362,7 @@
     
     .share-email:hover {
       background: var(--color-teal-dark);
-      transform: translateY(-2px);
+      transform: translateY(-4px);
       box-shadow: var(--shadow-lg);
     }
     
@@ -2369,8 +2372,8 @@
         position: static;
         display: inline-block;
         margin-bottom: var(--spacing-md);
-        font-size: var(--font-size-base);
-        padding: var(--spacing-xs) var(--spacing-lg);
+        font-size: var(--font-size-sm);
+        padding: var(--spacing-xs) var(--spacing-md);
       }
       
       .referral-code-container,
@@ -2390,12 +2393,19 @@
       }
       
       .share-buttons {
-        flex-direction: column;
+        gap: var(--spacing-xs);
       }
       
       .share-btn {
-        width: 100%;
-        min-width: unset;
+        flex: 1;
+        min-width: 100px;
+        font-size: var(--font-size-xs);
+        padding: var(--spacing-xs) var(--spacing-sm);
+      }
+      
+      .share-btn svg {
+        width: 16px;
+        height: 16px;
       }
     }
 
@@ -3059,8 +3069,9 @@
           return;
         }
         
-        // Create referral link using user ID
-        const referralLink = `${window.location.origin}?ref=${userId}`;
+        // Create referral link using first 4 characters of user ID
+        const shortUserId = userId.substring(0, 4);
+        const referralLink = `${window.location.origin}?ref=${shortUserId}`;
         document.getElementById('referral-link').value = referralLink;
         
         // Update referral stats
@@ -3099,14 +3110,14 @@
     
     function shareWhatsApp() {
       const referralLink = document.getElementById('referral-link').value;
-      const message = `Join me on Narrin AI! Use my referral link to get 50 extra chat messages: ${referralLink}`;
+      const message = `Join me on Narrin AI! We'll both get 50 extra chat messages: ${referralLink}`;
       const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
       window.open(whatsappUrl, '_blank');
     }
     
     function shareTwitter() {
       const referralLink = document.getElementById('referral-link').value;
-      const message = `Join me on Narrin AI! Use my referral link to get 50 extra chat messages: ${referralLink}`;
+      const message = `Join me on Narrin AI! We'll both get 50 extra chat messages: ${referralLink}`;
       const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}`;
       window.open(twitterUrl, '_blank');
     }
@@ -3114,7 +3125,7 @@
     function shareEmail() {
       const referralLink = document.getElementById('referral-link').value;
       const subject = 'Join me on Narrin AI!';
-      const body = `Hi there,\n\nI've been using Narrin AI to chat with amazing AI characters. Join me using my referral link and we'll both get 50 extra chat messages!\n\n${referralLink}\n\nSee you there!`;
+      const body = `Hi there,\n\nI've been using Narrin AI to chat with amazing AI characters. Join using my link and we'll both get 50 extra chat messages!\n\n${referralLink}\n\nSee you there!`;
       const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
       window.location.href = mailtoUrl;
     }

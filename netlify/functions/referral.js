@@ -27,22 +27,22 @@ exports.handler = async (event, context) => {
 
     const { httpMethod, body, queryStringParameters } = event;
 
-    // Handle GET - Check referral code validity
+    // Handle GET - Check referral user validity
     if (httpMethod === 'GET') {
-      const { code } = queryStringParameters || {};
+      const { ref } = queryStringParameters || {};
       
-      if (!code) {
+      if (!ref) {
         return {
           statusCode: 400,
           headers,
-          body: JSON.stringify({ error: 'Referral code required' })
+          body: JSON.stringify({ error: 'Referral ID required' })
         };
       }
 
-      console.log('🔍 Checking referral code:', code);
+      console.log('🔍 Checking referral ID (short):', ref);
 
-      // Find user with this referral code
-      const url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Users?filterByFormula={referral_code}='${code}'`;
+      // Find user with netlify_uid starting with these 4 characters
+      const url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Users?filterByFormula=LEFT({netlify_uid},4)='${ref}'`;
       
       const response = await fetch(url, {
         headers: {
@@ -59,7 +59,7 @@ exports.handler = async (event, context) => {
       
       if (data.records && data.records.length > 0) {
         const referrer = data.records[0];
-        console.log('✅ Valid referral code from:', referrer.fields.Email);
+        console.log('✅ Valid referral from user:', referrer.fields.Email);
         
         return {
           statusCode: 200,
@@ -72,7 +72,7 @@ exports.handler = async (event, context) => {
           })
         };
       } else {
-        console.log('❌ Invalid referral code:', code);
+        console.log('❌ Invalid referral ID:', ref);
         return {
           statusCode: 200,
           headers,
@@ -86,9 +86,9 @@ exports.handler = async (event, context) => {
 
     // Handle POST - Process referral bonus
     if (httpMethod === 'POST') {
-      const { user_id, referrer_code } = JSON.parse(body);
+      const { user_id, referrer_id } = JSON.parse(body);
       
-      if (!user_id || !referrer_code) {
+      if (!user_id || !referrer_id) {
         return {
           statusCode: 400,
           headers,
@@ -96,10 +96,10 @@ exports.handler = async (event, context) => {
         };
       }
 
-      console.log('💰 Processing referral bonus:', { user_id, referrer_code });
+      console.log('💰 Processing referral bonus:', { user_id, referrer_id });
 
-      // Find referrer by code
-      const referrerUrl = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Users?filterByFormula={referral_code}='${referrer_code}'`;
+      // Find referrer by short ID (first 4 chars of netlify_uid)
+      const referrerUrl = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Users?filterByFormula=LEFT({netlify_uid},4)='${referrer_id}'`;
       
       const referrerResponse = await fetch(referrerUrl, {
         headers: {
