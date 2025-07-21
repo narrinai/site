@@ -5232,7 +5232,7 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
 
       document.title = `Chat with ${currentCharacter.name}`;
       document.getElementById('characterName').textContent = currentCharacter.name;
-      document.getElementById('characterTitle').textContent = currentCharacter.character_title || currentCharacter.Title || currentCharacter.title || currentCharacter.Character_Title || '';
+      document.getElementById('characterTitle').textContent = currentCharacter.Character_Title || currentCharacter.character_title || currentCharacter.Title || currentCharacter.title || '';
 
       const avatarElement = document.getElementById('characterAvatar');
       const needsAIAvatar = currentCharacter.needs_ai_avatar || 
@@ -5711,7 +5711,7 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             characterName: currentCharacter.name,
-            characterTitle: currentCharacter.character_title || currentCharacter.Title || currentCharacter.title || '',
+            characterTitle: currentCharacter.Character_Title || currentCharacter.character_title || currentCharacter.Title || currentCharacter.title || '',
             category: currentCharacter.category || 'original'
           })
         });
@@ -6637,7 +6637,7 @@ function applyCustomization(customization) {
   
   // Update UI
   document.getElementById('characterName').textContent = customization.name || currentCharacter.name;
-  document.getElementById('characterTitle').textContent = customization.title || currentCharacter.Title;
+  document.getElementById('characterTitle').textContent = customization.title || currentCharacter.Character_Title || currentCharacter.Title;
   
   // Add customization indicator
   const characterHeader = document.getElementById('characterHeader');
