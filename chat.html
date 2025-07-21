@@ -4105,20 +4105,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // Voice library mapping for preview
     const voiceLibrary = {
       'royal_authority': 'TxGEqnHWrfWFTfGW9XjX',
-      'wise_mentor': 'IKne3meq5aSn9XLyUdCD',
-      'caring_therapist': 'MqQNKVvMUVfG8pCsgNcz',
-      'romantic_partner': 'iP95p4xoKVk53GoZ742B',
+      'wise_mentor': 'XrExE9yKIg1WjnnlVkGX',
+      'caring_therapist': 'EXAVITQu4vr4xnSDxMaL',
+      'romantic_partner': 'iP95p4HMsOdaJ6J8s72v',
       'best_friend': 'XB0fDUnXU5powFXDhCwa',
-      'mysterious_stranger': 'TX3LPaxmHKxFdv7VOQHJ',
+      'mysterious_stranger': 'onwK4e9ZLuTAKqWW03F9',
       'cheerful_comedian': 'pFZP5JQG7iQjIQuC4Bku',
       'wise_elder': 'XrExE9yKIg1WjnnlVkGX',
       'creative_dreamer': 'AZnzlk1XvdvUeBnXmlld',
-      'anime_hero': 'N2lVS1w4EtoT3dr4eOWO',
-      'business_coach': 'pNInz6obpgDQGcFmaJgB',
-      'fitness_trainer': 'cjVigY5qzO86Huf0OWal',
-      'storyteller': 'zrHiDhphv9ZnVXBqCLjz',
+      'anime_hero': 'pqHfZKP75CvOlQylNhV4',
+      'business_coach': 'pNInz6ObpgDQGcFmaJgB',
+      'fitness_trainer': 'yoZ06aMxZJJ28mfd3POQ',
+      'storyteller': 'VR6AewLTigWG4xSOukaG',
       'rebel_spirit': 'oWAxZDx7w5VEj9dCyTzz',
-      'mystical_guide': 'xFqcWKUKsVneT4YPQGqJ'
+      'mystical_guide': 'fvcBHKa2lxguQE5lB4uV'
     };
     
     // Preview voice function for customization modal
@@ -4126,8 +4126,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const voiceSelect = document.getElementById('voiceType');
       const previewBtn = document.getElementById('previewVoiceBtn');
       
-      if (!voiceSelect || voiceSelect.value === 'none') {
-        showNotification('info', 'No Voice Selected', 'Please select a voice type to preview.');
+      if (!voiceSelect) {
+        console.error('Voice select element not found');
+        return;
+      }
+      
+      if (voiceSelect.value === 'none') {
+        showNotification('info', 'Text Only', 'This character is set to text-only mode. No voice preview available.');
         return;
       }
       
@@ -4135,6 +4140,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const voiceId = voiceLibrary[voiceType];
       
       if (!voiceId) {
+        console.error('No voice ID found for voice type:', voiceType);
         showNotification('error', 'Voice Not Available', 'The selected voice is not available for preview.');
         return;
       }
@@ -4146,7 +4152,16 @@ document.addEventListener('DOMContentLoaded', () => {
       
       try {
         const testText = "Hello! This is how I would sound when we chat together.";
-        const audioBlob = await generateSpeech(testText, voiceId);
+        
+        // Validate voice ID before calling generateSpeech
+        const validVoiceId = validateAndFixVoiceId(voiceId);
+        if (!validVoiceId) {
+          throw new Error('Invalid voice ID for preview');
+        }
+        
+        console.log('🎤 Previewing voice:', voiceType, 'with ID:', validVoiceId);
+        
+        const audioBlob = await window.generateSpeech(testText, validVoiceId);
         const audioUrl = URL.createObjectURL(audioBlob);
         const audio = new Audio(audioUrl);
         
@@ -4158,7 +4173,8 @@ document.addEventListener('DOMContentLoaded', () => {
           previewBtn.disabled = false;
         });
         
-        audio.addEventListener('error', () => {
+        audio.addEventListener('error', (e) => {
+          console.error('Audio playback error:', e);
           URL.revokeObjectURL(audioUrl);
           previewBtn.innerHTML = originalText;
           previewBtn.disabled = false;
@@ -6218,9 +6234,18 @@ async function getPersonalizedTopics(character) {
     const genericTopics = [
       "What's on your mind today?",
       "Let's explore something new",
-      "Share your thoughts"
+      "Share your thoughts",
+      "Tell me what's happening",
+      "How can I help you?",
+      "What would you like to discuss?",
+      "Let's have a conversation",
+      "What interests you right now?",
+      "Share something with me",
+      "What's important to you?"
     ];
-    allTopics = [...allTopics, ...genericTopics].slice(0, 5);
+    // Shuffle generic topics too
+    const shuffledGeneric = genericTopics.sort(() => Math.random() - 0.5);
+    allTopics = [...allTopics, ...shuffledGeneric].slice(0, 5);
   }
   
   return allTopics;
@@ -6353,11 +6378,16 @@ function analyzeRecentConversation() {
 }
 
 function getTopicsForCharacter(character) {
-  // Base topics that work for most characters
+  // Extended base topics that work for most characters
   const baseTopics = [
     "Tell me about yourself",
     "What inspires you?",
-    "Share your best advice"
+    "Share your best advice",
+    "What's your perspective on life?",
+    "How do you stay motivated?",
+    "What wisdom can you share?",
+    "Tell me something interesting",
+    "What should I know about you?"
   ];
   
   // Add character-specific topics based on their category/type
@@ -6366,85 +6396,195 @@ function getTopicsForCharacter(character) {
       "Help me set goals",
       "I need motivation",
       "How to build better habits",
-      "Overcoming challenges"
+      "Overcoming challenges",
+      "Finding my purpose",
+      "Breaking through barriers",
+      "Creating positive change",
+      "Developing confidence",
+      "Time management strategies",
+      "Work-life harmony"
     ],
     "Mental Health": [
       "I'm feeling stressed",
       "How to practice self-care",
       "Building resilience",
-      "Finding inner peace"
+      "Finding inner peace",
+      "Managing anxiety",
+      "Boosting my mood",
+      "Healthy coping strategies",
+      "Emotional wellness tips",
+      "Mindfulness techniques",
+      "Self-compassion practices"
     ],
     "Business": [
       "Career advice",
       "Leadership tips",
       "Starting a business",
-      "Work-life balance"
+      "Work-life balance",
+      "Networking strategies",
+      "Professional growth",
+      "Decision making skills",
+      "Team building insights",
+      "Innovation mindset",
+      "Success strategies"
     ],
     "Creative": [
       "Spark my creativity",
       "Overcoming creative blocks",
       "Finding inspiration",
-      "Developing my craft"
+      "Developing my craft",
+      "Artistic expression",
+      "Creative confidence",
+      "Exploring new ideas",
+      "Creative routines",
+      "Pushing boundaries",
+      "Finding your voice"
     ],
     "Fitness": [
       "Workout motivation",
       "Healthy habits",
       "Nutrition tips",
-      "Setting fitness goals"
+      "Setting fitness goals",
+      "Recovery strategies",
+      "Building strength",
+      "Staying consistent",
+      "Mind-body connection",
+      "Fitness mindset",
+      "Wellness journey"
     ],
     "Spiritual": [
       "Finding purpose",
       "Mindfulness practice",
       "Spiritual growth",
-      "Daily reflection"
+      "Daily reflection",
+      "Inner wisdom",
+      "Meditation guidance",
+      "Living authentically",
+      "Gratitude practices",
+      "Spiritual insights",
+      "Connecting deeply"
     ],
     "Relationship": [
       "Communication tips",
       "Building trust",
       "Relationship advice",
-      "Understanding emotions"
+      "Understanding emotions",
+      "Healthy boundaries",
+      "Deepening connections",
+      "Conflict resolution",
+      "Love languages",
+      "Emotional intelligence",
+      "Building intimacy"
     ],
     "Education": [
       "Study strategies",
       "Learning new skills",
       "Academic guidance",
-      "Career planning"
+      "Career planning",
+      "Effective learning",
+      "Knowledge retention",
+      "Skill development",
+      "Educational goals",
+      "Learning mindset",
+      "Academic success"
     ],
     "Entertainment": [
       "Tell me a story",
       "Let's play a game",
       "Share something fun",
-      "Surprise me"
+      "Surprise me",
+      "Make me laugh",
+      "Creative challenge",
+      "Fun facts",
+      "Entertaining tales",
+      "Lighthearted chat",
+      "Amusing anecdotes"
     ],
     "Philosophy": [
       "Life's big questions",
       "Ethical dilemmas",
       "Meaning of life",
-      "Philosophical insights"
+      "Philosophical insights",
+      "Wisdom traditions",
+      "Critical thinking",
+      "Moral philosophy",
+      "Existential thoughts",
+      "Deep reflections",
+      "Universal truths"
     ],
     "Science": [
       "Explain a concept",
       "Latest discoveries",
       "How things work",
-      "Scientific thinking"
+      "Scientific thinking",
+      "Research insights",
+      "Natural phenomena",
+      "Scientific method",
+      "Future predictions",
+      "Amazing facts",
+      "Science simplified"
     ],
     "Technology": [
       "Tech trends",
       "Digital skills",
       "Future innovations",
-      "Tech advice"
+      "Tech advice",
+      "AI and society",
+      "Digital wellness",
+      "Tech ethics",
+      "Innovation insights",
+      "Digital transformation",
+      "Tech simplified"
     ]
   };
+  
+  // Time-based topics for variety
+  const timeBasedTopics = getTimeBasedTopics();
   
   // Get category-specific topics
   const category = character.Category || character.category || "";
   const specificTopics = categoryTopics[category] || [];
   
-  // Combine and return a selection of topics
-  const allTopics = [...baseTopics, ...specificTopics];
+  // Combine all topic sources
+  const allTopics = [...baseTopics, ...specificTopics, ...timeBasedTopics];
   
-  // Return a random selection of 4-6 topics
-  return allTopics.sort(() => Math.random() - 0.5).slice(0, 5);
+  // Shuffle array using Fisher-Yates algorithm for better randomization
+  const shuffled = allTopics.slice();
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  
+  // Return 5 random topics, ensuring variety
+  return shuffled.slice(0, 5);
+}
+
+// Add time-based topics for more variety
+function getTimeBasedTopics() {
+  const now = new Date();
+  const hour = now.getHours();
+  const dayOfWeek = now.getDay();
+  const topics = [];
+  
+  // Time of day topics
+  if (hour >= 5 && hour < 12) {
+    topics.push("Morning routine tips", "Starting the day right", "Morning motivation");
+  } else if (hour >= 12 && hour < 17) {
+    topics.push("Afternoon productivity", "Midday energy boost", "Staying focused");
+  } else if (hour >= 17 && hour < 21) {
+    topics.push("Evening reflection", "Winding down tips", "End of day thoughts");
+  } else {
+    topics.push("Night time thoughts", "Peaceful moments", "Late night wisdom");
+  }
+  
+  // Weekend vs weekday topics
+  if (dayOfWeek === 0 || dayOfWeek === 6) {
+    topics.push("Weekend plans", "Relaxation ideas", "Fun activities");
+  } else {
+    topics.push("Weekday motivation", "Productivity tips", "Work-life balance");
+  }
+  
+  return topics;
 }
 
 function handleTopicClick(topic, index) {
