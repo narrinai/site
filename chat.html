@@ -1177,6 +1177,51 @@
       overflow-y: auto;
       box-shadow: var(--shadow-xl);
     }
+    
+    /* Voice Settings Styles - matching create-character.html */
+    .voice-select {
+      width: 100%;
+      padding: var(--spacing-md) var(--spacing-lg);
+      border: 2px solid var(--color-gray-300);
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-md);
+      background: var(--color-white);
+      color: var(--color-gray-900);
+      transition: all var(--transition-base);
+    }
+    
+    .voice-select:focus {
+      outline: none;
+      border-color: var(--color-teal);
+      box-shadow: 0 0 0 3px rgba(45, 183, 181, 0.1);
+    }
+    
+    .preview-voice-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-md) var(--spacing-xl);
+      background-color: var(--color-white);
+      color: var(--color-teal);
+      border: 2px solid var(--color-teal);
+      border-radius: 50px;
+      font-size: var(--font-size-md);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-base);
+    }
+    
+    .preview-voice-btn:hover:not(:disabled) {
+      background-color: var(--color-teal);
+      color: var(--color-white);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(45, 183, 181, 0.3);
+    }
+    
+    .preview-voice-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
 
     /* Form Sections */
     .form-section {
@@ -3381,71 +3426,6 @@
               <div class="selection-counter" id="bondingCounter">Select 0-2 approaches</div>
             </div>
             
-            <!-- Voice Selection -->
-            <div class="personality-section">
-              <h3>🎙️ Voice Selection</h3>
-              <div class="voice-options">
-                <div class="voice-option selected" onclick="selectVoice('auto')">
-                  <input type="radio" name="voiceSelection" value="auto" checked>
-                  <div class="voice-option-content">
-                    <div class="voice-option-title">🤖 Auto-Select</div>
-                    <div class="voice-option-desc">We'll choose the perfect voice based on your character's personality</div>
-                  </div>
-                </div>
-                
-                <div class="voice-option" onclick="selectVoice('custom')">
-                  <input type="radio" name="voiceSelection" value="custom">
-                  <div class="voice-option-content">
-                    <div class="voice-option-title">🎯 Choose Voice</div>
-                    <div class="voice-option-desc">Pick from our curated voice collection</div>
-                  </div>
-                </div>
-                
-                <div class="voice-option" onclick="selectVoice('none')">
-                  <input type="radio" name="voiceSelection" value="none">
-                  <div class="voice-option-content">
-                    <div class="voice-option-title">🔇 No Voice</div>
-                    <div class="voice-option-desc">Text-only character</div>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Custom Voice Selection (hidden by default) -->
-              <div id="customVoiceSelection" style="display: none; margin-top: var(--spacing-lg);">
-                <label for="voicePreset">Voice Type</label>
-                <select id="voicePreset" name="voicePreset">
-                  <option value="">Choose a voice...</option>
-                  <!-- Character-Specific Voices -->
-                  <option value="royal_authority">👑 Royal Authority - Authoritative and majestic</option>
-                  <option value="wise_mentor">🧙‍♂️ Wise Mentor - Supportive and experienced</option>
-                  <option value="caring_therapist">💝 Caring Advisor - Understanding and soothing</option>
-                  <option value="romantic_partner">💕 Romantic Partner - Warm and loving</option>
-                  <option value="best_friend">🤗 Best Friend - Casual and supportive</option>
-                  <option value="mysterious_stranger">🎭 Mysterious Stranger - Intriguing and enigmatic</option>
-                  <option value="professional_expert">💼 Professional Expert - Clear and knowledgeable</option>
-                  <option value="creative_artist">🎨 Creative Artist - Expressive and inspiring</option>
-                  <option value="tech_specialist">💻 Tech Specialist - Modern and informative</option>
-                  <option value="storyteller">📚 Storyteller - Engaging and narrative</option>
-                  <option value="coach_motivator">🏆 Coach & Motivator - Energetic and encouraging</option>
-                  <option value="zen_master">🧘 Zen Master - Calm and philosophical</option>
-                  <!-- OpenAI Voice IDs -->
-                  <optgroup label="Voice Profiles">
-                    <option value="alloy">Alloy - Neutral and clear</option>
-                    <option value="echo">Echo - Smooth and refined</option>
-                    <option value="fable">Fable - Expressive British accent</option>
-                    <option value="onyx">Onyx - Deep and authoritative</option>
-                    <option value="nova">Nova - Warm and friendly</option>
-                    <option value="shimmer">Shimmer - Soft and gentle</option>
-                  </optgroup>
-                </select>
-                
-                <!-- Voice Preview Button -->
-                <button type="button" id="previewVoice" class="btn-secondary-form" style="margin-top: var(--spacing-md); padding: var(--spacing-sm) var(--spacing-lg);">
-                  🔊 Preview Voice
-                </button>
-              </div>
-            </div>
-            
             <!-- Personality Quirks -->
             <div class="personality-section">
               <h3>Personality Quirks</h3>
@@ -3468,6 +3448,39 @@
                   <button type="button" id="addCustomQuirk" class="add-quirk-btn">Add</button>
                 </div>
               </div>
+            </div>
+          </div>
+          
+          <!-- Voice Settings -->
+          <div class="form-section">
+            <h2>Voice Settings</h2>
+            
+            <div class="form-group">
+              <label for="voiceType">Voice Type</label>
+              <select id="voiceType" name="voiceType" class="voice-select">
+                <option value="none">🔇 No Voice - Text only</option>
+                <option value="royal_authority">👑 Royal Authority - Authoritative and majestic</option>
+                <option value="wise_mentor">🧙‍♂️ Wise Mentor - Supportive and experienced</option>
+                <option value="caring_therapist">💝 Caring Advisor - Understanding and soothing</option>
+                <option value="romantic_partner">💕 Romantic Partner - Warm and loving</option>
+                <option value="best_friend">🤗 Best Friend - Casual and supportive</option>
+                <option value="mysterious_stranger">🎭 Mysterious Stranger - Intriguing and enigmatic</option>
+                <option value="cheerful_comedian">😄 Cheerful Comedian - Joyful and humorous</option>
+                <option value="wise_elder">👴 Wise Elder - Experienced and understanding</option>
+                <option value="creative_dreamer">🎨 Creative Dreamer - Imaginative and inspiring</option>
+                <option value="anime_hero">⚡ Anime Hero - Energetic and youthful</option>
+                <option value="business_coach">📊 Business Coach - Professional and motivating</option>
+                <option value="fitness_trainer">💪 Fitness Trainer - Energetic and encouraging</option>
+                <option value="storyteller">📖 Storyteller - Engaging and captivating</option>
+                <option value="rebel_spirit">🔥 Rebel Spirit - Bold and defiant</option>
+                <option value="mystical_guide">🔮 Mystical Guide - Spiritual and enlightening</option>
+              </select>
+            </div>
+            
+            <div class="voice-preview" style="margin-top: var(--spacing-md);">
+              <button type="button" id="previewVoiceBtn" class="preview-voice-btn" onclick="previewCustomVoice()">
+                🔊 Preview Voice
+              </button>
             </div>
           </div>
           
@@ -3951,6 +3964,85 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Return original als het valid lijkt
       return voiceId;
+    }
+    
+    // Voice library mapping for preview
+    const voiceLibrary = {
+      'royal_authority': 'TxGEqnHWrfWFTfGW9XjX',
+      'wise_mentor': 'IKne3meq5aSn9XLyUdCD',
+      'caring_therapist': 'MqQNKVvMUVfG8pCsgNcz',
+      'romantic_partner': 'iP95p4xoKVk53GoZ742B',
+      'best_friend': 'XB0fDUnXU5powFXDhCwa',
+      'mysterious_stranger': 'TX3LPaxmHKxFdv7VOQHJ',
+      'cheerful_comedian': 'pFZP5JQG7iQjIQuC4Bku',
+      'wise_elder': 'XrExE9yKIg1WjnnlVkGX',
+      'creative_dreamer': 'AZnzlk1XvdvUeBnXmlld',
+      'anime_hero': 'N2lVS1w4EtoT3dr4eOWO',
+      'business_coach': 'pNInz6obpgDQGcFmaJgB',
+      'fitness_trainer': 'cjVigY5qzO86Huf0OWal',
+      'storyteller': 'zrHiDhphv9ZnVXBqCLjz',
+      'rebel_spirit': 'oWAxZDx7w5VEj9dCyTzz',
+      'mystical_guide': 'xFqcWKUKsVneT4YPQGqJ'
+    };
+    
+    // Preview voice function for customization modal
+    async function previewCustomVoice() {
+      const voiceSelect = document.getElementById('voiceType');
+      const previewBtn = document.getElementById('previewVoiceBtn');
+      
+      if (!voiceSelect || voiceSelect.value === 'none') {
+        showNotification('info', 'No Voice Selected', 'Please select a voice type to preview.');
+        return;
+      }
+      
+      const voiceType = voiceSelect.value;
+      const voiceId = voiceLibrary[voiceType];
+      
+      if (!voiceId) {
+        showNotification('error', 'Voice Not Available', 'The selected voice is not available for preview.');
+        return;
+      }
+      
+      // Disable button and show loading state
+      previewBtn.disabled = true;
+      const originalText = previewBtn.innerHTML;
+      previewBtn.innerHTML = '🔄 Loading...';
+      
+      try {
+        const testText = "Hello! This is how I would sound when we chat together.";
+        const audioBlob = await generateSpeech(testText, voiceId);
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        
+        previewBtn.innerHTML = '🔊 Playing...';
+        
+        audio.addEventListener('ended', () => {
+          URL.revokeObjectURL(audioUrl);
+          previewBtn.innerHTML = originalText;
+          previewBtn.disabled = false;
+        });
+        
+        audio.addEventListener('error', () => {
+          URL.revokeObjectURL(audioUrl);
+          previewBtn.innerHTML = originalText;
+          previewBtn.disabled = false;
+          showNotification('error', 'Playback Error', 'Could not play the voice preview.');
+        });
+        
+        await audio.play();
+      } catch (error) {
+        console.error('Voice preview failed:', error);
+        previewBtn.innerHTML = originalText;
+        previewBtn.disabled = false;
+        
+        if (error.message.includes('400')) {
+          showNotification('error', 'Voice Test Failed', 'Invalid request. Please check your API configuration.');
+        } else if (error.message.includes('500')) {
+          showNotification('error', 'Voice Test Failed', 'Server error. Please try again later.');
+        } else {
+          showNotification('error', 'Voice Test Failed', 'Could not connect to voice service. Please check your internet connection.');
+        }
+      }
     }
 
     // VEILIGE TTS functie via Netlify Function
@@ -5172,6 +5264,10 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     }
 
     currentCharacter = data.character;
+    console.log('🔍 Character data received:', currentCharacter);
+    console.log('🔍 Character title field:', currentCharacter.title || 'not found');
+    console.log('🔍 Character Title field:', currentCharacter.Title || 'not found');
+    console.log('🔍 Character Character_Title field:', currentCharacter.Character_Title || 'not found');
     
     // Normalize avatar URL field - webhook returns character_url which contains the avatar
     if (!currentCharacter.avatar_url && currentCharacter.character_url) {
@@ -5232,7 +5328,7 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
 
       document.title = `Chat with ${currentCharacter.name}`;
       document.getElementById('characterName').textContent = currentCharacter.name;
-      document.getElementById('characterTitle').textContent = currentCharacter.Character_Title || currentCharacter.character_title || currentCharacter.Title || currentCharacter.title || '';
+      document.getElementById('characterTitle').textContent = currentCharacter.title || currentCharacter.Title || currentCharacter.Character_Title || currentCharacter.character_title || '';
 
       const avatarElement = document.getElementById('characterAvatar');
       const needsAIAvatar = currentCharacter.needs_ai_avatar || 
@@ -5711,7 +5807,7 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             characterName: currentCharacter.name,
-            characterTitle: currentCharacter.Character_Title || currentCharacter.character_title || currentCharacter.Title || currentCharacter.title || '',
+            characterTitle: currentCharacter.title || currentCharacter.Title || currentCharacter.Character_Title || currentCharacter.character_title || '',
             category: currentCharacter.category || 'original'
           })
         });
@@ -6343,11 +6439,49 @@ function openCustomizationModal() {
     promptPreview.value = currentCharacter.prompt;
   }
   
+  // Load voice settings from current character
+  const voiceSelect = document.getElementById('voiceType');
+  if (voiceSelect) {
+    // Map voice_id to voice type if possible
+    const voiceTypeMap = {
+      'IKne3meq5aSn9XLyUdCD': 'wise_mentor',
+      'MqQNKVvMUVfG8pCsgNcz': 'caring_therapist',
+      'N2lVS1w4EtoT3dr4eOWO': 'anime_hero',
+      'TX3LPaxmHKxFdv7VOQHJ': 'mysterious_stranger',
+      'XB0fDUnXU5powFXDhCwa': 'best_friend',
+      'XrExE9yKIg1WjnnlVkGX': 'wise_elder',
+      'pNInz6obpgDQGcFmaJgB': 'business_coach',
+      'iP95p4xoKVk53GoZ742B': 'romantic_partner',
+      'pFZP5JQG7iQjIQuC4Bku': 'cheerful_comedian',
+      'TxGEqnHWrfWFTfGW9XjX': 'royal_authority',
+      'zrHiDhphv9ZnVXBqCLjz': 'storyteller',
+      'AZnzlk1XvdvUeBnXmlld': 'creative_dreamer',
+      'cjVigY5qzO86Huf0OWal': 'fitness_trainer',
+      'oWAxZDx7w5VEj9dCyTzz': 'rebel_spirit',
+      'xFqcWKUKsVneT4YPQGqJ': 'mystical_guide'
+    };
+    
+    // Try to find matching voice type
+    let voiceType = 'none';
+    if (currentCharacter.voice_id && voiceTypeMap[currentCharacter.voice_id]) {
+      voiceType = voiceTypeMap[currentCharacter.voice_id];
+    } else if (currentCharacter.voice_type && currentCharacter.voice_type !== 'none') {
+      voiceType = currentCharacter.voice_type;
+    }
+    
+    voiceSelect.value = voiceType;
+  }
+  
   if (existingCustom) {
     // Load existing customization
     document.getElementById('customName').value = existingCustom.name || currentCharacter.name || '';
     document.getElementById('customTitle').value = existingCustom.title || currentCharacter.Title || '';
     document.getElementById('customPrompt').value = existingCustom.custom_instructions || '';
+    
+    // Load voice settings from customization
+    if (existingCustom.voice_type && voiceSelect) {
+      voiceSelect.value = existingCustom.voice_type || 'none';
+    }
     
     // Load personality state if saved
     if (existingCustom.personality_state) {
@@ -6362,29 +6496,25 @@ function openCustomizationModal() {
       updateCommunicationStyleUI();
     }
     
-    // Load voice selection
-    if (existingCustom.voice_selection) {
-      // Set voice selection radio button
-      document.querySelector(`input[name="voiceSelection"][value="${existingCustom.voice_selection}"]`).checked = true;
-      
-      // Update voice option UI
-      document.querySelectorAll('.voice-option').forEach(option => {
-        option.classList.remove('selected');
-      });
-      document.querySelector(`.voice-option:has(input[value="${existingCustom.voice_selection}"])`).classList.add('selected');
-      
-      // Show custom voice dropdown if needed
-      if (existingCustom.voice_selection === 'custom' && existingCustom.voice) {
-        document.getElementById('customVoiceSelection').style.display = 'block';
-        document.getElementById('voicePreset').value = existingCustom.voice;
+    // Load voice selection - now using the single dropdown
+    if (existingCustom.voice_type && voiceSelect) {
+      voiceSelect.value = existingCustom.voice_type || 'none';
+    } else if (existingCustom.voice_selection) {
+      // Backward compatibility with old format
+      if (existingCustom.voice_selection === 'none') {
+        voiceSelect.value = 'none';
+      } else if (existingCustom.voice_selection === 'custom' && existingCustom.voice) {
+        // Try to map old voice ID to new voice type
+        const reverseVoiceMap = Object.entries(voiceLibrary).find(([type, id]) => id === existingCustom.voice);
+        if (reverseVoiceMap) {
+          voiceSelect.value = reverseVoiceMap[0];
+        } else {
+          voiceSelect.value = 'none';
+        }
       } else {
-        document.getElementById('customVoiceSelection').style.display = 'none';
+        // Default to none for auto or unknown
+        voiceSelect.value = 'none';
       }
-    } else {
-      // Default to auto-select
-      document.querySelector('input[name="voiceSelection"][value="auto"]').checked = true;
-      document.querySelector('.voice-option:has(input[value="auto"])').classList.add('selected');
-      document.getElementById('customVoiceSelection').style.display = 'none';
     }
     
     // Show delete button
@@ -6397,11 +6527,6 @@ function openCustomizationModal() {
     
     // Hide delete button
     deleteBtn.style.display = 'none';
-    
-    // Set default voice selection to auto-select
-    document.querySelector('input[name="voiceSelection"][value="auto"]').checked = true;
-    document.querySelector('.voice-option:has(input[value="auto"])').classList.add('selected');
-    document.getElementById('customVoiceSelection').style.display = 'none';
   }
   
   // Update character counters
@@ -6436,20 +6561,14 @@ function initializeCustomizationForm() {
       fullPrompt += '\n\nAdditional instructions: ' + customInstructions;
     }
     
-    // Get voice selection
-    const voiceSelection = document.querySelector('input[name="voiceSelection"]:checked').value;
+    // Get voice selection from the new voice dropdown
+    const voiceTypeSelect = document.getElementById('voiceType');
+    const voiceSelection = voiceTypeSelect ? voiceTypeSelect.value : 'none';
     let selectedVoice = null;
     
-    if (voiceSelection === 'custom') {
-      selectedVoice = document.getElementById('voicePreset').value;
-    } else if (voiceSelection === 'auto') {
-      // Generate auto voice based on character data
-      selectedVoice = getAutoVoice({
-        name: document.getElementById('customName').value.trim() || currentCharacter.name || currentCharacter.Name,
-        category: currentCharacter.category || currentCharacter.Category,
-        prompt: fullPrompt,
-        personalityState: personalityState
-      });
+    if (voiceSelection !== 'none') {
+      // Get the voice ID from the voice library
+      selectedVoice = voiceLibrary[voiceSelection] || null;
     }
     // If voiceSelection === 'none', selectedVoice remains null
     
@@ -6482,7 +6601,7 @@ function initializeCustomizationForm() {
       conversation_starter: currentCharacter.conversation_starter || currentCharacter.Conversation_Starter || "Hi! I'm your customized companion. How can I help you today?",
       // Voice data
       voice_id: selectedVoice,
-      voice_type: voiceSelection === 'none' ? 'none' : 'openai',
+      voice_type: voiceSelection === 'none' ? 'none' : 'elevenlabs',
       // User data
       created_by: userId,
       user_email: userEmail,
@@ -6536,8 +6655,9 @@ function initializeCustomizationForm() {
           generated_prompt: generatedPrompt,
           custom_instructions: customInstructions,
           personality_state: personalityState,
-          voice_selection: voiceSelection,
+          voice_selection: voiceSelection === 'none' ? 'none' : 'custom',
           voice: selectedVoice,
+          voice_type: voiceSelection,
           created_at: new Date().toISOString(),
           avatar_url: currentCharacter.avatar_url,
           airtable_id: result.character_id
@@ -6630,14 +6750,19 @@ function applyCustomization(customization) {
   currentCharacter.isCustomized = true;
   
   // Apply voice selection
-  if (customization.voice_selection) {
+  if (customization.voice || customization.voice_type) {
+    // Apply voice ID from customization
+    currentCharacter.voice_id = customization.voice || null;
+    currentCharacter.voice_type = customization.voice_type || 'none';
+    
+    // For backward compatibility
     currentCharacter.voice_selection = customization.voice_selection;
     currentCharacter.voice = customization.voice;
   }
   
   // Update UI
   document.getElementById('characterName').textContent = customization.name || currentCharacter.name;
-  document.getElementById('characterTitle').textContent = customization.title || currentCharacter.Character_Title || currentCharacter.Title;
+  document.getElementById('characterTitle').textContent = customization.title || currentCharacter.title || currentCharacter.Title || currentCharacter.Character_Title;
   
   // Add customization indicator
   const characterHeader = document.getElementById('characterHeader');
@@ -7102,22 +7227,7 @@ function updatePromptPreview(prompt) {
   }
 }
 
-// Voice selection functions
-function selectVoice(type) {
-  document.querySelectorAll('.voice-option').forEach(option => {
-    option.classList.remove('selected');
-  });
-  
-  event.target.closest('.voice-option').classList.add('selected');
-  document.querySelector(`input[value="${type}"]`).checked = true;
-  
-  const customSelection = document.getElementById('customVoiceSelection');
-  if (type === 'custom') {
-    customSelection.style.display = 'block';
-  } else {
-    customSelection.style.display = 'none';
-  }
-}
+// Voice selection functions - REMOVED (now using single dropdown)
 
 // Auto voice assignment
 function getAutoVoice(characterData) {
