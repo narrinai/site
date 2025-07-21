@@ -3645,7 +3645,7 @@
             <button type="button" class="btn-delete" onclick="deleteCustomization()" style="display: none;" id="deleteCustomBtn">Delete Customization</button>
             <div style="flex: 1;"></div>
             <button type="button" class="btn-secondary-form" onclick="closeCustomizationModal()">Cancel</button>
-            <button type="submit" class="btn-primary-form">Save Customization</button>
+            <button type="submit" class="btn-primary-form">Save As New</button>
           </div>
         </form>
       </div>
@@ -6862,38 +6862,27 @@ function initializeCustomizationForm() {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '') + '-custom-' + Date.now();
     
-    // Prepare request data for Make.com webhook
+    // Prepare request data for Make.com webhook - matching create-character.html format
     const requestData = {
       action: 'create_character',
-      // Copy all original character fields
-      name: customName,
-      slug: customSlug,
-      title: customTitle,
-      description: currentCharacter.description || currentCharacter.Description || customTitle,
-      category: currentCharacter.category || currentCharacter.Category || 'Custom',
-      tags: currentCharacter.tags || currentCharacter.Tags || [],
-      prompt: btoa(fullPrompt), // Base64 encode the prompt
-      avatar_url: currentCharacter.avatar_url || currentCharacter.Avatar_URL,
-      conversation_starter: currentCharacter.conversation_starter || currentCharacter.Conversation_Starter || "Hi! I'm your customized companion. How can I help you today?",
-      // Voice data
-      voice_id: selectedVoice,
-      voice_type: voiceSelection === 'none' ? 'none' : 'elevenlabs',
-      // User data
-      created_by: userId,
       user_email: userEmail,
       user_token: userToken,
-      // Mark as customized
-      is_customized: true,
-      original_character_id: characterId,
-      original_character_name: currentCharacter.name || currentCharacter.Name,
-      // Personality data
-      personality_traits: personalityState.traits.join(', '),
-      speaking_patterns: personalityState.speaking.join(', '),
-      bonding_approach: personalityState.bonding.join(', '),
-      personality_quirks: personalityState.quirks.filter(q => !q.startsWith('custom-')).join(', '),
-      // Metadata
-      created_at: new Date().toISOString(),
-      status: 'active'
+      
+      // Character data voor Make.com
+      name: customName,
+      slug: customSlug,
+      character_id: customSlug,
+      title: customTitle,
+      description: currentCharacter.description || currentCharacter.Description || customTitle,
+      prompt: fullPrompt, // Don't base64 encode - Make.com expects plain text
+      category: currentCharacter.category || currentCharacter.Category || 'Custom',
+      tags: (currentCharacter.tags || currentCharacter.Tags || []).join(','), // Make.com expects comma-separated string
+      visibility: 'private', // Custom characters are private by default
+      avatar_url: currentCharacter.avatar_url || currentCharacter.Avatar_URL,
+      character_url: `https://narrin.ai/chat.html?char=${customSlug}`,
+      voice_id: selectedVoice || '',
+      voice_type: voiceSelection === 'none' ? 'none' : 'elevenlabs',
+      needs_ai_avatar: false
     };
     
     // Show loading state
@@ -6916,9 +6905,37 @@ function initializeCustomizationForm() {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       
-      const result = await response.json();
+      // Get response as text first, then try to parse
+      const responseText = await response.text();
+      console.log('📝 Raw API Response:', responseText);
       
-      if (result.success) {
+      let result = {};
+      if (responseText && responseText.trim() !== '') {
+        try {
+          result = JSON.parse(responseText);
+          console.log('✅ Parsed result:', result);
+        } catch (parseError) {
+          console.error('JSON Parse Error:', parseError);
+          console.error('Response that failed to parse:', responseText);
+          
+          // Fallback - check if response indicates success
+          if (responseText.includes('"success": true') || responseText.includes('successfully')) {
+            console.log('🔄 Fallback: Detected successful response despite parse error');
+            result = {
+              success: true,
+              message: 'Character created successfully',
+              character: {
+                slug: customSlug,
+                character_id: customSlug
+              }
+            };
+          } else {
+            throw new Error('Invalid response from server - JSON parse failed');
+          }
+        }
+      }
+      
+      if (result.success || result.character) {
         // Save to localStorage as well for quick access
         const customization = {
           characterId: result.character_id || customSlug,
