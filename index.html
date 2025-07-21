@@ -2378,14 +2378,14 @@ if (window.netlifyIdentity) {
   window.netlifyIdentity.on('signup', user => {
     console.log('🎉 New user signup:', user.email);
     
-    // Check voor referral code
-    const referralCode = localStorage.getItem('referralCode');
+    // Check voor referral user ID
+    const referralUserId = localStorage.getItem('referralUserId');
     
     const payload = {
       email: user.email,
       name: user.user_metadata?.full_name || '',
       netlify_uid: user.id,
-      referral_code: referralCode || null
+      referrer_id: referralUserId || null
     };
 
     fetch('https://hook.eu2.make.com/03ug6qzucda4ksrkcc06nu3bu3vetj15', {
@@ -2394,9 +2394,9 @@ if (window.netlifyIdentity) {
       body: JSON.stringify(payload)
     }).then(() => {
       console.log('✅ User registered with referral processing');
-      // Clear referral code na gebruik
-      if (referralCode) {
-        localStorage.removeItem('referralCode');
+      // Clear referral user ID na gebruik
+      if (referralUserId) {
+        localStorage.removeItem('referralUserId');
       }
     }).catch(error => {
       console.error('❌ Registration error:', error);
@@ -2451,10 +2451,10 @@ if (window.netlifyIdentity) {
       console.log('✅ Initialization complete');
       // Check voor referral parameter bij pagina load
 const urlParams = new URLSearchParams(window.location.search);
-const referralCode = urlParams.get('ref');
-if (referralCode) {
-  localStorage.setItem('referralCode', referralCode);
-  console.log('📌 Referral code opgeslagen:', referralCode);
+const referralUserId = urlParams.get('ref');
+if (referralUserId) {
+  localStorage.setItem('referralUserId', referralUserId);
+  console.log('📌 Referral user ID opgeslagen:', referralUserId);
 }
     });
 
@@ -2463,13 +2463,13 @@ if (referralCode) {
 // Detecteer referral parameter
 function checkReferralCode() {
   const urlParams = new URLSearchParams(window.location.search);
-  const referralCode = urlParams.get('ref');
+  const referralUserId = urlParams.get('ref');
   
-  if (referralCode) {
-    console.log('🎁 Referral code detected:', referralCode);
+  if (referralUserId) {
+    console.log('🎁 Referral user ID detected:', referralUserId);
     
-    // Sla referral code op in localStorage voor later gebruik
-    localStorage.setItem('referralCode', referralCode);
+    // Sla referral user ID op in localStorage voor later gebruik
+    localStorage.setItem('referralUserId', referralUserId);
     
     // Toon referral banner
     showReferralBanner();
@@ -2516,21 +2516,21 @@ function closeReferralBanner() {
   }
 }
 
-// Update registration functie om referral code mee te sturen
+// Update registration functie om referral user ID mee te sturen
 function updateRegistrationWithReferral(originalRegistrationFunction) {
   return function(user) {
-    // Haal referral code op
-    const referralCode = localStorage.getItem('referralCode');
+    // Haal referral user ID op
+    const referralUserId = localStorage.getItem('referralUserId');
     
-    if (referralCode) {
-      console.log('📤 Sending referral code with registration:', referralCode);
+    if (referralUserId) {
+      console.log('📤 Sending referral user ID with registration:', referralUserId);
       
-      // Voeg referral code toe aan user data
+      // Voeg referral user ID toe aan user data
       const payload = {
         email: user.email,
         name: user.user_metadata?.full_name || '',
         netlify_uid: user.id,
-        referral_code: referralCode
+        referrer_id: referralUserId
       };
       
       // Verstuur naar webhook
@@ -2540,8 +2540,8 @@ function updateRegistrationWithReferral(originalRegistrationFunction) {
         body: JSON.stringify(payload)
       }).then(() => {
         console.log('✅ Registration with referral sent successfully');
-        // Clear referral code na gebruik
-        localStorage.removeItem('referralCode');
+        // Clear referral user ID na gebruik
+        localStorage.removeItem('referralUserId');
       }).catch(error => {
         console.error('❌ Error sending referral registration:', error);
       });
