@@ -2536,6 +2536,51 @@
       box-shadow: var(--shadow-lg);
     }
 
+    /* Form button styles to match create-character.html */
+    .btn-primary-form {
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      flex: 1;
+      box-shadow: var(--shadow-colored);
+      position: relative;
+      overflow: hidden;
+      padding: var(--spacing-sm) var(--spacing-xl);
+      border-radius: var(--radius-full);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      font-family: var(--font-primary);
+      font-size: var(--font-size-base);
+      border: none;
+    }
+
+    .btn-primary-form:hover:not(:disabled) {
+      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-xl);
+    }
+
+    .btn-secondary-form {
+      background: var(--color-white);
+      color: var(--color-navy);
+      border: 2px solid var(--color-teal);
+      min-width: 120px;
+      box-shadow: var(--shadow-sm);
+      padding: var(--spacing-sm) var(--spacing-xl);
+      border-radius: var(--radius-full);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      font-family: var(--font-primary);
+      font-size: var(--font-size-base);
+    }
+
+    .btn-secondary-form:hover {
+      background: var(--color-teal);
+      color: var(--color-white);
+      transform: translateY(-2px);
+    }
+
     /* Generated prompt styles */
     .generated-prompt-section {
       background: var(--color-off-white);
@@ -2561,6 +2606,16 @@
       font-size: var(--font-size-sm);
       line-height: 1.6;
       color: var(--color-gray-dark);
+      width: 100%;
+      resize: vertical;
+      font-family: var(--font-primary);
+      transition: all var(--transition-base);
+    }
+    
+    .prompt-preview:focus {
+      outline: none;
+      border-color: var(--color-teal);
+      box-shadow: var(--shadow-md);
     }
 
     .prompt-empty {
@@ -3423,9 +3478,7 @@
             <!-- Generated Prompt Preview -->
             <div class="generated-prompt-section">
               <h3>Generated Character Prompt</h3>
-              <div class="prompt-preview" id="promptPreview">
-                <div class="prompt-empty">Select personality traits above to generate your character prompt...</div>
-              </div>
+              <textarea class="prompt-preview" id="promptPreview" rows="8" placeholder="Select personality traits above to generate your character prompt..."></textarea>
             </div>
             
             <div class="form-group">
@@ -3442,8 +3495,8 @@
           <div class="customization-actions">
             <button type="button" class="btn-delete" onclick="deleteCustomization()" style="display: none;" id="deleteCustomBtn">Delete Customization</button>
             <div style="flex: 1;"></div>
-            <button type="button" class="btn-secondary" onclick="closeCustomizationModal()">Cancel</button>
-            <button type="submit" class="btn-primary btn-gradient">Save Customization</button>
+            <button type="button" class="btn-secondary-form" onclick="closeCustomizationModal()">Cancel</button>
+            <button type="submit" class="btn-primary-form">Save Customization</button>
           </div>
         </form>
       </div>
@@ -6283,6 +6336,13 @@ function openCustomizationModal() {
     }
   };
   
+  // Load character's prompt from Airtable if available
+  if (currentCharacter.prompt && !existingCustom) {
+    // Display the character's original prompt in the preview
+    const promptPreview = document.getElementById('promptPreview');
+    promptPreview.value = currentCharacter.prompt;
+  }
+  
   if (existingCustom) {
     // Load existing customization
     document.getElementById('customName').value = existingCustom.name || currentCharacter.name || '';
@@ -6366,9 +6426,8 @@ function initializeCustomizationForm() {
     
     const characterId = currentCharacter.id || currentCharacter.Name;
     
-    // Generate the full prompt
-    generatePrompt();
-    const generatedPrompt = document.getElementById('promptPreview').textContent;
+    // Get the prompt from the textarea (user may have edited it)
+    const generatedPrompt = document.getElementById('promptPreview').value.trim();
     const customInstructions = document.getElementById('customPrompt').value.trim();
     
     // Combine generated prompt with custom instructions
@@ -6394,39 +6453,126 @@ function initializeCustomizationForm() {
     }
     // If voiceSelection === 'none', selectedVoice remains null
     
-    // Gather customization data
-    const customization = {
-      characterId: characterId,
-      originalName: currentCharacter.name || currentCharacter.Name,
-      name: document.getElementById('customName').value.trim(),
-      title: document.getElementById('customTitle').value.trim(),
-      prompt: fullPrompt,
-      generated_prompt: generatedPrompt,
-      custom_instructions: customInstructions,
-      personality_state: personalityState, // Save full personality state
-      voice_selection: voiceSelection, // 'auto', 'custom', or 'none'
-      voice: selectedVoice, // The actual voice ID or null
+    // Get user data
+    const userId = localStorage.getItem('user_id');
+    const userEmail = localStorage.getItem('user_email');
+    const userToken = localStorage.getItem('user_token');
+    
+    // Prepare data for Airtable
+    const customName = document.getElementById('customName').value.trim() || currentCharacter.name || currentCharacter.Name;
+    const customTitle = document.getElementById('customTitle').value.trim() || currentCharacter.Title;
+    
+    // Create slug from custom name
+    const customSlug = customName.toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '') + '-custom-' + Date.now();
+    
+    // Prepare request data for Make.com webhook
+    const requestData = {
+      action: 'create_character',
+      // Copy all original character fields
+      name: customName,
+      slug: customSlug,
+      title: customTitle,
+      description: currentCharacter.description || currentCharacter.Description || customTitle,
+      category: currentCharacter.category || currentCharacter.Category || 'Custom',
+      tags: currentCharacter.tags || currentCharacter.Tags || [],
+      prompt: btoa(fullPrompt), // Base64 encode the prompt
+      avatar_url: currentCharacter.avatar_url || currentCharacter.Avatar_URL,
+      conversation_starter: currentCharacter.conversation_starter || currentCharacter.Conversation_Starter || "Hi! I'm your customized companion. How can I help you today?",
+      // Voice data
+      voice_id: selectedVoice,
+      voice_type: voiceSelection === 'none' ? 'none' : 'openai',
+      // User data
+      created_by: userId,
+      user_email: userEmail,
+      user_token: userToken,
+      // Mark as customized
+      is_customized: true,
+      original_character_id: characterId,
+      original_character_name: currentCharacter.name || currentCharacter.Name,
+      // Personality data
+      personality_traits: personalityState.traits.join(', '),
+      speaking_patterns: personalityState.speaking.join(', '),
+      bonding_approach: personalityState.bonding.join(', '),
+      personality_quirks: personalityState.quirks.filter(q => !q.startsWith('custom-')).join(', '),
+      // Metadata
       created_at: new Date().toISOString(),
-      avatar_url: currentCharacter.avatar_url // Keep original avatar
+      status: 'active'
     };
     
-    // Save to localStorage
-    customizedCharacters[characterId] = customization;
-    localStorage.setItem('customizedCharacters', JSON.stringify(customizedCharacters));
+    // Show loading state
+    const submitButton = e.target.querySelector('button[type="submit"]');
+    const originalText = submitButton.textContent;
+    submitButton.disabled = true;
+    submitButton.textContent = 'Creating Character...';
     
-    // Apply customization to current character
-    applyCustomization(customization);
-    
-    // Close modal
-    closeCustomizationModal();
-    
-    // Show success notification
-    showNotification('success', 'Character Customized!', 
-      `${customization.name} has been customized just for you. Your changes are saved locally.`);
-    
-    // Clear chat to start fresh with customized character
-    if (confirm('Would you like to start a fresh conversation with your customized character?')) {
-      clearChatHistory();
+    try {
+      // Send to Make.com webhook
+      const response = await fetch('https://hook.eu2.make.com/c36jubkn9rbbqg0ovgfbx2ca1iwgf16q', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestData)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // Save to localStorage as well for quick access
+        const customization = {
+          characterId: result.character_id || customSlug,
+          originalCharacterId: characterId,
+          originalName: currentCharacter.name || currentCharacter.Name,
+          name: customName,
+          title: customTitle,
+          slug: customSlug,
+          prompt: fullPrompt,
+          generated_prompt: generatedPrompt,
+          custom_instructions: customInstructions,
+          personality_state: personalityState,
+          voice_selection: voiceSelection,
+          voice: selectedVoice,
+          created_at: new Date().toISOString(),
+          avatar_url: currentCharacter.avatar_url,
+          airtable_id: result.character_id
+        };
+        
+        customizedCharacters[characterId] = customization;
+        localStorage.setItem('customizedCharacters', JSON.stringify(customizedCharacters));
+        
+        // Apply customization to current character
+        applyCustomization(customization);
+        
+        // Close modal
+        closeCustomizationModal();
+        
+        // Show success notification
+        showNotification('success', 'Character Created!', 
+          `${customName} has been created and saved to your account. You can now chat with your customized character anytime!`);
+        
+        // Optional: Redirect to the new character's chat page
+        setTimeout(() => {
+          if (confirm('Would you like to start chatting with your new customized character?')) {
+            window.location.href = `/chat.html?char=${customSlug}`;
+          }
+        }, 1000);
+      } else {
+        throw new Error(result.error || 'Failed to create character');
+      }
+    } catch (error) {
+      console.error('❌ Character creation error:', error);
+      showNotification('error', 'Creation Failed', 
+        `Unable to create your customized character. ${error.message}. Please try again.`);
+    } finally {
+      // Restore button state
+      submitButton.disabled = false;
+      submitButton.textContent = originalText;
     }
   });
 }
@@ -6950,11 +7096,9 @@ function buildResponseStyleFromSliders() {
 function updatePromptPreview(prompt) {
   const preview = document.getElementById('promptPreview');
   if (prompt.trim()) {
-    preview.innerHTML = '';
-    preview.textContent = prompt;
-    preview.classList.remove('prompt-empty');
+    preview.value = prompt;
   } else {
-    preview.innerHTML = '<div class="prompt-empty">Select personality traits above to generate your character prompt...</div>';
+    preview.value = '';
   }
 }
 
@@ -7059,6 +7203,7 @@ function getAutoVoice(characterData) {
 // Initialize communication style when modal opens
 document.addEventListener('DOMContentLoaded', () => {
   setupCommunicationStyle();
+  initializeCustomizationForm();
 });
 
 // ===== HUMAN SUPPORT ESCALATION SYSTEM =====
