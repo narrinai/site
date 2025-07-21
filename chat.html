@@ -2517,6 +2517,182 @@
       display: none !important;
     }
 
+    /* Additional customization modal styles */
+    .customization-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+      padding: var(--spacing-xl);
+      border-top: 1px solid var(--color-light-gray);
+    }
+
+    .btn-gradient {
+      background: var(--gradient-primary) !important;
+      box-shadow: var(--shadow-colored);
+    }
+
+    .btn-gradient:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    /* Generated prompt styles */
+    .generated-prompt-section {
+      background: var(--color-off-white);
+      padding: var(--spacing-lg);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--spacing-xl);
+      border: 2px solid var(--color-light-gray);
+    }
+
+    .generated-prompt-section h3 {
+      margin: 0 0 var(--spacing-md) 0;
+      color: var(--color-navy);
+      font-size: var(--font-size-lg);
+      font-weight: 600;
+    }
+
+    .prompt-preview {
+      background: var(--color-white);
+      padding: var(--spacing-lg);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-light-gray);
+      min-height: 100px;
+      font-size: var(--font-size-sm);
+      line-height: 1.6;
+      color: var(--color-gray-dark);
+    }
+
+    .prompt-empty {
+      color: var(--color-gray);
+      font-style: italic;
+      text-align: center;
+      padding: var(--spacing-xl);
+    }
+
+    /* Custom quirks styles */
+    .custom-quirks {
+      margin-top: var(--spacing-md);
+      padding-top: var(--spacing-md);
+      border-top: 1px solid var(--color-light-gray);
+    }
+
+    .quirk-input-container {
+      display: flex;
+      gap: var(--spacing-sm);
+      margin-top: var(--spacing-xs);
+    }
+
+    .quirk-input {
+      flex: 1;
+      padding: var(--spacing-sm);
+      border: 2px solid var(--color-light-gray);
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-sm);
+      transition: all var(--transition-base);
+    }
+
+    .quirk-input:focus {
+      outline: none;
+      border-color: var(--color-teal);
+      box-shadow: 0 0 0 3px rgba(38, 166, 154, 0.1);
+    }
+
+    .add-quirk-btn {
+      padding: var(--spacing-sm) var(--spacing-lg);
+      background: var(--color-teal);
+      color: var(--color-white);
+      border: none;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      white-space: nowrap;
+    }
+
+    .add-quirk-btn:hover {
+      background: var(--color-dark-teal);
+      transform: translateY(-1px);
+    }
+
+    /* Character counter styles */
+    .char-counter {
+      text-align: right;
+      font-size: var(--font-size-xs);
+      color: var(--color-gray);
+      margin-top: var(--spacing-xs);
+    }
+
+    .btn-delete {
+      background: transparent;
+      color: var(--color-coral);
+      border: 2px solid var(--color-coral);
+      padding: var(--spacing-sm) var(--spacing-lg);
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-base);
+    }
+
+    .btn-delete:hover {
+      background: var(--color-coral);
+      color: var(--color-white);
+    }
+
+    /* Voice option styling */
+    .voice-options {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+      margin-top: var(--spacing-md);
+    }
+    
+    .voice-option {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+      cursor: pointer;
+      padding: var(--spacing-md) var(--spacing-lg);
+      border: 2px solid var(--color-light-gray);
+      border-radius: var(--radius-md);
+      transition: all var(--transition-base);
+      background: var(--color-white);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .voice-option:hover {
+      border-color: var(--color-teal);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .voice-option.selected {
+      border-color: var(--color-teal);
+      background: var(--color-off-white);
+      box-shadow: var(--shadow-colored);
+    }
+    
+    .voice-option input[type="radio"] {
+      margin: 0;
+      width: auto;
+    }
+    
+    .voice-option-content {
+      flex: 1;
+    }
+    
+    .voice-option-title {
+      font-weight: 600;
+      margin-bottom: var(--spacing-xs);
+      color: var(--color-navy);
+      font-size: var(--font-size-sm);
+    }
+    
+    .voice-option-desc {
+      font-size: var(--font-size-xs);
+      color: var(--color-gray);
+      line-height: 1.4;
+    }
   </style>
 
   <!-- Netlify Identity Widget -->
@@ -3012,17 +3188,248 @@
             </div>
           </div>
 
-          <!-- Personality & Instructions -->
+          <!-- Personality Builder -->
           <div class="form-section">
-            <h2>Personality & Instructions</h2>
+            <h2>Personality</h2>
             
-            <div class="form-group">
-              <label for="customPersonality">Personality & Behavior</label>
-              <textarea id="customPersonality" rows="4" placeholder="Describe how this character should behave and communicate with you..."></textarea>
+            <!-- Personality Spectrum -->
+            <div class="personality-section">
+              <h3>Personality Spectrum</h3>
+              <div class="slider-group">
+                <div class="slider-item">
+                  <div class="slider-labels">
+                    <span class="slider-label">Introvert</span>
+                    <span class="slider-label">Extravert</span>
+                  </div>
+                  <input type="range" min="0" max="100" value="50" class="personality-slider" id="introvertExtravert" data-trait="social">
+                </div>
+                
+                <div class="slider-item">
+                  <div class="slider-labels">
+                    <span class="slider-label">Logical</span>
+                    <span class="slider-label">Emotional</span>
+                  </div>
+                  <input type="range" min="0" max="100" value="50" class="personality-slider" id="logicalEmotional" data-trait="thinking">
+                </div>
+                
+                <div class="slider-item">
+                  <div class="slider-labels">
+                    <span class="slider-label">Serious</span>
+                    <span class="slider-label">Playful</span>
+                  </div>
+                  <input type="range" min="0" max="100" value="50" class="personality-slider" id="seriousPlayful" data-trait="mood">
+                </div>
+                
+                <div class="slider-item">
+                  <div class="slider-labels">
+                    <span class="slider-label">Formal</span>
+                    <span class="slider-label">Casual</span>
+                  </div>
+                  <input type="range" min="0" max="100" value="50" class="personality-slider" id="formalCasual" data-trait="formality">
+                </div>
+                
+                <div class="slider-item">
+                  <div class="slider-labels">
+                    <span class="slider-label">Patient</span>
+                    <span class="slider-label">Impulsive</span>
+                  </div>
+                  <input type="range" min="0" max="100" value="50" class="personality-slider" id="patientImpulsive" data-trait="tempo">
+                </div>
+              </div>
+            </div>
+            
+            <!-- Character Traits -->
+            <div class="personality-section">
+              <h3>Character Traits</h3>
+              <div class="button-group-personality" id="personalityTraits">
+                <button type="button" class="personality-button" data-trait="wise">Wise</button>
+                <button type="button" class="personality-button" data-trait="humorous">Humorous</button>
+                <button type="button" class="personality-button" data-trait="mysterious">Mysterious</button>
+                <button type="button" class="personality-button" data-trait="caring">Caring</button>
+                <button type="button" class="personality-button" data-trait="ambitious">Ambitious</button>
+                <button type="button" class="personality-button" data-trait="sarcastic">Sarcastic</button>
+                <button type="button" class="personality-button" data-trait="optimistic">Optimistic</button>
+                <button type="button" class="personality-button" data-trait="protective">Protective</button>
+                <button type="button" class="personality-button" data-trait="curious">Curious</button>
+                <button type="button" class="personality-button" data-trait="dramatic">Dramatic</button>
+                <button type="button" class="personality-button" data-trait="confident">Confident</button>
+                <button type="button" class="personality-button" data-trait="gentle">Gentle</button>
+                <button type="button" class="personality-button" data-trait="intense">Intense</button>
+                <button type="button" class="personality-button" data-trait="creative">Creative</button>
+                <button type="button" class="personality-button" data-trait="analytical">Analytical</button>
+              </div>
+              <div class="selection-counter" id="traitsCounter">Select 0-5 traits</div>
+            </div>
+          </div>
+          
+          <!-- Communication Style (updated) -->
+          <div class="form-section">
+            <h2>Communication Style</h2>
+            
+            <!-- Speaking Pattern (existing) -->
+            <div class="personality-section">
+              <h3>Speaking Pattern</h3>
+              <div class="button-group-personality" id="speakingPattern">
+                <button type="button" class="personality-button" data-pattern="formal-eloquent">Formal & Eloquent</button>
+                <button type="button" class="personality-button" data-pattern="casual-friendly">Casual & Friendly</button>
+                <button type="button" class="personality-button" data-pattern="bold-confident">Bold & Confident</button>
+                <button type="button" class="personality-button" data-pattern="thoughtful-deep">Thoughtful & Deep</button>
+                <button type="button" class="personality-button" data-pattern="witty-sarcastic">Witty & Sarcastic</button>
+                <button type="button" class="personality-button" data-pattern="warm-nurturing">Warm & Nurturing</button>
+                <button type="button" class="personality-button" data-pattern="direct-practical">Direct & Practical</button>
+                <button type="button" class="personality-button" data-pattern="mysterious-cryptic">Mysterious & Cryptic</button>
+              </div>
+              <div class="selection-counter" id="speakingCounter">Select 0-3 speaking patterns</div>
+            </div>
+            
+            <!-- Response Style Sliders (existing) -->
+            <div class="personality-section">
+              <h3>Response Style</h3>
+              <div class="slider-group">
+                <div class="slider-item">
+                  <div class="slider-labels">
+                    <span class="slider-label">Brief</span>
+                    <span class="slider-label">Detailed</span>
+                  </div>
+                  <input type="range" min="0" max="100" value="50" class="personality-slider" id="briefDetailed" data-response="length">
+                </div>
+                
+                <div class="slider-item">
+                  <div class="slider-labels">
+                    <span class="slider-label">Direct</span>
+                    <span class="slider-label">Storytelling</span>
+                  </div>
+                  <input type="range" min="0" max="100" value="50" class="personality-slider" id="directStorytelling" data-response="style">
+                </div>
+                
+                <div class="slider-item">
+                  <div class="slider-labels">
+                    <span class="slider-label">Facts</span>
+                    <span class="slider-label">Personal experiences</span>
+                  </div>
+                  <input type="range" min="0" max="100" value="50" class="personality-slider" id="factsPersonal" data-response="content">
+                </div>
+              </div>
+            </div>
+            
+            <!-- Bonding Approach -->
+            <div class="personality-section">
+              <h3>Bonding Approach</h3>
+              <div class="button-group-personality" id="bondingApproach">
+                <button type="button" class="personality-button" data-bonding="mentor-teacher">Mentor & Teacher</button>
+                <button type="button" class="personality-button" data-bonding="friend-companion">Friend & Companion</button>
+                <button type="button" class="personality-button" data-bonding="protector-guide">Protector & Guide</button>
+                <button type="button" class="personality-button" data-bonding="challenger-motivator">Challenger & Motivator</button>
+                <button type="button" class="personality-button" data-bonding="advisor-counselor">Advisor & Counselor</button>
+                <button type="button" class="personality-button" data-bonding="entertainer-inspiring">Entertainer & Inspiring</button>
+              </div>
+              <div class="selection-counter" id="bondingCounter">Select 0-2 approaches</div>
+            </div>
+            
+            <!-- Voice Selection -->
+            <div class="personality-section">
+              <h3>🎙️ Voice Selection</h3>
+              <div class="voice-options">
+                <div class="voice-option selected" onclick="selectVoice('auto')">
+                  <input type="radio" name="voiceSelection" value="auto" checked>
+                  <div class="voice-option-content">
+                    <div class="voice-option-title">🤖 Auto-Select</div>
+                    <div class="voice-option-desc">We'll choose the perfect voice based on your character's personality</div>
+                  </div>
+                </div>
+                
+                <div class="voice-option" onclick="selectVoice('custom')">
+                  <input type="radio" name="voiceSelection" value="custom">
+                  <div class="voice-option-content">
+                    <div class="voice-option-title">🎯 Choose Voice</div>
+                    <div class="voice-option-desc">Pick from our curated voice collection</div>
+                  </div>
+                </div>
+                
+                <div class="voice-option" onclick="selectVoice('none')">
+                  <input type="radio" name="voiceSelection" value="none">
+                  <div class="voice-option-content">
+                    <div class="voice-option-title">🔇 No Voice</div>
+                    <div class="voice-option-desc">Text-only character</div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Custom Voice Selection (hidden by default) -->
+              <div id="customVoiceSelection" style="display: none; margin-top: var(--spacing-lg);">
+                <label for="voicePreset">Voice Type</label>
+                <select id="voicePreset" name="voicePreset">
+                  <option value="">Choose a voice...</option>
+                  <!-- Character-Specific Voices -->
+                  <option value="royal_authority">👑 Royal Authority - Authoritative and majestic</option>
+                  <option value="wise_mentor">🧙‍♂️ Wise Mentor - Supportive and experienced</option>
+                  <option value="caring_therapist">💝 Caring Advisor - Understanding and soothing</option>
+                  <option value="romantic_partner">💕 Romantic Partner - Warm and loving</option>
+                  <option value="best_friend">🤗 Best Friend - Casual and supportive</option>
+                  <option value="mysterious_stranger">🎭 Mysterious Stranger - Intriguing and enigmatic</option>
+                  <option value="professional_expert">💼 Professional Expert - Clear and knowledgeable</option>
+                  <option value="creative_artist">🎨 Creative Artist - Expressive and inspiring</option>
+                  <option value="tech_specialist">💻 Tech Specialist - Modern and informative</option>
+                  <option value="storyteller">📚 Storyteller - Engaging and narrative</option>
+                  <option value="coach_motivator">🏆 Coach & Motivator - Energetic and encouraging</option>
+                  <option value="zen_master">🧘 Zen Master - Calm and philosophical</option>
+                  <!-- OpenAI Voice IDs -->
+                  <optgroup label="Voice Profiles">
+                    <option value="alloy">Alloy - Neutral and clear</option>
+                    <option value="echo">Echo - Smooth and refined</option>
+                    <option value="fable">Fable - Expressive British accent</option>
+                    <option value="onyx">Onyx - Deep and authoritative</option>
+                    <option value="nova">Nova - Warm and friendly</option>
+                    <option value="shimmer">Shimmer - Soft and gentle</option>
+                  </optgroup>
+                </select>
+                
+                <!-- Voice Preview Button -->
+                <button type="button" id="previewVoice" class="btn-secondary-form" style="margin-top: var(--spacing-md); padding: var(--spacing-sm) var(--spacing-lg);">
+                  🔊 Preview Voice
+                </button>
+              </div>
+            </div>
+            
+            <!-- Personality Quirks -->
+            <div class="personality-section">
+              <h3>Personality Quirks</h3>
+              <div class="button-group-personality" id="personalityQuirks">
+                <button type="button" class="personality-button" data-quirk="historical-references">Makes historical references</button>
+                <button type="button" class="personality-button" data-quirk="food-metaphors">Uses food metaphors</button>
+                <button type="button" class="personality-button" data-quirk="collects-facts">Collects interesting facts</button>
+                <button type="button" class="personality-button" data-quirk="tells-stories">Tells relevant stories</button>
+                <button type="button" class="personality-button" data-quirk="strong-opinions">Has strong opinions</button>
+                <button type="button" class="personality-button" data-quirk="gets-excited">Gets excited about expertise</button>
+                <button type="button" class="personality-button" data-quirk="remembers-details">Remembers small details</button>
+                <button type="button" class="personality-button" data-quirk="unusual-phrases">Uses unusual phrases</button>
+              </div>
+              
+              <!-- Custom Quirks Input -->
+              <div class="custom-quirks">
+                <label for="customQuirk">Add custom quirk:</label>
+                <div class="quirk-input-container">
+                  <input type="text" id="customQuirk" class="quirk-input" placeholder="e.g. Always quotes Shakespeare, Loves space analogies..." maxlength="50">
+                  <button type="button" id="addCustomQuirk" class="add-quirk-btn">Add</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Generated Prompt & Custom Instructions -->
+          <div class="form-section">
+            <h2>Character Prompt</h2>
+            
+            <!-- Generated Prompt Preview -->
+            <div class="generated-prompt-section">
+              <h3>Generated Character Prompt</h3>
+              <div class="prompt-preview" id="promptPreview">
+                <div class="prompt-empty">Select personality traits above to generate your character prompt...</div>
+              </div>
             </div>
             
             <div class="form-group">
-              <label for="customPrompt">Custom Instructions</label>
+              <label for="customPrompt">Custom</label>
               <textarea id="customPrompt" rows="6" placeholder="Add specific instructions for your character. For example:
 - Always greet me by my nickname
 - Focus on practical advice
@@ -3030,18 +3437,13 @@
 - Ask follow-up questions
 - Remember my goals"></textarea>
             </div>
-            
-            <div class="form-group">
-              <label for="customStarter">Conversation Starter</label>
-              <input type="text" id="customStarter" placeholder="How should the character greet you?" maxlength="200">
-            </div>
           </div>
           
           <div class="customization-actions">
             <button type="button" class="btn-delete" onclick="deleteCustomization()" style="display: none;" id="deleteCustomBtn">Delete Customization</button>
             <div style="flex: 1;"></div>
             <button type="button" class="btn-secondary" onclick="closeCustomizationModal()">Cancel</button>
-            <button type="submit" class="btn-primary">Save Customization</button>
+            <button type="submit" class="btn-primary btn-gradient">Save Customization</button>
           </div>
         </form>
       </div>
@@ -5833,10 +6235,20 @@ let customizedCharacters = JSON.parse(localStorage.getItem('customizedCharacters
 // Personality state for customization
 let personalityState = {
   speaking: [],
+  traits: [],
+  bonding: [],
+  quirks: [],
   sliders: {
+    // Response style sliders
     length: 50,
     style: 50,
-    content: 50
+    content: 50,
+    // Personality spectrum sliders
+    social: 50,
+    thinking: 50,
+    mood: 50,
+    formality: 50,
+    tempo: 50
   }
 };
 
@@ -5854,10 +6266,20 @@ function openCustomizationModal() {
   // Reset personality state
   personalityState = {
     speaking: [],
+    traits: [],
+    bonding: [],
+    quirks: [],
     sliders: {
+      // Response style sliders
       length: 50,
       style: 50,
-      content: 50
+      content: 50,
+      // Personality spectrum sliders
+      social: 50,
+      thinking: 50,
+      mood: 50,
+      formality: 50,
+      tempo: 50
     }
   };
   
@@ -5865,16 +6287,44 @@ function openCustomizationModal() {
     // Load existing customization
     document.getElementById('customName').value = existingCustom.name || currentCharacter.name || '';
     document.getElementById('customTitle').value = existingCustom.title || currentCharacter.Title || '';
-    document.getElementById('customPersonality').value = existingCustom.personality || '';
-    document.getElementById('customPrompt').value = existingCustom.prompt || '';
-    document.getElementById('customStarter').value = existingCustom.conversation_starter || '';
+    document.getElementById('customPrompt').value = existingCustom.custom_instructions || '';
     
-    // Load communication style if saved
-    if (existingCustom.communication_style) {
-      personalityState = existingCustom.communication_style;
+    // Load personality state if saved
+    if (existingCustom.personality_state) {
+      personalityState = existingCustom.personality_state;
       
       // Update UI to reflect saved state
       updateCommunicationStyleUI();
+    } else if (existingCustom.communication_style) {
+      // Backward compatibility with old format
+      personalityState.speaking = existingCustom.communication_style.speaking || [];
+      personalityState.sliders = { ...personalityState.sliders, ...existingCustom.communication_style.sliders };
+      updateCommunicationStyleUI();
+    }
+    
+    // Load voice selection
+    if (existingCustom.voice_selection) {
+      // Set voice selection radio button
+      document.querySelector(`input[name="voiceSelection"][value="${existingCustom.voice_selection}"]`).checked = true;
+      
+      // Update voice option UI
+      document.querySelectorAll('.voice-option').forEach(option => {
+        option.classList.remove('selected');
+      });
+      document.querySelector(`.voice-option:has(input[value="${existingCustom.voice_selection}"])`).classList.add('selected');
+      
+      // Show custom voice dropdown if needed
+      if (existingCustom.voice_selection === 'custom' && existingCustom.voice) {
+        document.getElementById('customVoiceSelection').style.display = 'block';
+        document.getElementById('voicePreset').value = existingCustom.voice;
+      } else {
+        document.getElementById('customVoiceSelection').style.display = 'none';
+      }
+    } else {
+      // Default to auto-select
+      document.querySelector('input[name="voiceSelection"][value="auto"]').checked = true;
+      document.querySelector('.voice-option:has(input[value="auto"])').classList.add('selected');
+      document.getElementById('customVoiceSelection').style.display = 'none';
     }
     
     // Show delete button
@@ -5883,12 +6333,15 @@ function openCustomizationModal() {
     // Pre-fill with original character data
     document.getElementById('customName').value = currentCharacter.name || currentCharacter.Name || '';
     document.getElementById('customTitle').value = currentCharacter.Title || '';
-    document.getElementById('customPersonality').value = '';
     document.getElementById('customPrompt').value = '';
-    document.getElementById('customStarter').value = currentCharacter.conversation_starter || '';
     
     // Hide delete button
     deleteBtn.style.display = 'none';
+    
+    // Set default voice selection to auto-select
+    document.querySelector('input[name="voiceSelection"][value="auto"]').checked = true;
+    document.querySelector('.voice-option:has(input[value="auto"])').classList.add('selected');
+    document.getElementById('customVoiceSelection').style.display = 'none';
   }
   
   // Update character counters
@@ -5913,16 +6366,46 @@ function initializeCustomizationForm() {
     
     const characterId = currentCharacter.id || currentCharacter.Name;
     
+    // Generate the full prompt
+    generatePrompt();
+    const generatedPrompt = document.getElementById('promptPreview').textContent;
+    const customInstructions = document.getElementById('customPrompt').value.trim();
+    
+    // Combine generated prompt with custom instructions
+    let fullPrompt = generatedPrompt;
+    if (customInstructions) {
+      fullPrompt += '\n\nAdditional instructions: ' + customInstructions;
+    }
+    
+    // Get voice selection
+    const voiceSelection = document.querySelector('input[name="voiceSelection"]:checked').value;
+    let selectedVoice = null;
+    
+    if (voiceSelection === 'custom') {
+      selectedVoice = document.getElementById('voicePreset').value;
+    } else if (voiceSelection === 'auto') {
+      // Generate auto voice based on character data
+      selectedVoice = getAutoVoice({
+        name: document.getElementById('customName').value.trim() || currentCharacter.name || currentCharacter.Name,
+        category: currentCharacter.category || currentCharacter.Category,
+        prompt: fullPrompt,
+        personalityState: personalityState
+      });
+    }
+    // If voiceSelection === 'none', selectedVoice remains null
+    
     // Gather customization data
     const customization = {
       characterId: characterId,
       originalName: currentCharacter.name || currentCharacter.Name,
       name: document.getElementById('customName').value.trim(),
       title: document.getElementById('customTitle').value.trim(),
-      personality: document.getElementById('customPersonality').value.trim(),
-      prompt: document.getElementById('customPrompt').value.trim(),
-      conversation_starter: document.getElementById('customStarter').value.trim(),
-      communication_style: personalityState, // Save communication style
+      prompt: fullPrompt,
+      generated_prompt: generatedPrompt,
+      custom_instructions: customInstructions,
+      personality_state: personalityState, // Save full personality state
+      voice_selection: voiceSelection, // 'auto', 'custom', or 'none'
+      voice: selectedVoice, // The actual voice ID or null
       created_at: new Date().toISOString(),
       avatar_url: currentCharacter.avatar_url // Keep original avatar
     };
@@ -6000,6 +6483,12 @@ function applyCustomization(customization) {
   currentCharacter.customPrompt = enhancedPrompt;
   currentCharacter.isCustomized = true;
   
+  // Apply voice selection
+  if (customization.voice_selection) {
+    currentCharacter.voice_selection = customization.voice_selection;
+    currentCharacter.voice = customization.voice;
+  }
+  
   // Update UI
   document.getElementById('characterName').textContent = customization.name || currentCharacter.name;
   document.getElementById('characterTitle').textContent = customization.title || currentCharacter.Title;
@@ -6067,14 +6556,56 @@ function updateCommunicationStyleUI() {
     }
   });
   
-  // Update sliders
+  // Update personality trait buttons
+  document.querySelectorAll('#personalityTraits .personality-button').forEach(button => {
+    const trait = button.getAttribute('data-trait');
+    if (personalityState.traits.includes(trait)) {
+      button.classList.add('selected');
+    } else {
+      button.classList.remove('selected');
+    }
+  });
+  
+  // Update bonding approach buttons
+  document.querySelectorAll('#bondingApproach .personality-button').forEach(button => {
+    const bonding = button.getAttribute('data-bonding');
+    if (personalityState.bonding.includes(bonding)) {
+      button.classList.add('selected');
+    } else {
+      button.classList.remove('selected');
+    }
+  });
+  
+  // Update personality quirks buttons
+  document.querySelectorAll('#personalityQuirks .personality-button').forEach(button => {
+    const quirk = button.getAttribute('data-quirk');
+    if (personalityState.quirks.includes(quirk)) {
+      button.classList.add('selected');
+    } else {
+      button.classList.remove('selected');
+    }
+  });
+  
+  // Update all sliders
   if (personalityState.sliders) {
+    // Response style sliders
     document.getElementById('briefDetailed').value = personalityState.sliders.length || 50;
     document.getElementById('directStorytelling').value = personalityState.sliders.style || 50;
     document.getElementById('factsPersonal').value = personalityState.sliders.content || 50;
+    
+    // Personality spectrum sliders
+    document.getElementById('introvertExtravert').value = personalityState.sliders.social || 50;
+    document.getElementById('logicalEmotional').value = personalityState.sliders.thinking || 50;
+    document.getElementById('seriousPlayful').value = personalityState.sliders.mood || 50;
+    document.getElementById('formalCasual').value = personalityState.sliders.formality || 50;
+    document.getElementById('patientImpulsive').value = personalityState.sliders.tempo || 50;
   }
   
+  // Update all counters
   updateSpeakingCounter();
+  updateTraitsCounter();
+  updateBondingCounter();
+  generatePrompt();
 }
 
 function toggleArraySelection(array, value, maxCount, button, counterId, type) {
@@ -6116,6 +6647,30 @@ function updateSpeakingCounter() {
   }
 }
 
+function updateTraitsCounter() {
+  const counter = document.getElementById('traitsCounter');
+  if (counter) {
+    counter.textContent = `Select 0-5 traits (${personalityState.traits.length} selected)`;
+    if (personalityState.traits.length >= 5) {
+      counter.classList.add('at-limit');
+    } else {
+      counter.classList.remove('at-limit');
+    }
+  }
+}
+
+function updateBondingCounter() {
+  const counter = document.getElementById('bondingCounter');
+  if (counter) {
+    counter.textContent = `Select 0-2 approaches (${personalityState.bonding.length} selected)`;
+    if (personalityState.bonding.length >= 2) {
+      counter.classList.add('at-limit');
+    } else {
+      counter.classList.remove('at-limit');
+    }
+  }
+}
+
 function updateCharacterCounter(inputId, counterId) {
   const input = document.getElementById(inputId);
   const counter = document.getElementById(counterId);
@@ -6133,15 +6688,56 @@ function setupCommunicationStyle() {
       e.preventDefault();
       const pattern = button.getAttribute('data-pattern');
       toggleArraySelection(personalityState.speaking, pattern, 3, button, 'speakingCounter', 'speaking patterns');
+      updateSpeakingCounter();
+      generatePrompt();
     });
   });
   
-  // Response style sliders
+  // Personality trait buttons
+  const traitButtons = document.querySelectorAll('#personalityTraits .personality-button');
+  traitButtons.forEach(button => {
+    button.addEventListener('click', (e) => {
+      e.preventDefault();
+      const trait = button.getAttribute('data-trait');
+      toggleArraySelection(personalityState.traits, trait, 5, button, 'traitsCounter', 'traits');
+      updateTraitsCounter();
+      generatePrompt();
+    });
+  });
+  
+  // Bonding approach buttons
+  const bondingButtons = document.querySelectorAll('#bondingApproach .personality-button');
+  bondingButtons.forEach(button => {
+    button.addEventListener('click', (e) => {
+      e.preventDefault();
+      const bonding = button.getAttribute('data-bonding');
+      toggleArraySelection(personalityState.bonding, bonding, 2, button, 'bondingCounter', 'approaches');
+      updateBondingCounter();
+      generatePrompt();
+    });
+  });
+  
+  // Personality quirks buttons
+  const quirkButtons = document.querySelectorAll('#personalityQuirks .personality-button');
+  quirkButtons.forEach(button => {
+    button.addEventListener('click', (e) => {
+      e.preventDefault();
+      const quirk = button.getAttribute('data-quirk');
+      toggleArraySelection(personalityState.quirks, quirk, Infinity, button);
+      generatePrompt();
+    });
+  });
+  
+  // Setup custom quirks
+  setupCustomQuirks();
+  
+  // All sliders
   const sliders = document.querySelectorAll('.personality-slider');
   sliders.forEach(slider => {
     slider.addEventListener('input', (e) => {
-      const response = e.target.getAttribute('data-response');
-      personalityState.sliders[response] = parseInt(e.target.value);
+      const trait = e.target.getAttribute('data-trait') || e.target.getAttribute('data-response');
+      personalityState.sliders[trait] = parseInt(e.target.value);
+      generatePrompt();
     });
   });
   
@@ -6153,7 +6749,312 @@ function setupCommunicationStyle() {
   document.getElementById('customTitle').addEventListener('input', () => {
     updateCharacterCounter('customTitle', 'titleCounter');
   });
+  
+  // Voice preview functionality
+  const previewVoiceBtn = document.getElementById('previewVoice');
+  if (previewVoiceBtn) {
+    previewVoiceBtn.addEventListener('click', async () => {
+      const voicePreset = document.getElementById('voicePreset').value;
+      if (!voicePreset) {
+        showNotification('warning', 'No Voice Selected', 'Please select a voice to preview.');
+        return;
+      }
+      
+      const previewText = "Hello! I'm excited to chat with you. This is how I'll sound during our conversations.";
+      
+      // Here you would integrate with your voice synthesis API
+      // For now, we'll just show a notification
+      showNotification('info', 'Voice Preview', `Playing preview for ${voicePreset} voice...`);
+      
+      // In production, you'd call your voice synthesis endpoint:
+      // const audio = await synthesizeVoice(previewText, voicePreset);
+      // audio.play();
+    });
+  }
 }
+
+// Setup custom quirks functionality
+function setupCustomQuirks() {
+  const customQuirkInput = document.getElementById('customQuirk');
+  const addCustomQuirkBtn = document.getElementById('addCustomQuirk');
+  
+  if (!customQuirkInput || !addCustomQuirkBtn) return;
+  
+  addCustomQuirkBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    const quirkText = customQuirkInput.value.trim();
+    if (quirkText) {
+      addCustomQuirk(quirkText);
+      customQuirkInput.value = '';
+    }
+  });
+  
+  customQuirkInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addCustomQuirkBtn.click();
+    }
+  });
+}
+
+function addCustomQuirk(quirkText) {
+  const quirkKey = `custom-${Date.now()}`;
+  personalityState.quirks.push(quirkKey);
+  
+  // Create button for custom quirk
+  const quirkContainer = document.getElementById('personalityQuirks');
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'personality-button selected';
+  button.setAttribute('data-quirk', quirkKey);
+  button.textContent = quirkText;
+  button.style.position = 'relative';
+  
+  // Add remove functionality
+  button.addEventListener('click', (e) => {
+    e.preventDefault();
+    const index = personalityState.quirks.indexOf(quirkKey);
+    if (index > -1) {
+      personalityState.quirks.splice(index, 1);
+      button.remove();
+      generatePrompt();
+    }
+  });
+  
+  quirkContainer.appendChild(button);
+  generatePrompt();
+}
+
+// Generate prompt from personality state
+function generatePrompt() {
+  let prompt = '';
+  const name = document.getElementById('customName').value || currentCharacter?.name || currentCharacter?.Name || 'this character';
+  
+  // Add personality traits
+  if (personalityState.traits.length > 0) {
+    const traits = personalityState.traits.map(trait => trait.replace('-', ' ')).join(', ');
+    prompt += `Your core personality traits include being ${traits}. These traits shape how you interact with others and approach every conversation. `;
+  }
+  
+  // Add detailed slider-based personality
+  prompt += buildPersonalityFromSliders();
+  
+  // Add speaking patterns
+  if (personalityState.speaking.length > 0) {
+    const patterns = personalityState.speaking.map(pattern => 
+      pattern.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase())
+    );
+    prompt += `Your communication style is ${patterns.join(' and ')}. This means you naturally adapt your language and tone to create the most meaningful connection with each person you talk to. `;
+  }
+  
+  // Add response style from sliders
+  prompt += buildResponseStyleFromSliders();
+  
+  // Add bonding approach
+  if (personalityState.bonding.length > 0) {
+    const approaches = personalityState.bonding.map(approach => 
+      approach.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase())
+    );
+    prompt += `You approach relationships as a ${approaches.join(' and ')}. You believe in building genuine connections through trust, understanding, and meaningful dialogue. `;
+  }
+  
+  // Add quirks
+  if (personalityState.quirks.length > 0) {
+    const quirks = personalityState.quirks.map(quirk => {
+      if (quirk.startsWith('custom-')) {
+        const button = document.querySelector(`[data-quirk="${quirk}"]`);
+        return button ? button.textContent : '';
+      }
+      return quirk.replace(/-/g, ' ');
+    }).filter(q => q);
+    
+    if (quirks.length > 0) {
+      prompt += `Your distinctive personality quirks include: ${quirks.join(', ')}. These unique traits make you memorable and help people feel they're talking to someone truly special and authentic. `;
+    }
+  }
+  
+  // Update preview
+  updatePromptPreview(prompt);
+}
+
+function buildPersonalityFromSliders() {
+  let text = '';
+  const { social, thinking, mood, formality, tempo } = personalityState.sliders;
+  
+  // Social dimension
+  if (social < 40) {
+    text += 'You are naturally more introverted and thoughtful, preferring deeper one-on-one conversations. ';
+  } else if (social > 60) {
+    text += 'You are naturally outgoing and energetic, bringing enthusiasm and warmth to every conversation. ';
+  }
+  
+  // Thinking dimension
+  if (thinking < 40) {
+    text += 'You approach situations with logic and analytical thinking, helping others break down complex problems. ';
+  } else if (thinking > 60) {
+    text += 'You are deeply emotionally intelligent and empathetic, naturally tuning into how others are feeling. ';
+  }
+  
+  // Mood dimension
+  if (mood < 40) {
+    text += 'You tend to be serious and focused, bringing depth and gravitas to conversations. ';
+  } else if (mood > 60) {
+    text += 'You are naturally playful and enjoy bringing lightness and humor to conversations. ';
+  }
+  
+  // Formality dimension
+  if (formality < 40) {
+    text += 'You speak with elegance and proper etiquette, showing respect through thoughtful language choices. ';
+  } else if (formality > 60) {
+    text += 'You are naturally casual and relaxed in conversation, making people feel at ease. ';
+  }
+  
+  // Tempo dimension
+  if (tempo < 40) {
+    text += 'You are naturally patient and take time to consider your responses carefully. ';
+  } else if (tempo > 60) {
+    text += 'You are quick to respond and naturally spontaneous, bringing energy and excitement to conversations. ';
+  }
+  
+  return text;
+}
+
+function buildResponseStyleFromSliders() {
+  let text = '';
+  const { length, style, content } = personalityState.sliders;
+  
+  // Response length
+  if (length < 40) {
+    text += 'You believe in the power of concise, impactful communication. ';
+  } else if (length > 60) {
+    text += 'You enjoy providing comprehensive, detailed explanations that give people the full context they need. ';
+  }
+  
+  // Response style
+  if (style < 40) {
+    text += 'You communicate directly and get straight to the point, valuing clarity and efficiency. ';
+  } else if (style > 60) {
+    text += 'You love sharing stories and examples to illustrate your points, making conversations more engaging and relatable. ';
+  }
+  
+  // Response content
+  if (content < 40) {
+    text += 'You focus on facts, data, and objective information to help people make informed decisions. ';
+  } else if (content > 60) {
+    text += 'You share personal experiences and insights to create deeper connections and understanding. ';
+  }
+  
+  return text;
+}
+
+function updatePromptPreview(prompt) {
+  const preview = document.getElementById('promptPreview');
+  if (prompt.trim()) {
+    preview.innerHTML = '';
+    preview.textContent = prompt;
+    preview.classList.remove('prompt-empty');
+  } else {
+    preview.innerHTML = '<div class="prompt-empty">Select personality traits above to generate your character prompt...</div>';
+  }
+}
+
+// Voice selection functions
+function selectVoice(type) {
+  document.querySelectorAll('.voice-option').forEach(option => {
+    option.classList.remove('selected');
+  });
+  
+  event.target.closest('.voice-option').classList.add('selected');
+  document.querySelector(`input[value="${type}"]`).checked = true;
+  
+  const customSelection = document.getElementById('customVoiceSelection');
+  if (type === 'custom') {
+    customSelection.style.display = 'block';
+  } else {
+    customSelection.style.display = 'none';
+  }
+}
+
+// Auto voice assignment
+function getAutoVoice(characterData) {
+  const { name, category, personalityState } = characterData;
+  
+  // Gender detection based on character data
+  let gender = 'neutral';
+  const nameLower = name.toLowerCase();
+  const promptLower = (characterData.prompt || '').toLowerCase();
+  
+  // Simple gender detection logic
+  if (promptLower.includes(' he ') || promptLower.includes(' his ') || 
+      promptLower.includes(' him ') || nameLower.includes('mr.') || 
+      nameLower.includes('sir') || nameLower.includes('lord')) {
+    gender = 'male';
+  } else if (promptLower.includes(' she ') || promptLower.includes(' her ') || 
+             promptLower.includes(' hers ') || nameLower.includes('ms.') || 
+             nameLower.includes('mrs.') || nameLower.includes('lady')) {
+    gender = 'female';
+  }
+  
+  // Category-based voice selection
+  const categoryVoiceMap = {
+    'Philosophers': gender === 'male' ? 'onyx' : 'nova',
+    'Life Coaches': 'nova',
+    'Therapists': gender === 'female' ? 'shimmer' : 'alloy',
+    'Scientists': 'echo',
+    'Historical Figures': gender === 'male' ? 'onyx' : 'fable',
+    'Fictional Characters': 'alloy',
+    'Artists': 'fable',
+    'Musicians': 'nova',
+    'Athletes': gender === 'male' ? 'onyx' : 'nova',
+    'Entrepreneurs': 'echo',
+    'Comedians': 'nova',
+    'Spiritual Leaders': 'shimmer'
+  };
+  
+  // Check category mapping
+  if (category && categoryVoiceMap[category]) {
+    return categoryVoiceMap[category];
+  }
+  
+  // Personality-based voice selection
+  if (personalityState) {
+    const { speaking, traits, sliders } = personalityState;
+    
+    // Check speaking patterns
+    if (speaking?.includes('warm-nurturing') || speaking?.includes('casual-friendly')) {
+      return 'nova';
+    }
+    if (speaking?.includes('formal-eloquent') || speaking?.includes('mysterious-cryptic')) {
+      return 'fable';
+    }
+    if (speaking?.includes('bold-confident') || speaking?.includes('direct-practical')) {
+      return gender === 'male' ? 'onyx' : 'echo';
+    }
+    
+    // Check traits
+    if (traits?.includes('wise') || traits?.includes('thoughtful')) {
+      return gender === 'male' ? 'onyx' : 'shimmer';
+    }
+    if (traits?.includes('energetic') || traits?.includes('playful')) {
+      return 'nova';
+    }
+    
+    // Check sliders
+    if (sliders?.formality < 40) { // More formal
+      return 'fable';
+    }
+  }
+  
+  // Default voices based on gender
+  const defaultVoices = {
+    'male': 'onyx',
+    'female': 'nova',
+    'neutral': 'alloy'
+  };
+  
+  return defaultVoices[gender];
+}
+
 
 // Initialize communication style when modal opens
 document.addEventListener('DOMContentLoaded', () => {
