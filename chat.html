@@ -1489,7 +1489,7 @@
     }
 
     .btn-secondary {
-      padding: var(--spacing-sm) var(--spacing-xl);
+      padding: var(--spacing-lg) var(--spacing-2xl);
       border-radius: var(--radius-full);
       font-weight: 600;
       cursor: pointer;
@@ -1506,7 +1506,7 @@
     }
 
     .btn-delete {
-      padding: var(--spacing-sm) var(--spacing-xl);
+      padding: var(--spacing-lg) var(--spacing-2xl);
       border-radius: var(--radius-full);
       font-weight: 600;
       cursor: pointer;
@@ -2581,6 +2581,18 @@
       box-shadow: var(--shadow-lg);
     }
 
+    /* General button styles to match create-character.html */
+    button {
+      padding: var(--spacing-lg) var(--spacing-2xl);
+      border: none;
+      border-radius: var(--radius-full);
+      font-size: var(--font-size-base);
+      cursor: pointer;
+      font-weight: 600;
+      transition: all var(--transition-base);
+      font-family: var(--font-primary);
+    }
+    
     /* Form button styles to match create-character.html */
     .btn-primary-form {
       background: var(--gradient-primary);
@@ -2589,7 +2601,7 @@
       box-shadow: var(--shadow-colored);
       position: relative;
       overflow: hidden;
-      padding: var(--spacing-sm) var(--spacing-xl);
+      padding: var(--spacing-lg) var(--spacing-2xl);
       border-radius: var(--radius-full);
       font-weight: 600;
       cursor: pointer;
@@ -2604,6 +2616,11 @@
       transform: translateY(-2px);
       box-shadow: var(--shadow-xl);
     }
+    
+    .btn-primary-form:disabled {
+      cursor: not-allowed;
+      opacity: 0.9;
+    }
 
     .btn-secondary-form {
       background: var(--color-white);
@@ -2611,7 +2628,7 @@
       border: 2px solid var(--color-teal);
       min-width: 120px;
       box-shadow: var(--shadow-sm);
-      padding: var(--spacing-sm) var(--spacing-xl);
+      padding: var(--spacing-lg) var(--spacing-2xl);
       border-radius: var(--radius-full);
       font-weight: 600;
       cursor: pointer;
@@ -6709,10 +6726,11 @@ function openCustomizationModal() {
   };
   
   // Load character's prompt from Airtable if available
-  if (currentCharacter.prompt && !existingCustom) {
+  if ((currentCharacter.prompt || currentCharacter.Prompt) && !existingCustom) {
     // Display the character's original prompt in the preview
     const promptPreview = document.getElementById('promptPreview');
-    promptPreview.value = currentCharacter.prompt;
+    const originalPrompt = currentCharacter.prompt || currentCharacter.Prompt || '';
+    promptPreview.value = originalPrompt;
   }
   
   // Load voice settings from current character
@@ -6751,7 +6769,7 @@ function openCustomizationModal() {
   if (existingCustom) {
     // Load existing customization
     document.getElementById('customName').value = existingCustom.name || currentCharacter.name || '';
-    document.getElementById('customTitle').value = existingCustom.title || currentCharacter.Title || '';
+    document.getElementById('customTitle').value = existingCustom.title || currentCharacter.title || currentCharacter.Title || currentCharacter.Character_Title || '';
     document.getElementById('customPrompt').value = existingCustom.custom_instructions || '';
     
     // Load voice settings from customization
@@ -6798,7 +6816,7 @@ function openCustomizationModal() {
   } else {
     // Pre-fill with original character data
     document.getElementById('customName').value = currentCharacter.name || currentCharacter.Name || '';
-    document.getElementById('customTitle').value = currentCharacter.Title || '';
+    document.getElementById('customTitle').value = currentCharacter.title || currentCharacter.Title || currentCharacter.Character_Title || '';
     document.getElementById('customPrompt').value = '';
     
     // Hide delete button
@@ -6855,7 +6873,7 @@ function initializeCustomizationForm() {
     
     // Prepare data for Airtable
     const customName = document.getElementById('customName').value.trim() || currentCharacter.name || currentCharacter.Name;
-    const customTitle = document.getElementById('customTitle').value.trim() || currentCharacter.Title;
+    const customTitle = document.getElementById('customTitle').value.trim() || currentCharacter.title || currentCharacter.Title || currentCharacter.Character_Title;
     
     // Create slug from custom name
     const customSlug = customName.toLowerCase()
@@ -7513,10 +7531,18 @@ function buildResponseStyleFromSliders() {
 
 function updatePromptPreview(prompt) {
   const preview = document.getElementById('promptPreview');
+  const originalPrompt = currentCharacter?.prompt || currentCharacter?.Prompt || '';
+  
   if (prompt.trim()) {
-    preview.value = prompt;
+    // Add new generated prompt on top of original
+    if (originalPrompt) {
+      preview.value = prompt + '\n\n--- Original Character Prompt ---\n' + originalPrompt;
+    } else {
+      preview.value = prompt;
+    }
   } else {
-    preview.value = '';
+    // If no new prompt generated, just show original
+    preview.value = originalPrompt;
   }
 }
 
