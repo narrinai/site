@@ -2211,6 +2211,181 @@
   display: none !important;
 }
 
+    /* ===== REFERRAL COMPONENT STYLES ===== */
+    .referral-content {
+      padding-top: var(--spacing-md);
+    }
+    
+    .referral-description {
+      color: var(--color-gray);
+      font-size: var(--font-size-base);
+      line-height: 1.6;
+      margin-bottom: var(--spacing-2xl);
+      text-align: center;
+    }
+    
+    .referral-description strong {
+      color: var(--color-teal);
+      font-weight: 600;
+    }
+    
+    .referral-code-container,
+    .referral-link-container {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+      flex: 1;
+    }
+    
+    .referral-code {
+      font-family: 'Monaco', 'Consolas', monospace;
+      font-size: var(--font-size-lg);
+      font-weight: 600;
+      color: var(--color-navy);
+      background: var(--color-off-white);
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-radius: var(--radius-md);
+      letter-spacing: 0.05em;
+      user-select: all;
+    }
+    
+    .referral-link-input {
+      flex: 1;
+      padding: var(--spacing-sm) var(--spacing-md);
+      font-size: var(--font-size-sm);
+      border: 2px solid var(--color-light-gray);
+      border-radius: var(--radius-md);
+      background: var(--color-off-white);
+      color: var(--color-gray);
+      font-family: 'Monaco', 'Consolas', monospace;
+      transition: all var(--transition-base);
+    }
+    
+    .referral-link-input:focus {
+      outline: none;
+      border-color: var(--color-teal);
+      background: var(--color-white);
+    }
+    
+    .copy-btn {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+      padding: var(--spacing-sm) var(--spacing-md);
+      background: var(--color-white);
+      color: var(--color-navy);
+      border: 2px solid var(--color-teal);
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      white-space: nowrap;
+    }
+    
+    .copy-btn:hover {
+      background: var(--color-teal);
+      color: var(--color-white);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .copy-btn:active {
+      transform: translateY(0);
+    }
+    
+    .copy-btn.copied {
+      background: var(--color-teal);
+      color: var(--color-white);
+    }
+    
+    .share-buttons {
+      display: flex;
+      gap: var(--spacing-md);
+      margin-top: var(--spacing-2xl);
+      padding-top: var(--spacing-2xl);
+      border-top: 1px solid var(--color-light-gray);
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .share-btn {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-md) var(--spacing-lg);
+      border: none;
+      border-radius: var(--radius-lg);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      flex: 1;
+      min-width: 180px;
+      justify-content: center;
+    }
+    
+    .share-whatsapp {
+      background: #25D366;
+      color: white;
+    }
+    
+    .share-whatsapp:hover {
+      background: #1DA851;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .share-twitter {
+      background: #1DA1F2;
+      color: white;
+    }
+    
+    .share-twitter:hover {
+      background: #1a8cd8;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .share-email {
+      background: var(--color-teal);
+      color: white;
+    }
+    
+    .share-email:hover {
+      background: var(--color-teal-dark);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    /* Mobile responsive */
+    @media (max-width: 768px) {
+      .referral-code-container,
+      .referral-link-container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+      }
+      
+      .copy-btn {
+        width: 100%;
+        justify-content: center;
+      }
+      
+      .referral-link-input {
+        width: 100%;
+      }
+      
+      .share-buttons {
+        flex-direction: column;
+      }
+      
+      .share-btn {
+        width: 100%;
+        min-width: unset;
+      }
+    }
+
   </style>
 </head>
 
@@ -2477,6 +2652,83 @@
                 Downgrade to Free plan and 100 messages/month.
               </a>
             </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Referral Program -->
+      <div class="form-section" style="margin-top: var(--spacing-xl);">
+        <h2>Referral Program</h2>
+        
+        <div class="referral-content">
+          <p class="referral-description">
+            Invite friends to Narrin AI! Both you and your friend will receive <strong>50 extra chat messages</strong> when they sign up using your referral link.
+          </p>
+          
+          <div class="referral-code-section">
+            <div class="profile-item">
+              <span class="label">Your referral code:</span>
+              <div class="value referral-code-container">
+                <span id="referral-code" class="referral-code">Loading...</span>
+                <button class="copy-btn" onclick="copyReferralCode()">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                  Copy
+                </button>
+              </div>
+            </div>
+            
+            <div class="profile-item">
+              <span class="label">Referral link:</span>
+              <div class="value referral-link-container">
+                <input type="text" id="referral-link" class="referral-link-input" readonly value="Loading...">
+                <button class="copy-btn" onclick="copyReferralLink()">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                  Copy
+                </button>
+              </div>
+            </div>
+            
+            <div class="profile-item">
+              <span class="label">Referrals:</span>
+              <div class="value">
+                <span id="referral-count">0</span> friends joined
+              </div>
+            </div>
+            
+            <div class="profile-item">
+              <span class="label">Bonus messages earned:</span>
+              <div class="value">
+                <span id="referral-bonus">0</span> messages
+              </div>
+            </div>
+          </div>
+          
+          <div class="share-buttons">
+            <button class="share-btn share-whatsapp" onclick="shareWhatsApp()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+              </svg>
+              Share on WhatsApp
+            </button>
+            <button class="share-btn share-twitter" onclick="shareTwitter()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+              </svg>
+              Share on X
+            </button>
+            <button class="share-btn share-email" onclick="shareEmail()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+              Share via Email
+            </button>
           </div>
         </div>
       </div>
@@ -2791,6 +3043,125 @@
         showError('Upgrade was cancelled. You can try again anytime.');
         window.history.replaceState({}, document.title, 'profile.html');
       }
+    }
+    
+    // ===== REFERRAL PROGRAM FUNCTIONALITY =====
+    function generateReferralCode(userId) {
+      // Generate a unique referral code based on user ID
+      const prefix = 'NAR';
+      const random = Math.random().toString(36).substr(2, 5).toUpperCase();
+      return `${prefix}-${random}`;
+    }
+    
+    async function loadReferralData(profileData) {
+      try {
+        console.log('🎁 Loading referral data...');
+        
+        // Get or generate referral code
+        let referralCode = profileData?.referral_code;
+        const userId = localStorage.getItem('user_uid');
+        
+        if (!referralCode) {
+          // Generate new referral code if not exists
+          referralCode = generateReferralCode(userId);
+          console.log('🆕 Generated new referral code:', referralCode);
+          
+          // Save to Airtable via Make webhook
+          await updateReferralCode(referralCode);
+        }
+        
+        // Update UI
+        document.getElementById('referral-code').textContent = referralCode;
+        const referralLink = `${window.location.origin}?ref=${referralCode}`;
+        document.getElementById('referral-link').value = referralLink;
+        
+        // Update referral stats
+        const referralCount = profileData?.referral_count || 0;
+        const referralBonus = profileData?.total_referral_bonus || 0;
+        
+        document.getElementById('referral-count').textContent = referralCount;
+        document.getElementById('referral-bonus').textContent = referralBonus;
+        
+      } catch (error) {
+        console.error('❌ Error loading referral data:', error);
+        showError('Failed to load referral information');
+      }
+    }
+    
+    async function updateReferralCode(code) {
+      const email = localStorage.getItem('user_email');
+      const uid = localStorage.getItem('user_uid');
+      const token = localStorage.getItem('user_token');
+      
+      try {
+        const response = await fetch('https://hook.eu2.make.com/lya166veex7oo2wwo8mx4fuhlkssxlog', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_email: email,
+            user_uid: uid,
+            user_token: token,
+            action: 'update_referral_code',
+            referral_code: code
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to update referral code');
+        }
+        
+        console.log('✅ Referral code saved to Airtable');
+      } catch (error) {
+        console.error('❌ Error updating referral code:', error);
+      }
+    }
+    
+    function copyReferralCode() {
+      const referralCode = document.getElementById('referral-code').textContent;
+      copyToClipboard(referralCode, 'Referral code copied!');
+    }
+    
+    function copyReferralLink() {
+      const referralLink = document.getElementById('referral-link').value;
+      copyToClipboard(referralLink, 'Referral link copied!');
+    }
+    
+    function copyToClipboard(text, message) {
+      navigator.clipboard.writeText(text).then(() => {
+        showSuccess(message);
+        
+        // Add visual feedback to button
+        const btn = event.target.closest('.copy-btn');
+        if (btn) {
+          btn.classList.add('copied');
+          setTimeout(() => btn.classList.remove('copied'), 2000);
+        }
+      }).catch(err => {
+        console.error('Failed to copy:', err);
+        showError('Failed to copy to clipboard');
+      });
+    }
+    
+    function shareWhatsApp() {
+      const referralLink = document.getElementById('referral-link').value;
+      const message = `Join me on Narrin AI! Use my referral link to get 50 extra chat messages: ${referralLink}`;
+      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
+    }
+    
+    function shareTwitter() {
+      const referralLink = document.getElementById('referral-link').value;
+      const message = `Join me on Narrin AI! Use my referral link to get 50 extra chat messages: ${referralLink}`;
+      const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}`;
+      window.open(twitterUrl, '_blank');
+    }
+    
+    function shareEmail() {
+      const referralLink = document.getElementById('referral-link').value;
+      const subject = 'Join me on Narrin AI!';
+      const body = `Hi there,\n\nI've been using Narrin AI to chat with amazing AI characters. Join me using my referral link and we'll both get 50 extra chat messages!\n\n${referralLink}\n\nSee you there!`;
+      const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      window.location.href = mailtoUrl;
     }
 
     // ===== MOBILE SEARCH FUNCTIONALITY =====
@@ -3788,6 +4159,9 @@ async function loadProfile() {
     
     console.log('✅ Profile loaded successfully');
     updateUsageCountdown(userPlan, usage, quota);
+    
+    // Load referral data
+    loadReferralData(data);
 
   } catch (error) {
     console.error('❌ Error loading profile:', error);

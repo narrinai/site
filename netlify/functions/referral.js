@@ -141,7 +141,7 @@ exports.handler = async (event, context) => {
           fields: {
             referred_by: [referrerId],
             referral_bonus_received: true,
-            free_chats_remaining: 110 // 10 base + 100 bonus
+            free_chats_remaining: 60 // 10 base + 50 bonus
           }
         })
       });
@@ -165,8 +165,8 @@ exports.handler = async (event, context) => {
         },
         body: JSON.stringify({
           fields: {
-            total_referral_bonus: currentReferralBonus + 100,
-            free_chats_remaining: (referrer.fields.free_chats_remaining || 0) + 100
+            total_referral_bonus: currentReferralBonus + 50,
+            free_chats_remaining: (referrer.fields.free_chats_remaining || 0) + 50
           }
         })
       });
@@ -185,7 +185,7 @@ exports.handler = async (event, context) => {
         body: JSON.stringify({
           success: true,
           message: 'Referral bonus applied successfully',
-          bonus_applied: 100
+          bonus_applied: 50
         })
       };
     }
