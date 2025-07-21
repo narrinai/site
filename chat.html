@@ -1180,6 +1180,14 @@
       box-shadow: var(--shadow-xl);
     }
     
+    /* Ensure personality buttons in modal match create-character size */
+    .customization-modal .personality-button {
+      padding: var(--spacing-sm) var(--spacing-md);
+      font-size: var(--font-size-sm);
+      min-height: auto;
+      height: auto;
+    }
+    
     /* Voice Settings Styles - matching create-character.html */
     .voice-select {
       width: 100%;
@@ -6858,6 +6866,12 @@ function openCustomizationModal() {
   updateCharacterCounter('customName', 'nameCounter');
   updateCharacterCounter('customTitle', 'titleCounter');
   
+  // Update UI to reflect current state
+  updateCommunicationStyleUI();
+  
+  // Re-initialize prompt generation
+  generatePrompt();
+  
   modal.style.display = 'flex';
 }
 
@@ -6912,6 +6926,14 @@ function initializeCustomizationForm() {
       .replace(/(^-|-$)/g, '') + '-custom-' + Date.now();
     
     // Prepare request data for Make.com webhook - matching create-character.html format
+    // Prepare tags - ensure it's an array before joining
+    let tagsString = '';
+    if (currentCharacter.tags) {
+      tagsString = Array.isArray(currentCharacter.tags) ? currentCharacter.tags.join(',') : currentCharacter.tags;
+    } else if (currentCharacter.Tags) {
+      tagsString = Array.isArray(currentCharacter.Tags) ? currentCharacter.Tags.join(',') : currentCharacter.Tags;
+    }
+    
     const requestData = {
       action: 'create_character',
       user_email: userEmail,
@@ -6925,14 +6947,16 @@ function initializeCustomizationForm() {
       description: currentCharacter.description || currentCharacter.Description || customTitle,
       prompt: fullPrompt, // Don't base64 encode - Make.com expects plain text
       category: currentCharacter.category || currentCharacter.Category || 'Custom',
-      tags: (currentCharacter.tags || currentCharacter.Tags || []).join(','), // Make.com expects comma-separated string
+      tags: tagsString, // Make.com expects comma-separated string
       visibility: 'private', // Custom characters are private by default
-      avatar_url: currentCharacter.avatar_url || currentCharacter.Avatar_URL,
+      avatar_url: currentCharacter.avatar_url || currentCharacter.Avatar_URL || '',
       character_url: `https://narrin.ai/chat.html?char=${customSlug}`,
       voice_id: selectedVoice || '',
       voice_type: voiceSelection === 'none' ? 'none' : 'custom',
       needs_ai_avatar: false
     };
+    
+    console.log('📤 Sending character creation request:', requestData);
     
     // Show loading state
     const submitButton = e.target.querySelector('button[type="submit"]');
