@@ -6960,15 +6960,24 @@ function initializeCustomizationForm() {
     // Debug: log all available fields
     console.log('🔍 Available character fields:', Object.keys(currentCharacter));
     
-    // Get original category and tags from the current character
-    // Try multiple possible field names
-    const originalCategory = currentCharacter.category || 
-                           currentCharacter.Category || 
-                           currentCharacter.character_category ||
-                           currentCharacter.Character_Category ||
-                           'Other'; // Default to 'Other' if no category found
+    // Fetch the full character data from the characters API to get category
+    let originalCategory = 'Other'; // Default fallback
+    let originalTags = tagsString || currentCharacter.tags || currentCharacter.Tags || '';
     
-    const originalTags = tagsString || currentCharacter.tags || currentCharacter.Tags || '';
+    try {
+      console.log('📡 Fetching full character data for slug:', characterSlug);
+      const charactersResponse = await fetch(`/.netlify/functions/characters?slug=${characterSlug}`);
+      if (charactersResponse.ok) {
+        const charactersData = await charactersResponse.json();
+        if (charactersData.characters && charactersData.characters.length > 0) {
+          const fullCharacterData = charactersData.characters[0];
+          originalCategory = fullCharacterData.Category || 'Other';
+          console.log('✅ Got category from API:', originalCategory);
+        }
+      }
+    } catch (error) {
+      console.error('❌ Failed to fetch character category:', error);
+    }
     
     console.log('📦 Using category:', originalCategory);
     console.log('🏷️ Using tags:', originalTags);
