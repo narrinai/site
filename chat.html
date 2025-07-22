@@ -2655,6 +2655,10 @@
     .btn-primary-form:disabled {
       cursor: not-allowed;
       opacity: 0.9;
+      background: linear-gradient(135deg, #51b4a5 0%, #e8a858 100%);
+      padding: 16px 48px;
+      border-radius: 50px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
 
     .btn-secondary-form {
@@ -8415,7 +8419,7 @@ async function checkUsageLimit() {
 
     const plan = data.plan || 'Free';
     const usage = parseInt(data.usage) || 0;
-    const quota = parseInt(data.quota) || 100;
+    const quota = parseInt(data.quota) || 50;
 
     console.log('📊 Usage check:', { plan, usage, quota });
 
@@ -8808,8 +8812,12 @@ function getLastMessages(count = 3) {
         
         if (response.ok) {
           console.log('✅ Rating saved successfully');
-          showSuccess('Thank you for your feedback!');
+          // Close the rating popup first
           skipRating();
+          // Then show success notification after a brief delay
+          setTimeout(() => {
+            showSuccess('Thank you for your feedback!');
+          }, 100);
         } else {
           throw new Error('Failed to save rating');
         }

@@ -2660,7 +2660,7 @@
                 ✓ Narrin AI Premium
               </div>
               <a href="#" class="downgrade-link" onclick="handleDowngrade(); return false;">
-                Downgrade to Free plan and 100 messages/month.
+                Downgrade to Free plan and 50 messages/month.
               </a>
             </div>
           </div>
@@ -4067,7 +4067,7 @@ async function loadProfile() {
         email: email,
         plan: 'Free',
         usage: 0,
-        quota: 100
+        quota: 50
       };
     }
     
@@ -4081,14 +4081,14 @@ async function loadProfile() {
     
     // VEILIGE usage/quota verwerking
     let usage = 0;
-    let quota = 100;
+    let quota = 50;
     
     if (data && typeof data.usage !== 'undefined' && data.usage !== null) {
       usage = parseInt(String(data.usage).replace(/[^0-9]/g, ''), 10) || 0;
     }
     
     if (data && typeof data.quota !== 'undefined' && data.quota !== null) {
-      quota = parseInt(String(data.quota).replace(/[^0-9]/g, ''), 10) || 100;
+      quota = parseInt(String(data.quota).replace(/[^0-9]/g, ''), 10) || 50;
     }
     
     console.log('📊 Final processed values - Usage:', usage, 'Quota:', quota);
@@ -4126,7 +4126,7 @@ async function loadProfile() {
     setField('usage', '0');
     
     const quotaElement = document.getElementById('quota');
-    if (quotaElement) quotaElement.textContent = '100';
+    if (quotaElement) quotaElement.textContent = '50';
     
     const usageFill = document.getElementById('usage-fill');
     if (usageFill) usageFill.style.width = '0%';
@@ -4553,7 +4553,7 @@ function updatePremiumCard(plan) {
     async function handleDowngrade() {
       console.log('⬇️ Downgrade button clicked');
       
-      customConfirm('Are you sure you want to downgrade to the free plan? You will lose access to premium features and be limited to 100 messages per month.', 'Confirm Downgrade', () => {
+      customConfirm('Are you sure you want to downgrade to the free plan? You will lose access to premium features and be limited to 50 messages per month.', 'Confirm Downgrade', () => {
         // Continue with downgrade logic
         performDowngrade();
       });
@@ -4617,7 +4617,7 @@ function updatePremiumCard(plan) {
         
         console.log('✅ Downgrade response:', result);
         
-        showSuccess('Successfully downgraded to free plan. You now have a limit of 100 messages per month.');
+        showSuccess('Successfully downgraded to free plan. You now have a limit of 50 messages per month.');
         
         // Reload profile to update UI
         setTimeout(() => {
