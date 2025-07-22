@@ -6957,13 +6957,22 @@ function initializeCustomizationForm() {
       tagsString = Array.isArray(currentCharacter.Tags) ? currentCharacter.Tags.join(',') : currentCharacter.Tags;
     }
     
+    // Debug: log all available fields
+    console.log('🔍 Available character fields:', Object.keys(currentCharacter));
+    
     // Get original category and tags from the current character
-    const originalCategory = currentCharacter.category || currentCharacter.Category || '';
+    // Try multiple possible field names
+    const originalCategory = currentCharacter.category || 
+                           currentCharacter.Category || 
+                           currentCharacter.character_category ||
+                           currentCharacter.Character_Category ||
+                           '';
     const originalTags = tagsString || currentCharacter.tags || currentCharacter.Tags || '';
     
     // If no category found, we cannot proceed
     if (!originalCategory) {
-      console.error('❌ No category found for character:', currentCharacter);
+      console.error('❌ No category found for character. Available fields:', Object.keys(currentCharacter));
+      console.error('❌ Character data:', currentCharacter);
       showError('Character has no category. Cannot create customized version.');
       submitButton.disabled = false;
       submitButton.textContent = originalText;
