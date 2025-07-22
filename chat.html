@@ -6966,18 +6966,12 @@ function initializeCustomizationForm() {
                            currentCharacter.Category || 
                            currentCharacter.character_category ||
                            currentCharacter.Character_Category ||
-                           '';
+                           'Other'; // Default to 'Other' if no category found
+    
     const originalTags = tagsString || currentCharacter.tags || currentCharacter.Tags || '';
     
-    // If no category found, we cannot proceed
-    if (!originalCategory) {
-      console.error('❌ No category found for character. Available fields:', Object.keys(currentCharacter));
-      console.error('❌ Character data:', currentCharacter);
-      showError('Character has no category. Cannot create customized version.');
-      submitButton.disabled = false;
-      submitButton.textContent = originalText;
-      return;
-    }
+    console.log('📦 Using category:', originalCategory);
+    console.log('🏷️ Using tags:', originalTags);
     
     const requestData = {
       action: 'create_character',
