@@ -6957,6 +6957,10 @@ function initializeCustomizationForm() {
       tagsString = Array.isArray(currentCharacter.Tags) ? currentCharacter.Tags.join(',') : currentCharacter.Tags;
     }
     
+    // Get original category and tags from the current character
+    const originalCategory = currentCharacter.category || currentCharacter.Category || 'General';
+    const originalTags = tagsString || currentCharacter.tags || currentCharacter.Tags || '';
+    
     const requestData = {
       action: 'create_character',
       user_email: userEmail,
@@ -6969,17 +6973,20 @@ function initializeCustomizationForm() {
       title: customTitle,
       description: currentCharacter.description || currentCharacter.Description || customTitle,
       prompt: fullPrompt, // Don't base64 encode - Make.com expects plain text
-      category: currentCharacter.category || currentCharacter.Category || 'Custom',
-      tags: tagsString, // Make.com expects comma-separated string
+      category: originalCategory, // Keep original category
+      tags: originalTags, // Keep original tags
       visibility: 'private', // Custom characters are private by default
       avatar_url: currentCharacter.avatar_url || currentCharacter.Avatar_URL || '',
       character_url: `https://narrin.ai/chat.html?char=${customSlug}`,
       voice_id: selectedVoice || '',
-      voice_type: voiceSelection === 'none' ? 'none' : 'custom',
+      voice_type: selectedVoice ? 'custom' : 'none',
       needs_ai_avatar: false
     };
     
     console.log('📤 Sending character creation request:', requestData);
+    console.log('🔍 Voice type being sent:', requestData.voice_type);
+    console.log('🔍 Voice selection:', voiceSelection);
+    console.log('🔍 Is this from existing character?', !!currentCharacter.character_id);
     
     // Show loading state
     const submitButton = e.target.querySelector('button[type="submit"]');
