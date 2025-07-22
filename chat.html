@@ -6958,8 +6958,17 @@ function initializeCustomizationForm() {
     }
     
     // Get original category and tags from the current character
-    const originalCategory = currentCharacter.category || currentCharacter.Category || 'General';
+    const originalCategory = currentCharacter.category || currentCharacter.Category || '';
     const originalTags = tagsString || currentCharacter.tags || currentCharacter.Tags || '';
+    
+    // If no category found, we cannot proceed
+    if (!originalCategory) {
+      console.error('❌ No category found for character:', currentCharacter);
+      showError('Character has no category. Cannot create customized version.');
+      submitButton.disabled = false;
+      submitButton.textContent = originalText;
+      return;
+    }
     
     const requestData = {
       action: 'create_character',
