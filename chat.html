@@ -7227,12 +7227,31 @@ function initializeCustomizationForm() {
           // Fallback - check if response indicates success
           if (responseText.includes('"success": true') || responseText.includes('successfully')) {
             console.log('🔄 Fallback: Detected successful response despite parse error');
+            
+            // Try to extract character_id from the response text using regex
+            let extractedCharacterId = null;
+            const idMatch = responseText.match(/"character_id":\s*"([^"]+)"/);
+            if (idMatch) {
+              extractedCharacterId = idMatch[1];
+              console.log('📝 Extracted character_id:', extractedCharacterId);
+            }
+            
+            // Try to extract airtable_id as well
+            let extractedAirtableId = null;
+            const airtableMatch = responseText.match(/"airtable_id":\s*"([^"]+)"/);
+            if (airtableMatch) {
+              extractedAirtableId = airtableMatch[1];
+              console.log('📝 Extracted airtable_id:', extractedAirtableId);
+            }
+            
             result = {
               success: true,
               message: 'Character created successfully',
+              character_id: extractedCharacterId || extractedAirtableId || customSlug,
+              airtable_id: extractedAirtableId || extractedCharacterId || customSlug,
               character: {
                 slug: customSlug,
-                character_id: customSlug
+                character_id: extractedCharacterId || extractedAirtableId || customSlug
               }
             };
           } else {
@@ -7278,8 +7297,11 @@ function initializeCustomizationForm() {
         const isUpdate = existingCustom && existingCustom.airtable_id;
         
         // If transfer history is enabled and we have a new character, call the transfer function
-        if (shouldTransferHistory && !isUpdate && result.character_id) {
+        if (shouldTransferHistory && !isUpdate && (result.character_id || result.airtable_id)) {
           console.log('📋 Initiating history transfer...');
+          const targetId = result.character_id || result.airtable_id || customSlug;
+          console.log('🎯 Target character ID for transfer:', targetId);
+          
           try {
             const transferResponse = await fetch('/.netlify/functions/transfer-character-history', {
               method: 'POST',
@@ -7291,7 +7313,7 @@ function initializeCustomizationForm() {
                 user_email: userEmail,
                 source_character_slug: characterSlug,
                 target_character_slug: customSlug,
-                target_character_id: result.character_id || result.airtable_id
+                target_character_id: targetId
               })
             });
             
