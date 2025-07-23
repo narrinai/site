@@ -902,43 +902,24 @@
       font-weight: 500;
     }
 
-    .customize-character-btn {
-      position: absolute;
-      top: var(--spacing-sm);
-      right: var(--spacing-sm);
-      background: var(--color-white);
-      border: 2px solid var(--color-light-gray);
-      color: var(--color-gray);
-      width: 40px;
-      height: 40px;
-      border-radius: var(--radius-full);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 300ms ease-out;
-      font-size: var(--font-size-lg);
-      box-shadow: var(--shadow-sm);
-    }
-
-    .customize-character-btn:hover {
-      background: var(--color-light-gray);
-      border-color: var(--color-gray);
-      transform: scale(1.1);
-      box-shadow: var(--shadow-md);
-    }
-
-    .custom-indicator {
-      position: absolute;
-      bottom: var(--spacing-sm);
-      right: var(--spacing-sm);
-      background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-      color: var(--color-dark-gray);
-      padding: var(--spacing-xs) var(--spacing-sm);
-      border-radius: var(--radius-full);
-      font-size: var(--font-size-xs);
+    .btn-customize {
+      padding: var(--spacing-xs) var(--spacing-md);
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-sm);
       font-weight: 600;
-      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+      transition: all var(--transition-base);
+      box-shadow: var(--shadow-colored);
+      white-space: nowrap;
+      margin-left: auto;
+    }
+
+    .btn-customize:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
     }
 
     .chat-section {
@@ -1853,6 +1834,11 @@
         font-size: var(--font-size-xs);
       }
 
+      .btn-customize {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: var(--font-size-xs);
+      }
+
       #chatlog {
         height: 400px;
         padding: var(--spacing-md);
@@ -2723,6 +2709,38 @@
       box-shadow: var(--shadow-md);
     }
     
+    /* Checkbox styling for transfer option */
+    .checkbox-label {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--spacing-md);
+      cursor: pointer;
+      padding: var(--spacing-md);
+      border: 2px solid var(--color-light-gray);
+      border-radius: var(--radius-md);
+      transition: all var(--transition-base);
+      background: var(--color-white);
+    }
+    
+    .checkbox-label:hover {
+      border-color: var(--color-teal);
+      background: var(--color-off-white);
+    }
+    
+    .checkbox-label input[type="checkbox"] {
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      margin-top: 2px;
+      flex-shrink: 0;
+      accent-color: var(--color-teal);
+    }
+    
+    .checkbox-label:has(input:checked) {
+      border-color: var(--color-teal);
+      background: rgba(20, 184, 166, 0.05);
+    }
+
     /* Mobile Styles for Customization Modal */
     @media (max-width: 768px) {
       .customization-modal {
@@ -3368,8 +3386,8 @@
             <h2 id="characterName">Connecting...</h2>
             <p id="characterTitle"></p>
           </div>
-          <button class="customize-character-btn" id="customizeCharacterBtn" onclick="openCustomizationModal()" title="Customize this character">
-            ⚙️
+          <button class="btn-customize" onclick="openCustomizationModal()" id="customizeBtn" style="display: none;">
+            ✨ Customize
           </button>
         </div>
       </div>
@@ -3438,6 +3456,22 @@
               <label for="customTitle">Character Title</label>
               <input type="text" id="customTitle" placeholder="Brief description (e.g., Your Personal Life Coach)" maxlength="100">
               <div class="char-counter"><span id="titleCounter">0</span>/100</div>
+            </div>
+          </div>
+
+          <!-- Transfer History Option -->
+          <div class="form-section" id="transferSection" style="display: none;">
+            <h2>Transfer Conversation History</h2>
+            <div class="form-group">
+              <label class="checkbox-label" style="display: flex; align-items: center; gap: var(--spacing-md); cursor: pointer;">
+                <input type="checkbox" id="transferHistory" style="width: 24px; height: 24px; cursor: pointer;">
+                <div style="flex: 1;">
+                  <div style="font-weight: 600; margin-bottom: var(--spacing-xs);">Transfer conversation history and memories to new character</div>
+                  <div style="font-size: var(--font-size-sm); color: var(--color-gray); line-height: 1.5;">
+                    Copy all chat messages, memory context, and relationship scores from the current character to your new customized version. This allows you to continue your conversation seamlessly with the new character.
+                  </div>
+                </div>
+              </label>
             </div>
           </div>
 
@@ -3713,7 +3747,7 @@
             <button type="button" class="btn-delete" onclick="deleteCustomization()" style="display: none;" id="deleteCustomBtn">Delete Customization</button>
             <div style="flex: 1;"></div>
             <button type="button" class="btn-secondary-form" onclick="closeCustomizationModal()">Cancel</button>
-            <button type="submit" class="btn-primary-form">Save As New</button>
+            <button type="submit" class="btn-primary-form" id="customizationSubmitBtn">Save As New</button>
           </div>
         </form>
       </div>
@@ -5489,6 +5523,19 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     console.log('🔍 Character Title field:', currentCharacter.Title || 'not found');
     console.log('🔍 Character Character_Title field:', currentCharacter.Character_Title || 'not found');
     
+    // Check if this is a custom character by looking for it in localStorage
+    // This ensures that when loading a custom character by slug, we can still edit it properly
+    const customChars = JSON.parse(localStorage.getItem('customizedCharacters') || '{}');
+    for (const [origCharId, customData] of Object.entries(customChars)) {
+      if (customData.slug === slug || customData.characterId === currentCharacter.id) {
+        console.log('🔍 Found matching custom character in localStorage:', customData);
+        // Ensure currentCharacter has the proper ID for tracking
+        currentCharacter.id = origCharId;
+        currentCharacter.airtable_id = customData.airtable_id;
+        break;
+      }
+    }
+    
     // Normalize avatar URL field - webhook returns character_url which contains the avatar
     if (!currentCharacter.avatar_url && currentCharacter.character_url) {
       currentCharacter.avatar_url = currentCharacter.character_url;
@@ -5501,6 +5548,13 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     
     // Check for customizations
     checkForCustomization();
+    
+    // Show customize button if user is logged in
+    const userToken = localStorage.getItem('user_token');
+    const customizeBtn = document.getElementById('customizeBtn');
+    if (userToken && customizeBtn) {
+      customizeBtn.style.display = 'inline-block';
+    }
     
     // Generate conversation topics after character is loaded
     generateConversationTopics();
@@ -6766,6 +6820,17 @@ function openCustomizationModal() {
   const characterId = currentCharacter.id || currentCharacter.Name;
   const existingCustom = customizedCharacters[characterId];
   const deleteBtn = document.getElementById('deleteCustomBtn');
+  const transferSection = document.getElementById('transferSection');
+  
+  // Show transfer section only for new customizations
+  if (transferSection) {
+    transferSection.style.display = existingCustom ? 'none' : 'block';
+    // Reset checkbox state
+    const transferCheckbox = document.getElementById('transferHistory');
+    if (transferCheckbox) {
+      transferCheckbox.checked = false;
+    }
+  }
   
   // Reset personality state
   personalityState = {
@@ -6873,16 +6938,20 @@ function openCustomizationModal() {
       }
     }
     
-    // Show delete button
+    // Show delete button and update submit button text
     deleteBtn.style.display = 'block';
+    const submitBtn = document.getElementById('customizationSubmitBtn');
+    if (submitBtn) submitBtn.textContent = 'Update Character';
   } else {
     // Pre-fill with original character data
     document.getElementById('customName').value = currentCharacter.name || currentCharacter.Name || '';
     document.getElementById('customTitle').value = currentCharacter.title || currentCharacter.Title || currentCharacter.Character_Title || '';
     document.getElementById('customPrompt').value = '';
     
-    // Hide delete button
+    // Hide delete button and update submit button text
     deleteBtn.style.display = 'none';
+    const submitBtn = document.getElementById('customizationSubmitBtn');
+    if (submitBtn) submitBtn.textContent = 'Save As New';
   }
   
   // Update character counters
@@ -6943,10 +7012,16 @@ function initializeCustomizationForm() {
     const customName = document.getElementById('customName').value.trim() || currentCharacter.name || currentCharacter.Name;
     const customTitle = document.getElementById('customTitle').value.trim() || currentCharacter.title || currentCharacter.Title || currentCharacter.Character_Title;
     
-    // Create slug from custom name
-    const customSlug = customName.toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '') + '-custom-' + Date.now();
+    // Check if we're editing an existing custom character
+    const characterId = currentCharacter.id || currentCharacter.Name;
+    const existingCustom = customizedCharacters[characterId];
+    
+    // Use existing slug if editing, otherwise create new slug
+    const customSlug = existingCustom && existingCustom.slug 
+      ? existingCustom.slug 
+      : customName.toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '') + '-custom-' + Date.now();
     
     // Prepare request data for Make.com webhook - matching create-character.html format
     // Prepare tags - ensure it's an array before joining
@@ -6982,8 +7057,16 @@ function initializeCustomizationForm() {
     console.log('📦 Using category:', originalCategory);
     console.log('🏷️ Using tags:', originalTags);
     
+    // Check if transfer history is enabled
+    const transferHistoryCheckbox = document.getElementById('transferHistory');
+    const shouldTransferHistory = transferHistoryCheckbox && transferHistoryCheckbox.checked && !existingCustom;
+    
+    if (shouldTransferHistory) {
+      console.log('📋 Transfer history enabled - will copy chat history and memories from:', characterSlug);
+    }
+    
     const requestData = {
-      action: 'create_character',
+      action: existingCustom && existingCustom.airtable_id ? 'update_character' : 'create_character',
       user_email: userEmail,
       user_token: userToken,
       
@@ -7001,19 +7084,31 @@ function initializeCustomizationForm() {
       character_url: `https://narrin.ai/chat.html?char=${customSlug}`,
       voice_id: selectedVoice || '',
       voice_type: selectedVoice ? 'custom' : 'none',
-      needs_ai_avatar: false
+      needs_ai_avatar: false,
+      
+      // Transfer data if enabled
+      transfer_history: shouldTransferHistory,
+      source_character_id: shouldTransferHistory ? (currentCharacter.airtable_id || currentCharacter.id || currentCharacter.Name) : null,
+      source_character_slug: shouldTransferHistory ? characterSlug : null
     };
+    
+    // Add Airtable ID if updating existing character
+    if (existingCustom && existingCustom.airtable_id) {
+      requestData.airtable_id = existingCustom.airtable_id;
+    }
     
     console.log('📤 Sending character creation request:', requestData);
     console.log('🔍 Voice type being sent:', requestData.voice_type);
     console.log('🔍 Voice selection:', voiceSelection);
     console.log('🔍 Is this from existing character?', !!currentCharacter.character_id);
+    console.log('🔍 Action type:', requestData.action);
+    console.log('🔍 Existing custom data:', existingCustom);
     
     // Show loading state
     const submitButton = e.target.querySelector('button[type="submit"]');
     const originalText = submitButton.textContent;
     submitButton.disabled = true;
-    submitButton.textContent = 'Creating Character...';
+    submitButton.textContent = existingCustom && existingCustom.airtable_id ? 'Updating Character...' : 'Creating Character...';
     
     try {
       // Send to Make.com webhook
@@ -7075,9 +7170,10 @@ function initializeCustomizationForm() {
           voice_selection: voiceSelection === 'none' ? 'none' : 'custom',
           voice: selectedVoice,
           voice_type: voiceSelection,
-          created_at: new Date().toISOString(),
+          created_at: existingCustom && existingCustom.created_at ? existingCustom.created_at : new Date().toISOString(),
+          updated_at: new Date().toISOString(),
           avatar_url: currentCharacter.avatar_url,
-          airtable_id: result.character_id
+          airtable_id: existingCustom && existingCustom.airtable_id ? existingCustom.airtable_id : (result.character_id || result.airtable_id)
         };
         
         customizedCharacters[characterId] = customization;
@@ -7090,22 +7186,29 @@ function initializeCustomizationForm() {
         closeCustomizationModal();
         
         // Show success notification
-        showNotification('success', 'Character Created!', 
-          `${customName} has been created and saved to your account. You can now chat with your customized character anytime!`);
+        const isUpdate = existingCustom && existingCustom.airtable_id;
+        const transferMessage = shouldTransferHistory ? ' Your conversation history and memories have been transferred to the new character.' : '';
+        showNotification('success', isUpdate ? 'Character Updated!' : 'Character Created!', 
+          isUpdate 
+            ? `${customName} has been successfully updated.`
+            : `${customName} has been created and saved to your account.${transferMessage} You can now chat with your customized character anytime!`);
         
-        // Optional: Redirect to the new character's chat page
-        setTimeout(() => {
-          if (confirm('Would you like to start chatting with your new customized character?')) {
-            window.location.href = `/chat.html?char=${customSlug}`;
-          }
-        }, 1000);
+        // For new characters, offer to redirect
+        if (!isUpdate) {
+          setTimeout(() => {
+            if (confirm('Would you like to start chatting with your new customized character?')) {
+              window.location.href = `/chat.html?char=${customSlug}`;
+            }
+          }, 1000);
+        }
       } else {
         throw new Error(result.error || 'Failed to create character');
       }
     } catch (error) {
-      console.error('❌ Character creation error:', error);
-      showNotification('error', 'Creation Failed', 
-        `Unable to create your customized character. ${error.message}. Please try again.`);
+      console.error('❌ Character creation/update error:', error);
+      const isUpdate = existingCustom && existingCustom.airtable_id;
+      showNotification('error', isUpdate ? 'Update Failed' : 'Creation Failed', 
+        `Unable to ${isUpdate ? 'update' : 'create'} your customized character. ${error.message}. Please try again.`);
     } finally {
       // Restore button state
       submitButton.disabled = false;
@@ -7181,15 +7284,7 @@ function applyCustomization(customization) {
   document.getElementById('characterName').textContent = customization.name || currentCharacter.name;
   document.getElementById('characterTitle').textContent = customization.title || currentCharacter.title || currentCharacter.Title || currentCharacter.Character_Title;
   
-  // Add customization indicator
-  const characterHeader = document.getElementById('characterHeader');
-  if (!characterHeader.querySelector('.custom-indicator')) {
-    const indicator = document.createElement('span');
-    indicator.className = 'custom-indicator';
-    indicator.textContent = '✨ Customized';
-    indicator.title = 'This character has been customized for you';
-    characterHeader.appendChild(indicator);
-  }
+  // Customization indicator removed
 }
 
 function clearChatHistory() {
