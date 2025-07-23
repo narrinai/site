@@ -120,7 +120,9 @@ exports.handler = async (event, context) => {
         console.log('✅ Found source character ID:', sourceCharacterId);
         
         // Find original relationship using Character ID
-        const filterFormula = `AND({User} = "${user_id}", {Character} = "${sourceCharacterId}")`;
+        // Since Character is a lookup field (array), we need to use SEARCH
+        const filterFormula = `AND({User} = "${user_id}", SEARCH("${sourceCharacterId}", ARRAYJOIN({Character})))`;
+        console.log('🔍 Using filter formula:', filterFormula);
         const originalRelResponse = await airtableRequest(
           'CharacterRelationships',
           'GET',
@@ -130,6 +132,7 @@ exports.handler = async (event, context) => {
       if (originalRelResponse.records && originalRelResponse.records.length > 0) {
         const original = originalRelResponse.records[0];
         console.log('✅ Found original relationship:', original.id);
+        console.log('📋 Original relationship fields:', JSON.stringify(original.fields, null, 2));
 
         // Always create a new relationship for the new character
         // We skip checking if it exists because it's a brand new character
@@ -194,6 +197,28 @@ exports.handler = async (event, context) => {
         }
         } else {
           console.log('ℹ️ No original CharacterRelationship found');
+          console.log('🔍 Searched with User:', user_id, 'and Character:', sourceCharacterId);
+          // Still create a new relationship but with default values
+          const createData = {
+            fields: {
+              'User': [user_id],
+              'Character': [actualTargetId],
+              'Average_Emotional_Score': 0.5,
+              'Relationship_Phase': 'new',
+              'Key_Memories_Summary': '',
+              'Last_Topics': '',
+              'Total_Messages': 0
+            }
+          };
+          
+          await airtableRequest(
+            'CharacterRelationships',
+            'POST',
+            '',
+            { records: [createData] }
+          );
+          console.log('✅ Created new CharacterRelationship with default values');
+          transferResults.relationshipTransferred = true;
         }
       }
     } catch (error) {
