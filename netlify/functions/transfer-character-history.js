@@ -117,7 +117,35 @@ exports.handler = async (event, context) => {
           );
           console.log('✅ Updated CharacterRelationship');
         } else {
-          console.log('⚠️ New CharacterRelationship not found, skipping update');
+          console.log('⚠️ New CharacterRelationship not found, creating one...');
+          
+          // Create a new CharacterRelationship record
+          const createData = {
+            fields: {
+              'User': [user_id],
+              'Character': [target_character_id],
+              'Average_Emotional_Score': original.fields['Average_Emotional_Score'] || 0.5,
+              'Relationship_Phase': original.fields['Relationship_Phase'] || 'new',
+              'Key_Memories_Summary': original.fields['Key_Memories_Summary'] || '',
+              'Last_Topics': original.fields['Last_Topics'] || '',
+              'Total_Messages': original.fields['Total_Messages'] || 0
+            }
+          };
+
+          if (original.fields['First_Interaction']) {
+            createData.fields['First_Interaction'] = original.fields['First_Interaction'];
+          }
+          if (original.fields['Last_Interaction']) {
+            createData.fields['Last_Interaction'] = original.fields['Last_Interaction'];
+          }
+
+          await airtableRequest(
+            'CharacterRelationships',
+            'POST',
+            '',
+            createData
+          );
+          console.log('✅ Created new CharacterRelationship');
         }
       } else {
         console.log('ℹ️ No original CharacterRelationship found');

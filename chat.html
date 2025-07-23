@@ -7297,25 +7297,30 @@ function initializeCustomizationForm() {
         const isUpdate = existingCustom && existingCustom.airtable_id;
         
         // If transfer history is enabled and we have a new character, call the transfer function
-        if (shouldTransferHistory && !isUpdate && (result.character_id || result.airtable_id)) {
+        if (shouldTransferHistory && !isUpdate) {
           console.log('📋 Initiating history transfer...');
+          // For custom characters, we might not get an airtable_id immediately from Make.com
+          // So we'll use the slug as the identifier for now
           const targetId = result.character_id || result.airtable_id || customSlug;
           console.log('🎯 Target character ID for transfer:', targetId);
+          console.log('📝 Using custom slug:', customSlug);
           
-          try {
-            const transferResponse = await fetch('/.netlify/functions/transfer-character-history', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                user_id: userId,
-                user_email: userEmail,
-                source_character_slug: characterSlug,
-                target_character_slug: customSlug,
-                target_character_id: targetId
-              })
-            });
+          // Add a small delay to ensure the character is created in Airtable
+          setTimeout(async () => {
+            try {
+              const transferResponse = await fetch('/.netlify/functions/transfer-character-history', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  user_id: userId,
+                  user_email: userEmail,
+                  source_character_slug: characterSlug,
+                  target_character_slug: customSlug,
+                  target_character_id: targetId
+                })
+              });
             
             const transferResult = await transferResponse.json();
             if (transferResult.success) {
@@ -7323,9 +7328,10 @@ function initializeCustomizationForm() {
             } else {
               console.error('❌ History transfer failed:', transferResult.error);
             }
-          } catch (transferError) {
-            console.error('❌ Error calling transfer function:', transferError);
-          }
+            } catch (transferError) {
+              console.error('❌ Error calling transfer function:', transferError);
+            }
+          }, 1000); // Wait 1 second for character to be created in Airtable
         }
         
         // Show success notification
