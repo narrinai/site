@@ -1,5 +1,3 @@
-const Airtable = require('airtable');
-
 exports.handler = async (event, context) => {
   // Only allow POST requests
   if (event.httpMethod !== 'POST') {
@@ -30,10 +28,12 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Initialize Airtable
-    const base = new Airtable({ 
-      apiKey: process.env.AIRTABLE_TOKEN || process.env.AIRTABLE_API_KEY 
-    }).base(process.env.AIRTABLE_BASE_ID);
+    const AIRTABLE_API_KEY = process.env.AIRTABLE_TOKEN || process.env.AIRTABLE_API_KEY;
+    const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
+    
+    if (!AIRTABLE_API_KEY || !AIRTABLE_BASE_ID) {
+      throw new Error('Missing Airtable configuration');
+    }
 
     console.log('🔄 Starting character history transfer:', {
       from: source_character_slug,
@@ -41,43 +41,80 @@ exports.handler = async (event, context) => {
       user: user_id
     });
 
+    // Helper function to make Airtable API calls
+    const airtableRequest = async (table, method = 'GET', path = '', body = null) => {
+      const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(table)}${path}`;
+      const options = {
+        method,
+        headers: {
+          'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      };
+      
+      if (body) {
+        options.body = JSON.stringify(body);
+      }
+      
+      const response = await fetch(url, options);
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(`Airtable API error: ${data.error?.message || response.statusText}`);
+      }
+      
+      return data;
+    };
+
     // 1. Transfer CharacterRelationships data
     try {
       console.log('📊 Fetching original CharacterRelationship...');
       
       // Find original relationship
-      const originalRelationships = await base('CharacterRelationships')
-        .select({
-          filterByFormula: `AND({User} = "${user_id}", {Slug (from Characters)} = "${source_character_slug}")`,
-          maxRecords: 1
-        })
-        .firstPage();
+      const filterFormula = `AND({User} = "${user_id}", {Slug (from Characters)} = "${source_character_slug}")`;
+      const originalRelResponse = await airtableRequest(
+        'CharacterRelationships',
+        'GET',
+        `?filterByFormula=${encodeURIComponent(filterFormula)}&maxRecords=1`
+      );
 
-      if (originalRelationships.length > 0) {
-        const original = originalRelationships[0];
+      if (originalRelResponse.records && originalRelResponse.records.length > 0) {
+        const original = originalRelResponse.records[0];
         console.log('✅ Found original relationship:', original.id);
 
-        // Find the new relationship record (should already exist)
-        const newRelationships = await base('CharacterRelationships')
-          .select({
-            filterByFormula: `AND({User} = "${user_id}", {Character} = "${target_character_id}")`,
-            maxRecords: 1
-          })
-          .firstPage();
+        // Find the new relationship record
+        const newFilterFormula = `AND({User} = "${user_id}", {Character} = "${target_character_id}")`;
+        const newRelResponse = await airtableRequest(
+          'CharacterRelationships',
+          'GET',
+          `?filterByFormula=${encodeURIComponent(newFilterFormula)}&maxRecords=1`
+        );
 
-        if (newRelationships.length > 0) {
+        if (newRelResponse.records && newRelResponse.records.length > 0) {
           // Update the new relationship with data from the original
           const updateData = {
-            'Average_Emotional_Score': original.fields['Average_Emotional_Score'] || 0.5,
-            'Relationship_Phase': original.fields['Relationship_Phase'] || 'new',
-            'Key_Memories_Summary': original.fields['Key_Memories_Summary'] || '',
-            'Last_Topics': original.fields['Last_Topics'] || '',
-            'Total_Messages': original.fields['Total_Messages'] || 0,
-            'First_Interaction': original.fields['First_Interaction'],
-            'Last_Interaction': original.fields['Last_Interaction']
+            fields: {
+              'Average_Emotional_Score': original.fields['Average_Emotional_Score'] || 0.5,
+              'Relationship_Phase': original.fields['Relationship_Phase'] || 'new',
+              'Key_Memories_Summary': original.fields['Key_Memories_Summary'] || '',
+              'Last_Topics': original.fields['Last_Topics'] || '',
+              'Total_Messages': original.fields['Total_Messages'] || 0
+            }
           };
 
-          await base('CharacterRelationships').update(newRelationships[0].id, updateData);
+          if (original.fields['First_Interaction']) {
+            updateData.fields['First_Interaction'] = original.fields['First_Interaction'];
+          }
+          if (original.fields['Last_Interaction']) {
+            updateData.fields['Last_Interaction'] = original.fields['Last_Interaction'];
+          }
+
+          await airtableRequest(
+            'CharacterRelationships',
+            'PATCH',
+            `/${newRelResponse.records[0].id}`,
+            updateData
+          );
           console.log('✅ Updated CharacterRelationship');
         } else {
           console.log('⚠️ New CharacterRelationship not found, skipping update');
@@ -94,76 +131,42 @@ exports.handler = async (event, context) => {
       console.log('💬 Fetching chat history...');
       
       // Get all chat messages for the original character
-      const originalChats = await base('Chats')
-        .select({
-          filterByFormula: `AND({User Email} = "${user_email}", {Character Slug} = "${source_character_slug}")`,
-          sort: [{field: 'Created', direction: 'asc'}],
-          maxRecords: 100 // Adjust as needed
-        })
-        .all();
+      const chatFilterFormula = `AND({User Email} = "${user_email}", {Character Slug} = "${source_character_slug}")`;
+      const chatsResponse = await airtableRequest(
+        'Chats',
+        'GET',
+        `?filterByFormula=${encodeURIComponent(chatFilterFormula)}&sort%5B0%5D%5Bfield%5D=Created&sort%5B0%5D%5Bdirection%5D=asc&maxRecords=100`
+      );
 
-      console.log(`📚 Found ${originalChats.length} chat messages to transfer`);
+      console.log(`📚 Found ${chatsResponse.records?.length || 0} chat messages to transfer`);
 
       // Copy each chat message
-      for (const chat of originalChats) {
-        try {
-          const newChatData = {
-            'User Email': user_email,
-            'Character Slug': target_character_slug,
-            'Message': chat.fields['Message'],
-            'Response': chat.fields['Response'],
-            'Created': chat.fields['Created'],
-            'Timestamp': chat.fields['Timestamp'],
-            'Role': chat.fields['Role'] || 'user',
-            'User': [user_id]
-          };
+      if (chatsResponse.records) {
+        for (const chat of chatsResponse.records) {
+          try {
+            const newChatData = {
+              fields: {
+                'User Email': user_email,
+                'Character Slug': target_character_slug,
+                'Message': chat.fields['Message'],
+                'Response': chat.fields['Response'],
+                'Created': chat.fields['Created'],
+                'Timestamp': chat.fields['Timestamp'],
+                'Role': chat.fields['Role'] || 'user',
+                'User': [user_id]
+              }
+            };
 
-          await base('Chats').create([{ fields: newChatData }]);
-        } catch (chatError) {
-          console.error('❌ Error copying chat message:', chatError);
+            await airtableRequest('Chats', 'POST', '', { fields: newChatData.fields });
+          } catch (chatError) {
+            console.error('❌ Error copying chat message:', chatError);
+          }
         }
       }
 
       console.log('✅ Chat history transfer completed');
     } catch (error) {
       console.error('❌ Error transferring chat history:', error);
-    }
-
-    // 3. Transfer Memories (if they exist in a separate table)
-    try {
-      // Check if Memories table exists
-      const memoriesExist = await base('Memories')
-        .select({ maxRecords: 1 })
-        .firstPage()
-        .catch(() => null);
-
-      if (memoriesExist !== null) {
-        console.log('🧠 Transferring memories...');
-        
-        const originalMemories = await base('Memories')
-          .select({
-            filterByFormula: `AND({User} = "${user_id}", {Character} = "${source_character_slug}")`,
-            maxRecords: 50
-          })
-          .all();
-
-        for (const memory of originalMemories) {
-          const newMemoryData = {
-            'User': [user_id],
-            'Character': target_character_slug,
-            'Memory': memory.fields['Memory'],
-            'Importance': memory.fields['Importance'] || 5,
-            'Context': memory.fields['Context'],
-            'Created': memory.fields['Created']
-          };
-
-          await base('Memories').create([{ fields: newMemoryData }]);
-        }
-
-        console.log(`✅ Transferred ${originalMemories.length} memories`);
-      }
-    } catch (error) {
-      console.log('ℹ️ No separate Memories table found or error accessing it');
     }
 
     return {
