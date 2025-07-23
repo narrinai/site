@@ -7274,6 +7274,9 @@ function initializeCustomizationForm() {
         // Close modal
         closeCustomizationModal();
         
+        // Determine if this is an update or new character
+        const isUpdate = existingCustom && existingCustom.airtable_id;
+        
         // If transfer history is enabled and we have a new character, call the transfer function
         if (shouldTransferHistory && !isUpdate && result.character_id) {
           console.log('📋 Initiating history transfer...');
@@ -7304,7 +7307,6 @@ function initializeCustomizationForm() {
         }
         
         // Show success notification
-        const isUpdate = existingCustom && existingCustom.airtable_id;
         const transferMessage = shouldTransferHistory ? ' History transferred.' : '';
         showNotification('success', isUpdate ? 'Character Updated!' : 'Character Created!', 
           isUpdate 
