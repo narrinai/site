@@ -173,7 +173,7 @@ exports.handler = async (event, context) => {
             'CharacterRelationships',
             'POST',
             '',
-            createData
+            { records: [createData] }
           );
           console.log('✅ Created new CharacterRelationship');
           transferResults.relationshipTransferred = true;
@@ -226,7 +226,7 @@ exports.handler = async (event, context) => {
               newChatData.fields['Created'] = chat.fields['Created'];
             }
 
-            const createResponse = await airtableRequest('Chats', 'POST', '', { fields: newChatData.fields });
+            const createResponse = await airtableRequest('Chats', 'POST', '', { records: [newChatData] });
             console.log(`✅ Copied chat message ${transferResults.chatMessagesTransferred + 1}`);
             transferResults.chatMessagesTransferred++;
           } catch (chatError) {
@@ -273,7 +273,7 @@ exports.handler = async (event, context) => {
               }
             };
 
-            await airtableRequest('Memories', 'POST', '', { fields: newMemoryData.fields });
+            await airtableRequest('Memories', 'POST', '', { records: [newMemoryData] });
             console.log(`✅ Copied memory ${transferResults.memoriesTransferred + 1}`);
             transferResults.memoriesTransferred++;
           } catch (memoryError) {
