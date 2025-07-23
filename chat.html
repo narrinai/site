@@ -7329,7 +7329,7 @@ function initializeCustomizationForm() {
         }
         
         // Show success notification
-        const transferMessage = shouldTransferHistory ? ' History transferred.' : '';
+        const transferMessage = shouldTransferHistory ? ' History transfer in progress...' : '';
         showNotification('success', isUpdate ? 'Character Updated!' : 'Character Created!', 
           isUpdate 
             ? `${customName} has been updated.`
@@ -7338,11 +7338,13 @@ function initializeCustomizationForm() {
         // For new characters, automatically redirect without prompt
         // Only show this for truly new characters, not when editing existing ones
         if (!isUpdate && !existingCustom) {
+          // Wait a bit longer if transfer is happening to ensure it completes
+          const redirectDelay = shouldTransferHistory ? 3000 : 1500;
           setTimeout(() => {
             // Add parameter to indicate history was transferred if applicable
             const transferParam = shouldTransferHistory ? '&transferred=true' : '';
             window.location.href = `/chat.html?char=${customSlug}${transferParam}`;
-          }, 1500);
+          }, redirectDelay);
         }
       } else {
         throw new Error(result.error || 'Failed to create character');
