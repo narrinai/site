@@ -145,7 +145,6 @@ exports.handler = async (event, context) => {
               'Average_Emotional_Score': original.fields['Average_Emotional_Score'] || 0.5,
               'Relationship_Phase': original.fields['Relationship_Phase'] || 'new',
               'Key_Memories_Summary': original.fields['Key_Memories_Summary'] || '',
-              'Last_Topics': original.fields['Last_Topics'] || [],
               'Total_Messages': original.fields['Total_Messages'] || 0
             }
           };
@@ -174,7 +173,6 @@ exports.handler = async (event, context) => {
               'Average_Emotional_Score': original.fields['Average_Emotional_Score'] || 0.5,
               'Relationship_Phase': original.fields['Relationship_Phase'] || 'new',
               'Key_Memories_Summary': original.fields['Key_Memories_Summary'] || '',
-              'Last_Topics': original.fields['Last_Topics'] || [],
               'Total_Messages': original.fields['Total_Messages'] || 0
             }
           };
@@ -206,7 +204,6 @@ exports.handler = async (event, context) => {
               'Average_Emotional_Score': 0.5,
               'Relationship_Phase': 'new',
               'Key_Memories_Summary': '',
-              'Last_Topics': [],
               'Total_Messages': 0
             }
           };
