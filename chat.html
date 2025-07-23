@@ -5602,42 +5602,14 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     
     // Load chat history after character is loaded
     console.log('🔄 Loading chat history after character load...');
-    // Check if this is a new custom character with transferred history
+    // Load chat history - always load first to preserve any existing messages
+    await loadChatHistory();
+    
+    // If history was transferred, give user feedback
     if (window.historyWasTransferred) {
-      console.log('📋 History was transferred for this character');
-      // Don't show notification - just log it
-      // Add a longer delay to ensure Make.com has finished transferring the history
-      console.log('⏳ Waiting for history transfer to complete...');
-      await new Promise(resolve => setTimeout(resolve, 5000)); // Increased to 5 seconds
-      
-      // Try loading history with retry logic
-      let historyLoaded = false;
-      let retryCount = 0;
-      const maxRetries = 3;
-      
-      while (!historyLoaded && retryCount < maxRetries) {
-        console.log(`🔄 Attempting to load transferred history (attempt ${retryCount + 1}/${maxRetries})...`);
-        await loadChatHistory();
-        
-        // Check if any messages were loaded
-        const chatlog = document.getElementById('chatlog');
-        if (chatlog && chatlog.children.length > 0) {
-          historyLoaded = true;
-          console.log('✅ History successfully loaded');
-        } else if (retryCount < maxRetries - 1) {
-          console.log('⏳ No history yet, waiting before retry...');
-          await new Promise(resolve => setTimeout(resolve, 3000));
-          retryCount++;
-        } else {
-          console.log('⚠️ Could not load transferred history after multiple attempts');
-          // Show a message to the user that history transfer is still being processed
-          showNotification('info', 'History Transfer in Progress', 
-            'Your conversation history and memories are still being transferred. This may take a few minutes. Please refresh the page in a moment.');
-          break;
-        }
-      }
-    } else {
-      await loadChatHistory();
+      console.log('📋 History transfer was requested for this character');
+      // The transfer happens asynchronously in the background via Make.com
+      // No need to wait or retry - the history should already be there if transfer completed
     }
     
     // Check if AI avatar needs to be generated
@@ -7301,6 +7273,35 @@ function initializeCustomizationForm() {
         
         // Close modal
         closeCustomizationModal();
+        
+        // If transfer history is enabled and we have a new character, call the transfer function
+        if (shouldTransferHistory && !isUpdate && result.character_id) {
+          console.log('📋 Initiating history transfer...');
+          try {
+            const transferResponse = await fetch('/.netlify/functions/transfer-character-history', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                user_id: userId,
+                user_email: userEmail,
+                source_character_slug: characterSlug,
+                target_character_slug: customSlug,
+                target_character_id: result.character_id || result.airtable_id
+              })
+            });
+            
+            const transferResult = await transferResponse.json();
+            if (transferResult.success) {
+              console.log('✅ History transfer completed:', transferResult);
+            } else {
+              console.error('❌ History transfer failed:', transferResult.error);
+            }
+          } catch (transferError) {
+            console.error('❌ Error calling transfer function:', transferError);
+          }
+        }
         
         // Show success notification
         const isUpdate = existingCustom && existingCustom.airtable_id;
