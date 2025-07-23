@@ -7182,9 +7182,9 @@ function initializeCustomizationForm() {
       category: originalCategory, // Keep original category
       tags: originalTags, // Keep original tags
       visibility: 'private', // Custom characters are private by default
-      avatar_url: currentCharacter.avatar_url || currentCharacter.Avatar_URL || '',
+      avatar_url: currentCharacter.avatar_url || currentCharacter.Avatar_URL || null,
       character_url: `https://narrin.ai/chat.html?char=${customSlug}`,
-      voice_id: selectedVoice || '',
+      voice_id: selectedVoice || null,
       voice_type: selectedVoice ? 'custom' : 'none',
       needs_ai_avatar: false,
       
@@ -7199,7 +7199,17 @@ function initializeCustomizationForm() {
       requestData.airtable_id = existingCustom.airtable_id;
     }
     
+    // Log each field to identify empty values
     console.log('📤 Sending character creation request:', requestData);
+    console.log('🔍 Empty field check:');
+    Object.keys(requestData).forEach(key => {
+      const value = requestData[key];
+      if (value === '' || value === null || value === undefined) {
+        console.warn(`  ⚠️ ${key}: ${value} (EMPTY/NULL)`);
+      } else {
+        console.log(`  ✅ ${key}: ${typeof value === 'string' ? value.substring(0, 50) : value}`);
+      }
+    });
     console.log('🔍 Voice type being sent:', requestData.voice_type);
     console.log('🔍 Voice selection:', voiceSelection);
     console.log('🔍 Is this from existing character?', !!currentCharacter.character_id);
