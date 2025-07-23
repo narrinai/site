@@ -7135,7 +7135,7 @@ function initializeCustomizationForm() {
     
     // Fetch the full character data from the characters API to get category
     let originalCategory = 'Other'; // Default fallback
-    let originalTags = tagsString || currentCharacter.tags || currentCharacter.Tags || '';
+    let originalTags = tagsString || currentCharacter.tags || currentCharacter.Tags || 'character';
     
     try {
       console.log('📡 Fetching full character data for slug:', characterSlug);
@@ -7180,7 +7180,7 @@ function initializeCustomizationForm() {
       description: currentCharacter.description || currentCharacter.Description || customTitle,
       prompt: fullPrompt || `You are ${customName}, a unique AI character.`, // Ensure never null
       category: originalCategory, // Keep original category
-      tags: originalTags, // Keep original tags
+      tags: originalTags || 'character', // Keep original tags with fallback
       visibility: 'private', // Custom characters are private by default
       character_url: `https://narrin.ai/chat.html?char=${customSlug}`,
       voice_type: selectedVoice ? 'custom' : 'none',
