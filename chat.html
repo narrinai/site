@@ -5531,13 +5531,13 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     // Check if this is a custom character by looking for it in localStorage
     // This ensures that when loading a custom character by slug, we can still edit it properly
     const customChars = JSON.parse(localStorage.getItem('customizedCharacters') || '{}');
-    for (const [origCharId, customData] of Object.entries(customChars)) {
-      if (customData.slug === slug || customData.characterId === currentCharacter.id) {
-        console.log('🔍 Found matching custom character in localStorage:', customData);
-        // Ensure currentCharacter has the proper ID for tracking
-        currentCharacter.id = origCharId;
-        currentCharacter.airtable_id = customData.airtable_id;
-        break;
+    
+    // Check if this slug has a customization
+    if (customChars[slug]) {
+      console.log('🔍 Found matching custom character in localStorage:', customChars[slug]);
+      // Store the airtable_id if it exists
+      if (customChars[slug].airtable_id) {
+        currentCharacter.airtable_id = customChars[slug].airtable_id;
       }
     }
     
@@ -6803,6 +6803,35 @@ document.addEventListener('DOMContentLoaded', () => {
 // ===== CHARACTER CUSTOMIZATION SYSTEM =====
 let customizedCharacters = JSON.parse(localStorage.getItem('customizedCharacters') || '{}');
 
+// Migrate old customizations to use slug as key if needed
+function migrateCustomizations() {
+  let migrated = false;
+  const newCustomizedCharacters = {};
+  
+  for (const [key, customization] of Object.entries(customizedCharacters)) {
+    // If the customization has a slug, use it as the new key
+    if (customization.slug) {
+      newCustomizedCharacters[customization.slug] = customization;
+      if (key !== customization.slug) {
+        migrated = true;
+        console.log('🔄 Migrating customization from key:', key, 'to slug:', customization.slug);
+      }
+    } else {
+      // Keep old customizations without slug (they'll be cleaned up eventually)
+      newCustomizedCharacters[key] = customization;
+    }
+  }
+  
+  if (migrated) {
+    customizedCharacters = newCustomizedCharacters;
+    localStorage.setItem('customizedCharacters', JSON.stringify(customizedCharacters));
+    console.log('✅ Customizations migrated to use slug as key');
+  }
+}
+
+// Run migration on load
+migrateCustomizations();
+
 // Personality state for customization
 let personalityState = {
   speaking: [],
@@ -6830,7 +6859,8 @@ function openCustomizationModal() {
   const form = document.getElementById('customizationForm');
   
   // Pre-fill form with current character data or existing customization
-  const characterId = currentCharacter.id || currentCharacter.Name;
+  // Use characterSlug as the unique identifier for customizations
+  const characterId = characterSlug; // Use slug as unique identifier
   const existingCustom = customizedCharacters[characterId];
   const deleteBtn = document.getElementById('deleteCustomBtn');
   const transferSection = document.getElementById('transferSection');
@@ -6993,7 +7023,7 @@ function initializeCustomizationForm() {
     
     if (!currentCharacter) return;
     
-    const characterId = currentCharacter.id || currentCharacter.Name;
+    const characterId = characterSlug; // Use slug as unique identifier
     
     // Get the prompt from the textarea (user may have edited it)
     const generatedPrompt = document.getElementById('promptPreview').value.trim();
@@ -7172,6 +7202,7 @@ function initializeCustomizationForm() {
         const customization = {
           characterId: result.character_id || customSlug,
           originalCharacterId: characterId,
+          originalCharacterSlug: characterSlug, // Store the original character's slug
           originalName: currentCharacter.name || currentCharacter.Name,
           name: customName,
           title: customTitle,
@@ -7314,9 +7345,9 @@ function clearChatHistory() {
 
 // Check for customization on character load
 function checkForCustomization() {
-  if (!currentCharacter) return;
+  if (!currentCharacter || !characterSlug) return;
   
-  const characterId = currentCharacter.id || currentCharacter.Name;
+  const characterId = characterSlug; // Use slug as unique identifier
   const customization = customizedCharacters[characterId];
   
   console.log('🔍 checkForCustomization:', {
@@ -7333,9 +7364,9 @@ function checkForCustomization() {
 
 // Delete customization
 function deleteCustomization() {
-  if (!currentCharacter) return;
+  if (!currentCharacter || !characterSlug) return;
   
-  const characterId = currentCharacter.id || currentCharacter.Name;
+  const characterId = characterSlug; // Use slug as unique identifier
   
   if (confirm('Are you sure you want to delete your customization? This will restore the original character.')) {
     // Remove from storage
