@@ -7082,6 +7082,13 @@ function initializeCustomizationForm() {
     }
     
     console.log('🔍 Final fullPrompt (first 100 chars):', fullPrompt.substring(0, 100));
+    console.log('🔍 Final fullPrompt length:', fullPrompt.length);
+    
+    // Ensure prompt is never empty
+    if (!fullPrompt || fullPrompt.trim() === '') {
+      console.warn('⚠️ Prompt was empty, using default');
+      fullPrompt = `You are ${customName}, a unique AI character created by the user. Please embody this character's personality and respond accordingly.`;
+    }
     
     // Get voice selection from the new voice dropdown
     const voiceTypeSelect = document.getElementById('voiceType');
@@ -7171,7 +7178,7 @@ function initializeCustomizationForm() {
       character_id: customSlug,
       title: customTitle,
       description: currentCharacter.description || currentCharacter.Description || customTitle,
-      prompt: fullPrompt, // Don't base64 encode - Make.com expects plain text
+      prompt: fullPrompt || `You are ${customName}, a unique AI character.`, // Ensure never null
       category: originalCategory, // Keep original category
       tags: originalTags, // Keep original tags
       visibility: 'private', // Custom characters are private by default
