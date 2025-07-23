@@ -6980,14 +6980,12 @@ function openCustomizationModal() {
     // Load personality state if saved
     if (existingCustom.personality_state) {
       personalityState = existingCustom.personality_state;
-      
-      // Update UI to reflect saved state
-      updateCommunicationStyleUI();
+      // Don't call updateCommunicationStyleUI() here - it will be called at the end of the function
     } else if (existingCustom.communication_style) {
       // Backward compatibility with old format
       personalityState.speaking = existingCustom.communication_style.speaking || [];
       personalityState.sliders = { ...personalityState.sliders, ...existingCustom.communication_style.sliders };
-      updateCommunicationStyleUI();
+      // Don't call updateCommunicationStyleUI() here - it will be called at the end of the function
     }
     
     // Load voice selection - now using the single dropdown
@@ -7042,7 +7040,12 @@ function openCustomizationModal() {
 
 function closeCustomizationModal() {
   document.getElementById('customizationModal').style.display = 'none';
+  // Reset submission flag when modal is closed
+  isCustomizationSubmitting = false;
 }
+
+// Global flag to prevent double submissions
+let isCustomizationSubmitting = false;
 
 function initializeCustomizationForm() {
   const form = document.getElementById('customizationForm');
@@ -7052,6 +7055,13 @@ function initializeCustomizationForm() {
     e.preventDefault();
     
     if (!currentCharacter) return;
+    
+    // Prevent double submission
+    if (isCustomizationSubmitting) {
+      console.log('⚠️ Form already being submitted, ignoring...');
+      return;
+    }
+    isCustomizationSubmitting = true;
     
     const characterId = characterSlug; // Use slug as unique identifier
     
@@ -7182,6 +7192,8 @@ function initializeCustomizationForm() {
     const originalText = submitButton.textContent;
     submitButton.disabled = true;
     submitButton.textContent = existingCustom && existingCustom.airtable_id ? 'Updating Character...' : 'Creating Character...';
+    submitButton.style.opacity = '0.7';
+    submitButton.style.cursor = 'not-allowed';
     
     try {
       // Send to Make.com webhook
@@ -7289,6 +7301,10 @@ function initializeCustomizationForm() {
       // Restore button state
       submitButton.disabled = false;
       submitButton.textContent = originalText;
+      submitButton.style.opacity = '1';
+      submitButton.style.cursor = 'pointer';
+      // Reset submission flag
+      isCustomizationSubmitting = false;
     }
   });
 }
