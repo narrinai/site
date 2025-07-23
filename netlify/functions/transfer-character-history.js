@@ -117,15 +117,11 @@ exports.handler = async (event, context) => {
         const original = originalRelResponse.records[0];
         console.log('✅ Found original relationship:', original.id);
 
-        // Find the new relationship record
-        const newFilterFormula = `AND({User} = "${user_id}", {Character} = "${actualTargetId}")`;
-        const newRelResponse = await airtableRequest(
-          'CharacterRelationships',
-          'GET',
-          `?filterByFormula=${encodeURIComponent(newFilterFormula)}&maxRecords=1`
-        );
-
-        if (newRelResponse.records && newRelResponse.records.length > 0) {
+        // Always create a new relationship for the new character
+        // We skip checking if it exists because it's a brand new character
+        console.log('➕ Creating new CharacterRelationship for target character');
+        
+        if (false) { // Skip the update path since we always need to create
           // Update the new relationship with data from the original
           const updateData = {
             fields: {
@@ -153,9 +149,7 @@ exports.handler = async (event, context) => {
           console.log('✅ Updated CharacterRelationship');
           transferResults.relationshipTransferred = true;
         } else {
-          console.log('⚠️ New CharacterRelationship not found, creating one...');
-          
-          // Create a new CharacterRelationship record
+          // Always create a new CharacterRelationship record
           const createData = {
             fields: {
               'User': [user_id],
