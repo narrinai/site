@@ -2365,6 +2365,49 @@ function processNetlifyData(characters, category, gridId, limit) {
    // Initialize Netlify Identity
 if (window.netlifyIdentity) {
   window.netlifyIdentity.on('init', updateLoginButton);
+  
+  // Add event listener for when modal opens
+  window.netlifyIdentity.on('open', () => {
+    console.log('🔓 Netlify Identity modal opened');
+    
+    // Function to update the Optional field
+    const updateOptionalField = () => {
+      const optionalInput = document.querySelector('.netlify-identity-widget input[placeholder="Optional"]');
+      if (optionalInput) {
+        optionalInput.placeholder = 'Name (optional)';
+        optionalInput.removeAttribute('required');
+        console.log('✅ Updated Optional field to Name (optional)');
+      }
+      
+      const labels = document.querySelectorAll('.netlify-identity-widget label');
+      labels.forEach(label => {
+        if (label.textContent.trim() === 'Optional' || label.textContent.includes('Optional')) {
+          label.textContent = 'Name (optional)';
+        }
+      });
+    };
+    
+    // Try immediately
+    updateOptionalField();
+    
+    // Also set up observer for dynamic content
+    const observer = new MutationObserver(() => {
+      updateOptionalField();
+    });
+    
+    const widget = document.querySelector('.netlify-identity-widget');
+    if (widget) {
+      observer.observe(widget, { childList: true, subtree: true });
+      
+      // Disconnect observer after 2 seconds to prevent memory leaks
+      setTimeout(() => observer.disconnect(), 2000);
+    }
+    
+    // Also try after a delay as fallback
+    setTimeout(updateOptionalField, 100);
+    setTimeout(updateOptionalField, 300);
+  });
+  
   window.netlifyIdentity.on('login', (user) => {
     handleLoginSuccess(user, 'login');
     window.netlifyIdentity.close();
