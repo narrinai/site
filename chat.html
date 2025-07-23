@@ -8806,7 +8806,15 @@ function getLastMessages(count = 3) {
         const user_id = localStorage.getItem("user_id");
         const user_uid = localStorage.getItem("user_uid");
         const user_email = localStorage.getItem("user_email");
-        const effective_user_id = user_id || localStorage.getItem("test_user_id") || "42";
+        
+        // Use email as user_id if no numeric user_id is available
+        const effective_user_id = user_id || user_email;
+        
+        // Skip relationship update if no valid user identifier
+        if (!effective_user_id || effective_user_id === "42" || effective_user_id === localStorage.getItem("test_user_id")) {
+          console.log('⚠️ Skipping relationship update - no valid user identifier');
+          return;
+        }
         
         // Extract emotional state from response
         let emotionalState = 'neutral';
