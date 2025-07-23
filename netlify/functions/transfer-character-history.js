@@ -104,13 +104,28 @@ exports.handler = async (event, context) => {
     try {
       console.log('📊 Fetching original CharacterRelationship...');
       
-      // Find original relationship
-      const filterFormula = `AND({User} = "${user_id}", {Slug} = "${source_character_slug}")`;
-      const originalRelResponse = await airtableRequest(
-        'CharacterRelationships',
+      // First, get the source character ID by slug
+      const sourceCharFilterFormula = `{Slug} = "${source_character_slug}"`;
+      const sourceCharResponse = await airtableRequest(
+        'Characters',
         'GET',
-        `?filterByFormula=${encodeURIComponent(filterFormula)}&maxRecords=1`
+        `?filterByFormula=${encodeURIComponent(sourceCharFilterFormula)}&maxRecords=1`
       );
+      
+      if (!sourceCharResponse.records || sourceCharResponse.records.length === 0) {
+        console.log('⚠️ Source character not found, skipping relationship transfer');
+        transferResults.errors.push('Source character not found');
+      } else {
+        const sourceCharacterId = sourceCharResponse.records[0].id;
+        console.log('✅ Found source character ID:', sourceCharacterId);
+        
+        // Find original relationship using Character ID
+        const filterFormula = `AND({User} = "${user_id}", {Character} = "${sourceCharacterId}")`;
+        const originalRelResponse = await airtableRequest(
+          'CharacterRelationships',
+          'GET',
+          `?filterByFormula=${encodeURIComponent(filterFormula)}&maxRecords=1`
+        );
 
       if (originalRelResponse.records && originalRelResponse.records.length > 0) {
         const original = originalRelResponse.records[0];
@@ -177,8 +192,9 @@ exports.handler = async (event, context) => {
           console.log('✅ Created new CharacterRelationship');
           transferResults.relationshipTransferred = true;
         }
-      } else {
-        console.log('ℹ️ No original CharacterRelationship found');
+        } else {
+          console.log('ℹ️ No original CharacterRelationship found');
+        }
       }
     } catch (error) {
       console.error('❌ Error transferring CharacterRelationship:', error);
