@@ -5425,6 +5425,13 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     function initializeChat() {
       const params = new URLSearchParams(window.location.search);
       characterSlug = params.get("char");
+      const wasTransferred = params.get("transferred") === "true";
+
+      // Store transfer flag for later use
+      if (wasTransferred) {
+        window.historyWasTransferred = true;
+        console.log('📋 History was transferred from previous character');
+      }
 
       if (!characterSlug) {
         showError("It looks like there's a connection issue. Let's get you to a safe space where you can find the right companion.");
@@ -5595,6 +5602,12 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     
     // Load chat history after character is loaded
     console.log('🔄 Loading chat history after character load...');
+    // Check if this is a new custom character with transferred history
+    if (window.historyWasTransferred) {
+      console.log('📋 Showing transfer notification');
+      showNotification('info', 'History Transferred', 
+        'Your conversation history has been successfully transferred to this character.');
+    }
     await loadChatHistory();
     
     // Check if AI avatar needs to be generated
@@ -6901,10 +6914,21 @@ function openCustomizationModal() {
     }
   };
   
-  // Load character's prompt from Airtable if available
-  if ((currentCharacter.prompt || currentCharacter.Prompt) && !existingCustom) {
-    // Display the character's original prompt in the preview
-    const promptPreview = document.getElementById('promptPreview');
+  // Load character's prompt or generate based on existing customization
+  const promptPreview = document.getElementById('promptPreview');
+  
+  if (existingCustom) {
+    // If editing existing custom character, use its prompt
+    promptPreview.value = existingCustom.generated_prompt || existingCustom.prompt || '';
+    
+    // Restore personality state if available
+    if (existingCustom.personality_state) {
+      personalityState = existingCustom.personality_state;
+      updateCommunicationStyleUI();
+      generatePrompt();
+    }
+  } else if (currentCharacter.prompt || currentCharacter.Prompt) {
+    // For new customizations, start with the original prompt
     const originalPrompt = currentCharacter.prompt || currentCharacter.Prompt || '';
     promptPreview.value = originalPrompt;
   }
@@ -7157,7 +7181,7 @@ function initializeCustomizationForm() {
     const submitButton = e.target.querySelector('button[type="submit"]');
     const originalText = submitButton.textContent;
     submitButton.disabled = true;
-    submitButton.textContent = existingCustom && existingCustom.airtable_id ? 'Updating Character...' : 'Saving Character...';
+    submitButton.textContent = existingCustom && existingCustom.airtable_id ? 'Updating Character...' : 'Creating Character...';
     
     try {
       // Send to Make.com webhook
@@ -7212,6 +7236,7 @@ function initializeCustomizationForm() {
           originalName: currentCharacter.name || currentCharacter.Name,
           name: customName,
           title: customTitle,
+          Character_Title: customTitle, // Add this field for compatibility
           slug: customSlug,
           prompt: fullPrompt,
           generated_prompt: generatedPrompt,
@@ -7237,22 +7262,20 @@ function initializeCustomizationForm() {
         
         // Show success notification
         const isUpdate = existingCustom && existingCustom.airtable_id;
-        const transferMessage = shouldTransferHistory ? ' Your conversation history and memories have been transferred to the new character.' : '';
+        const transferMessage = shouldTransferHistory ? ' History transferred.' : '';
         showNotification('success', isUpdate ? 'Character Updated!' : 'Character Created!', 
           isUpdate 
-            ? `${customName} has been successfully updated.`
-            : `${customName} has been created and saved to your account.${transferMessage} You can now chat with your customized character anytime!`);
+            ? `${customName} has been updated.`
+            : `${customName} created!${transferMessage}`);
         
-        // For new characters, offer to redirect
+        // For new characters, automatically redirect without prompt
         // Only show this for truly new characters, not when editing existing ones
         if (!isUpdate && !existingCustom) {
           setTimeout(() => {
-            if (confirm('Would you like to start chatting with your new customized character?')) {
-              // Add parameter to indicate history was transferred if applicable
-              const transferParam = shouldTransferHistory ? '&transferred=true' : '';
-              window.location.href = `/chat.html?char=${customSlug}${transferParam}`;
-            }
-          }, 1000);
+            // Add parameter to indicate history was transferred if applicable
+            const transferParam = shouldTransferHistory ? '&transferred=true' : '';
+            window.location.href = `/chat.html?char=${customSlug}${transferParam}`;
+          }, 1500);
         }
       } else {
         throw new Error(result.error || 'Failed to create character');
