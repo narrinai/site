@@ -7148,6 +7148,10 @@ function initializeCustomizationForm() {
     
     if (shouldTransferHistory) {
       console.log('📋 Transfer history enabled - will copy chat history and memories from:', characterSlug);
+    } else if (transferHistoryCheckbox && transferHistoryCheckbox.checked && existingCustom) {
+      console.log('⚠️ Transfer history checkbox checked but this is an update, not a new character');
+    } else {
+      console.log('ℹ️ Transfer history not enabled or checkbox not found');
     }
     
     const requestData = {
@@ -7295,6 +7299,14 @@ function initializeCustomizationForm() {
         
         // Determine if this is an update or new character
         const isUpdate = existingCustom && existingCustom.airtable_id;
+        
+        // Debug transfer conditions
+        console.log('🔍 Transfer conditions check:', {
+          shouldTransferHistory: shouldTransferHistory,
+          isUpdate: isUpdate,
+          hasCharacterId: !!(result.character_id || result.airtable_id),
+          resultData: result
+        });
         
         // If transfer history is enabled and we have a new character, call the transfer function
         if (shouldTransferHistory && !isUpdate) {
