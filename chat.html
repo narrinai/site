@@ -5604,9 +5604,11 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     console.log('🔄 Loading chat history after character load...');
     // Check if this is a new custom character with transferred history
     if (window.historyWasTransferred) {
-      console.log('📋 Showing transfer notification');
-      showNotification('info', 'History Transferred', 
-        'Your conversation history has been successfully transferred to this character.');
+      console.log('📋 History was transferred for this character');
+      // Don't show notification - just log it
+      // Add a small delay to ensure Make.com has finished transferring the history
+      console.log('⏳ Waiting for history transfer to complete...');
+      await new Promise(resolve => setTimeout(resolve, 2000));
     }
     await loadChatHistory();
     
