@@ -5519,6 +5519,11 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
 
     currentCharacter = data.character;
     console.log('🔍 Character data received:', currentCharacter);
+    console.log('🔍 Character name fields:', {
+      name: currentCharacter.name,
+      Name: currentCharacter.Name,
+      raw_data: JSON.stringify(currentCharacter, null, 2)
+    });
     console.log('🔍 Character title field:', currentCharacter.title || 'not found');
     console.log('🔍 Character Title field:', currentCharacter.Title || 'not found');
     console.log('🔍 Character Character_Title field:', currentCharacter.Character_Title || 'not found');
@@ -5546,20 +5551,7 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       currentCharacter.avatar_url = currentCharacter.Avatar_URL;
     }
     
-    // Check for customizations
-    checkForCustomization();
-    
-    // Show customize button if user is logged in
-    const userToken = localStorage.getItem('user_token');
-    const customizeBtn = document.getElementById('customizeBtn');
-    if (userToken && customizeBtn) {
-      customizeBtn.style.display = 'inline-block';
-    }
-    
-    // Generate conversation topics after character is loaded
-    generateConversationTopics();
-    
-    // Normalize name field
+    // Normalize name field BEFORE setting up the interface
     if (!currentCharacter.name && currentCharacter.Name) {
       currentCharacter.name = currentCharacter.Name;
     }
@@ -5574,6 +5566,19 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
         currentCharacter.title = currentCharacter.character_title;
       }
     }
+    
+    // Check for customizations
+    checkForCustomization();
+    
+    // Show customize button if user is logged in
+    const userToken = localStorage.getItem('user_token');
+    const customizeBtn = document.getElementById('customizeBtn');
+    if (userToken && customizeBtn) {
+      customizeBtn.style.display = 'inline-block';
+    }
+    
+    // Generate conversation topics after character is loaded
+    generateConversationTopics();
     
     console.log('Character loaded:', currentCharacter);
     console.log('Character voice_id:', currentCharacter.voice_id);
@@ -5611,8 +5616,16 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       // Initialize authentication check first
       initializeAuthenticationCheck();
 
-      document.title = `Chat with ${currentCharacter.name}`;
-      document.getElementById('characterName').textContent = currentCharacter.name;
+      // Debug character name issue
+      console.log('🔍 setupCharacterInterface - Character name data:', {
+        name: currentCharacter.name,
+        Name: currentCharacter.Name,
+        displayName: currentCharacter.name || currentCharacter.Name || 'Unknown'
+      });
+      
+      const displayName = currentCharacter.name || currentCharacter.Name || 'Unknown Character';
+      document.title = `Chat with ${displayName}`;
+      document.getElementById('characterName').textContent = displayName;
       document.getElementById('characterTitle').textContent = currentCharacter.title || currentCharacter.Title || currentCharacter.Character_Title || currentCharacter.character_title || '';
 
       const avatarElement = document.getElementById('characterAvatar');
@@ -7305,6 +7318,13 @@ function checkForCustomization() {
   
   const characterId = currentCharacter.id || currentCharacter.Name;
   const customization = customizedCharacters[characterId];
+  
+  console.log('🔍 checkForCustomization:', {
+    characterId,
+    hasCustomization: !!customization,
+    customizationData: customization,
+    allCustomizations: customizedCharacters
+  });
   
   if (customization) {
     applyCustomization(customization);
