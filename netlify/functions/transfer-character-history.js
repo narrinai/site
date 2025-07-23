@@ -18,12 +18,12 @@ exports.handler = async (event, context) => {
     } = data;
 
     // Validate required fields
-    if (!user_id || !source_character_slug || !target_character_slug || !target_character_id) {
+    if (!user_id || !source_character_slug || !target_character_slug) {
       return {
         statusCode: 400,
         body: JSON.stringify({ 
           error: 'Missing required fields',
-          required: ['user_id', 'source_character_slug', 'target_character_slug', 'target_character_id']
+          required: ['user_id', 'source_character_slug', 'target_character_slug']
         })
       };
     }
@@ -38,8 +38,35 @@ exports.handler = async (event, context) => {
     console.log('🔄 Starting character history transfer:', {
       from: source_character_slug,
       to: target_character_slug,
+      target_id_provided: target_character_id,
       user: user_id
     });
+
+    // If target_character_id is not provided, we need to look it up by slug
+    let actualTargetId = target_character_id;
+    if (!actualTargetId) {
+      console.log('🔍 Looking up target character by slug:', target_character_slug);
+      const targetCharFilterFormula = `{Slug} = "${target_character_slug}"`;
+      const targetCharResponse = await airtableRequest(
+        'Characters',
+        'GET',
+        `?filterByFormula=${encodeURIComponent(targetCharFilterFormula)}&maxRecords=1`
+      );
+      
+      if (!targetCharResponse.records || targetCharResponse.records.length === 0) {
+        console.error('❌ Target character not found with slug:', target_character_slug);
+        return {
+          statusCode: 404,
+          body: JSON.stringify({ 
+            error: 'Target character not found',
+            slug: target_character_slug
+          })
+        };
+      }
+      
+      actualTargetId = targetCharResponse.records[0].id;
+      console.log('✅ Found target character ID:', actualTargetId);
+    }
 
     // Helper function to make Airtable API calls
     const airtableRequest = async (table, method = 'GET', path = '', body = null) => {
@@ -83,7 +110,7 @@ exports.handler = async (event, context) => {
         console.log('✅ Found original relationship:', original.id);
 
         // Find the new relationship record
-        const newFilterFormula = `AND({User} = "${user_id}", {Character} = "${target_character_id}")`;
+        const newFilterFormula = `AND({User} = "${user_id}", {Character} = "${actualTargetId}")`;
         const newRelResponse = await airtableRequest(
           'CharacterRelationships',
           'GET',
@@ -123,7 +150,7 @@ exports.handler = async (event, context) => {
           const createData = {
             fields: {
               'User': [user_id],
-              'Character': [target_character_id],
+              'Character': [actualTargetId],
               'Average_Emotional_Score': original.fields['Average_Emotional_Score'] || 0.5,
               'Relationship_Phase': original.fields['Relationship_Phase'] || 'new',
               'Key_Memories_Summary': original.fields['Key_Memories_Summary'] || '',
