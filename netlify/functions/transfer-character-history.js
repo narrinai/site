@@ -145,7 +145,7 @@ exports.handler = async (event, context) => {
               'Average_Emotional_Score': original.fields['Average_Emotional_Score'] || 0.5,
               'Relationship_Phase': original.fields['Relationship_Phase'] || 'new',
               'Key_Memories_Summary': original.fields['Key_Memories_Summary'] || '',
-              'Last_Topics': original.fields['Last_Topics'] || '',
+              'Last_Topics': original.fields['Last_Topics'] || [],
               'Total_Messages': original.fields['Total_Messages'] || 0
             }
           };
@@ -174,7 +174,7 @@ exports.handler = async (event, context) => {
               'Average_Emotional_Score': original.fields['Average_Emotional_Score'] || 0.5,
               'Relationship_Phase': original.fields['Relationship_Phase'] || 'new',
               'Key_Memories_Summary': original.fields['Key_Memories_Summary'] || '',
-              'Last_Topics': original.fields['Last_Topics'] || '',
+              'Last_Topics': original.fields['Last_Topics'] || [],
               'Total_Messages': original.fields['Total_Messages'] || 0
             }
           };
@@ -206,7 +206,7 @@ exports.handler = async (event, context) => {
               'Average_Emotional_Score': 0.5,
               'Relationship_Phase': 'new',
               'Key_Memories_Summary': '',
-              'Last_Topics': '',
+              'Last_Topics': [],
               'Total_Messages': 0
             }
           };
@@ -235,7 +235,7 @@ exports.handler = async (event, context) => {
       const chatsResponse = await airtableRequest(
         'ChatHistory',
         'GET',
-        `?filterByFormula=${encodeURIComponent(chatFilterFormula)}&sort%5B0%5D%5Bfield%5D=Created&sort%5B0%5D%5Bdirection%5D=asc&maxRecords=100`
+        `?filterByFormula=${encodeURIComponent(chatFilterFormula)}&sort%5B0%5D%5Bfield%5D=Timestamp&sort%5B0%5D%5Bdirection%5D=asc&maxRecords=100`
       );
 
       console.log(`📚 Found ${chatsResponse.records?.length || 0} chat messages to transfer`);
