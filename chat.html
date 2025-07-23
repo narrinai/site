@@ -7182,17 +7182,27 @@ function initializeCustomizationForm() {
       category: originalCategory, // Keep original category
       tags: originalTags, // Keep original tags
       visibility: 'private', // Custom characters are private by default
-      avatar_url: currentCharacter.avatar_url || currentCharacter.Avatar_URL || null,
       character_url: `https://narrin.ai/chat.html?char=${customSlug}`,
-      voice_id: selectedVoice || null,
       voice_type: selectedVoice ? 'custom' : 'none',
-      needs_ai_avatar: false,
-      
-      // Transfer data if enabled
-      transfer_history: shouldTransferHistory,
-      source_character_id: shouldTransferHistory ? characterSlug : null,
-      source_character_slug: shouldTransferHistory ? characterSlug : null
+      needs_ai_avatar: false
     };
+    
+    // Only add optional fields if they have values
+    const avatarUrl = currentCharacter.avatar_url || currentCharacter.Avatar_URL;
+    if (avatarUrl) {
+      requestData.avatar_url = avatarUrl;
+    }
+    
+    if (selectedVoice) {
+      requestData.voice_id = selectedVoice;
+    }
+    
+    // Only add transfer fields if transfer history is enabled
+    if (shouldTransferHistory) {
+      requestData.transfer_history = true;
+      requestData.source_character_id = characterSlug;
+      requestData.source_character_slug = characterSlug;
+    }
     
     // Add Airtable ID if updating existing character
     if (existingCustom && existingCustom.airtable_id) {
