@@ -4206,21 +4206,21 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Voice library mapping for preview
     const voiceLibrary = {
-      'royal_authority': 'TxGEqnHWrfWFTfGW9XjX',
-      'wise_mentor': 'XrExE9yKIg1WjnnlVkGX',
-      'caring_therapist': 'EXAVITQu4vr4xnSDxMaL',
-      'romantic_partner': 'iP95p4HMsOdaJ6J8s72v',
-      'best_friend': 'XB0fDUnXU5powFXDhCwa',
-      'mysterious_stranger': 'onwK4e9ZLuTAKqWW03F9',
-      'cheerful_comedian': 'pFZP5JQG7iQjIQuC4Bku',
-      'wise_elder': 'XrExE9yKIg1WjnnlVkGX',
-      'creative_dreamer': 'AZnzlk1XvdvUeBnXmlld',
-      'anime_hero': 'pqHfZKP75CvOlQylNhV4',
-      'business_coach': 'pNInz6ObpgDQGcFmaJgB',
-      'fitness_trainer': 'yoZ06aMxZJJ28mfd3POQ',
-      'storyteller': 'VR6AewLTigWG4xSOukaG',
-      'rebel_spirit': 'oWAxZDx7w5VEj9dCyTzz',
-      'mystical_guide': 'fvcBHKa2lxguQE5lB4uV'
+      'royal_authority': 'fvcBHKa2lxguQE5lB4uV',
+      'wise_mentor': 'p3yi6sku4VQJg3uH6i6D',
+      'caring_therapist': 'W8ouBcjTunaMJLYU2BvB',
+      'romantic_partner': 'SyTRiCoyqTeFEk9z5HVW',
+      'best_friend': 'wdGYtWKVlLmwTxGswfYd',
+      'mysterious_stranger': 'SAhaRsW91OuPlKeINYop',
+      'cheerful_comedian': 'by3rQdWs4XjziQwJ2sTL',
+      'wise_elder': 'qEN0DupmmmaueYJ8Eaz8',
+      'creative_dreamer': 'xrnmhZSWIj7bbiePgGvN',
+      'anime_hero': 'bPTYXR1t7VO7OqE0XKTC',
+      'business_coach': 'G5GoD2FgQe3Hzaz0vt43',
+      'fitness_trainer': '51yNzCRVCZm7Y1tnCXkv',
+      'storyteller': '0lQiUnjkvRkmBWp91f0M',
+      'rebel_spirit': 'LQE5CZhudCF69ZH1OqB4',
+      'mystical_guide': 'nhcRWQJQwy0CaUoH3L6C'
     };
     
     // Preview voice function for customization modal
@@ -4640,6 +4640,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function showConversationStarter() {
       console.log('🎯 showConversationStarter called');
       console.log('🎯 currentCharacter at showConversationStarter:', currentCharacter);
+      
+      // Check if history was transferred from another character
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('transferred') === 'true') {
+        console.log('📋 History was transferred, skipping conversation starter');
+        return;
+      }
       
       // Check if chat history has already been loaded
       if (window.chatHistoryLoaded) {
@@ -7151,7 +7158,7 @@ function initializeCustomizationForm() {
     const submitButton = e.target.querySelector('button[type="submit"]');
     const originalText = submitButton.textContent;
     submitButton.disabled = true;
-    submitButton.textContent = existingCustom && existingCustom.airtable_id ? 'Updating Character...' : 'Creating Character...';
+    submitButton.textContent = existingCustom && existingCustom.airtable_id ? 'Updating Character...' : 'Saving Character...';
     
     try {
       // Send to Make.com webhook
@@ -7238,10 +7245,13 @@ function initializeCustomizationForm() {
             : `${customName} has been created and saved to your account.${transferMessage} You can now chat with your customized character anytime!`);
         
         // For new characters, offer to redirect
-        if (!isUpdate) {
+        // Only show this for truly new characters, not when editing existing ones
+        if (!isUpdate && !existingCustom) {
           setTimeout(() => {
             if (confirm('Would you like to start chatting with your new customized character?')) {
-              window.location.href = `/chat.html?char=${customSlug}`;
+              // Add parameter to indicate history was transferred if applicable
+              const transferParam = shouldTransferHistory ? '&transferred=true' : '';
+              window.location.href = `/chat.html?char=${customSlug}${transferParam}`;
             }
           }, 1000);
         }
