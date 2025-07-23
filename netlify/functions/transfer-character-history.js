@@ -218,6 +218,7 @@ exports.handler = async (event, context) => {
               fields: {
                 'User Email': user_email,
                 'Character Slug': target_character_slug,
+                'Character': [actualTargetId], // Add the Character reference
                 'Message': chat.fields['Message'],
                 'Response': chat.fields['Response'],
                 'Timestamp': chat.fields['Timestamp'] || new Date().toISOString(),
