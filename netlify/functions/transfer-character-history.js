@@ -35,6 +35,31 @@ exports.handler = async (event, context) => {
       throw new Error('Missing Airtable configuration');
     }
 
+    // Helper function to make Airtable API calls
+    const airtableRequest = async (table, method = 'GET', path = '', body = null) => {
+      const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(table)}${path}`;
+      const options = {
+        method,
+        headers: {
+          'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      };
+      
+      if (body) {
+        options.body = JSON.stringify(body);
+      }
+      
+      const response = await fetch(url, options);
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(`Airtable API error: ${data.error?.message || response.statusText}`);
+      }
+      
+      return data;
+    };
+
     console.log('🔄 Starting character history transfer:', {
       from: source_character_slug,
       to: target_character_slug,
@@ -68,29 +93,12 @@ exports.handler = async (event, context) => {
       console.log('✅ Found target character ID:', actualTargetId);
     }
 
-    // Helper function to make Airtable API calls
-    const airtableRequest = async (table, method = 'GET', path = '', body = null) => {
-      const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(table)}${path}`;
-      const options = {
-        method,
-        headers: {
-          'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      };
-      
-      if (body) {
-        options.body = JSON.stringify(body);
-      }
-      
-      const response = await fetch(url, options);
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(`Airtable API error: ${data.error?.message || response.statusText}`);
-      }
-      
-      return data;
+    // Track transfer results
+    let transferResults = {
+      relationshipTransferred: false,
+      chatMessagesTransferred: 0,
+      memoriesTransferred: 0,
+      errors: []
     };
 
     // 1. Transfer CharacterRelationships data
@@ -143,6 +151,7 @@ exports.handler = async (event, context) => {
             updateData
           );
           console.log('✅ Updated CharacterRelationship');
+          transferResults.relationshipTransferred = true;
         } else {
           console.log('⚠️ New CharacterRelationship not found, creating one...');
           
@@ -173,12 +182,14 @@ exports.handler = async (event, context) => {
             createData
           );
           console.log('✅ Created new CharacterRelationship');
+          transferResults.relationshipTransferred = true;
         }
       } else {
         console.log('ℹ️ No original CharacterRelationship found');
       }
     } catch (error) {
       console.error('❌ Error transferring CharacterRelationship:', error);
+      transferResults.errors.push(`CharacterRelationship: ${error.message}`);
     }
 
     // 2. Transfer Chat History
@@ -194,9 +205,13 @@ exports.handler = async (event, context) => {
       );
 
       console.log(`📚 Found ${chatsResponse.records?.length || 0} chat messages to transfer`);
+      
+      if (chatsResponse.records?.length > 0) {
+        console.log('📝 Sample chat record:', JSON.stringify(chatsResponse.records[0].fields, null, 2));
+      }
 
       // Copy each chat message
-      if (chatsResponse.records) {
+      if (chatsResponse.records && chatsResponse.records.length > 0) {
         for (const chat of chatsResponse.records) {
           try {
             const newChatData = {
@@ -205,16 +220,23 @@ exports.handler = async (event, context) => {
                 'Character Slug': target_character_slug,
                 'Message': chat.fields['Message'],
                 'Response': chat.fields['Response'],
-                'Created': chat.fields['Created'],
-                'Timestamp': chat.fields['Timestamp'],
+                'Timestamp': chat.fields['Timestamp'] || new Date().toISOString(),
                 'Role': chat.fields['Role'] || 'user',
                 'User': [user_id]
               }
             };
+            
+            // Only add Created field if it exists and is not a computed field
+            if (chat.fields['Created'] && typeof chat.fields['Created'] === 'string') {
+              newChatData.fields['Created'] = chat.fields['Created'];
+            }
 
-            await airtableRequest('Chats', 'POST', '', { fields: newChatData.fields });
+            const createResponse = await airtableRequest('Chats', 'POST', '', { fields: newChatData.fields });
+            console.log(`✅ Copied chat message ${transferResults.chatMessagesTransferred + 1}`);
+            transferResults.chatMessagesTransferred++;
           } catch (chatError) {
             console.error('❌ Error copying chat message:', chatError);
+            transferResults.errors.push(`Chat message: ${chatError.message}`);
           }
         }
       }
@@ -222,19 +244,76 @@ exports.handler = async (event, context) => {
       console.log('✅ Chat history transfer completed');
     } catch (error) {
       console.error('❌ Error transferring chat history:', error);
+      transferResults.errors.push(`Chat history: ${error.message}`);
     }
 
+    // 3. Transfer Memories
+    try {
+      console.log('🧠 Fetching memories...');
+      
+      // Get all memories for the original character
+      const memoryFilterFormula = `AND({user_id} = "${user_id}", {character_id} = "${source_character_slug}")`;
+      const memoriesResponse = await airtableRequest(
+        'Memories',
+        'GET',
+        `?filterByFormula=${encodeURIComponent(memoryFilterFormula)}&sort%5B0%5D%5Bfield%5D=timestamp&sort%5B0%5D%5Bdirection%5D=desc&maxRecords=100`
+      );
+
+      console.log(`📚 Found ${memoriesResponse.records?.length || 0} memories to transfer`);
+
+      // Copy each memory
+      if (memoriesResponse.records) {
+        for (const memory of memoriesResponse.records) {
+          try {
+            const newMemoryData = {
+              fields: {
+                'user_id': user_id,
+                'character_id': target_character_slug,
+                'content': memory.fields['content'],
+                'importance': memory.fields['importance'] || 5,
+                'context': memory.fields['context'] || '',
+                'emotional_state': memory.fields['emotional_state'] || '',
+                'topics': memory.fields['topics'] || [],
+                'timestamp': memory.fields['timestamp']
+              }
+            };
+
+            await airtableRequest('Memories', 'POST', '', { fields: newMemoryData.fields });
+            console.log(`✅ Copied memory ${transferResults.memoriesTransferred + 1}`);
+            transferResults.memoriesTransferred++;
+          } catch (memoryError) {
+            console.error('❌ Error copying memory:', memoryError);
+            transferResults.errors.push(`Memory: ${memoryError.message}`);
+          }
+        }
+      }
+
+      console.log('✅ Memories transfer completed');
+    } catch (error) {
+      console.error('❌ Error transferring memories:', error);
+      transferResults.errors.push(`Memories: ${error.message}`);
+    }
+
+    // Determine if the transfer was actually successful
+    const success = transferResults.relationshipTransferred || transferResults.chatMessagesTransferred > 0 || transferResults.memoriesTransferred > 0;
+    
     return {
-      statusCode: 200,
+      statusCode: success ? 200 : 500,
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        success: true,
-        message: 'Character history transferred successfully',
+        success: success,
+        message: success ? 'Character history transferred successfully' : 'No data was transferred',
         details: {
           from: source_character_slug,
-          to: target_character_slug
+          to: target_character_slug,
+          relationshipTransferred: transferResults.relationshipTransferred,
+          chatMessagesTransferred: transferResults.chatMessagesTransferred,
+          memoriesTransferred: transferResults.memoriesTransferred,
+          totalMessages: transferResults.chatMessagesTransferred,
+          totalMemories: transferResults.memoriesTransferred,
+          errors: transferResults.errors
         }
       })
     };
