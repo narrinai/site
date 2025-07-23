@@ -7068,14 +7068,20 @@ function initializeCustomizationForm() {
     const characterId = characterSlug; // Use slug as unique identifier
     
     // Get the prompt from the textarea (user may have edited it)
-    const generatedPrompt = document.getElementById('promptPreview').value.trim();
+    const promptPreviewElement = document.getElementById('promptPreview');
+    console.log('🔍 Prompt preview element:', promptPreviewElement);
+    console.log('🔍 Prompt preview value:', promptPreviewElement ? promptPreviewElement.value : 'ELEMENT NOT FOUND');
+    
+    const generatedPrompt = promptPreviewElement ? promptPreviewElement.value.trim() : '';
     const customInstructions = document.getElementById('customPrompt').value.trim();
     
     // Combine generated prompt with custom instructions
-    let fullPrompt = generatedPrompt;
+    let fullPrompt = generatedPrompt || currentCharacter.prompt || currentCharacter.Prompt || '';
     if (customInstructions) {
       fullPrompt += '\n\nAdditional instructions: ' + customInstructions;
     }
+    
+    console.log('🔍 Final fullPrompt (first 100 chars):', fullPrompt.substring(0, 100));
     
     // Get voice selection from the new voice dropdown
     const voiceTypeSelect = document.getElementById('voiceType');
