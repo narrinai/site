@@ -129,8 +129,8 @@ exports.handler = async (event, context) => {
 
 // Helper function to create appropriate portrait prompts
 function createPortraitPrompt(characterName, characterTitle, category) {
-  // Use a completely simple approach - DALL-E often ignores complex negative instructions
-  let basePrompt = 'Professional headshot photograph, clean simple portrait, ';
+  // Simple approach with subtle guidance away from text elements
+  let basePrompt = 'Clean headshot portrait photograph, person only, simple background, ';
   
   // Much simpler category styles to avoid triggering unwanted elements
   const categoryStyles = {
@@ -161,11 +161,11 @@ function createPortraitPrompt(characterName, characterTitle, category) {
     fullPrompt += `${characterName}, `;
   }
   
-  // Keep it extremely simple - complex negative prompts often backfire with DALL-E
-  fullPrompt += 'professional studio lighting, neutral background, high quality photograph';
+  // Simple positive instructions to guide away from text/labels
+  fullPrompt += 'studio portrait photography, plain background, professional lighting, photograph only';
   
-  // Simple safety instruction
-  fullPrompt += ', appropriate for all audiences, single person only';
+  // Emphasize it's just a person portrait
+  fullPrompt += ', individual person portrait, photographic style, clean image';
   
   return fullPrompt;
 }
