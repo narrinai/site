@@ -193,30 +193,39 @@ exports.handler = async (event, context) => {
       // Create new relationship record
       console.log('📝 Creating new relationship record');
       
+      const createPayload = {
+        records: [{
+          fields: {
+            User: [userRecordId],  // Linked record to Users table
+            Character: [charRecordId],  // Linked record to Characters table
+            First_Interaction: now,
+            Last_Interaction: now,
+            Total_Messages: 1,
+            Average_Emotional_Score: emotional_state === 'positive' ? 0.7 : emotional_state === 'negative' ? 0.3 : 0.5,
+            Relationship_Phase: 'new'
+          }
+        }]
+      };
+      
+      console.log('📤 Create payload:', JSON.stringify(createPayload, null, 2));
+      
       const createResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          records: [{
-            fields: {
-              User: [userRecordId],  // Linked record to Users table
-              Character: [charRecordId],  // Linked record to Characters table
-              First_Interaction: now,
-              Last_Interaction: now,
-              Total_Messages: 1,
-              Average_Emotional_Score: emotional_state === 'positive' ? 0.7 : emotional_state === 'negative' ? 0.3 : 0.5,
-              Relationship_Phase: 'new'
-            }
-          }]
-        })
+        body: JSON.stringify(createPayload)
       });
 
       if (!createResponse.ok) {
-        throw new Error(`Failed to create relationship: ${createResponse.status}`);
+        const errorText = await createResponse.text();
+        console.error('❌ Create relationship failed:', errorText);
+        throw new Error(`Failed to create relationship: ${createResponse.status} - ${errorText}`);
       }
+      
+      const createResult = await createResponse.json();
+      console.log('✅ Relationship created:', createResult);
 
       return {
         statusCode: 200,
