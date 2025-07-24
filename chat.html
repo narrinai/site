@@ -8935,11 +8935,13 @@ function getLastMessages(count = 3) {
         // Use email as user_id if no numeric user_id is available
         const effective_user_id = user_id || user_email;
         
-        // Skip relationship update if no valid user identifier
-        if (!effective_user_id || effective_user_id === "42" || effective_user_id === localStorage.getItem("test_user_id")) {
-          console.log('⚠️ Skipping relationship update - no valid user identifier');
+        // Skip relationship update only if no user identifier at all
+        if (!effective_user_id) {
+          console.log('⚠️ Skipping relationship update - no user identifier');
           return;
         }
+        
+        console.log('📊 Updating relationship for user:', effective_user_id);
         
         // Extract emotional state from response
         let emotionalState = 'neutral';
