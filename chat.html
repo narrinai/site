@@ -5139,7 +5139,7 @@ async function getRelevantMemories(userId, characterId, currentMessage) {
         const email = localStorage.getItem("user_email");
         const requestData = {
             action: 'get_memories',
-            user_id: userId,
+            user_id: email || userId,  // Prefer email as identifier
             user_email: email,
             character_id: characterId,
             character_slug: characterId,
@@ -8248,7 +8248,8 @@ async function sendMessage(event) {
   const user_email = localStorage.getItem("user_email");
   
   // Use fallback if user_id is not available - use email as last resort
-  const effective_user_id = user_id || localStorage.getItem("test_user_id") || "42";
+  // Always use email as primary identifier since we always have it
+  const effective_user_id = user_email || user_id || "unknown";
   
   console.log("🚀 sendMessage debug:", { 
     token: !!token, 
@@ -9017,7 +9018,8 @@ function getLastMessages(count = 3) {
         const user_id = localStorage.getItem("user_id");
         const user_uid = localStorage.getItem("user_uid");
         const user_email = localStorage.getItem("user_email");
-        const effective_user_id = user_id || localStorage.getItem("test_user_id") || "42";
+        // Always use email as primary identifier since we always have it
+  const effective_user_id = user_email || user_id || "unknown";
         
         const response = await fetch('/.netlify/functions/conversation-summary', {
           method: 'POST',
