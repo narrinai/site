@@ -90,34 +90,23 @@ def get_categories_from_airtable():
             log(Colors.RED, f"❌ Fout bij ophalen categorieën: {e}")
             break
     
-    # Focus alleen op deze specifieke categorieën
+    # Focus alleen op deze specifieke categorieën - gebruik lowercase voor matching
     category_mapping = {
-        'health': 'Health',
-        'health-coach': 'Health',
-        'spiritual': 'Spiritual', 
-        'spiritual-coach': 'Spiritual',
-        'romance': 'Romance',
-        'romantic': 'Romance',
-        'support': 'Support',
-        'emotional support': 'Support',
-        'emotional-support': 'Support',
-        'purpose': 'Purpose',
-        'life purpose': 'Purpose',
-        'life-purpose': 'Purpose',
-        'self improvement': 'Self-Improvement',
-        'self-improvement': 'Self-Improvement',
-        'travel': 'Travel',
-        'travel-companion': 'Travel',
-        'parenting': 'Parenting',
-        'parent-coach': 'Parenting',
-        'cultural': 'Cultural',
-        'culture': 'Cultural',
-        'life': 'Life',
-        'life-coach': 'Life',
-        'life coaching': 'Life',
-        'life-coaching': 'Life',
-        'motivation': 'Motivation',
-        'motivational': 'Motivation'
+        # Nieuwe categorieën die we willen toevoegen
+        'health': 'health',
+        'spiritual': 'spiritual', 
+        'romance': 'romance',
+        'support': 'support',
+        'purpose': 'purpose',
+        'self-improvement': 'self-improvement',
+        'travel': 'travel',
+        'parenting': 'parenting',
+        'cultural': 'cultural',
+        'life': 'life',
+        'motivation': 'motivation',
+        # Als deze exact in Airtable staan, voeg ze ook toe
+        'fitness': 'fitness',  # Gezien in screenshot
+        'mindfulness': 'mindfulness'  # Mogelijk aanwezig
     }
     
     # Debug: toon alle categorieën uit Airtable
@@ -129,20 +118,26 @@ def get_categories_from_airtable():
     
     for cat in categories:
         if cat:
-            # Kijk of deze categorie in onze mapping staat
-            mapped_cat = category_mapping.get(cat.lower())
-            if mapped_cat:
-                simplified_categories.append(mapped_cat)
-                category_original_names[mapped_cat] = cat  # Bewaar originele naam
-                if cat.lower() != mapped_cat.lower():
-                    log(Colors.CYAN, f"   🔄 Categorie '{cat}' gemapped naar '{mapped_cat}'")
+            # Voor nieuwe categorieën die nog niet in Airtable staan
+            if cat.lower() in category_mapping:
+                # Deze categorie is toegestaan
+                simplified_categories.append(cat)
+                category_original_names[cat] = cat
+                log(Colors.GREEN, f"   ✅ Categorie '{cat}' gevonden en toegestaan")
             else:
-                log(Colors.YELLOW, f"   ⚠️  Categorie '{cat}' niet toegestaan of niet gevonden")
+                # Check of het een van onze gewenste nieuwe categorieën is
+                for desired_cat in ['health', 'spiritual', 'romance', 'support', 'purpose', 'self-improvement', 'travel', 'parenting', 'cultural', 'life', 'motivation']:
+                    if desired_cat not in [c.lower() for c in categories]:
+                        # Deze categorie bestaat nog niet in Airtable, voeg toe
+                        if desired_cat not in simplified_categories:
+                            simplified_categories.append(desired_cat)
+                            category_original_names[desired_cat] = desired_cat
+                            log(Colors.BLUE, f"   ➕ Nieuwe categorie '{desired_cat}' toegevoegd voor creatie")
     
     log(Colors.GREEN, f"✅ {len(simplified_categories)} toegestane categorieën gevonden")
     
-    # Prioriteer bepaalde categorieën
-    priority_categories = ['Health', 'Spiritual', 'Romance', 'Support', 'Purpose', 'Self-Improvement', 'Life', 'Motivation']
+    # Prioriteer bepaalde categorieën - gebruik lowercase
+    priority_categories = ['health', 'spiritual', 'romance', 'support', 'purpose', 'self-improvement', 'life', 'motivation']
     
     # Sorteer zodat priority categorieën eerst komen
     prioritized = []
@@ -156,6 +151,15 @@ def get_categories_from_airtable():
     
     # Sorteer beide lijsten en combineer (priority eerst)
     final_categories = sorted(prioritized) + sorted(others)
+    
+    # Voeg alle gewenste categorieën toe die nog niet bestaan
+    desired_categories = ['health', 'spiritual', 'romance', 'support', 'purpose', 'self-improvement', 'travel', 'parenting', 'cultural', 'life', 'motivation']
+    
+    for cat in desired_categories:
+        if cat not in [c.lower() for c in final_categories]:
+            final_categories.append(cat)
+            category_original_names[cat] = cat
+            log(Colors.BLUE, f"   ➕ Categorie '{cat}' toegevoegd voor nieuwe characters")
     
     # Return zowel de categorieën als de mapping
     return final_categories, category_original_names
