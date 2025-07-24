@@ -5259,8 +5259,17 @@ async function getMemoriesDirectFallback(userId, characterId) {
             return { memories: [], relationshipContext: null, recentSummary: null };
         }
         
+        // Check if history is an object with all null values
+        if (typeof data.history === 'object' && !Array.isArray(data.history)) {
+            const hasValidData = Object.values(data.history).some(value => value !== null);
+            if (!hasValidData) {
+                console.log("❌ Fallback: history object contains only null values");
+                return { memories: [], relationshipContext: null, recentSummary: null };
+            }
+        }
+        
         const memories = [];
-        const historyArray = Array.isArray(data.history) ? data.history : Object.values(data.history);
+        const historyArray = Array.isArray(data.history) ? data.history : Object.values(data.history).filter(v => v !== null);
         
         console.log(`🔍 Processing ${historyArray.length} history records for memories...`);
         
