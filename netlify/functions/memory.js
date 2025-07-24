@@ -204,22 +204,14 @@ exports.handler = async (event, context) => {
      const memories = [];
      
      console.log('🔍 Searching for user:', user_id, 'character:', characterIdentifier);
+     console.log('🔍 Total records to check:', data.records.length);
      
      for (const record of data.records) {
        const fields = record.fields || {};
        console.log('📋 Checking record:', record.id, 'User:', fields.User, 'Character:', fields['Slug (from Character)']);
        
-       // DEBUG: Log every record we're checking
-       console.log(`📋 Checking record ${record.id}:`, {
-         User: fields.User,
-         Character: fields.Character,
-         'Slug (from Character)': fields['Slug (from Character)'],
-         NetlifyUID: fields.NetlifyUID,
-         Email: fields.Email,
-         'Email (from Email)': fields['Email (from Email)'],
-         Memory_Importance: fields.Memory_Importance,
-         Summary: fields.Summary ? fields.Summary.substring(0, 50) + '...' : 'no summary'
-       });
+       // DEBUG: Log FULL record structure to understand the data
+       console.log(`📋 FULL record ${record.id}:`, JSON.stringify(fields, null, 2));
        
        // Check user match - properly handle all field types
 const recordUserField = fields.User; // Can be string (User_ID like "42") or array of record IDs
