@@ -399,8 +399,37 @@ function analyzeMessageRuleBased(message, context) {
     emotionalState = 'thoughtful';
   }
   
-  // Generate summary
-  const summary = messageLength > 100 ? message.substring(0, 97) + '...' : message;
+  // Generate smart summary
+  let summary = message;
+  
+  // Extract important information for summary
+  if (hasName && nameMatch) {
+    summary = `User's name is ${nameMatch[1]}`;
+  } else if (hasAge && numbers.length > 0) {
+    const age = numbers.find(n => parseInt(n) >= 1 && parseInt(n) <= 120);
+    if (age) summary = `User is ${age} years old`;
+  } else if (hasEmail) {
+    summary = 'User shared email address';
+  } else if (hasPhone) {
+    summary = 'User shared phone number';
+  } else if (isAskingAboutInfo) {
+    // For questions about memory, use the question as summary
+    summary = message.length > 100 ? message.substring(0, 97) + '...' : message;
+  } else if (hasPersonalInfo) {
+    // Try to extract the key information
+    const infoMatch = message.match(/(?:is|am|ben|heet)\s+(.+?)(?:\.|,|!|\?|$)/i);
+    if (infoMatch) {
+      summary = `User info: ${infoMatch[1]}`;
+    } else {
+      summary = 'User shared personal information';
+    }
+  } else if (message.match(/\b(like|love|enjoy)\s+(.+?)(?:\.|,|!|\?|$)/i)) {
+    const match = message.match(/\b(like|love|enjoy)\s+(.+?)(?:\.|,|!|\?|$)/i);
+    summary = `User ${match[1]}s ${match[2]}`;
+  } else {
+    // Default: shorten if too long
+    summary = messageLength > 100 ? message.substring(0, 97) + '...' : message;
+  }
   
   // Generate tags based on content
   const tags = [];
