@@ -6426,11 +6426,14 @@ async function getMemoryBasedTopics() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          action: 'get_memories',
+          user_id: uid || email,
           user_email: email,
-          user_uid: uid,
-          user_token: token,
           character_id: currentCharacter.id || currentCharacter.Name,
-          action: 'get_memories'
+          character_slug: currentCharacter.id || currentCharacter.Name,
+          current_message: '',
+          min_importance: 1,
+          max_results: 5
         })
       });
       

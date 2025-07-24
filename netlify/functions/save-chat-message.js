@@ -175,27 +175,43 @@ exports.handler = async (event, context) => {
     // Add 1 second to ensure assistant message comes after user message
     const assistantTimestamp = new Date(baseTime.getTime() + 1000).toISOString();
 
+    // Check if we have the required record IDs before proceeding
+    if (!userRecordId || !userRecordId.startsWith('rec')) {
+      console.log('❌ Cannot save messages: Missing valid User record ID');
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ 
+          success: false, 
+          error: 'Cannot save messages without valid User record ID',
+          debug: { userRecordId, user_email, user_uid }
+        })
+      };
+    }
+
+    if (!characterRecordId || !characterRecordId.startsWith('rec')) {
+      console.log('❌ Cannot save messages: Missing valid Character record ID');
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ 
+          success: false, 
+          error: 'Cannot save messages without valid Character record ID',
+          debug: { characterRecordId, char }
+        })
+      };
+    }
+
     // User message
     if (user_message && user_message.trim()) {
       const userMessageFields = {
         'Role': 'user',
-        'Message': user_message.trim()
+        'Message': user_message.trim(),
+        'User': [userRecordId],
+        'Character': [characterRecordId]
       };
       
-      // Add linked records only if we have valid record IDs
-      if (userRecordId && userRecordId.startsWith('rec')) {
-        userMessageFields['User'] = [userRecordId];
-        console.log('✅ Adding User lookup:', userRecordId);
-      } else {
-        console.log('⚠️ No valid User record ID, skipping User lookup');
-      }
-      if (characterRecordId && characterRecordId.startsWith('rec')) {
-        userMessageFields['Character'] = [characterRecordId];
-        console.log('✅ Adding Character lookup:', characterRecordId);
-      } else {
-        console.log('⚠️ No valid Character record ID, skipping Character lookup');
-      }
-      
+      console.log('✅ Creating user message with lookups:', { userRecordId, characterRecordId });
       recordsToCreate.push({ fields: userMessageFields });
     }
 
@@ -203,23 +219,12 @@ exports.handler = async (event, context) => {
     if (ai_response && ai_response.trim()) {
       const aiMessageFields = {
         'Role': 'ai assistant',
-        'Message': ai_response.trim()
+        'Message': ai_response.trim(),
+        'User': [userRecordId],
+        'Character': [characterRecordId]
       };
       
-      // Add linked records only if we have valid record IDs
-      if (userRecordId && userRecordId.startsWith('rec')) {
-        aiMessageFields['User'] = [userRecordId];
-        console.log('✅ Adding User lookup:', userRecordId);
-      } else {
-        console.log('⚠️ No valid User record ID, skipping User lookup');
-      }
-      if (characterRecordId && characterRecordId.startsWith('rec')) {
-        aiMessageFields['Character'] = [characterRecordId];
-        console.log('✅ Adding Character lookup:', characterRecordId);
-      } else {
-        console.log('⚠️ No valid Character record ID, skipping Character lookup');
-      }
-      
+      console.log('✅ Creating AI message with lookups:', { userRecordId, characterRecordId });
       recordsToCreate.push({ fields: aiMessageFields });
     }
 
