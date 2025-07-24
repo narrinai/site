@@ -202,7 +202,7 @@ exports.handler = async (event, context) => {
     // AI response
     if (ai_response && ai_response.trim()) {
       const aiMessageFields = {
-        'Role': 'assistant',
+        'Role': 'ai assistant',  // Try the exact value from Airtable screenshots
         'Message': ai_response.trim()
       };
       
