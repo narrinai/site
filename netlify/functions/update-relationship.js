@@ -159,8 +159,7 @@ exports.handler = async (event, context) => {
               Last_Interaction: now,
               Total_Messages: 1,
               Average_Emotional_Score: emotional_state === 'positive' ? 0.7 : emotional_state === 'negative' ? 0.3 : 0.5,
-              Relationship_Phase: 'new',
-              Last_Topics: topics || []
+              Relationship_Phase: 'new'
             }
           }]
         })
@@ -199,10 +198,6 @@ exports.handler = async (event, context) => {
       else if (totalMessages >= 20) relationshipPhase = 'established';
       else if (totalMessages >= 5) relationshipPhase = 'developing';
       
-      // Merge topics
-      const existingTopics = fields.Last_Topics || [];
-      const newTopics = [...new Set([...existingTopics, ...(topics || [])])].slice(-10); // Keep last 10 topics
-      
       const updateResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships/${recordId}`, {
         method: 'PATCH',
         headers: {
@@ -214,8 +209,7 @@ exports.handler = async (event, context) => {
             Last_Interaction: now,
             Total_Messages: (totalMessages || 0) + 1,
             Average_Emotional_Score: Math.round(newAvg * 100) / 100,
-            Relationship_Phase: relationshipPhase,
-            Last_Topics: newTopics
+            Relationship_Phase: relationshipPhase
           }
         })
       });

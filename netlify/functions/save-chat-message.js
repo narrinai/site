@@ -128,7 +128,7 @@ exports.handler = async (event, context) => {
       console.log('✅ Found user - Record ID:', userRecordId, 'Custom User_ID:', customUserId, 'Using:', userIdForSave);
     }
 
-    // Stap 2: Get character name from Characters table
+    // Stap 2: Get character name and ID from Characters table
     const characterResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula={Slug}='${char}'`, {
       headers: {
         'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -137,13 +137,15 @@ exports.handler = async (event, context) => {
     });
 
     let characterNameForSave = char; // Default to slug if not found
+    let characterRecordId = null;
     
     if (characterResponse.ok) {
       const characterData = await characterResponse.json();
       if (characterData.records.length > 0) {
         const characterRecord = characterData.records[0];
         characterNameForSave = characterRecord.fields.Name || char;
-        console.log('🎭 Found character - Name:', characterNameForSave, 'Slug:', char);
+        characterRecordId = characterRecord.id;
+        console.log('🎭 Found character - Name:', characterNameForSave, 'Slug:', char, 'ID:', characterRecordId);
       } else {
         console.log('🎭 Character not found, using slug:', char);
       }
@@ -154,28 +156,44 @@ exports.handler = async (event, context) => {
 
     // User message
     if (user_message && user_message.trim()) {
-      recordsToCreate.push({
-        fields: {
-          User: userIdForSave,  // Use custom User_ID
-          Character: characterNameForSave,  // Use character name
-          Role: 'user',
-          Message: user_message.trim(),
-          CreatedTime: new Date().toISOString()
-        }
-      });
+      const userMessageFields = {
+        'User Email': user_email,
+        'Character Slug': char,
+        'Role': 'user',
+        'Message': user_message.trim(),
+        'Timestamp': new Date().toISOString()
+      };
+      
+      // Add linked records if we have them
+      if (userRecordId) {
+        userMessageFields['User'] = [userRecordId];
+      }
+      if (characterRecordId) {
+        userMessageFields['Character'] = [characterRecordId];
+      }
+      
+      recordsToCreate.push({ fields: userMessageFields });
     }
 
     // AI response
     if (ai_response && ai_response.trim()) {
-      recordsToCreate.push({
-        fields: {
-          User: userIdForSave,  // Use custom User_ID
-          Character: characterNameForSave,  // Use character name
-          Role: 'assistant',
-          Message: ai_response.trim(),
-          CreatedTime: new Date().toISOString()
-        }
-      });
+      const aiMessageFields = {
+        'User Email': user_email,
+        'Character Slug': char,
+        'Role': 'assistant',
+        'Message': ai_response.trim(),
+        'Timestamp': new Date().toISOString()
+      };
+      
+      // Add linked records if we have them
+      if (userRecordId) {
+        aiMessageFields['User'] = [userRecordId];
+      }
+      if (characterRecordId) {
+        aiMessageFields['Character'] = [characterRecordId];
+      }
+      
+      recordsToCreate.push({ fields: aiMessageFields });
     }
 
     if (recordsToCreate.length === 0) {
