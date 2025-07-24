@@ -67,7 +67,7 @@ exports.handler = async (event, context) => {
       throw new Error(`Failed to find user: ${userResponse.status}`);
     }
     
-    const userData = await userResponse.json();
+    userData = await userResponse.json();
     console.log('📊 User lookup response:', { 
       status: userResponse.status, 
       records: userData.records?.length || 0,
