@@ -175,7 +175,15 @@ exports.handler = async (event, context) => {
         'Character Slug': char,
         'Role': 'user',
         'Message': user_message.trim(),
-        'Timestamp': userTimestamp
+        'CreatedTime': userTimestamp,
+        'Timestamp': userTimestamp,
+        'Name': characterNameForSave,
+        'Character_title': characterNameForSave,
+        // Initialize memory fields with defaults (will be updated by analyze-memory later)
+        'Memory_Importance': 0,
+        'Emotional_State': 'neutral',
+        'Summary': '',
+        'Memory_Tags': ['general']
       };
       
       // Add linked records if we have them
@@ -196,7 +204,15 @@ exports.handler = async (event, context) => {
         'Character Slug': char,
         'Role': 'assistant',
         'Message': ai_response.trim(),
-        'Timestamp': assistantTimestamp
+        'CreatedTime': assistantTimestamp,
+        'Timestamp': assistantTimestamp,
+        'Name': characterNameForSave,
+        'Character_title': characterNameForSave,
+        // Initialize memory fields with defaults (will be updated by analyze-memory later)
+        'Memory_Importance': 0,
+        'Emotional_State': 'neutral',
+        'Summary': '',
+        'Memory_Tags': ['general']
       };
       
       // Add linked records if we have them
