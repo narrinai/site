@@ -228,11 +228,26 @@ exports.handler = async (event, context) => {
       console.log('💬 Fetching chat history...');
       
       // Get all chat messages for the original character
-      const chatFilterFormula = `AND({User Email} = "${user_email}", {Character Slug} = "${source_character_slug}")`;
+      // First get the source character ID
+      const sourceCharFilterFormula = `{Slug} = "${source_character_slug}"`;
+      const sourceCharResponse = await airtableRequest(
+        'Characters',
+        'GET',
+        `?filterByFormula=${encodeURIComponent(sourceCharFilterFormula)}&maxRecords=1`
+      );
+      
+      if (!sourceCharResponse.records || sourceCharResponse.records.length === 0) {
+        throw new Error('Source character not found');
+      }
+      
+      const sourceCharacterId = sourceCharResponse.records[0].id;
+      
+      // Now get all chat messages using linked record search
+      const chatFilterFormula = `AND(SEARCH("${user_id}", ARRAYJOIN({User})), SEARCH("${sourceCharacterId}", ARRAYJOIN({Character})))`;
       const chatsResponse = await airtableRequest(
         'ChatHistory',
         'GET',
-        `?filterByFormula=${encodeURIComponent(chatFilterFormula)}&sort%5B0%5D%5Bfield%5D=Timestamp&sort%5B0%5D%5Bdirection%5D=asc&maxRecords=100`
+        `?filterByFormula=${encodeURIComponent(chatFilterFormula)}&sort%5B0%5D%5Bfield%5D=CreatedTime&sort%5B0%5D%5Bdirection%5D=asc&maxRecords=100`
       );
 
       console.log(`📚 Found ${chatsResponse.records?.length || 0} chat messages to transfer`);
@@ -247,14 +262,15 @@ exports.handler = async (event, context) => {
           try {
             const newChatData = {
               fields: {
-                'User Email': user_email,
-                'Character Slug': target_character_slug,
-                'Character': [actualTargetId], // Add the Character reference
+                'User': chat.fields['User'], // Keep original user linked record
+                'Character': [actualTargetId], // New character linked record
                 'Message': chat.fields['Message'],
-                'Response': chat.fields['Response'],
-                'Timestamp': chat.fields['Timestamp'] || new Date().toISOString(),
                 'Role': chat.fields['Role'] || 'user',
-                'User': [user_id]
+                // Copy memory fields if they exist
+                'Memory_Importance': chat.fields['Memory_Importance'],
+                'Summary': chat.fields['Summary'],
+                'Emotional_State': chat.fields['Emotional_State'],
+                'Memory_Tags': chat.fields['Memory_Tags']
               }
             };
             
