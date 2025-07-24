@@ -182,12 +182,18 @@ exports.handler = async (event, context) => {
         'Message': user_message.trim()
       };
       
-      // Add linked records if we have them
-      if (userRecordId) {
+      // Add linked records only if we have valid record IDs
+      if (userRecordId && userRecordId.startsWith('rec')) {
         userMessageFields['User'] = [userRecordId];
+        console.log('✅ Adding User lookup:', userRecordId);
+      } else {
+        console.log('⚠️ No valid User record ID, skipping User lookup');
       }
-      if (characterRecordId) {
+      if (characterRecordId && characterRecordId.startsWith('rec')) {
         userMessageFields['Character'] = [characterRecordId];
+        console.log('✅ Adding Character lookup:', characterRecordId);
+      } else {
+        console.log('⚠️ No valid Character record ID, skipping Character lookup');
       }
       
       recordsToCreate.push({ fields: userMessageFields });
@@ -200,12 +206,18 @@ exports.handler = async (event, context) => {
         'Message': ai_response.trim()
       };
       
-      // Add linked records if we have them
-      if (userRecordId) {
+      // Add linked records only if we have valid record IDs
+      if (userRecordId && userRecordId.startsWith('rec')) {
         aiMessageFields['User'] = [userRecordId];
+        console.log('✅ Adding User lookup:', userRecordId);
+      } else {
+        console.log('⚠️ No valid User record ID, skipping User lookup');
       }
-      if (characterRecordId) {
+      if (characterRecordId && characterRecordId.startsWith('rec')) {
         aiMessageFields['Character'] = [characterRecordId];
+        console.log('✅ Adding Character lookup:', characterRecordId);
+      } else {
+        console.log('⚠️ No valid Character record ID, skipping Character lookup');
       }
       
       recordsToCreate.push({ fields: aiMessageFields });
