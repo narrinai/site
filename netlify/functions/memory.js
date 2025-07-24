@@ -100,7 +100,7 @@ exports.handler = async (event, context) => {
     if (character_slug) {
       // Escape single quotes in character_slug
       const escapedSlug = character_slug.replace(/'/g, "\\'");
-      filterFormula = `AND(${filterFormula}, LOWER({Character Slug})=LOWER('${escapedSlug}'))`;
+      filterFormula = `AND(${filterFormula}, {Character Slug}='${escapedSlug}')`;
     }
     
     console.log('🔍 Filter formula:', filterFormula);

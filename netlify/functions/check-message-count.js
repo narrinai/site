@@ -113,7 +113,7 @@ exports.handler = async (event, context) => {
     
     // First get all messages for this user/character combination using record IDs and Character Slug
     const allMessagesResponse = await fetch(
-      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND(FIND('${userRecordId}',ARRAYJOIN({User}))>0,LOWER({Character Slug})=LOWER('${char}'))`,
+      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND(FIND('${userRecordId}',ARRAYJOIN({User}))>0,{Character Slug}='${char}')`,
       {
         headers: {
           'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
