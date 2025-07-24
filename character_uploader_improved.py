@@ -304,18 +304,14 @@ def generate_character_name(category, character_type, existing_names):
         if name.lower() not in existing_names:
             return name
     
-    # Als alle namen bezet zijn, genereer nieuwe variaties
-    # Gebruik alleen normale namen, geen titels of prefixes
-    
-    # Probeer namen te combineren voor nieuwe variaties
-    if len(unique_names) > 10:
-        for _ in range(100):
-            # Combineer twee korte namen
-            name1 = random.choice([n for n in unique_names if len(n) <= 5])
-            name2 = random.choice([n for n in unique_names if len(n) <= 5])
-            combined = f"{name1}{name2}"
-            if combined.lower() not in existing_names and len(combined) <= 10:
-                return combined
+    # Als alle namen bezet zijn, voeg een letter toe
+    # Shuffle opnieuw en probeer met letters
+    random.shuffle(unique_names)
+    for name in unique_names[:50]:  # Probeer eerste 50 namen
+        for letter in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
+            test_name = f"{name} {letter}"
+            if test_name.lower() not in existing_names:
+                return test_name
     
     # Alleen als laatste redmiddel, gebruik letters
     base = random.choice(unique_names)
