@@ -90,8 +90,9 @@ def get_categories_from_airtable():
             log(Colors.RED, f"❌ Fout bij ophalen categorieën: {e}")
             break
     
-    # Focus op companionship, persoonlijke ontwikkeling, vriendschap en support
+    # Alle categorieën inclusief bestaande uit Airtable
     category_mapping = {
+        # Focus categorieën
         'companionship': 'Companionship',
         'personal development': 'Personal Development',
         'personal-development': 'Personal Development',
@@ -109,11 +110,41 @@ def get_categories_from_airtable():
         'wellness': 'Wellness',
         'mindfulness': 'Mindfulness',
         'growth': 'Growth',
-        'relationship': 'Relationship',
         'happiness': 'Happiness',
         'confidence': 'Confidence',
         'stress relief': 'Stress Relief',
-        'stress-relief': 'Stress Relief'
+        'stress-relief': 'Stress Relief',
+        # Bestaande categorieën
+        'spiritual': 'Spiritual',
+        'spiritual-coach': 'Spiritual',
+        'health': 'Health',
+        'health-coach': 'Health',
+        'relationship': 'Relationship',
+        'relationship-coach': 'Relationship',
+        'career': 'Career',
+        'career-coach': 'Career',
+        'fitness': 'Fitness',
+        'fitness-coach': 'Fitness',
+        'business': 'Business',
+        'business-coach': 'Business',
+        'education': 'Education',
+        'educational': 'Education',
+        'language': 'Language',
+        'language-coach': 'Language',
+        'romance': 'Romance',
+        'cooking': 'Cooking',
+        'cooking-coach': 'Cooking',
+        'negotiation': 'Negotiation',
+        'negotiation-coach': 'Negotiation',
+        # Entertainment categorieën
+        'historical': 'Historical',
+        'anime & manga': 'Anime & Manga',
+        'anime-manga': 'Anime & Manga',
+        'mythology': 'Mythology',
+        'fictional': 'Fictional',
+        'celebrities': 'Celebrities',
+        'celebrity': 'Celebrities',
+        'gaming': 'Gaming'
     }
     
     # Debug: toon alle categorieën uit Airtable
@@ -138,7 +169,7 @@ def get_categories_from_airtable():
     log(Colors.GREEN, f"✅ {len(simplified_categories)} toegestane categorieën gevonden")
     
     # Prioriteer bepaalde categorieën
-    priority_categories = ['Companionship', 'Personal Development', 'Friendship', 'Support', 'Emotional Support']
+    priority_categories = ['Companionship', 'Personal Development', 'Friendship', 'Support', 'Spiritual', 'Health', 'Wellness', 'Mindfulness']
     
     # Sorteer zodat priority categorieën eerst komen
     prioritized = []
@@ -282,6 +313,7 @@ def generate_title_description(name, category, character_type):
     """Genereer titel en beschrijving gebaseerd op character type"""
     
     category_contexts = {
+        # Focus categorieën
         'companionship': 'friendship and meaningful connections',
         'personal development': 'self-growth and reaching your potential',
         'friendship': 'building genuine friendships',
@@ -294,10 +326,28 @@ def generate_title_description(name, category, character_type):
         'wellness': 'holistic health and balance',
         'mindfulness': 'peace and mental clarity',
         'growth': 'personal evolution and progress',
-        'relationship': 'healthy relationships and connections',
         'happiness': 'joy and life satisfaction',
         'confidence': 'self-assurance and empowerment',
-        'stress relief': 'calm and relaxation'
+        'stress relief': 'calm and relaxation',
+        # Bestaande categorieën
+        'spiritual': 'spiritual growth and inner peace',
+        'health': 'physical and mental health',
+        'relationship': 'love and relationships',
+        'career': 'career growth and success',
+        'fitness': 'fitness and exercise',
+        'business': 'business and entrepreneurship',
+        'education': 'learning and knowledge',
+        'language': 'language learning and practice',
+        'romance': 'romantic connections',
+        'cooking': 'culinary skills and recipes',
+        'negotiation': 'negotiation and communication',
+        # Entertainment categorieën
+        'historical': 'history and culture',
+        'anime & manga': 'anime and manga culture',
+        'mythology': 'myths and legends',
+        'fictional': 'creative storytelling',
+        'celebrities': 'entertainment and pop culture',
+        'gaming': 'gaming and esports'
     }
     
     context = category_contexts.get(category.lower(), 'general assistance and support')
