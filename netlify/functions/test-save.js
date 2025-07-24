@@ -31,6 +31,26 @@ exports.handler = async (event, context) => {
       }
     };
 
+    // Try to actually create the record
+    const createResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        records: [testRecord]
+      })
+    });
+
+    const responseText = await createResponse.text();
+    let responseData;
+    try {
+      responseData = JSON.parse(responseText);
+    } catch (e) {
+      responseData = responseText;
+    }
+
     return {
       statusCode: 200,
       headers,
@@ -38,7 +58,12 @@ exports.handler = async (event, context) => {
         success: true,
         envCheck,
         testRecord,
-        message: 'Test endpoint working'
+        airtableTest: {
+          status: createResponse.status,
+          ok: createResponse.ok,
+          response: responseData
+        },
+        message: 'Test endpoint with Airtable test'
       })
     };
 
