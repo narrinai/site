@@ -367,8 +367,8 @@ function analyzeMessageRuleBased(message, context) {
   if (personalInfoScore > 0) {
     importance += Math.min(personalInfoScore, 6); // Cap at +6
   } else if (isAskingAboutInfo && isQuestion) {
-    // Just asking about information without providing any
-    importance += 1; // Total: 4
+    // Memory check questions should have LOW importance
+    importance = 2; // Set to low importance instead of adding
   } else if (isQuestion) {
     // Regular question
     importance += 0; // Total: 3
@@ -413,8 +413,8 @@ function analyzeMessageRuleBased(message, context) {
   } else if (hasPhone) {
     summary = 'User shared phone number';
   } else if (isAskingAboutInfo) {
-    // For questions about memory, use the question as summary
-    summary = message.length > 100 ? message.substring(0, 97) + '...' : message;
+    // For memory check questions, prefix with indicator
+    summary = '[Memory check] ' + (message.length > 80 ? message.substring(0, 77) + '...' : message);
   } else if (hasPersonalInfo) {
     // Try to extract the key information
     const infoMatch = message.match(/(?:is|am|ben|heet)\s+(.+?)(?:\.|,|!|\?|$)/i);

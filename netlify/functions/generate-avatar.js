@@ -63,7 +63,7 @@ exports.handler = async (event, context) => {
       },
       body: JSON.stringify({
         model: 'dall-e-3',
-        prompt: prompt,
+        prompt: prompt + ` [Generated at: ${Date.now()}]`, // Add timestamp to ensure unique prompts
         n: 1,
         size: '1024x1024',
         quality: 'standard',
