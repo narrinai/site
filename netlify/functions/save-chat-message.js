@@ -218,6 +218,7 @@ exports.handler = async (event, context) => {
     }
 
     console.log('💾 Saving', recordsToCreate.length, 'messages to ChatHistory');
+    console.log('📝 Records to create:', JSON.stringify(recordsToCreate, null, 2));
 
     // Batch create records
     const createResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory`, {
