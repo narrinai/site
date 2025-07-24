@@ -129,20 +129,24 @@ exports.handler = async (event, context) => {
 
 // Helper function to create appropriate portrait prompts
 function createPortraitPrompt(characterName, characterTitle, category) {
-  let basePrompt = 'Natural portrait photograph of a single person, ABSOLUTELY NO grids, ABSOLUTELY NO guide lines, ABSOLUTELY NO measurement marks, ABSOLUTELY NO construction lines, ABSOLUTELY NO wireframes, ABSOLUTELY NO geometric overlays, clean face without any lines or marks on the image, simple natural portrait, ';
+  // Use a completely simple approach - DALL-E often ignores complex negative instructions
+  let basePrompt = 'Professional headshot photograph, clean simple portrait, ';
   
-  // Category-specific styles
+  // Much simpler category styles to avoid triggering unwanted elements
   const categoryStyles = {
-    'historical': 'classical painting style portrait, period-appropriate clothing and setting, ',
-    'celebrities': 'professional headshot style, modern photography, clean background, ',
-    'fictional': 'artistic character portrait, fantasy or sci-fi style as appropriate, ',
-    'politicians': 'formal official portrait style, professional setting, ',
-    'musicians': 'artistic portrait with musical elements or instruments visible, ',
-    'athletes': 'dynamic sports portrait, athletic wear or sports environment, ',
-    'scientists': 'intellectual portrait, academic or laboratory setting, ',
-    'writers': 'thoughtful literary portrait, book-filled study or creative space, ',
-    'entrepreneurs': 'modern business portrait, confident professional appearance, ',
-    'original': 'creative character portrait, unique and memorable appearance, '
+    'health': 'professional healthcare portrait, ',
+    'spiritual': 'peaceful serene portrait, ',
+    'romance': 'warm friendly portrait, ',
+    'support': 'caring compassionate portrait, ',
+    'purpose': 'confident determined portrait, ',
+    'self-improvement': 'motivational inspiring portrait, ',
+    'travel': 'adventurous friendly portrait, ',
+    'parenting': 'nurturing warm portrait, ',
+    'cultural': 'dignified respectful portrait, ',
+    'life': 'wise experienced portrait, ',
+    'motivation': 'energetic positive portrait, ',
+    'fitness': 'healthy active portrait, ',
+    'mindfulness': 'calm peaceful portrait, '
   };
   
   const style = categoryStyles[category] || categoryStyles['original'];
@@ -157,11 +161,11 @@ function createPortraitPrompt(characterName, characterTitle, category) {
     fullPrompt += `${characterName}, `;
   }
   
-  // Add quality modifiers and strong anti-grid instructions
-  fullPrompt += 'high quality portrait photograph, professional lighting, natural background, NEVER include grid lines, NEVER include alignment guides, NEVER include measurement marks, NEVER include crosshairs, NEVER include technical overlays, NEVER include construction geometry, clean natural image';
+  // Keep it extremely simple - complex negative prompts often backfire with DALL-E
+  fullPrompt += 'professional studio lighting, neutral background, high quality photograph';
   
-  // Add safety modifiers and very explicit exclusions
-  fullPrompt += ', appropriate for all audiences, no offensive content, single person portrait only, NO GRIDS, NO LINES, NO GUIDES, NO TECHNICAL MARKS, NO WIREFRAMES, NO GEOMETRIC PATTERNS, just a natural clean portrait photo of a person';
+  // Simple safety instruction
+  fullPrompt += ', appropriate for all audiences, single person only';
   
   return fullPrompt;
 }
