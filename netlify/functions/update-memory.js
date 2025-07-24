@@ -309,8 +309,27 @@ exports.handler = async (event, context) => {
             console.log('📊 User ID filter results:', userIdData.records?.length || 0);
             
             if (userIdData.records && userIdData.records.length > 0) {
-              const latestRecord = userIdData.records[0];
-              console.log('✅ Found record with User ID filter:', {
+              // Filter for only user messages (not assistant messages)
+              const userRecords = userIdData.records.filter(record => 
+                record.fields?.Role === 'user' || record.fields?.Role === 'User'
+              );
+              
+              if (userRecords.length === 0) {
+                console.log('❌ No user messages found (only assistant messages)');
+                return {
+                  statusCode: 200,
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    success: true,
+                    method: 'analysis_only',
+                    analysis: analysis,
+                    message: 'No user messages to update'
+                  })
+                };
+              }
+              
+              const latestRecord = userRecords[0];
+              console.log('✅ Found USER record with User ID filter:', {
                 id: latestRecord.id,
                 User: latestRecord.fields?.User,
                 Role: latestRecord.fields?.Role,
@@ -432,14 +451,21 @@ exports.handler = async (event, context) => {
                                  (Array.isArray(recordUserId) && recordUserId.includes(user_id)));
               
               if (emailMatch || uidMatch || userIdMatch) {
-                console.log('🎯 FOUND MATCHING RECORD!', {
+                // Check if this is a user message (not assistant)
+                if (fields.Role !== 'user' && fields.Role !== 'User') {
+                  console.log('⏭️ Skipping assistant message:', record.id);
+                  return; // Skip assistant messages
+                }
+                
+                console.log('🎯 FOUND MATCHING USER RECORD!', {
                   matchType: emailMatch ? 'email' : uidMatch ? 'uid' : 'userId',
                   userIdFromRecord: fields.User,
-                  recordId: record.id
+                  recordId: record.id,
+                  role: fields.Role
                 });
                 
                 // Als we een match vinden, probeer dit record te updaten
-                console.log('🔧 Attempting to update this matching record...');
+                console.log('🔧 Attempting to update this matching user record...');
                 
                 const updateUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory/${record.id}`;
                 
@@ -520,6 +546,11 @@ exports.handler = async (event, context) => {
             const matchingRecord = recentData.records.find(record => {
               const fields = record.fields || {};
               
+              // Skip assistant messages - only process user messages
+              if (fields.Role !== 'user' && fields.Role !== 'User') {
+                return false;
+              }
+              
               // Check User veld (linked record - kan array of single value zijn)
               const userField = fields.User;
               let userMatch = false;
@@ -537,10 +568,11 @@ exports.handler = async (event, context) => {
               }
               
               if (userMatch) {
-                console.log('✅ Found matching record:', {
+                console.log('✅ Found matching USER record:', {
                   id: record.id,
                   userField: userField,
                   searchedUserId: user_id_param,
+                  role: fields.Role,
                   match: 'user_id'
                 });
               }

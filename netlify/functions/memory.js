@@ -269,6 +269,12 @@ exports.handler = async (event, context) => {
          Message: fields.Message ? fields.Message.substring(0, 50) + '...' : null
        });
        
+       // Skip non-user messages (assistant messages)
+       if (fields.Role !== 'user' && fields.Role !== 'User') {
+         console.log(`⏭️ Skipping assistant message (Role=${fields.Role}), record:`, record.id);
+         continue;
+       }
+       
        // Check user match - properly handle all field types
 const recordUserField = fields.User; // Can be string (User_ID like "42") or array of record IDs
 const recordUserEmail = fields.Email || fields['Email (from Email)'] || fields.User_Email;
@@ -369,10 +375,13 @@ if (!userMatch && user_id) {
        const summary = fields.Summary || '';
        const message = fields.Message || '';
        
-       console.log(`🧠 Memory check: importance=${memoryImportance}, min=${min_importance}, has_summary=${!!summary}`);
+       console.log(`🧠 Memory check: importance=${memoryImportance}, min=${min_importance}, has_summary=${!!summary}, role=${fields.Role}`);
        
        if (memoryImportance >= min_importance && (summary || message)) {
-         console.log(`✅ Adding memory: importance=${memoryImportance}, summary="${summary.substring(0, 30)}..."`);
+         console.log(`✅ Adding USER memory: importance=${memoryImportance}, summary="${summary.substring(0, 30)}..."`, {
+           role: fields.Role,
+           message: message.substring(0, 50) + '...'
+         });
          
          memories.push({
            id: record.id,

@@ -85,7 +85,7 @@ exports.handler = async (event, context) => {
 Analyze the following message and provide a JSON response with:
 - memory_importance: integer 1-10 (1=trivial, 10=extremely important personal info)
 - emotional_state: string (happy, sad, excited, angry, neutral, thoughtful, confused)
-- summary: string (brief summary of the message, max 100 chars)
+- summary: string (extract key information, e.g., "User's name is John" for "my name is John", max 100 chars)
 - memory_tags: array of strings (use ONLY these tags: personal_info, relationship, goal, preference, emotional, question, general, memory_check, long_message, story, casual)
 
 Guidelines:
@@ -94,6 +94,13 @@ Guidelines:
 - Questions = moderate importance (3-5)
 - Casual chat = low importance (1-3)
 - Creative/storytelling = moderate importance (4-6)
+
+Summary extraction rules:
+- For "my name is X" → "User's name is X"
+- For "I'm X years old" → "User is X years old"
+- For "I like/love X" → "User likes/loves X"
+- For questions like "what's my name?" → Keep original question
+- Extract the KEY INFORMATION, not just repeat the message
 
 Tag guidelines:
 - personal_info: names, ages, locations, personal facts
