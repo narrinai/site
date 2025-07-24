@@ -1,23 +1,14 @@
 // netlify/functions/analyze-memory.js
 
-// Define allowed memory tags
+// Define allowed memory tags - only use tags that exist in Airtable
 const ALLOWED_MEMORY_TAGS = [
-  'personal_info',
-  'emotional', 
-  'question',
-  'factual',
-  'creative',
-  'memory_check',
-  'story',
-  'general'
+  'general'  // Only use general tag until we know which tags exist in Airtable
 ];
 
 // Helper function to validate and filter tags
 function validateTags(tags) {
-  if (!Array.isArray(tags)) return ['general'];
-  
-  const validTags = tags.filter(tag => ALLOWED_MEMORY_TAGS.includes(tag));
-  return validTags.length > 0 ? validTags : ['general'];
+  // For now, always return general tag
+  return ['general'];
 }
 
 exports.handler = async (event, context) => {
@@ -83,7 +74,7 @@ Analyze the following message and provide a JSON response with:
 - memory_importance: integer 1-10 (1=trivial, 10=extremely important personal info)
 - emotional_state: string (happy, sad, excited, angry, neutral, thoughtful, confused)
 - summary: string (brief summary of the message, max 100 chars)
-- memory_tags: array of strings (use ONLY these tags: personal_info, emotional, question, factual, creative, memory_check, story, general)
+- memory_tags: array with single string ['general'] (always use this, do not generate other tags)
 
 Guidelines:
 - Personal information (names, preferences, life events) = high importance (7-10)
@@ -386,21 +377,8 @@ function analyzeMessageRuleBased(message, context) {
   // Generate summary
   const summary = messageLength > 100 ? message.substring(0, 97) + '...' : message;
   
-  // Generate tags - only use allowed tags
-  const tags = [];
-  if (hasPersonalInfo || hasAge || hasName) tags.push('personal_info');
-  if (hasEmotionalContent) tags.push('emotional');
-  if (isQuestion && !isAskingAboutInfo) tags.push('question');
-  if (isAskingAboutInfo) tags.push('memory_check');
-  if (lowerMessage.includes('verhaal') || lowerMessage.includes('story')) tags.push('story');
-  
-  // Check for factual content
-  if (message.match(/\b(fact|data|information|statistic|number)\b/i)) tags.push('factual');
-  
-  // Check for creative content
-  if (message.match(/\b(imagine|create|design|invent|idea)\b/i)) tags.push('creative');
-  
-  if (tags.length === 0) tags.push('general');
+  // Generate tags - for now always use 'general'
+  const tags = ['general'];
   
   const analysis = {
     memory_importance: importance,

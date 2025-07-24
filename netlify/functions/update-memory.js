@@ -2,22 +2,13 @@
 
 // Define allowed memory tags (same as in analyze-memory.js)
 const ALLOWED_MEMORY_TAGS = [
-  'personal_info',
-  'emotional', 
-  'question',
-  'factual',
-  'creative',
-  'memory_check',
-  'story',
-  'general'
+  'general'  // Only use general tag until we know which tags exist in Airtable
 ];
 
 // Helper function to validate and filter tags
 function validateTags(tags) {
-  if (!Array.isArray(tags)) return ['general'];
-  
-  const validTags = tags.filter(tag => ALLOWED_MEMORY_TAGS.includes(tag));
-  return validTags.length > 0 ? validTags : ['general'];
+  // For now, always return general tag
+  return ['general'];
 }
 
 exports.handler = async (event, context) => {
