@@ -129,43 +129,43 @@ exports.handler = async (event, context) => {
 
 // Helper function to create appropriate portrait prompts
 function createPortraitPrompt(characterName, characterTitle, category) {
-  // Simple approach with subtle guidance away from text elements
-  let basePrompt = 'Clean headshot portrait photograph, person only, simple background, ';
+  // Note: characterName is intentionally not used in prompt to avoid text generation
+  // Strong emphasis on avoiding text and frames
+  let basePrompt = 'Professional headshot portrait of a person, NO text, NO words, NO letters, NO signs, NO labels, NO frames, NO borders, NO banners, simple plain background, ';
   
   // Much simpler category styles to avoid triggering unwanted elements
   const categoryStyles = {
-    'health': 'professional healthcare portrait, ',
-    'spiritual': 'peaceful serene portrait, ',
-    'romance': 'warm friendly portrait, ',
-    'support': 'caring compassionate portrait, ',
-    'purpose': 'confident determined portrait, ',
-    'self-improvement': 'motivational inspiring portrait, ',
-    'travel': 'adventurous friendly portrait, ',
-    'parenting': 'nurturing warm portrait, ',
-    'cultural': 'dignified respectful portrait, ',
-    'life': 'wise experienced portrait, ',
-    'motivation': 'energetic positive portrait, ',
-    'fitness': 'healthy active portrait, ',
-    'mindfulness': 'calm peaceful portrait, '
+    'health': 'professional healthcare worker, clean medical attire, ',
+    'spiritual': 'peaceful serene person, calm expression, ',
+    'romance': 'warm friendly person, approachable smile, ',
+    'support': 'caring compassionate person, empathetic look, ',
+    'purpose': 'confident determined person, focused expression, ',
+    'self-improvement': 'motivated inspiring person, positive energy, ',
+    'travel': 'adventurous friendly person, welcoming smile, ',
+    'parenting': 'nurturing warm person, kind eyes, ',
+    'cultural': 'dignified respectful person, traditional attire, ',
+    'life': 'wise experienced person, thoughtful expression, ',
+    'motivation': 'energetic positive person, enthusiastic look, ',
+    'fitness': 'healthy active person, athletic build, ',
+    'mindfulness': 'calm peaceful person, meditative expression, '
   };
   
-  const style = categoryStyles[category] || categoryStyles['original'];
+  const style = categoryStyles[category] || 'professional person, neutral expression, ';
   
-  // Build the full prompt
+  // Build the full prompt with strong anti-text instructions
   let fullPrompt = basePrompt + style;
   
-  // Add character-specific details
+  // Add character-specific details without triggering text
   if (characterTitle) {
-    fullPrompt += `${characterName} as ${characterTitle}, `;
-  } else {
-    fullPrompt += `${characterName}, `;
+    // Use the title as inspiration for appearance, not literal text
+    fullPrompt += `appearance suggesting ${characterTitle.toLowerCase()}, `;
   }
   
-  // Simple positive instructions to guide away from text/labels
-  fullPrompt += 'studio portrait photography, plain background, professional lighting, photograph only';
+  // Multiple reinforcements against text and frames
+  fullPrompt += 'portrait photography only, absolutely NO text anywhere, NO written words, NO letters, NO signage, NO name tags, NO badges, NO frames, NO decorative borders, plain studio background, professional headshot, close-up of face and shoulders only, photorealistic human portrait';
   
-  // Emphasize it's just a person portrait
-  fullPrompt += ', individual person portrait, photographic style, clean image';
+  // Final emphasis
+  fullPrompt += ', IMPORTANT: no text elements of any kind, just the person';
   
   return fullPrompt;
 }
