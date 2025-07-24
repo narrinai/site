@@ -260,38 +260,40 @@ def generate_character_name(category, character_type, existing_names):
     """Genereer een unieke character naam met veel meer variatie"""
     # Zeer uitgebreide lijst met unieke namen uit verschillende culturen
     first_names = [
-        # Populaire realistische namen
-        'Emma', 'Liam', 'Olivia', 'Noah', 'Ava', 'Ethan', 'Sophia', 'Mason', 'Isabella', 'William',
-        'Mia', 'James', 'Charlotte', 'Benjamin', 'Amelia', 'Lucas', 'Harper', 'Henry', 'Evelyn', 'Alexander',
-        'Luna', 'Oliver', 'Ella', 'Sebastian', 'Grace', 'Jack', 'Chloe', 'Daniel', 'Victoria', 'Owen',
-        'Lily', 'Matthew', 'Zoey', 'David', 'Hannah', 'Leo', 'Addison', 'Joseph', 'Ellie', 'Samuel',
-        'Lucy', 'John', 'Anna', 'Andrew', 'Sarah', 'Ryan', 'Audrey', 'Nathan', 'Claire', 'Isaac',
+        # Volledig nieuwe namen batch 1
+        'Aaliyah', 'Abel', 'Abram', 'Ada', 'Adeline', 'Adonis', 'Adriana', 'Aidan', 'Aisha', 'Alana',
+        'Alaric', 'Alba', 'Aldo', 'Alessandra', 'Alfonso', 'Alice', 'Alina', 'Alistair', 'Allegra', 'Alma',
+        'Alonso', 'Althea', 'Alton', 'Amara', 'Ambrose', 'Amelie', 'Amos', 'Anastasia', 'Anders', 'Andrea',
+        'Angelo', 'Anita', 'Ansel', 'Antonia', 'Apollo', 'April', 'Archer', 'Ariana', 'Ariel', 'Armando',
+        'Asa', 'Ashton', 'Asia', 'Atticus', 'Augusta', 'Augustus', 'Aurelia', 'Austin', 'Autumn', 'Axel',
         
-        # Extra moderne namen
-        'Aiden', 'Madison', 'Jackson', 'Abigail', 'Ethan', 'Emily', 'Michael', 'Elizabeth', 'Jacob', 'Sofia',
-        'Logan', 'Avery', 'Lucas', 'Scarlett', 'Mason', 'Victoria', 'Elijah', 'Aria', 'Oliver', 'Camila',
-        'Jayden', 'Penelope', 'Carter', 'Riley', 'Dylan', 'Layla', 'Luke', 'Lillian', 'Gabriel', 'Zoe',
+        # Volledig nieuwe namen batch 2
+        'Bailey', 'Barbara', 'Barnaby', 'Beatrice', 'Benedict', 'Bernadette', 'Bernard', 'Beverly', 'Blaine', 'Blair',
+        'Blanche', 'Boris', 'Bradford', 'Bridget', 'Brigitte', 'Bruno', 'Bryant', 'Byron', 'Cadence', 'Caesar',
+        'Caleb', 'Callie', 'Camden', 'Camille', 'Candace', 'Carl', 'Carla', 'Carmen', 'Carol', 'Caroline',
+        'Casper', 'Cassidy', 'Cecilia', 'Celeste', 'Cesar', 'Chad', 'Chandler', 'Chantal', 'Charlene', 'Chase',
         
-        # Mythologische/Fantasy namen
-        'Phoenix', 'Griffin', 'Dragon', 'Raven', 'Wolf', 'Fox', 'Bear', 'Eagle', 'Hawk', 'Falcon',
-        'Atlas', 'Orion', 'Apollo', 'Diana', 'Athena', 'Zeus', 'Hera', 'Thor', 'Freya', 'Odin',
-        'Merlin', 'Arthur', 'Gwen', 'Morgan', 'Nimue', 'Avalon', 'Camelot', 'Excalibur', 'Grail', 'Quest',
+        # Nieuwe unieke namen set 1
+        'Adrian', 'Bella', 'Calvin', 'Daphne', 'Edwin', 'Fiona', 'Gavin', 'Helena', 'Ivan', 'Julia',
+        'Kevin', 'Laura', 'Marcus', 'Natalie', 'Oscar', 'Priscilla', 'Quentin', 'Rachel', 'Simon', 'Teresa',
+        'Ulrich', 'Valerie', 'Wesley', 'Xena', 'Yannick', 'Zelda', 'Aaron', 'Bianca', 'Colin', 'Denise',
         
-        # Internationale namen
-        'Kai', 'Yuki', 'Hana', 'Sora', 'Ren', 'Aiko', 'Kenji', 'Mika', 'Taro', 'Emi',
-        'Enzo', 'Luca', 'Sofia', 'Marco', 'Elena', 'Diego', 'Carlos', 'Isabel', 'Miguel', 'Ana',
-        'Finn', 'Sven', 'Astrid', 'Erik', 'Freya', 'Magnus', 'Ingrid', 'Lars', 'Elsa', 'Hans',
-        'Zara', 'Omar', 'Layla', 'Amir', 'Yasmin', 'Hassan', 'Fatima', 'Ali', 'Noor', 'Zahra',
+        # Nieuwe unieke namen set 2
+        'Eugene', 'Florence', 'Gregory', 'Haley', 'Ian', 'Jessica', 'Kenneth', 'Lydia', 'Mitchell', 'Nicole',
+        'Patrick', 'Rebecca', 'Steven', 'Tiffany', 'Vincent', 'Whitney', 'Xavier', 'Yvonne', 'Zachary', 'Amanda',
+        'Bradley', 'Cassandra', 'Derek', 'Eleanor', 'Franklin', 'Gabrielle', 'Howard', 'Irene', 'Jerome', 'Katherine',
         
-        # Virtue namen
-        'Hope', 'Faith', 'Grace', 'Joy', 'Peace', 'Harmony', 'Serenity', 'Bliss', 'Zen', 'Sage',
-        'Truth', 'Honor', 'Valor', 'Noble', 'Just', 'Brave', 'Bold', 'Wise', 'Kind', 'True',
+        # Nieuwe unieke namen set 3
+        'Leonard', 'Monica', 'Nicholas', 'Pamela', 'Raymond', 'Stephanie', 'Timothy', 'Ursula', 'Victor', 'Wendy',
+        'Albert', 'Bethany', 'Chester', 'Diane', 'Ernest', 'Frances', 'Gerald', 'Holly', 'Irving', 'Janet',
         
-        # Kleurnamen  
-        'Scarlet', 'Crimson', 'Azure', 'Indigo', 'Violet', 'Coral', 'Teal', 'Cyan', 'Gray', 'Silver',
+        # Nieuwe unieke namen set 4
+        'Keith', 'Louise', 'Martin', 'Naomi', 'Peter', 'Quinn', 'Roland', 'Sylvia', 'Travis', 'Uma',
+        'Vernon', 'Wanda', 'Arnold', 'Brenda', 'Clarence', 'Donna', 'Edgar', 'Felicia', 'Gordon', 'Heidi',
         
-        # Seizoennamen
-        'Summer', 'Winter', 'Spring', 'Autumn', 'June', 'May', 'April', 'August', 'October', 'December'
+        # Extra nieuwe namen
+        'Jasper', 'Kendra', 'Lawrence', 'Melanie', 'Norman', 'Ophelia', 'Preston', 'Rita', 'Stanley', 'Tara',
+        'Ulysses', 'Vivian', 'Warren', 'Yvette', 'Alvin', 'Bonnie', 'Curtis', 'Deborah', 'Eugene', 'Faith'
     ]
     
     # Verwijder duplicaten en shuffle
