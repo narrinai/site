@@ -1,6 +1,13 @@
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
 const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
 
+console.log('🔐 Environment check:', {
+  hasToken: !!AIRTABLE_TOKEN,
+  hasBaseId: !!AIRTABLE_BASE_ID,
+  tokenLength: AIRTABLE_TOKEN ? AIRTABLE_TOKEN.length : 0,
+  baseIdLength: AIRTABLE_BASE_ID ? AIRTABLE_BASE_ID.length : 0
+});
+
 exports.handler = async (event, context) => {
   // CORS headers
   const headers = {
@@ -253,12 +260,14 @@ exports.handler = async (event, context) => {
 
   } catch (error) {
     console.error('❌ Error in save-chat-message:', error);
+    console.error('❌ Error stack:', error.stack);
     return {
       statusCode: 500,
       headers,
       body: JSON.stringify({ 
         success: false, 
-        error: error.message 
+        error: error.message,
+        details: error.toString()
       })
     };
   }
