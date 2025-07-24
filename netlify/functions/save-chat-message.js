@@ -251,8 +251,28 @@ exports.handler = async (event, context) => {
 
     if (!createResponse.ok) {
       const errorData = await createResponse.text();
-      console.error('❌ Airtable create error:', errorData);
-      throw new Error(`Failed to save messages: ${createResponse.status}`);
+      console.error('❌ Airtable create error status:', createResponse.status);
+      console.error('❌ Airtable create error data:', errorData);
+      console.error('❌ Request that failed:', JSON.stringify({
+        url: `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory`,
+        method: 'POST',
+        records: recordsToCreate
+      }, null, 2));
+      
+      return {
+        statusCode: 422,
+        headers,
+        body: JSON.stringify({
+          success: false,
+          error: `Airtable error: ${createResponse.status}`,
+          details: errorData,
+          debug: {
+            recordsToCreate,
+            userRecordId,
+            characterRecordId
+          }
+        })
+      };
     }
 
     const createData = await createResponse.json();
