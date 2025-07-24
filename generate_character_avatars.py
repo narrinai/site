@@ -11,8 +11,7 @@ import requests
 import time
 import base64
 from dotenv import load_dotenv
-import cloudinary
-import cloudinary.uploader
+# Cloudinary wordt via unsigned upload gebruikt - geen SDK nodig
 from openai import OpenAI
 
 # Load environment variables
@@ -23,20 +22,13 @@ AIRTABLE_TOKEN = os.getenv('AIRTABLE_TOKEN') or os.getenv('AIRTABLE_API_KEY')
 AIRTABLE_BASE = os.getenv('AIRTABLE_BASE_ID')
 AIRTABLE_TABLE = 'Characters'
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-CLOUDINARY_CLOUD_NAME = os.getenv('CLOUDINARY_CLOUD_NAME', 'dqrmopzes')
-CLOUDINARY_API_KEY = os.getenv('CLOUDINARY_API_KEY')
-CLOUDINARY_API_SECRET = os.getenv('CLOUDINARY_API_SECRET')
+CLOUDINARY_CLOUD_NAME = 'dqrmopzes'  # Jouw Cloudinary cloud name
 
 # Valideer environment variabelen
 if not all([AIRTABLE_TOKEN, AIRTABLE_BASE, OPENAI_API_KEY]):
     raise ValueError("Missende environment variabelen. Check AIRTABLE_TOKEN, AIRTABLE_BASE_ID, en OPENAI_API_KEY")
 
-# Configureer Cloudinary
-cloudinary.config(
-    cloud_name=CLOUDINARY_CLOUD_NAME,
-    api_key=CLOUDINARY_API_KEY,
-    api_secret=CLOUDINARY_API_SECRET
-)
+# Cloudinary configuratie niet nodig voor unsigned uploads
 
 # Initialize OpenAI client
 client = OpenAI(api_key=OPENAI_API_KEY)
@@ -154,20 +146,37 @@ def generate_avatar_with_dalle(prompt):
         return None
 
 def upload_to_cloudinary(image_url, character_slug):
-    """Upload afbeelding naar Cloudinary"""
+    """Upload afbeelding naar Cloudinary via unsigned upload"""
     try:
-        log(Colors.CYAN, "☁️  Uploaden naar Cloudinary...")
+        log(Colors.CYAN, "☁️  Uploaden naar Cloudinary (unsigned)...")
         
-        # Upload vanaf URL
-        result = cloudinary.uploader.upload(
-            image_url,
-            public_id=f"avatars/{character_slug}",
-            overwrite=True,
-            resource_type="image",
-            folder="avatars"
+        # Download de afbeelding eerst
+        response = requests.get(image_url)
+        response.raise_for_status()
+        
+        # Maak multipart form data
+        files = {
+            'file': ('avatar.jpg', response.content, 'image/jpeg')
+        }
+        
+        data = {
+            'upload_preset': 'ml_default',
+            'public_id': f'avatars/{character_slug}',
+            'quality': 'auto',
+            'fetch_format': 'auto'
+        }
+        
+        # Upload naar Cloudinary
+        upload_response = requests.post(
+            f'https://api.cloudinary.com/v1_1/{CLOUDINARY_CLOUD_NAME}/image/upload',
+            files=files,
+            data=data
         )
         
-        return result['secure_url']
+        upload_response.raise_for_status()
+        result = upload_response.json()
+        
+        return result.get('secure_url')
         
     except Exception as e:
         log(Colors.RED, f"❌ Fout bij Cloudinary upload: {e}")
@@ -199,9 +208,8 @@ def main():
     """Hoofdfunctie"""
     log(Colors.CYAN, "🚀 Character Avatar Generator gestart")
     
-    # Test of we Cloudinary kunnen gebruiken
-    if not CLOUDINARY_API_KEY or not CLOUDINARY_API_SECRET:
-        log(Colors.YELLOW, "⚠️  Cloudinary credentials niet gevonden. Avatars worden direct van DALL-E URL gebruikt.")
+    # Cloudinary gebruikt unsigned uploads - geen credentials nodig
+    log(Colors.CYAN, "☁️  Cloudinary unsigned uploads worden gebruikt")
     
     # Haal characters zonder avatar op
     characters = get_characters_without_avatars()
@@ -237,12 +245,13 @@ def main():
                 failed_count += 1
                 continue
             
-            # Upload naar Cloudinary (als credentials beschikbaar zijn)
-            if CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET and character['slug']:
+            # Upload naar Cloudinary via unsigned upload
+            if character['slug']:
                 final_url = upload_to_cloudinary(dalle_url, character['slug'])
                 if not final_url:
                     final_url = dalle_url  # Gebruik DALL-E URL als fallback
             else:
+                log(Colors.YELLOW, "⚠️  Geen slug gevonden, gebruik DALL-E URL direct")
                 final_url = dalle_url
             
             # Update in Airtable
