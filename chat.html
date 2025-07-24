@@ -8533,7 +8533,7 @@ hideTypingIndicator();
       const validatedVoiceId = validateAndFixVoiceId(currentCharacter.voice_id);
       if (validatedVoiceId) {
         // Only show play button if we have a valid voice ID
-        divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span><br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice(\`${reply.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
+        divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span><br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" data-voice-id="${currentCharacter.voice_id}" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
       } else {
         // Don't show play button for invalid voice IDs
         divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span>`;
@@ -8562,11 +8562,24 @@ hideTypingIndicator();
       return div.innerHTML;
     };
     
+    // Store the reply in a data attribute to avoid escaping issues
+    divBot.setAttribute('data-reply', reply);
+    
     // Use voice-enabled typewriter if character has voice
     if (currentCharacter.voice_id) {
       typewriterWithVoice(typingSpan, reply, currentCharacter.voice_id);
     } else {
       typewriterEffect(typingSpan, reply);
+    }
+    
+    // Add click handler to voice button after it's created
+    const voiceBtn = divBot.querySelector('.voice-play-btn');
+    if (voiceBtn) {
+      voiceBtn.addEventListener('click', function() {
+        const messageText = divBot.getAttribute('data-reply');
+        const voiceId = this.getAttribute('data-voice-id');
+        window.playMessageVoice(messageText, voiceId, this);
+      });
     }
 
     // Save messages directly to ensure they persist correctly
