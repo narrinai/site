@@ -225,7 +225,8 @@ exports.handler = async (event, context) => {
     // Strategy 1: Try with custom User_ID and character name (based on ChatHistory table structure)
     do {
       // Use custom User_ID and character name
-      let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${customUserId}',{Character}='${escapedCharacterName}')&sort[0][field]=CreatedTime&sort[0][direction]=asc`;
+      // Limit to 20 most recent records, but sort ascending so they display in correct order
+      let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${customUserId}',{Character}='${escapedCharacterName}')&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=20`;
       
       if (offset) {
         url += `&offset=${offset}`;
@@ -256,7 +257,7 @@ exports.handler = async (event, context) => {
     if (allChatHistory.length === 0) {
       console.log('🔄 No records found with custom User_ID, trying with default user ID 42...');
       
-      const customUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='42',{Character}='${escapedCharacterName}')&sort[0][field]=CreatedTime&sort[0][direction]=asc`;
+      const customUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='42',{Character}='${escapedCharacterName}')&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=20`;
       
       const customResponse = await fetch(customUrl, {
         headers: {
