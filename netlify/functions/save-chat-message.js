@@ -179,8 +179,7 @@ exports.handler = async (event, context) => {
     if (user_message && user_message.trim()) {
       const userMessageFields = {
         'Role': 'user',
-        'Message': user_message.trim(),
-        'CreatedTime': userTimestamp
+        'Message': user_message.trim()
       };
       
       // Add linked records if we have them
@@ -198,8 +197,7 @@ exports.handler = async (event, context) => {
     if (ai_response && ai_response.trim()) {
       const aiMessageFields = {
         'Role': 'assistant',
-        'Message': ai_response.trim(),
-        'CreatedTime': assistantTimestamp
+        'Message': ai_response.trim()
       };
       
       // Add linked records if we have them
