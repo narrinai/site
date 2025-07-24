@@ -129,7 +129,7 @@ exports.handler = async (event, context) => {
 
 // Helper function to create appropriate portrait prompts
 function createPortraitPrompt(characterName, characterTitle, category) {
-  let basePrompt = 'Single person portrait photograph, one face only, no text, no grids, no lines, no watermarks, ';
+  let basePrompt = 'Clean portrait photograph of a single person, one face only, no text, no grids, no frames, no borders, no picture frames, no paintings, no canvas, no lines, no watermarks, no overlays, direct headshot, ';
   
   // Category-specific styles
   const categoryStyles = {
@@ -158,10 +158,10 @@ function createPortraitPrompt(characterName, characterTitle, category) {
   }
   
   // Add quality modifiers
-  fullPrompt += 'high quality, detailed single face, professional lighting, centered composition, square aspect ratio, clean image without overlays';
+  fullPrompt += 'high quality, detailed single face, professional lighting, centered composition, square aspect ratio, clean direct portrait without any frames or borders';
   
   // Add safety modifiers and exclusions
-  fullPrompt += ', appropriate for all audiences, no offensive content, no split screens, no multiple views, no comparison images, no before/after, single person only';
+  fullPrompt += ', appropriate for all audiences, no offensive content, no split screens, no multiple views, no comparison images, no before/after, single person only, no artistic frames, no painting frames, no decorative borders, just the person';
   
   return fullPrompt;
 }
