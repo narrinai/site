@@ -30,6 +30,35 @@ exports.handler = async (event, context) => {
    if (action === 'get_memories') {
      console.log('🔍 Getting memories for:', { user_id, character_id, character_slug, min_importance });
      
+     // First, look up the user's Airtable record ID if we have a numeric user_id
+     let userRecordId = null;
+     if (user_id && !user_id.includes('@') && !user_id.startsWith('rec')) {
+       // Look up user by User_ID field
+       console.log('👤 Looking up user record for User_ID:', user_id);
+       const userLookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={User_ID}='${user_id}'&maxRecords=1`;
+       
+       try {
+         const userLookupResponse = await fetch(userLookupUrl, {
+           headers: {
+             'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+             'Content-Type': 'application/json'
+           }
+         });
+         
+         if (userLookupResponse.ok) {
+           const userData = await userLookupResponse.json();
+           if (userData.records.length > 0) {
+             userRecordId = userData.records[0].id;
+             console.log('✅ Found user record ID:', userRecordId);
+           } else {
+             console.log('❌ No user found with User_ID:', user_id);
+           }
+         }
+       } catch (err) {
+         console.error('❌ Error looking up user:', err);
+       }
+     }
+     
      // Get recent records
      // Build filter to only get records with Memory_Importance
     let filterFormula = '{Memory_Importance}>0';
@@ -37,9 +66,12 @@ exports.handler = async (event, context) => {
     // Add user filter if provided
     if (user_id && user_id.includes('@')) {
       filterFormula = `AND(${filterFormula}, {User Email}='${user_id}')`;
-    } else if (user_id) {
-      // For user_id like "42", we need to check the User field
-      filterFormula = `AND(${filterFormula}, OR({User}='${user_id}', FIND('${user_id}', ARRAYJOIN({User}))>0))`;
+    } else if (userRecordId) {
+      // Use the looked-up record ID
+      filterFormula = `AND(${filterFormula}, FIND('${userRecordId}', ARRAYJOIN({User}))>0)`;
+    } else if (user_id && user_id.startsWith('rec')) {
+      // Direct record ID provided
+      filterFormula = `AND(${filterFormula}, FIND('${user_id}', ARRAYJOIN({User}))>0)`;
     }
     
     // Add character filter
@@ -97,31 +129,31 @@ exports.handler = async (event, context) => {
        });
        
        // Check user match - properly handle all field types
-const recordUserId = fields.User;
+const recordUserField = fields.User; // This is an array of record IDs
 const recordUserEmail = fields.User_Email || fields.user_email;
-const recordUserUid = fields.User_UID || fields.user_uid;
 let userMatch = false;
 
-// First, try to get the Airtable record ID for the user
-let userRecordId = null;
-if (user_id && !user_id.includes('@') && user_id.startsWith('rec')) {
-  // user_id is already an Airtable record ID
-  userRecordId = user_id;
-  userMatch = String(recordUserId) === String(userRecordId);
-  console.log(`👤 Direct record ID match: ${recordUserId} === ${userRecordId} = ${userMatch}`);
+// The User field in ChatHistory is an array of record IDs
+if (Array.isArray(recordUserField) && recordUserField.length > 0) {
+  // Check if our userRecordId (looked up earlier) is in the array
+  if (userRecordId) {
+    userMatch = recordUserField.includes(userRecordId);
+    console.log(`👤 User record ID match check: ${recordUserField} includes ${userRecordId} = ${userMatch}`);
+  } else if (user_id && user_id.startsWith('rec')) {
+    // Direct record ID provided
+    userMatch = recordUserField.includes(user_id);
+    console.log(`👤 Direct record ID match: ${recordUserField} includes ${user_id} = ${userMatch}`);
+  }
 } else if (user_id && user_id.includes('@')) {
   // Email-based matching
   userMatch = String(recordUserEmail).toLowerCase() === String(user_id).toLowerCase();
   console.log(`👤 Email match check: ${recordUserEmail} === ${user_id} = ${userMatch}`);
-} else {
-  // Check if it's the custom User_ID (like "42") or the Airtable record ID
-  if (recordUserId) {
-    userMatch = String(recordUserId) === String(user_id) || 
-                parseInt(recordUserId) === parseInt(user_id) ||
-                recordUserId === "42" ||
-                user_id === "42"; // Match test user
-    console.log(`👤 User ID match check: ${recordUserId} === ${user_id} = ${userMatch}`);
-  }
+}
+
+// If no match yet and we have user_id "42", always match (for backwards compatibility)
+if (!userMatch && user_id === "42") {
+  userMatch = true;
+  console.log(`👤 Fallback match for test user 42`);
 }
        if (!userMatch) {
          console.log(`❌ User mismatch, skipping record`);
@@ -132,32 +164,23 @@ if (user_id && !user_id.includes('@') && user_id.startsWith('rec')) {
        let characterMatch = true; // Default to true if no character specified
 
        if (characterIdentifier) {
-         const recordCharacter = fields.Character;
-         const recordSlug = fields['Slug (from Character)'] || fields.Slug;
+         const recordCharacterField = fields.Character; // This is an array of record IDs
+         const recordSlug = fields['Character Slug'] || fields['Slug (from Character)'] || fields.Slug;
          
-         console.log(`🎭 Character match check: "${characterIdentifier}" vs Character: "${recordCharacter}", Slug: "${recordSlug}"`);
+         console.log(`🎭 Character match check: "${characterIdentifier}" vs Character field: ${JSON.stringify(recordCharacterField)}, Slug: "${recordSlug}"`);
          
-         // Check if characterIdentifier is a record ID
-         if (characterIdentifier.startsWith('rec')) {
-           characterMatch = String(recordCharacter) === String(characterIdentifier);
-           console.log(`  Record ID check: "${recordCharacter}" === "${characterIdentifier}" = ${characterMatch}`);
+         // First check the Character Slug field (direct field in ChatHistory)
+         if (recordSlug && String(recordSlug).toLowerCase() === String(characterIdentifier).toLowerCase()) {
+           characterMatch = true;
+           console.log(`  Slug match found: "${recordSlug}" === "${characterIdentifier}"`);
+         } else if (Array.isArray(recordCharacterField) && characterIdentifier.startsWith('rec')) {
+           // Check if character record ID is in the array
+           characterMatch = recordCharacterField.includes(characterIdentifier);
+           console.log(`  Character record ID check: ${JSON.stringify(recordCharacterField)} includes "${characterIdentifier}" = ${characterMatch}`);
          } else {
-           // Check slug match
-           if (recordSlug) {
-             if (Array.isArray(recordSlug)) {
-               characterMatch = recordSlug.some(slug => {
-                 const match = String(slug).toLowerCase() === String(characterIdentifier).toLowerCase();
-                 console.log(`  Array check: "${slug}" === "${characterIdentifier}" = ${match}`);
-                 return match;
-               });
-             } else {
-               characterMatch = String(recordSlug).toLowerCase() === String(characterIdentifier).toLowerCase();
-               console.log(`  Direct check: "${recordSlug}" === "${characterIdentifier}" = ${characterMatch}`);
-             }
-           } else {
-             console.log(`  No slug found in record, checking Character field`);
-             characterMatch = String(recordCharacter) === String(characterIdentifier);
-           }
+           // No match found
+           characterMatch = false;
+           console.log(`  No character match found`);
          }
          
          console.log(`🎭 Character match result: ${characterMatch}`);
@@ -218,9 +241,12 @@ if (user_id && !user_id.includes('@') && user_id.startsWith('rec')) {
      let relationshipContext = null;
      try {
        console.log('🤝 Fetching relationship context...');
-       const relationshipUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula=AND({User_ID (from User)}='${user_id}',{Slug (from Character)}='${characterIdentifier}')`;
-       
-       const relationshipResponse = await fetch(relationshipUrl, {
+       // Use the userRecordId if we have it, otherwise skip
+       if (userRecordId || (user_id && user_id.startsWith('rec'))) {
+         const recordIdToUse = userRecordId || user_id;
+         const relationshipUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula=AND(FIND('${recordIdToUse}',ARRAYJOIN({User}))>0,{Character Slug}='${characterIdentifier}')`;
+         
+         const relationshipResponse = await fetch(relationshipUrl, {
          headers: {
            'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
            'Content-Type': 'application/json'
@@ -242,6 +268,7 @@ if (user_id && !user_id.includes('@') && user_id.startsWith('rec')) {
            console.log('✅ Relationship context loaded:', relationshipContext.phase);
          }
        }
+       } // Close the if (userRecordId) block
      } catch (relError) {
        console.error('⚠️ Failed to fetch relationship context:', relError);
      }

@@ -32,23 +32,30 @@ exports.handler = async (event, context) => {
       message_count 
     } = JSON.parse(event.body);
     
-    console.log('🔄 Updating relationship:', { user_id, character_id });
+    console.log('🔄 Updating relationship:', { user_id, character_id, user_id_type: typeof user_id });
 
     // First we need to find the actual Airtable record IDs
     // Handle different user identification methods
     let userFilter;
-    if (user_id && user_id.includes('@')) {
-      // It's an email address
-      userFilter = `{Email}='${user_id}'`;
-    } else if (user_id) {
-      // Try User_ID field first
-      userFilter = `{User_ID}='${user_id}'`;
-    } else {
+    let userData = null;
+    
+    if (!user_id) {
       throw new Error('No valid user identifier provided');
     }
     
-    const userUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=${userFilter}&maxRecords=1`;
-    console.log('🔍 Looking up user with filter:', userFilter);
+    // Try email lookup first (most reliable)
+    if (user_id.includes('@')) {
+      // It's an email address
+      userFilter = `{Email}='${user_id}'`;
+      console.log('🔍 Looking up user by email:', user_id);
+    } else {
+      // Try User_ID field for numeric IDs
+      userFilter = `{User_ID}='${user_id}'`;
+      console.log('🔍 Looking up user by User_ID:', user_id);
+    }
+    
+    const userUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=${encodeURIComponent(userFilter)}&maxRecords=1`;
+    console.log('🔍 User lookup URL:', userUrl);
     const userResponse = await fetch(userUrl, {
       headers: {
         'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -61,16 +68,49 @@ exports.handler = async (event, context) => {
     }
     
     const userData = await userResponse.json();
-    if (userData.records.length === 0) {
-      throw new Error(`User not found with ID: ${user_id}`);
+    console.log('📊 User lookup response:', { 
+      status: userResponse.status, 
+      records: userData.records?.length || 0,
+      firstRecord: userData.records?.[0]?.fields
+    });
+    
+    if (!userData.records || userData.records.length === 0) {
+      // Try case-insensitive email lookup as fallback
+      if (user_id.includes('@')) {
+        console.log('⚠️ Trying case-insensitive email lookup...');
+        const fallbackFilter = `LOWER({Email})='${user_id.toLowerCase()}'`;
+        const fallbackUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=${encodeURIComponent(fallbackFilter)}&maxRecords=1`;
+        
+        const fallbackResponse = await fetch(fallbackUrl, {
+          headers: {
+            'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (fallbackResponse.ok) {
+          const fallbackData = await fallbackResponse.json();
+          if (fallbackData.records && fallbackData.records.length > 0) {
+            userData.records = fallbackData.records;
+            console.log('✅ Found user with case-insensitive lookup');
+          }
+        }
+      }
+      
+      if (!userData.records || userData.records.length === 0) {
+        throw new Error(`User not found with ID: ${user_id}`);
+      }
     }
     
     const userRecordId = userData.records[0].id;
-    const customUserId = userData.records[0].fields.User_ID || userData.records[0].fields.Email || user_id;
-    console.log('✅ Found user record:', userRecordId, 'with identifier:', customUserId);
+    const userFields = userData.records[0].fields;
+    const customUserId = userFields.User_ID || userFields.Email || user_id;
+    console.log('✅ Found user record:', userRecordId, 'with fields:', Object.keys(userFields));
     
     // Get Character record by slug
     const charUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula={Slug}='${character_id}'&maxRecords=1`;
+    console.log('🔍 Character lookup URL:', charUrl);
+    
     const charResponse = await fetch(charUrl, {
       headers: {
         'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -79,16 +119,25 @@ exports.handler = async (event, context) => {
     });
     
     if (!charResponse.ok) {
+      const errorText = await charResponse.text();
+      console.error('❌ Character lookup failed:', errorText);
       throw new Error(`Failed to find character: ${charResponse.status}`);
     }
     
     const charData = await charResponse.json();
-    if (charData.records.length === 0) {
+    console.log('📊 Character lookup response:', { 
+      status: charResponse.status, 
+      records: charData.records?.length || 0,
+      firstRecord: charData.records?.[0]?.fields
+    });
+    
+    if (!charData.records || charData.records.length === 0) {
       throw new Error(`Character not found with slug: ${character_id}`);
     }
     
     const charRecordId = charData.records[0].id;
-    console.log('✅ Found character record:', charRecordId);
+    const charFields = charData.records[0].fields;
+    console.log('✅ Found character record:', charRecordId, 'with fields:', Object.keys(charFields));
     
     // Check if relationship record exists using direct linked record IDs
     // This is more reliable than using lookup fields which may not be immediately available
