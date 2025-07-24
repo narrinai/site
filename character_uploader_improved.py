@@ -257,37 +257,74 @@ def get_existing_characters_by_category():
     return existing_names, category_counts
 
 def generate_character_name(category, character_type, existing_names):
-    """Genereer een unieke character naam met meer variatie"""
-    # Uitgebreide lijst met unieke namen
+    """Genereer een unieke character naam met veel meer variatie"""
+    # Zeer uitgebreide lijst met unieke namen uit verschillende culturen
     first_names = [
-        'Luna', 'Sage', 'Zara', 'Phoenix', 'Willow', 'Aurora', 'River', 'Jasper', 'Aria', 'Atlas',
-        'Ember', 'Iris', 'Orion', 'Stella', 'Felix', 'Nova', 'Asher', 'Maya', 'Zephyr', 'Lyra',
-        'Rowan', 'Serenity', 'Kai', 'Eden', 'Storm', 'Violet', 'Leo', 'Harmony', 'Blaze', 'Celeste',
-        'Finn', 'Dawn', 'Wolf', 'Luna', 'Ocean', 'Sky', 'Raven', 'Sol', 'Mira', 'Echo',
-        'Quinn', 'Jade', 'Frost', 'Hope', 'Vale', 'Rain', 'Zen', 'Flora', 'Stone', 'Meadow',
-        'Lark', 'Coral', 'Pine', 'Star', 'Cloud', 'Dove', 'Brook', 'Sage', 'Pearl', 'Wind'
+        # Natuurnamen
+        'Luna', 'Sol', 'Star', 'Sky', 'River', 'Ocean', 'Storm', 'Rain', 'Snow', 'Frost',
+        'Dawn', 'Dusk', 'Aurora', 'Nova', 'Comet', 'Galaxy', 'Nebula', 'Eclipse', 'Meteor', 'Cosmos',
+        'Forest', 'Meadow', 'Valley', 'Mountain', 'Desert', 'Tundra', 'Savanna', 'Prairie', 'Canyon', 'Cliff',
+        'Willow', 'Oak', 'Ash', 'Birch', 'Cedar', 'Pine', 'Maple', 'Elm', 'Hazel', 'Rowan',
+        'Rose', 'Lily', 'Iris', 'Violet', 'Jasmine', 'Dahlia', 'Poppy', 'Daisy', 'Orchid', 'Lotus',
+        'Pearl', 'Ruby', 'Jade', 'Opal', 'Onyx', 'Crystal', 'Diamond', 'Emerald', 'Sapphire', 'Amber',
+        
+        # Moderne namen
+        'Zara', 'Mia', 'Ava', 'Ella', 'Aria', 'Maya', 'Nina', 'Lila', 'Kira', 'Nora',
+        'Leo', 'Max', 'Ben', 'Sam', 'Alex', 'Ryan', 'Noah', 'Liam', 'Owen', 'Evan',
+        'Quinn', 'Blake', 'Drew', 'Casey', 'Jordan', 'Taylor', 'Morgan', 'Riley', 'Avery', 'Cameron',
+        
+        # Mythologische/Fantasy namen
+        'Phoenix', 'Griffin', 'Dragon', 'Raven', 'Wolf', 'Fox', 'Bear', 'Eagle', 'Hawk', 'Falcon',
+        'Atlas', 'Orion', 'Apollo', 'Diana', 'Athena', 'Zeus', 'Hera', 'Thor', 'Freya', 'Odin',
+        'Merlin', 'Arthur', 'Gwen', 'Morgan', 'Nimue', 'Avalon', 'Camelot', 'Excalibur', 'Grail', 'Quest',
+        
+        # Internationale namen
+        'Kai', 'Yuki', 'Hana', 'Sora', 'Ren', 'Aiko', 'Kenji', 'Mika', 'Taro', 'Emi',
+        'Enzo', 'Luca', 'Sofia', 'Marco', 'Elena', 'Diego', 'Carlos', 'Isabel', 'Miguel', 'Ana',
+        'Finn', 'Sven', 'Astrid', 'Erik', 'Freya', 'Magnus', 'Ingrid', 'Lars', 'Elsa', 'Hans',
+        'Zara', 'Omar', 'Layla', 'Amir', 'Yasmin', 'Hassan', 'Fatima', 'Ali', 'Noor', 'Zahra',
+        
+        # Virtue namen
+        'Hope', 'Faith', 'Grace', 'Joy', 'Peace', 'Harmony', 'Serenity', 'Bliss', 'Zen', 'Sage',
+        'Truth', 'Honor', 'Valor', 'Noble', 'Just', 'Brave', 'Bold', 'Wise', 'Kind', 'True',
+        
+        # Kleurnamen  
+        'Scarlet', 'Crimson', 'Azure', 'Indigo', 'Violet', 'Coral', 'Teal', 'Cyan', 'Gray', 'Silver',
+        
+        # Seizoennamen
+        'Summer', 'Winter', 'Spring', 'Autumn', 'June', 'May', 'April', 'August', 'October', 'December'
     ]
     
-    # Shuffle de namen lijst voor meer variatie
-    available_names = first_names.copy()
-    random.shuffle(available_names)
+    # Verwijder duplicaten en shuffle
+    unique_names = list(set(first_names))
+    random.shuffle(unique_names)
     
-    # Probeer verschillende namen
-    for base_name in available_names:
-        # Direct proberen zonder toevoeging
-        if base_name.lower() not in existing_names:
-            return base_name
-            
-        # Met letter toevoeging als fallback
-        for letter in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
-            test_name = f"{base_name} {letter}"
+    # Probeer eerst alle namen zonder toevoegingen
+    for name in unique_names:
+        if name.lower() not in existing_names:
+            return name
+    
+    # Als alle namen bezet zijn, probeer combinaties
+    prefixes = ['', 'Dr. ', 'Professor ', 'Captain ', 'Lady ', 'Lord ', 'Master ', 'Mx. ']
+    suffixes = ['', ' Jr.', ' Sr.', ' III', ' the Wise', ' the Kind', ' the Brave', ' the Gentle']
+    
+    for name in random.sample(unique_names, min(50, len(unique_names))):
+        # Probeer met prefix
+        for prefix in prefixes:
+            test_name = f"{prefix}{name}"
+            if test_name.lower() not in existing_names:
+                return test_name
+        
+        # Probeer met suffix
+        for suffix in suffixes:
+            test_name = f"{name}{suffix}"
             if test_name.lower() not in existing_names:
                 return test_name
     
-    # Laatste fallback met nummer
-    base = random.choice(first_names)
-    for i in range(1, 100):
-        test_name = f"{base} {i}"
+    # Alleen als laatste redmiddel, gebruik letters
+    base = random.choice(unique_names)
+    for letter in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
+        test_name = f"{base} {letter}"
         if test_name.lower() not in existing_names:
             return test_name
     
