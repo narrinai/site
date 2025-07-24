@@ -2,13 +2,25 @@
 
 // Define allowed memory tags - only use tags that exist in Airtable
 const ALLOWED_MEMORY_TAGS = [
-  'general'  // Only use general tag until we know which tags exist in Airtable
+  'personal_info',
+  'relationship',
+  'goal',
+  'preference',
+  'emotional',
+  'question',
+  'general',
+  'memory_check',
+  'long_message',
+  'story',
+  'casual'
 ];
 
 // Helper function to validate and filter tags
 function validateTags(tags) {
-  // For now, always return general tag
-  return ['general'];
+  if (!Array.isArray(tags)) return ['general'];
+  
+  const validTags = tags.filter(tag => ALLOWED_MEMORY_TAGS.includes(tag));
+  return validTags.length > 0 ? validTags : ['general'];
 }
 
 exports.handler = async (event, context) => {
@@ -74,7 +86,7 @@ Analyze the following message and provide a JSON response with:
 - memory_importance: integer 1-10 (1=trivial, 10=extremely important personal info)
 - emotional_state: string (happy, sad, excited, angry, neutral, thoughtful, confused)
 - summary: string (brief summary of the message, max 100 chars)
-- memory_tags: array with single string ['general'] (always use this, do not generate other tags)
+- memory_tags: array of strings (use ONLY these tags: personal_info, relationship, goal, preference, emotional, question, general, memory_check, long_message, story, casual)
 
 Guidelines:
 - Personal information (names, preferences, life events) = high importance (7-10)
@@ -82,6 +94,19 @@ Guidelines:
 - Questions = moderate importance (3-5)
 - Casual chat = low importance (1-3)
 - Creative/storytelling = moderate importance (4-6)
+
+Tag guidelines:
+- personal_info: names, ages, locations, personal facts
+- relationship: mentions of family, friends, relationships
+- goal: aspirations, plans, objectives
+- preference: likes, dislikes, favorites
+- emotional: emotional expressions or feelings
+- question: when user asks a question
+- memory_check: when user asks if you remember something
+- long_message: messages over 100 characters
+- story: narratives or storytelling
+- casual: general conversation
+- general: default if no other tag fits
 
 Context: ${context || 'No additional context provided'}
 
@@ -377,8 +402,47 @@ function analyzeMessageRuleBased(message, context) {
   // Generate summary
   const summary = messageLength > 100 ? message.substring(0, 97) + '...' : message;
   
-  // Generate tags - for now always use 'general'
-  const tags = ['general'];
+  // Generate tags based on content
+  const tags = [];
+  
+  // Check for personal info
+  if (hasPersonalInfo || hasAge || hasName) tags.push('personal_info');
+  
+  // Check for relationship mentions
+  if (message.match(/\b(family|friend|mother|father|sister|brother|parent|child|partner|wife|husband)\b/i)) {
+    tags.push('relationship');
+  }
+  
+  // Check for goals
+  if (message.match(/\b(want to|will|going to|plan to|hope to|goal|dream|aspire)\b/i)) {
+    tags.push('goal');
+  }
+  
+  // Check for preferences
+  if (message.match(/\b(like|love|hate|prefer|favorite|enjoy|dislike)\b/i)) {
+    tags.push('preference');
+  }
+  
+  // Check for emotional content
+  if (hasEmotionalContent) tags.push('emotional');
+  
+  // Check for questions
+  if (isQuestion && !isAskingAboutInfo) tags.push('question');
+  
+  // Check for memory checks
+  if (isAskingAboutInfo) tags.push('memory_check');
+  
+  // Check for long messages
+  if (messageLength > 100) tags.push('long_message');
+  
+  // Check for stories
+  if (lowerMessage.includes('verhaal') || lowerMessage.includes('story')) tags.push('story');
+  
+  // If message is short and conversational, tag as casual
+  if (messageLength < 50 && !tags.length) tags.push('casual');
+  
+  // Default to general if no tags
+  if (tags.length === 0) tags.push('general');
   
   const analysis = {
     memory_importance: importance,
