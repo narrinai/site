@@ -281,13 +281,17 @@ exports.handler = async (event, context) => {
       record_id: record.id
     }));
 
+    // Reverse the array since we fetched newest first but want to display oldest first
+    const reversedHistory = formattedHistory.reverse();
+    
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({ 
         success: true, 
-        history: formattedHistory,
-        total: formattedHistory.length
+        history: reversedHistory,
+        total: reversedHistory.length,
+        limited: allChatHistory.length >= 20 // Indicate if we hit the limit
       })
     };
 
