@@ -87,8 +87,33 @@ exports.handler = async (event, context) => {
              console.log('✅ Found user record ID:', userRecordId);
            } else {
              console.log('❌ No user found with User_ID:', user_id);
+             
+             // Try NetlifyUID lookup
+             console.log('🔄 Trying NetlifyUID lookup...');
+             const netlifyLookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={NetlifyUID}='${user_id}'&maxRecords=1`;
+             try {
+               const netlifyLookupResponse = await fetch(netlifyLookupUrl, {
+                 headers: {
+                   'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+                   'Content-Type': 'application/json'
+                 }
+               });
+               
+               if (netlifyLookupResponse.ok) {
+                 const netlifyUserData = await netlifyLookupResponse.json();
+                 if (netlifyUserData.records.length > 0) {
+                   userRecordId = netlifyUserData.records[0].id;
+                   console.log('✅ Found user record ID by NetlifyUID:', userRecordId);
+                 } else {
+                   console.log('❌ No user found with NetlifyUID:', user_id);
+                 }
+               }
+             } catch (netlifyErr) {
+               console.error('❌ NetlifyUID lookup error:', netlifyErr);
+             }
+             
              // Try to find by email from the request if provided
-             if (body.user_email || (user_id && user_id.includes('@'))) {
+             if (!userRecordId && (body.user_email || (user_id && user_id.includes('@')))) {
                const emailToLookup = body.user_email || user_id;
                console.log('🔄 Trying email lookup for:', emailToLookup);
                const escapedEmailLookup = emailToLookup.replace(/'/g, "\\'");
@@ -129,24 +154,12 @@ exports.handler = async (event, context) => {
       filterFormula = `AND(${filterFormula}, FIND('${userRecordId}', ARRAYJOIN({User}, ','))>0)`;
       console.log('✅ Using userRecordId filter:', userRecordId);
     } else {
-      // No user record found - we can't filter by user effectively
-      console.log('⚠️ No user record ID found. Cannot filter memories by user.');
+      // No user record found - we'll check manually in the loop
+      console.log('⚠️ No user record ID found. Will check user match manually.');
       console.log('📧 Debug - user_id provided:', user_id);
       console.log('📧 Debug - Is email?', user_id && user_id.includes('@'));
-      // Return empty memories since we can't identify the user
-      return {
-        statusCode: 200,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          success: true,
-          memories: [],
-          message: 'User not found in database',
-          debug: {
-            user_id_provided: user_id,
-            is_email: user_id && user_id.includes('@')
-          }
-        })
-      };
+      console.log('📧 Debug - body.user_email:', body.user_email);
+      // Continue without user filter - we'll check in the loop
     }
     
     // Add character filter
@@ -203,19 +216,29 @@ exports.handler = async (event, context) => {
        // DEBUG: Log every record we're checking
        console.log(`📋 Checking record ${record.id}:`, {
          User: fields.User,
+         User_ID: fields.User_ID,
+         User_Email: fields.User_Email,
          Character: fields.Character,
+         Character_Slug: fields['Character Slug'],
          Slug: fields['Slug (from Character)'],
          Memory_Importance: fields.Memory_Importance,
          Summary: fields.Summary ? fields.Summary.substring(0, 50) + '...' : 'no summary'
        });
        
        // Check user match - properly handle all field types
-const recordUserField = fields.User; // This is an array of record IDs
+const recordUserField = fields.User; // Can be string (User_ID like "42") or array of record IDs
 const recordUserEmail = fields.User_Email || fields.user_email;
 let userMatch = false;
 
-// The User field in ChatHistory is an array of record IDs
-if (Array.isArray(recordUserField) && recordUserField.length > 0) {
+// First check if User field is a string (User_ID)
+if (recordUserField && !Array.isArray(recordUserField)) {
+  // Direct string comparison
+  userMatch = String(recordUserField) === String(user_id);
+  console.log(`👤 User field (string) match check: "${recordUserField}" === "${user_id}" = ${userMatch}`);
+}
+
+// If User field is an array of record IDs
+if (!userMatch && Array.isArray(recordUserField) && recordUserField.length > 0) {
   // Check if our userRecordId (looked up earlier) is in the array
   if (userRecordId) {
     userMatch = recordUserField.includes(userRecordId);
@@ -225,8 +248,10 @@ if (Array.isArray(recordUserField) && recordUserField.length > 0) {
     userMatch = recordUserField.includes(user_id);
     console.log(`👤 Direct record ID match: ${recordUserField} includes ${user_id} = ${userMatch}`);
   }
-} else if (user_id && user_id.includes('@')) {
-  // Email-based matching
+}
+
+// Email-based matching
+if (!userMatch && user_id && user_id.includes('@')) {
   userMatch = String(recordUserEmail).toLowerCase() === String(user_id).toLowerCase();
   console.log(`👤 Email match check: ${recordUserEmail} === ${user_id} = ${userMatch}`);
 }
@@ -238,6 +263,15 @@ if (!userMatch && user_id && recordUserField) {
   userMatch = String(recordUserField) === String(user_id);
   console.log(`👤 Direct User_ID match check: ${recordUserField} === ${user_id} = ${userMatch}`);
 }
+
+// Also check the User_ID field if present
+if (!userMatch && user_id) {
+  const recordUserId = fields.User_ID || fields.user_id;
+  if (recordUserId) {
+    userMatch = String(recordUserId) === String(user_id);
+    console.log(`👤 User_ID field match check: ${recordUserId} === ${user_id} = ${userMatch}`);
+  }
+}
        if (!userMatch) {
          console.log(`❌ User mismatch, skipping record`);
          continue;
@@ -247,22 +281,31 @@ if (!userMatch && user_id && recordUserField) {
        let characterMatch = true; // Default to true if no character specified
 
        if (characterIdentifier) {
-         const recordCharacterField = fields.Character; // This is an array of record IDs
+         const recordCharacterField = fields.Character; // Can be string (name) or array of record IDs
          const recordSlug = fields['Character Slug'] || fields['Slug (from Character)'] || fields.Slug;
          
          console.log(`🎭 Character match check: "${characterIdentifier}" vs Character field: ${JSON.stringify(recordCharacterField)}, Slug: "${recordSlug}"`);
          
-         // First check the Character Slug field (direct field in ChatHistory)
-         if (recordSlug && String(recordSlug).toLowerCase() === String(characterIdentifier).toLowerCase()) {
-           characterMatch = true;
-           console.log(`  Slug match found: "${recordSlug}" === "${characterIdentifier}"`);
-         } else if (Array.isArray(recordCharacterField) && characterIdentifier.startsWith('rec')) {
-           // Check if character record ID is in the array
+         // First check if Character field is a string (character name)
+         if (recordCharacterField && !Array.isArray(recordCharacterField)) {
+           // Direct string comparison with character name or slug
+           characterMatch = String(recordCharacterField).toLowerCase() === String(characterIdentifier).toLowerCase();
+           console.log(`  Character field (string) match: "${recordCharacterField}" === "${characterIdentifier}" = ${characterMatch}`);
+         }
+         
+         // Check the Character Slug field (direct field in ChatHistory)
+         if (!characterMatch && recordSlug) {
+           characterMatch = String(recordSlug).toLowerCase() === String(characterIdentifier).toLowerCase();
+           console.log(`  Slug match found: "${recordSlug}" === "${characterIdentifier}" = ${characterMatch}`);
+         }
+         
+         // If Character field is an array of record IDs
+         if (!characterMatch && Array.isArray(recordCharacterField) && characterIdentifier.startsWith('rec')) {
            characterMatch = recordCharacterField.includes(characterIdentifier);
            console.log(`  Character record ID check: ${JSON.stringify(recordCharacterField)} includes "${characterIdentifier}" = ${characterMatch}`);
-         } else {
-           // No match found
-           characterMatch = false;
+         }
+         
+         if (!characterMatch) {
            console.log(`  No character match found`);
          }
          
