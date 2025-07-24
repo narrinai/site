@@ -90,8 +90,11 @@ exports.handler = async (event, context) => {
     const charRecordId = charData.records[0].id;
     console.log('✅ Found character record:', charRecordId);
     
-    // Check if relationship record exists using the lookup fields with the actual User_ID value
-    const checkUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula=AND({User_ID (from User)}='${customUserId}',{Slug (from Character)}='${character_id}')`;
+    // Check if relationship record exists using direct linked record IDs
+    // This is more reliable than using lookup fields which may not be immediately available
+    const checkUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula=AND(FIND('${userRecordId}',ARRAYJOIN({User}))>0,FIND('${charRecordId}',ARRAYJOIN({Character}))>0)`;
+    
+    console.log('🔍 Checking for existing relationship with formula:', `AND(FIND('${userRecordId}',ARRAYJOIN({User}))>0,FIND('${charRecordId}',ARRAYJOIN({Character}))>0)`);
     
     const checkResponse = await fetch(checkUrl, {
       headers: {
@@ -105,8 +108,38 @@ exports.handler = async (event, context) => {
     }
 
     const existingData = await checkResponse.json();
+    console.log(`📊 Found ${existingData.records.length} existing relationship records`);
     const now = new Date().toISOString();
 
+    if (existingData.records.length === 0) {
+      // Double-check one more time with a broader search to prevent duplicates
+      // Sometimes Airtable's filter can be inconsistent with linked records
+      console.log('🔍 Double-checking for existing relationships before creating...');
+      
+      const doubleCheckUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships`;
+      const allRelationshipsResponse = await fetch(doubleCheckUrl, {
+        headers: {
+          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (allRelationshipsResponse.ok) {
+        const allData = await allRelationshipsResponse.json();
+        // Manually check if a relationship already exists
+        const existingRelationship = allData.records.find(record => {
+          const userLinks = record.fields.User || [];
+          const charLinks = record.fields.Character || [];
+          return userLinks.includes(userRecordId) && charLinks.includes(charRecordId);
+        });
+        
+        if (existingRelationship) {
+          console.log('⚠️ Found existing relationship in double-check, updating instead of creating');
+          existingData.records = [existingRelationship];
+        }
+      }
+    }
+    
     if (existingData.records.length === 0) {
       // Create new relationship record
       console.log('📝 Creating new relationship record');
