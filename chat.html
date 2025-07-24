@@ -5175,7 +5175,12 @@ async function getRelevantMemories(userId, characterId, currentMessage) {
         
         if (data.success && data.memories && Array.isArray(data.memories)) {
             console.log(`✅ Found ${data.memories.length} memories via function`);
-            return data.memories;
+            // Return full response object with memories and context
+            return {
+                memories: data.memories,
+                relationshipContext: data.relationshipContext,
+                recentSummary: data.recentSummary
+            };
         } else {
             console.log('⚠️ Function returned success=false or no memories, trying fallback...');
             return await getMemoriesDirectFallback(userId, characterId);
@@ -5207,7 +5212,7 @@ async function getMemoriesDirectFallback(userId, characterId) {
         
         if (!email || !token || !uid) {
             console.log("❌ Missing auth data for fallback");
-            return [];
+            return { memories: [], relationshipContext: null, recentSummary: null };
         }
         
         const requestData = {
@@ -5232,7 +5237,7 @@ async function getMemoriesDirectFallback(userId, characterId) {
         
         if (!response.ok) {
             console.log("❌ Fallback HTTP request failed");
-            return [];
+            return { memories: [], relationshipContext: null, recentSummary: null };
         }
         
         const rawText = await response.text();
@@ -5243,7 +5248,7 @@ async function getMemoriesDirectFallback(userId, characterId) {
             data = JSON.parse(rawText);
         } catch (e) {
             console.log("❌ Fallback JSON parse failed:", e.message);
-            return [];
+            return { memories: [], relationshipContext: null, recentSummary: null };
         }
         
         console.log("✅ Fallback parsed data keys:", Object.keys(data));
@@ -5251,7 +5256,7 @@ async function getMemoriesDirectFallback(userId, characterId) {
         
         if (!data.success || !data.history) {
             console.log("❌ Fallback: no success or no history");
-            return [];
+            return { memories: [], relationshipContext: null, recentSummary: null };
         }
         
         const memories = [];
@@ -5291,11 +5296,16 @@ async function getMemoriesDirectFallback(userId, characterId) {
         const topMemories = memories.slice(0, 5);
         
         console.log(`✅ Fallback found ${topMemories.length} memories total`);
-        return topMemories;
+        // Return object format to match main function
+        return {
+            memories: topMemories,
+            relationshipContext: null,
+            recentSummary: null
+        };
         
     } catch (error) {
         console.error("❌ Direct fallback error:", error);
-        return [];
+        return { memories: [], relationshipContext: null, recentSummary: null };
     }
 }
 
