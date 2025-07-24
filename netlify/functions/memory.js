@@ -173,10 +173,9 @@ exports.handler = async (event, context) => {
     console.log('🔍 Filter formula:', filterFormula);
     console.log('🔍 User lookup result:', { user_id, userRecordId });
     
-    // DEBUG: Temporarily remove filter to see what's in the table
-    const debugUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?maxRecords=10`;
-    console.log('🔍 DEBUG: Fetching WITHOUT filter to see what records exist');
-    const url = debugUrl;
+    // Get ALL records to find all possible user matches
+    console.log('🔍 DEBUG: Fetching ALL records to find user matches for email:', body.user_email);
+    const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=100`;
      
      const response = await fetch(url, {
        headers: {
@@ -219,8 +218,39 @@ exports.handler = async (event, context) => {
        totalRecords: data.records.length,
        userRecordId: userRecordId,
        characterToFind: characterIdentifier,
-       recordsSummary: []
+       recordsSummary: [],
+       allUserRecordIds: [] // Track all user record IDs found
      };
+     
+     // If we have an email, find ALL user records with this email
+     let validUserRecordIds = [];
+     if (body.user_email) {
+       console.log('🔍 Finding ALL user records with email:', body.user_email);
+       const escapedEmail = body.user_email.replace(/'/g, "\\'");
+       const allUsersUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={Email}='${escapedEmail}'`;
+       
+       try {
+         const allUsersResponse = await fetch(allUsersUrl, {
+           headers: {
+             'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+             'Content-Type': 'application/json'
+           }
+         });
+         
+         if (allUsersResponse.ok) {
+           const allUsersData = await allUsersResponse.json();
+           validUserRecordIds = allUsersData.records.map(r => r.id);
+           console.log('✅ Found', validUserRecordIds.length, 'user records with this email:', validUserRecordIds);
+         }
+       } catch (err) {
+         console.error('❌ Error fetching all users:', err);
+       }
+     }
+     
+     // If we found a userRecordId earlier, add it to the list
+     if (userRecordId && !validUserRecordIds.includes(userRecordId)) {
+       validUserRecordIds.push(userRecordId);
+     }
      
      for (const record of data.records) {
        const fields = record.fields || {};
@@ -253,8 +283,11 @@ if (recordUserField && !Array.isArray(recordUserField)) {
 
 // If User field is an array of record IDs
 if (!userMatch && Array.isArray(recordUserField) && recordUserField.length > 0) {
-  // Check if our userRecordId (looked up earlier) is in the array
-  if (userRecordId) {
+  // Check if ANY of our valid user record IDs match
+  if (validUserRecordIds.length > 0) {
+    userMatch = recordUserField.some(recId => validUserRecordIds.includes(recId));
+    console.log(`👤 User record ID match check: ${recordUserField} includes any of ${validUserRecordIds} = ${userMatch}`);
+  } else if (userRecordId) {
     userMatch = recordUserField.includes(userRecordId);
     console.log(`👤 User record ID match check: ${recordUserField} includes ${userRecordId} = ${userMatch}`);
   } else if (user_id && user_id.startsWith('rec')) {
@@ -264,10 +297,11 @@ if (!userMatch && Array.isArray(recordUserField) && recordUserField.length > 0) 
   }
 }
 
-// Email-based matching
-if (!userMatch && user_id && user_id.includes('@')) {
-  userMatch = String(recordUserEmail).toLowerCase() === String(user_id).toLowerCase();
-  console.log(`👤 Email match check: ${recordUserEmail} === ${user_id} = ${userMatch}`);
+// Email-based matching - also check the email from request body
+if (!userMatch && (body.user_email || (user_id && user_id.includes('@')))) {
+  const emailToCheck = body.user_email || user_id;
+  userMatch = String(recordUserEmail).toLowerCase() === String(emailToCheck).toLowerCase();
+  console.log(`👤 Email match check: ${recordUserEmail} === ${emailToCheck} = ${userMatch}`);
 }
 
 // If no match yet, check if the User field contains the user_id value directly
