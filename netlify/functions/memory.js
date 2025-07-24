@@ -83,8 +83,8 @@ exports.handler = async (event, context) => {
      
      // Get recent records
      // Build filter to only get records with Memory_Importance
-    // Handle both number and string values for Memory_Importance
-    let filterFormula = 'OR({Memory_Importance}>0, VALUE({Memory_Importance})>0)';
+    // Build filter to only get records with Memory_Importance
+    let filterFormula = '{Memory_Importance}>0';
     
     // Add user filter if provided
     if (user_id && user_id.includes('@')) {
