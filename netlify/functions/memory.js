@@ -150,8 +150,8 @@ exports.handler = async (event, context) => {
      
      // Get recent records
      // Build filter to only get records with Memory_Importance
-    // Build filter to only get records with Memory_Importance
-    let filterFormula = '{Memory_Importance}>0';
+    // Build filter - start with no filter to see all records
+    let filterFormula = 'TRUE()';
     
     // Add user filter based on what we have
     if (userRecordId) {
@@ -211,12 +211,30 @@ exports.handler = async (event, context) => {
      console.log('🔍 Searching for user:', user_id, 'character:', characterIdentifier);
      console.log('🔍 Total records to check:', data.records.length);
      
+     // Debug: collect info about all records for response
+     const debugInfo = {
+       totalRecords: data.records.length,
+       userRecordId: userRecordId,
+       characterToFind: characterIdentifier,
+       recordsSummary: []
+     };
+     
      for (const record of data.records) {
        const fields = record.fields || {};
        console.log('📋 Checking record:', record.id, 'User:', fields.User, 'Character:', fields['Slug (from Character)']);
        
        // DEBUG: Log FULL record structure to understand the data
        console.log(`📋 FULL record ${record.id}:`, JSON.stringify(fields, null, 2));
+       
+       // Add to debug info
+       debugInfo.recordsSummary.push({
+         id: record.id,
+         User: fields.User,
+         Character: fields.Character,
+         'Slug (from Character)': fields['Slug (from Character)'],
+         Memory_Importance: fields.Memory_Importance,
+         Message: fields.Message ? fields.Message.substring(0, 50) + '...' : null
+       });
        
        // Check user match - properly handle all field types
 const recordUserField = fields.User; // Can be string (User_ID like "42") or array of record IDs
