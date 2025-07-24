@@ -1,5 +1,25 @@
 // netlify/functions/update-memory.js
 
+// Define allowed memory tags (same as in analyze-memory.js)
+const ALLOWED_MEMORY_TAGS = [
+  'personal_info',
+  'emotional', 
+  'question',
+  'factual',
+  'creative',
+  'memory_check',
+  'story',
+  'general'
+];
+
+// Helper function to validate and filter tags
+function validateTags(tags) {
+  if (!Array.isArray(tags)) return ['general'];
+  
+  const validTags = tags.filter(tag => ALLOWED_MEMORY_TAGS.includes(tag));
+  return validTags.length > 0 ? validTags : ['general'];
+}
+
 exports.handler = async (event, context) => {
   console.log('🔍 update-memory function called');
   console.log('📨 Event method:', event.httpMethod);
@@ -186,7 +206,7 @@ exports.handler = async (event, context) => {
           "Memory_Importance": parseInt(analysis.memory_importance) || 5,
           "Emotional_State": String(analysis.emotional_state) || "neutral",
           "Summary": String(analysis.summary) || "",
-          "Memory_Tags": Array.isArray(analysis.memory_tags) ? analysis.memory_tags : [String(analysis.memory_tags) || "general"]
+          "Memory_Tags": validateTags(analysis.memory_tags)
         }
       };
       
@@ -303,7 +323,7 @@ exports.handler = async (event, context) => {
                   "Memory_Importance": parseInt(analysis.memory_importance) || 5,
                   "Emotional_State": String(analysis.emotional_state) || "neutral", 
                   "Summary": String(analysis.summary) || "",
-                  "Memory_Tags": Array.isArray(analysis.memory_tags) ? analysis.memory_tags : [String(analysis.memory_tags) || "general"]
+                  "Memory_Tags": validateTags(analysis.memory_tags)
                 }
               };
               
@@ -426,7 +446,7 @@ exports.handler = async (event, context) => {
                     "Memory_Importance": parseInt(analysis.memory_importance) || 5,
                     "Emotional_State": String(analysis.emotional_state) || "neutral",
                     "Summary": String(analysis.summary) || "",
-                    "Memory_Tags": Array.isArray(analysis.memory_tags) ? analysis.memory_tags : [String(analysis.memory_tags) || "general"]
+                    "Memory_Tags": validateTags(analysis.memory_tags)
                   }
                 };
                 
@@ -536,7 +556,7 @@ exports.handler = async (event, context) => {
                   "Memory_Importance": parseInt(analysis.memory_importance) || 5,
                   "Emotional_State": String(analysis.emotional_state) || "neutral",
                   "Summary": String(analysis.summary) || "",
-                  "Memory_Tags": Array.isArray(analysis.memory_tags) ? analysis.memory_tags : [String(analysis.memory_tags) || "general"]
+                  "Memory_Tags": validateTags(analysis.memory_tags)
                 }
               };
               

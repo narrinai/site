@@ -1,5 +1,25 @@
 // netlify/functions/analyze-memory.js
 
+// Define allowed memory tags
+const ALLOWED_MEMORY_TAGS = [
+  'personal_info',
+  'emotional', 
+  'question',
+  'factual',
+  'creative',
+  'memory_check',
+  'story',
+  'general'
+];
+
+// Helper function to validate and filter tags
+function validateTags(tags) {
+  if (!Array.isArray(tags)) return ['general'];
+  
+  const validTags = tags.filter(tag => ALLOWED_MEMORY_TAGS.includes(tag));
+  return validTags.length > 0 ? validTags : ['general'];
+}
+
 exports.handler = async (event, context) => {
   console.log('🤖 analyze-memory function called');
   console.log('📨 Event method:', event.httpMethod);
@@ -63,7 +83,7 @@ Analyze the following message and provide a JSON response with:
 - memory_importance: integer 1-10 (1=trivial, 10=extremely important personal info)
 - emotional_state: string (happy, sad, excited, angry, neutral, thoughtful, confused)
 - summary: string (brief summary of the message, max 100 chars)
-- memory_tags: array of strings (relevant tags like: personal_info, emotional, question, factual, creative, etc.)
+- memory_tags: array of strings (use ONLY these tags: personal_info, emotional, question, factual, creative, memory_check, story, general)
 
 Guidelines:
 - Personal information (names, preferences, life events) = high importance (7-10)
@@ -150,6 +170,14 @@ Respond only with valid JSON.`;
           message: 'AI response parsing failed, used rule-based fallback'
         })
       };
+    }
+    
+    // Validate and filter tags
+    if (analysis.memory_tags) {
+      analysis.memory_tags = validateTags(analysis.memory_tags);
+      console.log('✅ Validated tags:', analysis.memory_tags);
+    } else {
+      analysis.memory_tags = ['general'];
     }
     
     // Validate analysis structure
@@ -358,14 +386,20 @@ function analyzeMessageRuleBased(message, context) {
   // Generate summary
   const summary = messageLength > 100 ? message.substring(0, 97) + '...' : message;
   
-  // Generate tags
+  // Generate tags - only use allowed tags
   const tags = [];
   if (hasPersonalInfo || hasAge || hasName) tags.push('personal_info');
   if (hasEmotionalContent) tags.push('emotional');
   if (isQuestion && !isAskingAboutInfo) tags.push('question');
   if (isAskingAboutInfo) tags.push('memory_check');
-  if (messageLength > 100) tags.push('long_message');
   if (lowerMessage.includes('verhaal') || lowerMessage.includes('story')) tags.push('story');
+  
+  // Check for factual content
+  if (message.match(/\b(fact|data|information|statistic|number)\b/i)) tags.push('factual');
+  
+  // Check for creative content
+  if (message.match(/\b(imagine|create|design|invent|idea)\b/i)) tags.push('creative');
+  
   if (tags.length === 0) tags.push('general');
   
   const analysis = {
