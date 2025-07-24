@@ -81,7 +81,7 @@ exports.handler = async (event, context) => {
     if (character_slug) {
       // Escape single quotes in character_slug
       const escapedSlug = character_slug.replace(/'/g, "\\'");
-      filterFormula = `AND(${filterFormula}, {Character Slug}='${escapedSlug}')`;
+      filterFormula = `AND(${filterFormula}, LOWER({Character Slug})=LOWER('${escapedSlug}'))`;
     }
     
     console.log('🔍 Filter formula:', filterFormula);
@@ -251,32 +251,57 @@ if (!userMatch && user_id === "42") {
      try {
        console.log('🤝 Fetching relationship context...');
        // Use the userRecordId if we have it, otherwise skip
-       if (userRecordId || (user_id && user_id.startsWith('rec'))) {
+       if ((userRecordId || (user_id && user_id.startsWith('rec'))) && characterIdentifier) {
          const recordIdToUse = userRecordId || user_id;
-         const relationshipUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula=AND(FIND('${recordIdToUse}',ARRAYJOIN({User}))>0,{Character Slug}='${characterIdentifier}')`;
          
-         const relationshipResponse = await fetch(relationshipUrl, {
-         headers: {
-           'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
-           'Content-Type': 'application/json'
+         // First, we need to get the character record ID if we only have a slug
+         let charRecordId = null;
+         if (characterIdentifier && !characterIdentifier.startsWith('rec')) {
+           // Look up character by slug
+           const charLookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula={Slug}='${characterIdentifier}'&maxRecords=1`;
+           const charLookupResponse = await fetch(charLookupUrl, {
+             headers: {
+               'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+               'Content-Type': 'application/json'
+             }
+           });
+           
+           if (charLookupResponse.ok) {
+             const charData = await charLookupResponse.json();
+             if (charData.records.length > 0) {
+               charRecordId = charData.records[0].id;
+             }
+           }
+         } else if (characterIdentifier && characterIdentifier.startsWith('rec')) {
+           charRecordId = characterIdentifier;
          }
-       });
-       
-       if (relationshipResponse.ok) {
-         const relationshipData = await relationshipResponse.json();
-         if (relationshipData.records.length > 0) {
-           const rel = relationshipData.records[0].fields;
-           relationshipContext = {
-             phase: rel.Relationship_Phase || 'new',
-             totalMessages: rel.Total_Messages || 0,
-             averageEmotion: rel.Average_Emotional_Score || 0.5,
-             lastInteraction: rel.Last_Interaction,
-             keySummary: rel.Key_Memories_Summary || '',
-             topics: rel.Last_Topics || []
-           };
-           console.log('✅ Relationship context loaded:', relationshipContext.phase);
-         }
-       }
+         
+         if (charRecordId) {
+           const relationshipUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula=AND(FIND('${recordIdToUse}',ARRAYJOIN({User}))>0,FIND('${charRecordId}',ARRAYJOIN({Character}))>0)`;
+           
+           const relationshipResponse = await fetch(relationshipUrl, {
+             headers: {
+               'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+               'Content-Type': 'application/json'
+             }
+           });
+           
+           if (relationshipResponse.ok) {
+             const relationshipData = await relationshipResponse.json();
+             if (relationshipData.records.length > 0) {
+               const rel = relationshipData.records[0].fields;
+               relationshipContext = {
+                 phase: rel.Relationship_Phase || 'new',
+                 totalMessages: rel.Total_Messages || 0,
+                 averageEmotion: rel.Average_Emotional_Score || 0.5,
+                 lastInteraction: rel.Last_Interaction,
+                 keySummary: rel.Key_Memories_Summary || '',
+                 topics: rel.Last_Topics || []
+               };
+               console.log('✅ Relationship context loaded:', relationshipContext.phase);
+             }
+           }
+         } // Close the if (charRecordId) block
        } // Close the if (userRecordId) block
      } catch (relError) {
        console.error('⚠️ Failed to fetch relationship context:', relError);

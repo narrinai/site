@@ -83,11 +83,11 @@ exports.handler = async (event, context) => {
       console.log('✅ User found with Email and NetlifyUID');
     }
 
-    const user_id = userData.records[0].id;
+    const userRecordId = userData.records[0].id;
     const customUserId = userData.records[0].fields.User_ID || '42'; // Get the custom User_ID
 
-    // Get character name from Characters table using slug
-    console.log('🔍 Looking up character name for slug:', char);
+    // Get character record ID from Characters table using slug
+    console.log('🔍 Looking up character for slug:', char);
     const characterResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula={Slug}='${char}'`, {
       headers: {
         'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -105,17 +105,15 @@ exports.handler = async (event, context) => {
     }
 
     const characterName = characterData.records[0].fields.Name;
-    console.log('✅ Found character:', characterName);
+    const characterRecordId = characterData.records[0].id;
+    console.log('✅ Found character:', characterName, 'ID:', characterRecordId);
 
-    // Count messages in ChatHistory using custom User_ID and character name
-    console.log('📊 Counting messages for user:', customUserId, 'character name:', characterName);
+    // Count messages in ChatHistory using record IDs
+    console.log('📊 Counting messages for user record:', userRecordId, 'character slug:', char);
     
-    // Escape single quotes in character name for Airtable formula
-    const escapedCharacterName = characterName.replace(/'/g, "\\'");
-    
-    // First get all messages for this user/character combination using the actual field values
+    // First get all messages for this user/character combination using record IDs and Character Slug
     const allMessagesResponse = await fetch(
-      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${customUserId}',{Character}='${escapedCharacterName}')`,
+      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND(FIND('${userRecordId}',ARRAYJOIN({User}))>0,LOWER({Character Slug})=LOWER('${char}'))`,
       {
         headers: {
           'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -154,7 +152,7 @@ exports.handler = async (event, context) => {
     if (shouldShowRating) {
       try {
         const lastRatingResponse = await fetch(
-          `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/tblXglk25SzZ3UYAt?filterByFormula=AND({User}='${customUserId}',{Character}='${escapedCharacterName}',{MessageCount}=${messageCount})&maxRecords=1`,
+          `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/tblXglk25SzZ3UYAt?filterByFormula=AND(FIND('${userRecordId}',ARRAYJOIN({User}))>0,FIND('${characterRecordId}',ARRAYJOIN({Character}))>0,{MessageCount}=${messageCount})&maxRecords=1`,
           {
             headers: {
               'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
