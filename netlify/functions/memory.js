@@ -212,18 +212,18 @@ exports.handler = async (event, context) => {
        // DEBUG: Log every record we're checking
        console.log(`📋 Checking record ${record.id}:`, {
          User: fields.User,
-         User_ID: fields.User_ID,
-         User_Email: fields.User_Email,
          Character: fields.Character,
-         Character_Slug: fields['Character Slug'],
-         Slug: fields['Slug (from Character)'],
+         'Slug (from Character)': fields['Slug (from Character)'],
+         NetlifyUID: fields.NetlifyUID,
+         Email: fields.Email,
+         'Email (from Email)': fields['Email (from Email)'],
          Memory_Importance: fields.Memory_Importance,
          Summary: fields.Summary ? fields.Summary.substring(0, 50) + '...' : 'no summary'
        });
        
        // Check user match - properly handle all field types
 const recordUserField = fields.User; // Can be string (User_ID like "42") or array of record IDs
-const recordUserEmail = fields.User_Email || fields.user_email;
+const recordUserEmail = fields.Email || fields['Email (from Email)'] || fields.User_Email;
 let userMatch = false;
 
 // First check if User field is a string (User_ID)
@@ -277,25 +277,24 @@ if (!userMatch && user_id) {
        let characterMatch = true; // Default to true if no character specified
 
        if (characterIdentifier) {
-         const recordCharacterField = fields.Character; // Can be string (name) or array of record IDs
-         const recordSlug = fields['Character Slug'] || fields['Slug (from Character)'] || fields.Slug;
+         const recordCharacterField = fields.Character; // "Batman"
+         const recordSlug = fields['Slug (from Character)']; // "batman"
          
-         console.log(`🎭 Character match check: "${characterIdentifier}" vs Character field: ${JSON.stringify(recordCharacterField)}, Slug: "${recordSlug}"`);
+         console.log(`🎭 Character match check: "${characterIdentifier}" vs Character: "${recordCharacterField}", Slug: "${recordSlug}"`);
          
-         // First check if Character field is a string (character name)
+         // Check if Character field matches (e.g., "Batman" === "harry-potter")
          if (recordCharacterField && !Array.isArray(recordCharacterField)) {
-           // Direct string comparison with character name or slug
            characterMatch = String(recordCharacterField).toLowerCase() === String(characterIdentifier).toLowerCase();
-           console.log(`  Character field (string) match: "${recordCharacterField}" === "${characterIdentifier}" = ${characterMatch}`);
+           console.log(`  Character field match: "${recordCharacterField}" === "${characterIdentifier}" = ${characterMatch}`);
          }
          
-         // Check the Character Slug field (direct field in ChatHistory)
+         // Check the Slug (from Character) field
          if (!characterMatch && recordSlug) {
            characterMatch = String(recordSlug).toLowerCase() === String(characterIdentifier).toLowerCase();
-           console.log(`  Slug match found: "${recordSlug}" === "${characterIdentifier}" = ${characterMatch}`);
+           console.log(`  Slug match: "${recordSlug}" === "${characterIdentifier}" = ${characterMatch}`);
          }
          
-         // If Character field is an array of record IDs
+         // If Character field is an array of record IDs (unlikely based on screenshots)
          if (!characterMatch && Array.isArray(recordCharacterField) && characterIdentifier.startsWith('rec')) {
            characterMatch = recordCharacterField.includes(characterIdentifier);
            console.log(`  Character record ID check: ${JSON.stringify(recordCharacterField)} includes "${characterIdentifier}" = ${characterMatch}`);
