@@ -52,6 +52,25 @@ exports.handler = async (event, context) => {
              console.log('✅ Found user record ID:', userRecordId);
            } else {
              console.log('❌ No user found with User_ID:', user_id);
+             // If user_id is "42", try to find by email from the request
+             if (user_id === "42" && body.user_email) {
+               console.log('🔄 Trying email lookup for user 42...');
+               const emailLookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={Email}='${body.user_email}'&maxRecords=1`;
+               const emailLookupResponse = await fetch(emailLookupUrl, {
+                 headers: {
+                   'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+                   'Content-Type': 'application/json'
+                 }
+               });
+               
+               if (emailLookupResponse.ok) {
+                 const emailUserData = await emailLookupResponse.json();
+                 if (emailUserData.records.length > 0) {
+                   userRecordId = emailUserData.records[0].id;
+                   console.log('✅ Found user by email:', userRecordId);
+                 }
+               }
+             }
            }
          } else {
            const errorText = await userLookupResponse.text();

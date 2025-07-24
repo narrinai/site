@@ -229,8 +229,8 @@ function analyzeMessageRuleBased(message, context) {
   // Personal info keywords - keywords that indicate sharing personal information
   const personalInfoKeywords = [
     'naam is', 'heet', 'ben ik', 'ik ben', 'ik heet',
-    'my name is', "i'm", 'i am', "i'm called", 'call me',
-    'jaar oud', 'years old', 'jarig', 'geboren',
+    'my name is', "i'm", 'i am', "i'm called", 'call me', 'im', 'i m',
+    'jaar oud', 'years old', 'jarig', 'geboren', 'age', 'aged',
     'woon in', 'werk bij', 'i live', 'i work',
     'mijn familie', 'my family', 'my job'
   ];
@@ -294,12 +294,13 @@ function analyzeMessageRuleBased(message, context) {
     return false;
   });
   
-  // Universal name detection - capitalized words after certain positions
-  // Look for capital letters that might indicate names
+  // Universal name detection - look for name patterns
+  // Look for capital letters that might indicate names OR words after "im", "i'm", "my name is" etc
   const capitalizedWords = message.match(/\b[A-Z][a-z]+\b/g) || [];
-  const hasName = capitalizedWords.length > 0 && 
-    // Exclude common English words that are often capitalized
-    !['I', 'The', 'A', 'An'].includes(capitalizedWords[0]);
+  const nameIntroPattern = /(?:my name is|i'm|i am|im|call me|ik heet|ik ben)\s+(\w+)/i;
+  const nameMatch = message.match(nameIntroPattern);
+  const hasName = (capitalizedWords.length > 0 && !['I', 'The', 'A', 'An'].includes(capitalizedWords[0])) || 
+                  nameMatch !== null;
   
   // Scoring based on universal patterns
   let personalInfoScore = 0;
