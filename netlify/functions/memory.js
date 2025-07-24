@@ -41,8 +41,8 @@ exports.handler = async (event, context) => {
        // Look up user by email
        console.log('📧 Looking up user by email:', user_id);
        const escapedEmail = user_id.replace(/'/g, "\\'");
-       const emailLookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={Email}='${escapedEmail}'&maxRecords=1`;
-       console.log('🔍 Email lookup URL (base ID hidden):', emailLookupUrl.replace(AIRTABLE_BASE_ID, 'BASE_ID'));
+      const emailFilter = `{Email}='${escapedEmail}'`;
+      const emailLookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=${encodeURIComponent(emailFilter)}&maxRecords=1`;
        
        try {
          const emailLookupResponse = await fetch(emailLookupUrl, {
@@ -59,43 +59,6 @@ exports.handler = async (event, context) => {
              console.log('✅ Found user by email, record ID:', userRecordId);
            } else {
              console.log('❌ No user found with email:', user_id);
-             console.log('🔍 Debug: Fetching all users to diagnose issue...');
-             
-             // Debug: Get all users to see what's in the database
-             const debugUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?maxRecords=10`;
-             
-             try {
-               const debugResponse = await fetch(debugUrl, {
-                 headers: {
-                   'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
-                   'Content-Type': 'application/json'
-                 }
-               });
-               
-               if (debugResponse.ok) {
-                 const debugData = await debugResponse.json();
-                 console.log('📊 Found', debugData.records.length, 'users in database');
-                 
-                 // Log all emails to debug
-                 debugData.records.forEach(record => {
-                   const email = record.fields.Email;
-                   const userId = record.fields.User_ID;
-                   console.log(`  - User_ID: ${userId}, Email: "${email}", Matches: ${email && email.toLowerCase() === user_id.toLowerCase()}`);
-                   
-                   // If we find a match, use it
-                   if (email && email.toLowerCase() === user_id.toLowerCase()) {
-                     userRecordId = record.id;
-                     console.log('✅ Found matching user, record ID:', userRecordId);
-                   }
-                 });
-                 
-                 if (!userRecordId) {
-                   console.log('❌ No matching email found in any user record');
-                 }
-               }
-             } catch (err) {
-               console.error('❌ Error in fallback lookup:', err);
-             }
            }
          } else {
            const errorText = await emailLookupResponse.text();
