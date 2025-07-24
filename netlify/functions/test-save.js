@@ -48,7 +48,7 @@ exports.handler = async (event, context) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        records: [testRecord, testRecordWithLookups]
+        records: [testRecord]  // Test only without lookup fields first
       })
     });
 
