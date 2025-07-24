@@ -91,7 +91,8 @@ exports.handler = async (event, context) => {
              if (body.user_email || (user_id && user_id.includes('@'))) {
                const emailToLookup = body.user_email || user_id;
                console.log('🔄 Trying email lookup for:', emailToLookup);
-               const emailLookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={Email}='${emailToLookup}'&maxRecords=1`;
+               const escapedEmailLookup = emailToLookup.replace(/'/g, "\\'");
+               const emailLookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={Email}='${escapedEmailLookup}'&maxRecords=1`;
                const emailLookupResponse = await fetch(emailLookupUrl, {
                  headers: {
                    'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
@@ -125,7 +126,7 @@ exports.handler = async (event, context) => {
     // Add user filter based on what we have
     if (userRecordId) {
       // We found a user record - use FIND to search in the linked record array
-      filterFormula = `AND(${filterFormula}, FIND('${userRecordId}', ARRAYJOIN({User}))>0)`;
+      filterFormula = `AND(${filterFormula}, FIND('${userRecordId}', ARRAYJOIN({User}, ','))>0)`;
       console.log('✅ Using userRecordId filter:', userRecordId);
     } else {
       // No user record found - we can't filter by user effectively
@@ -350,7 +351,7 @@ if (!userMatch && user_id && recordUserField) {
          }
          
          if (charRecordId) {
-           const relationshipUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula=AND(FIND('${recordIdToUse}',ARRAYJOIN({User}))>0,FIND('${charRecordId}',ARRAYJOIN({Character}))>0)`;
+           const relationshipUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula=AND(FIND('${recordIdToUse}',ARRAYJOIN({User}, ','))>0,FIND('${charRecordId}',ARRAYJOIN({Character}, ','))>0)`;
            
            const relationshipResponse = await fetch(relationshipUrl, {
              headers: {
