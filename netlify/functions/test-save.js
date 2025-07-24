@@ -25,7 +25,7 @@ exports.handler = async (event, context) => {
     // Test minimal record creation - only essential fields
     const testRecord = {
       fields: {
-        'Role': 'test',
+        'Role': 'user',  // Use valid role value
         'Message': 'Test message'
       }
     };
