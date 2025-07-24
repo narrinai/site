@@ -22,12 +22,21 @@ exports.handler = async (event, context) => {
       baseIdLength: AIRTABLE_BASE_ID ? AIRTABLE_BASE_ID.length : 0
     };
 
-    // Test minimal record creation
+    // Test minimal record creation - only essential fields
     const testRecord = {
       fields: {
         'Role': 'test',
-        'Message': 'Test message',
-        'CreatedTime': new Date().toISOString()
+        'Message': 'Test message'
+      }
+    };
+
+    // Also test with lookup fields (use dummy record IDs)
+    const testRecordWithLookups = {
+      fields: {
+        'Role': 'test2',
+        'Message': 'Test message with lookups',
+        'User': ['recTEST123'],  // Dummy user record ID
+        'Character': ['recTEST456']  // Dummy character record ID
       }
     };
 
@@ -39,7 +48,7 @@ exports.handler = async (event, context) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        records: [testRecord]
+        records: [testRecord, testRecordWithLookups]
       })
     });
 
