@@ -304,22 +304,18 @@ def generate_character_name(category, character_type, existing_names):
         if name.lower() not in existing_names:
             return name
     
-    # Als alle namen bezet zijn, probeer combinaties
-    prefixes = ['', 'Coach ', 'Friend ', 'Buddy ', 'Pal ', 'Guide ', 'Helper ', 'Mentor ']
-    suffixes = ['', ' Jr.', ' Sr.', ' III', ' the Wise', ' the Kind', ' the Brave', ' the Gentle']
+    # Als alle namen bezet zijn, genereer nieuwe variaties
+    # Gebruik alleen normale namen, geen titels of prefixes
     
-    for name in random.sample(unique_names, min(50, len(unique_names))):
-        # Probeer met prefix
-        for prefix in prefixes:
-            test_name = f"{prefix}{name}"
-            if test_name.lower() not in existing_names:
-                return test_name
-        
-        # Probeer met suffix
-        for suffix in suffixes:
-            test_name = f"{name}{suffix}"
-            if test_name.lower() not in existing_names:
-                return test_name
+    # Probeer namen te combineren voor nieuwe variaties
+    if len(unique_names) > 10:
+        for _ in range(100):
+            # Combineer twee korte namen
+            name1 = random.choice([n for n in unique_names if len(n) <= 5])
+            name2 = random.choice([n for n in unique_names if len(n) <= 5])
+            combined = f"{name1}{name2}"
+            if combined.lower() not in existing_names and len(combined) <= 10:
+                return combined
     
     # Alleen als laatste redmiddel, gebruik letters
     base = random.choice(unique_names)
