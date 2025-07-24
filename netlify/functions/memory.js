@@ -53,6 +53,9 @@ exports.handler = async (event, context) => {
            } else {
              console.log('❌ No user found with User_ID:', user_id);
            }
+         } else {
+           const errorText = await userLookupResponse.text();
+           console.error('❌ User lookup API error:', userLookupResponse.status, errorText);
          }
        } catch (err) {
          console.error('❌ Error looking up user:', err);
@@ -76,10 +79,13 @@ exports.handler = async (event, context) => {
     
     // Add character filter
     if (character_slug) {
-      filterFormula = `AND(${filterFormula}, {Character Slug}='${character_slug}')`;
+      // Escape single quotes in character_slug
+      const escapedSlug = character_slug.replace(/'/g, "\\'");
+      filterFormula = `AND(${filterFormula}, {Character Slug}='${escapedSlug}')`;
     }
     
     console.log('🔍 Filter formula:', filterFormula);
+    console.log('🔍 User lookup result:', { user_id, userRecordId });
     
     const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=${encodeURIComponent(filterFormula)}&sort[0][field]=Memory_Importance&sort[0][direction]=desc&maxRecords=20`;
      
@@ -91,6 +97,9 @@ exports.handler = async (event, context) => {
      });
      
      if (!response.ok) {
+       const errorText = await response.text();
+       console.error('❌ Airtable API error:', response.status, errorText);
+       console.error('❌ Failed URL:', url);
        throw new Error(`Airtable API error: ${response.status}`);
      }
      
