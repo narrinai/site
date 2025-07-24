@@ -171,19 +171,9 @@ exports.handler = async (event, context) => {
     // User message
     if (user_message && user_message.trim()) {
       const userMessageFields = {
-        'User Email': user_email,
-        'Character Slug': char,
         'Role': 'user',
         'Message': user_message.trim(),
-        'CreatedTime': userTimestamp,
-        'Timestamp': userTimestamp,
-        'Name': characterNameForSave,
-        'Character_title': characterNameForSave,
-        // Initialize memory fields with defaults (will be updated by analyze-memory later)
-        'Memory_Importance': 0,
-        'Emotional_State': 'neutral',
-        'Summary': '',
-        'Memory_Tags': ['general']
+        'CreatedTime': userTimestamp
       };
       
       // Add linked records if we have them
@@ -200,19 +190,9 @@ exports.handler = async (event, context) => {
     // AI response
     if (ai_response && ai_response.trim()) {
       const aiMessageFields = {
-        'User Email': user_email,
-        'Character Slug': char,
         'Role': 'assistant',
         'Message': ai_response.trim(),
-        'CreatedTime': assistantTimestamp,
-        'Timestamp': assistantTimestamp,
-        'Name': characterNameForSave,
-        'Character_title': characterNameForSave,
-        // Initialize memory fields with defaults (will be updated by analyze-memory later)
-        'Memory_Importance': 0,
-        'Emotional_State': 'neutral',
-        'Summary': '',
-        'Memory_Tags': ['general']
+        'CreatedTime': assistantTimestamp
       };
       
       // Add linked records if we have them
