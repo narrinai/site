@@ -4559,29 +4559,14 @@ document.addEventListener('DOMContentLoaded', () => {
           data.history.forEach((msg, index) => {
             console.log(`📝 Displaying message ${index + 1}:`, msg.role, msg.message.substring(0, 50) + '...');
             
-            // Filter out messages that contain CRITICAL INSTRUCTION or memory context
-            // Also skip empty user messages that were placeholders for conversation starters
+            // Filter out messages that are system instructions or empty placeholders
+            // Only filter if the ENTIRE message is a system instruction, not if it contains these words in normal conversation
             if ((msg.role === 'user' && (!msg.message || msg.message.trim() === '')) ||
-                (msg.message && (
-              msg.message.includes('[CRITICAL INSTRUCTION:') ||
-              msg.message.includes('Previous conversations and important information') ||
-              msg.message.includes('Vorige gesprekken en belangrijke informatie:') ||
-              msg.message.includes('[Belangrijk geheugen (') ||
-              msg.message.includes('[INSTRUCTION: Always respond in English by default') ||
-              msg.message.includes('Use this information to respond personally') ||
-              msg.message.includes('Gebruik deze informatie om persoonlijk te antwoorden') ||
-              msg.message.includes('BELANGRIJK: Varieer je antwoorden') ||
-              msg.message.includes('IMPORTANT: Keep your responses natural') ||
-              msg.message.includes('begin NIET elke zin met dezelfde woorden') ||
-              msg.message.includes('Vorige gesprekken en bel') || // Partial match
-              msg.message.startsWith('BELANGRIJK:') ||
-              msg.message.startsWith('IMPORTANT:') ||
-              (msg.message.includes('Varieer') && msg.message.includes('antwoorden')) ||
-              // Check if message starts with memory context pattern
-              /^\s*\n*Vorige gesprekken/i.test(msg.message) ||
-              /^\s*\n*BELANGRIJK:/i.test(msg.message)
-            ))) {
-              console.log('🧹 Filtering out memory context or empty message from history:', msg.message?.substring(0, 50) + '...');
+                (msg.message && msg.role === 'user' && msg.message.startsWith('[CRITICAL INSTRUCTION:')) ||
+                (msg.message && msg.message.trim().startsWith('Previous conversations and important information') && msg.message.includes('[Belangrijk geheugen')) ||
+                (msg.message && msg.message.trim().startsWith('Vorige gesprekken en belangrijke informatie:') && msg.message.includes('[Belangrijk geheugen'))
+            ) {
+              console.log('🧹 Filtering out system instruction or empty message from history:', msg.message?.substring(0, 50) + '...');
               return; // Skip this message
             }
             
@@ -5968,41 +5953,23 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
         return;
       }
       
-      // Robust filtering to catch memory and debug messages
+      // Filter only actual debug/system messages, not legitimate chat messages
       const isDebugMessage = 
         // Debug patterns
         message.startsWith('Processing message') ||
         message.startsWith('Final extracted') ||
         message.startsWith('🧹 Filtering out debug/system message:') ||
         
-        // Memory patterns - these are being saved as chat messages
-        message.includes('Previous conversations and important information') ||
-        message.includes('Vorige gesprekken en belangrijke informatie:') ||
-        message.includes('[Belangrijk geheugen (') ||
-        message.includes('[INSTRUCTION: Always respond in English by default') ||
-        message.includes('Use this information to respond personally') ||
-        message.includes('Gebruik deze informatie om persoonlijk te antwoorden') ||
-        message.includes('BELANGRIJK: Varieer je antwoorden') ||
-        message.includes('IMPORTANT: Keep your responses natural') ||
-        message.includes('begin NIET elke zin met dezelfde woorden') ||
-        message.includes('Vorige gesprekken en bel') || // Partial match
-        message.startsWith('BELANGRIJK:') ||
-        message.startsWith('IMPORTANT:') ||
-        (message.includes('Varieer') && message.includes('antwoorden')) ||
-        /^\s*\n*Vorige gesprekken/i.test(message) ||
-        /^\s*\n*BELANGRIJK:/i.test(message) ||
-        message.includes('what are you doing?]') && message.includes('[Belangrijk geheugen') ||
-        message.includes('whats on your mind?]') && message.includes('[Belangrijk geheugen') ||
-        message.includes('how is your day?]') && message.includes('[Belangrijk geheugen') ||
+        // Only filter if the ENTIRE message is a system instruction starting with these patterns
+        (role === 'user' && message.trim().startsWith('[CRITICAL INSTRUCTION:')) ||
+        (message.trim().startsWith('Previous conversations and important information') && message.includes('[Belangrijk geheugen') && message.length > 500) ||
+        (message.trim().startsWith('Vorige gesprekken en belangrijke informatie:') && message.includes('[Belangrijk geheugen') && message.length > 500) ||
         
         // Pure JSON objects that are clearly debug
         (message.startsWith('{') && message.endsWith('}') && message.includes('"role"') && message.includes('"message"')) ||
         
         // Record ID patterns
-        /^rec[A-Za-z0-9]{14}$/.test(message.trim()) ||
-        
-        // Very long messages with memory patterns
-        (message.length > 500 && message.includes('[Belangrijk geheugen'));
+        /^rec[A-Za-z0-9]{14}$/.test(message.trim());
       
       if (isDebugMessage) {
         console.warn("🧹 Filtering out debug/system message:", message.substring(0, 50));
