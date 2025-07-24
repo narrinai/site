@@ -29,6 +29,11 @@ exports.handler = async (event, context) => {
    
    if (action === 'get_memories') {
      console.log('🔍 Getting memories for:', { user_id, character_id, character_slug, min_importance });
+    console.log('🔍 Environment check:', { 
+      hasBaseId: !!AIRTABLE_BASE_ID, 
+      hasApiKey: !!AIRTABLE_API_KEY,
+      baseIdLength: AIRTABLE_BASE_ID?.length || 0 
+    });
      
      // First, look up the user's Airtable record ID
      let userRecordId = null;
