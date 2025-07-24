@@ -57,34 +57,7 @@ exports.handler = async (event, context) => {
              console.log('✅ Found user by email, record ID:', userRecordId);
            } else {
              console.log('❌ No user found with email:', user_id);
-             // Create a new user record if we have email
-             console.log('📝 Creating new user with email:', user_id);
-             
-             const createUserResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users`, {
-               method: 'POST',
-               headers: {
-                 'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
-                 'Content-Type': 'application/json'
-               },
-               body: JSON.stringify({
-                 records: [{
-                   fields: {
-                     Email: user_id,
-                     User_ID: Date.now().toString(), // Generate unique ID
-                     CreatedTime: new Date().toISOString()
-                   }
-                 }]
-               })
-             });
-             
-             if (createUserResponse.ok) {
-               const createData = await createUserResponse.json();
-               userRecordId = createData.records[0].id;
-               console.log('✅ Created new user with record ID:', userRecordId);
-             } else {
-               const errorText = await createUserResponse.text();
-               console.error('❌ Failed to create user:', errorText);
-             }
+             console.log('🔍 This should not happen - user should exist if they can chat');
            }
          } else {
            const errorText = await emailLookupResponse.text();

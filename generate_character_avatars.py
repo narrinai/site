@@ -14,6 +14,19 @@ from dotenv import load_dotenv
 # Cloudinary wordt via unsigned upload gebruikt - geen SDK nodig
 from openai import OpenAI
 
+# Kleuren voor console output
+class Colors:
+    BLUE = '\033[94m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    RED = '\033[91m'
+    CYAN = '\033[96m'
+    RESET = '\033[0m'
+
+def log(color, message):
+    """Print gekleurde berichten naar console"""
+    print(f"{color}{message}{Colors.RESET}")
+
 # Load environment variables
 load_dotenv()
 
@@ -46,19 +59,6 @@ if missing_vars:
 
 # Initialize OpenAI client
 client = OpenAI(api_key=OPENAI_API_KEY)
-
-# Kleuren voor console output
-class Colors:
-    BLUE = '\033[94m'
-    GREEN = '\033[92m'
-    YELLOW = '\033[93m'
-    RED = '\033[91m'
-    CYAN = '\033[96m'
-    RESET = '\033[0m'
-
-def log(color, message):
-    """Print gekleurde berichten naar console"""
-    print(f"{color}{message}{Colors.RESET}")
 
 def get_characters_without_avatars():
     """Haal alle characters op zonder avatar_url"""
