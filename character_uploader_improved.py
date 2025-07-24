@@ -305,7 +305,7 @@ def generate_character_name(category, character_type, existing_names):
             return name
     
     # Als alle namen bezet zijn, probeer combinaties
-    prefixes = ['', 'Dr. ', 'Professor ', 'Captain ', 'Lady ', 'Lord ', 'Master ', 'Mx. ']
+    prefixes = ['', 'Coach ', 'Friend ', 'Buddy ', 'Pal ', 'Guide ', 'Helper ', 'Mentor ']
     suffixes = ['', ' Jr.', ' Sr.', ' III', ' the Wise', ' the Kind', ' the Brave', ' the Gentle']
     
     for name in random.sample(unique_names, min(50, len(unique_names))):
