@@ -31,7 +31,25 @@ exports.handler = async (event, context) => {
      console.log('🔍 Getting memories for:', { user_id, character_id, character_slug, min_importance });
      
      // Get recent records
-     const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=100`;
+     // Build filter to only get records with Memory_Importance
+    let filterFormula = '{Memory_Importance}>0';
+    
+    // Add user filter if provided
+    if (user_id && user_id.includes('@')) {
+      filterFormula = `AND(${filterFormula}, {User Email}='${user_id}')`;
+    } else if (user_id) {
+      // For user_id like "42", we need to check the User field
+      filterFormula = `AND(${filterFormula}, OR({User}='${user_id}', FIND('${user_id}', ARRAYJOIN({User}))>0))`;
+    }
+    
+    // Add character filter
+    if (character_slug) {
+      filterFormula = `AND(${filterFormula}, {Character Slug}='${character_slug}')`;
+    }
+    
+    console.log('🔍 Filter formula:', filterFormula);
+    
+    const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=${encodeURIComponent(filterFormula)}&sort[0][field]=Memory_Importance&sort[0][direction]=desc&maxRecords=20`;
      
      const response = await fetch(url, {
        headers: {
