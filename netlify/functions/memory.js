@@ -124,13 +124,20 @@ exports.handler = async (event, context) => {
     if (userRecordId) {
       // We found a user record - use FIND to search in the linked record array
       filterFormula = `AND(${filterFormula}, FIND('${userRecordId}', ARRAYJOIN({User}))>0)`;
-    } else if (user_id && user_id.includes('@')) {
-      // Email-based filtering when no record ID found - check User Email field
-      const escapedEmail = user_id.replace(/'/g, "\\'");
-      filterFormula = `AND(${filterFormula}, {\`User Email\`}='${escapedEmail}')`;
-    } else if (user_id) {
-      // User_ID based filtering when no record ID found
-      filterFormula = `AND(${filterFormula}, {User_ID}='${user_id}')`;
+      console.log('✅ Using userRecordId filter:', userRecordId);
+    } else {
+      // No user record found - we can't filter by user effectively
+      console.log('⚠️ No user record ID found. Cannot filter memories by user.');
+      // Return empty memories since we can't identify the user
+      return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          success: true,
+          memories: [],
+          message: 'User not found in database'
+        })
+      };
     }
     
     // Add character filter

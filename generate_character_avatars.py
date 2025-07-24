@@ -25,8 +25,22 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 CLOUDINARY_CLOUD_NAME = 'dqrmopzes'  # Jouw Cloudinary cloud name
 
 # Valideer environment variabelen
-if not all([AIRTABLE_TOKEN, AIRTABLE_BASE, OPENAI_API_KEY]):
-    raise ValueError("Missende environment variabelen. Check AIRTABLE_TOKEN, AIRTABLE_BASE_ID, en OPENAI_API_KEY")
+missing_vars = []
+if not AIRTABLE_TOKEN:
+    missing_vars.append('AIRTABLE_TOKEN')
+if not AIRTABLE_BASE:
+    missing_vars.append('AIRTABLE_BASE_ID')
+if not OPENAI_API_KEY:
+    missing_vars.append('OPENAI_API_KEY')
+
+if missing_vars:
+    log(Colors.RED, "❌ Missende environment variabelen:")
+    for var in missing_vars:
+        log(Colors.RED, f"   - {var}")
+    log(Colors.YELLOW, "\n💡 Voeg deze toe aan je .env bestand:")
+    if 'OPENAI_API_KEY' in missing_vars:
+        log(Colors.CYAN, "   OPENAI_API_KEY=sk-...")  
+    raise ValueError("Missende environment variabelen")
 
 # Cloudinary configuratie niet nodig voor unsigned uploads
 
