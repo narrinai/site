@@ -54,7 +54,7 @@ exports.handler = async (event, context) => {
       console.log('🔍 Looking up user by User_ID:', user_id);
     }
     
-    const userUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=${encodeURIComponent(userFilter)}&maxRecords=1`;
+    const userUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=${encodeURIComponent(userFilter)}`;
     console.log('🔍 User lookup URL:', userUrl);
     const userResponse = await fetch(userUrl, {
       headers: {
@@ -79,7 +79,7 @@ exports.handler = async (event, context) => {
       if (user_id.includes('@')) {
         console.log('⚠️ Trying case-insensitive email lookup...');
         const fallbackFilter = `LOWER({Email})='${user_id.toLowerCase()}'`;
-        const fallbackUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=${encodeURIComponent(fallbackFilter)}&maxRecords=1`;
+        const fallbackUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=${encodeURIComponent(fallbackFilter)}`;
         
         const fallbackResponse = await fetch(fallbackUrl, {
           headers: {
@@ -102,10 +102,14 @@ exports.handler = async (event, context) => {
       }
     }
     
+    // Collect ALL user record IDs for this email
+    const allUserRecordIds = userData.records.map(r => r.id);
+    console.log(`✅ Found ${allUserRecordIds.length} user record(s) with identitifer: ${user_id}. IDs:`, allUserRecordIds);
+    
     const userRecordId = userData.records[0].id;
     const userFields = userData.records[0].fields;
     const customUserId = userFields.User_ID || userFields.Email || user_id;
-    console.log('✅ Found user record:', userRecordId, 'with fields:', Object.keys(userFields));
+    console.log('✅ Primary user record:', userRecordId, 'with fields:', Object.keys(userFields));
     
     // Get Character record by slug
     const charUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula={Slug}='${character_id}'&maxRecords=1`;
@@ -139,11 +143,12 @@ exports.handler = async (event, context) => {
     const charFields = charData.records[0].fields;
     console.log('✅ Found character record:', charRecordId, 'with fields:', Object.keys(charFields));
     
-    // Check if relationship record exists using direct linked record IDs
-    // This is more reliable than using lookup fields which may not be immediately available
-    const checkUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula=AND(FIND('${userRecordId}',ARRAYJOIN({User}))>0,FIND('${charRecordId}',ARRAYJOIN({Character}))>0)`;
+    // Check if relationship record exists for ANY of the user records
+    // Build filter to check all possible user record IDs
+    const userFilters = allUserRecordIds.map(id => `FIND('${id}',ARRAYJOIN({User}))>0`).join(',');
+    const checkUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula=AND(OR(${userFilters}),FIND('${charRecordId}',ARRAYJOIN({Character}))>0)`;
     
-    console.log('🔍 Checking for existing relationship with formula:', `AND(FIND('${userRecordId}',ARRAYJOIN({User}))>0,FIND('${charRecordId}',ARRAYJOIN({Character}))>0)`);
+    console.log('🔍 Checking for existing relationship with multiple user IDs');
     
     const checkResponse = await fetch(checkUrl, {
       headers: {
@@ -175,11 +180,13 @@ exports.handler = async (event, context) => {
       
       if (allRelationshipsResponse.ok) {
         const allData = await allRelationshipsResponse.json();
-        // Manually check if a relationship already exists
+        // Manually check if a relationship already exists for ANY user record ID
         const existingRelationship = allData.records.find(record => {
           const userLinks = record.fields.User || [];
           const charLinks = record.fields.Character || [];
-          return userLinks.includes(userRecordId) && charLinks.includes(charRecordId);
+          // Check if ANY of our user IDs match
+          const hasMatchingUser = userLinks.some(link => allUserRecordIds.includes(link));
+          return hasMatchingUser && charLinks.includes(charRecordId);
         });
         
         if (existingRelationship) {
