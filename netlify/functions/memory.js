@@ -30,9 +30,42 @@ exports.handler = async (event, context) => {
    if (action === 'get_memories') {
      console.log('🔍 Getting memories for:', { user_id, character_id, character_slug, min_importance });
      
-     // First, look up the user's Airtable record ID if we have a numeric user_id
+     // First, look up the user's Airtable record ID
      let userRecordId = null;
-     if (user_id && !user_id.includes('@') && !user_id.startsWith('rec')) {
+     
+     // If user_id is already a record ID, use it directly
+     if (user_id && user_id.startsWith('rec')) {
+       userRecordId = user_id;
+       console.log('✅ Using provided record ID:', userRecordId);
+     } else if (user_id && user_id.includes('@')) {
+       // Look up user by email
+       console.log('📧 Looking up user by email:', user_id);
+       const emailLookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={Email}='${user_id}'&maxRecords=1`;
+       
+       try {
+         const emailLookupResponse = await fetch(emailLookupUrl, {
+           headers: {
+             'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+             'Content-Type': 'application/json'
+           }
+         });
+         
+         if (emailLookupResponse.ok) {
+           const emailUserData = await emailLookupResponse.json();
+           if (emailUserData.records.length > 0) {
+             userRecordId = emailUserData.records[0].id;
+             console.log('✅ Found user by email, record ID:', userRecordId);
+           } else {
+             console.log('❌ No user found with email:', user_id);
+           }
+         } else {
+           const errorText = await emailLookupResponse.text();
+           console.error('❌ Email lookup API error:', emailLookupResponse.status, errorText);
+         }
+       } catch (err) {
+         console.error('❌ Error looking up user by email:', err);
+       }
+     } else if (user_id) {
        // Look up user by User_ID field
        console.log('👤 Looking up user record for User_ID:', user_id);
        const userLookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={User_ID}='${user_id}'&maxRecords=1`;
@@ -53,9 +86,10 @@ exports.handler = async (event, context) => {
            } else {
              console.log('❌ No user found with User_ID:', user_id);
              // Try to find by email from the request if provided
-             if (body.user_email) {
-               console.log('🔄 Trying email lookup...');
-               const emailLookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={Email}='${body.user_email}'&maxRecords=1`;
+             if (body.user_email || (user_id && user_id.includes('@'))) {
+               const emailToLookup = body.user_email || user_id;
+               console.log('🔄 Trying email lookup for:', emailToLookup);
+               const emailLookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={Email}='${emailToLookup}'&maxRecords=1`;
                const emailLookupResponse = await fetch(emailLookupUrl, {
                  headers: {
                    'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
@@ -86,17 +120,17 @@ exports.handler = async (event, context) => {
     // Build filter to only get records with Memory_Importance
     let filterFormula = '{Memory_Importance}>0';
     
-    // Add user filter if provided - we need to handle the case where User field contains "42" instead of record ID
-    if (user_id && user_id.includes('@')) {
-      // Email-based filtering
-      filterFormula = `AND(${filterFormula}, {User Email}='${user_id}')`;
-    } else if (userRecordId) {
-      // We found a user record - but ChatHistory might have User_ID instead of record ID
-      // So check both: either the User field contains the record ID OR it contains the user_id value
-      filterFormula = `AND(${filterFormula}, OR(FIND('${userRecordId}', ARRAYJOIN({User}))>0, {User}='${user_id}'))`;
+    // Add user filter based on what we have
+    if (userRecordId) {
+      // We found a user record - use FIND to search in the linked record array
+      filterFormula = `AND(${filterFormula}, FIND('${userRecordId}', ARRAYJOIN({User}))>0)`;
+    } else if (user_id && user_id.includes('@')) {
+      // Email-based filtering when no record ID found - check User Email field
+      const escapedEmail = user_id.replace(/'/g, "\\'");
+      filterFormula = `AND(${filterFormula}, {\`User Email\`}='${escapedEmail}')`;
     } else if (user_id) {
-      // No user record found - search for the user_id value directly
-      filterFormula = `AND(${filterFormula}, {User}='${user_id}')`;
+      // User_ID based filtering when no record ID found
+      filterFormula = `AND(${filterFormula}, {User_ID}='${user_id}')`;
     }
     
     // Add character filter
