@@ -154,6 +154,12 @@ exports.handler = async (event, context) => {
     // Stap 3: Sla berichten op in ChatHistory tabel
     const recordsToCreate = [];
 
+    // Create timestamps with proper ordering
+    const baseTime = new Date();
+    const userTimestamp = baseTime.toISOString();
+    // Add 1 second to ensure assistant message comes after user message
+    const assistantTimestamp = new Date(baseTime.getTime() + 1000).toISOString();
+
     // User message
     if (user_message && user_message.trim()) {
       const userMessageFields = {
@@ -161,7 +167,7 @@ exports.handler = async (event, context) => {
         'Character Slug': char,
         'Role': 'user',
         'Message': user_message.trim(),
-        'Timestamp': new Date().toISOString()
+        'Timestamp': userTimestamp
       };
       
       // Add linked records if we have them
@@ -182,7 +188,7 @@ exports.handler = async (event, context) => {
         'Character Slug': char,
         'Role': 'assistant',
         'Message': ai_response.trim(),
-        'Timestamp': new Date().toISOString()
+        'Timestamp': assistantTimestamp
       };
       
       // Add linked records if we have them
