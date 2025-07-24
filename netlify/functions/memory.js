@@ -25,7 +25,7 @@ exports.handler = async (event, context) => {
 
  try {
    const body = JSON.parse(event.body || '{}');
-   const { action, user_id, character_id, character_slug, min_importance = 3, max_results = 5 } = body;
+   const { action, user_id, character_id, character_slug, min_importance = 1, max_results = 5 } = body;
    
    if (action === 'get_memories') {
      console.log('🔍 Getting memories for:', { user_id, character_id, character_slug, min_importance });
