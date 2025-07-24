@@ -173,7 +173,10 @@ exports.handler = async (event, context) => {
     console.log('🔍 Filter formula:', filterFormula);
     console.log('🔍 User lookup result:', { user_id, userRecordId });
     
-    const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=${encodeURIComponent(filterFormula)}&sort[0][field]=Memory_Importance&sort[0][direction]=desc&maxRecords=20`;
+    // DEBUG: Temporarily remove filter to see what's in the table
+    const debugUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?maxRecords=10`;
+    console.log('🔍 DEBUG: Fetching WITHOUT filter to see what records exist');
+    const url = debugUrl;
      
      const response = await fetch(url, {
        headers: {
