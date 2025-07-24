@@ -162,12 +162,8 @@ exports.handler = async (event, context) => {
       // Continue without user filter - we'll check in the loop
     }
     
-    // Add character filter
-    if (character_slug) {
-      // Escape single quotes in character_slug
-      const escapedSlug = character_slug.replace(/'/g, "\\'");
-      filterFormula = `AND(${filterFormula}, {Character Slug}='${escapedSlug}')`;
-    }
+    // Don't add character filter in the formula - we'll check in the loop
+    // This avoids potential field name issues causing 422 errors
     
     console.log('🔍 Filter formula:', filterFormula);
     console.log('🔍 User lookup result:', { user_id, userRecordId });
