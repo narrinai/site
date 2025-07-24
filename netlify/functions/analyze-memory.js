@@ -226,13 +226,19 @@ function analyzeMessageRuleBased(message, context) {
   const lowerMessage = message.toLowerCase();
   const messageLength = message.length;
   
-  // Personal info detection
-  const personalKeywords = [
-    'naam', 'heet', 'ben ik', 'mijn', 'herinner', 'vergeet niet',
-    'name', 'called', 'i am', 'my name', 'remember', 'dont forget',
-    'woon', 'werk', 'familie', 'ouders', 'broer', 'zus',
-    'live', 'work', 'family', 'parents', 'brother', 'sister',
-    'verjaardag', 'birthday', 'leeftijd', 'age', 'geboren', 'born'
+  // Personal info keywords - keywords that indicate sharing personal information
+  const personalInfoKeywords = [
+    'naam is', 'heet', 'ben ik', 'ik ben', 'ik heet',
+    'my name is', "i'm", 'i am', "i'm called", 'call me',
+    'jaar oud', 'years old', 'jarig', 'geboren',
+    'woon in', 'werk bij', 'i live', 'i work',
+    'mijn familie', 'my family', 'my job'
+  ];
+  
+  // Question keywords - asking for information without providing it
+  const questionKeywords = [
+    'herinner', 'remember', 'vergeet', 'forget',
+    'weet je', 'do you know', 'ken je', 'recall'
   ];
   
   // Emotional keywords
@@ -254,26 +260,85 @@ function analyzeMessageRuleBased(message, context) {
                     lowerMessage.startsWith('why');
   
   // Calculate importance
-  let importance = 2; // Base importance
+  let importance = 3; // Base importance
   
-  // Personal info boost
-  const hasPersonalInfo = personalKeywords.some(keyword => lowerMessage.includes(keyword));
-  if (hasPersonalInfo) importance += 5;
+  // Universal patterns that work across languages
+  const hasEmail = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/.test(message);
+  const hasPhone = /\b[\d\s\-\+\(\)]{10,}\b/.test(message);
+  const hasDate = /\b\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4}\b/.test(message);
   
-  // Emotional content boost
+  // Check for @ symbol (social media handles)
+  const hasSocialMedia = /@\w+/.test(message);
+  
+  // Check if message contains first person pronouns (universal indicators)
+  const firstPersonIndicators = /\b(I|me|my|mine|ich|mein|je|mon|ma|io|mio|yo|mi|ik|mijn|eu|meu|ja|mój|я|мой|私|我)\b/i;
+  const hasFirstPerson = firstPersonIndicators.test(message);
+  
+  // Check if actually sharing personal info (not just asking about it)
+  const hasPersonalInfo = personalInfoKeywords.some(keyword => lowerMessage.includes(keyword));
+  const isAskingAboutInfo = questionKeywords.some(keyword => lowerMessage.includes(keyword));
+  
+  // Universal age detection - numbers followed by common age indicators or just numbers 1-120
+  const agePattern = /\b\d{1,3}\b/g;
+  const numbers = message.match(agePattern) || [];
+  const hasAge = numbers.some(num => {
+    const n = parseInt(num);
+    // Check if it's a reasonable age (1-120) and has context
+    if (n >= 1 && n <= 120) {
+      // Check if the number appears near age-related context (within 10 chars)
+      const index = message.indexOf(num);
+      const context = message.substring(Math.max(0, index - 10), Math.min(message.length, index + num.length + 10)).toLowerCase();
+      // Language-agnostic: just check if a reasonable age number exists
+      return true;
+    }
+    return false;
+  });
+  
+  // Universal name detection - capitalized words after certain positions
+  // Look for capital letters that might indicate names
+  const capitalizedWords = message.match(/\b[A-Z][a-z]+\b/g) || [];
+  const hasName = capitalizedWords.length > 0 && 
+    // Exclude common English words that are often capitalized
+    !['I', 'The', 'A', 'An'].includes(capitalizedWords[0]);
+  
+  // Scoring based on universal patterns
+  let personalInfoScore = 0;
+  
+  // High value personal info
+  if (hasEmail) personalInfoScore += 3;
+  if (hasPhone) personalInfoScore += 3;
+  if (hasSocialMedia) personalInfoScore += 2;
+  if (hasDate) personalInfoScore += 2;
+  
+  // Medium value personal info
+  if (hasAge) personalInfoScore += 2;
+  if (hasName && hasFirstPerson) personalInfoScore += 2;
+  if (hasPersonalInfo) personalInfoScore += 2;
+  
+  // Boost if multiple indicators present
+  const indicatorCount = [hasEmail, hasPhone, hasAge, hasName, hasFirstPerson, hasSocialMedia].filter(x => x).length;
+  if (indicatorCount >= 2) personalInfoScore += 2;
+  
+  if (personalInfoScore > 0) {
+    importance += Math.min(personalInfoScore, 6); // Cap at +6
+  } else if (isAskingAboutInfo && isQuestion) {
+    // Just asking about information without providing any
+    importance += 1; // Total: 4
+  } else if (isQuestion) {
+    // Regular question
+    importance += 0; // Total: 3
+  }
+  
+  // Emotional content boost (smaller)
   const hasEmotionalContent = emotionalKeywords.some(keyword => lowerMessage.includes(keyword)) || 
                               message.includes('!') || message.includes('❤️') || message.includes('😊');
-  if (hasEmotionalContent) importance += 2;
+  if (hasEmotionalContent) importance += 1;
   
-  // Question boost
-  if (isQuestion) importance += 1;
+  // Length penalty for very short messages
+  if (messageLength < 20) importance -= 1;
   
-  // Length boost
-  if (messageLength > 100) importance += 1;
-  if (messageLength > 200) importance += 1;
-  
-  // Cap importance at 10
-  importance = Math.min(importance, 10);
+  // Cap importance between 1 and 10
+  importance = Math.max(1, Math.min(importance, 10));
   
   // Determine emotional state
   let emotionalState = 'neutral';
@@ -294,9 +359,10 @@ function analyzeMessageRuleBased(message, context) {
   
   // Generate tags
   const tags = [];
-  if (hasPersonalInfo) tags.push('personal_info');
+  if (hasPersonalInfo || hasAge || hasName) tags.push('personal_info');
   if (hasEmotionalContent) tags.push('emotional');
-  if (isQuestion) tags.push('question');
+  if (isQuestion && !isAskingAboutInfo) tags.push('question');
+  if (isAskingAboutInfo) tags.push('memory_check');
   if (messageLength > 100) tags.push('long_message');
   if (lowerMessage.includes('verhaal') || lowerMessage.includes('story')) tags.push('story');
   if (tags.length === 0) tags.push('general');
