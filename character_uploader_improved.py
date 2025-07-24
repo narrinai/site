@@ -349,19 +349,21 @@ def generate_title_description(name, category, character_type):
     
     context = category_contexts.get(category.lower(), 'general assistance and support')
     
-    # Veel meer variatie in titels per categorie
+    # Volledig nieuwe titels - geen herhaling van vorige batch
     category_titles = {
-        'health': ['Wellness Guide', 'Health Mentor', 'Vitality Coach', 'Wellness Friend', 'Health Companion'],
-        'spiritual': ['Soul Guide', 'Spirit Mentor', 'Inner Peace Guide', 'Wisdom Keeper', 'Spiritual Friend'],
-        'romance': ['Love Guide', 'Heart Companion', 'Romance Coach', 'Relationship Friend', 'Love Mentor'],
-        'support': ['Support Buddy', 'Care Companion', 'Emotional Guide', 'Support Friend', 'Understanding Mentor'],
-        'purpose': ['Purpose Guide', 'Life Path Mentor', 'Destiny Coach', 'Vision Guide', 'Purpose Friend'],
-        'self-improvement': ['Growth Coach', 'Success Mentor', 'Progress Guide', 'Development Friend', 'Achievement Buddy'],
-        'travel': ['Travel Buddy', 'Adventure Guide', 'Journey Companion', 'Explorer Friend', 'Travel Mentor'],
-        'parenting': ['Parent Guide', 'Family Mentor', 'Parenting Coach', 'Parent Friend', 'Family Support'],
-        'cultural': ['Culture Guide', 'Heritage Mentor', 'Cultural Friend', 'Tradition Keeper', 'Culture Coach'],
-        'life': ['Life Guide', 'Wisdom Mentor', 'Life Coach', 'Experience Guide', 'Life Friend'],
-        'motivation': ['Motivation Coach', 'Inspiration Guide', 'Drive Mentor', 'Success Friend', 'Energy Buddy']
+        'health': ['Wellness Ally', 'Vitality Partner', 'Health Helper', 'Wellbeing Pal', 'Fitness Companion'],
+        'spiritual': ['Soul Friend', 'Spirit Ally', 'Mystic Guide', 'Sacred Companion', 'Divine Helper'],
+        'romance': ['Love Helper', 'Heart Guide', 'Affection Coach', 'Passion Mentor', 'Romance Ally'],
+        'support': ['Care Guide', 'Help Friend', 'Comfort Companion', 'Support Helper', 'Relief Mentor'],
+        'purpose': ['Mission Guide', 'Goal Helper', 'Dream Coach', 'Aim Mentor', 'Focus Friend'],
+        'self-improvement': ['Better Coach', 'Rise Mentor', 'Grow Helper', 'Upgrade Guide', 'Boost Friend'],
+        'travel': ['Trip Helper', 'Route Guide', 'Journey Friend', 'Voyage Mentor', 'Trek Companion'],
+        'parenting': ['Parent Helper', 'Child Guide', 'Family Friend', 'Kid Coach', 'Parent Pal'],
+        'cultural': ['Heritage Guide', 'Culture Helper', 'Tradition Friend', 'Custom Coach', 'Heritage Pal'],
+        'life': ['Living Guide', 'Being Mentor', 'Exist Coach', 'Daily Helper', 'Life Pal'],
+        'motivation': ['Drive Guide', 'Push Coach', 'Boost Mentor', 'Power Friend', 'Energy Helper'],
+        'fitness': ['Exercise Guide', 'Movement Coach', 'Active Friend', 'Strength Helper', 'Energy Pal'],
+        'mindfulness': ['Calm Guide', 'Peace Helper', 'Quiet Coach', 'Still Friend', 'Zen Helper']
     }
     
     # Selecteer titel gebaseerd op categorie
