@@ -4153,6 +4153,21 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentCharacter = null;
     let characterSlug = null;
     
+    // Reliable scroll to bottom function
+    function scrollChatToBottom() {
+      const chatlog = document.getElementById("chatlog");
+      if (chatlog) {
+        // Use requestAnimationFrame for smooth scrolling after render
+        requestAnimationFrame(() => {
+          chatlog.scrollTop = chatlog.scrollHeight;
+          // Double-check after a short delay for dynamic content
+          setTimeout(() => {
+            chatlog.scrollTop = chatlog.scrollHeight;
+          }, 50);
+        });
+      }
+    }
+    
     // ===== VOICE SYSTEM (VEILIG VIA NETLIFY FUNCTIONS) =====
     let currentAudio = null;
     let isPlayingAudio = false;
@@ -4600,6 +4615,12 @@ document.addEventListener('DOMContentLoaded', () => {
           chatlog.scrollTop = chatlog.scrollHeight;
           // Mark that we've loaded chat history
           window.chatHistoryLoaded = true;
+          
+          // Ensure scroll to bottom after content is rendered
+          requestAnimationFrame(() => {
+            chatlog.scrollTop = chatlog.scrollHeight;
+            console.log("📜 Final scroll after chat history render");
+          });
         } else {
           console.log('📭 No chat history found - showing conversation starter');
           // Clear chatlog before showing starter
@@ -5619,6 +5640,12 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       // No need to wait or retry - the history should already be there if transfer completed
     }
     
+    // Final scroll to ensure chat is at bottom after everything loads
+    setTimeout(() => {
+      scrollChatToBottom();
+      console.log('📜 Final scroll after all content loaded');
+    }, 500);
+    
     // Check if AI avatar needs to be generated
     console.log('🔍 Checking needs_ai_avatar:', currentCharacter.needs_ai_avatar);
     console.log('🔍 Current avatar_url:', currentCharacter.avatar_url);
@@ -6048,6 +6075,15 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     
     // Mark that we've loaded chat history
     window.chatHistoryLoaded = true;
+    
+    // Ensure scroll to bottom after content is rendered
+    requestAnimationFrame(() => {
+      const chatlog = document.getElementById("chatlog");
+      if (chatlog) {
+        chatlog.scrollTop = chatlog.scrollHeight;
+        console.log("📜 Final scroll after fallback history render");
+      }
+    });
     
     // If no messages were displayed, show conversation starter
     if (messagesProcessed === 0) {
