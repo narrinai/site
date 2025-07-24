@@ -260,18 +260,17 @@ def generate_character_name(category, character_type, existing_names):
     """Genereer een unieke character naam met veel meer variatie"""
     # Zeer uitgebreide lijst met unieke namen uit verschillende culturen
     first_names = [
-        # Natuurnamen
-        'Luna', 'Sol', 'Star', 'Sky', 'River', 'Ocean', 'Storm', 'Rain', 'Snow', 'Frost',
-        'Dawn', 'Dusk', 'Aurora', 'Nova', 'Comet', 'Galaxy', 'Nebula', 'Eclipse', 'Meteor', 'Cosmos',
-        'Forest', 'Meadow', 'Valley', 'Mountain', 'Desert', 'Tundra', 'Savanna', 'Prairie', 'Canyon', 'Cliff',
-        'Willow', 'Oak', 'Ash', 'Birch', 'Cedar', 'Pine', 'Maple', 'Elm', 'Hazel', 'Rowan',
-        'Rose', 'Lily', 'Iris', 'Violet', 'Jasmine', 'Dahlia', 'Poppy', 'Daisy', 'Orchid', 'Lotus',
-        'Pearl', 'Ruby', 'Jade', 'Opal', 'Onyx', 'Crystal', 'Diamond', 'Emerald', 'Sapphire', 'Amber',
+        # Populaire realistische namen
+        'Emma', 'Liam', 'Olivia', 'Noah', 'Ava', 'Ethan', 'Sophia', 'Mason', 'Isabella', 'William',
+        'Mia', 'James', 'Charlotte', 'Benjamin', 'Amelia', 'Lucas', 'Harper', 'Henry', 'Evelyn', 'Alexander',
+        'Luna', 'Oliver', 'Ella', 'Sebastian', 'Grace', 'Jack', 'Chloe', 'Daniel', 'Victoria', 'Owen',
+        'Lily', 'Matthew', 'Zoey', 'David', 'Hannah', 'Leo', 'Addison', 'Joseph', 'Ellie', 'Samuel',
+        'Lucy', 'John', 'Anna', 'Andrew', 'Sarah', 'Ryan', 'Audrey', 'Nathan', 'Claire', 'Isaac',
         
-        # Moderne namen
-        'Zara', 'Mia', 'Ava', 'Ella', 'Aria', 'Maya', 'Nina', 'Lila', 'Kira', 'Nora',
-        'Leo', 'Max', 'Ben', 'Sam', 'Alex', 'Ryan', 'Noah', 'Liam', 'Owen', 'Evan',
-        'Quinn', 'Blake', 'Drew', 'Casey', 'Jordan', 'Taylor', 'Morgan', 'Riley', 'Avery', 'Cameron',
+        # Extra moderne namen
+        'Aiden', 'Madison', 'Jackson', 'Abigail', 'Ethan', 'Emily', 'Michael', 'Elizabeth', 'Jacob', 'Sofia',
+        'Logan', 'Avery', 'Lucas', 'Scarlett', 'Mason', 'Victoria', 'Elijah', 'Aria', 'Oliver', 'Camila',
+        'Jayden', 'Penelope', 'Carter', 'Riley', 'Dylan', 'Layla', 'Luke', 'Lillian', 'Gabriel', 'Zoe',
         
         # Mythologische/Fantasy namen
         'Phoenix', 'Griffin', 'Dragon', 'Raven', 'Wolf', 'Fox', 'Bear', 'Eagle', 'Hawk', 'Falcon',
@@ -304,22 +303,8 @@ def generate_character_name(category, character_type, existing_names):
         if name.lower() not in existing_names:
             return name
     
-    # Als alle namen bezet zijn, voeg een letter toe
-    # Shuffle opnieuw en probeer met letters
-    random.shuffle(unique_names)
-    for name in unique_names[:50]:  # Probeer eerste 50 namen
-        for letter in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
-            test_name = f"{name} {letter}"
-            if test_name.lower() not in existing_names:
-                return test_name
-    
-    # Alleen als laatste redmiddel, gebruik letters
-    base = random.choice(unique_names)
-    for letter in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
-        test_name = f"{base} {letter}"
-        if test_name.lower() not in existing_names:
-            return test_name
-    
+    # Als alle namen op zijn, log een waarschuwing en return None
+    log(Colors.YELLOW, f"   ⚠️  Alle {len(unique_names)} beschikbare namen zijn al in gebruik!")
     return None
 
 def generate_title_description(name, category, character_type):
