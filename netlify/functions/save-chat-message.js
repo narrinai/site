@@ -87,7 +87,7 @@ exports.handler = async (event, context) => {
       console.log('👤 User lookup result (email only):', userData.records.length, 'users found');
     }
     
-    let userIdForSave = '42'; // Default test user
+    let userIdForSave = null; // Will be set based on user data
     let userRecordId = null;
     
     if (userData.records.length === 0) {
@@ -118,11 +118,19 @@ exports.handler = async (event, context) => {
         userIdForSave = createData.records[0].fields.User_ID;
         console.log('✅ Created new user with ID:', userIdForSave);
       } else {
-        console.log('❌ Failed to create user, using test user ID:', userIdForSave);
+        console.log('❌ Failed to create user');
+        return {
+          statusCode: 500,
+          headers,
+          body: JSON.stringify({ 
+            success: false, 
+            error: 'Failed to create user record' 
+          })
+        };
       }
     } else {
       userRecordId = userData.records[0].id;
-      const customUserId = userData.records[0].fields.User_ID || '42';
+      const customUserId = userData.records[0].fields.User_ID;
       // Use custom User_ID for saving (based on ChatHistory table structure)
       userIdForSave = customUserId;
       console.log('✅ Found user - Record ID:', userRecordId, 'Custom User_ID:', customUserId, 'Using:', userIdForSave);

@@ -52,9 +52,9 @@ exports.handler = async (event, context) => {
              console.log('✅ Found user record ID:', userRecordId);
            } else {
              console.log('❌ No user found with User_ID:', user_id);
-             // If user_id is "42", try to find by email from the request
-             if (user_id === "42" && body.user_email) {
-               console.log('🔄 Trying email lookup for user 42...');
+             // Try to find by email from the request if provided
+             if (body.user_email) {
+               console.log('🔄 Trying email lookup...');
                const emailLookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={Email}='${body.user_email}'&maxRecords=1`;
                const emailLookupResponse = await fetch(emailLookupUrl, {
                  headers: {
@@ -86,15 +86,17 @@ exports.handler = async (event, context) => {
     // Build filter to only get records with Memory_Importance
     let filterFormula = '{Memory_Importance}>0';
     
-    // Add user filter if provided
+    // Add user filter if provided - we need to handle the case where User field contains "42" instead of record ID
     if (user_id && user_id.includes('@')) {
+      // Email-based filtering
       filterFormula = `AND(${filterFormula}, {User Email}='${user_id}')`;
     } else if (userRecordId) {
-      // Use the looked-up record ID
-      filterFormula = `AND(${filterFormula}, FIND('${userRecordId}', ARRAYJOIN({User}))>0)`;
-    } else if (user_id && user_id.startsWith('rec')) {
-      // Direct record ID provided
-      filterFormula = `AND(${filterFormula}, FIND('${user_id}', ARRAYJOIN({User}))>0)`;
+      // We found a user record - but ChatHistory might have User_ID instead of record ID
+      // So check both: either the User field contains the record ID OR it contains the user_id value
+      filterFormula = `AND(${filterFormula}, OR(FIND('${userRecordId}', ARRAYJOIN({User}))>0, {User}='${user_id}'))`;
+    } else if (user_id) {
+      // No user record found - search for the user_id value directly
+      filterFormula = `AND(${filterFormula}, {User}='${user_id}')`;
     }
     
     // Add character filter
@@ -179,10 +181,12 @@ if (Array.isArray(recordUserField) && recordUserField.length > 0) {
   console.log(`👤 Email match check: ${recordUserEmail} === ${user_id} = ${userMatch}`);
 }
 
-// If no match yet and we have user_id "42", always match (for backwards compatibility)
-if (!userMatch && user_id === "42") {
-  userMatch = true;
-  console.log(`👤 Fallback match for test user 42`);
+// If no match yet, check if the User field contains the user_id value directly
+// This handles the case where Make.com saves User_ID instead of record ID
+if (!userMatch && user_id && recordUserField) {
+  // Check if the User field contains the user_id value (not as array)
+  userMatch = String(recordUserField) === String(user_id);
+  console.log(`👤 Direct User_ID match check: ${recordUserField} === ${user_id} = ${userMatch}`);
 }
        if (!userMatch) {
          console.log(`❌ User mismatch, skipping record`);
