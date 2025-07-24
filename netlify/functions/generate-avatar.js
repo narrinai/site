@@ -129,7 +129,7 @@ exports.handler = async (event, context) => {
 
 // Helper function to create appropriate portrait prompts
 function createPortraitPrompt(characterName, characterTitle, category) {
-  let basePrompt = 'Clean portrait photograph of a single person, one face only, no text, no grids, no frames, no borders, no picture frames, no paintings, no canvas, no lines, no watermarks, no overlays, direct headshot, ';
+  let basePrompt = 'Natural portrait photograph of a single person, ABSOLUTELY NO grids, ABSOLUTELY NO guide lines, ABSOLUTELY NO measurement marks, ABSOLUTELY NO construction lines, ABSOLUTELY NO wireframes, ABSOLUTELY NO geometric overlays, clean face without any lines or marks on the image, simple natural portrait, ';
   
   // Category-specific styles
   const categoryStyles = {
@@ -157,11 +157,11 @@ function createPortraitPrompt(characterName, characterTitle, category) {
     fullPrompt += `${characterName}, `;
   }
   
-  // Add quality modifiers
-  fullPrompt += 'high quality, detailed single face, professional lighting, centered composition, square aspect ratio, clean direct portrait without any frames or borders';
+  // Add quality modifiers and strong anti-grid instructions
+  fullPrompt += 'high quality portrait photograph, professional lighting, natural background, NEVER include grid lines, NEVER include alignment guides, NEVER include measurement marks, NEVER include crosshairs, NEVER include technical overlays, NEVER include construction geometry, clean natural image';
   
-  // Add safety modifiers and exclusions
-  fullPrompt += ', appropriate for all audiences, no offensive content, no split screens, no multiple views, no comparison images, no before/after, single person only, no artistic frames, no painting frames, no decorative borders, just the person';
+  // Add safety modifiers and very explicit exclusions
+  fullPrompt += ', appropriate for all audiences, no offensive content, single person portrait only, NO GRIDS, NO LINES, NO GUIDES, NO TECHNICAL MARKS, NO WIREFRAMES, NO GEOMETRIC PATTERNS, just a natural clean portrait photo of a person';
   
   return fullPrompt;
 }
