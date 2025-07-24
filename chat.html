@@ -5142,7 +5142,7 @@ async function getRelevantMemories(userId, characterId, currentMessage) {
             character_id: characterId,
             character_slug: characterId,
             current_message: currentMessage,
-            min_importance: 3,
+            min_importance: 1,
             max_results: 5
         };
         
@@ -8590,8 +8590,8 @@ hideTypingIndicator();
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user_email: user_email,
-          user_uid: user_uid,
+          user_email: email,  // Use email from currentUser
+          user_uid: uid,      // Use uid from currentUser
           user_token: token,
           char: characterSlug,
           user_message: input,
@@ -8610,7 +8610,8 @@ hideTypingIndicator();
 
     // Update relationship tracking
     try {
-      await updateRelationship(user_email, uid, token, characterSlug, reply);
+      // Use email from currentUser which is always available for authenticated users
+      await updateRelationship(email, uid, token, characterSlug, reply);
     } catch (relError) {
       console.error('⚠️ Relationship update failed:', relError);
     }
@@ -8940,13 +8941,13 @@ function getLastMessages(count = 3) {
     // ===== RELATIONSHIP TRACKING FUNCTIONS =====
     async function updateRelationship(email, uid, token, characterSlug, aiResponse) {
       try {
-        // Get effective user ID
-        const user_id = localStorage.getItem("user_id");
-        const user_uid = localStorage.getItem("user_uid");
-        const user_email = localStorage.getItem("user_email");
+        // Get all possible user identifiers
+        const stored_user_id = localStorage.getItem("user_id");
+        const stored_user_uid = localStorage.getItem("user_uid");
+        const stored_user_email = localStorage.getItem("user_email");
         
-        // Use email as user_id if no numeric user_id is available
-        const effective_user_id = user_id || user_email;
+        // Prioritize the email parameter passed to the function, then stored values
+        const effective_user_id = email || stored_user_id || stored_user_email || stored_user_uid;
         
         // Skip relationship update only if no user identifier at all
         if (!effective_user_id) {
@@ -8954,7 +8955,7 @@ function getLastMessages(count = 3) {
           return;
         }
         
-        console.log('📊 Updating relationship for user:', effective_user_id);
+        console.log('📊 Updating relationship for user:', effective_user_id, '(type:', typeof effective_user_id, ')');
         
         // Extract emotional state from response
         let emotionalState = 'neutral';
@@ -8973,7 +8974,7 @@ function getLastMessages(count = 3) {
           }
         });
         
-        await fetch('/.netlify/functions/update-relationship', {
+        const relationshipResponse = await fetch('/.netlify/functions/update-relationship', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -8985,7 +8986,14 @@ function getLastMessages(count = 3) {
           })
         });
         
-        console.log('✅ Relationship updated');
+        if (!relationshipResponse.ok) {
+          const errorData = await relationshipResponse.json();
+          console.error('❌ Relationship update failed:', errorData);
+          return;
+        }
+        
+        const result = await relationshipResponse.json();
+        console.log('✅ Relationship updated:', result);
       } catch (error) {
         console.error('❌ Failed to update relationship:', error);
       }
