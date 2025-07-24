@@ -41,17 +41,17 @@ def log(color, message):
 # Maximum aantal characters om TOE TE VOEGEN per categorie
 MAX_CHARACTERS_TO_ADD = 15
 
-# Character type weights - alleen companions en vrienden
+# Character type weights - focus op support en vriendschap
 CHARACTER_TYPE_WEIGHTS = {
-    'companion': 60,  # 60% kans - vriendelijke companion
-    'friend': 30,     # 30% kans - casual vriend
-    'buddy': 10       # 10% kans - informele buddy
+    'companion': 40,  # 40% kans - vriendelijke companion
+    'friend': 35,     # 35% kans - casual vriend
+    'support': 25     # 25% kans - emotionele support
 }
 
 # Tags voor verschillende character types - deze worden gefilterd tegen bestaande Airtable tags
-COMPANION_TAGS = ['friend', 'companion', 'buddy', 'supportive', 'helpful', 'caring', 'understanding', 'empathetic', 'loyal', 'trustworthy']
-FRIEND_TAGS = ['friendly', 'fun', 'cheerful', 'positive', 'warm', 'welcoming', 'social', 'outgoing', 'kind', 'genuine']
-BUDDY_TAGS = ['casual', 'relaxed', 'chill', 'easygoing', 'humorous', 'playful', 'spontaneous', 'adventurous', 'energetic', 'cool']
+COMPANION_TAGS = ['friend', 'companion', 'supportive', 'helpful', 'caring', 'understanding', 'empathetic', 'loyal', 'trustworthy', 'kind']
+FRIEND_TAGS = ['friendly', 'fun', 'cheerful', 'positive', 'warm', 'welcoming', 'social', 'kind', 'genuine', 'uplifting']
+SUPPORT_TAGS = ['supportive', 'understanding', 'empathetic', 'caring', 'helpful', 'motivating', 'encouraging', 'patient', 'compassionate', 'wise']
 
 def get_categories_from_airtable():
     """Haal alle unieke categorieën op uit Airtable"""
@@ -90,39 +90,30 @@ def get_categories_from_airtable():
             log(Colors.RED, f"❌ Fout bij ophalen categorieën: {e}")
             break
     
-    # Alleen deze specifieke categorieën gebruiken (inclusief mapping voor oude namen)
+    # Focus op companionship, persoonlijke ontwikkeling, vriendschap en support
     category_mapping = {
-        'historical': 'Historical',
-        'anime & manga': 'Anime & Manga',
-        'anime-manga': 'Anime & Manga',
-        'mythology': 'Mythology',
-        'fictional': 'Fictional',
-        'celebrities': 'Celebrities',
-        'celebrity': 'Celebrities',
-        'gaming': 'Gaming',
-        'relationship': 'Relationship',
-        'relationship-coach': 'Relationship',
-        'career': 'Career',
-        'career-coach': 'Career',
-        'fitness': 'Fitness',
-        'fitness-coach': 'Fitness',
+        'companionship': 'Companionship',
+        'personal development': 'Personal Development',
+        'personal-development': 'Personal Development',
+        'friendship': 'Friendship',
+        'support': 'Support',
+        'emotional support': 'Emotional Support',
+        'emotional-support': 'Emotional Support',
+        'life coaching': 'Life Coaching',
+        'life-coaching': 'Life Coaching',
+        'mental wellness': 'Mental Wellness',
+        'mental-wellness': 'Mental Wellness',
+        'self improvement': 'Self Improvement',
+        'self-improvement': 'Self Improvement',
+        'motivation': 'Motivation',
+        'wellness': 'Wellness',
         'mindfulness': 'Mindfulness',
-        'mindfulness-coach': 'Mindfulness',
-        'business': 'Business',
-        'business-coach': 'Business',
-        'health': 'Health',
-        'health-coach': 'Health',
-        'spiritual': 'Spiritual',
-        'spiritual-coach': 'Spiritual',
-        'cooking': 'Cooking',
-        'cooking-coach': 'Cooking',
-        'negotiation': 'Negotiation',
-        'negotiation-coach': 'Negotiation',
-        'education': 'Education',
-        'educational': 'Education',
-        'language': 'Language',
-        'language-coach': 'Language',
-        'romance': 'Romance'
+        'growth': 'Growth',
+        'relationship': 'Relationship',
+        'happiness': 'Happiness',
+        'confidence': 'Confidence',
+        'stress relief': 'Stress Relief',
+        'stress-relief': 'Stress Relief'
     }
     
     # Debug: toon alle categorieën uit Airtable
@@ -147,7 +138,7 @@ def get_categories_from_airtable():
     log(Colors.GREEN, f"✅ {len(simplified_categories)} toegestane categorieën gevonden")
     
     # Prioriteer bepaalde categorieën
-    priority_categories = ['Romance', 'Spiritual', 'Health', 'Humor']
+    priority_categories = ['Companionship', 'Personal Development', 'Friendship', 'Support', 'Emotional Support']
     
     # Sorteer zodat priority categorieën eerst komen
     prioritized = []
@@ -258,31 +249,32 @@ def get_existing_characters_by_category():
     return existing_names, category_counts
 
 def generate_character_name(category, character_type, existing_names):
-    """Genereer een unieke character naam gebaseerd op type"""
-    prefixes = {
-        'companion': ['Friendly', 'Helpful', 'Caring', 'Loyal', 'Cheerful', 'Warm', 'Kind', 'Gentle', 'Sweet', 'Happy'],
-        'friend': ['Cool', 'Fun', 'Amazing', 'Awesome', 'Super', 'Great', 'Nice', 'Lovely', 'Charming', 'Delightful'],
-        'buddy': ['Chill', 'Rad', 'Epic', 'Wild', 'Crazy', 'Funky', 'Groovy', 'Wicked', 'Dope', 'Fresh']
-    }
+    """Genereer een unieke character naam - kort en bondig"""
+    # Kortere namen zonder prefix voor meer natuurlijk gevoel
+    names = ['Luna', 'Max', 'Zoe', 'Leo', 'Mia', 'Kai', 'Nova', 'Eli', 'Ava', 'Sky',
+             'Rio', 'Eva', 'Jax', 'Ivy', 'Sam', 'Ada', 'Ben', 'Lia', 'Dex', 'Joy',
+             'Ray', 'Mae', 'Oz', 'Nia', 'Ty', 'Uma', 'Van', 'Wes', 'Xan', 'Yara',
+             'Alex', 'Blake', 'Casey', 'Drew', 'Eden', 'Finn', 'Gray', 'Harper', 'Iris', 'Jesse']
     
-    names = ['Alex', 'Sam', 'Jordan', 'Taylor', 'Morgan', 'Casey', 'Riley', 'Quinn', 'Avery', 'Cameron',
-             'Dakota', 'Drew', 'Emerson', 'Finley', 'Hayden', 'Jamie', 'Kendall', 'Logan', 'Mason', 'Parker',
-             'Reese', 'Sage', 'Skyler', 'Blake', 'Charlie', 'Dylan', 'Elliot', 'Frances', 'Gray', 'Harper']
-    
-    # Probeer een unieke naam te maken
-    for _ in range(50):
-        prefix = random.choice(prefixes[character_type])
+    # Voor support characters, voeg soms een korte titel toe
+    if character_type == 'support' and random.random() < 0.3:
+        titles = ['Coach', 'Guide', 'Mentor']
+        title = random.choice(titles)
         name = random.choice(names)
-        full_name = f"{prefix} {name}"
-        
-        if full_name.lower() not in existing_names:
-            return full_name
+        full_name = f"{title} {name}"
+    else:
+        # Meestal alleen een naam
+        full_name = random.choice(names)
     
-    # Als geen unieke naam gevonden, voeg nummer toe
-    for i in range(1, 100):
-        full_name = f"{prefix} {name} {i}"
-        if full_name.lower() not in existing_names:
-            return full_name
+    # Check uniekheid
+    if full_name.lower() not in existing_names:
+        return full_name
+    
+    # Als niet uniek, voeg letter toe
+    for letter in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
+        test_name = f"{full_name} {letter}"
+        if test_name.lower() not in existing_names:
+            return test_name
     
     return None
 
@@ -290,35 +282,33 @@ def generate_title_description(name, category, character_type):
     """Genereer titel en beschrijving gebaseerd op character type"""
     
     category_contexts = {
-        'historical': 'historical knowledge and timeless wisdom',
-        'anime & manga': 'anime culture and manga stories',
-        'mythology': 'ancient myths and legendary tales',
-        'fictional': 'imaginative stories and creative narratives',
-        'celebrities': 'entertainment and celebrity lifestyle',
-        'gaming': 'gaming strategies and virtual worlds',
-        'relationship': 'personal connections and emotional bonds',
-        'career': 'professional development and career growth',
-        'fitness': 'health, wellness, and physical training',
-        'mindfulness': 'meditation, peace, and mental wellness',
-        'business': 'entrepreneurship and business strategies',
-        'health': 'wellness, medical knowledge, and healthy living',
-        'spiritual': 'spirituality, inner growth, and enlightenment',
-        'cooking': 'culinary arts and delicious recipes',
-        'negotiation': 'deal-making and conflict resolution',
-        'education': 'learning, knowledge, and academic excellence',
-        'language': 'language learning and communication',
-        'romance': 'love, relationships, and emotional connections'
+        'companionship': 'friendship and meaningful connections',
+        'personal development': 'self-growth and reaching your potential',
+        'friendship': 'building genuine friendships',
+        'support': 'emotional support and guidance',
+        'emotional support': 'understanding and compassion',
+        'life coaching': 'personal goals and life direction',
+        'mental wellness': 'mental health and wellbeing',
+        'self improvement': 'becoming your best self',
+        'motivation': 'inspiration and drive',
+        'wellness': 'holistic health and balance',
+        'mindfulness': 'peace and mental clarity',
+        'growth': 'personal evolution and progress',
+        'relationship': 'healthy relationships and connections',
+        'happiness': 'joy and life satisfaction',
+        'confidence': 'self-assurance and empowerment',
+        'stress relief': 'calm and relaxation'
     }
     
     context = category_contexts.get(category.lower(), 'general assistance and support')
     
     if character_type == 'companion':
         titles = [
-            f"{category.title()} Companion",
-            f"{category.title()} Buddy",
-            f"{category.title()} Friend",
-            f"{category.title()} Partner",
-            f"{category.title()} Ally"
+            "Life Companion",
+            "Daily Friend",
+            "Trusted Ally",
+            "Close Friend",
+            "Companion"
         ]
         
         descriptions = [
@@ -331,11 +321,11 @@ def generate_title_description(name, category, character_type):
     
     elif character_type == 'friend':
         titles = [
-            f"{category.title()} Friend",
-            f"{category.title()} Pal",
-            f"{category.title()} Mate",
-            f"{category.title()} Buddy",
-            f"{category.title()} Companion"
+            "Best Friend",
+            "Fun Friend",
+            "Happy Pal",
+            "Good Friend",
+            "Buddy"
         ]
         
         descriptions = [
@@ -346,21 +336,21 @@ def generate_title_description(name, category, character_type):
             f"A delightful friend who makes {context} fun and interesting. Always here to brighten your day with great conversations."
         ]
     
-    else:  # buddy
+    else:  # support
         titles = [
-            f"{category.title()} Buddy",
-            f"{category.title()} Pal",
-            f"{category.title()} Friend",
-            f"{category.title()} Mate",
-            f"{category.title()} Companion"
+            "Support Friend",
+            "Life Guide",
+            "Wellness Coach",
+            "Growth Mentor",
+            "Support Companion"
         ]
         
         descriptions = [
-            f"A super chill buddy who's into {context}. Just here to hang out, have fun, and be your friend.",
-            f"Your rad pal for all things {context}. Keeps it real, keeps it fun, and always has your back.",
-            f"An epic friend who makes {context} totally awesome. Down for whatever and always brings good vibes.",
-            f"Your cool companion for exploring {context}. Relaxed, fun, and always up for a good chat.",
-            f"A fresh buddy who brings new energy to {context}. Spontaneous, playful, and genuinely fun to be around."
+            f"A compassionate support friend focused on {context}. Here to listen, understand, and help you navigate life's challenges.",
+            f"Your personal guide specializing in {context}. Offers wisdom, encouragement, and emotional support when you need it most.",
+            f"A caring mentor passionate about {context}. Provides motivation, insights, and genuine support for your journey.",
+            f"Your supportive companion for {context}. Brings patience, understanding, and helpful guidance to every conversation.",
+            f"An empathetic friend who specializes in {context}. Always ready to offer comfort, advice, and encouragement."
         ]
     
     title = random.choice(titles)
@@ -375,7 +365,7 @@ def generate_prompt(name, title, description, category, character_type):
     type_traits = {
         'companion': 'warm, supportive, empathetic, and genuinely caring. You offer emotional support and understanding in every conversation',
         'friend': 'fun, energetic, positive, and enthusiastic. You bring joy and laughter to every interaction',
-        'buddy': 'relaxed, cool, easygoing, and spontaneous. You keep things casual and fun'
+        'support': 'compassionate, patient, wise, and understanding. You provide guidance and emotional support through life\'s challenges'
     }
     
     personality = type_traits.get(character_type, 'friendly and helpful')
@@ -452,8 +442,8 @@ def create_character(category, existing_names, valid_tags, original_category_nam
         possible_tags = [tag for tag in COMPANION_TAGS if tag.lower() in valid_tags]
     elif character_type == 'friend':
         possible_tags = [tag for tag in FRIEND_TAGS if tag.lower() in valid_tags]
-    else:  # buddy
-        possible_tags = [tag for tag in BUDDY_TAGS if tag.lower() in valid_tags]
+    else:  # support
+        possible_tags = [tag for tag in SUPPORT_TAGS if tag.lower() in valid_tags]
     
     # Als er geen matchende tags zijn, gebruik willekeurige bestaande tags
     if not possible_tags:
