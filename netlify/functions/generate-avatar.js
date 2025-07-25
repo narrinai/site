@@ -185,43 +185,47 @@ function createPortraitPrompt(characterName, characterTitle, category) {
     }
   }
   
-  // More explicit gender in prompt and strong emphasis on avoiding text
-  let genderDescription = gender === 'woman' ? 'female person, woman' : gender === 'man' ? 'male person, man' : 'person';
-  let basePrompt = `Professional headshot portrait of a ${genderDescription}, REAL PHOTOGRAPH not a painting, NOT a mirror reflection, NOT an artwork, NO text, NO words, NO letters, NO signs, NO labels, NO frames, NO borders, NO banners, direct camera view, simple plain background, `;
+  // Simplified and clearer prompt structure
+  let genderDescription = gender === 'woman' ? 'woman' : gender === 'man' ? 'man' : 'person';
   
-  // Much simpler category styles to avoid triggering unwanted elements
+  // Start with very clear, simple instructions
+  let basePrompt = `Portrait photo of a ${genderDescription}. Face clearly visible, looking at camera. Head and shoulders only. `;
+  
+  // Simplified category styles
   const categoryStyles = {
-    'health': 'professional healthcare worker, clean medical attire, ',
-    'spiritual': 'peaceful serene expression, calm demeanor, ',
-    'romance': 'warm friendly expression, approachable smile, ',
-    'support': 'caring compassionate expression, empathetic look, ',
-    'purpose': 'confident determined expression, focused gaze, ',
-    'self-improvement': 'motivated inspiring expression, positive energy, ',
-    'travel': 'adventurous friendly expression, welcoming smile, ',
-    'parenting': 'nurturing warm expression, kind eyes, ',
-    'cultural': 'dignified respectful appearance, traditional attire, ',
-    'life': 'wise experienced expression, thoughtful gaze, ',
-    'motivation': 'energetic positive expression, enthusiastic look, ',
-    'fitness': 'healthy active appearance, athletic build, ',
-    'mindfulness': 'calm peaceful expression, meditative gaze, '
+    'health': 'Healthcare professional. ',
+    'spiritual': 'Peaceful, wise appearance. ',
+    'romance': 'Warm, attractive appearance. ',
+    'support': 'Kind, caring appearance. ',
+    'purpose': 'Confident, professional appearance. ',
+    'self-improvement': 'Motivated, positive appearance. ',
+    'travel': 'Adventurous, friendly appearance. ',
+    'parenting': 'Nurturing, mature appearance. ',
+    'cultural': 'Dignified, cultured appearance. ',
+    'life': 'Wise, experienced appearance. ',
+    'motivation': 'Energetic, inspiring appearance. ',
+    'fitness': 'Athletic, healthy appearance. ',
+    'mindfulness': 'Calm, centered appearance. '
   };
   
-  const style = categoryStyles[category] || 'professional appearance, neutral expression, ';
+  const style = categoryStyles[category] || 'Professional appearance. ';
   
-  // Build the full prompt with strong anti-text and anti-mirror instructions
+  // Build prompt with clear structure
   let fullPrompt = basePrompt + style;
   
-  // Add character-specific details without triggering text
-  if (characterTitle) {
-    // Use the title as inspiration for appearance, not literal text
-    fullPrompt += `appearance suggesting ${characterTitle.toLowerCase()}, `;
+  // Add character context if available
+  if (characterTitle && characterTitle.length > 0) {
+    fullPrompt += `Character: ${characterTitle}. `;
   }
   
-  // Multiple reinforcements against unwanted elements with explicit gender
-  fullPrompt += `real photographic portrait only, actual ${genderDescription} looking at camera, NOT a reflection, NOT in a mirror, NOT a painting, NOT an illustration, absolutely NO text anywhere, NO written words, NO letters, NO signage, NO name tags, NO badges, NO frames, NO decorative borders, plain studio background, professional headshot, close-up of face and shoulders only, photorealistic human portrait`;
+  // Clear instructions for composition
+  fullPrompt += `Studio portrait. Simple background. Front view of face. Centered composition. High quality photo. `;
   
-  // Final emphasis with very clear gender specification
-  fullPrompt += `, IMPORTANT: direct photograph of a ${genderDescription}, clearly showing ${gender === 'woman' ? 'feminine features' : gender === 'man' ? 'masculine features' : 'human features'}, no text elements of any kind, not a mirror image, not a painting`;
+  // Explicit gender reminder
+  fullPrompt += `${gender === 'woman' ? 'Female' : gender === 'man' ? 'Male' : 'Human'} subject. `;
+  
+  // What NOT to include
+  fullPrompt += `No text. No words. No multiple people. No back of head. No profile view. No full body. Just face and shoulders.`;
   
   return fullPrompt;
 }
