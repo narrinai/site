@@ -572,11 +572,36 @@ if (!userMatch && Array.isArray(recordUserField) && recordUserField.length > 0) 
             console.log('❌ DEBUG - Error details:', errorText);
           }
           
-          // Now try the full query
-          let relationshipUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula=AND({User_ID}='${actualUserId}',{Slug (from Character...)}='${characterIdentifier}')`;
-          console.log('🔍 Trying full query with URL:', relationshipUrl);
-           
-           const relationshipResponse = await fetch(relationshipUrl, {
+          // Find the correct record from debug results
+          const targetRecord = debugData.records.find(r => {
+            const slugArray = r.fields['Slug (from Character)'];
+            return slugArray && slugArray.includes(characterIdentifier);
+          });
+          
+          if (targetRecord) {
+            console.log('✅ Found matching record in debug data!');
+            // Use this record directly instead of doing another query
+            const rel = targetRecord.fields;
+            relationshipContext = {
+              phase: rel.Relationship_Phase || 'new',
+              totalMessages: rel.Total_Messages || 0,
+              averageEmotion: rel.Average_Emotional_Score || 0.5,
+              lastInteraction: rel.Last_Interaction,
+              keySummary: rel.Key_Memories_Summary || '',
+              topics: rel.Last_Topics || []
+            };
+            console.log('✅ Relationship context loaded from debug query:', relationshipContext.phase, 'messages:', relationshipContext.totalMessages);
+          } else {
+            console.log('❌ No matching record found in debug data for slug:', characterIdentifier);
+          }
+          
+          // Skip the old query if we already found the relationship
+          if (!relationshipContext) {
+            // Old query code - probably won't work but keeping as fallback
+            let relationshipUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula=AND({User}="${actualUserId}",{Slug (from Character)}="${characterIdentifier}")`;
+            console.log('🔍 Trying fallback query...');
+            
+            const relationshipResponse = await fetch(relationshipUrl, {
              headers: {
                'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
                'Content-Type': 'application/json'
@@ -623,6 +648,7 @@ if (!userMatch && Array.isArray(recordUserField) && recordUserField.length > 0) 
              const errorText = await relationshipResponse.text();
              console.log('❌ Error response:', errorText);
            }
+          } // Close the if (!relationshipContext) block
          } // Close the if (charRecordId) block
        } // Close the if (userRecordId) block
      } catch (relError) {
