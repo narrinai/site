@@ -543,8 +543,8 @@ if (!userMatch && Array.isArray(recordUserField) && recordUserField.length > 0) 
           // Try different field name variations
           // First try with just User_ID to debug
           console.log('🔍 DEBUG - First trying query with just User_ID:', actualUserId);
-          // Try different approaches - maybe User_ID is a lookup field
-          let debugUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula={User_ID (from User)}="${actualUserId}"`;
+          // Try with User field instead
+          let debugUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula={User}="${actualUserId}"`;
           
           const debugResponse = await fetch(debugUrl, {
             headers: {
@@ -557,11 +557,13 @@ if (!userMatch && Array.isArray(recordUserField) && recordUserField.length > 0) 
             const debugData = await debugResponse.json();
             console.log('✅ DEBUG - Found', debugData.records.length, 'records for User_ID:', actualUserId);
             if (debugData.records.length > 0) {
+              console.log('📊 DEBUG - First record fields:', Object.keys(debugData.records[0].fields));
               console.log('📊 DEBUG - Records found:', debugData.records.map(r => ({
-                User_ID: r.fields.User_ID,
+                User_ID: r.fields['User_ID (from User)'] || r.fields.User_ID,
                 Character: r.fields.Character,
-                Slug: r.fields['Slug (from Character...)'],
-                Total_Messages: r.fields.Total_Messages
+                Slug: r.fields['Slug (from Character)'] || r.fields['Slug (from Character...)'] || r.fields.Slug,
+                Total_Messages: r.fields.Total_Messages,
+                AllFields: Object.keys(r.fields)
               })));
             }
           } else {
