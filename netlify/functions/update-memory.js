@@ -19,6 +19,13 @@ const ALLOWED_MEMORY_TAGS = [
 function validateTags(tags) {
   if (!Array.isArray(tags)) return ['general'];
   
+  // Check for invalid tags and warn
+  const invalidTags = tags.filter(tag => !ALLOWED_MEMORY_TAGS.includes(tag));
+  if (invalidTags.length > 0) {
+    console.warn('⚠️ Invalid memory tags detected and removed:', invalidTags);
+    console.warn('📋 Allowed tags:', ALLOWED_MEMORY_TAGS.join(', '));
+  }
+  
   const validTags = tags.filter(tag => ALLOWED_MEMORY_TAGS.includes(tag));
   return validTags.length > 0 ? validTags : ['general'];
 }
@@ -186,11 +193,14 @@ exports.handler = async (event, context) => {
       if (isQuestion) tags.push('question');
       if (tags.length === 0) tags.push('general');
       
+      // IMPORTANT: Validate tags before using
+      const validatedTags = validateTags(tags);
+      
       analysis = {
         memory_importance: importance,
         emotional_state: emotionalState,
         summary: message.length > 100 ? message.substring(0, 100) + '...' : message,
-        memory_tags: tags
+        memory_tags: validatedTags
       };
       
       console.log('📝 Fallback analysis:', analysis);

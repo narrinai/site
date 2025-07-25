@@ -19,6 +19,13 @@ const ALLOWED_MEMORY_TAGS = [
 function validateTags(tags) {
   if (!Array.isArray(tags)) return ['general'];
   
+  // Check for invalid tags and warn
+  const invalidTags = tags.filter(tag => !ALLOWED_MEMORY_TAGS.includes(tag));
+  if (invalidTags.length > 0) {
+    console.warn('⚠️ Invalid memory tags detected and removed:', invalidTags);
+    console.warn('📋 Allowed tags:', ALLOWED_MEMORY_TAGS.join(', '));
+  }
+  
   const validTags = tags.filter(tag => ALLOWED_MEMORY_TAGS.includes(tag));
   return validTags.length > 0 ? validTags : ['general'];
 }
@@ -480,11 +487,14 @@ function analyzeMessageRuleBased(message, context) {
   // Default to general if no tags
   if (tags.length === 0) tags.push('general');
   
+  // IMPORTANT: Validate tags before returning
+  const validatedTags = validateTags(tags);
+  
   const analysis = {
     memory_importance: importance,
     emotional_state: emotionalState,
     summary: summary,
-    memory_tags: tags
+    memory_tags: validatedTags
   };
   
   console.log('📝 Rule-based analysis result:', analysis);
