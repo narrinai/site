@@ -539,7 +539,7 @@ if (!userMatch && Array.isArray(recordUserField) && recordUserField.length > 0) 
            // Try to find relationship by User_ID and character slug first
           // Look for relationship using User_ID lookup field and Slug lookup field
           console.log('🔍 Looking for relationship - User_ID:', actualUserId, 'Slug:', characterIdentifier);
-          const relationshipUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula=AND({User_ID}='${actualUserId}',{Slug (from Character)}='${characterIdentifier}')`;
+          const relationshipUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula=AND({User_ID}='${actualUserId}',{Slug (from Character...)}='${characterIdentifier}')`;
            
            const relationshipResponse = await fetch(relationshipUrl, {
              headers: {
