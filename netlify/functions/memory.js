@@ -539,7 +539,10 @@ if (!userMatch && Array.isArray(recordUserField) && recordUserField.length > 0) 
            // Try to find relationship by User_ID and character slug first
           // Look for relationship using User_ID lookup field and Slug lookup field
           console.log('🔍 Looking for relationship - User_ID:', actualUserId, 'Slug:', characterIdentifier);
-          const relationshipUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula=AND({User_ID}='${actualUserId}',{Slug (from Character...)}='${characterIdentifier}')`;
+          
+          // Try different field name variations
+          let relationshipUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula=AND({User_ID}='${actualUserId}',{Slug (from Character...)}='${characterIdentifier}')`;
+          console.log('🔍 Trying query with URL:', relationshipUrl);
            
            const relationshipResponse = await fetch(relationshipUrl, {
              headers: {
@@ -563,6 +566,25 @@ if (!userMatch && Array.isArray(recordUserField) && recordUserField.length > 0) 
                console.log('✅ Relationship context loaded:', relationshipContext.phase);
              } else {
                console.log('❌ No relationship records found for User_ID:', actualUserId, 'Slug:', characterIdentifier);
+               
+               // Try simpler query with just User_ID
+               console.log('🔍 Trying fallback query with just User_ID');
+               const fallbackUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula={User_ID}='${actualUserId}'`;
+               const fallbackResponse = await fetch(fallbackUrl, {
+                 headers: {
+                   'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+                   'Content-Type': 'application/json'
+                 }
+               });
+               
+               if (fallbackResponse.ok) {
+                 const fallbackData = await fallbackResponse.json();
+                 console.log('📊 Found', fallbackData.records.length, 'relationships for this user');
+                 if (fallbackData.records.length > 0) {
+                   console.log('📊 Relationship slugs found:', fallbackData.records.map(r => r.fields['Slug (from Character...)']));
+                   console.log('📊 Looking for slug:', characterIdentifier);
+                 }
+               }
              }
            } else {
              console.log('❌ Relationship lookup failed with status:', relationshipResponse.status);
