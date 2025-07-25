@@ -50,9 +50,10 @@ exports.handler = async (event, context) => {
     }
     
     // Create a portrait prompt based on character info
-    const prompt = createPortraitPrompt(characterName, characterTitle, category);
+    const { prompt, detectedGender } = createPortraitPrompt(characterName, characterTitle, category);
     
     console.log('🎨 Generated prompt:', prompt);
+    console.log('🧑‍🤝‍🧑 Detected gender:', detectedGender, 'for character:', characterName);
     
     // Call DALL-E 3 API
     const openAIResponse = await fetch('https://api.openai.com/v1/images/generations', {
@@ -188,44 +189,43 @@ function createPortraitPrompt(characterName, characterTitle, category) {
   // Simplified and clearer prompt structure
   let genderDescription = gender === 'woman' ? 'woman' : gender === 'man' ? 'man' : 'person';
   
-  // Start with very clear, simple instructions
-  let basePrompt = `Close-up portrait of a ${genderDescription}. Face centered in frame, filling most of the image. Looking directly at camera. `;
+  // Very explicit composition first
+  let basePrompt = `Headshot of ${genderDescription}. IMPORTANT: Face must be perfectly centered in square frame. Eyes at exact center of image. `;
+  
+  // Add gender-specific features for clarity
+  if (gender === 'woman') {
+    basePrompt += `Feminine appearance. Female facial features. `;
+  } else if (gender === 'man') {
+    basePrompt += `Masculine appearance. Male facial features. `;
+  }
   
   // Simplified category styles
   const categoryStyles = {
-    'health': 'Healthcare professional. ',
-    'spiritual': 'Peaceful, wise appearance. ',
-    'romance': 'Warm, attractive appearance. ',
-    'support': 'Kind, caring appearance. ',
-    'purpose': 'Confident, professional appearance. ',
-    'self-improvement': 'Motivated, positive appearance. ',
-    'travel': 'Adventurous, friendly appearance. ',
-    'parenting': 'Nurturing, mature appearance. ',
-    'cultural': 'Dignified, cultured appearance. ',
-    'life': 'Wise, experienced appearance. ',
-    'motivation': 'Energetic, inspiring appearance. ',
-    'fitness': 'Athletic, healthy appearance. ',
-    'mindfulness': 'Calm, centered appearance. '
+    'health': 'Medical professional look. ',
+    'spiritual': 'Calm wise look. ',
+    'romance': 'Warm friendly look. ',
+    'support': 'Kind caring look. ',
+    'purpose': 'Confident professional look. ',
+    'self-improvement': 'Motivated positive look. ',
+    'travel': 'Adventurous friendly look. ',
+    'parenting': 'Nurturing mature look. ',
+    'cultural': 'Dignified cultured look. ',
+    'life': 'Wise experienced look. ',
+    'motivation': 'Energetic inspiring look. ',
+    'fitness': 'Athletic healthy look. ',
+    'mindfulness': 'Calm centered look. '
   };
   
-  const style = categoryStyles[category] || 'Professional appearance. ';
+  const style = categoryStyles[category] || 'Professional look. ';
   
-  // Build prompt with clear structure
+  // Build prompt with centered focus
   let fullPrompt = basePrompt + style;
   
-  // Add character context if available
-  if (characterTitle && characterTitle.length > 0) {
-    fullPrompt += `Character: ${characterTitle}. `;
-  }
+  // Composition rules
+  fullPrompt += `Square crop. Face fills frame. Nose at exact center point. Symmetrical framing. Plain background. `;
   
-  // Clear instructions for composition
-  fullPrompt += `Symmetrical composition. Face takes up 60% of frame. Eye level straight ahead. Solid background. Professional headshot. `;
+  // Final reinforcement
+  fullPrompt += `Direct front view only. ${gender === 'woman' ? 'Woman' : gender === 'man' ? 'Man' : 'Person'}'s face centered. No text or writing.`;
   
-  // Explicit gender reminder
-  fullPrompt += `${gender === 'woman' ? 'Female' : gender === 'man' ? 'Male' : 'Human'} person. `;
-  
-  // What NOT to include
-  fullPrompt += `No name tags. No text anywhere. No labels. No badges. No writing. Face perfectly centered. No offset positioning. Equal space on both sides of face.`;
-  
-  return fullPrompt;
+  return { prompt: fullPrompt, detectedGender: gender };
 }
