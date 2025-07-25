@@ -2380,7 +2380,22 @@ if (window.netlifyIdentity) {
     
     // Function to update the Optional field
     const updateOptionalField = () => {
-      const optionalInput = document.querySelector('.netlify-identity-widget input[placeholder="Optional"]');
+      // Try multiple selectors to find the input
+      const selectors = [
+        '.netlify-identity-widget input[placeholder="Optional"]',
+        '.netlify-identity-widget input[type="text"]:first-of-type',
+        '.netlify-identity-widget input[name="name"]',
+        '.netlify-identity-widget .formGroup:first-child input'
+      ];
+      
+      let optionalInput = null;
+      for (const selector of selectors) {
+        optionalInput = document.querySelector(selector);
+        if (optionalInput && (optionalInput.placeholder === 'Optional' || optionalInput.placeholder === '')) {
+          break;
+        }
+      }
+      
       if (optionalInput) {
         optionalInput.placeholder = 'Nickname';
         optionalInput.removeAttribute('required');
@@ -2408,6 +2423,17 @@ if (window.netlifyIdentity) {
         console.log('✅ Updated Optional field to Nickname and removed all required attributes');
       }
       
+      // Also update all inputs that might have Optional as placeholder
+      const allInputs = document.querySelectorAll('.netlify-identity-widget input');
+      allInputs.forEach(input => {
+        if (input.placeholder === 'Optional') {
+          input.placeholder = 'Nickname';
+          input.removeAttribute('required');
+          input.required = false;
+          input.removeAttribute('aria-required');
+        }
+      });
+      
       const labels = document.querySelectorAll('.netlify-identity-widget label');
       labels.forEach(label => {
         if (label.textContent.trim() === 'Optional' || label.textContent.includes('Optional')) {
@@ -2424,17 +2450,32 @@ if (window.netlifyIdentity) {
       updateOptionalField();
     });
     
-    const widget = document.querySelector('.netlify-identity-widget');
-    if (widget) {
-      observer.observe(widget, { childList: true, subtree: true });
+    // Try to find the widget container
+    const findAndObserve = () => {
+      const widget = document.querySelector('.netlify-identity-widget') || 
+                     document.querySelector('[data-netlify-identity-modal]') ||
+                     document.body;
       
-      // Disconnect observer after 2 seconds to prevent memory leaks
-      setTimeout(() => observer.disconnect(), 2000);
-    }
+      if (widget) {
+        observer.observe(widget, { 
+          childList: true, 
+          subtree: true,
+          attributes: true,
+          attributeFilter: ['placeholder']
+        });
+        
+        // Disconnect observer after 5 seconds to prevent memory leaks
+        setTimeout(() => observer.disconnect(), 5000);
+      }
+    };
     
-    // Also try after a delay as fallback
-    setTimeout(updateOptionalField, 100);
-    setTimeout(updateOptionalField, 300);
+    findAndObserve();
+    
+    // Try multiple times with different delays to catch the field
+    const delays = [0, 50, 100, 200, 300, 500, 750, 1000, 1500];
+    delays.forEach(delay => {
+      setTimeout(updateOptionalField, delay);
+    });
   });
   
   window.netlifyIdentity.on('login', (user) => {
