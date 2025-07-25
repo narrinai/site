@@ -219,13 +219,13 @@ function createPortraitPrompt(characterName, characterTitle, category) {
   }
   
   // Clear instructions for composition
-  fullPrompt += `Studio portrait. Simple background. Front view of face. Centered composition. High quality photo. `;
+  fullPrompt += `Natural lighting. Clean solid color background. Front view of face. Centered in frame. Professional photo. `;
   
   // Explicit gender reminder
   fullPrompt += `${gender === 'woman' ? 'Female' : gender === 'man' ? 'Male' : 'Human'} subject. `;
   
   // What NOT to include
-  fullPrompt += `No text. No words. No multiple people. No back of head. No profile view. No full body. Just face and shoulders.`;
+  fullPrompt += `No text. No grid lines. No technical marks. No rulers. No measurement lines. No watermarks. No multiple people. No back of head. No side profile. Just face and shoulders.`;
   
   return fullPrompt;
 }
