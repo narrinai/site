@@ -224,6 +224,9 @@ exports.handler = async (event, context) => {
      
      // If we have an email, find ALL user records with this email
      let validUserRecordIds = [];
+     let validUserEmails = [];
+     let validUserIds = [];
+     
      if (body.user_email) {
        console.log('🔍 Finding ALL user records with email:', body.user_email);
        const escapedEmail = body.user_email.replace(/'/g, "\\'");
@@ -240,16 +243,29 @@ exports.handler = async (event, context) => {
          if (allUsersResponse.ok) {
            const allUsersData = await allUsersResponse.json();
            validUserRecordIds = allUsersData.records.map(r => r.id);
+           // Also collect User_IDs for fallback matching
+           allUsersData.records.forEach(r => {
+             if (r.fields.User_ID) validUserIds.push(r.fields.User_ID);
+           });
            console.log('✅ Found', validUserRecordIds.length, 'user records with this email:', validUserRecordIds);
+           console.log('✅ User_IDs for these records:', validUserIds);
          }
        } catch (err) {
          console.error('❌ Error fetching all users:', err);
        }
+       
+       // Add the email to valid emails list
+       validUserEmails.push(body.user_email);
      }
      
      // If we found a userRecordId earlier, add it to the list
      if (userRecordId && !validUserRecordIds.includes(userRecordId)) {
        validUserRecordIds.push(userRecordId);
+     }
+     
+     // Also add the user_id to the valid list if it exists
+     if (user_id && !validUserIds.includes(user_id)) {
+       validUserIds.push(user_id);
      }
      
      for (const record of data.records) {
@@ -310,6 +326,16 @@ if (!userMatch && (body.user_email || (user_id && user_id.includes('@')))) {
   console.log(`👤 Email match check: ${recordUserEmail} === ${emailToCheck} = ${userMatch}`);
 }
 
+// FALLBACK: Check if the Email field in ChatHistory matches any valid emails
+if (!userMatch && validUserEmails.length > 0 && recordUserEmail) {
+  userMatch = validUserEmails.some(email => 
+    String(recordUserEmail).toLowerCase() === String(email).toLowerCase()
+  );
+  if (userMatch) {
+    console.log(`👤 FALLBACK Email match found: ${recordUserEmail} in valid emails`);
+  }
+}
+
 // If no match yet, check if the User field contains the user_id value directly
 // This handles the case where Make.com saves User_ID instead of record ID
 if (!userMatch && user_id && recordUserField) {
@@ -324,6 +350,29 @@ if (!userMatch && user_id) {
   if (recordUserId) {
     userMatch = String(recordUserId) === String(user_id);
     console.log(`👤 User_ID field match check: ${recordUserId} === ${user_id} = ${userMatch}`);
+  }
+}
+
+// FALLBACK: Check if record has any User field that we should consider valid
+if (!userMatch && Array.isArray(recordUserField) && recordUserField.length > 0) {
+  // Log what we found for debugging
+  const firstUserId = recordUserField[0];
+  console.log(`👤 FALLBACK - Found User array with first ID: ${firstUserId}`);
+  
+  // If we have a valid email and this record also has that email, consider it a match
+  if (validUserEmails.length > 0 && recordUserEmail) {
+    const emailMatch = validUserEmails.some(email => 
+      String(recordUserEmail).toLowerCase() === String(email).toLowerCase()
+    );
+    if (emailMatch) {
+      userMatch = true;
+      console.log(`👤 FALLBACK - Accepting record based on email match: ${recordUserEmail}`);
+      // Add this user record ID to our valid list for future reference
+      if (!validUserRecordIds.includes(firstUserId)) {
+        validUserRecordIds.push(firstUserId);
+        debugInfo.allUserRecordIds.push(firstUserId);
+      }
+    }
   }
 }
        if (!userMatch) {
