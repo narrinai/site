@@ -327,12 +327,16 @@ if (!userMatch && (body.user_email || (user_id && user_id.includes('@')))) {
 }
 
 // FALLBACK: Check if the Email field in ChatHistory matches any valid emails
-if (!userMatch && validUserEmails.length > 0 && recordUserEmail) {
-  userMatch = validUserEmails.some(email => 
-    String(recordUserEmail).toLowerCase() === String(email).toLowerCase()
-  );
-  if (userMatch) {
-    console.log(`👤 FALLBACK Email match found: ${recordUserEmail} in valid emails`);
+if (!userMatch && validUserEmails.length > 0) {
+  // Get the actual email from the lookup field
+  const actualEmail = fields['Email (from Email)'] || recordUserEmail;
+  if (actualEmail) {
+    userMatch = validUserEmails.some(email => 
+      String(actualEmail).toLowerCase() === String(email).toLowerCase()
+    );
+    if (userMatch) {
+      console.log(`👤 FALLBACK Email match found: ${actualEmail} in valid emails`);
+    }
   }
 }
 
@@ -360,17 +364,21 @@ if (!userMatch && Array.isArray(recordUserField) && recordUserField.length > 0) 
   console.log(`👤 FALLBACK - Found User array with first ID: ${firstUserId}`);
   
   // If we have a valid email and this record also has that email, consider it a match
-  if (validUserEmails.length > 0 && recordUserEmail) {
-    const emailMatch = validUserEmails.some(email => 
-      String(recordUserEmail).toLowerCase() === String(email).toLowerCase()
-    );
-    if (emailMatch) {
-      userMatch = true;
-      console.log(`👤 FALLBACK - Accepting record based on email match: ${recordUserEmail}`);
-      // Add this user record ID to our valid list for future reference
-      if (!validUserRecordIds.includes(firstUserId)) {
-        validUserRecordIds.push(firstUserId);
-        debugInfo.allUserRecordIds.push(firstUserId);
+  if (validUserEmails.length > 0) {
+    // Get the actual email from the lookup field
+    const actualEmail = fields['Email (from Email)'] || recordUserEmail;
+    if (actualEmail) {
+      const emailMatch = validUserEmails.some(email => 
+        String(actualEmail).toLowerCase() === String(email).toLowerCase()
+      );
+      if (emailMatch) {
+        userMatch = true;
+        console.log(`👤 FALLBACK - Accepting record based on email match: ${actualEmail}`);
+        // Add this user record ID to our valid list for future reference
+        if (!validUserRecordIds.includes(firstUserId)) {
+          validUserRecordIds.push(firstUserId);
+          debugInfo.allUserRecordIds.push(firstUserId);
+        }
       }
     }
   }
@@ -553,7 +561,13 @@ if (!userMatch && Array.isArray(recordUserField) && recordUserField.length > 0) 
                  topics: rel.Last_Topics || []
                };
                console.log('✅ Relationship context loaded:', relationshipContext.phase);
+             } else {
+               console.log('❌ No relationship records found for User_ID:', actualUserId, 'Slug:', characterIdentifier);
              }
+           } else {
+             console.log('❌ Relationship lookup failed with status:', relationshipResponse.status);
+             const errorText = await relationshipResponse.text();
+             console.log('❌ Error response:', errorText);
            }
          } // Close the if (charRecordId) block
        } // Close the if (userRecordId) block
