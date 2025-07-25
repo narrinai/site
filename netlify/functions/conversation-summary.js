@@ -199,12 +199,18 @@ Keep it under 150 words. Format as JSON with fields: summary, topics (array), em
     }
 
     // Save to ConversationSummaries table
-    console.log('💾 Saving summary with fields:', {
-      user_id: customUserId,
-      character_id: character_id,
-      Character_record: charRecordId,
-      summary_preview: analysis.summary.substring(0, 50) + '...'
-    });
+    const summaryFields = {
+      user_id: String(customUserId),  // Use the custom User_ID as string (like "42")
+      Character: [charRecordId],  // Use array of character record ID for linked field
+      Conversation_Date: new Date().toISOString(),
+      Summary: analysis.summary,
+      Emotional_Highlights: String(analysis.emotional_highlights || ''),
+      Topics_Discussed: Array.isArray(analysis.topics) ? analysis.topics.join(', ') : '',  // Convert array to string
+      Sentiment_Score: Number(analysis.sentiment_score) || 0,
+      Message_Count: Number(messages.length)
+    };
+    
+    console.log('💾 Saving summary with fields:', JSON.stringify(summaryFields, null, 2));
     
     const createSummaryResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ConversationSummaries`, {
       method: 'POST',
@@ -214,16 +220,7 @@ Keep it under 150 words. Format as JSON with fields: summary, topics (array), em
       },
       body: JSON.stringify({
         records: [{
-          fields: {
-            user_id: String(customUserId),  // Use the custom User_ID as string (like "42")
-            Character: [charRecordId],  // Use array of character record ID for linked field
-            Conversation_Date: new Date().toISOString(),
-            Summary: analysis.summary,
-            Emotional_Highlights: String(analysis.emotional_highlights || ''),
-            Topics_Discussed: analysis.topics || [],
-            Sentiment_Score: Number(analysis.sentiment_score) || 0,
-            Message_Count: Number(messages.length)
-          }
+          fields: summaryFields
         }]
       })
     });
