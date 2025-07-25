@@ -424,8 +424,9 @@ if (!userMatch && user_id) {
      try {
        console.log('🤝 Fetching relationship context...');
        // Use the userRecordId if we have it, otherwise skip
-       if ((userRecordId || (user_id && user_id.startsWith('rec'))) && characterIdentifier) {
-         const recordIdToUse = userRecordId || user_id;
+       console.log('Debug - userRecordId:', userRecordId, 'characterIdentifier:', characterIdentifier);
+      if (userRecordId && characterIdentifier) {
+         const recordIdToUse = userRecordId;
          
          // First, we need to get the character record ID if we only have a slug
          let charRecordId = null;
