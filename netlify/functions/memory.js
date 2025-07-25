@@ -543,7 +543,8 @@ if (!userMatch && Array.isArray(recordUserField) && recordUserField.length > 0) 
           // Try different field name variations
           // First try with just User_ID to debug
           console.log('🔍 DEBUG - First trying query with just User_ID:', actualUserId);
-          let debugUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula={User_ID}='${actualUserId}'`;
+          // Try different approaches - maybe User_ID is a lookup field
+          let debugUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula={User_ID (from User)}="${actualUserId}"`;
           
           const debugResponse = await fetch(debugUrl, {
             headers: {
@@ -565,6 +566,8 @@ if (!userMatch && Array.isArray(recordUserField) && recordUserField.length > 0) 
             }
           } else {
             console.log('❌ DEBUG - Query failed with status:', debugResponse.status);
+            const errorText = await debugResponse.text();
+            console.log('❌ DEBUG - Error details:', errorText);
           }
           
           // Now try the full query
