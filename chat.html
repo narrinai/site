@@ -1673,6 +1673,50 @@
       box-shadow: var(--shadow-sm);
     }
 
+    .mic-button {
+      padding: var(--spacing-md);
+      background: var(--color-white);
+      color: var(--color-navy);
+      border: 2px solid var(--color-light-gray);
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      transition: all var(--transition-base);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .mic-button:hover {
+      border-color: var(--color-teal);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .mic-button.recording {
+      background: #ef4444;
+      color: white;
+      border-color: #ef4444;
+      animation: pulse 1.5s infinite;
+    }
+
+    .mic-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+      }
+    }
+
     .disclaimer {
       font-size: var(--font-size-xs);
       color: var(--color-gray);
@@ -1846,13 +1890,23 @@
       }
 
       .input-group {
-        flex-direction: column;
-        gap: var(--spacing-sm);
+        flex-direction: row;
+        gap: var(--spacing-xs);
+      }
+
+      #userInput {
+        flex: 1;
+        font-size: 16px; /* Prevent zoom on iOS */
+      }
+
+      .mic-button {
+        padding: var(--spacing-sm);
+        min-width: 44px;
       }
 
       #sendButton {
-        width: 100%;
-        padding: var(--spacing-sm) var(--spacing-lg);
+        padding: var(--spacing-sm) var(--spacing-md);
+        min-width: 80px;
       }
 
       .disclaimer {
@@ -3403,6 +3457,14 @@
         <div id="chatlog"></div>
         <div class="input-group">
           <input id="userInput" type="text" placeholder="Share what's on your mind..." />
+          <button onclick="toggleSpeechToText()" id="micButton" class="mic-button" aria-label="Use microphone">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 1C10.34 1 9 2.34 9 4V12C9 13.66 10.34 15 12 15C13.66 15 15 13.66 15 12V4C15 2.34 13.66 1 12 1Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M19 10V12C19 15.866 15.866 19 12 19C8.13401 19 5 15.866 5 12V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 19V23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M8 23H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
           <button onclick="handleSendClick(event)" id="sendButton">Send</button>
         </div>
         <div class="disclaimer">
@@ -9158,6 +9220,124 @@ function getLastMessages(count = 3) {
     const lastUserMessages = userMessages.slice(-count);
     return lastUserMessages.map(msg => msg.textContent).join(" | ");
 }
+
+// Speech-to-text functionality
+let mediaRecorder;
+let audioChunks = [];
+let isRecording = false;
+
+async function toggleSpeechToText() {
+  const micButton = document.getElementById('micButton');
+  const userInput = document.getElementById('userInput');
+  
+  if (!isRecording) {
+    try {
+      // Request microphone permission
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // Create MediaRecorder
+      mediaRecorder = new MediaRecorder(stream);
+      
+      mediaRecorder.ondataavailable = (event) => {
+        audioChunks.push(event.data);
+      };
+      
+      mediaRecorder.onstop = async () => {
+        // Create blob from audio chunks
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        audioChunks = [];
+        
+        // Stop all tracks to release microphone
+        stream.getTracks().forEach(track => track.stop());
+        
+        // Send to ElevenLabs for transcription
+        await transcribeAudio(audioBlob);
+      };
+      
+      // Start recording
+      mediaRecorder.start();
+      isRecording = true;
+      micButton.classList.add('recording');
+      userInput.placeholder = "Recording... Click mic to stop";
+      
+    } catch (error) {
+      console.error('❌ Error accessing microphone:', error);
+      alert('Could not access microphone. Please check your permissions.');
+    }
+  } else {
+    // Stop recording
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+      isRecording = false;
+      micButton.classList.remove('recording');
+      userInput.placeholder = "Transcribing...";
+    }
+  }
+}
+
+async function transcribeAudio(audioBlob) {
+  const userInput = document.getElementById('userInput');
+  const micButton = document.getElementById('micButton');
+  
+  try {
+    // Convert blob to base64
+    const reader = new FileReader();
+    const base64Audio = await new Promise((resolve, reject) => {
+      reader.onloadend = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(audioBlob);
+    });
+    
+    // Send to our Netlify function
+    const response = await fetch('/.netlify/functions/speech-to-text', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ audio: base64Audio })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || `API error: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    
+    // Set the transcribed text to the input field
+    if (result.text) {
+      userInput.value = result.text;
+      userInput.placeholder = "Share what's on your mind...";
+    } else {
+      userInput.placeholder = "No speech detected. Try again...";
+    }
+    
+  } catch (error) {
+    console.error('❌ Transcription error:', error);
+    userInput.placeholder = "Transcription failed. Please try again...";
+    
+    // Show user-friendly error message
+    if (error.message.includes('401') || error.message.includes('403')) {
+      alert('Speech-to-text authentication error. Please check the API configuration.');
+    } else if (error.message.includes('Network')) {
+      alert('Network error. Please check your internet connection.');
+    }
+  } finally {
+    // Re-enable the mic button
+    micButton.disabled = false;
+  }
+}
+
+// Check for browser support
+document.addEventListener('DOMContentLoaded', () => {
+  const micButton = document.getElementById('micButton');
+  
+  // Check if browser supports getUserMedia
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    micButton.style.display = 'none';
+    console.warn('Speech-to-text not supported in this browser');
+  }
+});
 
   </script>
 
