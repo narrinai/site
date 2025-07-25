@@ -189,7 +189,7 @@ function createPortraitPrompt(characterName, characterTitle, category) {
   let genderDescription = gender === 'woman' ? 'woman' : gender === 'man' ? 'man' : 'person';
   
   // Start with very clear, simple instructions
-  let basePrompt = `Portrait photo of a ${genderDescription}. Face clearly visible, looking at camera. Head and shoulders only. `;
+  let basePrompt = `Close-up portrait of a ${genderDescription}. Face centered in frame, filling most of the image. Looking directly at camera. `;
   
   // Simplified category styles
   const categoryStyles = {
@@ -219,13 +219,13 @@ function createPortraitPrompt(characterName, characterTitle, category) {
   }
   
   // Clear instructions for composition
-  fullPrompt += `Natural lighting. Clean solid color background. Front view of face. Centered in frame. Professional photo. `;
+  fullPrompt += `Symmetrical composition. Face takes up 60% of frame. Eye level straight ahead. Solid background. Professional headshot. `;
   
   // Explicit gender reminder
-  fullPrompt += `${gender === 'woman' ? 'Female' : gender === 'man' ? 'Male' : 'Human'} subject. `;
+  fullPrompt += `${gender === 'woman' ? 'Female' : gender === 'man' ? 'Male' : 'Human'} person. `;
   
   // What NOT to include
-  fullPrompt += `No text. No grid lines. No technical marks. No rulers. No measurement lines. No watermarks. No multiple people. No back of head. No side profile. Just face and shoulders.`;
+  fullPrompt += `No name tags. No text anywhere. No labels. No badges. No writing. Face perfectly centered. No offset positioning. Equal space on both sides of face.`;
   
   return fullPrompt;
 }
