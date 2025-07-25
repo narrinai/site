@@ -3406,6 +3406,8 @@ function handleLoginSuccess(user, eventType = 'unknown') {
     console.log('🔄 EXISTING LOGIN: Loading profile without webhook call');
     showProfileUI();
     loadProfile();
+    // TEMPORARY: Log redirect check
+    console.log('🔍 Checking for post-login redirect...');
     handlePostLoginRedirect();
   } else {
     console.log('🤔 UNKNOWN EVENT TYPE: Defaulting to profile load');
@@ -3425,6 +3427,11 @@ function handleLoginSuccess(user, eventType = 'unknown') {
     // New function to handle post-login redirect
     function handlePostLoginRedirect() {
       const redirectUrl = localStorage.getItem('login_redirect_url');
+      console.log('🔍 Post-login redirect check:', {
+        redirectUrl: redirectUrl,
+        currentUrl: window.location.href,
+        willRedirect: redirectUrl && redirectUrl !== window.location.href
+      });
       
       if (redirectUrl && redirectUrl !== window.location.href) {
         localStorage.removeItem('login_redirect_url');
