@@ -8954,8 +8954,10 @@ function checkUpgradeStatus() {
 function getLastMessages(count = 3) {
     const chatlog = document.getElementById("chatlog");
     const messages = chatlog.querySelectorAll("p");
-    const lastMessages = Array.from(messages).slice(-count);
-    return lastMessages.map(msg => msg.textContent).join(" | ");
+    // Filter to only get user messages (those starting with "You:")
+    const userMessages = Array.from(messages).filter(msg => msg.textContent.startsWith("You:"));
+    const lastUserMessages = userMessages.slice(-count);
+    return lastUserMessages.map(msg => msg.textContent).join(" | ");
 }
 
   </script>

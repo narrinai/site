@@ -118,7 +118,7 @@ exports.handler = async (event, context) => {
 
 Analyze the following message and provide a JSON response with:
 - memory_importance: integer 1-10 (1=trivial, 10=extremely important personal info)
-- emotional_state: string (happy, sad, excited, angry, neutral ONLY - no other values allowed)
+- emotional_state: string (MUST be exactly one of: happy, sad, excited, angry, neutral - NO OTHER VALUES)
 - summary: string (extract key information, e.g., "User's name is John" for "my name is John", max 100 chars)
 - memory_tags: array of strings (use ONLY these tags: personal_info, relationship, goal, preference, emotional, question, general, memory_check, long_message, story, casual)
 
@@ -135,6 +135,12 @@ Summary extraction rules:
 - For "I like/love X" → "User likes/loves X"
 - For questions like "what's my name?" → Keep original question
 - Extract the KEY INFORMATION, not just repeat the message
+- IMPORTANT: Summarize what the USER said, NOT what the AI will respond
+
+Emotional state rules:
+- If user expresses determination, motivation, or positive attitude → use "excited"
+- If user is thinking, pondering, or being reflective → use "neutral"
+- NEVER use states like: determined, thoughtful, confused, contemplative, etc.
 
 Tag guidelines:
 - personal_info: names, ages, locations, personal facts
