@@ -4262,6 +4262,65 @@ async function uploadToCloudinary(file, slug) {
   return { secure_url: result.secure_url, forced_private: false };
 }
 
+// Content moderation function
+function checkInappropriateContent(name, description, backstory, greeting) {
+  // Define lists of inappropriate terms
+  const nsfwTerms = [
+    'nsfw', 'adult', 'explicit', 'sexual', 'erotic', 'porn', 'xxx', 
+    'nude', 'naked', 'sex', 'fetish', 'bdsm', 'kink', 'lewd',
+    'hentai', 'onlyfans', 'stripper', 'escort', 'prostitute'
+  ];
+  
+  const extremistTerms = [
+    'nazi', 'hitler', 'supremacist', 'kkk', 'fascist', 'reich',
+    'aryan', 'holocaust denial', 'ethnic cleansing', 'genocide',
+    'white power', 'race war', 'master race'
+  ];
+  
+  const racistTerms = [
+    'nigger', 'chink', 'spic', 'kike', 'gook', 'wetback',
+    'racial slur', 'racist', 'apartheid', 'segregation',
+    'racial superiority', 'ethnic hate'
+  ];
+  
+  // Combine all text fields for checking
+  const allText = `${name} ${description} ${backstory} ${greeting}`.toLowerCase();
+  
+  // Check for inappropriate content
+  for (const term of nsfwTerms) {
+    if (allText.includes(term)) {
+      return { inappropriate: true, reason: 'NSFW content detected', category: 'nsfw' };
+    }
+  }
+  
+  for (const term of extremistTerms) {
+    if (allText.includes(term)) {
+      return { inappropriate: true, reason: 'Extremist content detected', category: 'extremist' };
+    }
+  }
+  
+  for (const term of racistTerms) {
+    if (allText.includes(term)) {
+      return { inappropriate: true, reason: 'Racist content detected', category: 'racist' };
+    }
+  }
+  
+  // Additional pattern checks
+  if (/\b(18\+|adults only|mature content)\b/i.test(allText)) {
+    return { inappropriate: true, reason: 'Adult content indicators detected', category: 'nsfw' };
+  }
+  
+  if (/\b(racial|ethnic) (superiority|inferiority|cleansing)\b/i.test(allText)) {
+    return { inappropriate: true, reason: 'Discriminatory content detected', category: 'racist' };
+  }
+  
+  if (/\b(terrorist|extremist|radical) (group|organization|ideology)\b/i.test(allText)) {
+    return { inappropriate: true, reason: 'Extremist ideology detected', category: 'extremist' };
+  }
+  
+  return { inappropriate: false };
+}
+
 // Force private mode when inappropriate content is detected
 function forcePrivateMode(reason) {
   const privateRadio = document.querySelector('input[name="visibility"][value="private"]');
@@ -4693,6 +4752,23 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
     submitBtn.disabled = false;
     isSubmitting = false;
     return;
+  }
+  
+  // Check for inappropriate content
+  const contentCheck = checkInappropriateContent(
+    formData.name,
+    formData.description,
+    formData.prompt,
+    formData.title
+  );
+  
+  if (contentCheck.inappropriate) {
+    // Force private mode for inappropriate content
+    forcePrivateMode(contentCheck.reason);
+    // Update the formData to reflect private visibility
+    formData.visibility = 'private';
+    formData.character_data.visibility = 'private';
+    console.log(`⚠️ Content moderation: ${contentCheck.reason} - forcing private mode`);
   }
   
   // Store original button text

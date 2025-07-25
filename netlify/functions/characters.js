@@ -64,9 +64,23 @@ exports.handler = async (event, context) => {
       let url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_TABLE_ID}`;
       const params = new URLSearchParams();
       
+      // Build filter formula
+      let filterParts = [];
+      
+      // Always filter to show only public characters
+      filterParts.push(`OR({Visibility} = "public", {Visibility} = "", NOT({Visibility}))`);
+      
       // Add category filter if specified
       if (category) {
-        params.set('filterByFormula', `{Category} = "${category}"`);
+        filterParts.push(`{Category} = "${category}"`);
+      }
+      
+      // Combine filters with AND
+      if (filterParts.length > 0) {
+        const filterFormula = filterParts.length > 1 
+          ? `AND(${filterParts.join(', ')})` 
+          : filterParts[0];
+        params.set('filterByFormula', filterFormula);
       }
       
       // Don't limit with maxRecords - we want ALL records
@@ -152,7 +166,8 @@ exports.handler = async (event, context) => {
         Character_URL: fields.Character_URL || `chat.html?char=${fields.Slug || 'unknown'}`,
         Character_ID: fields.Character_ID || record.id,
         voice_id: fields.voice_id || null,
-        voice_type: fields.voice_type || 'none'
+        voice_type: fields.voice_type || 'none',
+        Visibility: fields.Visibility || 'public'
       };
     });
 
