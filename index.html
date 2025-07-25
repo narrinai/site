@@ -2492,9 +2492,11 @@ if (window.netlifyIdentity) {
   // Update bestaande signup event om referral te verwerken
   window.netlifyIdentity.on('signup', user => {
     console.log('🎉 New user signup:', user.email);
+    console.log('📍 Current page:', window.location.pathname);
     
     // Check voor referral user ID
     const referralUserId = localStorage.getItem('referralUserId');
+    console.log('🔍 Referral check in index.html - localStorage value:', referralUserId);
     
     const payload = {
       email: user.email,
@@ -2503,6 +2505,9 @@ if (window.netlifyIdentity) {
       referrer_id: referralUserId || null
     };
 
+    console.log('📤 Sending signup webhook from index.html:', payload);
+    console.log('🔍 Referrer ID in payload:', payload.referrer_id);
+    
     fetch('https://hook.eu2.make.com/03ug6qzucda4ksrkcc06nu3bu3vetj15', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
