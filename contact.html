@@ -1488,6 +1488,17 @@
 
     // Initialize all functionality
     document.addEventListener('DOMContentLoaded', () => {
+      // Check voor referral parameter
+      const urlParams = new URLSearchParams(window.location.search);
+      const referralUserId = urlParams.get('ref');
+      if (referralUserId) {
+        localStorage.setItem('referralUserId', referralUserId);
+        console.log('📌 Referral user ID opgeslagen:', referralUserId);
+        // Clean URL
+        const cleanUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+      }
+      
       initMobileUSPCarousel();
       initMobileMenu();
       initMobileSearch();
