@@ -8777,7 +8777,59 @@ try {
     // Zoek naar JSON object in de text
     const jsonMatch = cleanText.match(/\{.*\}/s);
     if (jsonMatch) {
-      data = JSON.parse(jsonMatch[0]);
+      let jsonStr = jsonMatch[0];
+      
+      // Try to fix malformed JSON by extracting and fixing the reply field
+      // Find the start of the reply field
+      const replyStart = jsonStr.indexOf('"reply"');
+      if (replyStart !== -1) {
+        // Find where the value starts (after the colon and opening quote)
+        const valueStart = jsonStr.indexOf('"', jsonStr.indexOf(':', replyStart) + 1);
+        if (valueStart !== -1) {
+          // Find the end of the value (look for ", followed by another field or closing brace)
+          let valueEnd = valueStart + 1;
+          let inValue = true;
+          let escaped = false;
+          
+          while (inValue && valueEnd < jsonStr.length) {
+            const char = jsonStr[valueEnd];
+            
+            if (escaped) {
+              escaped = false;
+            } else if (char === '\\') {
+              escaped = true;
+            } else if (char === '"') {
+              // Check if this quote is followed by a comma or closing brace
+              const nextChars = jsonStr.substring(valueEnd + 1, valueEnd + 10);
+              if (nextChars.match(/^\s*[,}]/)) {
+                inValue = false;
+              }
+            }
+            
+            if (inValue) valueEnd++;
+          }
+          
+          // Extract and fix the reply value
+          const replyValue = jsonStr.substring(valueStart + 1, valueEnd);
+          // Simple approach: replace all quotes that aren't already escaped
+          let fixedReplyValue = replyValue;
+          // First mark already escaped quotes
+          fixedReplyValue = fixedReplyValue.replace(/\\"/g, '\u0000ESCAPED\u0000');
+          // Then escape all remaining quotes
+          fixedReplyValue = fixedReplyValue.replace(/"/g, '\\"');
+          // Finally restore the already escaped quotes
+          fixedReplyValue = fixedReplyValue.replace(/\u0000ESCAPED\u0000/g, '\\"');
+          
+          // Replace in the original JSON
+          jsonStr = jsonStr.substring(0, valueStart + 1) + 
+                   fixedReplyValue + 
+                   jsonStr.substring(valueEnd);
+          
+          console.log("🔧 Fixed reply field in JSON");
+        }
+      }
+      
+      data = JSON.parse(jsonStr);
       console.log("✅ JSON extracted and parsed:", data);
     } else {
       throw new Error("No JSON object found in response");
