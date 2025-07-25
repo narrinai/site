@@ -1334,11 +1334,9 @@ body.has-referral-banner {
   }
 }
 
-    /* Hide the name field in Netlify Identity widget */
-    .netlify-identity-widget input[name="name"],
-    .netlify-identity-widget input[placeholder="Optional"],
-    .netlify-identity-widget .formGroup:first-child {
-      display: none !important;
+    /* Style the name field in Netlify Identity widget */
+    .netlify-identity-widget input[placeholder="Optional"]::placeholder {
+      color: #999;
     }
 
   </style>
@@ -2372,6 +2370,10 @@ function processNetlifyData(characters, category, gridId, limit) {
 
    // Initialize Netlify Identity
 if (window.netlifyIdentity) {
+  window.netlifyIdentity.init({
+    namePlaceholder: 'Nickname'
+  });
+  
   window.netlifyIdentity.on('init', updateLoginButton);
   
   // Add event listener for when modal opens
