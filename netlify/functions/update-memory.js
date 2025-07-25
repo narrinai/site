@@ -147,8 +147,9 @@ exports.handler = async (event, context) => {
     try {
       console.log('🤖 Attempting AI analysis...');
       
-      // Gebruik relatieve URL voor Netlify function
-      const analyzeResponse = await fetch('/.netlify/functions/analyze-memory', {
+      // Use full URL for Netlify function (required for function-to-function calls)
+      const siteUrl = process.env.URL || process.env.DEPLOY_URL || 'https://narrinai.netlify.app';
+      const analyzeResponse = await fetch(`${siteUrl}/.netlify/functions/analyze-memory`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

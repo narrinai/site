@@ -112,6 +112,7 @@ exports.handler = async (event, context) => {
     
     // AI-based analysis met OpenAI
     console.log('🤖 Performing AI analysis with OpenAI...');
+    console.log('🔑 Using OpenAI API key:', OPENAI_API_KEY.substring(0, 10) + '...');
     
     const systemPrompt = `You are a memory analysis AI that evaluates chat messages for their importance and emotional content. 
 
@@ -174,10 +175,16 @@ Respond only with valid JSON.`;
     });
     
     console.log('📨 OpenAI response status:', openAIResponse.status);
+    console.log('📨 OpenAI response headers:', Object.fromEntries(openAIResponse.headers.entries()));
     
     if (!openAIResponse.ok) {
       const errorText = await openAIResponse.text();
       console.error('❌ OpenAI API error:', errorText);
+      console.error('❌ Full error details:', {
+        status: openAIResponse.status,
+        statusText: openAIResponse.statusText,
+        headers: Object.fromEntries(openAIResponse.headers.entries())
+      });
       
       // Fallback to rule-based analysis
       const analysis = analyzeMessageRuleBased(message, context);
@@ -317,7 +324,10 @@ function analyzeMessageRuleBased(message, context) {
     'my name is', "i'm", 'i am', "i'm called", 'call me', 'im', 'i m',
     'jaar oud', 'years old', 'jarig', 'geboren', 'age', 'aged',
     'woon in', 'werk bij', 'i live', 'i work',
-    'mijn familie', 'my family', 'my job'
+    'mijn familie', 'my family', 'my job',
+    'brother', 'sister', 'mother', 'father', 'parent', 'child', 'son', 'daughter',
+    'broer', 'zus', 'moeder', 'vader', 'ouder', 'kind', 'zoon', 'dochter',
+    'i have a', 'ik heb een'
   ];
   
   // Question keywords - asking for information without providing it
