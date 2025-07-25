@@ -15,6 +15,15 @@ const ALLOWED_MEMORY_TAGS = [
   'casual'
 ];
 
+// Define allowed emotional states - only use states that exist in Airtable
+const ALLOWED_EMOTIONAL_STATES = [
+  'happy',
+  'sad',
+  'excited',
+  'angry',
+  'neutral'
+];
+
 // Helper function to validate and filter tags
 function validateTags(tags) {
   if (!Array.isArray(tags)) return ['general'];
@@ -28,6 +37,23 @@ function validateTags(tags) {
   
   const validTags = tags.filter(tag => ALLOWED_MEMORY_TAGS.includes(tag));
   return validTags.length > 0 ? validTags : ['general'];
+}
+
+// Helper function to validate emotional state
+function validateEmotionalState(state) {
+  if (!state || typeof state !== 'string') return 'neutral';
+  
+  const normalizedState = state.toLowerCase().trim();
+  
+  if (ALLOWED_EMOTIONAL_STATES.includes(normalizedState)) {
+    return normalizedState;
+  }
+  
+  console.warn('⚠️ Invalid emotional state detected:', state);
+  console.warn('📋 Allowed emotional states:', ALLOWED_EMOTIONAL_STATES.join(', '));
+  console.warn('🔄 Defaulting to: neutral');
+  
+  return 'neutral';
 }
 
 exports.handler = async (event, context) => {
@@ -198,7 +224,7 @@ exports.handler = async (event, context) => {
       
       analysis = {
         memory_importance: importance,
-        emotional_state: emotionalState,
+        emotional_state: validateEmotionalState(emotionalState),
         summary: message.length > 100 ? message.substring(0, 100) + '...' : message,
         memory_tags: validatedTags
       };
@@ -217,7 +243,7 @@ exports.handler = async (event, context) => {
       const updateData = {
         fields: {
           "Memory_Importance": parseInt(analysis.memory_importance) || 5,
-          "Emotional_State": String(analysis.emotional_state) || "neutral",
+          "Emotional_State": validateEmotionalState(analysis.emotional_state),
           "Summary": String(analysis.summary) || "",
           "Memory_Tags": validateTags(analysis.memory_tags)
         }
@@ -353,7 +379,7 @@ exports.handler = async (event, context) => {
               const updateData = {
                 fields: {
                   "Memory_Importance": parseInt(analysis.memory_importance) || 5,
-                  "Emotional_State": String(analysis.emotional_state) || "neutral", 
+                  "Emotional_State": validateEmotionalState(analysis.emotional_state), 
                   "Summary": String(analysis.summary) || "",
                   "Memory_Tags": validateTags(analysis.memory_tags)
                 }
@@ -483,7 +509,7 @@ exports.handler = async (event, context) => {
                 const updateData = {
                   fields: {
                     "Memory_Importance": parseInt(analysis.memory_importance) || 5,
-                    "Emotional_State": String(analysis.emotional_state) || "neutral",
+                    "Emotional_State": validateEmotionalState(analysis.emotional_state),
                     "Summary": String(analysis.summary) || "",
                     "Memory_Tags": validateTags(analysis.memory_tags)
                   }
@@ -599,7 +625,7 @@ exports.handler = async (event, context) => {
               const updateData = {
                 fields: {
                   "Memory_Importance": parseInt(analysis.memory_importance) || 5,
-                  "Emotional_State": String(analysis.emotional_state) || "neutral",
+                  "Emotional_State": validateEmotionalState(analysis.emotional_state),
                   "Summary": String(analysis.summary) || "",
                   "Memory_Tags": validateTags(analysis.memory_tags)
                 }

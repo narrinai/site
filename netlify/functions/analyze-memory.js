@@ -15,6 +15,15 @@ const ALLOWED_MEMORY_TAGS = [
   'casual'
 ];
 
+// Define allowed emotional states - only use states that exist in Airtable
+const ALLOWED_EMOTIONAL_STATES = [
+  'happy',
+  'sad',
+  'excited',
+  'angry',
+  'neutral'
+];
+
 // Helper function to validate and filter tags
 function validateTags(tags) {
   if (!Array.isArray(tags)) return ['general'];
@@ -28,6 +37,23 @@ function validateTags(tags) {
   
   const validTags = tags.filter(tag => ALLOWED_MEMORY_TAGS.includes(tag));
   return validTags.length > 0 ? validTags : ['general'];
+}
+
+// Helper function to validate emotional state
+function validateEmotionalState(state) {
+  if (!state || typeof state !== 'string') return 'neutral';
+  
+  const normalizedState = state.toLowerCase().trim();
+  
+  if (ALLOWED_EMOTIONAL_STATES.includes(normalizedState)) {
+    return normalizedState;
+  }
+  
+  console.warn('⚠️ Invalid emotional state detected:', state);
+  console.warn('📋 Allowed emotional states:', ALLOWED_EMOTIONAL_STATES.join(', '));
+  console.warn('🔄 Defaulting to: neutral');
+  
+  return 'neutral';
 }
 
 exports.handler = async (event, context) => {
@@ -91,7 +117,7 @@ exports.handler = async (event, context) => {
 
 Analyze the following message and provide a JSON response with:
 - memory_importance: integer 1-10 (1=trivial, 10=extremely important personal info)
-- emotional_state: string (happy, sad, excited, angry, neutral, thoughtful, confused)
+- emotional_state: string (happy, sad, excited, angry, neutral ONLY - no other values allowed)
 - summary: string (extract key information, e.g., "User's name is John" for "my name is John", max 100 chars)
 - memory_tags: array of strings (use ONLY these tags: personal_info, relationship, goal, preference, emotional, question, general, memory_check, long_message, story, casual)
 
@@ -232,6 +258,7 @@ Respond only with valid JSON.`;
     // Ensure proper data types
     analysis.memory_importance = parseInt(analysis.memory_importance) || 3;
     analysis.memory_tags = Array.isArray(analysis.memory_tags) ? analysis.memory_tags : ['general'];
+    analysis.emotional_state = validateEmotionalState(analysis.emotional_state);
     
     console.log('✅ AI analysis successful:', analysis);
     
@@ -410,7 +437,7 @@ function analyzeMessageRuleBased(message, context) {
   } else if (message.includes('!') || lowerMessage.includes('excited') || lowerMessage.includes('wow')) {
     emotionalState = 'excited';
   } else if (isQuestion) {
-    emotionalState = 'thoughtful';
+    emotionalState = 'neutral'; // Changed from 'thoughtful' to valid state
   }
   
   // Generate smart summary
@@ -492,7 +519,7 @@ function analyzeMessageRuleBased(message, context) {
   
   const analysis = {
     memory_importance: importance,
-    emotional_state: emotionalState,
+    emotional_state: validateEmotionalState(emotionalState),
     summary: summary,
     memory_tags: validatedTags
   };
