@@ -152,7 +152,7 @@ exports.handler = async (event, context) => {
     if (shouldShowRating) {
       try {
         const lastRatingResponse = await fetch(
-          `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/tblXglk25SzZ3UYAt?filterByFormula=AND(FIND('${userRecordId}',ARRAYJOIN({User}))>0,FIND('${characterRecordId}',ARRAYJOIN({Character}))>0,{MessageCount}=${messageCount})&maxRecords=1`,
+          `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatRatings?filterByFormula=AND(FIND('${userRecordId}',ARRAYJOIN({User}))>0,FIND('${characterRecordId}',ARRAYJOIN({Character}))>0,{MessageCount}=${messageCount})&maxRecords=1`,
           {
             headers: {
               'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
