@@ -3608,8 +3608,38 @@ function handleLoginSuccess(user, eventType = 'unknown') {
 
       window.netlifyIdentity.on('signup', user => {
         console.log('🎉 SIGNUP event fired for:', user.email);
+        
+        // TEMPORARY: Override location to catch redirects
+        const originalLocation = window.location;
+        const locationProxy = new Proxy({}, {
+          get(target, prop) {
+            console.log('🚨 Location access:', prop);
+            return originalLocation[prop];
+          },
+          set(target, prop, value) {
+            console.log('🚨 REDIRECT ATTEMPT BLOCKED:', prop, '=', value);
+            console.trace('Redirect stack trace:');
+            // Block the redirect for testing
+            return true;
+          }
+        });
+        
+        Object.defineProperty(window, 'location', {
+          value: locationProxy,
+          configurable: true
+        });
+        
         handleLoginSuccess(user); // Store auth data first
         handleAuthEvent(user, 'signup'); // Then handle auth event
+        
+        // Restore original location after a delay
+        setTimeout(() => {
+          Object.defineProperty(window, 'location', {
+            value: originalLocation,
+            configurable: true
+          });
+          console.log('✅ Location restored');
+        }, 5000);
       });
 
       window.netlifyIdentity.on('logout', () => {
