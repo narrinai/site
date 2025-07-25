@@ -2368,6 +2368,14 @@ function processNetlifyData(characters, category, gridId, limit) {
       }
     }
 
+   // FIRST: Check for referral code before anything else
+   const urlParams = new URLSearchParams(window.location.search);
+   const referralUserId = urlParams.get('ref');
+   if (referralUserId) {
+     localStorage.setItem('referralUserId', referralUserId);
+     console.log('📌 Referral user ID saved BEFORE Identity init:', referralUserId);
+   }
+   
    // Initialize Netlify Identity
 if (window.netlifyIdentity) {
   window.netlifyIdentity.init({
