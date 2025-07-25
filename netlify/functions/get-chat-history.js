@@ -209,7 +209,7 @@ exports.handler = async (event, context) => {
     // Get both the Airtable record ID and custom User_ID
     const userRecord = userData.records[0];
     const userRecordId = userRecord.id;
-    const customUserId = userRecord.fields.User_ID || '42'; // Use the custom User_ID field
+    const customUserId = userRecord.fields.User_ID || userRecordId; // Use record ID as fallback instead of '42'
     
     console.log('🔍 Found user - Record ID:', userRecordId, 'Custom User_ID:', customUserId);
     
@@ -252,26 +252,6 @@ exports.handler = async (event, context) => {
     } while (offset);
 
     console.log('💬 Total chat history records found with User_ID and character name:', allChatHistory.length);
-    
-    // If no records found, try with default user "42" and character name
-    if (allChatHistory.length === 0) {
-      console.log('🔄 No records found with custom User_ID, trying with default user ID 42...');
-      
-      const customUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='42',{Character}='${escapedCharacterName}')&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=20`;
-      
-      const customResponse = await fetch(customUrl, {
-        headers: {
-          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (customResponse.ok) {
-        const customData = await customResponse.json();
-        allChatHistory = customData.records || [];
-        console.log('📊 Found with default user ID 42:', allChatHistory.length);
-      }
-    }
 
     // Stap 4: Format de chat history voor frontend
     const formattedHistory = allChatHistory.map(record => ({

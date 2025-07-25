@@ -2384,7 +2384,19 @@ if (window.netlifyIdentity) {
       if (optionalInput) {
         optionalInput.placeholder = 'Name (optional)';
         optionalInput.removeAttribute('required');
-        console.log('✅ Updated Optional field to Name (optional)');
+        optionalInput.required = false;
+        // Also remove any aria-required attribute
+        optionalInput.removeAttribute('aria-required');
+        // Make sure the parent form group doesn't enforce requirement
+        const formGroup = optionalInput.closest('.formGroup');
+        if (formGroup) {
+          const label = formGroup.querySelector('label');
+          if (label) {
+            // Remove asterisk from label if present
+            label.textContent = label.textContent.replace('*', '');
+          }
+        }
+        console.log('✅ Updated Optional field to Name (optional) and removed all required attributes');
       }
       
       const labels = document.querySelectorAll('.netlify-identity-widget label');
