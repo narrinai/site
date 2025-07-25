@@ -421,10 +421,38 @@ if (!userMatch && user_id) {
      
      // Enhanced: Get relationship context
      let relationshipContext = null;
+     let actualUserId = null;
+     
+     // Get the actual User_ID from the user record
+     if (userRecordId) {
+       try {
+         const userDataUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users/${userRecordId}`;
+         const userDataResponse = await fetch(userDataUrl, {
+           headers: {
+             'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+             'Content-Type': 'application/json'
+           }
+         });
+         
+         if (userDataResponse.ok) {
+           const userFullData = await userDataResponse.json();
+           actualUserId = userFullData.fields.User_ID || user_id;
+           console.log('✅ Got actual User_ID:', actualUserId);
+         }
+       } catch (err) {
+         console.error('⚠️ Failed to get actual User_ID:', err);
+       }
+     }
+     
+     // If no actualUserId found, try using the original user_id
+     if (!actualUserId) {
+       actualUserId = user_id;
+     }
+     
      try {
        console.log('🤝 Fetching relationship context...');
        // Use the userRecordId if we have it, otherwise skip
-       console.log('Debug - userRecordId:', userRecordId, 'characterIdentifier:', characterIdentifier);
+       console.log('Debug - userRecordId:', userRecordId, 'actualUserId:', actualUserId, 'characterIdentifier:', characterIdentifier);
       if (userRecordId && characterIdentifier) {
          const recordIdToUse = userRecordId;
          
@@ -453,8 +481,8 @@ if (!userMatch && user_id) {
          if (charRecordId) {
            // Try to find relationship by User_ID and character slug first
           // Look for relationship using User_ID lookup field and Slug lookup field
-          console.log('🔍 Looking for relationship - User_ID:', user_id, 'Slug:', characterIdentifier);
-          const relationshipUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula=AND({User_ID}='${user_id}',{Slug (from Character)}='${characterIdentifier}')`;
+          console.log('🔍 Looking for relationship - User_ID:', actualUserId, 'Slug:', characterIdentifier);
+          const relationshipUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula=AND({User_ID}='${actualUserId}',{Slug (from Character)}='${characterIdentifier}')`;
            
            const relationshipResponse = await fetch(relationshipUrl, {
              headers: {
@@ -487,7 +515,7 @@ if (!userMatch && user_id) {
      // Enhanced: Get recent conversation summary
      let recentSummary = null;
      try {
-       const summaryUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ConversationSummaries?filterByFormula=AND({User_ID (from User)}='${user_id}',{Slug (from Character)}='${characterIdentifier}')&sort[0][field]=Conversation_Date&sort[0][direction]=desc&maxRecords=1`;
+       const summaryUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ConversationSummaries?filterByFormula=AND({user_id}='${actualUserId}',{Slug (from Character)}='${characterIdentifier}')&sort[0][field]=Conversation_Date&sort[0][direction]=desc&maxRecords=1`;
        
        const summaryResponse = await fetch(summaryUrl, {
          headers: {
