@@ -3454,6 +3454,9 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       console.log(`👤 ${isNewUser ? 'Creating NEW' : 'Updating EXISTING'} user: ${email}`);
       
       try {
+        // Check voor referral user ID
+        const referralUserId = localStorage.getItem('referralUserId');
+        
         const payload = {
           user_email: email,
           user_uid: userId,
@@ -3465,7 +3468,8 @@ function handleLoginSuccess(user, eventType = 'unknown') {
           },
           is_new_user: isNewUser,
           timestamp: new Date().toISOString(),
-          source: 'profile_page_auth'
+          source: 'profile_page_auth',
+          referrer_id: referralUserId || null
         };
         
         // Log webhook call
@@ -3912,6 +3916,17 @@ function handleLoginSuccess(user, eventType = 'unknown') {
     // Initialize Netlify Identity and check login status
     document.addEventListener('DOMContentLoaded', () => {
       console.log('🚀 Page loaded, initializing...');
+      
+      // Check voor referral parameter
+      const urlParams = new URLSearchParams(window.location.search);
+      const referralUserId = urlParams.get('ref');
+      if (referralUserId) {
+        localStorage.setItem('referralUserId', referralUserId);
+        console.log('📌 Referral user ID opgeslagen:', referralUserId);
+        // Clean URL
+        const cleanUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+      }
       
       // FIRST: Run universal authentication check
       const isAuthenticated = initializeAuthenticationCheck();

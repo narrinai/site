@@ -3079,6 +3079,17 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
+      // Check voor referral parameter
+      const urlParams = new URLSearchParams(window.location.search);
+      const referralUserId = urlParams.get('ref');
+      if (referralUserId) {
+        localStorage.setItem('referralUserId', referralUserId);
+        console.log('📌 Referral user ID opgeslagen:', referralUserId);
+        // Clean URL
+        const cleanUrl = window.location.pathname + window.location.hash;
+        window.history.replaceState({}, document.title, cleanUrl);
+      }
+      
       // Header scroll effect
       const header = document.querySelector('.header');
       let lastScroll = 0;
