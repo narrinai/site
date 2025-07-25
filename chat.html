@@ -9242,16 +9242,22 @@ function getLastMessages(count = 3) {
     
     async function generateConversationSummary(email, uid, token, characterSlug) {
       try {
-        // Get effective user ID
-        const user_id = localStorage.getItem("user_id");
-        const user_uid = localStorage.getItem("user_uid");
-        const user_email = localStorage.getItem("user_email");
-        // Always use email as primary identifier since we always have it
-  const effective_user_id = user_email || user_id || "unknown";
+        // Get effective user ID - prefer numeric User_ID over email
+        const stored_user_id = localStorage.getItem("user_id");
+        const stored_user_uid = localStorage.getItem("user_uid");
+        const stored_user_email = localStorage.getItem("user_email");
+        
+        // Use the numeric User_ID if available, otherwise fall back to email
+        const effective_user_id = stored_user_id || email || stored_user_email || "unknown";
         
         console.log('📤 Calling conversation-summary with:', {
           user_id: effective_user_id,
-          character_id: characterSlug
+          character_id: characterSlug,
+          debug: {
+            stored_user_id,
+            email_param: email,
+            stored_email: stored_user_email
+          }
         });
         
         const response = await fetch('/.netlify/functions/conversation-summary', {

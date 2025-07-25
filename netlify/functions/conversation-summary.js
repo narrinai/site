@@ -36,17 +36,23 @@ exports.handler = async (event, context) => {
     // First, get the Airtable record IDs for User and Character
     // Handle different user identification methods
     let userFilter;
+    let escapedUserId = user_id;
+    
     if (user_id && user_id.includes('@')) {
-      // It's an email address
-      userFilter = `{Email}='${user_id}'`;
+      // It's an email address - escape single quotes
+      escapedUserId = user_id.replace(/'/g, "\\'");
+      userFilter = `{Email}='${escapedUserId}'`;
+      console.log('🔍 Looking up user by email:', user_id);
     } else if (user_id) {
-      // Try User_ID field
+      // Try User_ID field (numeric ID like "42")
       userFilter = `{User_ID}='${user_id}'`;
+      console.log('🔍 Looking up user by User_ID:', user_id);
     } else {
       throw new Error('No valid user identifier provided');
     }
     
-    const userUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=${userFilter}`;
+    console.log('🔍 Using filter:', userFilter);
+    const userUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=${encodeURIComponent(userFilter)}`;
     const userResponse = await fetch(userUrl, {
       headers: {
         'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -55,11 +61,14 @@ exports.handler = async (event, context) => {
     });
     
     if (!userResponse.ok) {
+      const errorText = await userResponse.text();
+      console.error('❌ User lookup failed:', userResponse.status, errorText);
       throw new Error(`Failed to find user: ${userResponse.status}`);
     }
     
     const userData = await userResponse.json();
     if (userData.records.length === 0) {
+      console.error('❌ No user found with filter:', userFilter);
       throw new Error(`User not found with identifier: ${user_id}`);
     }
     
