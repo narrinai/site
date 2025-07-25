@@ -148,9 +148,12 @@ exports.handler = async (event, context) => {
       shouldShowRating = true;
     }
 
+    console.log('⭐ Rating check logic:', { messageCount, shouldShowRating });
+
     // Get last rating to check if already rated at this count
     if (shouldShowRating) {
       try {
+        console.log('🔍 Checking previous ratings for user:', userRecordId, 'character:', characterRecordId);
         const lastRatingResponse = await fetch(
           `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatRatings?filterByFormula=AND(FIND('${userRecordId}',ARRAYJOIN({User}))>0,FIND('${characterRecordId}',ARRAYJOIN({Character}))>0,{MessageCount}=${messageCount})&maxRecords=1`,
           {
@@ -169,7 +172,13 @@ exports.handler = async (event, context) => {
           }
         } else if (lastRatingResponse.status === 404) {
           // ChatRatings table doesn't exist - skip rating check
-          console.log('⚠️ ChatRatings table not found, skipping rating check');
+          console.log('⚠️ ChatRatings table not found (404), skipping rating check');
+          shouldShowRating = false;
+        } else {
+          console.log('⚠️ ChatRatings request failed with status:', lastRatingResponse.status);
+          const errorText = await lastRatingResponse.text();
+          console.log('⚠️ Error response:', errorText);
+          // Don't show rating if we can't check
           shouldShowRating = false;
         }
       } catch (ratingCheckError) {
