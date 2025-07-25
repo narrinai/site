@@ -8648,31 +8648,8 @@ hideTypingIndicator();
       });
     }
 
-    // Save messages directly to ensure they persist correctly
-    try {
-      console.log('💾 Saving chat messages directly...');
-      
-      const saveResponse = await fetch('/.netlify/functions/save-chat-message', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_email: email,  // Use email from currentUser
-          user_uid: uid,      // Use uid from currentUser
-          user_token: token,
-          char: characterSlug,
-          user_message: input,
-          ai_response: reply
-        })
-      });
-      
-      if (saveResponse.ok) {
-        console.log('✅ Messages saved successfully');
-      } else {
-        console.log('⚠️ Direct save failed, relying on webhook');
-      }
-    } catch (saveError) {
-      console.error('❌ Save error:', saveError);
-    }
+    // Messages are saved by the Make.com webhook - no need for duplicate save
+    console.log('✅ Messages will be saved by Make.com webhook');
 
     // Update relationship tracking
     try {
