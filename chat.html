@@ -8660,6 +8660,7 @@ hideTypingIndicator();
     }
     
     // Generate summary every 5 messages (for testing)
+    console.log('🔍 Checking summary generation - totalMessages:', relationshipContext?.totalMessages);
     if (relationshipContext && relationshipContext.totalMessages >= 5 && relationshipContext.totalMessages % 5 === 0) {
       try {
         console.log('📝 Triggering conversation summary generation at', relationshipContext.totalMessages, 'messages');
@@ -9051,6 +9052,11 @@ function getLastMessages(count = 3) {
         // Always use email as primary identifier since we always have it
   const effective_user_id = user_email || user_id || "unknown";
         
+        console.log('📤 Calling conversation-summary with:', {
+          user_id: effective_user_id,
+          character_id: characterSlug
+        });
+        
         const response = await fetch('/.netlify/functions/conversation-summary', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -9061,8 +9067,13 @@ function getLastMessages(count = 3) {
           })
         });
         
+        const responseData = await response.json();
+        console.log('📥 Summary response:', responseData);
+        
         if (response.ok) {
-          console.log('✅ Conversation summary generated');
+          console.log('✅ Conversation summary generated successfully');
+        } else {
+          console.error('❌ Summary generation failed with status:', response.status, responseData);
         }
       } catch (error) {
         console.error('❌ Failed to generate summary:', error);
