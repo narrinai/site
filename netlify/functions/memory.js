@@ -541,8 +541,35 @@ if (!userMatch && Array.isArray(recordUserField) && recordUserField.length > 0) 
           console.log('🔍 Looking for relationship - User_ID:', actualUserId, 'Slug:', characterIdentifier);
           
           // Try different field name variations
+          // First try with just User_ID to debug
+          console.log('🔍 DEBUG - First trying query with just User_ID:', actualUserId);
+          let debugUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula={User_ID}='${actualUserId}'`;
+          
+          const debugResponse = await fetch(debugUrl, {
+            headers: {
+              'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (debugResponse.ok) {
+            const debugData = await debugResponse.json();
+            console.log('✅ DEBUG - Found', debugData.records.length, 'records for User_ID:', actualUserId);
+            if (debugData.records.length > 0) {
+              console.log('📊 DEBUG - Records found:', debugData.records.map(r => ({
+                User_ID: r.fields.User_ID,
+                Character: r.fields.Character,
+                Slug: r.fields['Slug (from Character...)'],
+                Total_Messages: r.fields.Total_Messages
+              })));
+            }
+          } else {
+            console.log('❌ DEBUG - Query failed with status:', debugResponse.status);
+          }
+          
+          // Now try the full query
           let relationshipUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/CharacterRelationships?filterByFormula=AND({User_ID}='${actualUserId}',{Slug (from Character...)}='${characterIdentifier}')`;
-          console.log('🔍 Trying query with URL:', relationshipUrl);
+          console.log('🔍 Trying full query with URL:', relationshipUrl);
            
            const relationshipResponse = await fetch(relationshipUrl, {
              headers: {
