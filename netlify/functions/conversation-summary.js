@@ -199,6 +199,12 @@ Keep it under 150 words. Format as JSON with fields: summary, topics (array), em
     }
 
     // Save to ConversationSummaries table
+    console.log('💾 Saving summary with fields:', {
+      user_id: customUserId,
+      character_id: character_id,
+      summary_preview: analysis.summary.substring(0, 50) + '...'
+    });
+    
     const createSummaryResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ConversationSummaries`, {
       method: 'POST',
       headers: {
@@ -208,8 +214,8 @@ Keep it under 150 words. Format as JSON with fields: summary, topics (array), em
       body: JSON.stringify({
         records: [{
           fields: {
-            User: [userRecordId],  // Use the Airtable record ID
-            Character: [charRecordId],  // Use the Airtable record ID
+            user_id: customUserId,  // Use the custom User_ID (like "42")
+            character_id: character_id,  // Use the character slug
             Conversation_Date: new Date().toISOString(),
             Summary: analysis.summary,
             Emotional_Highlights: analysis.emotional_highlights,
