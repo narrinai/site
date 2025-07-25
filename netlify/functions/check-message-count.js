@@ -43,7 +43,7 @@ exports.handler = async (event, context) => {
     const escapedEmail = user_email.replace(/'/g, "\\'");
     
     // First try with both Email and NetlifyUID
-    console.log('🔍 Attempting user lookup with Email and NetlifyUID');
+    console.log('🔍 Attempting user lookup with Email:', user_email, 'and NetlifyUID:', user_uid);
     let userResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=AND({Email}='${escapedEmail}',{NetlifyUID}='${user_uid}')`, {
       headers: {
         'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
