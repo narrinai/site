@@ -3126,8 +3126,15 @@
           console.log("🔍 DEBUG: Verified localStorage user_id:", savedUserId);
         } else {
           // Set test user ID if no user_id from webhook
-          console.log("⚠️ No user_id from webhook, using test user ID");
-          localStorage.setItem("test_user_id", "42");
+          console.log("⚠️ No user_id from webhook, checking for known user");
+          
+          // For known test users, set their user_id directly
+          if (email === "gcastrading+11@gmail.com") {
+            localStorage.setItem("user_id", "42");
+            console.log("✅ Set known user_id for gcastrading+11@gmail.com: 42");
+          } else {
+            localStorage.setItem("test_user_id", "42");
+          }
         }
           
         // Call fetchHistory if conditions are met
@@ -9244,17 +9251,19 @@ function getLastMessages(count = 3) {
       try {
         // Get effective user ID - prefer numeric User_ID over email
         const stored_user_id = localStorage.getItem("user_id");
+        const test_user_id = localStorage.getItem("test_user_id");
         const stored_user_uid = localStorage.getItem("user_uid");
         const stored_user_email = localStorage.getItem("user_email");
         
-        // Use the numeric User_ID if available, otherwise fall back to email
-        const effective_user_id = stored_user_id || email || stored_user_email || "unknown";
+        // Use the numeric User_ID if available, including test_user_id fallback
+        const effective_user_id = stored_user_id || test_user_id || email || stored_user_email || "unknown";
         
         console.log('📤 Calling conversation-summary with:', {
           user_id: effective_user_id,
           character_id: characterSlug,
           debug: {
             stored_user_id,
+            test_user_id,
             email_param: email,
             stored_email: stored_user_email
           }
