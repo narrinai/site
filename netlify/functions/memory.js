@@ -553,8 +553,9 @@ if (!userMatch && Array.isArray(recordUserField) && recordUserField.length > 0) 
             }
           });
           
+          let debugData = null;
           if (debugResponse.ok) {
-            const debugData = await debugResponse.json();
+            debugData = await debugResponse.json();
             console.log('✅ DEBUG - Found', debugData.records.length, 'records for User_ID:', actualUserId);
             if (debugData.records.length > 0) {
               console.log('📊 DEBUG - First record fields:', Object.keys(debugData.records[0].fields));
@@ -573,10 +574,13 @@ if (!userMatch && Array.isArray(recordUserField) && recordUserField.length > 0) 
           }
           
           // Find the correct record from debug results
-          const targetRecord = debugData.records.find(r => {
-            const slugArray = r.fields['Slug (from Character)'];
-            return slugArray && slugArray.includes(characterIdentifier);
-          });
+          let targetRecord = null;
+          if (debugData && debugData.records) {
+            targetRecord = debugData.records.find(r => {
+              const slugArray = r.fields['Slug (from Character)'];
+              return slugArray && slugArray.includes(characterIdentifier);
+            });
+          }
           
           if (targetRecord) {
             console.log('✅ Found matching record in debug data!');
