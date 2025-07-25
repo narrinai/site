@@ -1335,7 +1335,7 @@ body.has-referral-banner {
 }
 
     /* Style the name field in Netlify Identity widget */
-    .netlify-identity-widget input[placeholder="Optional"]::placeholder {
+    .netlify-identity-widget input[placeholder="Nickname"]::placeholder {
       color: #999;
     }
 
@@ -2388,11 +2388,11 @@ if (window.netlifyIdentity) {
   window.netlifyIdentity.on('open', () => {
     console.log('🔓 Netlify Identity modal opened');
     
-    // Function to update the Optional field
+    // Function to update the Nickname field
     const updateOptionalField = () => {
       // Try multiple selectors to find the input
       const selectors = [
-        '.netlify-identity-widget input[placeholder="Optional"]',
+        '.netlify-identity-widget input[placeholder="Optional"], .netlify-identity-widget input[placeholder="Nickname"]',
         '.netlify-identity-widget input[type="text"]:first-of-type',
         '.netlify-identity-widget input[name="name"]',
         '.netlify-identity-widget .formGroup:first-child input'
@@ -2401,7 +2401,7 @@ if (window.netlifyIdentity) {
       let optionalInput = null;
       for (const selector of selectors) {
         optionalInput = document.querySelector(selector);
-        if (optionalInput && (optionalInput.placeholder === 'Optional' || optionalInput.placeholder === '')) {
+        if (optionalInput && (optionalInput.placeholder === 'Optional' || optionalInput.placeholder === 'Nickname' || optionalInput.placeholder === '')) {
           break;
         }
       }
@@ -2430,13 +2430,13 @@ if (window.netlifyIdentity) {
           // Remove any required class from form group
           formGroup.classList.remove('required');
         }
-        console.log('✅ Updated Optional field to Nickname and removed all required attributes');
+        console.log('✅ Updated Nickname field and removed all required attributes');
       }
       
-      // Also update all inputs that might have Optional as placeholder
+      // Also update all inputs that might have Optional or Nickname as placeholder
       const allInputs = document.querySelectorAll('.netlify-identity-widget input');
       allInputs.forEach(input => {
-        if (input.placeholder === 'Optional') {
+        if (input.placeholder === 'Optional' || input.placeholder === 'Nickname') {
           input.placeholder = 'Nickname';
           input.removeAttribute('required');
           input.required = false;

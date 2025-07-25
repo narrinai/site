@@ -2206,7 +2206,7 @@
 
 /* Show the name field but make it optional */
 .netlify-identity-widget input[name="name"],
-.netlify-identity-widget input[placeholder="Optional"],
+.netlify-identity-widget input[placeholder="Nickname"],
 .netlify-identity-widget .formGroup:first-child {
   display: block !important;
 }
@@ -3504,7 +3504,9 @@ function handleLoginSuccess(user, eventType = 'unknown') {
           // Voor nieuwe users: wacht en laad dan profile
           setTimeout(() => {
             loadProfile();
-            setTimeout(handlePostLoginRedirect, 1000);
+            // TEMPORARY: Disable redirect for testing
+            console.log('🚫 Redirect disabled for testing - staying on profile.html');
+            // setTimeout(handlePostLoginRedirect, 1000);
           }, 3000);
         }
         
@@ -3544,17 +3546,17 @@ function handleLoginSuccess(user, eventType = 'unknown') {
         
         // Update Optional field to Name (optional)
         const updateOptionalField = () => {
-          const optionalInput = document.querySelector('.netlify-identity-widget input[placeholder="Optional"]');
+          const optionalInput = document.querySelector('.netlify-identity-widget input[placeholder="Optional"], .netlify-identity-widget input[placeholder="Nickname"]');
           if (optionalInput) {
-            optionalInput.placeholder = 'Name (optional)';
+            optionalInput.placeholder = 'Nickname';
             optionalInput.removeAttribute('required');
-            console.log('✅ Updated Optional field to Name (optional)');
+            console.log('✅ Updated Optional field to Nickname');
           }
           
           const labels = document.querySelectorAll('.netlify-identity-widget label');
           labels.forEach(label => {
             if (label.textContent.trim() === 'Optional' || label.textContent.includes('Optional')) {
-              label.textContent = 'Name (optional)';
+              label.textContent = 'Nickname';
             }
           });
         };
@@ -3943,7 +3945,7 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       // Initialize Netlify Identity
       if (window.netlifyIdentity) {
         window.netlifyIdentity.init({
-          namePlaceholder: 'Optional'
+          namePlaceholder: 'Nickname'
         });
         
         // Check if user is already logged in
@@ -4799,7 +4801,7 @@ function setupModalStyling() {
       
       // Update Optional field
       const updateOptionalField = () => {
-        const optionalInput = document.querySelector('.netlify-identity-widget input[placeholder="Optional"]');
+        const optionalInput = document.querySelector('.netlify-identity-widget input[placeholder="Optional"], .netlify-identity-widget input[placeholder="Nickname"]');
         if (optionalInput) {
           optionalInput.placeholder = 'Name (optional)';
           optionalInput.removeAttribute('required');
