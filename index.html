@@ -2382,11 +2382,14 @@ if (window.netlifyIdentity) {
     const updateOptionalField = () => {
       const optionalInput = document.querySelector('.netlify-identity-widget input[placeholder="Optional"]');
       if (optionalInput) {
-        optionalInput.placeholder = 'Name (optional)';
+        optionalInput.placeholder = 'Nickname';
         optionalInput.removeAttribute('required');
         optionalInput.required = false;
         // Also remove any aria-required attribute
         optionalInput.removeAttribute('aria-required');
+        // Remove validation attributes
+        optionalInput.removeAttribute('data-required');
+        optionalInput.removeAttribute('aria-invalid');
         // Make sure the parent form group doesn't enforce requirement
         const formGroup = optionalInput.closest('.formGroup');
         if (formGroup) {
@@ -2394,15 +2397,21 @@ if (window.netlifyIdentity) {
           if (label) {
             // Remove asterisk from label if present
             label.textContent = label.textContent.replace('*', '');
+            // Update label text
+            if (label.textContent.trim() === 'Optional' || label.textContent.includes('Optional')) {
+              label.textContent = 'Nickname';
+            }
           }
+          // Remove any required class from form group
+          formGroup.classList.remove('required');
         }
-        console.log('✅ Updated Optional field to Name (optional) and removed all required attributes');
+        console.log('✅ Updated Optional field to Nickname and removed all required attributes');
       }
       
       const labels = document.querySelectorAll('.netlify-identity-widget label');
       labels.forEach(label => {
         if (label.textContent.trim() === 'Optional' || label.textContent.includes('Optional')) {
-          label.textContent = 'Name (optional)';
+          label.textContent = 'Nickname';
         }
       });
     };

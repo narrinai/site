@@ -222,11 +222,11 @@ exports.handler = async (event, context) => {
     let allChatHistory = [];
     let offset = null;
     
-    // Strategy 1: Try with custom User_ID and character name (based on ChatHistory table structure)
+    // Strategy 1: Try filtering by User record ID (linked record field)
     do {
-      // Use custom User_ID and character name
-      // Limit to 20 most recent records, but sort ascending so they display in correct order
-      let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${customUserId}',{Character}='${escapedCharacterName}')&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=20`;
+      // Use the Airtable record ID for more reliable filtering
+      // Limit to 20 most recent records, sort descending to get newest first
+      let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND(SEARCH('${userRecordId}',ARRAYJOIN({User})),SEARCH('${character_id}',ARRAYJOIN({Character})))&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=20`;
       
       if (offset) {
         url += `&offset=${offset}`;
@@ -251,7 +251,8 @@ exports.handler = async (event, context) => {
       
     } while (offset);
 
-    console.log('💬 Total chat history records found with User_ID and character name:', allChatHistory.length);
+    console.log('💬 Total chat history records found with User record ID and character ID:', allChatHistory.length);
+    console.log('🔍 Search criteria used - User Record ID:', userRecordId, 'Character ID:', character_id);
 
     // Stap 4: Format de chat history voor frontend
     const formattedHistory = allChatHistory.map(record => ({
