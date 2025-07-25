@@ -9198,7 +9198,14 @@ function getLastMessages(count = 3) {
             console.log('ℹ️ Not showing rating - messageCount:', messageCount, 'shouldShow:', data.should_show_rating);
           }
         } else {
-          console.log('❌ Rating check response not OK:', response.status);
+          console.error('❌ Rating check response not OK:', response.status);
+          try {
+            const errorData = await response.json();
+            console.error('❌ Error details:', errorData);
+          } catch (e) {
+            const errorText = await response.text();
+            console.error('❌ Error text:', errorText);
+          }
         }
       } catch (error) {
         console.error('❌ Error checking message count:', error);
