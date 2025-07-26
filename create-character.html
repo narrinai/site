@@ -3272,15 +3272,34 @@
      
      if (window.netlifyIdentity) {
        window.netlifyIdentity.on('init', user => {
+         if (user) {
+           // Store user data when already logged in
+           localStorage.setItem('user_email', user.email);
+           localStorage.setItem('user_token', user.token?.access_token || 'true');
+           localStorage.setItem('user_uid', user.id);
+           localStorage.setItem('netlify_uid', user.id);
+         }
          updateLoginButton();
        });
 
        window.netlifyIdentity.on('login', user => {
+         // Store user data on login
+         localStorage.setItem('user_email', user.email);
+         localStorage.setItem('user_token', user.token?.access_token || 'true');
+         localStorage.setItem('user_uid', user.id);
+         localStorage.setItem('netlify_uid', user.id);
+         
          updateLoginButton();
          window.netlifyIdentity.close();
        });
 
        window.netlifyIdentity.on('logout', () => {
+         // Clear user data
+         localStorage.removeItem('user_email');
+         localStorage.removeItem('user_token');
+         localStorage.removeItem('user_uid');
+         localStorage.removeItem('netlify_uid');
+         
          updateLoginButton();
        });
      }
