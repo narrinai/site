@@ -25,33 +25,43 @@ exports.handler = async (event, context) => {
 
   try {
     const { 
-      user_id, 
-      character_id, 
+      netlify_uid,
+      user_id,  // Keep for backward compatibility
+      character_slug,
+      character_id,  // Keep for backward compatibility
       emotional_state,
       topics,
       message_count 
     } = JSON.parse(event.body);
     
-    console.log('🔄 Updating relationship:', { user_id, character_id, user_id_type: typeof user_id });
+    // Use new fields with fallback to old ones
+    const userIdentifier = netlify_uid || user_id;
+    const characterIdentifier = character_slug || character_id;
+    
+    console.log('🔄 Updating relationship:', { netlify_uid, character_slug, fallback_user: user_id });
 
     // First we need to find the actual Airtable record IDs
     // Handle different user identification methods
     let userFilter;
     let userData = null;
     
-    if (!user_id) {
+    if (!userIdentifier) {
       throw new Error('No valid user identifier provided');
     }
     
-    // Try email lookup first (most reliable)
-    if (user_id.includes('@')) {
-      // It's an email address
-      userFilter = `{Email}='${user_id}'`;
-      console.log('🔍 Looking up user by email:', user_id);
+    // NetlifyUID is primary identifier
+    if (netlify_uid) {
+      // Use NetlifyUID
+      userFilter = `{NetlifyUID}='${netlify_uid}'`;
+      console.log('🔍 Looking up user by NetlifyUID:', netlify_uid);
+    } else if (userIdentifier.includes('@')) {
+      // Fallback to email
+      userFilter = `{Email}='${userIdentifier}'`;
+      console.log('🔍 Looking up user by email:', userIdentifier);
     } else {
-      // Try User_ID field for numeric IDs
-      userFilter = `{User_ID}='${user_id}'`;
-      console.log('🔍 Looking up user by User_ID:', user_id);
+      // Last resort: User_ID field
+      userFilter = `{User_ID}='${userIdentifier}'`;
+      console.log('🔍 Looking up user by User_ID:', userIdentifier);
     }
     
     const userUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=${encodeURIComponent(userFilter)}`;
@@ -112,7 +122,7 @@ exports.handler = async (event, context) => {
     console.log('✅ Primary user record:', userRecordId, 'with fields:', Object.keys(userFields));
     
     // Get Character record by slug
-    const charUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula={Slug}='${character_id}'&maxRecords=1`;
+    const charUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula={Slug}='${characterIdentifier}'&maxRecords=1`;
     console.log('🔍 Character lookup URL:', charUrl);
     
     const charResponse = await fetch(charUrl, {

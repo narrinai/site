@@ -4651,9 +4651,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Debug: Log the exact request data
         const requestData = {
           user_email: email,
-          user_uid: uid,
+          netlify_uid: uid,  // Use consistent naming
           user_token: token,
-          char: characterSlug
+          character_slug: characterSlug  // Use consistent naming
         };
         console.log('📤 Sending to get-chat-history:', requestData);
         console.log('📤 Character slug:', characterSlug);
@@ -5425,10 +5425,9 @@ async function getMemoriesDirectFallback(userId, characterId) {
         
         const requestData = {
             user_email: email,
-            user_uid: uid,
+            netlify_uid: uid,  // Use consistent naming
             user_token: token,
-            user_id: userId,
-            char: characterId,
+            character_slug: characterId,  // Use consistent naming
             memory_focus: true,
             debug_mode: true
         };
@@ -5555,9 +5554,7 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
             message: message,
             context: conversationContext || '',
             user_email: stored_user_email,
-            character_slug: characterSlug,
-            // Legacy fields for backward compatibility
-            user_id: stored_user_id || stored_user_email
+            character_slug: characterSlug
         };
         
         console.log("📤 FULL Memory request data:", requestData);
@@ -6009,10 +6006,9 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
   try {
     const requestPayload = {
       user_email: email,
-      user_uid: uid,
+      netlify_uid: uid,  // Use consistent naming
       user_token: token,
-      user_id: user_id || null,
-      char: characterSlug
+      character_slug: characterSlug  // Use consistent naming
     };
     
     console.log("📤 Request payload:", requestPayload);
@@ -6309,9 +6305,9 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             user_email: email,
-            user_uid: uid,
+            netlify_uid: uid,  // Use consistent naming
             user_token: token,
-            char: characterSlug,
+            character_slug: characterSlug,  // Use consistent naming
             user_message: '',  // Empty user message for starter
             ai_response: starterMessage,
             is_starter: true  // Flag to identify this as a starter
@@ -8828,12 +8824,10 @@ showTypingIndicator();
       emotional_complexity: emotionalComplexity, // Emotional complexity score for analytics only
       relationship_phase: relationshipContext?.phase || 'new',
       total_messages: relationshipContext?.totalMessages || 0,
-      Character_id: characterSlug,
-      Slug: characterSlug,
-      user_uid: uid,  // PRIMARY identifier - NetlifyUID
+      character_slug: characterSlug,  // Use consistent naming
+      netlify_uid: uid,  // PRIMARY identifier - NetlifyUID
       user_token: token,  // For authentication
       user_email: email,  // Voor display/notifications
-      user_id: user_id || null,  // Legacy User_ID indien nodig
       // Include custom prompt if character has been customized
       custom_prompt: currentCharacter?.customPrompt || null,
       is_customized: currentCharacter?.isCustomized || false
@@ -9585,8 +9579,8 @@ document.addEventListener('DOMContentLoaded', () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            user_id: effective_user_id,
-            character_id: characterSlug,
+            netlify_uid: uid || stored_user_uid,  // Use NetlifyUID
+            character_slug: characterSlug,  // Use consistent naming
             emotional_state: emotionalState,
             topics: topics,
             message_count: 1
@@ -9632,8 +9626,8 @@ document.addEventListener('DOMContentLoaded', () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            user_id: effective_user_id,
-            character_id: characterSlug,
+            netlify_uid: uid || stored_user_uid,  // Use NetlifyUID
+            character_slug: characterSlug,  // Use consistent naming
             force_summary: true  // Force summary even with few messages
           })
         });
