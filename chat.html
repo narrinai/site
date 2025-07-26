@@ -5325,13 +5325,10 @@ async function getRelevantMemories(userId, characterId, currentMessage) {
         const functionUrl = '/.netlify/functions/memory';
         console.log('📡 Testing memory function URL:', functionUrl);
         
-        const email = localStorage.getItem("user_email");
         const userUid = localStorage.getItem("user_uid");
         const requestData = {
             action: 'get_memories',
-            user_id: userUid || email || userId,  // Prefer NetlifyUID to match ChatHistory records
-            user_email: email,
-            character_id: characterId,
+            user_uid: userUid || userId,  // Use NetlifyUID from localStorage
             character_slug: characterId,
             current_message: currentMessage,
             min_importance: 1,
@@ -6631,9 +6628,7 @@ async function getMemoryBasedTopics() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'get_memories',
-          user_id: uid || email,
-          user_email: email,
-          character_id: characterSlug || currentCharacter.Slug || currentCharacter.slug,
+          user_uid: uid,
           character_slug: characterSlug || currentCharacter.Slug || currentCharacter.slug,
           current_message: '',
           min_importance: 1,
@@ -8813,10 +8808,10 @@ showTypingIndicator();
       total_messages: relationshipContext?.totalMessages || 0,
       Character_id: characterSlug,
       Slug: characterSlug,
-      user_uid: uid,
-      user_token: token,
-      user_email: email,
-      user_id: user_id || null,
+      user_uid: uid,  // PRIMARY identifier - NetlifyUID
+      user_token: token,  // For authentication
+      user_email: email,  // Voor display/notifications
+      user_id: user_id || null,  // Legacy User_ID indien nodig
       // Include custom prompt if character has been customized
       custom_prompt: currentCharacter?.customPrompt || null,
       is_customized: currentCharacter?.isCustomized || false

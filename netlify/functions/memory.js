@@ -25,127 +25,56 @@ exports.handler = async (event, context) => {
 
  try {
    const body = JSON.parse(event.body || '{}');
-   const { action, user_id, character_id, character_slug, min_importance = 1, max_results = 5 } = body;
+   const { action, user_uid, character_slug, min_importance = 1, max_results = 5 } = body;
    
    if (action === 'get_memories') {
-     console.log('🔍 Getting memories for:', { user_id, character_id, character_slug, min_importance });
+     console.log('🔍 Getting memories for:', { user_uid, character_slug, min_importance });
     console.log('🔍 Environment check:', { 
       hasBaseId: !!AIRTABLE_BASE_ID, 
       hasApiKey: !!AIRTABLE_API_KEY,
       baseIdLength: AIRTABLE_BASE_ID?.length || 0 
     });
      
-     // First, look up the user's Airtable record ID
+     // Look up user by NetlifyUID - GEEN fallbacks
      let userRecordId = null;
+     let userNetlifyUID = null;
      
-     // If user_id is already a record ID, use it directly
-     if (user_id && user_id.startsWith('rec')) {
-       userRecordId = user_id;
-       console.log('✅ Using provided record ID:', userRecordId);
-     } else if (user_id && user_id.includes('@')) {
-       // Look up user by email - maar we hebben geen NetlifyUID voor strikte verificatie
-       console.log('📧 Looking up user by email (WARNING: No UID for verification):', user_id);
-       const escapedEmail = user_id.replace(/'/g, "\\'");
-      const emailFilter = `{Email}='${escapedEmail}'`;
-      const emailLookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=${encodeURIComponent(emailFilter)}&maxRecords=1`;
-       
-       try {
-         const emailLookupResponse = await fetch(emailLookupUrl, {
-           headers: {
-             'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
-             'Content-Type': 'application/json'
-           }
-         });
-         
-         if (emailLookupResponse.ok) {
-           const emailUserData = await emailLookupResponse.json();
-           if (emailUserData.records.length > 0) {
-             userRecordId = emailUserData.records[0].id;
-             console.log('✅ Found user by email, record ID:', userRecordId);
-           } else {
-             console.log('❌ No user found with email:', user_id);
-           }
-         } else {
-           const errorText = await emailLookupResponse.text();
-           console.error('❌ Email lookup API error:', emailLookupResponse.status, errorText);
-         }
-       } catch (err) {
-         console.error('❌ Error looking up user by email:', err);
+     if (!user_uid) {
+       console.log('❌ No user_uid provided');
+       return {
+         statusCode: 400,
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({ error: 'user_uid is required' })
+       };
+     }
+     
+     console.log('👤 Looking up user by NetlifyUID:', user_uid);
+     const userLookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={NetlifyUID}='${user_uid}'&maxRecords=1`;
+     
+     const userLookupResponse = await fetch(userLookupUrl, {
+       headers: {
+         'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+         'Content-Type': 'application/json'
        }
-     } else if (user_id) {
-       // Look up user by User_ID field
-       console.log('👤 Looking up user record for User_ID:', user_id);
-       const userLookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={User_ID}='${user_id}'&maxRecords=1`;
-       
-       try {
-         const userLookupResponse = await fetch(userLookupUrl, {
-           headers: {
-             'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
-             'Content-Type': 'application/json'
-           }
-         });
-         
-         if (userLookupResponse.ok) {
-           const userData = await userLookupResponse.json();
-           if (userData.records.length > 0) {
-             userRecordId = userData.records[0].id;
-             console.log('✅ Found user record ID:', userRecordId);
-           } else {
-             console.log('❌ No user found with User_ID:', user_id);
-             
-             // Try NetlifyUID lookup
-             console.log('🔄 Trying NetlifyUID lookup...');
-             const netlifyLookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={NetlifyUID}='${user_id}'&maxRecords=1`;
-             try {
-               const netlifyLookupResponse = await fetch(netlifyLookupUrl, {
-                 headers: {
-                   'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
-                   'Content-Type': 'application/json'
-                 }
-               });
-               
-               if (netlifyLookupResponse.ok) {
-                 const netlifyUserData = await netlifyLookupResponse.json();
-                 if (netlifyUserData.records.length > 0) {
-                   userRecordId = netlifyUserData.records[0].id;
-                   console.log('✅ Found user record ID by NetlifyUID:', userRecordId);
-                 } else {
-                   console.log('❌ No user found with NetlifyUID:', user_id);
-                 }
-               }
-             } catch (netlifyErr) {
-               console.error('❌ NetlifyUID lookup error:', netlifyErr);
-             }
-             
-             // Try to find by email from the request if provided
-             if (!userRecordId && (body.user_email || (user_id && user_id.includes('@')))) {
-               const emailToLookup = body.user_email || user_id;
-               console.log('🔄 Trying email lookup for:', emailToLookup);
-               const escapedEmailLookup = emailToLookup.replace(/'/g, "\\'");
-               const emailLookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={Email}='${escapedEmailLookup}'&maxRecords=1`;
-               const emailLookupResponse = await fetch(emailLookupUrl, {
-                 headers: {
-                   'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
-                   'Content-Type': 'application/json'
-                 }
-               });
-               
-               if (emailLookupResponse.ok) {
-                 const emailUserData = await emailLookupResponse.json();
-                 if (emailUserData.records.length > 0) {
-                   userRecordId = emailUserData.records[0].id;
-                   console.log('✅ Found user by email:', userRecordId);
-                 }
-               }
-             }
-           }
-         } else {
-           const errorText = await userLookupResponse.text();
-           console.error('❌ User lookup API error:', userLookupResponse.status, errorText);
-         }
-       } catch (err) {
-         console.error('❌ Error looking up user:', err);
-       }
+     });
+     
+     if (!userLookupResponse.ok) {
+       console.error('❌ User lookup failed:', userLookupResponse.status);
+       throw new Error(`User lookup failed: ${userLookupResponse.status}`);
+     }
+     
+     const userData = await userLookupResponse.json();
+     if (userData.records.length > 0) {
+       userRecordId = userData.records[0].id;
+       userNetlifyUID = userData.records[0].fields.NetlifyUID;
+       console.log('✅ Found user record ID:', userRecordId, 'NetlifyUID:', userNetlifyUID);
+     } else {
+       console.log('❌ No user found with NetlifyUID:', user_uid);
+       return {
+         statusCode: 404,
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({ error: 'User not found' })
+       };
      }
      
      // Get recent records
@@ -206,11 +135,11 @@ exports.handler = async (event, context) => {
        };
      }
      
-     // FIXED: Search in correct fields
-     const characterIdentifier = character_id || character_slug; // edward-elric
+     // Use character slug as identifier
+     const characterIdentifier = character_slug;
      const memories = [];
      
-     console.log('🔍 Searching for user:', user_id, 'character:', characterIdentifier);
+     console.log('🔍 Searching for memories - NetlifyUID:', user_uid, 'Character:', characterIdentifier);
      console.log('🔍 Total records to check:', data.records.length);
      
      // Debug: collect info about all records for response
@@ -296,11 +225,11 @@ const recordUserField = fields.User; // Can be string (User_ID like "42") or arr
 const recordUserEmail = fields.Email || fields['Email (from Email)'] || fields.User_Email;
 let userMatch = false;
 
-// First check if User field is a string (User_ID)
+// First check if User field is a string (NetlifyUID)
 if (recordUserField && !Array.isArray(recordUserField)) {
   // Direct string comparison
-  userMatch = String(recordUserField) === String(user_id);
-  console.log(`👤 User field (string) match check: "${recordUserField}" === "${user_id}" = ${userMatch}`);
+  userMatch = String(recordUserField) === String(user_uid);
+  console.log(`👤 User field (string) match check: "${recordUserField}" === "${user_uid}" = ${userMatch}`);
 }
 
 // If User field is an array of record IDs
