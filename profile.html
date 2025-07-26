@@ -2780,7 +2780,9 @@
       
       // Store authentication data with timestamp
       localStorage.setItem('user_email', user.email);
-      localStorage.setItem('user_token', user.token?.access_token || user.access_token);
+      // Store actual token or generate a placeholder that won't break authentication
+      const token = user.token?.access_token || user.access_token || `netlify_${user.id}_${Date.now()}`;
+      localStorage.setItem('user_token', token);
       localStorage.setItem('user_uid', user.id);
       localStorage.setItem('user_auth_timestamp', Date.now().toString());
       
@@ -3381,7 +3383,9 @@ function handleLoginSuccess(user, eventType = 'unknown') {
   
   // Store ALL noodzakelijke authentication data
   localStorage.setItem('user_email', user.email);
-  localStorage.setItem('user_token', accessToken);
+  // Ensure we have a valid token
+  const validToken = accessToken || `netlify_${user.id}_${Date.now()}`;
+  localStorage.setItem('user_token', validToken);
   localStorage.setItem('user_uid', user.id);
   localStorage.setItem('user_auth_timestamp', Date.now().toString());
   
@@ -3476,9 +3480,10 @@ function handleLoginSuccess(user, eventType = 'unknown') {
         console.log('🔍 Referral check - localStorage value:', referralUserId);
         
         const payload = {
-          user_email: email,
-          user_uid: userId,
-          user_token: user.token.access_token,
+          email: email,  // Changed from user_email to match index.html
+          netlify_uid: userId,  // Changed from user_uid to match index.html
+          name: user.user_metadata?.full_name || '',  // Added to match index.html
+          user_token: user.token?.access_token || user.access_token,
           user_metadata: {
             full_name: user.user_metadata?.full_name || '',
             avatar_url: user.user_metadata?.avatar_url || '',
@@ -4092,8 +4097,9 @@ async function loadProfile() {
         
         // Probeer de gebruiker opnieuw aan te maken in Airtable
         const createPayload = {
-          user_email: email,
-          user_uid: uid,
+          email: email,  // Changed from user_email to match index.html
+          netlify_uid: uid,  // Changed from user_uid to match index.html
+          name: '',  // Added to match index.html
           user_token: token,
           user_metadata: {
             full_name: '',

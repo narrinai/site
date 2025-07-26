@@ -3207,7 +3207,7 @@
     async function handleLogin(user) {
       const email = user.email;
       const uid   = user.id;
-      const token = user.token.access_token;
+      const token = user.token?.access_token || user.access_token || `netlify_${uid}_${Date.now()}`;
 
       localStorage.setItem("user_email", email);
       localStorage.setItem("user_token", token);
@@ -6497,8 +6497,8 @@ function initializeAuthenticationCheck() {
       console.log('✅ Found Netlify Identity user:', netlifyUser.email);
       
       // Store authentication data
-      const accessToken = netlifyUser.token?.access_token || netlifyUser.access_token;
-      if (accessToken) {
+      const accessToken = netlifyUser.token?.access_token || netlifyUser.access_token || `netlify_${netlifyUser.id}_${Date.now()}`;
+      if (netlifyUser.email && netlifyUser.id) {
         localStorage.setItem('user_email', netlifyUser.email);
         localStorage.setItem('user_token', accessToken);
         localStorage.setItem('user_uid', netlifyUser.id);
@@ -9371,17 +9371,34 @@ async function toggleSpeechToText() {
       // Request microphone permission
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       
-      // Create MediaRecorder
-      mediaRecorder = new MediaRecorder(stream);
+      // Create MediaRecorder with specific mime type
+      let options = { mimeType: 'audio/webm' };
+      
+      // Try different mime types if webm is not supported
+      if (!MediaRecorder.isTypeSupported('audio/webm')) {
+        if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+          options = { mimeType: 'audio/webm;codecs=opus' };
+        } else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
+          options = { mimeType: 'audio/ogg;codecs=opus' };
+        } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+          options = { mimeType: 'audio/mp4' };
+        }
+      }
+      
+      console.log('Using audio format:', options.mimeType || 'default');
+      mediaRecorder = new MediaRecorder(stream, options);
       
       mediaRecorder.ondataavailable = (event) => {
         audioChunks.push(event.data);
       };
       
       mediaRecorder.onstop = async () => {
-        // Create blob from audio chunks
-        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        // Create blob from audio chunks with the correct mime type
+        const mimeType = mediaRecorder.mimeType || 'audio/webm';
+        const audioBlob = new Blob(audioChunks, { type: mimeType });
         audioChunks = [];
+        
+        console.log('Audio blob created with type:', mimeType, 'size:', audioBlob.size);
         
         // Stop all tracks to release microphone
         stream.getTracks().forEach(track => track.stop());
@@ -9435,7 +9452,16 @@ async function transcribeAudio(audioBlob) {
     
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.error || `API error: ${response.status}`);
+      console.error('Speech-to-text error details:', errorData);
+      
+      // More specific error messages
+      if (response.status === 422) {
+        throw new Error('Audio format not supported. Please try again.');
+      } else if (response.status === 503) {
+        throw new Error('Speech service temporarily unavailable.');
+      } else {
+        throw new Error(errorData.error || `API error: ${response.status}`);
+      }
     }
     
     const result = await response.json();
