@@ -26,29 +26,41 @@ exports.handler = async (event, context) => {
 
   try {
     const { 
-      user_id, 
-      character_id,
+      netlify_uid,
+      user_id,  // Keep for backward compatibility
+      slug,
+      character_id,  // Keep for backward compatibility
       force_summary = false 
     } = JSON.parse(event.body);
     
-    console.log('📝 Creating conversation summary:', { user_id, character_id });
+    // Use new fields with fallback to old ones
+    const userIdentifier = netlify_uid || user_id;
+    const characterIdentifier = slug || character_id;
+    
+    console.log('📝 Creating conversation summary:', { netlify_uid, slug, fallback: { user_id, character_id } });
 
     // First, get the Airtable record IDs for User and Character
     // Handle different user identification methods
     let userFilter;
-    let escapedUserId = user_id;
+    let escapedUserId = userIdentifier;
     
-    if (user_id && user_id.includes('@')) {
-      // It's an email address - escape single quotes
-      escapedUserId = user_id.replace(/'/g, "\\'");
-      userFilter = `{Email}='${escapedUserId}'`;
-      console.log('🔍 Looking up user by email:', user_id);
-    } else if (user_id) {
-      // Try User_ID field (numeric ID like "42")
-      userFilter = `{User_ID}='${user_id}'`;
-      console.log('🔍 Looking up user by User_ID:', user_id);
-    } else {
+    if (!userIdentifier) {
       throw new Error('No valid user identifier provided');
+    }
+    
+    // NetlifyUID is primary identifier
+    if (netlify_uid) {
+      userFilter = `{NetlifyUID}='${netlify_uid}'`;
+      console.log('🔍 Looking up user by NetlifyUID:', netlify_uid);
+    } else if (userIdentifier && userIdentifier.includes('@')) {
+      // Fallback to email - escape single quotes
+      escapedUserId = userIdentifier.replace(/'/g, "\\'");
+      userFilter = `{Email}='${escapedUserId}'`;
+      console.log('🔍 Looking up user by email:', userIdentifier);
+    } else if (userIdentifier) {
+      // Last resort: User_ID field
+      userFilter = `{User_ID}='${userIdentifier}'`;
+      console.log('🔍 Looking up user by User_ID:', userIdentifier);
     }
     
     console.log('🔍 Using filter:', userFilter);
@@ -81,7 +93,7 @@ exports.handler = async (event, context) => {
     console.log('✅ Primary user record:', userRecordId, 'with identifier:', customUserId);
     
     // Get Character record by slug
-    const charUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula={Slug}='${character_id}'&maxRecords=1`;
+    const charUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula={Slug}='${characterIdentifier}'&maxRecords=1`;
     const charResponse = await fetch(charUrl, {
       headers: {
         'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -95,7 +107,7 @@ exports.handler = async (event, context) => {
     
     const charData = await charResponse.json();
     if (charData.records.length === 0) {
-      throw new Error(`Character not found with slug: ${character_id}`);
+      throw new Error(`Character not found with slug: ${characterIdentifier}`);
     }
     
     const charRecordId = charData.records[0].id;
@@ -198,17 +210,17 @@ Keep it under 150 words. Format as JSON with fields: summary, topics (array), em
       };
     }
 
-    // Save to ConversationSummaries table - Start with minimal fields
+    // Save to ConversationSummaries table - Using linked records
     const summaryFields = {
-      user_id: String(customUserId),  // Try with plain user_id first
-      character_id: character_id,  // Use character slug
+      User: [userRecordId],  // Link to User record
+      Character: [charRecordId],  // Link to Character record
       Conversation_Date: new Date().toISOString(),
       Summary: String(analysis.summary || 'No summary generated')
     };
     
     console.log('💾 Saving summary with MINIMAL fields:', JSON.stringify(summaryFields, null, 2));
     console.log('📊 Debug - userRecordId:', userRecordId, 'charRecordId:', charRecordId);
-    console.log('📊 Debug - customUserId:', customUserId, 'character_id:', character_id);
+    console.log('📊 Debug - customUserId:', customUserId, 'characterIdentifier:', characterIdentifier);
     
     const createSummaryResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ConversationSummaries`, {
       method: 'POST',

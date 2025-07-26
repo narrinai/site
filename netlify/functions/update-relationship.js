@@ -27,7 +27,7 @@ exports.handler = async (event, context) => {
     const { 
       netlify_uid,
       user_id,  // Keep for backward compatibility
-      character_slug,
+      slug,
       character_id,  // Keep for backward compatibility
       emotional_state,
       topics,
@@ -36,9 +36,9 @@ exports.handler = async (event, context) => {
     
     // Use new fields with fallback to old ones
     const userIdentifier = netlify_uid || user_id;
-    const characterIdentifier = character_slug || character_id;
+    const characterIdentifier = slug || character_id;
     
-    console.log('🔄 Updating relationship:', { netlify_uid, character_slug, fallback_user: user_id });
+    console.log('🔄 Updating relationship:', { netlify_uid, slug, fallback_character: character_id });
 
     // First we need to find the actual Airtable record IDs
     // Handle different user identification methods

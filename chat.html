@@ -4653,7 +4653,7 @@ document.addEventListener('DOMContentLoaded', () => {
           user_email: email,
           netlify_uid: uid,  // Use consistent naming
           user_token: token,
-          character_slug: characterSlug  // Use consistent naming
+          slug: characterSlug  // Use consistent naming
         };
         console.log('📤 Sending to get-chat-history:', requestData);
         console.log('📤 Character slug:', characterSlug);
@@ -5350,7 +5350,7 @@ async function getRelevantMemories(userId, characterId, currentMessage) {
         const requestData = {
             action: 'get_memories',
             user_uid: userUid || userId,  // Use NetlifyUID from localStorage
-            character_slug: characterId,
+            slug: characterId,
             current_message: currentMessage,
             min_importance: 1,
             max_results: 5
@@ -5427,7 +5427,7 @@ async function getMemoriesDirectFallback(userId, characterId) {
             user_email: email,
             netlify_uid: uid,  // Use consistent naming
             user_token: token,
-            character_slug: characterId,  // Use consistent naming
+            slug: characterId,  // Use consistent naming
             memory_focus: true,
             debug_mode: true
         };
@@ -5554,7 +5554,7 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
             message: message,
             context: conversationContext || '',
             user_email: stored_user_email,
-            character_slug: characterSlug
+            slug: characterSlug
         };
         
         console.log("📤 FULL Memory request data:", requestData);
@@ -6008,7 +6008,7 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       user_email: email,
       netlify_uid: uid,  // Use consistent naming
       user_token: token,
-      character_slug: characterSlug  // Use consistent naming
+      slug: characterSlug  // Use consistent naming
     };
     
     console.log("📤 Request payload:", requestPayload);
@@ -6307,7 +6307,7 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
             user_email: email,
             netlify_uid: uid,  // Use consistent naming
             user_token: token,
-            character_slug: characterSlug,  // Use consistent naming
+            slug: characterSlug,  // Match Airtable field name
             user_message: '',  // Empty user message for starter
             ai_response: starterMessage,
             is_starter: true  // Flag to identify this as a starter
@@ -6647,7 +6647,7 @@ async function getMemoryBasedTopics() {
         body: JSON.stringify({
           action: 'get_memories',
           user_uid: uid,
-          character_slug: characterSlug || currentCharacter.Slug || currentCharacter.slug,
+          slug: characterSlug || currentCharacter.Slug || currentCharacter.slug,
           current_message: '',
           min_importance: 1,
           max_results: 5
@@ -7714,7 +7714,7 @@ function initializeCustomizationForm() {
                 body: JSON.stringify({
                   user_id: userId,
                   user_email: userEmail,
-                  source_character_slug: characterSlug,
+                  source_slug: characterSlug,
                   target_character_slug: customSlug,
                   target_character_id: targetId
                 })
@@ -8824,7 +8824,7 @@ showTypingIndicator();
       emotional_complexity: emotionalComplexity, // Emotional complexity score for analytics only
       relationship_phase: relationshipContext?.phase || 'new',
       total_messages: relationshipContext?.totalMessages || 0,
-      character_slug: characterSlug,  // Use consistent naming
+      slug: characterSlug,  // Match Airtable field name
       netlify_uid: uid,  // PRIMARY identifier - NetlifyUID
       user_token: token,  // For authentication
       user_email: email,  // Voor display/notifications
@@ -9580,7 +9580,7 @@ document.addEventListener('DOMContentLoaded', () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             netlify_uid: uid || stored_user_uid,  // Use NetlifyUID
-            character_slug: characterSlug,  // Use consistent naming
+            slug: characterSlug,  // Match Airtable field name
             emotional_state: emotionalState,
             topics: topics,
             message_count: 1
@@ -9627,7 +9627,7 @@ document.addEventListener('DOMContentLoaded', () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             netlify_uid: uid || stored_user_uid,  // Use NetlifyUID
-            character_slug: characterSlug,  // Use consistent naming
+            slug: characterSlug,  // Match Airtable field name
             force_summary: true  // Force summary even with few messages
           })
         });
