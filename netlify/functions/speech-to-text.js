@@ -18,12 +18,33 @@ exports.handler = async (event, context) => {
       };
     }
 
+    // Check if API key is configured
+    if (!process.env.ELEVENLABS_API_KEY) {
+      console.error('❌ ElevenLabs API key not configured');
+      return {
+        statusCode: 503,
+        body: JSON.stringify({ 
+          error: 'Speech-to-text service not configured', 
+          message: 'ELEVENLABS_API_KEY environment variable is missing' 
+        })
+      };
+    }
+
+    // Remove data URL prefix if present
+    const base64Data = audio.replace(/^data:audio\/\w+;base64,/, '');
+    
     // Convert base64 audio to blob
-    const audioBuffer = Buffer.from(audio, 'base64');
+    const audioBuffer = Buffer.from(base64Data, 'base64');
+    
+    // Log for debugging
+    console.log('Audio buffer size:', audioBuffer.length);
+    console.log('API Key exists:', !!process.env.ELEVENLABS_API_KEY);
     
     // Create form data for ElevenLabs API
     const FormData = require('form-data');
     const form = new FormData();
+    
+    // Try to support multiple audio formats
     form.append('audio', audioBuffer, {
       filename: 'audio.webm',
       contentType: 'audio/webm'
@@ -40,16 +61,29 @@ exports.handler = async (event, context) => {
       body: form
     });
 
+    const responseText = await response.text();
+    console.log('ElevenLabs response status:', response.status);
+    console.log('ElevenLabs response:', responseText);
+
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ ElevenLabs API error:', response.status, errorText);
+      console.error('❌ ElevenLabs API error:', response.status, responseText);
       return {
         statusCode: response.status,
-        body: JSON.stringify({ error: 'Speech-to-text API error', details: errorText })
+        body: JSON.stringify({ 
+          error: 'Speech-to-text API error', 
+          details: responseText,
+          status: response.status 
+        })
       };
     }
 
-    const result = await response.json();
+    let result;
+    try {
+      result = JSON.parse(responseText);
+    } catch (e) {
+      console.error('Failed to parse response:', e);
+      result = { text: responseText };
+    }
     
     return {
       statusCode: 200,
