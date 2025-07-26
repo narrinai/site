@@ -3207,7 +3207,7 @@
     async function handleLogin(user) {
       const email = user.email;
       const uid   = user.id;
-      const token = user.token?.access_token || user.access_token || `netlify_${uid}_${Date.now()}`;
+      const token = user.token.access_token;
 
       localStorage.setItem("user_email", email);
       localStorage.setItem("user_token", token);
@@ -6497,8 +6497,8 @@ function initializeAuthenticationCheck() {
       console.log('✅ Found Netlify Identity user:', netlifyUser.email);
       
       // Store authentication data
-      const accessToken = netlifyUser.token?.access_token || netlifyUser.access_token || `netlify_${netlifyUser.id}_${Date.now()}`;
-      if (netlifyUser.email && netlifyUser.id) {
+      const accessToken = netlifyUser.token?.access_token || netlifyUser.access_token;
+      if (accessToken) {
         localStorage.setItem('user_email', netlifyUser.email);
         localStorage.setItem('user_token', accessToken);
         localStorage.setItem('user_uid', netlifyUser.id);

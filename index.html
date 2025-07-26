@@ -2327,9 +2327,7 @@ function processNetlifyData(characters, category, gridId, limit) {
       
       // Store authentication data in localStorage
       localStorage.setItem('user_email', user.email);
-      // Store actual token or generate a placeholder that won't break authentication
-      const token = user.token?.access_token || user.access_token || `netlify_${user.id}_${Date.now()}`;
-      localStorage.setItem('user_token', token);
+      localStorage.setItem('user_token', user.token?.access_token || 'true');
       localStorage.setItem('user_uid', user.id);
       localStorage.setItem('user_auth_timestamp', Date.now().toString());
       localStorage.setItem('user_netlify_data', JSON.stringify(user));
