@@ -2522,13 +2522,23 @@ if (window.netlifyIdentity) {
       body: JSON.stringify(payload)
     }).then(() => {
       console.log('✅ User registered with referral processing');
-      // TEMPORARY: Don't clear referral ID to test
-      // if (referralUserId) {
-      //   localStorage.removeItem('referralUserId');
-      // }
+      // Clear referral ID after successful registration
+      if (referralUserId) {
+        localStorage.removeItem('referralUserId');
+      }
     }).catch(error => {
       console.error('❌ Registration error:', error);
     });
+    
+    // Handle authentication data
+    handleLoginSuccess(user, 'signup');
+    updateLoginButton();
+    
+    // Stay on current page - no redirect
+    console.log('✅ Staying on index page after signup');
+    
+    // Close the identity modal
+    window.netlifyIdentity.close();
   });
 }
 
