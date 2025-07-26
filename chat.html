@@ -3279,13 +3279,9 @@
         if (currentCharacter && 
             (document.readyState === "interactive" || document.readyState === "complete")) {
           console.log("🔄 DEBUG: Calling fetchHistory after user_id is saved...");
-            setTimeout(() => {
-              fetchHistory();
-            }, 500); // Small delay to ensure localStorage is saved
-          }
-        } else {
-          console.warn("⚠️ DEBUG: No valid user_id found in response. UserId value:", userId);
-          console.warn("⚠️ DEBUG: Full response data:", JSON.stringify(data, null, 2));
+          setTimeout(() => {
+            fetchHistory();
+          }, 500); // Small delay to ensure localStorage is saved
         }
       } catch (err) {
         console.error("❌ DEBUG: Error in registration-webhook call:", err);
@@ -5314,6 +5310,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ===== MEMORY SYSTEM VIA NETLIFY FUNCTION (zoals category.html) =====
 // Memory retrieval via Netlify function - same pattern as character loading
+// Helper function to get Airtable User record ID from NetlifyUID
+async function getUserRecordIdFromNetlifyUID(netlifiyUID) {
+    try {
+        console.log('🔍 Looking up Airtable record ID for NetlifyUID:', netlifiyUID);
+        
+        const response = await fetch('/.netlify/functions/get-user-record-id', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ netlify_uid: netlifiyUID })
+        });
+        
+        if (!response.ok) {
+            console.error('❌ Failed to get user record ID:', response.status);
+            return null;
+        }
+        
+        const data = await response.json();
+        console.log('✅ Found user record ID:', data.record_id);
+        return data.record_id;
+    } catch (error) {
+        console.error('❌ Error getting user record ID:', error);
+        return null;
+    }
+}
+
 // ===== MEMORY SYSTEM VIA NETLIFY FUNCTION (zoals category.html) =====
 // Memory retrieval via Netlify function - same pattern as character loading
 async function getRelevantMemories(userId, characterId, currentMessage) {
@@ -5529,13 +5550,14 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
         });
         
         const requestData = {
-            record_id: recordId || null,
+            // Use NetlifyUID as primary identifier
+            netlify_uid: stored_user_uid,
             message: message,
             context: conversationContext || '',
-            user_id: stored_user_id || stored_user_uid || stored_user_email,
             user_email: stored_user_email,
-            user_uid: stored_user_uid,
-            character_id: characterSlug
+            character_slug: characterSlug,
+            // Legacy fields for backward compatibility
+            user_id: stored_user_id || stored_user_email
         };
         
         console.log("📤 FULL Memory request data:", requestData);

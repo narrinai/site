@@ -25,10 +25,10 @@ exports.handler = async (event, context) => {
 
  try {
    const body = JSON.parse(event.body || '{}');
-   const { action, user_uid, character_slug, min_importance = 1, max_results = 5 } = body;
+   const { action, user_uid, character_slug, min_importance = 1, max_results = 5, user_id, user_email } = body;
    
    if (action === 'get_memories') {
-     console.log('🔍 Getting memories for:', { user_uid, character_slug, min_importance });
+     console.log('🔍 Getting memories for:', { user_uid, character_slug, min_importance, user_id, user_email });
     console.log('🔍 Environment check:', { 
       hasBaseId: !!AIRTABLE_BASE_ID, 
       hasApiKey: !!AIRTABLE_API_KEY,

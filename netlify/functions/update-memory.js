@@ -97,7 +97,7 @@ exports.handler = async (event, context) => {
     const body = JSON.parse(event.body || '{}');
     console.log('📋 Parsed body:', body);
     
-    const { record_id, message, context, user_id, character_id, debug_mode, character_slug, expected_character } = body;
+    const { record_id, message, context, user_id, character_id, debug_mode, character_slug, expected_character, netlify_uid, user_email } = body;
 
     // DEBUG MODE: Extra logging als debug_mode is ingeschakeld
     if (debug_mode) {
@@ -306,21 +306,113 @@ exports.handler = async (event, context) => {
       console.log('🔍 No specific record_id, searching for recent record...');
       
       // Strategy 2: Zoek naar recente record van deze user
-      const user_id_param = body.user_id || body.user_uid || body.user_email;
-      const user_email = body.user_email;
-      const user_uid = body.user_uid;
+      // Prioritize NetlifyUID as primary identifier
+      const user_id_param = netlify_uid || body.user_uid || body.user_id || body.user_email;
+      const user_uid = netlify_uid || body.user_uid;
       
       console.log('🔍 User search parameters:', {
-        user_id: user_id_param,
-        user_email: user_email,
+        netlify_uid: netlify_uid,
         user_uid: user_uid,
-        character_id: character_id
+        user_email: user_email,
+        user_id: body.user_id,
+        character_slug: character_slug || character_id
       });
       
       if (user_id_param || user_email || user_uid) {
         console.log('🔍 Searching for user records...');
         
-        // Strategy 2A: Directe filter met User ID (linked record)
+        // Strategy 2A: NetlifyUID lookup - HIGHEST PRIORITY
+        if (user_uid && user_uid !== 'null' && user_uid !== '') {
+          console.log('🎯 Trying NetlifyUID filter:', user_uid);
+          
+          // First, look up the user by NetlifyUID to get their Airtable record ID
+          const userLookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={NetlifyUID}='${user_uid}'&maxRecords=1`;
+          
+          const userLookupResponse = await fetch(userLookupUrl, {
+            headers: {
+              'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (userLookupResponse.ok) {
+            const userData = await userLookupResponse.json();
+            if (userData.records.length > 0) {
+              const userRecordId = userData.records[0].id;
+              console.log('✅ Found user record ID from NetlifyUID:', userRecordId);
+              
+              // Now search ChatHistory with this user record ID
+              const chatFilter = `{User} = '${userRecordId}'`;
+              const chatUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=${encodeURIComponent(chatFilter)}&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=5`;
+              
+              const chatResponse = await fetch(chatUrl, {
+                headers: {
+                  'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+                  'Content-Type': 'application/json'
+                }
+              });
+              
+              if (chatResponse.ok) {
+                const chatData = await chatResponse.json();
+                console.log('📊 NetlifyUID lookup found', chatData.records.length, 'recent records');
+                
+                if (chatData.records.length > 0) {
+                  // Find the most recent user message
+                  let latestRecord = null;
+                  for (const record of chatData.records) {
+                    if (record.fields.Role === 'user' || record.fields.Role === 'User') {
+                      latestRecord = record;
+                      break;
+                    }
+                  }
+                  
+                  if (latestRecord) {
+                    console.log('🎯 Found latest user record via NetlifyUID:', latestRecord.id);
+                    
+                    // Update the record
+                    const updateData = {
+                      fields: {
+                        "Memory_Importance": parseInt(analysis.memory_importance) || 5,
+                        "Emotional_State": validateEmotionalState(analysis.emotional_state),
+                        "Summary": String(analysis.summary) || "",
+                        "Memory_Tags": validateTags(analysis.memory_tags)
+                      }
+                    };
+                    
+                    const updateUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory/${latestRecord.id}`;
+                    const updateResponse = await fetch(updateUrl, {
+                      method: 'PATCH',
+                      headers: {
+                        'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+                        'Content-Type': 'application/json'
+                      },
+                      body: JSON.stringify(updateData)
+                    });
+                    
+                    if (updateResponse.ok) {
+                      const updateResult = await updateResponse.json();
+                      console.log('✅ Memory updated successfully via NetlifyUID lookup');
+                      
+                      return {
+                        statusCode: 200,
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          success: true,
+                          method: 'netlify_uid_lookup',
+                          record_id: updateResult.id,
+                          analysis: analysis,
+                          message: 'Memory processed successfully via NetlifyUID'
+                        })
+                      };
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        
+        // Strategy 2B: Directe filter met User ID (linked record) - fallback
         if (user_id_param && user_id_param !== 'null' && user_id_param !== '') {
           console.log('🎯 Trying direct User ID filter:', user_id_param);
 
