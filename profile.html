@@ -3294,12 +3294,20 @@
 
     // Enhanced redirect handling
     function setupRedirectHandling() {
-      // Store the referring page when coming to profile
-      if (document.referrer && document.referrer !== window.location.href) {
+      // Only store redirect URL if user is not already logged in
+      // This prevents storing redirect URLs when users come to register
+      const user = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+      
+      if (!user && document.referrer && document.referrer !== window.location.href) {
         const referrer = new URL(document.referrer);
         // Only store if it's from the same domain and not already the profile page
         if (referrer.hostname === window.location.hostname && 
             !referrer.pathname.includes('profile.html')) {
+          // Check if this is likely a signup scenario (coming from homepage)
+          if (referrer.pathname === '/' || referrer.pathname === '/index.html') {
+            console.log('🚫 Not storing homepage as redirect URL (likely signup scenario)');
+            return;
+          }
           localStorage.setItem('login_redirect_url', document.referrer);
           console.log('🔄 Stored redirect URL:', document.referrer);
         }
@@ -3401,6 +3409,8 @@ function handleLoginSuccess(user, eventType = 'unknown') {
   // Rest van de functie blijft hetzelfde...
   if (eventType === 'signup') {
     console.log('🆕 NEW SIGNUP: Will create user in Airtable');
+    // Clear any redirect URL for signup to prevent redirects
+    localStorage.removeItem('login_redirect_url');
     createOrUpdateUser(user, true);
   } else if (eventType === 'login') {
     console.log('🔄 EXISTING LOGIN: Loading profile without webhook call');
@@ -3609,6 +3619,10 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       window.netlifyIdentity.on('signup', user => {
         console.log('🎉 SIGNUP event fired for:', user.email);
         
+        // IMPORTANT: Clear any stored redirect URL immediately to prevent redirects
+        localStorage.removeItem('login_redirect_url');
+        console.log('🚫 Cleared redirect URL to prevent signup redirect');
+        
         // Store auth data and handle signup
         handleLoginSuccess(user); // Store auth data first
         handleAuthEvent(user, 'signup'); // Then handle auth event
@@ -3619,9 +3633,6 @@ function handleLoginSuccess(user, eventType = 'unknown') {
         // Update the UI to show logged-in state
         showProfileUI();
         loadUserProfile();
-        
-        // Clear any redirect URLs that might trigger later
-        localStorage.removeItem('login_redirect_url');
         
         // Prevent default redirect behavior
         return false;
