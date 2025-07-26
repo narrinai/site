@@ -6283,8 +6283,10 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
           return;
         }
         
-        console.log('💾 Saving conversation starter to chat history...');
+        // UITGESCHAKELD: save-chat-message om dubbele records te voorkomen
+        console.log('⚠️ save-chat-message is uitgeschakeld - conversation starter wordt niet opgeslagen');
         
+        /* COMMENTED OUT - Disabled to prevent duplicate records
         const saveResponse = await fetch('/.netlify/functions/save-chat-message', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -6304,6 +6306,7 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
         } else {
           console.log('⚠️ Failed to save conversation starter');
         }
+        */
       } catch (error) {
         console.error('❌ Error saving conversation starter:', error);
       }

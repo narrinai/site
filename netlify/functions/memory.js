@@ -43,8 +43,8 @@ exports.handler = async (event, context) => {
        userRecordId = user_id;
        console.log('✅ Using provided record ID:', userRecordId);
      } else if (user_id && user_id.includes('@')) {
-       // Look up user by email
-       console.log('📧 Looking up user by email:', user_id);
+       // Look up user by email - maar we hebben geen NetlifyUID voor strikte verificatie
+       console.log('📧 Looking up user by email (WARNING: No UID for verification):', user_id);
        const escapedEmail = user_id.replace(/'/g, "\\'");
       const emailFilter = `{Email}='${escapedEmail}'`;
       const emailLookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=${encodeURIComponent(emailFilter)}&maxRecords=1`;

@@ -60,8 +60,9 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Stap 1: Haal user_id op uit Users tabel
-    // First try with NetlifyUID
+    // Stap 1: Haal user_id op uit Users tabel - STRIKTE verificatie
+    // BELANGRIJKE FIX: Zoek alleen users die BEIDE NetlifyUID EN email matchen
+    console.log('🔐 Strict user lookup with NetlifyUID AND email');
     let userResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=${encodeURIComponent(`AND({Email}='${user_email}',{NetlifyUID}='${user_uid}')`)}`, {
       headers: {
         'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -74,24 +75,16 @@ exports.handler = async (event, context) => {
     }
 
     let userData = await userResponse.json();
-    console.log('👤 User lookup result (with NetlifyUID):', userData.records.length, 'users found');
+    console.log('👤 User lookup result (with NetlifyUID AND email):', userData.records.length, 'users found');
     
-    // If not found with NetlifyUID, try with email only
-    if (userData.records.length === 0) {
-      console.log('🔄 No user found with NetlifyUID, trying with email only...');
-      userResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=${encodeURIComponent(`{Email}='${user_email}'`)}`, {
-        headers: {
-          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
-          'Content-Type': 'application/json'
-        }
-      });
+    // If not found with strict match, DO NOT fallback to email only for existing users
+    // This prevents saving messages to wrong user accounts
+    if (userData.records.length === 0 && user_uid) {
+      console.log('❌ No user found with NetlifyUID + email combination');
+      console.log('🔐 Security: Not falling back to email-only search when NetlifyUID is provided');
       
-      if (!userResponse.ok) {
-        throw new Error(`Failed to fetch user by email: ${userResponse.status}`);
-      }
-      
-      userData = await userResponse.json();
-      console.log('👤 User lookup result (email only):', userData.records.length, 'users found');
+      // Only create new user if NetlifyUID is provided but no match found
+      // This means it's a genuinely new user, not a mismatch
     }
     
     let userIdForSave = null; // Will be set based on user data

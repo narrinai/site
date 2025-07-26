@@ -51,14 +51,15 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Stap 1: Haal user op uit Users tabel - probeer meerdere strategieën
-    console.log('🔍 Looking up user with multiple strategies...');
+    // Stap 1: Haal user op uit Users tabel - STRIKTE verificatie met NetlifyUID EN email
+    console.log('🔍 Looking up user with STRICT verification...');
     let userData = { records: [] };
     
-    // Strategy 1: Try with NetlifyUID (most specific)
-    if (user_uid) {
-      console.log('📍 Attempt 1: Searching by NetlifyUID:', user_uid);
-      let userResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={NetlifyUID}='${user_uid}'`, {
+    // BELANGRIJKE FIX: Zoek alleen users die BEIDE NetlifyUID EN email matchen
+    // Dit voorkomt dat de verkeerde user wordt gevonden
+    if (user_uid && user_email) {
+      console.log('📍 Strict search: NetlifyUID AND email:', user_uid, user_email);
+      let userResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=AND({NetlifyUID}='${user_uid}',{Email}='${user_email}')`, {
         headers: {
           'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
           'Content-Type': 'application/json'
@@ -67,13 +68,44 @@ exports.handler = async (event, context) => {
       
       if (userResponse.ok) {
         userData = await userResponse.json();
-        console.log('👤 NetlifyUID lookup result:', userData.records.length, 'users found');
+        console.log('👤 Strict lookup result:', userData.records.length, 'users found');
+        
+        // Als geen exacte match, probeer met alleen NetlifyUID (maar log een waarschuwing)
+        if (userData.records.length === 0) {
+          console.log('⚠️ No exact match found, trying NetlifyUID only...');
+          userResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={NetlifyUID}='${user_uid}'`, {
+            headers: {
+              'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (userResponse.ok) {
+            const uidOnlyData = await userResponse.json();
+            if (uidOnlyData.records.length > 0) {
+              // Verify email matches
+              const foundUser = uidOnlyData.records[0];
+              if (foundUser.fields.Email === user_email) {
+                userData = uidOnlyData;
+                console.log('✅ NetlifyUID match verified with email');
+              } else {
+                console.log('❌ NetlifyUID found but email mismatch!', {
+                  expected: user_email,
+                  found: foundUser.fields.Email
+                });
+                // Don't use this user - email mismatch indicates wrong user
+                userData = { records: [] };
+              }
+            }
+          }
+        }
       }
     }
     
-    // Strategy 2: Try with email
-    if (userData.records.length === 0 && user_email) {
-      console.log('📍 Attempt 2: Searching by email:', user_email);
+    // Strategy 2: Try with email - maar alleen als we geen NetlifyUID hebben
+    // Dit voorkomt dat we per ongeluk een andere user met dezelfde email vinden
+    if (userData.records.length === 0 && user_email && !user_uid) {
+      console.log('📍 Attempt 2: Searching by email (no NetlifyUID provided):', user_email);
       let userResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={Email}='${user_email}'`, {
         headers: {
           'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -84,6 +116,13 @@ exports.handler = async (event, context) => {
       if (userResponse.ok) {
         userData = await userResponse.json();
         console.log('👤 Email lookup result:', userData.records.length, 'users found');
+        
+        // Waarschuw als er meerdere users met deze email zijn
+        if (userData.records.length > 1) {
+          console.log('⚠️ WARNING: Multiple users with same email found!');
+          // Zonder NetlifyUID kunnen we niet bepalen welke de juiste is
+          userData = { records: [] };
+        }
       }
     }
     
@@ -168,7 +207,30 @@ exports.handler = async (event, context) => {
     }
 
     const user_id = userData.records[0].id;
+    const foundUserEmail = userData.records[0].fields.Email;
+    const foundUserUID = userData.records[0].fields.NetlifyUID;
+    
     console.log('✅ Found user with ID:', user_id);
+    console.log('🔐 User verification:', {
+      requested_email: user_email,
+      found_email: foundUserEmail,
+      requested_uid: user_uid,
+      found_uid: foundUserUID,
+      match: foundUserEmail === user_email
+    });
+    
+    // Extra veiligheidscheck
+    if (foundUserEmail !== user_email) {
+      console.log('❌ CRITICAL: Email mismatch! Blocking request for security.');
+      return {
+        statusCode: 403,
+        headers,
+        body: JSON.stringify({ 
+          success: false, 
+          error: 'User verification failed' 
+        })
+      };
+    }
 
     // Stap 2: Haal character ID op uit Characters tabel
     const characterResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula={Slug}='${char}'`, {
