@@ -87,22 +87,29 @@ exports.handler = async (event, context) => {
       }
     }
     
-    // Strategy 3: Try with User_ID field (legacy support)
+    // Strategy 3: Try with any numeric User_ID
     if (userData.records.length === 0) {
-      // Extract potential user_id from email or use a default
-      const potentialUserId = user_email.split('@')[0]; // e.g., "gcastrading+11" from email
-      console.log('📍 Attempt 3: Searching by User_ID field:', potentialUserId);
+      console.log('📍 Attempt 3: Searching by any User_ID...');
       
-      let userResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={User_ID}='${potentialUserId}'`, {
+      // Get all users and check for matching email
+      let allUsersResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?pageSize=100`, {
         headers: {
           'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
           'Content-Type': 'application/json'
         }
       });
       
-      if (userResponse.ok) {
-        userData = await userResponse.json();
-        console.log('👤 User_ID lookup result:', userData.records.length, 'users found');
+      if (allUsersResponse.ok) {
+        const allUsersData = await allUsersResponse.json();
+        const matchingUser = allUsersData.records.find(record => 
+          record.fields.Email === user_email || 
+          record.fields.NetlifyUID === user_uid
+        );
+        
+        if (matchingUser) {
+          userData = { records: [matchingUser] };
+          console.log('👤 Found user by scanning all records - User_ID:', matchingUser.fields.User_ID);
+        }
       }
     }
     
@@ -196,7 +203,7 @@ exports.handler = async (event, context) => {
     // Get both the Airtable record ID and custom User_ID
     const userRecord = userData.records[0];
     const userRecordId = userRecord.id;
-    const customUserId = userRecord.fields.User_ID || '42'; // Use the custom User_ID field
+    const customUserId = userRecord.fields.User_ID || userRecord.fields.NetlifyUID || user_email; // Use User_ID, NetlifyUID, or email as fallback
     
     console.log('🔍 Found user - Record ID:', userRecordId, 'Custom User_ID:', customUserId);
     
@@ -206,10 +213,10 @@ exports.handler = async (event, context) => {
     let allChatHistory = [];
     let offset = null;
     
-    // Strategy 1: Try with Airtable record IDs (as saved by Make.com)
+    // Strategy 1: Try with linked record search (using ARRAYJOIN)
     do {
-      // Try with both record IDs first
-      let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${userRecordId}',{Character}='${characterRecordId}')&sort[0][field]=CreatedTime&sort[0][direction]=asc`;
+      // For linked records, we need to use ARRAYJOIN with FIND
+      let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND(FIND('${userRecordId}',ARRAYJOIN({User}))>0,FIND('${characterRecordId}',ARRAYJOIN({Character}))>0)&sort[0][field]=CreatedTime&sort[0][direction]=asc`;
       
       if (offset) {
         url += `&offset=${offset}`;
@@ -223,20 +230,41 @@ exports.handler = async (event, context) => {
       });
 
       if (!historyResponse.ok) {
-        throw new Error(`Failed to fetch chat history: ${historyResponse.status}`);
+        console.log('⚠️ Linked record search failed, trying text field search...');
+        break;
       }
 
       const historyData = await historyResponse.json();
       allChatHistory = allChatHistory.concat(historyData.records);
       offset = historyData.offset;
       
-      console.log(`📊 Fetched ${historyData.records.length} history records, total: ${allChatHistory.length}`);
+      console.log(`📊 Fetched ${historyData.records.length} history records with linked search, total: ${allChatHistory.length}`);
       
     } while (offset);
 
-    console.log('💬 Total chat history records found with record IDs:', allChatHistory.length);
+    console.log('💬 Total chat history records found with linked records:', allChatHistory.length);
     
-    // If no records found with record IDs, try with custom User_ID and slug
+    // Strategy 2: Try with record IDs as text fields
+    if (allChatHistory.length === 0) {
+      console.log('🔄 No records found with linked records, trying with record IDs as text...');
+      
+      const textUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${userRecordId}',{Character}='${characterRecordId}')&sort[0][field]=CreatedTime&sort[0][direction]=asc`;
+      
+      const textResponse = await fetch(textUrl, {
+        headers: {
+          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (textResponse.ok) {
+        const textData = await textResponse.json();
+        allChatHistory = textData.records || [];
+        console.log('📊 Found with record IDs as text:', allChatHistory.length);
+      }
+    }
+    
+    // Strategy 3: Try with custom User_ID and slug
     if (allChatHistory.length === 0) {
       console.log('🔄 No records found with record IDs, trying with User_ID and slug...');
       
@@ -256,11 +284,11 @@ exports.handler = async (event, context) => {
       }
     }
     
-    // Final fallback: try with just "42" and slug
+    // Final fallback: try with email as User field
     if (allChatHistory.length === 0) {
-      console.log('🔄 Final fallback: trying with 42 and slug...');
+      console.log('🔄 Final fallback: trying with email as User field...');
       
-      const fallbackUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='42',{Character}='${char}')&sort[0][field]=CreatedTime&sort[0][direction]=asc`;
+      const fallbackUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${user_email}',{Character}='${char}')&sort[0][field]=CreatedTime&sort[0][direction]=asc`;
       
       const fallbackResponse = await fetch(fallbackUrl, {
         headers: {
@@ -272,10 +300,23 @@ exports.handler = async (event, context) => {
       if (fallbackResponse.ok) {
         const fallbackData = await fallbackResponse.json();
         allChatHistory = fallbackData.records || [];
-        console.log('📊 Found with fallback 42:', allChatHistory.length);
+        console.log('📊 Found with email fallback:', allChatHistory.length);
       }
     }
 
+    // Debug: Log first record structure if any found
+    if (allChatHistory.length > 0) {
+      console.log('🔍 Sample ChatHistory record structure:', {
+        id: allChatHistory[0].id,
+        fields: {
+          User: allChatHistory[0].fields.User,
+          Character: allChatHistory[0].fields.Character,
+          Role: allChatHistory[0].fields.Role,
+          hasMessage: !!allChatHistory[0].fields.Message
+        }
+      });
+    }
+    
     // Stap 4: Format de chat history voor frontend
     const formattedHistory = allChatHistory.map(record => ({
       role: record.fields.Role || 'user',
