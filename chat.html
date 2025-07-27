@@ -4633,11 +4633,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const uid = localStorage.getItem("user_uid");
         const email = localStorage.getItem("user_email");
         
+        // Check if we need to load history from original character (for transferred history)
+        let historyCharacterSlug = characterSlug;
+        
+        if (window.historyWasTransferred) {
+          // Try to get the original character slug from customization data
+          const allCustomizations = JSON.parse(localStorage.getItem('characterCustomizations') || '{}');
+          const currentCustomization = allCustomizations[characterSlug];
+          
+          if (currentCustomization && currentCustomization.originalCharacterSlug) {
+            historyCharacterSlug = currentCustomization.originalCharacterSlug;
+            console.log('📚 Using original character slug for transferred history:', historyCharacterSlug);
+          }
+        }
+        
         console.log('📚 loadChatHistory called with:', {
           hasToken: !!token,
           hasUid: !!uid,
           hasEmail: !!email,
-          characterSlug: characterSlug
+          characterSlug: characterSlug,
+          historyCharacterSlug: historyCharacterSlug,
+          wasTransferred: window.historyWasTransferred
         });
         
         if (!token || !uid || !email || !characterSlug) {
@@ -4654,10 +4670,10 @@ document.addEventListener('DOMContentLoaded', () => {
           user_email: email,
           user_uid: uid,      // Match what get-chat-history.js expects
           user_token: token,
-          char: characterSlug  // Match what get-chat-history.js expects
+          char: historyCharacterSlug  // Use original character slug if history was transferred
         };
         console.log('📤 Sending to get-chat-history:', requestData);
-        console.log('📤 Character slug:', characterSlug);
+        console.log('📤 Character slug used for history:', historyCharacterSlug);
         
         const response = await fetch('/.netlify/functions/get-chat-history', {
           method: 'POST',
@@ -4787,11 +4803,20 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("📜 Final scroll after chat history render");
           });
         } else {
-          console.log('📭 No chat history found - showing conversation starter');
-          // Clear chatlog before showing starter
-          chatlog.innerHTML = '';
-          // Show conversation starter for new chat
-          showConversationStarter();
+          console.log('📭 No chat history found');
+          
+          // Only show conversation starter if history was NOT transferred
+          if (!window.historyWasTransferred) {
+            console.log('💬 Showing conversation starter for new chat');
+            // Clear chatlog before showing starter
+            chatlog.innerHTML = '';
+            // Show conversation starter for new chat
+            showConversationStarter();
+          } else {
+            console.log('📋 History was transferred but no messages found - this is expected for new custom characters');
+            // Mark as loaded to prevent duplicate loads
+            window.chatHistoryLoaded = true;
+          }
         }
         
       } catch (error) {
