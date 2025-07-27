@@ -45,7 +45,7 @@ exports.handler = async (event, context) => {
     const form = new FormData();
     
     // Try to support multiple audio formats
-    form.append('audio', audioBuffer, {
+    form.append('file', audioBuffer, {
       filename: 'audio.webm',
       contentType: 'audio/webm'
     });
