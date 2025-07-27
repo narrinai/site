@@ -31,6 +31,7 @@ exports.handler = async (event, context) => {
       summary, 
       topics_discussed = [], 
       sentiment_score = 0.5,
+      key_insights = '',
       conversation_date = new Date().toISOString()
     } = body;
 
@@ -133,16 +134,16 @@ exports.handler = async (event, context) => {
       Summary: summary,
       Topics_Discussed: topics_discussed,
       Sentiment_Score: sentiment_score,
+      Key_Insights: key_insights,
       Conversation_Date: conversation_date
     };
 
-    // Add character field based on whether it's a custom character or not
+    // Always try to link to Character record if found
     if (characterRecordId) {
       recordData.Character = [characterRecordId];
-    } else {
-      // For custom characters, store the slug in a text field
-      recordData.Character_Slug = character_slug;
     }
+    // Note: For custom characters without a record, the Character field will be empty
+    // The Slug lookup field will automatically populate from the linked Character
 
     let saveResponse;
     if (existingRecord) {
