@@ -4651,14 +4651,12 @@ document.addEventListener('DOMContentLoaded', () => {
           if (currentCustomization && currentCustomization.originalCharacterSlug) {
             historyCharacterSlug = currentCustomization.originalCharacterSlug;
             console.log('📚 Using original character slug for transferred history:', historyCharacterSlug);
+          } else if (currentCharacter && currentCharacter.source_character_slug) {
+            // Use the source_character_slug field from the character data
+            historyCharacterSlug = currentCharacter.source_character_slug;
+            console.log('📚 Using source_character_slug for transferred history:', historyCharacterSlug);
           } else {
-            console.log('⚠️ No originalCharacterSlug found in customization data');
-            // Try to extract from the custom slug format (e.g., "abraham-lincoln-v5-custom-1753617158585" -> "abraham-lincoln-v5")
-            const customMatch = characterSlug.match(/^(.+)-custom-\d+$/);
-            if (customMatch) {
-              historyCharacterSlug = customMatch[1];
-              console.log('📚 Extracted original slug from custom slug:', historyCharacterSlug);
-            }
+            console.log('⚠️ No originalCharacterSlug or source_character_slug found');
           }
         }
         
