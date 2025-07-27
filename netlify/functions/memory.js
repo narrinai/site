@@ -197,6 +197,47 @@ exports.handler = async (event, context) => {
        validUserIds.push(user_id);
      }
      
+     // IMPORTANT: Also find user records by email if we have NetlifyUID
+     // This helps with the transition from email-based to NetlifyUID-based lookups
+     if (user_uid && !body.user_email) {
+       // We have NetlifyUID but might need to find other user records with same email
+       const userWithUID = userData.records[0];
+       if (userWithUID && userWithUID.fields.Email) {
+         const userEmail = userWithUID.fields.Email;
+         console.log('🔍 Found email from NetlifyUID lookup:', userEmail);
+         
+         // Now find ALL users with this email
+         const escapedEmail = userEmail.replace(/'/g, "\\'");
+         const emailUsersUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={Email}='${escapedEmail}'`;
+         
+         try {
+           const emailUsersResponse = await fetch(emailUsersUrl, {
+             headers: {
+               'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+               'Content-Type': 'application/json'
+             }
+           });
+           
+           if (emailUsersResponse.ok) {
+             const emailUsersData = await emailUsersResponse.json();
+             const additionalUserIds = emailUsersData.records.map(r => r.id);
+             console.log('✅ Found additional user records with same email:', additionalUserIds);
+             
+             // Add all these user record IDs to valid list
+             additionalUserIds.forEach(id => {
+               if (!validUserRecordIds.includes(id)) {
+                 validUserRecordIds.push(id);
+               }
+             });
+           }
+         } catch (err) {
+           console.error('❌ Error fetching users by email:', err);
+         }
+       }
+     }
+     
+     console.log('📋 Final list of valid user record IDs to check:', validUserRecordIds);
+     
      for (const record of data.records) {
        const fields = record.fields || {};
        console.log('📋 Checking record:', record.id, 'User:', fields.User, 'Character:', fields['Slug (from Character)']);
