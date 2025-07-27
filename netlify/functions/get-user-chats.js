@@ -165,29 +165,44 @@ exports.handler = async (event, context) => {
 
     const userRecordId = targetUser.id;
 
-   // Stap 2: Gebruik User_ID field voor ChatHistory lookup
+   // Stap 2: Find ALL user records with same email (for transition period)
 console.log('✅ DEBUG Found user record:', userRecordId);
 console.log('🔍 DEBUG User fields:', targetUser.fields);
 
-// Haal de numerieke User_ID op uit de user record
-const numericUserId = targetUser.fields.User_ID;
-console.log('🔍 DEBUG Numeric User_ID:', numericUserId);
+// Find all user records with the same email
+const userEmail = targetUser.fields.Email;
+let allUserRecordIds = [userRecordId];
 
-if (!numericUserId) {
-  console.error('❌ No User_ID found in user record');
-  return {
-    statusCode: 500,
-    headers,
-    body: JSON.stringify({ 
-      success: false, 
-      error: 'User_ID not found in user record' 
-    })
-  };
+if (userEmail) {
+  console.log('🔍 Finding all user records with email:', userEmail);
+  const emailUsers = allUsersData.records.filter(record => 
+    record.fields.Email === userEmail || 
+    (record.fields.Email && record.fields.Email.toLowerCase() === userEmail.toLowerCase())
+  );
+  
+  allUserRecordIds = emailUsers.map(r => r.id);
+  console.log('✅ Found user records with same email:', allUserRecordIds);
 }
 
-// Gebruik numerieke User_ID voor ChatHistory query
-const chatHistoryUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=FIND('${numericUserId}',ARRAYJOIN({User}))>0&sort[0][field]=CreatedTime&sort[0][direction]=desc`;
-console.log('🔗 DEBUG ChatHistory URL with User_ID:', chatHistoryUrl);
+// Build filter for all possible user records
+// Handle both direct NetlifyUID values and linked records
+let userFilter;
+if (allUserRecordIds.length === 1) {
+  // Single user - check both direct NetlifyUID and linked record
+  const userNetlifyUID = targetUser.fields.NetlifyUID || user_uid;
+  userFilter = `OR({User}='${userNetlifyUID}',SEARCH('${userRecordId}',ARRAYJOIN({User})))`;
+} else {
+  // Multiple users - build complex OR condition
+  const userNetlifyUID = targetUser.fields.NetlifyUID || user_uid;
+  const directUIDCondition = `{User}='${userNetlifyUID}'`;
+  const linkedRecordConditions = allUserRecordIds.map(id => `SEARCH('${id}',ARRAYJOIN({User}))`).join(',');
+  userFilter = `OR(${directUIDCondition},${linkedRecordConditions})`;
+}
+
+// Use the combined filter for ChatHistory query
+const chatHistoryUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=${userFilter}&sort[0][field]=CreatedTime&sort[0][direction]=desc`;
+console.log('🔗 DEBUG ChatHistory URL with all user IDs:', chatHistoryUrl);
+console.log('📋 Will search for ANY of these user record IDs:', allUserRecordIds);
     
     const chatResponse = await fetch(chatHistoryUrl, {
       method: 'GET',
