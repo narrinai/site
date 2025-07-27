@@ -84,7 +84,34 @@ exports.handler = async (event, context) => {
 
     const userRecordId = userData.records[0].id;
     const userNetlifyUID = userData.records[0].fields.NetlifyUID;
-    console.log('✅ Found user - Record ID:', userRecordId, 'NetlifyUID:', userNetlifyUID);
+    const userEmail = userData.records[0].fields.Email;
+    console.log('✅ Found user - Record ID:', userRecordId, 'NetlifyUID:', userNetlifyUID, 'Email:', userEmail);
+    
+    // Find ALL user records with this email (for transition period)
+    let allUserRecordIds = [userRecordId];
+    if (userEmail) {
+      console.log('🔍 Finding all user records with email:', userEmail);
+      const emailUsersResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={Email}='${userEmail}'`, {
+        headers: {
+          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (emailUsersResponse.ok) {
+        const emailUsersData = await emailUsersResponse.json();
+        const additionalUserIds = emailUsersData.records.map(r => r.id);
+        console.log('✅ Found user records with same email:', additionalUserIds);
+        
+        // Add all unique user IDs
+        additionalUserIds.forEach(id => {
+          if (!allUserRecordIds.includes(id)) {
+            allUserRecordIds.push(id);
+          }
+        });
+      }
+    }
+    console.log('📋 Will search ChatHistory for ANY of these user IDs:', allUserRecordIds);
 
     // Stap 2: Haal character ID op uit Characters tabel
     const characterResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula={Slug}='${char}'`, {
@@ -127,7 +154,11 @@ exports.handler = async (event, context) => {
     
     // Gebruik linked record IDs voor de lookup in ChatHistory
     do {
-      let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND(SEARCH('${userRecordId}',ARRAYJOIN({User})),SEARCH('${characterRecordId}',ARRAYJOIN({Character})))&sort[0][field]=CreatedTime&sort[0][direction]=asc`;
+      // Build OR condition for all user IDs
+      const userConditions = allUserRecordIds.map(id => `SEARCH('${id}',ARRAYJOIN({User}))`).join(',');
+      const userFilter = allUserRecordIds.length > 1 ? `OR(${userConditions})` : `SEARCH('${userRecordId}',ARRAYJOIN({User}))`;
+      
+      let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND(${userFilter},SEARCH('${characterRecordId}',ARRAYJOIN({Character})))&sort[0][field]=CreatedTime&sort[0][direction]=asc`;
       
       if (offset) {
         url += `&offset=${offset}`;
