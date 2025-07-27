@@ -2640,6 +2640,10 @@
               </li>
               <li class="benefit-item">
                 <div class="checkmark"></div>
+                <div class="benefit-text">Unlimited Voice Notes</div>
+              </li>
+              <li class="benefit-item">
+                <div class="checkmark"></div>
                 <div class="benefit-text">Extensive Character Memory</div>
               </li>
               <li class="benefit-item">
@@ -3028,6 +3032,7 @@
     function checkUpgradeStatus() {
       const urlParams = new URLSearchParams(window.location.search);
       const upgradeStatus = urlParams.get('upgrade');
+      const downgradeStatus = urlParams.get('downgrade');
       
       if (upgradeStatus === 'success') {
         showSuccess('🎉 Upgrade successful! Welcome to Narrin AI Premium!');
@@ -3043,6 +3048,12 @@
         
       } else if (upgradeStatus === 'cancelled') {
         showError('Upgrade was cancelled. You can try again anytime.');
+        window.history.replaceState({}, document.title, 'profile.html');
+      } else if (downgradeStatus === 'success') {
+        // Store downgrade flag for loadProfile to use
+        sessionStorage.setItem('justDowngraded', 'true');
+        
+        // Clean URL
         window.history.replaceState({}, document.title, 'profile.html');
       }
     }
@@ -4173,6 +4184,16 @@ async function loadProfile() {
     
     console.log('📊 Final processed values - Usage:', usage, 'Quota:', quota);
     
+    // Check if user just downgraded
+    const justDowngraded = sessionStorage.getItem('justDowngraded');
+    if (justDowngraded === 'true') {
+      // Clear the flag
+      sessionStorage.removeItem('justDowngraded');
+      // Force usage to 0 for downgraded users
+      usage = 0;
+      console.log('🔄 User just downgraded - resetting usage to 0/50');
+    }
+    
     // Update UI veilig
     if (userPlan.toLowerCase() === 'premium' || userPlan.toLowerCase() === 'pro') {
       setField('usage', usage.toString());
@@ -4699,11 +4720,11 @@ function updatePremiumCard(plan) {
         
         console.log('✅ Downgrade response:', result);
         
-        showSuccess('Successfully downgraded to free plan. You now have a limit of 50 messages per month.');
+        showSuccess('Successfully downgraded to free plan. You now have a limit of 50 messages per month and limited access to character memories.');
         
-        // Reload profile to update UI
+        // Reload profile to update UI with downgrade flag
         setTimeout(() => {
-          loadProfile();
+          window.location.href = 'profile.html?downgrade=success';
         }, 1000);
         
       } catch (error) {
