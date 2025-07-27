@@ -132,11 +132,13 @@ exports.handler = async (event, context) => {
     const recordData = {
       User: [userRecordId],
       Summary: summary,
-      Topics_Discussed: topics_discussed,
       Sentiment_Score: sentiment_score,
       Key_Insights: key_insights,
       Conversation_Date: conversation_date
     };
+    
+    // Skip topics for now - field might not exist or have different name
+    console.log('📝 Skipping topics field - may need to check exact field name in Airtable');
 
     // Always try to link to Character record if found
     if (characterRecordId) {
