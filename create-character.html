@@ -4905,11 +4905,21 @@ async function createCharacter(formData) {
 const slug = generateUniqueSlug(formData.name);    
 console.log('🔗 Generated slug:', slug);
 
+    // Debug user data
+    console.log('🔍 Debug user data:');
+    console.log('- netlifyUser:', netlifyUser);
+    console.log('- netlifyUser.id:', netlifyUser?.id);
+    console.log('- localStorage netlify_uid:', localStorage.getItem("netlify_uid"));
+    console.log('- localStorage user_uid:', localStorage.getItem("user_uid"));
+    
+    const userUid = netlifyUser?.id || localStorage.getItem("netlify_uid") || localStorage.getItem("user_uid");
+    console.log('- Final user_uid to send:', userUid);
+
     const requestData = {
       action: 'create_character',
       user_email: userEmail,
       user_token: userToken,
-      user_uid: netlifyUser ? netlifyUser.id : localStorage.getItem("netlify_uid"),
+      user_uid: userUid,
       
       // Character data voor Make.com
       name: formData.name,
