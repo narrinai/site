@@ -4651,9 +4651,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Debug: Log the exact request data
         const requestData = {
           user_email: email,
-          netlify_uid: uid,  // Use consistent naming
+          user_uid: uid,      // Match what get-chat-history.js expects
           user_token: token,
-          slug: characterSlug  // Use consistent naming
+          char: characterSlug  // Match what get-chat-history.js expects
         };
         console.log('📤 Sending to get-chat-history:', requestData);
         console.log('📤 Character slug:', characterSlug);
@@ -6006,9 +6006,9 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
   try {
     const requestPayload = {
       user_email: email,
-      netlify_uid: uid,  // Use consistent naming
+      user_uid: uid,       // Match what get-chat-history.js expects
       user_token: token,
-      slug: characterSlug  // Use consistent naming
+      char: characterSlug  // Match what get-chat-history.js expects
     };
     
     console.log("📤 Request payload:", requestPayload);
@@ -6305,12 +6305,12 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             user_email: email,
-            netlify_uid: uid,  // Use consistent naming
+            user_uid: uid,      // Match what save-chat-message.js expects
             user_token: token,
-            slug: characterSlug,  // Match Airtable field name
-            user_message: '',  // Empty user message for starter
+            char: characterSlug, // Match what save-chat-message.js expects
+            user_message: '',   // Empty user message for starter
             ai_response: starterMessage,
-            is_starter: true  // Flag to identify this as a starter
+            is_starter: true    // Flag to identify this as a starter
           })
         });
         
