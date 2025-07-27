@@ -7508,10 +7508,15 @@ function initializeCustomizationForm() {
       console.log('ℹ️ Transfer history not enabled or checkbox not found');
     }
     
+    // Get user_uid for the request
+    const userUid = localStorage.getItem('user_uid') || localStorage.getItem('netlify_uid');
+    console.log('🔑 User UID for request:', userUid);
+    
     const requestData = {
       action: existingCustom && existingCustom.airtable_id ? 'update_character' : 'create_character',
       user_email: userEmail,
       user_token: userToken,
+      user_uid: userUid,
       
       // Character data voor Make.com
       name: customName,

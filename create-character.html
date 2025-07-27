@@ -4906,13 +4906,14 @@ const slug = generateUniqueSlug(formData.name);
 console.log('🔗 Generated slug:', slug);
 
     // Debug user data
+    const currentNetlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
     console.log('🔍 Debug user data:');
-    console.log('- netlifyUser:', netlifyUser);
-    console.log('- netlifyUser.id:', netlifyUser?.id);
+    console.log('- currentNetlifyUser:', currentNetlifyUser);
+    console.log('- currentNetlifyUser.id:', currentNetlifyUser?.id);
     console.log('- localStorage netlify_uid:', localStorage.getItem("netlify_uid"));
     console.log('- localStorage user_uid:', localStorage.getItem("user_uid"));
     
-    const userUid = netlifyUser?.id || localStorage.getItem("netlify_uid") || localStorage.getItem("user_uid");
+    const userUid = currentNetlifyUser?.id || localStorage.getItem("netlify_uid") || localStorage.getItem("user_uid");
     console.log('- Final user_uid to send:', userUid);
 
     const requestData = {
