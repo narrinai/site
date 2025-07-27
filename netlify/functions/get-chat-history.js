@@ -154,11 +154,25 @@ exports.handler = async (event, context) => {
     
     // Gebruik linked record IDs voor de lookup in ChatHistory
     do {
-      // Build OR condition for all user IDs
-      const userConditions = allUserRecordIds.map(id => `SEARCH('${id}',ARRAYJOIN({User}))`).join(',');
-      const userFilter = allUserRecordIds.length > 1 ? `OR(${userConditions})` : `SEARCH('${userRecordId}',ARRAYJOIN({User}))`;
+      // Check if User field contains NetlifyUID directly or as linked records
+      // For direct NetlifyUID: {User} = 'netlifyuid'
+      // For linked records: SEARCH('recordid', ARRAYJOIN({User}))
       
-      let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND(${userFilter},SEARCH('${characterRecordId}',ARRAYJOIN({Character})))&sort[0][field]=CreatedTime&sort[0][direction]=asc`;
+      let userFilter;
+      if (allUserRecordIds.length === 1 && allUserRecordIds[0] === userRecordId) {
+        // Single user, check both direct NetlifyUID and linked record
+        userFilter = `OR({User}='${userNetlifyUID}',SEARCH('${userRecordId}',ARRAYJOIN({User})))`;
+      } else {
+        // Multiple users, build complex OR condition
+        const directUIDCondition = `{User}='${userNetlifyUID}'`;
+        const linkedRecordConditions = allUserRecordIds.map(id => `SEARCH('${id}',ARRAYJOIN({User}))`).join(',');
+        userFilter = `OR(${directUIDCondition},${linkedRecordConditions})`;
+      }
+      
+      // For Character, check both direct slug and linked record
+      const characterFilter = `OR({Character}='${char}',SEARCH('${characterRecordId}',ARRAYJOIN({Character})))`;
+      
+      let url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND(${userFilter},${characterFilter})&sort[0][field]=CreatedTime&sort[0][direction]=asc`;
       
       if (offset) {
         url += `&offset=${offset}`;
