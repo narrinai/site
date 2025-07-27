@@ -86,17 +86,18 @@ exports.handler = async (event, context) => {
 
     // Handle POST - Process referral bonus
     if (httpMethod === 'POST') {
-      const { user_id, referrer_id } = JSON.parse(body);
+      const { user_id, user_uid, referrer_id } = JSON.parse(body);
       
-      if (!user_id || !referrer_id) {
+      // Accept either user_id (Airtable record ID) or user_uid (NetlifyUID)
+      if ((!user_id && !user_uid) || !referrer_id) {
         return {
           statusCode: 400,
           headers,
-          body: JSON.stringify({ error: 'Missing required fields' })
+          body: JSON.stringify({ error: 'Missing required fields: user_id/user_uid and referrer_id' })
         };
       }
 
-      console.log('💰 Processing referral bonus:', { user_id, referrer_id });
+      console.log('💰 Processing referral bonus:', { user_id, user_uid, referrer_id });
 
       // Find referrer by short ID (first 4 chars of netlify_uid)
       const referrerUrl = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Users?filterByFormula=LEFT({netlify_uid},4)='${referrer_id}'`;
@@ -129,7 +130,39 @@ exports.handler = async (event, context) => {
       // Update new user with referrer info
       console.log('🔗 Linking new user to referrer:', referrerId);
       
-      const updateUserUrl = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Users/${user_id}`;
+      // If we have user_uid but not user_id, find the user record first
+      let actualUserId = user_id;
+      
+      if (!user_id && user_uid) {
+        console.log('🔍 Looking up user by NetlifyUID:', user_uid);
+        const userLookupUrl = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Users?filterByFormula={NetlifyUID}='${user_uid}'`;
+        
+        const userLookupResponse = await fetch(userLookupUrl, {
+          headers: {
+            'Authorization': `Bearer ${process.env.AIRTABLE_TOKEN}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (!userLookupResponse.ok) {
+          throw new Error(`Failed to find user by NetlifyUID: ${userLookupResponse.status}`);
+        }
+        
+        const userLookupData = await userLookupResponse.json();
+        
+        if (!userLookupData.records || userLookupData.records.length === 0) {
+          return {
+            statusCode: 404,
+            headers,
+            body: JSON.stringify({ error: 'User not found by NetlifyUID' })
+          };
+        }
+        
+        actualUserId = userLookupData.records[0].id;
+        console.log('✅ Found user record ID:', actualUserId);
+      }
+      
+      const updateUserUrl = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Users/${actualUserId}`;
       
       const updateUserResponse = await fetch(updateUserUrl, {
         method: 'PATCH',
@@ -140,8 +173,8 @@ exports.handler = async (event, context) => {
         body: JSON.stringify({
           fields: {
             referred_by: [referrerId],
-            referral_bonus_received: true,
-            free_chats_remaining: 60 // 10 base + 50 bonus
+            referral_bonus_received: true
+            // Note: Message quota handled by Make.com webhook
           }
         })
       });
@@ -152,8 +185,8 @@ exports.handler = async (event, context) => {
         throw new Error(`Failed to update new user: ${updateUserResponse.status}`);
       }
 
-      // Update referrer with bonus
-      console.log('💎 Adding bonus to referrer:', referrerId);
+      // Update referrer with bonus count
+      console.log('💎 Adding bonus count to referrer:', referrerId);
       
       const updateReferrerUrl = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Users/${referrerId}`;
       
@@ -165,8 +198,8 @@ exports.handler = async (event, context) => {
         },
         body: JSON.stringify({
           fields: {
-            total_referral_bonus: currentReferralBonus + 50,
-            free_chats_remaining: (referrer.fields.free_chats_remaining || 0) + 50
+            total_referral_bonus: currentReferralBonus + 50
+            // Note: Actual message quota updates handled by Make.com
           }
         })
       });

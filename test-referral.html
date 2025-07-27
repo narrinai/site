@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Referral System - Narrin AI</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .test-section {
+      background: white;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h1, h2 {
+      color: #14b8a6;
+    }
+    .button {
+      background: #14b8a6;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    .button:hover {
+      background: #0d9488;
+    }
+    .result {
+      margin: 10px 0;
+      padding: 10px;
+      background: #f0f0f0;
+      border-radius: 4px;
+      font-family: monospace;
+      white-space: pre-wrap;
+    }
+    .error {
+      background: #fee;
+      color: #c00;
+    }
+    .success {
+      background: #efe;
+      color: #080;
+    }
+    input {
+      padding: 8px;
+      margin: 5px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      width: 300px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Referral System Test Page</h1>
+  
+  <div class="test-section">
+    <h2>Current User Info</h2>
+    <div id="userInfo" class="result">Loading...</div>
+  </div>
+
+  <div class="test-section">
+    <h2>1. Test Referral Link Validation</h2>
+    <p>Enter a referral code (first 4 chars of NetlifyUID):</p>
+    <input type="text" id="refCode" placeholder="e.g., 6f3e" value="6f3e">
+    <button class="button" onclick="testReferralValidation()">Validate Referral Code</button>
+    <div id="validationResult" class="result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>2. Test Referral Bonus Processing</h2>
+    <p>Simulate applying referral bonus:</p>
+    <input type="text" id="newUserUID" placeholder="New User NetlifyUID">
+    <input type="text" id="referrerCode" placeholder="Referrer Code (4 chars)" value="6f3e">
+    <button class="button" onclick="testReferralBonus()">Process Referral Bonus</button>
+    <div id="bonusResult" class="result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>3. Test Referral URL</h2>
+    <p>Your referral URL:</p>
+    <div id="referralUrl" class="result"></div>
+    <button class="button" onclick="copyReferralUrl()">Copy URL</button>
+  </div>
+
+  <script>
+    // Load current user info
+    async function loadUserInfo() {
+      const userInfo = {
+        email: localStorage.getItem('user_email'),
+        uid: localStorage.getItem('user_uid'),
+        token: !!localStorage.getItem('user_token')
+      };
+      
+      const shortUID = userInfo.uid ? userInfo.uid.substring(0, 4) : 'N/A';
+      const referralUrl = userInfo.uid ? `${window.location.origin}?ref=${shortUID}` : 'Not available';
+      
+      document.getElementById('userInfo').innerHTML = `Email: ${userInfo.email || 'Not logged in'}
+NetlifyUID: ${userInfo.uid || 'N/A'}
+Short UID (referral code): ${shortUID}
+Logged in: ${userInfo.token ? 'Yes' : 'No'}`;
+      
+      document.getElementById('referralUrl').textContent = referralUrl;
+    }
+
+    // Test referral validation
+    async function testReferralValidation() {
+      const refCode = document.getElementById('refCode').value;
+      const resultDiv = document.getElementById('validationResult');
+      
+      if (!refCode || refCode.length !== 4) {
+        resultDiv.className = 'result error';
+        resultDiv.textContent = 'Please enter a 4-character referral code';
+        return;
+      }
+      
+      resultDiv.textContent = 'Testing...';
+      
+      try {
+        const response = await fetch(`/.netlify/functions/referral?ref=${refCode}`);
+        const data = await response.json();
+        
+        if (response.ok && data.valid) {
+          resultDiv.className = 'result success';
+          resultDiv.innerHTML = `✅ Valid referral code!
+Referrer email: ${data.referrer_email}
+Referrer ID: ${data.referrer_id}`;
+        } else {
+          resultDiv.className = 'result error';
+          resultDiv.textContent = '❌ Invalid referral code';
+        }
+      } catch (error) {
+        resultDiv.className = 'result error';
+        resultDiv.textContent = `Error: ${error.message}`;
+      }
+    }
+
+    // Test referral bonus processing
+    async function testReferralBonus() {
+      const newUserUID = document.getElementById('newUserUID').value;
+      const referrerCode = document.getElementById('referrerCode').value;
+      const resultDiv = document.getElementById('bonusResult');
+      
+      if (!newUserUID || !referrerCode) {
+        resultDiv.className = 'result error';
+        resultDiv.textContent = 'Please enter both NetlifyUID and referrer code';
+        return;
+      }
+      
+      resultDiv.textContent = 'Processing...';
+      
+      try {
+        const response = await fetch('/.netlify/functions/referral', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_uid: newUserUID,
+            referrer_id: referrerCode
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+          resultDiv.className = 'result success';
+          resultDiv.innerHTML = `✅ Referral bonus applied!
+Message: ${data.message}
+Bonus: ${data.bonus_applied} messages`;
+        } else {
+          resultDiv.className = 'result error';
+          resultDiv.textContent = `❌ Error: ${data.error}`;
+        }
+      } catch (error) {
+        resultDiv.className = 'result error';
+        resultDiv.textContent = `Error: ${error.message}`;
+      }
+    }
+
+    // Copy referral URL
+    function copyReferralUrl() {
+      const url = document.getElementById('referralUrl').textContent;
+      navigator.clipboard.writeText(url).then(() => {
+        alert('Referral URL copied!');
+      });
+    }
+
+    // Initialize
+    loadUserInfo();
+    
+    // Check for referral parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const ref = urlParams.get('ref');
+    if (ref) {
+      alert(`You arrived with referral code: ${ref}`);
+      localStorage.setItem('referralUserId', ref);
+    }
+  </script>
+</body>
+</html>
