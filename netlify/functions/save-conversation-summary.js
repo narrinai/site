@@ -140,11 +140,13 @@ exports.handler = async (event, context) => {
     const recordData = {
       User: [userRecordId],
       Summary: summary,
-      Topics_Discussed: topics_discussed.join(', '), // Convert array to string
       Sentiment_Score: sentiment_score,
       Key_Insights: key_insights,
       Conversation_Date: conversation_date
     };
+    
+    // Topics field exists but might have different name - skip for now
+    console.log('⚠️ Skipping topics field - getting UNKNOWN_FIELD_NAME error for Topics_Discussed');
 
     // Always try to link to Character record if found
     if (characterRecordId) {
