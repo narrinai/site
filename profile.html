@@ -3002,7 +3002,11 @@
           successUrl: `${window.location.origin}/profile.html?upgrade=success`,
           cancelUrl: `${window.location.origin}/profile.html?upgrade=cancelled`,
           customerEmail: email,
-          clientReferenceId: uid, // Om later de user te kunnen identificeren
+          clientReferenceId: uid, // NetlifyUID wordt gebruikt voor identificatie
+          metadata: {
+            netlifyuid: uid,
+            email: email
+          }
         });
         
         if (error) {
@@ -4653,12 +4657,14 @@ function updatePremiumCard(plan) {
         // Call webhook to handle downgrade
         const payload = {
   type: 'customer.subscription.deleted',
-   user_email: email,       
-  user_uid: uid,           
+  netlifyuid: uid,           // Use netlifyuid as primary identifier
+  user_email: email,         // Keep email for Stripe API compatibility
+  user_uid: uid,             // Deprecated - use netlifyuid
   data: {
     object: {
       customer_email: email,
-      customer: uid,
+      customer: uid,         // NetlifyUID as customer identifier
+      netlifyuid: uid,
       status: 'canceled'
     }
   },
