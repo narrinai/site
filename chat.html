@@ -6313,6 +6313,9 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     // Mark that we've loaded chat history
     window.chatHistoryLoaded = true;
     
+    // Set message counter based on loaded history (count user messages only)
+    messageCountForSummary = history.filter(m => m.role === 'user' || m.role === 'User').length;
+    
     // Ensure scroll to bottom after content is rendered
     requestAnimationFrame(() => {
       const chatlog = document.getElementById("chatlog");
@@ -9129,15 +9132,24 @@ hideTypingIndicator();
       console.error('⚠️ Relationship update failed:', relError);
     }
     
+    // Increment message counter
+    messageCountForSummary++;
+    
     // Generate summary every 5 messages or after significant time gap
     const currentTime = Date.now();
     const timeSinceLastSummary = currentTime - lastSummaryTime;
+    
+    // Use relationship total messages if available, otherwise use our counter
+    const totalMessages = relationshipContext?.totalMessages || messageCountForSummary;
+    
     const shouldGenerateSummary = 
-      (relationshipContext && relationshipContext.totalMessages > 0 && relationshipContext.totalMessages % 5 === 0) ||
+      (totalMessages > 0 && totalMessages % 5 === 0) ||
       (timeSinceLastSummary > 300000); // 5 minutes
     
     console.log('🔍 Checking summary generation:', {
-      totalMessages: relationshipContext?.totalMessages,
+      totalMessages: totalMessages,
+      messageCounter: messageCountForSummary,
+      relationshipMessages: relationshipContext?.totalMessages,
       timeSinceLastSummary: Math.round(timeSinceLastSummary / 1000) + 's',
       shouldGenerate: shouldGenerateSummary
     });
@@ -9685,6 +9697,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Track conversation messages for summary generation
     let conversationMessages = [];
     let lastSummaryTime = Date.now();
+    let messageCountForSummary = 0;
     
     async function generateConversationSummary(email, uid, token, characterSlug) {
       try {
@@ -9743,6 +9756,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (response.ok && responseData.success) {
           console.log('✅ Conversation summary saved successfully');
           lastSummaryTime = Date.now();
+          // Reset counter after successful summary
+          messageCountForSummary = 0;
         } else {
           console.error('❌ Summary save failed:', responseData);
         }
