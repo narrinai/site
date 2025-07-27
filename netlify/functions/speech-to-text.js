@@ -49,6 +49,9 @@ exports.handler = async (event, context) => {
       filename: 'audio.webm',
       contentType: 'audio/webm'
     });
+    
+    // Add model_id as required by ElevenLabs API
+    form.append('model_id', 'eleven_turbo_v2');
 
     // Make request to ElevenLabs API
     const fetch = require('node-fetch');
