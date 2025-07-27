@@ -2,6 +2,13 @@ const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
 const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
 
 exports.handler = async (event, context) => {
+  console.log('🚀 check-message-count function started');
+  console.log('🔑 Environment check:', {
+    hasToken: !!AIRTABLE_TOKEN,
+    hasBaseId: !!AIRTABLE_BASE_ID,
+    timestamp: new Date().toISOString()
+  });
+  
   // CORS headers
   const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -24,6 +31,7 @@ exports.handler = async (event, context) => {
   }
 
   try {
+    console.log('📋 Request body:', event.body);
     const { user_email, user_uid, char } = JSON.parse(event.body);
     
     console.log('📊 CheckMessageCount request:', { user_email, user_uid: !!user_uid, char });
@@ -49,7 +57,9 @@ exports.handler = async (event, context) => {
     });
 
     if (!userResponse.ok) {
-      throw new Error(`Failed to fetch user: ${userResponse.status}`);
+      const errorText = await userResponse.text();
+      console.error('❌ User fetch failed:', userResponse.status, errorText);
+      throw new Error(`Failed to fetch user: ${userResponse.status} - ${errorText}`);
     }
 
     let userData = await userResponse.json();

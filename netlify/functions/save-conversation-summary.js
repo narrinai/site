@@ -3,6 +3,13 @@ const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
 const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
 
 exports.handler = async (event, context) => {
+  console.log('🚀 save-conversation-summary function started');
+  console.log('🔑 Environment check:', {
+    hasToken: !!AIRTABLE_TOKEN,
+    hasBaseId: !!AIRTABLE_BASE_ID,
+    timestamp: new Date().toISOString()
+  });
+  
   // CORS headers
   const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -24,6 +31,7 @@ exports.handler = async (event, context) => {
   }
 
   try {
+    console.log('📋 Request body:', event.body);
     const body = JSON.parse(event.body);
     const { 
       user_uid, 
@@ -132,13 +140,11 @@ exports.handler = async (event, context) => {
     const recordData = {
       User: [userRecordId],
       Summary: summary,
+      Topics_Discussed: topics_discussed.join(', '), // Convert array to string
       Sentiment_Score: sentiment_score,
       Key_Insights: key_insights,
       Conversation_Date: conversation_date
     };
-    
-    // Skip topics for now - field might not exist or have different name
-    console.log('📝 Skipping topics field - may need to check exact field name in Airtable');
 
     // Always try to link to Character record if found
     if (characterRecordId) {
@@ -146,6 +152,8 @@ exports.handler = async (event, context) => {
     }
     // Note: For custom characters without a record, the Character field will be empty
     // The Slug lookup field will automatically populate from the linked Character
+    
+    console.log('📊 Record data to save:', JSON.stringify(recordData, null, 2));
 
     let saveResponse;
     if (existingRecord) {
