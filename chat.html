@@ -9115,12 +9115,23 @@ hideTypingIndicator();
       console.error('⚠️ Relationship update failed:', relError);
     }
     
-    // Generate summary every 2 messages (for testing)
-    console.log('🔍 Checking summary generation - totalMessages:', relationshipContext?.totalMessages);
-    if (relationshipContext && relationshipContext.totalMessages >= 2 && relationshipContext.totalMessages % 2 === 0) {
+    // Generate summary every 5 messages or after significant time gap
+    const currentTime = Date.now();
+    const timeSinceLastSummary = currentTime - lastSummaryTime;
+    const shouldGenerateSummary = 
+      (relationshipContext && relationshipContext.totalMessages > 0 && relationshipContext.totalMessages % 5 === 0) ||
+      (timeSinceLastSummary > 300000); // 5 minutes
+    
+    console.log('🔍 Checking summary generation:', {
+      totalMessages: relationshipContext?.totalMessages,
+      timeSinceLastSummary: Math.round(timeSinceLastSummary / 1000) + 's',
+      shouldGenerate: shouldGenerateSummary
+    });
+    
+    if (shouldGenerateSummary) {
       try {
-        console.log('📝 Triggering conversation summary generation at', relationshipContext.totalMessages, 'messages');
-        await generateConversationSummary(user_email, uid, token, characterSlug);
+        console.log('📝 Triggering conversation summary generation');
+        await generateConversationSummary(email, uid, token, characterSlug);
       } catch (sumError) {
         console.error('⚠️ Summary generation failed:', sumError);
       }
@@ -9657,49 +9668,154 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
     
+    // Track conversation messages for summary generation
+    let conversationMessages = [];
+    let lastSummaryTime = Date.now();
+    
     async function generateConversationSummary(email, uid, token, characterSlug) {
       try {
-        // Get effective user ID - prefer numeric User_ID over email
-        const stored_user_id = localStorage.getItem("user_id");
-        const test_user_id = localStorage.getItem("test_user_id");
-        const stored_user_uid = localStorage.getItem("user_uid");
-        const stored_user_email = localStorage.getItem("user_email");
+        console.log('📝 Generating conversation summary...');
         
-        // Use the numeric User_ID if available, including test_user_id fallback
-        const effective_user_id = stored_user_id || test_user_id || email || stored_user_email || "unknown";
+        // Get the last 10 messages from the chatlog for context
+        const chatMessages = [];
+        const chatElements = document.querySelectorAll('#chatlog p:not([data-starter="true"])');
         
-        console.log('📤 Calling conversation-summary with:', {
-          user_id: effective_user_id,
-          character_id: characterSlug,
-          debug: {
-            stored_user_id,
-            test_user_id,
-            email_param: email,
-            stored_email: stored_user_email
+        // Get recent messages from DOM
+        const recentMessages = Array.from(chatElements).slice(-10);
+        recentMessages.forEach(elem => {
+          const text = elem.textContent;
+          if (text.includes('You:')) {
+            chatMessages.push({ role: 'user', content: text.replace('You:', '').trim() });
+          } else if (text.includes(currentCharacter?.name || 'Character')) {
+            chatMessages.push({ role: 'assistant', content: text.replace(`${currentCharacter?.name || 'Character'}:`, '').trim() });
           }
         });
         
-        const response = await fetch('/.netlify/functions/conversation-summary', {
+        // Generate a simple summary based on messages
+        const topics = extractTopicsFromMessages(chatMessages);
+        const sentiment = calculateSentiment(chatMessages);
+        
+        // Create summary text
+        const summary = createConversationSummary(chatMessages);
+        
+        console.log('📤 Saving conversation summary:', {
+          user_uid: uid,
+          character_slug: characterSlug,
+          topics: topics,
+          sentiment: sentiment
+        });
+        
+        const response = await fetch('/.netlify/functions/save-conversation-summary', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            netlify_uid: uid || stored_user_uid,  // Use NetlifyUID
-            slug: characterSlug,  // Match Airtable field name
-            force_summary: true  // Force summary even with few messages
+            user_uid: uid,
+            character_slug: characterSlug,
+            summary: summary,
+            topics_discussed: topics,
+            sentiment_score: sentiment,
+            conversation_date: new Date().toISOString()
           })
         });
         
         const responseData = await response.json();
-        console.log('📥 Summary response:', responseData);
+        console.log('📥 Summary save response:', responseData);
         
-        if (response.ok) {
-          console.log('✅ Conversation summary generated successfully');
+        if (response.ok && responseData.success) {
+          console.log('✅ Conversation summary saved successfully');
+          lastSummaryTime = Date.now();
         } else {
-          console.error('❌ Summary generation failed with status:', response.status, responseData);
+          console.error('❌ Summary save failed:', responseData);
         }
       } catch (error) {
-        console.error('❌ Failed to generate summary:', error);
+        console.error('❌ Failed to save conversation summary:', error);
       }
+    }
+    
+    // Helper function to extract topics from messages
+    function extractTopicsFromMessages(messages) {
+      const topics = new Set();
+      const commonTopics = {
+        'weather': /weather|rain|sun|cloud|temperature|hot|cold/i,
+        'emotions': /feel|happy|sad|angry|excited|love|hate|like/i,
+        'work': /work|job|career|office|meeting|project/i,
+        'hobbies': /hobby|fun|enjoy|play|game|sport|music|book/i,
+        'philosophy': /think|believe|meaning|life|purpose|why/i,
+        'technology': /computer|phone|internet|app|software|AI/i,
+        'relationships': /friend|family|love|relationship|people/i,
+        'food': /eat|food|meal|hungry|cook|restaurant/i,
+        'health': /health|sick|doctor|exercise|sleep|tired/i,
+        'travel': /travel|trip|visit|country|city|vacation/i
+      };
+      
+      messages.forEach(msg => {
+        const content = msg.content.toLowerCase();
+        Object.entries(commonTopics).forEach(([topic, regex]) => {
+          if (regex.test(content)) {
+            topics.add(topic);
+          }
+        });
+      });
+      
+      return Array.from(topics).slice(0, 5); // Max 5 topics
+    }
+    
+    // Helper function to calculate sentiment
+    function calculateSentiment(messages) {
+      let totalScore = 0;
+      let messageCount = 0;
+      
+      const positiveWords = /happy|great|good|love|excellent|wonderful|amazing|fantastic|beautiful|excited|joy|fun/i;
+      const negativeWords = /sad|bad|hate|terrible|awful|horrible|angry|upset|disappointed|frustrated|worry|fear/i;
+      
+      messages.forEach(msg => {
+        if (msg.role === 'user') {
+          const content = msg.content.toLowerCase();
+          let score = 0.5; // Neutral
+          
+          const positiveMatches = (content.match(positiveWords) || []).length;
+          const negativeMatches = (content.match(negativeWords) || []).length;
+          
+          if (positiveMatches > negativeMatches) {
+            score = Math.min(0.5 + (positiveMatches * 0.1), 1);
+          } else if (negativeMatches > positiveMatches) {
+            score = Math.max(0.5 - (negativeMatches * 0.1), 0);
+          }
+          
+          totalScore += score;
+          messageCount++;
+        }
+      });
+      
+      return messageCount > 0 ? totalScore / messageCount : 0.5;
+    }
+    
+    // Helper function to create summary text
+    function createConversationSummary(messages) {
+      if (messages.length === 0) return "No messages in conversation.";
+      
+      const userMessages = messages.filter(m => m.role === 'user');
+      const characterName = currentCharacter?.name || 'Character';
+      
+      if (userMessages.length === 0) return `Started conversation with ${characterName}.`;
+      
+      // Get key points from conversation
+      const firstUserMsg = userMessages[0]?.content || '';
+      const lastUserMsg = userMessages[userMessages.length - 1]?.content || '';
+      
+      let summary = `User conversed with ${characterName}. `;
+      
+      if (firstUserMsg.length > 20) {
+        summary += `Started by discussing: "${firstUserMsg.substring(0, 50)}...". `;
+      }
+      
+      if (userMessages.length > 2 && lastUserMsg !== firstUserMsg) {
+        summary += `Ended with: "${lastUserMsg.substring(0, 50)}...". `;
+      }
+      
+      summary += `Total exchanges: ${messages.length}.`;
+      
+      return summary;
     }
     
     // ===== RATING SYSTEM FUNCTIONALITY =====
@@ -9722,6 +9838,24 @@ document.addEventListener('DOMContentLoaded', () => {
           const hoverRating = parseInt(star.dataset.rating);
           updateStarDisplay(hoverRating, true);
         });
+      });
+      
+      // Save conversation summary when user leaves the page
+      window.addEventListener('beforeunload', async (event) => {
+        // Check if we have an active conversation
+        const hasMessages = document.querySelectorAll('#chatlog p:not([data-starter="true"])').length > 0;
+        const uid = localStorage.getItem("user_uid");
+        const email = localStorage.getItem("user_email");
+        const token = localStorage.getItem("user_token");
+        
+        if (hasMessages && uid && characterSlug) {
+          // Try to save summary (note: this might not complete if browser closes too quickly)
+          try {
+            await generateConversationSummary(email, uid, token, characterSlug);
+          } catch (error) {
+            console.log('⚠️ Could not save summary on page unload');
+          }
+        }
       });
       
       document.getElementById('ratingStars').addEventListener('mouseleave', () => {
