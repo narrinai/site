@@ -64,12 +64,9 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Get user ID from Users table - escape single quotes in email
-    const escapedEmail = user_email.replace(/'/g, "\\'");
-    
-    // First try with both Email and NetlifyUID
-    console.log('🔍 Attempting user lookup with Email and NetlifyUID');
-    let userResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=AND({Email}='${escapedEmail}',{NetlifyUID}='${user_uid}')`, {
+    // First try to find user by NetlifyUID (primary identifier)
+    console.log('🔍 Looking up user by NetlifyUID:', user_uid);
+    let userResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={NetlifyUID}='${user_uid}'`, {
       headers: {
         'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
         'Content-Type': 'application/json'
@@ -82,10 +79,11 @@ exports.handler = async (event, context) => {
 
     let userData = await userResponse.json();
     
-    // If no user found with NetlifyUID, try with email only
+    // If no user found with NetlifyUID, try with email as fallback
     if (userData.records.length === 0) {
-      console.log('⚠️ No user found with NetlifyUID, trying email-only lookup');
+      console.log('⚠️ No user found with NetlifyUID, trying email lookup');
       
+      const escapedEmail = user_email.replace(/'/g, "\\'");
       userResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={Email}='${escapedEmail}'`, {
         headers: {
           'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -100,12 +98,39 @@ exports.handler = async (event, context) => {
       userData = await userResponse.json();
       
       if (userData.records.length === 0) {
-        throw new Error('User not found with email or NetlifyUID');
+        throw new Error('User not found with NetlifyUID or email');
       }
       
-      console.log('✅ User found with email-only lookup');
+      // Update the user record with NetlifyUID for future lookups
+      const userRecordIdToUpdate = userData.records[0].id;
+      const currentNetlifyUID = userData.records[0].fields.NetlifyUID;
+      
+      if (!currentNetlifyUID) {
+        console.log('📝 Updating user record with NetlifyUID');
+        const updateResponse = await fetch(
+          `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users/${userRecordIdToUpdate}`,
+          {
+            method: 'PATCH',
+            headers: {
+              'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              fields: {
+                NetlifyUID: user_uid
+              }
+            })
+          }
+        );
+        
+        if (!updateResponse.ok) {
+          console.error('⚠️ Failed to update user with NetlifyUID:', updateResponse.status);
+        }
+      }
+      
+      console.log('✅ User found with email lookup');
     } else {
-      console.log('✅ User found with Email and NetlifyUID');
+      console.log('✅ User found with NetlifyUID');
     }
 
     const user_id = userData.records[0].id;
@@ -150,7 +175,7 @@ exports.handler = async (event, context) => {
 
     console.log('💾 Saving rating to ChatRatings');
 
-    const createResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/tblXglk25SzZ3UYAt`, {
+    const createResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatRatings`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
