@@ -51,7 +51,7 @@ exports.handler = async (event, context) => {
     });
     
     // Add model_id as required by ElevenLabs API
-    form.append('model_id', 'eleven_turbo_v2');
+    form.append('model_id', 'scribe_v1');
 
     // Make request to ElevenLabs API
     const fetch = require('node-fetch');
