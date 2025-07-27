@@ -161,8 +161,8 @@ exports.handler = async (event, context) => {
     // Save rating to ChatRatings table
     const ratingRecord = {
       fields: {
-        User: customUserId,  // Use custom User_ID not Airtable record ID
-        Character: characterName,  // Use character name not Airtable record ID
+        User: [user_id],  // Linked record to Users table
+        Character: [character_id],  // Linked record to Characters table
         Rating: rating,
         MessageCount: message_count || 0
       }

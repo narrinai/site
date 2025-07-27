@@ -180,11 +180,10 @@ exports.handler = async (event, context) => {
     // Get last rating to check if already rated at this count
     if (shouldShowRating) {
       try {
-        // ChatRatings uses custom User_ID and character name (not record IDs)
-        const customUserId = userData.records[0].fields.User_ID || '42';
-        console.log('🔍 Checking previous ratings for user:', customUserId, 'character:', characterName);
+        // ChatRatings uses linked records
+        console.log('🔍 Checking previous ratings for user:', userRecordId, 'character:', characterRecordId);
         const lastRatingResponse = await fetch(
-          `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatRatings?filterByFormula=AND({User}='${customUserId}',{Character}='${characterName}',{MessageCount}=${messageCount})&maxRecords=1`,
+          `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatRatings?filterByFormula=AND(SEARCH('${userRecordId}',ARRAYJOIN({User})),SEARCH('${characterRecordId}',ARRAYJOIN({Character})),{MessageCount}=${messageCount})&maxRecords=1`,
           {
             headers: {
               'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
