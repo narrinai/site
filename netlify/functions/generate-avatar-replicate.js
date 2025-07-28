@@ -293,8 +293,67 @@ function createRealisticPortraitPrompt(characterName, characterTitle) {
   // Build professional portrait prompt with light background
   let prompt = `Professional headshot portrait of a single ${ethnicGender}, `;
   
-  // Professional appearance
-  prompt += 'professional appearance, warm friendly smile, confident expression, business casual attire';
+  // Varied clothing styles
+  const clothingStyles = [
+    'business suit and tie',
+    'casual t-shirt',
+    'button-up shirt',
+    'sweater',
+    'blazer with casual shirt',
+    'polo shirt',
+    'dress shirt no tie',
+    'hoodie',
+    'smart casual outfit',
+    'creative professional attire',
+    'startup casual wear',
+    'elegant blouse',
+    'cardigan',
+    'denim jacket',
+    'turtleneck'
+  ];
+  
+  // Different clothing for men and women
+  const femaleClothing = [
+    'elegant blouse',
+    'professional dress',
+    'blazer with blouse',
+    'stylish sweater',
+    'casual top',
+    'cardigan over shirt',
+    'smart casual dress',
+    'business suit',
+    'fashionable jacket',
+    'silk scarf accent',
+    'modern professional outfit',
+    'chic turtleneck'
+  ];
+  
+  const maleClothing = [
+    'business suit and tie',
+    'casual t-shirt',
+    'button-up shirt',
+    'v-neck sweater',
+    'blazer with t-shirt',
+    'polo shirt',
+    'dress shirt no tie',
+    'hoodie',
+    'henley shirt',
+    'denim shirt',
+    'crew neck sweater',
+    'quarter-zip pullover'
+  ];
+  
+  // Select appropriate clothing based on gender
+  let clothing;
+  if (gender === 'woman') {
+    clothing = femaleClothing[Math.floor(Math.random() * femaleClothing.length)];
+  } else if (gender === 'man') {
+    clothing = maleClothing[Math.floor(Math.random() * maleClothing.length)];
+  } else {
+    clothing = clothingStyles[Math.floor(Math.random() * clothingStyles.length)];
+  }
+  
+  prompt += `warm friendly smile, confident expression, wearing ${clothing}`;
   
   // Light background and technical specifications - emphasize single person
   prompt += ', bright white or light gray background, solo portrait, only one person in frame, no reflections, no mirrors, no other people, soft diffused lighting, well-lit face, high key lighting, professional studio portrait, centered face, direct eye contact, sharp focus, 85mm portrait lens, shallow depth of field';
@@ -304,23 +363,27 @@ function createRealisticPortraitPrompt(characterName, characterTitle) {
   const age = ages[Math.floor(Math.random() * ages.length)];
   prompt += `, ${age}`;
   
-  // Add variety in appearance features
-  const features = [
+  // Add variety in hair styles only (clothing already handled)
+  const hairStyles = [
     ', short hair', ', long hair', ', medium length hair', 
     ', curly hair', ', straight hair', ', wavy hair',
-    ', glasses', ', no glasses',
-    ', formal blazer', ', casual shirt', ', professional sweater'
+    ', braided hair', ', ponytail', ', shoulder-length hair',
+    ', buzzcut', ', styled hair', ', natural hair'
   ];
   
-  // Add 2-3 random features
-  const selectedFeatures = [];
-  for (let i = 0; i < 3; i++) {
-    const feature = features[Math.floor(Math.random() * features.length)];
-    if (!selectedFeatures.some(f => f.includes(feature.split(',')[1].split(' ')[1]))) {
-      selectedFeatures.push(feature);
-    }
+  const accessories = [
+    ', wearing glasses', ', no glasses', ', wearing earrings', ', wearing a watch'
+  ];
+  
+  // Add random hair style
+  const hairStyle = hairStyles[Math.floor(Math.random() * hairStyles.length)];
+  prompt += hairStyle;
+  
+  // 50% chance of accessories
+  if (Math.random() > 0.5) {
+    const accessory = accessories[Math.floor(Math.random() * accessories.length)];
+    prompt += accessory;
   }
-  prompt += selectedFeatures.join('');
   
   return { prompt, gender };
 }
