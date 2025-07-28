@@ -101,7 +101,8 @@ def get_characters_without_avatars():
 def generate_avatar_via_netlify(character):
     """Genereer een avatar via Netlify function"""
     try:
-        url = f"{NETLIFY_SITE_URL}/.netlify/functions/generate-avatar"
+        # Gebruik DiceBear versie voor consistente avatars zonder rasters
+        url = f"{NETLIFY_SITE_URL}/.netlify/functions/generate-avatar-dicebear"
         
         payload = {
             'characterName': character['name'],
@@ -192,7 +193,7 @@ def main():
     
     # Test de Netlify function
     log(Colors.BLUE, "🧪 Testen van Netlify function...")
-    test_response = requests.get(f"{NETLIFY_SITE_URL}/.netlify/functions/generate-avatar")
+    test_response = requests.get(f"{NETLIFY_SITE_URL}/.netlify/functions/generate-avatar-dicebear")
     if test_response.status_code == 405:  # Method not allowed - dit is goed, betekent dat de function bestaat
         log(Colors.GREEN, "✅ Netlify function bereikbaar")
     else:
@@ -206,8 +207,8 @@ def main():
         return
     
     # Vraag bevestiging
-    log(Colors.YELLOW, f"\n⚠️  Dit zal {len(characters)} avatar afbeeldingen genereren via Netlify.")
-    log(Colors.GREEN, "✅ Geen lokale OpenAI API key nodig - gebruikt Netlify function")
+    log(Colors.YELLOW, f"\n⚠️  Dit zal {len(characters)} avatar afbeeldingen genereren via DiceBear.")
+    log(Colors.GREEN, "✅ Gebruikt DiceBear API - consistente avatars zonder rasters")
     
     confirm = input("\nWil je doorgaan? (y/n): ")
     if confirm.lower() != 'y':
@@ -231,7 +232,7 @@ def main():
                 failed_count += 1
                 continue
             
-            log(Colors.GREEN, f"✅ DALL-E avatar gegenereerd")
+            log(Colors.GREEN, f"✅ DiceBear avatar gegenereerd")
             
             # Upload naar Cloudinary via unsigned upload
             if character['slug']:
