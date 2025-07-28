@@ -154,9 +154,9 @@ exports.handler = async (event, context) => {
         avatarUrl = fields.Avatar_URL;
       }
       
-      // Debug Created_by field
-      if (fields.Created_by) {
-        console.log(`✅ Character "${fields.Name}" has Created_by: "${fields.Created_by}"`);
+      // Debug Created_By field (with capital B)
+      if (fields.Created_By) {
+        console.log(`✅ Character "${fields.Name}" has Created_By: "${fields.Created_By}"`);
       }
       
       // Debug: Log all field names for first character to check exact field name
@@ -178,7 +178,7 @@ exports.handler = async (event, context) => {
         voice_id: fields.voice_id || null,
         voice_type: fields.voice_type || 'none',
         Visibility: fields.Visibility || 'public',
-        Created_by: fields.Created_by || null
+        Created_by: fields.Created_By || null
       };
     });
 
