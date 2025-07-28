@@ -228,21 +228,21 @@ def main():
         
         try:
             # Genereer avatar via Netlify function
-            dalle_url = generate_avatar_via_netlify(character)
-            if not dalle_url:
+            replicate_url = generate_avatar_via_netlify(character)
+            if not replicate_url:
                 failed_count += 1
                 continue
             
-            log(Colors.GREEN, f"✅ Replicate avatar gegenereerd")
+            log(Colors.GREEN, f"✅ Replicate avatar generated successfully")
             
             # Upload naar Cloudinary voor permanente opslag
             if character['slug']:
-                final_url = upload_to_cloudinary(dalle_url, character['slug'])
+                final_url = upload_to_cloudinary(replicate_url, character['slug'])
                 if not final_url:
-                    final_url = dalle_url  # Gebruik Replicate URL als fallback
+                    final_url = replicate_url  # Gebruik Replicate URL als fallback
             else:
                 log(Colors.YELLOW, "⚠️  Geen slug gevonden, gebruik Replicate URL direct")
-                final_url = dalle_url
+                final_url = replicate_url
             
             # Update in Airtable
             if update_character_avatar(character['id'], final_url):
