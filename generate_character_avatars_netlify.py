@@ -101,8 +101,8 @@ def get_characters_without_avatars():
 def generate_avatar_via_netlify(character):
     """Genereer een avatar via Netlify function"""
     try:
-        # Gebruik DiceBear versie voor consistente avatars zonder rasters
-        url = f"{NETLIFY_SITE_URL}/.netlify/functions/generate-avatar-dicebear"
+        # Gebruik Replicate voor realistische portretten
+        url = f"{NETLIFY_SITE_URL}/.netlify/functions/generate-avatar-replicate"
         
         payload = {
             'characterName': character['name'],
@@ -193,7 +193,7 @@ def main():
     
     # Test de Netlify function
     log(Colors.BLUE, "🧪 Testen van Netlify function...")
-    test_response = requests.get(f"{NETLIFY_SITE_URL}/.netlify/functions/generate-avatar-dicebear")
+    test_response = requests.get(f"{NETLIFY_SITE_URL}/.netlify/functions/generate-avatar-replicate")
     if test_response.status_code == 405:  # Method not allowed - dit is goed, betekent dat de function bestaat
         log(Colors.GREEN, "✅ Netlify function bereikbaar")
     else:
