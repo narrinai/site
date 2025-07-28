@@ -57,6 +57,7 @@ exports.handler = async (event, context) => {
     const { prompt, gender } = createRealisticPortraitPrompt(characterName, characterTitle);
     
     console.log('🎨 Generated prompt:', prompt);
+    console.log('👤 Detected gender:', gender);
     
     // Use SDXL model for better results
     const model = "stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b";
@@ -72,7 +73,7 @@ exports.handler = async (event, context) => {
         version: model,
         input: {
           prompt: prompt,
-          negative_prompt: "dark background, black background, gray background, colored background, cartoon, anime, illustration, drawing, painting, sketch, 3d render, cgi, low quality, blurry, distorted, deformed, ugly, bad anatomy, bad proportions, extra limbs, missing limbs, extra fingers, mutated hands, poorly drawn hands, poorly drawn face, mutation, mutated, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, artist name, text, logo, grid, lines, borders, frames",
+          negative_prompt: "multiple people, two faces, group photo, crowd, reflection, mirror, dark background, black background, gray background, colored background, cartoon, anime, illustration, drawing, painting, sketch, 3d render, cgi, low quality, blurry, distorted, deformed, ugly, bad anatomy, bad proportions, extra limbs, missing limbs, extra fingers, mutated hands, poorly drawn hands, poorly drawn face, mutation, mutated, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, artist name, text, logo, grid, lines, borders, frames, double face, duplicate person",
           width: 768,
           height: 768,
           num_outputs: 1,
@@ -165,7 +166,7 @@ exports.handler = async (event, context) => {
 // Helper function to create realistic portrait prompts
 function createRealisticPortraitPrompt(characterName, characterTitle) {
   // Expanded name lists for better gender detection
-  const femaleNames = ['anna', 'maria', 'sarah', 'emma', 'lisa', 'julia', 'sophie', 'laura', 'nina', 'eva', 'elena', 'olivia', 'mia', 'charlotte', 'amelia', 'isabella', 'jessica', 'jennifer', 'linda', 'patricia', 'elizabeth', 'susan', 'dorothy', 'ashley', 'nancy', 'karen', 'betty', 'helen', 'sandra', 'donna', 'carol', 'ruth', 'sharon', 'michelle', 'kimberly', 'deborah', 'amy', 'angela', 'melissa', 'brenda', 'anna', 'rebecca', 'virginia', 'kathleen', 'pamela', 'martha', 'debra', 'amanda', 'stephanie', 'carolyn', 'christine', 'marie', 'janet', 'catherine', 'frances', 'christina', 'samantha', 'debbie', 'rachel', 'carolyn', 'martha', 'emily', 'nicole', 'alice', 'julie', 'joyce', 'victoria', 'kelly', 'joan', 'evelyn', 'cheryl', 'megan', 'andrea', 'diana', 'wendy', 'kate', 'maya', 'luna', 'zoe', 'lily', 'grace', 'hannah', 'chloe', 'sophia', 'ava', 'madison', 'ella', 'avery', 'scarlett', 'aria', 'aubrey', 'ellie', 'stella', 'natalie', 'leah', 'hazel', 'violet', 'aurora', 'savannah', 'audrey', 'brooklyn', 'bella', 'claire', 'skylar'];
+  const femaleNames = ['anna', 'maria', 'sarah', 'emma', 'lisa', 'julia', 'sophie', 'laura', 'nina', 'eva', 'elena', 'olivia', 'mia', 'charlotte', 'amelia', 'isabella', 'jessica', 'jennifer', 'linda', 'patricia', 'elizabeth', 'susan', 'dorothy', 'ashley', 'nancy', 'karen', 'betty', 'helen', 'sandra', 'donna', 'carol', 'ruth', 'sharon', 'michelle', 'kimberly', 'deborah', 'amy', 'angela', 'melissa', 'brenda', 'anna', 'rebecca', 'virginia', 'kathleen', 'pamela', 'martha', 'debra', 'amanda', 'stephanie', 'carolyn', 'christine', 'marie', 'janet', 'catherine', 'frances', 'christina', 'samantha', 'debbie', 'rachel', 'carolyn', 'martha', 'emily', 'nicole', 'alice', 'julie', 'joyce', 'victoria', 'kelly', 'joan', 'evelyn', 'cheryl', 'megan', 'andrea', 'diana', 'wendy', 'kate', 'maya', 'luna', 'zoe', 'lily', 'grace', 'hannah', 'chloe', 'sophia', 'ava', 'madison', 'ella', 'avery', 'scarlett', 'aria', 'aubrey', 'ellie', 'stella', 'natalie', 'leah', 'hazel', 'violet', 'aurora', 'savannah', 'audrey', 'brooklyn', 'bella', 'claire', 'skylar', 'ruby', 'felicia', 'lucy', 'anna', 'eva', 'molly', 'jasmine', 'layla', 'riley', 'zoey', 'mila', 'penelope', 'lydia', 'aubrey', 'madeline', 'alice', 'annie', 'june', 'rose', 'april', 'clara', 'diana', 'faith', 'heather', 'holly', 'iris', 'jade', 'jenna', 'joanna', 'joy', 'julia', 'kaitlyn', 'katie', 'kelsey', 'kim', 'kristen', 'lauren', 'lea', 'lori', 'mackenzie', 'maggie', 'melanie', 'monica', 'morgan', 'naomi', 'nora', 'paige', 'phoebe', 'quinn', 'reese', 'sabrina', 'sydney', 'tara', 'tiffany', 'valerie', 'vanessa', 'veronica', 'whitney', 'willow', 'yasmin', 'yvonne', 'zelda'];
   
   const maleNames = ['john', 'james', 'robert', 'michael', 'william', 'david', 'richard', 'joseph', 'thomas', 'charles', 'christopher', 'daniel', 'matthew', 'anthony', 'mark', 'donald', 'steven', 'kenneth', 'paul', 'joshua', 'andrew', 'kevin', 'brian', 'george', 'edward', 'ronald', 'timothy', 'jason', 'jeffrey', 'ryan', 'jacob', 'gary', 'nicholas', 'eric', 'jonathan', 'stephen', 'larry', 'justin', 'scott', 'brandon', 'benjamin', 'samuel', 'raymond', 'gregory', 'frank', 'alexander', 'patrick', 'jack', 'dennis', 'jerry', 'tyler', 'aaron', 'jose', 'nathan', 'henry', 'douglas', 'adam', 'peter', 'zachary', 'kyle', 'noah', 'ethan', 'jeremy', 'walter', 'keith', 'roger', 'austin', 'sean', 'carl', 'dylan', 'harold', 'jordan', 'jesse', 'bryan', 'lawrence', 'arthur', 'gabriel', 'bruce', 'logan', 'juan', 'albert', 'willie', 'wayne', 'ralph', 'mason', 'luke', 'jackson', 'liam', 'lucas', 'oliver', 'elijah', 'aiden', 'owen', 'hunter', 'wyatt', 'leo', 'eli', 'max'];
   
@@ -214,13 +215,13 @@ function createRealisticPortraitPrompt(characterName, characterTitle) {
   }
   
   // Build professional portrait prompt with light background
-  let prompt = `Professional headshot portrait of a ${ethnicGender}, `;
+  let prompt = `Professional headshot portrait of a single ${ethnicGender}, `;
   
   // Professional appearance
   prompt += 'professional appearance, warm friendly smile, confident expression, business casual attire';
   
-  // Light background and technical specifications
-  prompt += ', bright white or light gray background, soft diffused lighting, well-lit face, high key lighting, professional studio portrait, centered face, direct eye contact, sharp focus, 85mm portrait lens, shallow depth of field';
+  // Light background and technical specifications - emphasize single person
+  prompt += ', bright white or light gray background, solo portrait, only one person in frame, no reflections, no mirrors, no other people, soft diffused lighting, well-lit face, high key lighting, professional studio portrait, centered face, direct eye contact, sharp focus, 85mm portrait lens, shallow depth of field';
   
   // Add variety with age groups
   const ages = ['25-30 years old', '30-35 years old', '35-40 years old', '40-45 years old', '45-50 years old', '50-55 years old', '55-60 years old'];
