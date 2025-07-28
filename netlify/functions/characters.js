@@ -167,7 +167,8 @@ exports.handler = async (event, context) => {
         Character_ID: fields.Character_ID || record.id,
         voice_id: fields.voice_id || null,
         voice_type: fields.voice_type || 'none',
-        Visibility: fields.Visibility || 'public'
+        Visibility: fields.Visibility || 'public',
+        Created_by: fields.Created_by || null
       };
     });
 

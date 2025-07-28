@@ -59,8 +59,8 @@ exports.handler = async (event, context) => {
     console.log('🎨 Generated prompt:', prompt);
     console.log('👤 Detected gender:', gender);
     
-    // Use Realistic Vision model for better single portrait results
-    const model = "lucataco/realistic-vision-v5:4071ee793a0e4dc1f70b8b96c1e2379c5084de9e0b1e83582a56b4c44e6206f2";
+    // Use SDXL model with better prompt control
+    const model = "stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b";
     
     // Call Replicate API
     const replicateResponse = await fetch('https://api.replicate.com/v1/predictions', {
@@ -74,12 +74,11 @@ exports.handler = async (event, context) => {
         input: {
           prompt: prompt,
           negative_prompt: "multiple people, two faces, group photo, crowd, collage, grid layout, multiple portraits, composite image, photo grid, multiple images, triptych, diptych, reflection, mirror, dark background, black background, gray background, colored background, cartoon, anime, illustration, drawing, painting, sketch, 3d render, cgi, low quality, blurry, distorted, deformed, ugly, bad anatomy, bad proportions, extra limbs, missing limbs, extra fingers, mutated hands, poorly drawn hands, poorly drawn face, mutation, mutated, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, artist name, text, logo, grid, lines, borders, frames, double face, duplicate person, split screen, montage",
-          width: 512,
-          height: 512,
+          width: 768,
+          height: 768,
           num_outputs: 1,
           guidance_scale: 7.5,
-          num_inference_steps: 30,
-          scheduler: "K_EULER"
+          num_inference_steps: 30
         }
       })
     });
