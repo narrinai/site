@@ -854,6 +854,19 @@
       box-shadow: var(--shadow-lg);
     }
 
+    /* Special Create Companion button */
+    .create-companion-special {
+      background: var(--color-navy);
+      color: var(--color-white);
+      box-shadow: var(--shadow-md);
+    }
+
+    .create-companion-special:hover {
+      background: var(--color-navy-light);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-xl);
+    }
+
     /* Character Sections */
     .character-section {
       margin-bottom: var(--spacing-xl);
@@ -1795,22 +1808,40 @@ function generateCategoryButtons() {
   const allCategories = CONFIG.CATEGORIES;
 
   // Top navigation - show all categories
-  allCategories.forEach(category => {
+  allCategories.forEach((category, index) => {
     const button = document.createElement('a');
     button.href = `category.html?cat=${category.id}`;
     button.className = 'category-btn';
     button.textContent = category.name;
     categoryButtons.appendChild(button);
+    
+    // Add Create Companion button after Humor
+    if (category.id === 'humor') {
+      const createButton = document.createElement('a');
+      createButton.href = 'create-character.html';
+      createButton.className = 'category-btn create-companion-special';
+      createButton.innerHTML = '✨ Create Companion';
+      categoryButtons.appendChild(createButton);
+    }
   });
 
   // Bottom navigation - show same categories
   if (extraCategoryButtons) {
-    allCategories.forEach(category => {
+    allCategories.forEach((category, index) => {
       const button = document.createElement('a');
       button.href = `category.html?cat=${category.id}`;
       button.className = 'category-btn';
       button.textContent = category.name;
       extraCategoryButtons.appendChild(button);
+      
+      // Add Create Companion button after Humor
+      if (category.id === 'humor') {
+        const createButton = document.createElement('a');
+        createButton.href = 'create-character.html';
+        createButton.className = 'category-btn create-companion-special';
+        createButton.innerHTML = '✨ Create Companion';
+        extraCategoryButtons.appendChild(createButton);
+      }
     });
   }
 }
