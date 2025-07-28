@@ -1161,6 +1161,33 @@
       justify-content: center;
       margin-top: auto;
     }
+    
+    /* User-created badge */
+    .user-created-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(59, 130, 246, 0.9);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      max-width: calc(100% - 16px);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .user-created-badge .badge-icon {
+      font-size: 12px;
+      flex-shrink: 0;
+    }
 
     .character-tag {
       display: inline-block;
@@ -2052,7 +2079,8 @@
   characterUrl: character.Character_URL || getCharacterUrl(character),
   category: character.Category || 'unknown',
   slug: character.Slug || character.Name,
-  tags: processTags(character.Tags)
+  tags: processTags(character.Tags),
+  createdBy: character.Created_by || null
 }));
 
       console.log('✅ Processed characters:', allCharacters.length);
@@ -2202,6 +2230,16 @@
       card.className = 'character-card';
       card.href = character.characterUrl;
       
+      // Add user-created badge if Created_by field is not empty
+      let userBadgeHTML = '';
+      if (character.createdBy) {
+        userBadgeHTML = `
+          <div class="user-created-badge" title="Created by ${character.createdBy}">
+            <span class="badge-icon">👤</span> ${character.createdBy}
+          </div>
+        `;
+      }
+      
       // Create tags HTML
       const tagsHtml = character.tags.length > 0 ? `
         <div class="character-tags">
@@ -2213,6 +2251,7 @@
       // Create card HTML with proper avatar handling
       if (character.avatarUrl && character.avatarUrl.startsWith('http')) {
         card.innerHTML = `
+          ${userBadgeHTML}
           <div class="character-avatar">
             <img src="${character.avatarUrl}" 
                  alt="${character.name}" 
@@ -2225,6 +2264,7 @@
         `;
       } else {
         card.innerHTML = `
+          ${userBadgeHTML}
           <div class="character-avatar">👤</div>
           <div class="character-name">${character.name}</div>
           <div class="character-title">${character.title}</div>
