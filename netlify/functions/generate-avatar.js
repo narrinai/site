@@ -225,7 +225,7 @@ function createPortraitPrompt(characterName, characterTitle, category) {
   fullPrompt += `Square crop. Face fills frame. Nose at exact center point. Symmetrical framing. Plain background. `;
   
   // Final reinforcement
-  fullPrompt += `Direct front view only. ${gender === 'woman' ? 'Woman' : gender === 'man' ? 'Man' : 'Person'}'s face centered. No text or writing.`;
+  fullPrompt += `Direct front view only. ${gender === 'woman' ? 'Woman' : gender === 'man' ? 'Man' : 'Person'}'s face centered. No text, writing, grids, borders, frames, lines, or overlays. Clean portrait only.`;
   
   return { prompt: fullPrompt, detectedGender: gender };
 }
