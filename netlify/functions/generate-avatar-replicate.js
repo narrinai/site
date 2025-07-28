@@ -165,31 +165,107 @@ exports.handler = async (event, context) => {
 
 // Helper function to create realistic portrait prompts
 function createRealisticPortraitPrompt(characterName, characterTitle) {
-  // Expanded name lists for better gender detection
-  const femaleNames = ['anna', 'maria', 'sarah', 'emma', 'lisa', 'julia', 'sophie', 'laura', 'nina', 'eva', 'elena', 'olivia', 'mia', 'charlotte', 'amelia', 'isabella', 'jessica', 'jennifer', 'linda', 'patricia', 'elizabeth', 'susan', 'dorothy', 'ashley', 'nancy', 'karen', 'betty', 'helen', 'sandra', 'donna', 'carol', 'ruth', 'sharon', 'michelle', 'kimberly', 'deborah', 'amy', 'angela', 'melissa', 'brenda', 'anna', 'rebecca', 'virginia', 'kathleen', 'pamela', 'martha', 'debra', 'amanda', 'stephanie', 'carolyn', 'christine', 'marie', 'janet', 'catherine', 'frances', 'christina', 'samantha', 'debbie', 'rachel', 'carolyn', 'martha', 'emily', 'nicole', 'alice', 'julie', 'joyce', 'victoria', 'kelly', 'joan', 'evelyn', 'cheryl', 'megan', 'andrea', 'diana', 'wendy', 'kate', 'maya', 'luna', 'zoe', 'lily', 'grace', 'hannah', 'chloe', 'sophia', 'ava', 'madison', 'ella', 'avery', 'scarlett', 'aria', 'aubrey', 'ellie', 'stella', 'natalie', 'leah', 'hazel', 'violet', 'aurora', 'savannah', 'audrey', 'brooklyn', 'bella', 'claire', 'skylar', 'ruby', 'felicia', 'lucy', 'anna', 'eva', 'molly', 'jasmine', 'layla', 'riley', 'zoey', 'mila', 'penelope', 'lydia', 'aubrey', 'madeline', 'alice', 'annie', 'june', 'rose', 'april', 'clara', 'diana', 'faith', 'heather', 'holly', 'iris', 'jade', 'jenna', 'joanna', 'joy', 'julia', 'kaitlyn', 'katie', 'kelsey', 'kim', 'kristen', 'lauren', 'lea', 'lori', 'mackenzie', 'maggie', 'melanie', 'monica', 'morgan', 'naomi', 'nora', 'paige', 'phoebe', 'quinn', 'reese', 'sabrina', 'sydney', 'tara', 'tiffany', 'valerie', 'vanessa', 'veronica', 'whitney', 'willow', 'yasmin', 'yvonne', 'zelda'];
-  
-  const maleNames = ['john', 'james', 'robert', 'michael', 'william', 'david', 'richard', 'joseph', 'thomas', 'charles', 'christopher', 'daniel', 'matthew', 'anthony', 'mark', 'donald', 'steven', 'kenneth', 'paul', 'joshua', 'andrew', 'kevin', 'brian', 'george', 'edward', 'ronald', 'timothy', 'jason', 'jeffrey', 'ryan', 'jacob', 'gary', 'nicholas', 'eric', 'jonathan', 'stephen', 'larry', 'justin', 'scott', 'brandon', 'benjamin', 'samuel', 'raymond', 'gregory', 'frank', 'alexander', 'patrick', 'jack', 'dennis', 'jerry', 'tyler', 'aaron', 'jose', 'nathan', 'henry', 'douglas', 'adam', 'peter', 'zachary', 'kyle', 'noah', 'ethan', 'jeremy', 'walter', 'keith', 'roger', 'austin', 'sean', 'carl', 'dylan', 'harold', 'jordan', 'jesse', 'bryan', 'lawrence', 'arthur', 'gabriel', 'bruce', 'logan', 'juan', 'albert', 'willie', 'wayne', 'ralph', 'mason', 'luke', 'jackson', 'liam', 'lucas', 'oliver', 'elijah', 'aiden', 'owen', 'hunter', 'wyatt', 'leo', 'eli', 'max'];
-  
+  // Smart gender detection based on name patterns
   const nameLower = characterName.toLowerCase();
+  const firstName = nameLower.split(' ')[0]; // Get first name only
   let gender = 'person';
   
-  // Check for female names
-  for (const femaleName of femaleNames) {
-    if (nameLower.includes(femaleName)) {
+  // Common feminine endings
+  const feminineEndings = ['a', 'e', 'ie', 'y', 'ey', 'ee', 'elle', 'ette', 'ine', 'yn', 'ynn'];
+  const femininePatterns = ['ella', 'anna', 'ina', 'ara', 'ora', 'isa', 'ica', 'ita', 'etta', 'essa', 'iana'];
+  
+  // Common masculine endings
+  const masculineEndings = ['o', 'us', 'os', 'an', 'on', 'en', 'in', 'ton', 'son'];
+  const masculinePatterns = ['bert', 'rick', 'ard', 'ald', 'old', 'mond'];
+  
+  // Strong indicators for female names
+  const strongFemaleIndicators = ['rose', 'grace', 'faith', 'hope', 'joy', 'ruby', 'pearl', 'jade', 'lily', 'daisy', 'iris', 'violet', 'jasmine', 'aurora', 'luna', 'stella', 'bella', 'donna', 'lady', 'princess', 'queen'];
+  
+  // Strong indicators for male names  
+  const strongMaleIndicators = ['king', 'prince', 'duke', 'lord', 'sir', 'max', 'rex', 'guy'];
+  
+  // Check strong indicators first
+  for (const indicator of strongFemaleIndicators) {
+    if (firstName.includes(indicator)) {
       gender = 'woman';
       break;
     }
   }
   
-  // Check for male names if not female
   if (gender === 'person') {
-    for (const maleName of maleNames) {
-      if (nameLower.includes(maleName)) {
+    for (const indicator of strongMaleIndicators) {
+      if (firstName.includes(indicator)) {
         gender = 'man';
         break;
       }
     }
   }
+  
+  // Check name patterns if no strong indicator
+  if (gender === 'person') {
+    // Check feminine patterns
+    for (const pattern of femininePatterns) {
+      if (firstName.includes(pattern)) {
+        gender = 'woman';
+        break;
+      }
+    }
+  }
+  
+  // Check endings if still undetermined
+  if (gender === 'person') {
+    // Check feminine endings (but exclude common male names like 'joe', 'mike')
+    const maleExceptions = ['joe', 'mike', 'jake', 'luke', 'blake', 'cole', 'kyle', 'dale', 'shane'];
+    
+    for (const ending of feminineEndings) {
+      if (firstName.endsWith(ending) && !maleExceptions.includes(firstName)) {
+        gender = 'woman';
+        break;
+      }
+    }
+  }
+  
+  if (gender === 'person') {
+    // Check masculine endings
+    for (const ending of masculineEndings) {
+      if (firstName.endsWith(ending)) {
+        gender = 'man';
+        break;
+      }
+    }
+  }
+  
+  // Special cases and common names that break rules
+  const femaleOverrides = ['jean', 'joan', 'lynn', 'ann', 'sue', 'kim', 'robin', 'pat', 'alex', 'sam', 'jordan', 'taylor', 'morgan', 'casey', 'jamie', 'cameron', 'drew', 'devon'];
+  const maleOverrides = ['luca', 'joshua', 'elijah', 'andrea', 'nicola', 'dana'];
+  
+  if (femaleOverrides.includes(firstName)) {
+    gender = 'woman';
+  } else if (maleOverrides.includes(firstName)) {
+    gender = 'man';
+  }
+  
+  // If still undetermined, check character title for clues
+  if (gender === 'person' && characterTitle) {
+    const titleLower = characterTitle.toLowerCase();
+    if (titleLower.includes('mother') || titleLower.includes('mom') || titleLower.includes('wife') || 
+        titleLower.includes('sister') || titleLower.includes('daughter') || titleLower.includes('aunt') ||
+        titleLower.includes('lady') || titleLower.includes('queen') || titleLower.includes('princess') ||
+        titleLower.includes('girl') || titleLower.includes('woman')) {
+      gender = 'woman';
+    } else if (titleLower.includes('father') || titleLower.includes('dad') || titleLower.includes('husband') ||
+               titleLower.includes('brother') || titleLower.includes('son') || titleLower.includes('uncle') ||
+               titleLower.includes('lord') || titleLower.includes('king') || titleLower.includes('prince') ||
+               titleLower.includes('boy') || titleLower.includes('man')) {
+      gender = 'man';
+    }
+  }
+  
+  console.log(`🔍 Name analysis for "${characterName}":`, {
+    firstName: firstName,
+    detectedGender: gender,
+    title: characterTitle
+  });
   
   // Enhanced diversity in ethnicities with more specific descriptions
   const ethnicities = [
