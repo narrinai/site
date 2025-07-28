@@ -33,8 +33,8 @@ AIRTABLE_BASE = os.getenv('AIRTABLE_BASE_ID')
 AIRTABLE_TABLE = 'Characters'
 NETLIFY_SITE_URL = 'https://narrin.ai'
 
-def get_characters_without_avatars(limit=10):
-    """Haal een batch characters op zonder avatar_url"""
+def get_characters_without_avatars():
+    """Haal ALLE characters op zonder avatar_url"""
     url = f"https://api.airtable.com/v0/{AIRTABLE_BASE}/{AIRTABLE_TABLE}"
     headers = {
         'Authorization': f'Bearer {AIRTABLE_TOKEN}',
@@ -44,7 +44,7 @@ def get_characters_without_avatars(limit=10):
     characters = []
     offset = None
     
-    while len(characters) < limit:
+    while True:
         params = {'pageSize': 100}
         if offset:
             params['offset'] = offset
@@ -67,8 +67,6 @@ def get_characters_without_avatars(limit=10):
                         'category': fields.get('Category', 'General'),
                         'slug': fields.get('Slug', '')
                     })
-                    if len(characters) >= limit:
-                        break
             
             offset = data.get('offset')
             if not offset:
@@ -128,18 +126,21 @@ def update_character_avatar(character_id, avatar_url):
         return False
 
 def main():
-    # Get batch size from command line or default to 5
-    batch_size = int(sys.argv[1]) if len(sys.argv) > 1 else 5
+    log(Colors.CYAN, f"🚀 Avatar Generator - Processing ALL characters without avatars")
     
-    log(Colors.CYAN, f"🚀 Batch Avatar Generator - Processing {batch_size} characters")
-    
-    characters = get_characters_without_avatars(limit=batch_size)
+    characters = get_characters_without_avatars()
     
     if not characters:
         log(Colors.YELLOW, "⚠️  Geen characters gevonden zonder avatar")
         return
     
-    log(Colors.GREEN, f"✅ {len(characters)} characters gevonden voor deze batch")
+    log(Colors.GREEN, f"✅ {len(characters)} characters gevonden zonder avatar")
+    log(Colors.YELLOW, f"⚠️  Dit zal {len(characters)} avatars genereren. Continue? (y/n): ")
+    
+    confirm = input()
+    if confirm.lower() != 'y':
+        log(Colors.RED, "❌ Geannuleerd")
+        return
     
     success_count = 0
     failed_count = 0
