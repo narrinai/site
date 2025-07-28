@@ -1402,7 +1402,7 @@ body.has-referral-banner {
           <a href="index.html" class="nav-link">Characters</a>
           <a href="chat-overview.html" class="nav-link">Chats</a>
           <a href="profile.html" class="nav-link" id="loginBtn">Login/Register</a>
-          <a href="create-character.html" class="btn btn-primary">✨ Create Companion</a>
+          <a href="create-character.html" class="btn btn-primary">✨ Create Your Own Companion</a>
         </nav>
 
         <!-- Mobile Navigation Container -->
@@ -1487,7 +1487,7 @@ body.has-referral-banner {
         </a>
         <a href="create-character.html" class="mobile-menu-link btn-primary">
           <span class="mobile-menu-link-icon">✨</span>
-          Create Companion
+          Create Your Own Companion
         </a>
       </nav>
     </div>
@@ -1553,7 +1553,7 @@ body.has-referral-banner {
         <span class="footer-separator">•</span>
         <a href="chat-overview.html" class="footer-link">Chats</a>
         <span class="footer-separator">•</span>
-        <a href="create-character.html" class="footer-link">Create Companion</a>
+        <a href="create-character.html" class="footer-link">Create Your Own Companion</a>
         <span class="footer-separator">•</span>
         <a href="contact.html" class="footer-link">Contact</a>
         <span class="footer-separator">•</span>
@@ -1807,41 +1807,38 @@ function generateCategoryButtons() {
   // Show all categories from CONFIG
   const allCategories = CONFIG.CATEGORIES;
 
-  // Top navigation - show all categories
+  // Top navigation - Add Create Your Own Companion button first
+  const createButton = document.createElement('a');
+  createButton.href = 'create-character.html';
+  createButton.className = 'category-btn create-companion-special';
+  createButton.innerHTML = '✨ Create Your Own Companion';
+  categoryButtons.appendChild(createButton);
+  
+  // Then show all categories
   allCategories.forEach((category, index) => {
     const button = document.createElement('a');
     button.href = `category.html?cat=${category.id}`;
     button.className = 'category-btn';
     button.textContent = category.name;
     categoryButtons.appendChild(button);
-    
-    // Add Create Companion button after Humor
-    if (category.id === 'humor') {
-      const createButton = document.createElement('a');
-      createButton.href = 'create-character.html';
-      createButton.className = 'category-btn create-companion-special';
-      createButton.innerHTML = '✨ Create Companion';
-      categoryButtons.appendChild(createButton);
-    }
   });
 
   // Bottom navigation - show same categories
   if (extraCategoryButtons) {
+    // Add Create Your Own Companion button first
+    const createButtonBottom = document.createElement('a');
+    createButtonBottom.href = 'create-character.html';
+    createButtonBottom.className = 'category-btn create-companion-special';
+    createButtonBottom.innerHTML = '✨ Create Your Own Companion';
+    extraCategoryButtons.appendChild(createButtonBottom);
+    
+    // Then show all categories
     allCategories.forEach((category, index) => {
       const button = document.createElement('a');
       button.href = `category.html?cat=${category.id}`;
       button.className = 'category-btn';
       button.textContent = category.name;
       extraCategoryButtons.appendChild(button);
-      
-      // Add Create Companion button after Humor
-      if (category.id === 'humor') {
-        const createButton = document.createElement('a');
-        createButton.href = 'create-character.html';
-        createButton.className = 'category-btn create-companion-special';
-        createButton.innerHTML = '✨ Create Companion';
-        extraCategoryButtons.appendChild(createButton);
-      }
     });
   }
 }
