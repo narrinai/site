@@ -159,6 +159,11 @@ exports.handler = async (event, context) => {
         console.log(`✅ Character "${fields.Name}" has Created_by: "${fields.Created_by}"`);
       }
       
+      // Debug: Log all field names for first character to check exact field name
+      if (record.id === allRecords[0].id) {
+        console.log('📋 Available fields for first character:', Object.keys(fields));
+      }
+      
       return {
         id: record.id,
         Name: fields.Name || '',
