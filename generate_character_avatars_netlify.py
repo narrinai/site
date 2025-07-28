@@ -234,14 +234,8 @@ def main():
             
             log(Colors.GREEN, f"✅ DiceBear avatar gegenereerd")
             
-            # Upload naar Cloudinary via unsigned upload
-            if character['slug']:
-                final_url = upload_to_cloudinary(dalle_url, character['slug'])
-                if not final_url:
-                    final_url = dalle_url  # Gebruik DALL-E URL als fallback
-            else:
-                log(Colors.YELLOW, "⚠️  Geen slug gevonden, gebruik DALL-E URL direct")
-                final_url = dalle_url
+            # DiceBear levert al PNG, geen Cloudinary upload nodig
+            final_url = dalle_url
             
             # Update in Airtable
             if update_character_avatar(character['id'], final_url):

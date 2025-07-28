@@ -71,12 +71,10 @@ exports.handler = async (event, context) => {
       }
     }
     
-    const avatarUrl = `https://api.dicebear.com/7.x/${style}/svg?${params.toString()}`;
+    // Use PNG format directly from DiceBear
+    const avatarUrl = `https://api.dicebear.com/7.x/${style}/png?${params.toString()}`;
     
     console.log('✅ Avatar URL generated:', avatarUrl);
-    
-    // Convert SVG to PNG using Cloudinary on-the-fly transformation
-    const cloudinaryUrl = `https://res.cloudinary.com/dqrmopzes/image/fetch/f_png,w_512,h_512,c_fit/${encodeURIComponent(avatarUrl)}`;
     
     return {
       statusCode: 200,
@@ -86,8 +84,7 @@ exports.handler = async (event, context) => {
       },
       body: JSON.stringify({
         success: true,
-        imageUrl: cloudinaryUrl,
-        originalUrl: avatarUrl,
+        imageUrl: avatarUrl,
         style: style
       })
     };
