@@ -4821,16 +4821,19 @@ document.addEventListener('DOMContentLoaded', () => {
               }
             }
             
+            // Escape HTML but keep emojis
+            const safeMessage = escapeHtmlButKeepEmojis(cleanMessage);
+            
             const p = document.createElement("p");
             
             if (msg.role === 'user') {
-              p.innerHTML = `<strong>You:</strong> ${cleanMessage}`;
+              p.innerHTML = `<strong>You:</strong> ${safeMessage}`;
             } else {
               const avatarHtml = getAvatarHtml();
               if (currentCharacter.voice_id) {
-                p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${cleanMessage}<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice(\`${cleanMessage.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
+                p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${safeMessage}<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice(\`${safeMessage.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
               } else {
-                p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${cleanMessage}`;
+                p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${safeMessage}`;
               }
             }
             
@@ -5987,6 +5990,17 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       errorState.querySelector('p').textContent = message;
     }
 
+    // ===== HELPER FUNCTION FOR SAFE TEXT DISPLAY =====
+    function escapeHtmlButKeepEmojis(text) {
+      // First escape HTML entities to prevent XSS
+      const div = document.createElement('div');
+      div.textContent = text;
+      const escaped = div.innerHTML;
+      
+      // Return escaped text which will properly display emojis
+      return escaped;
+    }
+
     // ===== CHAT FUNCTIONALITY =====
     async function handleSendClick(event) {
   // Prevent multiple simultaneous sends
@@ -6291,8 +6305,11 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       }
       
       const p = document.createElement("p");
+      // Escape message content to safely display emojis and prevent XSS
+      const safeMessage = escapeHtmlButKeepEmojis(message);
+      
       if (role === "user") {
-        p.innerHTML = `<strong>You:</strong> ${message}`;
+        p.innerHTML = `<strong>You:</strong> ${safeMessage}`;
       } else {
         const avatarHtml = getAvatarHtml();
         
@@ -6301,14 +6318,16 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
           const validatedVoiceId = validateAndFixVoiceId(currentCharacter.voice_id);
           if (validatedVoiceId) {
             // Only show play button if we have a valid voice ID
-            p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${message}<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice(\`${message.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
+            // Escape message for onclick attribute differently
+            const escapedForOnclick = message.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/'/g, "\\'").replace(/"/g, '\\"');
+            p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${safeMessage}<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice('${escapedForOnclick}', '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
           } else {
             // Don't show play button for invalid voice IDs
-            p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${message}`;
+            p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${safeMessage}`;
             console.warn(`⚠️ Voice chat disabled for ${currentCharacter?.name} - invalid voice ID: ${currentCharacter.voice_id}`);
           }
         } else {
-          p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${message}`;
+          p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${safeMessage}`;
         }
       }
       chatlog.appendChild(p);
@@ -8817,7 +8836,8 @@ async function sendMessage(event) {
   
   // DIRECT: Voeg gebruiker bericht toe aan chat
   const divUser = document.createElement("p");
-  divUser.innerHTML = `<strong>You:</strong> ${input}`;
+  const safeInput = escapeHtmlButKeepEmojis(input);
+  divUser.innerHTML = `<strong>You:</strong> ${safeInput}`;
   chatlog.appendChild(divUser);
   chatlog.scrollTop = chatlog.scrollHeight;
   userInput.value = "";
