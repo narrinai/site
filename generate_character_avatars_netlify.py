@@ -252,7 +252,7 @@ def main():
                 failed_count += 1
                 
             # Wacht even om rate limits te respecteren
-            time.sleep(2)  # Iets langer wachten voor Netlify function
+            time.sleep(5)  # Langer wachten voor Replicate rate limits
             
         except Exception as e:
             log(Colors.RED, f"❌ Fout bij verwerken character: {e}")
