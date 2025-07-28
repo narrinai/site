@@ -207,8 +207,9 @@ def main():
         return
     
     # Vraag bevestiging
-    log(Colors.YELLOW, f"\n⚠️  Dit zal {len(characters)} avatar afbeeldingen genereren via DiceBear.")
-    log(Colors.GREEN, "✅ Gebruikt DiceBear API - consistente avatars zonder rasters")
+    log(Colors.YELLOW, f"\n⚠️  Dit zal {len(characters)} avatar afbeeldingen genereren via Replicate.")
+    log(Colors.GREEN, "✅ Gebruikt Replicate Stable Diffusion - realistische portretten")
+    log(Colors.YELLOW, "⚠️  Zorg dat REPLICATE_API_TOKEN is ingesteld in Netlify environment variables")
     
     confirm = input("\nWil je doorgaan? (y/n): ")
     if confirm.lower() != 'y':
@@ -232,10 +233,16 @@ def main():
                 failed_count += 1
                 continue
             
-            log(Colors.GREEN, f"✅ DiceBear avatar gegenereerd")
+            log(Colors.GREEN, f"✅ Replicate avatar gegenereerd")
             
-            # DiceBear levert al PNG, geen Cloudinary upload nodig
-            final_url = dalle_url
+            # Upload naar Cloudinary voor permanente opslag
+            if character['slug']:
+                final_url = upload_to_cloudinary(dalle_url, character['slug'])
+                if not final_url:
+                    final_url = dalle_url  # Gebruik Replicate URL als fallback
+            else:
+                log(Colors.YELLOW, "⚠️  Geen slug gevonden, gebruik Replicate URL direct")
+                final_url = dalle_url
             
             # Update in Airtable
             if update_character_avatar(character['id'], final_url):
