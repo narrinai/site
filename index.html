@@ -2059,6 +2059,15 @@ function createPredefinedCharacterCard(character) {
   titleDiv.className = 'character-title';
   titleDiv.textContent = character.title;
   
+  // Add user-created badge if Created_by field is not empty
+  if (character.Created_by) {
+    const userBadge = document.createElement('div');
+    userBadge.className = 'user-created-badge';
+    userBadge.innerHTML = `<span class="badge-icon">👤</span> ${character.Created_by}`;
+    userBadge.title = `Created by ${character.Created_by}`;
+    card.appendChild(userBadge);
+  }
+  
   // Append elements to card
   card.appendChild(avatarContainer);
   card.appendChild(nameDiv);

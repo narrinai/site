@@ -154,6 +154,11 @@ exports.handler = async (event, context) => {
         avatarUrl = fields.Avatar_URL;
       }
       
+      // Debug Created_by field
+      if (fields.Created_by) {
+        console.log(`✅ Character "${fields.Name}" has Created_by: "${fields.Created_by}"`);
+      }
+      
       return {
         id: record.id,
         Name: fields.Name || '',
@@ -172,6 +177,10 @@ exports.handler = async (event, context) => {
       };
     });
 
+    // Debug: Count characters with Created_by
+    const charactersWithCreatedBy = characters.filter(char => char.Created_by);
+    console.log(`👤 Total characters with Created_by: ${charactersWithCreatedBy.length}/${characters.length}`);
+    
     // Filter by tag if specified (done in JavaScript since Airtable array filtering is complex)
     let filteredCharacters = characters;
     if (tag) {
