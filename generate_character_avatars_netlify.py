@@ -101,8 +101,8 @@ def get_characters_without_avatars():
 def generate_avatar_via_netlify(character):
     """Genereer een avatar via Netlify function"""
     try:
-        # Gebruik Replicate voor realistische portretten
-        url = f"{NETLIFY_SITE_URL}/.netlify/functions/generate-avatar-replicate"
+        # Gebruik UI Avatars voor professionele avatars (gratis)
+        url = f"{NETLIFY_SITE_URL}/.netlify/functions/generate-avatar-uiavatars"
         
         payload = {
             'characterName': character['name'],
@@ -193,7 +193,7 @@ def main():
     
     # Test de Netlify function
     log(Colors.BLUE, "🧪 Testen van Netlify function...")
-    test_response = requests.get(f"{NETLIFY_SITE_URL}/.netlify/functions/generate-avatar-replicate")
+    test_response = requests.get(f"{NETLIFY_SITE_URL}/.netlify/functions/generate-avatar-uiavatars")
     if test_response.status_code == 405:  # Method not allowed - dit is goed, betekent dat de function bestaat
         log(Colors.GREEN, "✅ Netlify function bereikbaar")
     else:
@@ -207,9 +207,9 @@ def main():
         return
     
     # Vraag bevestiging
-    log(Colors.YELLOW, f"\n⚠️  Dit zal {len(characters)} avatar afbeeldingen genereren via Replicate.")
-    log(Colors.GREEN, "✅ Gebruikt Replicate Stable Diffusion - realistische portretten")
-    log(Colors.YELLOW, "⚠️  Zorg dat REPLICATE_API_TOKEN is ingesteld in Netlify environment variables")
+    log(Colors.YELLOW, f"\n⚠️  Dit zal {len(characters)} avatar afbeeldingen genereren via UI Avatars.")
+    log(Colors.GREEN, "✅ Gebruikt UI Avatars - professionele initialen avatars")
+    log(Colors.GREEN, "✅ Gratis en betrouwbaar - geen API key nodig")
     
     confirm = input("\nWil je doorgaan? (y/n): ")
     if confirm.lower() != 'y':
@@ -233,7 +233,7 @@ def main():
                 failed_count += 1
                 continue
             
-            log(Colors.GREEN, f"✅ Replicate avatar gegenereerd")
+            log(Colors.GREEN, f"✅ UI Avatars avatar gegenereerd")
             
             # Upload naar Cloudinary voor permanente opslag
             if character['slug']:
