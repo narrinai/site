@@ -58,8 +58,8 @@ def get_characters_without_avatars():
                 fields = record.get('fields', {})
                 avatar_url = fields.get('Avatar_URL') or fields.get('avatar_url', '')
                 
-                # Skip SVG placeholders and find truly empty avatars
-                if not avatar_url or avatar_url.startswith('data:image/svg'):
+                # Check if avatar_url is empty
+                if not avatar_url:
                     characters.append({
                         'id': record['id'],
                         'name': fields.get('Name', 'Unknown'),
