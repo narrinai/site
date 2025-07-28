@@ -177,6 +177,10 @@ def upload_to_cloudinary(image_url, character_slug):
             data=data
         )
         
+        if not upload_response.ok:
+            log(Colors.RED, f"❌ Cloudinary response: {upload_response.status_code}")
+            log(Colors.RED, f"❌ Cloudinary error: {upload_response.text}")
+        
         upload_response.raise_for_status()
         result = upload_response.json()
         
@@ -228,15 +232,11 @@ def main():
         log(Colors.YELLOW, "⚠️  Geen characters gevonden zonder avatar")
         return
     
-    # Vraag bevestiging
+    # Auto-confirm voor headless running
     log(Colors.YELLOW, f"\n⚠️  Dit zal {len(characters)} avatar afbeeldingen genereren via Replicate.")
     log(Colors.GREEN, "✅ Gebruikt Replicate Stable Diffusion - realistische portretten")
     log(Colors.CYAN, "💡 Credits zijn toegevoegd aan Replicate account")
-    
-    confirm = input("\nWil je doorgaan? (y/n): ")
-    if confirm.lower() != 'y':
-        log(Colors.RED, "❌ Geannuleerd door gebruiker")
-        return
+    log(Colors.GREEN, "✅ Auto-start in headless mode...")
     
     # Limiteer tot eerste 5 voor test (verwijder deze regel voor volledig gebruik)
     # characters = characters[:5]
@@ -257,14 +257,9 @@ def main():
             
             log(Colors.GREEN, f"✅ Replicate avatar generated successfully")
             
-            # Upload naar Cloudinary voor permanente opslag
-            if character['slug']:
-                final_url = upload_to_cloudinary(replicate_url, character['slug'])
-                if not final_url:
-                    final_url = replicate_url  # Gebruik Replicate URL als fallback
-            else:
-                log(Colors.YELLOW, "⚠️  Geen slug gevonden, gebruik Replicate URL direct")
-                final_url = replicate_url
+            # Skip Cloudinary voor nu - gebruik Replicate URL direct
+            log(Colors.CYAN, "📎 Gebruik Replicate URL direct (Cloudinary overgeslagen)")
+            final_url = replicate_url
             
             # Update in Airtable
             if update_character_avatar(character['id'], final_url):
