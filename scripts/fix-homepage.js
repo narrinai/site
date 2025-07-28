@@ -3,10 +3,6 @@
 
 // Category mapping to handle all variations
 const CATEGORY_MAPPINGS = {
-  // Celebrities
-  'celebrity': 'celebrities',
-  'celebrities': 'celebrities',
-  'celebrity-coach': 'celebrities',
   
   // Anime
   'anime': 'anime',

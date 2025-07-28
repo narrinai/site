@@ -181,7 +181,6 @@ function assignTags(character) {
     if (category.includes('anime')) assignedTags.add('entertainment');
     if (category.includes('game')) assignedTags.add('entertainment');
     if (category.includes('fictional')) assignedTags.add('fantasy');
-    if (category.includes('celebrity')) assignedTags.add('famous');
   }
 
   // Zorg ervoor dat er minimaal enkele tags zijn toegewezen
