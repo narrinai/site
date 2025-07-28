@@ -59,8 +59,8 @@ exports.handler = async (event, context) => {
     console.log('🎨 Generated prompt:', prompt);
     console.log('👤 Detected gender:', gender);
     
-    // Use SDXL model for better results
-    const model = "stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b";
+    // Use Realistic Vision model for better single portrait results
+    const model = "lucataco/realistic-vision-v5:4071ee793a0e4dc1f70b8b96c1e2379c5084de9e0b1e83582a56b4c44e6206f2";
     
     // Call Replicate API
     const replicateResponse = await fetch('https://api.replicate.com/v1/predictions', {
@@ -73,12 +73,13 @@ exports.handler = async (event, context) => {
         version: model,
         input: {
           prompt: prompt,
-          negative_prompt: "multiple people, two faces, group photo, crowd, reflection, mirror, dark background, black background, gray background, colored background, cartoon, anime, illustration, drawing, painting, sketch, 3d render, cgi, low quality, blurry, distorted, deformed, ugly, bad anatomy, bad proportions, extra limbs, missing limbs, extra fingers, mutated hands, poorly drawn hands, poorly drawn face, mutation, mutated, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, artist name, text, logo, grid, lines, borders, frames, double face, duplicate person",
-          width: 768,
-          height: 768,
+          negative_prompt: "multiple people, two faces, group photo, crowd, collage, grid layout, multiple portraits, composite image, photo grid, multiple images, triptych, diptych, reflection, mirror, dark background, black background, gray background, colored background, cartoon, anime, illustration, drawing, painting, sketch, 3d render, cgi, low quality, blurry, distorted, deformed, ugly, bad anatomy, bad proportions, extra limbs, missing limbs, extra fingers, mutated hands, poorly drawn hands, poorly drawn face, mutation, mutated, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, artist name, text, logo, grid, lines, borders, frames, double face, duplicate person, split screen, montage",
+          width: 512,
+          height: 512,
           num_outputs: 1,
           guidance_scale: 7.5,
-          num_inference_steps: 25
+          num_inference_steps: 30,
+          scheduler: "K_EULER"
         }
       })
     });
@@ -291,7 +292,7 @@ function createRealisticPortraitPrompt(characterName, characterTitle, category) 
   }
   
   // Build professional portrait prompt with light background
-  let prompt = `Professional headshot portrait of a single ${ethnicGender}, `;
+  let prompt = `A single professional headshot portrait of one ${ethnicGender}, `;
   
   // Category-specific clothing
   const categoryClothing = {
@@ -412,7 +413,7 @@ function createRealisticPortraitPrompt(characterName, characterTitle, category) 
   prompt += `warm friendly smile, confident expression, wearing ${clothing}`;
   
   // Light background and technical specifications - emphasize single person
-  prompt += ', bright white or light gray background, solo portrait, only one person in frame, no reflections, no mirrors, no other people, soft diffused lighting, well-lit face, high key lighting, professional studio portrait, centered face, direct eye contact, sharp focus, 85mm portrait lens, shallow depth of field';
+  prompt += ', bright white or light gray background, individual portrait of one person only, close-up headshot, no grid, no collage, no multiple images, single frame, only one face visible, no reflections, no mirrors, no other people in background, soft diffused lighting, well-lit face, high key lighting, professional studio portrait, centered face, direct eye contact, sharp focus, 85mm portrait lens, shallow depth of field';
   
   // Add variety with age groups
   const ages = ['25-30 years old', '30-35 years old', '35-40 years old', '40-45 years old', '45-50 years old', '50-55 years old', '55-60 years old'];
