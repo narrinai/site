@@ -55,16 +55,20 @@ exports.handler = async (event, context) => {
         params.append('hair', 'long01,long02,long03,long04,long05');
         params.append('facialHair', 'none');
       }
-      // Category-based colors
+      // Category-based colors (hex codes)
       const categoryColors = {
-        'health': 'variant01',
-        'spiritual': 'variant02', 
-        'romance': 'variant03',
-        'support': 'variant04',
-        'purpose': 'variant05',
-        'self-improvement': 'variant06',
-        'travel': 'variant07',
-        'parenting': 'variant08'
+        'health': '4ECDC4',      // Teal
+        'spiritual': '9B59B6',    // Purple
+        'romance': 'E91E63',      // Pink
+        'support': '3498DB',      // Blue
+        'purpose': 'FF6B6B',      // Coral
+        'self-improvement': 'FFA726', // Orange
+        'travel': '26A69A',       // Turquoise
+        'parenting': 'AB47BC',    // Light Purple
+        'fitness': '66BB6A',      // Green
+        'mindfulness': '5C6BC0',  // Indigo
+        'cultural': '8D6E63',     // Brown
+        'life': '78909C'          // Blue Grey
       };
       if (categoryColors[category]) {
         params.append('clothingColor', categoryColors[category]);
