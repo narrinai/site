@@ -2583,6 +2583,12 @@
             <button class="edit-btn" onclick="enableEdit('email')">Edit</button>
           </div>
           
+          <div class="profile-item" data-field="nickname">
+            <span class="label">Nickname:</span>
+            <span class="value" id="nickname">...</span>
+            <button class="edit-btn" onclick="enableEdit('nickname')">Edit</button>
+          </div>
+          
           <div class="profile-item" data-field="plan">
             <span class="label">Plan:</span>
             <span class="value" id="plan">...</span>
@@ -3489,12 +3495,14 @@ function handleLoginSuccess(user, eventType = 'unknown') {
           user_metadata: {
             full_name: user.user_metadata?.full_name || '',
             avatar_url: user.user_metadata?.avatar_url || '',
-            provider: user.app_metadata?.provider || 'email'
+            provider: user.app_metadata?.provider || 'email',
+            nickname: user.user_metadata?.full_name || user.user_metadata?.name || ''
           },
           is_new_user: isNewUser,
           timestamp: new Date().toISOString(),
           source: 'profile_page_auth',
-          referrer_id: referralUserId || null
+          referrer_id: referralUserId || null,
+          nickname: user.user_metadata?.full_name || user.user_metadata?.name || ''
         };
         
         // Log webhook call
@@ -4156,6 +4164,7 @@ async function loadProfile() {
     
     // VEILIGE data processing met null checks
     setField('email', data?.email || email);
+    setField('nickname', data?.nickname || data?.user_metadata?.nickname || '');
     const userPlan = data?.plan || 'Free';
     setField('plan', userPlan);
     
@@ -4215,6 +4224,7 @@ async function loadProfile() {
     
     // FALLBACK: Toon basis info ook bij fout
     setField('email', email);
+    setField('nickname', '');
     setField('plan', 'Free');
     setField('usage', '0');
     
