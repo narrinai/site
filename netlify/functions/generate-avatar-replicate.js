@@ -14,13 +14,23 @@ exports.handler = async (event, context) => {
 
   const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
   
+  console.log('🔑 Environment check:', {
+    hasReplicateToken: !!REPLICATE_API_TOKEN,
+    tokenLength: REPLICATE_API_TOKEN ? REPLICATE_API_TOKEN.length : 0,
+    tokenPrefix: REPLICATE_API_TOKEN ? REPLICATE_API_TOKEN.substring(0, 3) : 'none'
+  });
+  
   if (!REPLICATE_API_TOKEN) {
     console.error('❌ Replicate API token not found');
     return {
       statusCode: 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      },
       body: JSON.stringify({ 
-        error: 'Replicate API token not configured'
+        error: 'Replicate API token not configured',
+        debug: 'Please add REPLICATE_API_TOKEN to Netlify environment variables'
       })
     };
   }
