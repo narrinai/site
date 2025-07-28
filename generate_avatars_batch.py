@@ -88,7 +88,7 @@ def generate_avatar_via_netlify(character):
         payload = {
             'characterName': character['name'],
             'characterTitle': character['title'],
-            'category': character['category'].lower()
+            'category': character['category']
         }
         
         response = requests.post(url, json=payload, timeout=60)

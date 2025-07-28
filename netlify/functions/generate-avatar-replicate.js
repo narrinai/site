@@ -54,7 +54,7 @@ exports.handler = async (event, context) => {
     }
     
     // Create a portrait prompt based on character info
-    const { prompt, gender } = createRealisticPortraitPrompt(characterName, characterTitle);
+    const { prompt, gender } = createRealisticPortraitPrompt(characterName, characterTitle, category);
     
     console.log('🎨 Generated prompt:', prompt);
     console.log('👤 Detected gender:', gender);
@@ -164,7 +164,7 @@ exports.handler = async (event, context) => {
 };
 
 // Helper function to create realistic portrait prompts
-function createRealisticPortraitPrompt(characterName, characterTitle) {
+function createRealisticPortraitPrompt(characterName, characterTitle, category) {
   // Smart gender detection based on name patterns
   const nameLower = characterName.toLowerCase();
   const firstName = nameLower.split(' ')[0]; // Get first name only
@@ -293,64 +293,120 @@ function createRealisticPortraitPrompt(characterName, characterTitle) {
   // Build professional portrait prompt with light background
   let prompt = `Professional headshot portrait of a single ${ethnicGender}, `;
   
-  // Varied clothing styles
-  const clothingStyles = [
-    'business suit and tie',
-    'casual t-shirt',
-    'button-up shirt',
-    'sweater',
-    'blazer with casual shirt',
-    'polo shirt',
-    'dress shirt no tie',
-    'hoodie',
-    'smart casual outfit',
-    'creative professional attire',
-    'startup casual wear',
-    'elegant blouse',
-    'cardigan',
-    'denim jacket',
-    'turtleneck'
-  ];
+  // Category-specific clothing
+  const categoryClothing = {
+    // Cooking & Food
+    cooking: {
+      female: ['chef jacket and hat', 'professional chef uniform', 'apron over casual clothes', 'culinary school uniform', 'chef whites'],
+      male: ['chef jacket and hat', 'professional chef uniform', 'black chef jacket', 'kitchen uniform', 'chef whites']
+    },
+    food: {
+      female: ['chef jacket', 'apron over nice blouse', 'restaurant uniform', 'food service attire'],
+      male: ['chef jacket', 'apron over shirt', 'restaurant uniform', 'food service attire']
+    },
+    
+    // Fitness & Sports
+    fitness: {
+      female: ['athletic wear', 'yoga outfit', 'sports bra and leggings', 'gym attire', 'fitness instructor uniform', 'athletic tank top'],
+      male: ['athletic wear', 'gym tank top', 'sports t-shirt', 'fitness instructor polo', 'athletic compression shirt', 'workout clothes']
+    },
+    sports: {
+      female: ['sports jersey', 'athletic uniform', 'team sportswear', 'training gear'],
+      male: ['sports jersey', 'athletic uniform', 'team sportswear', 'training gear']
+    },
+    wellness: {
+      female: ['spa uniform', 'wellness practitioner attire', 'comfortable yoga clothes', 'relaxed professional wear'],
+      male: ['spa uniform', 'wellness practitioner attire', 'comfortable athletic wear', 'relaxed professional wear']
+    },
+    
+    // Professional & Business
+    business: {
+      female: ['business suit', 'professional blazer and skirt', 'executive dress', 'corporate attire', 'power suit'],
+      male: ['business suit and tie', 'three-piece suit', 'corporate attire', 'executive suit', 'professional blazer']
+    },
+    career: {
+      female: ['professional blazer', 'business casual dress', 'smart office wear', 'career woman outfit'],
+      male: ['dress shirt and tie', 'business casual blazer', 'professional shirt', 'smart office wear']
+    },
+    finance: {
+      female: ['banker suit', 'financial advisor attire', 'conservative business dress', 'professional suit'],
+      male: ['banker suit and tie', 'financial advisor attire', 'conservative business suit', 'pinstripe suit']
+    },
+    
+    // Healthcare
+    health: {
+      female: ['medical scrubs', 'white coat over professional clothes', 'healthcare uniform', 'nurse scrubs'],
+      male: ['medical scrubs', 'white coat over shirt and tie', 'healthcare uniform', 'doctor coat']
+    },
+    therapy: {
+      female: ['professional counselor attire', 'comfortable professional clothes', 'therapist business casual'],
+      male: ['professional counselor attire', 'comfortable professional clothes', 'therapist business casual']
+    },
+    
+    // Creative & Arts
+    arts: {
+      female: ['artistic smock', 'creative casual wear', 'bohemian style outfit', 'artist apron over clothes'],
+      male: ['artist smock', 'creative casual wear', 'paint-splattered shirt', 'artistic clothing']
+    },
+    music: {
+      female: ['performer outfit', 'music teacher attire', 'creative professional wear', 'stylish artistic clothes'],
+      male: ['performer outfit', 'music teacher attire', 'creative professional wear', 'band t-shirt']
+    },
+    
+    // Education
+    education: {
+      female: ['teacher cardigan and dress', 'professor blazer', 'academic attire', 'smart casual teaching outfit'],
+      male: ['teacher shirt and tie', 'professor blazer with elbow patches', 'academic attire', 'educator sweater vest']
+    },
+    
+    // Technology
+    technology: {
+      female: ['tech company t-shirt', 'startup casual wear', 'developer hoodie', 'smart casual tech attire'],
+      male: ['tech company t-shirt', 'startup hoodie', 'developer casual wear', 'silicon valley casual']
+    },
+    
+    // Parenting & Family
+    parenting: {
+      female: ['comfortable mom outfit', 'practical parenting clothes', 'casual family wear', 'relaxed everyday clothes'],
+      male: ['comfortable dad outfit', 'practical parenting clothes', 'casual family wear', 'relaxed everyday clothes']
+    },
+    
+    // Default fallback
+    default: {
+      female: ['elegant blouse', 'professional dress', 'stylish sweater', 'smart casual outfit', 'modern blazer'],
+      male: ['button-up shirt', 'casual blazer', 'polo shirt', 'smart casual outfit', 'professional sweater']
+    }
+  };
   
-  // Different clothing for men and women
-  const femaleClothing = [
-    'elegant blouse',
-    'professional dress',
-    'blazer with blouse',
-    'stylish sweater',
-    'casual top',
-    'cardigan over shirt',
-    'smart casual dress',
-    'business suit',
-    'fashionable jacket',
-    'silk scarf accent',
-    'modern professional outfit',
-    'chic turtleneck'
-  ];
+  // Get category-appropriate clothing
+  let clothing;
+  const categoryLower = (category || 'default').toLowerCase();
   
-  const maleClothing = [
-    'business suit and tie',
-    'casual t-shirt',
-    'button-up shirt',
-    'v-neck sweater',
-    'blazer with t-shirt',
-    'polo shirt',
-    'dress shirt no tie',
-    'hoodie',
-    'henley shirt',
-    'denim shirt',
-    'crew neck sweater',
-    'quarter-zip pullover'
-  ];
+  // Find matching category or use default
+  let clothingOptions = categoryClothing.default;
+  
+  // Check exact match first
+  if (categoryClothing[categoryLower]) {
+    clothingOptions = categoryClothing[categoryLower];
+  } else {
+    // Check if category contains keywords
+    for (const [key, value] of Object.entries(categoryClothing)) {
+      if (categoryLower.includes(key) || key.includes(categoryLower)) {
+        clothingOptions = value;
+        break;
+      }
+    }
+  }
   
   // Select appropriate clothing based on gender
-  let clothing;
-  if (gender === 'woman') {
-    clothing = femaleClothing[Math.floor(Math.random() * femaleClothing.length)];
-  } else if (gender === 'man') {
-    clothing = maleClothing[Math.floor(Math.random() * maleClothing.length)];
+  if (gender === 'woman' && clothingOptions.female) {
+    clothing = clothingOptions.female[Math.floor(Math.random() * clothingOptions.female.length)];
+  } else if (gender === 'man' && clothingOptions.male) {
+    clothing = clothingOptions.male[Math.floor(Math.random() * clothingOptions.male.length)];
   } else {
-    clothing = clothingStyles[Math.floor(Math.random() * clothingStyles.length)];
+    // Fallback to generic clothing
+    const allClothing = [...(clothingOptions.female || []), ...(clothingOptions.male || [])];
+    clothing = allClothing[Math.floor(Math.random() * allClothing.length)] || 'professional attire';
   }
   
   prompt += `warm friendly smile, confident expression, wearing ${clothing}`;
