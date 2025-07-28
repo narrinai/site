@@ -98,8 +98,8 @@ def get_characters_without_avatars():
     log(Colors.GREEN, f"✅ {len(characters)} characters gevonden zonder avatar")
     return characters
 
-def generate_avatar_via_netlify(character):
-    """Genereer een avatar via Netlify function"""
+def generate_avatar_via_netlify(character, retry_count=0, max_retries=3):
+    """Genereer een avatar via Netlify function met retry logic"""
     try:
         # Gebruik Replicate voor realistische portretten
         url = f"{NETLIFY_SITE_URL}/.netlify/functions/generate-avatar-replicate"
@@ -112,7 +112,7 @@ def generate_avatar_via_netlify(character):
         
         log(Colors.CYAN, f"🎨 Avatar genereren voor {character['name']}...")
         
-        response = requests.post(url, json=payload)
+        response = requests.post(url, json=payload, timeout=60)  # 60 second timeout
         response.raise_for_status()
         
         data = response.json()
@@ -120,11 +120,30 @@ def generate_avatar_via_netlify(character):
         if data.get('success') and data.get('imageUrl'):
             return data['imageUrl']
         else:
-            log(Colors.RED, f"❌ Avatar generatie mislukt: {data.get('error', 'Onbekende fout')}")
+            error_msg = data.get('error', 'Onbekende fout')
+            log(Colors.RED, f"❌ Avatar generatie mislukt: {error_msg}")
+            
+            # Retry on certain errors
+            if retry_count < max_retries and '500' in str(error_msg):
+                log(Colors.YELLOW, f"🔄 Poging {retry_count + 1}/{max_retries} na 5 seconden...")
+                time.sleep(5)
+                return generate_avatar_via_netlify(character, retry_count + 1, max_retries)
+            
             return None
             
+    except requests.exceptions.Timeout:
+        log(Colors.RED, f"❌ Timeout bij Netlify function call")
+        if retry_count < max_retries:
+            log(Colors.YELLOW, f"🔄 Poging {retry_count + 1}/{max_retries} na 5 seconden...")
+            time.sleep(5)
+            return generate_avatar_via_netlify(character, retry_count + 1, max_retries)
+        return None
     except Exception as e:
         log(Colors.RED, f"❌ Fout bij Netlify function call: {e}")
+        if retry_count < max_retries and ('500' in str(e) or 'timeout' in str(e).lower()):
+            log(Colors.YELLOW, f"🔄 Poging {retry_count + 1}/{max_retries} na 5 seconden...")
+            time.sleep(5)
+            return generate_avatar_via_netlify(character, retry_count + 1, max_retries)
         return None
 
 def upload_to_cloudinary(image_url, character_slug):
@@ -141,11 +160,14 @@ def upload_to_cloudinary(image_url, character_slug):
             'file': ('avatar.jpg', response.content, 'image/jpeg')
         }
         
+        # Voeg timestamp toe om oude versies te overschrijven
+        timestamp = int(time.time())
         data = {
             'upload_preset': 'ml_default',
-            'public_id': f'avatars/{character_slug}',
+            'public_id': f'avatars/{character_slug}_v{timestamp}',
             'quality': 'auto',
-            'fetch_format': 'auto'
+            'fetch_format': 'auto',
+            'overwrite': 'true'
         }
         
         # Upload naar Cloudinary

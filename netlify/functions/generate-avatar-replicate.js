@@ -91,10 +91,14 @@ exports.handler = async (event, context) => {
     const prediction = await replicateResponse.json();
     console.log('📊 Prediction created:', prediction.id);
     
-    // Wait for the prediction to complete
+    // Wait for the prediction to complete (max 30 seconds)
     let result = prediction;
-    while (result.status !== 'succeeded' && result.status !== 'failed') {
+    let attempts = 0;
+    const maxAttempts = 30;
+    
+    while (result.status !== 'succeeded' && result.status !== 'failed' && attempts < maxAttempts) {
       await new Promise(resolve => setTimeout(resolve, 1000));
+      attempts++;
       
       const statusResponse = await fetch(`https://api.replicate.com/v1/predictions/${prediction.id}`, {
         headers: {
@@ -102,8 +106,17 @@ exports.handler = async (event, context) => {
         }
       });
       
+      if (!statusResponse.ok) {
+        console.error('❌ Status check failed:', statusResponse.status);
+        throw new Error(`Status check failed: ${statusResponse.status}`);
+      }
+      
       result = await statusResponse.json();
-      console.log('⏳ Status:', result.status);
+      console.log(`⏳ Status [${attempts}/${maxAttempts}]:`, result.status);
+    }
+    
+    if (attempts >= maxAttempts) {
+      throw new Error('Timeout waiting for image generation');
     }
     
     if (result.status === 'failed') {
