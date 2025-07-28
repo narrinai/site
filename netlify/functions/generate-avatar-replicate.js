@@ -58,8 +58,8 @@ exports.handler = async (event, context) => {
     
     console.log('🎨 Generated prompt:', prompt);
     
-    // Use Realistic Vision V5.1 model
-    const model = "SG161222/Realistic_Vision_V5.1_noVAE:2d8d4dd8a1c3807e25a20fb03e00643976c82f10be080345de0e67e8e7c7cd9c";
+    // Use SDXL model for better results
+    const model = "stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b";
     
     // Call Replicate API
     const replicateResponse = await fetch('https://api.replicate.com/v1/predictions', {
@@ -73,12 +73,11 @@ exports.handler = async (event, context) => {
         input: {
           prompt: prompt,
           negative_prompt: "cartoon, anime, illustration, drawing, painting, sketch, 3d render, cgi, low quality, blurry, distorted, deformed, ugly, bad anatomy, bad proportions, extra limbs, missing limbs, extra fingers, mutated hands, poorly drawn hands, poorly drawn face, mutation, mutated, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, artist name, text, logo, grid, lines, borders, frames",
-          width: 512,
-          height: 512,
+          width: 768,
+          height: 768,
           num_outputs: 1,
           guidance_scale: 7.5,
-          num_inference_steps: 30,
-          scheduler: "DPMSolverMultistep"
+          num_inference_steps: 25
         }
       })
     });
@@ -133,13 +132,18 @@ exports.handler = async (event, context) => {
     
   } catch (error) {
     console.error('❌ Generate avatar error:', error);
+    console.error('❌ Error stack:', error.stack);
     
     return {
       statusCode: 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      },
       body: JSON.stringify({ 
         error: 'Avatar generation failed',
-        details: error.message
+        details: error.message,
+        stack: error.stack
       })
     };
   }
