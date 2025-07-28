@@ -72,7 +72,7 @@ exports.handler = async (event, context) => {
         version: model,
         input: {
           prompt: prompt,
-          negative_prompt: "cartoon, anime, illustration, drawing, painting, sketch, 3d render, cgi, low quality, blurry, distorted, deformed, ugly, bad anatomy, bad proportions, extra limbs, missing limbs, extra fingers, mutated hands, poorly drawn hands, poorly drawn face, mutation, mutated, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, artist name, text, logo, grid, lines, borders, frames",
+          negative_prompt: "dark background, black background, gray background, colored background, cartoon, anime, illustration, drawing, painting, sketch, 3d render, cgi, low quality, blurry, distorted, deformed, ugly, bad anatomy, bad proportions, extra limbs, missing limbs, extra fingers, mutated hands, poorly drawn hands, poorly drawn face, mutation, mutated, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, artist name, text, logo, grid, lines, borders, frames",
           width: 768,
           height: 768,
           num_outputs: 1,
@@ -164,14 +164,15 @@ exports.handler = async (event, context) => {
 
 // Helper function to create realistic portrait prompts
 function createRealisticPortraitPrompt(characterName, characterTitle) {
-  // Detect gender from name
-  const femaleNames = ['anna', 'maria', 'sarah', 'emma', 'lisa', 'julia', 'sophie', 'laura', 'nina', 'eva', 'elena', 'olivia', 'mia', 'charlotte', 'amelia', 'isabella', 'jessica', 'jennifer', 'linda', 'patricia', 'elizabeth', 'susan', 'dorothy', 'ashley', 'nancy', 'karen', 'betty', 'helen', 'sandra', 'donna', 'carol', 'ruth', 'sharon', 'michelle', 'laura', 'sarah', 'kimberly', 'deborah'];
+  // Expanded name lists for better gender detection
+  const femaleNames = ['anna', 'maria', 'sarah', 'emma', 'lisa', 'julia', 'sophie', 'laura', 'nina', 'eva', 'elena', 'olivia', 'mia', 'charlotte', 'amelia', 'isabella', 'jessica', 'jennifer', 'linda', 'patricia', 'elizabeth', 'susan', 'dorothy', 'ashley', 'nancy', 'karen', 'betty', 'helen', 'sandra', 'donna', 'carol', 'ruth', 'sharon', 'michelle', 'kimberly', 'deborah', 'amy', 'angela', 'melissa', 'brenda', 'anna', 'rebecca', 'virginia', 'kathleen', 'pamela', 'martha', 'debra', 'amanda', 'stephanie', 'carolyn', 'christine', 'marie', 'janet', 'catherine', 'frances', 'christina', 'samantha', 'debbie', 'rachel', 'carolyn', 'martha', 'emily', 'nicole', 'alice', 'julie', 'joyce', 'victoria', 'kelly', 'joan', 'evelyn', 'cheryl', 'megan', 'andrea', 'diana', 'wendy', 'kate', 'maya', 'luna', 'zoe', 'lily', 'grace', 'hannah', 'chloe', 'sophia', 'ava', 'madison', 'ella', 'avery', 'scarlett', 'aria', 'aubrey', 'ellie', 'stella', 'natalie', 'leah', 'hazel', 'violet', 'aurora', 'savannah', 'audrey', 'brooklyn', 'bella', 'claire', 'skylar'];
   
-  const maleNames = ['john', 'james', 'robert', 'michael', 'william', 'david', 'richard', 'joseph', 'thomas', 'charles', 'christopher', 'daniel', 'matthew', 'anthony', 'mark', 'donald', 'steven', 'kenneth', 'paul', 'joshua', 'andrew', 'kevin', 'brian', 'george', 'edward', 'ronald', 'timothy', 'jason', 'jeffrey', 'ryan', 'jacob', 'gary', 'nicholas', 'eric'];
+  const maleNames = ['john', 'james', 'robert', 'michael', 'william', 'david', 'richard', 'joseph', 'thomas', 'charles', 'christopher', 'daniel', 'matthew', 'anthony', 'mark', 'donald', 'steven', 'kenneth', 'paul', 'joshua', 'andrew', 'kevin', 'brian', 'george', 'edward', 'ronald', 'timothy', 'jason', 'jeffrey', 'ryan', 'jacob', 'gary', 'nicholas', 'eric', 'jonathan', 'stephen', 'larry', 'justin', 'scott', 'brandon', 'benjamin', 'samuel', 'raymond', 'gregory', 'frank', 'alexander', 'patrick', 'jack', 'dennis', 'jerry', 'tyler', 'aaron', 'jose', 'nathan', 'henry', 'douglas', 'adam', 'peter', 'zachary', 'kyle', 'noah', 'ethan', 'jeremy', 'walter', 'keith', 'roger', 'austin', 'sean', 'carl', 'dylan', 'harold', 'jordan', 'jesse', 'bryan', 'lawrence', 'arthur', 'gabriel', 'bruce', 'logan', 'juan', 'albert', 'willie', 'wayne', 'ralph', 'mason', 'luke', 'jackson', 'liam', 'lucas', 'oliver', 'elijah', 'aiden', 'owen', 'hunter', 'wyatt', 'leo', 'eli', 'max'];
   
   const nameLower = characterName.toLowerCase();
   let gender = 'person';
   
+  // Check for female names
   for (const femaleName of femaleNames) {
     if (nameLower.includes(femaleName)) {
       gender = 'woman';
@@ -179,6 +180,7 @@ function createRealisticPortraitPrompt(characterName, characterTitle) {
     }
   }
   
+  // Check for male names if not female
   if (gender === 'person') {
     for (const maleName of maleNames) {
       if (nameLower.includes(maleName)) {
@@ -188,23 +190,60 @@ function createRealisticPortraitPrompt(characterName, characterTitle) {
     }
   }
   
-  // Randomize ethnicity for diversity
-  const ethnicities = ['', 'Caucasian', 'African American', 'Asian', 'Hispanic', 'Middle Eastern', 'South Asian', 'Mixed ethnicity'];
+  // Enhanced diversity in ethnicities with more specific descriptions
+  const ethnicities = [
+    'East Asian', 'South Asian', 'Southeast Asian', 
+    'African', 'African American', 'Afro-Caribbean',
+    'Middle Eastern', 'North African', 
+    'Caucasian', 'European', 'Mediterranean',
+    'Hispanic', 'Latino', 'Latina',
+    'Native American', 'Indigenous',
+    'Pacific Islander', 'Polynesian',
+    'Mixed ethnicity', 'Multiracial'
+  ];
   const ethnicity = ethnicities[Math.floor(Math.random() * ethnicities.length)];
   
-  // Build professional portrait prompt
-  let prompt = `Professional headshot portrait of ${ethnicity ? ethnicity + ' ' : ''}${gender}, `;
+  // Ensure proper gender terminology for ethnicity
+  let ethnicGender = gender;
+  if (gender === 'woman' && (ethnicity === 'Latino' || ethnicity === 'Hispanic')) {
+    ethnicGender = 'Latina woman';
+  } else if (gender === 'man' && (ethnicity === 'Latino' || ethnicity === 'Hispanic')) {
+    ethnicGender = 'Latino man';
+  } else if (ethnicity) {
+    ethnicGender = `${ethnicity} ${gender}`;
+  }
   
-  // Simple professional appearance for all
-  prompt += 'professional appearance, friendly approachable expression, business casual attire';
+  // Build professional portrait prompt with light background
+  let prompt = `Professional headshot portrait of a ${ethnicGender}, `;
   
-  // Technical specifications for consistency
-  prompt += ', centered face, direct eye contact, soft neutral background, professional studio lighting, high quality photograph, professional photography, sharp focus, 85mm portrait lens, depth of field';
+  // Professional appearance
+  prompt += 'professional appearance, warm friendly smile, confident expression, business casual attire';
   
-  // Add variety with age
-  const ages = ['25-35 years old', '30-40 years old', '35-45 years old', '40-50 years old', '45-55 years old'];
+  // Light background and technical specifications
+  prompt += ', bright white or light gray background, soft diffused lighting, well-lit face, high key lighting, professional studio portrait, centered face, direct eye contact, sharp focus, 85mm portrait lens, shallow depth of field';
+  
+  // Add variety with age groups
+  const ages = ['25-30 years old', '30-35 years old', '35-40 years old', '40-45 years old', '45-50 years old', '50-55 years old', '55-60 years old'];
   const age = ages[Math.floor(Math.random() * ages.length)];
   prompt += `, ${age}`;
+  
+  // Add variety in appearance features
+  const features = [
+    ', short hair', ', long hair', ', medium length hair', 
+    ', curly hair', ', straight hair', ', wavy hair',
+    ', glasses', ', no glasses',
+    ', formal blazer', ', casual shirt', ', professional sweater'
+  ];
+  
+  // Add 2-3 random features
+  const selectedFeatures = [];
+  for (let i = 0; i < 3; i++) {
+    const feature = features[Math.floor(Math.random() * features.length)];
+    if (!selectedFeatures.some(f => f.includes(feature.split(',')[1].split(' ')[1]))) {
+      selectedFeatures.push(feature);
+    }
+  }
+  prompt += selectedFeatures.join('');
   
   return { prompt, gender };
 }
