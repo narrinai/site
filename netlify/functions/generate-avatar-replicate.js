@@ -54,7 +54,7 @@ exports.handler = async (event, context) => {
     }
     
     // Create a portrait prompt based on character info
-    const { prompt, gender, ethnicity } = createRealisticPortraitPrompt(characterName, characterTitle, category);
+    const { prompt, gender } = createRealisticPortraitPrompt(characterName, characterTitle);
     
     console.log('🎨 Generated prompt:', prompt);
     
@@ -150,9 +150,12 @@ exports.handler = async (event, context) => {
 };
 
 // Helper function to create realistic portrait prompts
-function createRealisticPortraitPrompt(characterName, characterTitle, category) {
+function createRealisticPortraitPrompt(characterName, characterTitle) {
   // Detect gender from name
-  const femaleNames = ['anna', 'maria', 'sarah', 'emma', 'lisa', 'julia', 'sophie', 'laura', 'nina', 'eva', 'elena', 'olivia', 'mia', 'charlotte', 'amelia', 'isabella'];
+  const femaleNames = ['anna', 'maria', 'sarah', 'emma', 'lisa', 'julia', 'sophie', 'laura', 'nina', 'eva', 'elena', 'olivia', 'mia', 'charlotte', 'amelia', 'isabella', 'jessica', 'jennifer', 'linda', 'patricia', 'elizabeth', 'susan', 'dorothy', 'ashley', 'nancy', 'karen', 'betty', 'helen', 'sandra', 'donna', 'carol', 'ruth', 'sharon', 'michelle', 'laura', 'sarah', 'kimberly', 'deborah'];
+  
+  const maleNames = ['john', 'james', 'robert', 'michael', 'william', 'david', 'richard', 'joseph', 'thomas', 'charles', 'christopher', 'daniel', 'matthew', 'anthony', 'mark', 'donald', 'steven', 'kenneth', 'paul', 'joshua', 'andrew', 'kevin', 'brian', 'george', 'edward', 'ronald', 'timothy', 'jason', 'jeffrey', 'ryan', 'jacob', 'gary', 'nicholas', 'eric'];
+  
   const nameLower = characterName.toLowerCase();
   let gender = 'person';
   
@@ -163,33 +166,32 @@ function createRealisticPortraitPrompt(characterName, characterTitle, category) 
     }
   }
   
-  // Determine ethnicity variety based on category
-  const ethnicityOptions = {
-    'cultural': ['African', 'Asian', 'Hispanic', 'Middle Eastern', 'Indian', 'European'],
-    'travel': ['diverse international', 'multicultural'],
-    'default': ['']
-  };
+  if (gender === 'person') {
+    for (const maleName of maleNames) {
+      if (nameLower.includes(maleName)) {
+        gender = 'man';
+        break;
+      }
+    }
+  }
   
-  const ethnicities = ethnicityOptions[category] || ethnicityOptions.default;
+  // Randomize ethnicity for diversity
+  const ethnicities = ['', 'Caucasian', 'African American', 'Asian', 'Hispanic', 'Middle Eastern', 'South Asian', 'Mixed ethnicity'];
   const ethnicity = ethnicities[Math.floor(Math.random() * ethnicities.length)];
   
   // Build professional portrait prompt
   let prompt = `Professional headshot portrait of ${ethnicity ? ethnicity + ' ' : ''}${gender}, `;
   
-  // Add role-specific appearance
-  const roleDescriptions = {
-    'health': 'medical professional, clean appearance, trustworthy expression',
-    'spiritual': 'wise calm expression, peaceful demeanor',
-    'romance': 'warm friendly smile, approachable expression',
-    'support': 'kind caring expression, empathetic look',
-    'purpose': 'confident professional, determined expression',
-    'fitness': 'athletic healthy appearance, energetic expression'
-  };
-  
-  prompt += roleDescriptions[category] || 'professional appearance, friendly expression';
+  // Simple professional appearance for all
+  prompt += 'professional appearance, friendly approachable expression, business casual attire';
   
   // Technical specifications for consistency
-  prompt += ', centered face, direct eye contact, neutral background, studio lighting, high quality photograph, professional photography, sharp focus, 85mm lens';
+  prompt += ', centered face, direct eye contact, soft neutral background, professional studio lighting, high quality photograph, professional photography, sharp focus, 85mm portrait lens, depth of field';
   
-  return { prompt, gender, ethnicity };
+  // Add variety with age
+  const ages = ['25-35 years old', '30-40 years old', '35-45 years old', '40-50 years old', '45-55 years old'];
+  const age = ages[Math.floor(Math.random() * ages.length)];
+  prompt += `, ${age}`;
+  
+  return { prompt, gender };
 }
