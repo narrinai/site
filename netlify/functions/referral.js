@@ -39,10 +39,10 @@ exports.handler = async (event, context) => {
         };
       }
 
-      console.log('🔍 Checking referral ID (short):', ref);
+      console.log('🔍 Checking referral ID (NetlifyUID):', ref);
 
-      // Find user with netlify_uid starting with these 4 characters
-      const url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Users?filterByFormula=LEFT({netlify_uid},4)='${ref}'`;
+      // Find user with exact netlify_uid match
+      const url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Users?filterByFormula={netlify_uid}='${ref}'`;
       
       const response = await fetch(url, {
         headers: {
@@ -99,8 +99,8 @@ exports.handler = async (event, context) => {
 
       console.log('💰 Processing referral bonus:', { user_id, user_uid, referrer_id });
 
-      // Find referrer by short ID (first 4 chars of netlify_uid)
-      const referrerUrl = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Users?filterByFormula=LEFT({netlify_uid},4)='${referrer_id}'`;
+      // Find referrer by full NetlifyUID
+      const referrerUrl = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Users?filterByFormula={netlify_uid}='${referrer_id}'`;
       
       const referrerResponse = await fetch(referrerUrl, {
         headers: {
