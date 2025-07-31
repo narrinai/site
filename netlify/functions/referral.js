@@ -41,8 +41,8 @@ exports.handler = async (event, context) => {
 
       console.log('🔍 Checking referral ID (NetlifyUID):', ref);
 
-      // Find user with exact netlify_uid match
-      const url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Users?filterByFormula={netlify_uid}='${ref}'`;
+      // Find user with netlify_uid that starts with the referral code
+      const url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Users?filterByFormula=LEFT({netlify_uid},${ref.length})='${ref}'`;
       
       const response = await fetch(url, {
         headers: {
