@@ -164,6 +164,24 @@ exports.handler = async (event, context) => {
         console.log('📋 Available fields for first character:', Object.keys(fields));
       }
       
+      // Extract Created_by - handle both string names and array of record IDs
+      let createdBy = null;
+      if (fields.Created_By) {
+        if (typeof fields.Created_By === 'string') {
+          // If it's already a string (name), use it directly
+          createdBy = fields.Created_By;
+        } else if (Array.isArray(fields.Created_By) && fields.Created_By.length > 0) {
+          // If it's an array of record IDs, we'll need to look them up later
+          createdBy = fields.Created_By[0]; // Take first ID for now
+        }
+      }
+      
+      // Also check for Created_by_name or nickname fields
+      if (!createdBy || createdBy.startsWith('rec')) {
+        // Check alternative fields that might contain the actual name
+        createdBy = fields.Created_by_name || fields.Creator_name || fields.Creator_nickname || createdBy;
+      }
+      
       return {
         id: record.id,
         Name: fields.Name || '',
@@ -178,13 +196,64 @@ exports.handler = async (event, context) => {
         voice_id: fields.voice_id || null,
         voice_type: fields.voice_type || 'none',
         Visibility: fields.Visibility || 'public',
-        Created_by: fields.Created_By || null
+        Created_by: createdBy,
+        _Created_by_record_id: (Array.isArray(fields.Created_By) && fields.Created_By.length > 0) ? fields.Created_By[0] : null
       };
     });
 
     // Debug: Count characters with Created_by
     const charactersWithCreatedBy = characters.filter(char => char.Created_by);
     console.log(`👤 Total characters with Created_by: ${charactersWithCreatedBy.length}/${characters.length}`);
+    
+    // If we have characters with record IDs for Created_by, fetch the user names
+    const recordIdsToFetch = [...new Set(characters
+      .filter(char => char._Created_by_record_id && char.Created_by && char.Created_by.startsWith('rec'))
+      .map(char => char._Created_by_record_id))];
+    
+    if (recordIdsToFetch.length > 0) {
+      console.log(`🔍 Need to fetch ${recordIdsToFetch.length} user names from record IDs`);
+      
+      try {
+        // Fetch user records in batches of 10
+        const userMap = {};
+        for (let i = 0; i < recordIdsToFetch.length; i += 10) {
+          const batch = recordIdsToFetch.slice(i, i + 10);
+          const filterFormula = `OR(${batch.map(id => `RECORD_ID()='${id}'`).join(',')})`;
+          
+          const userUrl = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Users?filterByFormula=${encodeURIComponent(filterFormula)}`;
+          
+          const userResponse = await fetch(userUrl, {
+            headers: {
+              'Authorization': `Bearer ${process.env.AIRTABLE_TOKEN}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (userResponse.ok) {
+            const userData = await userResponse.json();
+            userData.records.forEach(record => {
+              const name = record.fields.Name || record.fields.Nickname || record.fields.Username || 'Unknown User';
+              userMap[record.id] = name;
+            });
+          }
+        }
+        
+        // Update characters with actual user names
+        characters.forEach(char => {
+          if (char._Created_by_record_id && userMap[char._Created_by_record_id]) {
+            char.Created_by = userMap[char._Created_by_record_id];
+            console.log(`✅ Updated character "${char.Name}" creator to: "${char.Created_by}"`);
+          }
+        });
+        
+      } catch (userFetchError) {
+        console.error('⚠️ Error fetching user names:', userFetchError);
+        // Continue without user names - will show record IDs
+      }
+    }
+    
+    // Clean up temporary field
+    characters.forEach(char => delete char._Created_by_record_id);
     
     // Filter by tag if specified (done in JavaScript since Airtable array filtering is complex)
     let filteredCharacters = characters;
