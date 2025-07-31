@@ -2444,6 +2444,9 @@ function processNetlifyData(characters, category, gridId, limit) {
       const mobileLoginBtn = document.getElementById('mobileLoginBtn');
       const user = window.netlifyIdentity && window.netlifyIdentity.currentUser();
       
+      // Always use plain profile.html URL
+      const profileUrl = 'profile.html';
+      
       if (user) {
         // Always show "Profile" for logged in users instead of their name
         if (loginBtn) {
@@ -2457,11 +2460,12 @@ function processNetlifyData(characters, category, gridId, limit) {
       } else {
         if (loginBtn) {
           loginBtn.textContent = 'Login/Register';
-          loginBtn.href = 'profile.html';
+          loginBtn.href = profileUrl;
         }
         if (mobileLoginBtn) {
           const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
           mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}Login/Register`;
+          mobileLoginBtn.href = profileUrl;
         }
       }
     }
@@ -2700,18 +2704,34 @@ if (referralUserId) {
 // ===== REFERRAL FLOW DETECTION =====
 
 // Detecteer referral parameter
-function checkReferralCode() {
+async function checkReferralCode() {
   const urlParams = new URLSearchParams(window.location.search);
-  const referralUserId = urlParams.get('ref');
+  const referralCode = urlParams.get('ref');
   
-  if (referralUserId) {
-    console.log('🎁 Referral user ID detected:', referralUserId);
+  if (referralCode) {
+    console.log('🎁 Referral code detected:', referralCode);
     
-    // Sla referral user ID op in localStorage voor later gebruik
-    localStorage.setItem('referralUserId', referralUserId);
-    
-    // Toon referral banner
-    showReferralBanner();
+    try {
+      // Validate referral and get full referrer ID
+      const response = await fetch(`/.netlify/functions/referral?ref=${referralCode}`);
+      const data = await response.json();
+      
+      if (data.valid && data.referrer_id) {
+        console.log('✅ Valid referral from:', data.referrer_email);
+        // Store the full Airtable record ID for the referrer
+        localStorage.setItem('referralUserId', data.referrer_id);
+        
+        // Toon referral banner
+        showReferralBanner();
+        // Update login buttons to include referral code
+        updateLoginButton();
+      } else {
+        console.log('❌ Invalid referral code:', referralCode);
+        localStorage.removeItem('referralUserId');
+      }
+    } catch (error) {
+      console.error('❌ Error validating referral:', error);
+    }
     
     // Clean URL (verwijder ?ref= parameter)
     const cleanUrl = window.location.pathname;

@@ -3974,10 +3974,28 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       
       // Check voor referral parameter
       const urlParams = new URLSearchParams(window.location.search);
-      const referralUserId = urlParams.get('ref');
-      if (referralUserId) {
-        localStorage.setItem('referralUserId', referralUserId);
-        console.log('📌 Referral user ID opgeslagen:', referralUserId);
+      const referralCode = urlParams.get('ref');
+      if (referralCode) {
+        console.log('🎁 Referral code detected:', referralCode);
+        
+        // Validate referral and get full referrer ID
+        fetch(`/.netlify/functions/referral?ref=${referralCode}`)
+          .then(response => response.json())
+          .then(data => {
+            if (data.valid && data.referrer_id) {
+              console.log('✅ Valid referral from:', data.referrer_email);
+              // Store the full Airtable record ID for the referrer
+              localStorage.setItem('referralUserId', data.referrer_id);
+              console.log('📌 Referral Airtable ID opgeslagen:', data.referrer_id);
+            } else {
+              console.log('❌ Invalid referral code:', referralCode);
+              localStorage.removeItem('referralUserId');
+            }
+          })
+          .catch(error => {
+            console.error('❌ Error validating referral:', error);
+          });
+        
         // Clean URL
         const cleanUrl = window.location.pathname;
         window.history.replaceState({}, document.title, cleanUrl);
