@@ -2036,22 +2036,21 @@
     }
 
     // ===== AVATAR URL EXTRACTION =====
-    function getAvatarUrl(fields) {
-      // Method 1: Airtable attachment field (array format)
-      if (fields.Avatar_URL && Array.isArray(fields.Avatar_URL) && fields.Avatar_URL.length > 0) {
-        if (fields.Avatar_URL[0] && fields.Avatar_URL[0].url) {
-          console.log(`✅ Using Airtable Avatar_URL attachment for ${fields.Name}:`, fields.Avatar_URL[0].url);
-          return fields.Avatar_URL[0].url;
-        }
+    function getAvatarUrl(character) {
+      // The Netlify function already processed the avatar URL and returns it as a string
+      // Check the Avatar_URL field directly (it's already extracted from Airtable)
+      if (character.Avatar_URL && typeof character.Avatar_URL === 'string' && character.Avatar_URL.startsWith('http')) {
+        console.log(`✅ Using Avatar_URL for ${character.Name}:`, character.Avatar_URL);
+        return character.Avatar_URL;
       }
       
-      // Method 2: Direct string Avatar_URL
-      if (fields.Avatar_URL && typeof fields.Avatar_URL === 'string' && fields.Avatar_URL.startsWith('http')) {
-        console.log(`✅ Using direct Avatar_URL string for ${fields.Name}:`, fields.Avatar_URL);
-        return fields.Avatar_URL;
+      // Fallback to other possible field names
+      if (character.avatar_url && typeof character.avatar_url === 'string' && character.avatar_url.startsWith('http')) {
+        console.log(`✅ Using avatar_url for ${character.Name}:`, character.avatar_url);
+        return character.avatar_url;
       }
       
-      console.log(`⚠️ No valid avatar URL found for ${fields.Name}, using fallback`);
+      console.log(`⚠️ No valid avatar URL found for ${character.Name}, using fallback`);
       return null;
     }
 
@@ -2082,33 +2081,51 @@
       }
       
       // Create card HTML with proper avatar handling
+      const avatarDiv = document.createElement('div');
+      avatarDiv.className = 'character-avatar';
+      
       if (character.avatarUrl && character.avatarUrl.startsWith('http')) {
-        // Check if it's a replicate.delivery URL that needs CORS proxy
-        let avatarSrc = character.avatarUrl;
-        if (avatarSrc.includes('replicate.delivery')) {
-          // Use a CORS proxy for replicate.delivery URLs
-          avatarSrc = `https://corsproxy.io/?${encodeURIComponent(character.avatarUrl)}`;
-        }
+        const img = document.createElement('img');
+        img.src = character.avatarUrl;
+        img.alt = character.name;
         
-        card.innerHTML = `
-          ${userBadgeHTML}
-          <div class="character-avatar">
-            <img src="${avatarSrc}" 
-                 alt="${character.name}" 
-                 onload="console.log('✅ Avatar loaded for', '${character.name.replace(/'/g, "\\'")}')"
-                 onerror="console.error('❌ Avatar failed for', '${character.name.replace(/'/g, "\\'")}'); this.style.display='none'; this.parentNode.innerHTML='👤';">
-          </div>
-          <div class="character-name">${character.name}</div>
-          <div class="character-title">${character.title}</div>
-        `;
+        img.onload = function() {
+          console.log('✅ Avatar loaded for', character.name);
+        };
+        
+        img.onerror = function() {
+          console.error('❌ Avatar failed for', character.name, 'URL:', character.avatarUrl);
+          // Try fallback to local avatar if available
+          if (character.slug) {
+            const localUrl = `/avatars/${character.slug}.webp`;
+            console.log('🔄 Trying local fallback:', localUrl);
+            img.src = localUrl;
+            img.onerror = function() {
+              console.error('❌ Local fallback also failed');
+              avatarDiv.innerHTML = '👤';
+            };
+          } else {
+            avatarDiv.innerHTML = '👤';
+          }
+        };
+        
+        avatarDiv.appendChild(img);
       } else {
-        card.innerHTML = `
-          ${userBadgeHTML}
-          <div class="character-avatar">👤</div>
-          <div class="character-name">${character.name}</div>
-          <div class="character-title">${character.title}</div>
-        `;
+        avatarDiv.innerHTML = '👤';
       }
+      
+      card.innerHTML = userBadgeHTML;
+      card.appendChild(avatarDiv);
+      
+      const nameDiv = document.createElement('div');
+      nameDiv.className = 'character-name';
+      nameDiv.textContent = character.name;
+      card.appendChild(nameDiv);
+      
+      const titleDiv = document.createElement('div');
+      titleDiv.className = 'character-title';
+      titleDiv.textContent = character.title;
+      card.appendChild(titleDiv);
       
       return card;
     }
