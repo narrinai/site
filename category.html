@@ -2086,35 +2086,25 @@
       
       if (character.avatarUrl && character.avatarUrl.startsWith('http')) {
         const img = document.createElement('img');
-        
-        // Handle replicate.delivery URLs with a working proxy
-        if (character.avatarUrl.includes('replicate.delivery')) {
-          // Use images.weserv.nl as a reliable image proxy
-          const encodedUrl = encodeURIComponent(character.avatarUrl);
-          img.src = `https://images.weserv.nl/?url=${encodedUrl}&w=200&h=200&fit=cover&a=attention`;
-        } else {
-          img.src = character.avatarUrl;
-        }
-        
+        img.src = character.avatarUrl;
         img.alt = character.name;
-        img.loading = 'lazy'; // Add lazy loading for performance
+        img.style.cssText = 'width: 100%; height: 100%; object-fit: cover; border-radius: 50%;';
         
         img.onload = function() {
           console.log('✅ Avatar loaded for', character.name);
         };
         
         img.onerror = function() {
-          console.error('❌ Avatar failed for', character.name);
-          // Just use fallback icon
-          avatarDiv.innerHTML = '👤';
+          console.error('❌ Avatar failed for', character.name, 'URL:', character.avatarUrl);
+          avatarDiv.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 3rem; color: #94a3b8;">👤</div>';
         };
         
         avatarDiv.appendChild(img);
       } else {
-        avatarDiv.innerHTML = '👤';
+        avatarDiv.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 3rem; color: #94a3b8;">👤</div>';
       }
       
-      card.innerHTML = userBadgeHTML;
+      // First append all child elements
       card.appendChild(avatarDiv);
       
       const nameDiv = document.createElement('div');
@@ -2126,6 +2116,11 @@
       titleDiv.className = 'character-title';
       titleDiv.textContent = character.title;
       card.appendChild(titleDiv);
+      
+      // Finally add the user badge HTML (if any)
+      if (userBadgeHTML) {
+        card.insertAdjacentHTML('afterbegin', userBadgeHTML);
+      }
       
       return card;
     }
