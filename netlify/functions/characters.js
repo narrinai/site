@@ -148,7 +148,10 @@ exports.handler = async (event, context) => {
       
       // Extract avatar URL properly
       let avatarUrl = '';
-      if (fields.Avatar_File && Array.isArray(fields.Avatar_File) && fields.Avatar_File.length > 0) {
+      // Check for Airtable attachment field Avatar_URL
+      if (fields.Avatar_URL && Array.isArray(fields.Avatar_URL) && fields.Avatar_URL.length > 0) {
+        avatarUrl = fields.Avatar_URL[0].url || '';
+      } else if (fields.Avatar_File && Array.isArray(fields.Avatar_File) && fields.Avatar_File.length > 0) {
         avatarUrl = fields.Avatar_File[0].url || '';
       } else if (fields.Avatar_URL && typeof fields.Avatar_URL === 'string') {
         avatarUrl = fields.Avatar_URL;
