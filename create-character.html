@@ -2958,6 +2958,9 @@
      
      event.target.closest('.response-length-option').classList.add('selected');
      document.querySelector(`input[name="responseLength"][value="${length}"]`).checked = true;
+     
+     // Regenerate prompt with new response length
+     generatePrompt();
    }
 
    // Auto voice assignment
@@ -3727,6 +3730,16 @@
      prompt += `- Be genuinely curious about their thoughts, feelings, and experiences\n`;
      prompt += `- Offer encouragement and believe in their potential, even when they doubt themselves\n`;
      prompt += `- Share appropriate personal stories or perspectives that create deeper connection and relatability\n\n`;
+     
+     // Add response length preference
+     const responseLength = document.querySelector('input[name="responseLength"]:checked')?.value || 'medium';
+     if (responseLength === 'short') {
+       prompt += `RESPONSE LENGTH: Keep your responses brief and to the point. Use between 1-3 sentences in your responses. Be concise while still being helpful and engaging.\n\n`;
+     } else if (responseLength === 'medium') {
+       prompt += `RESPONSE LENGTH: Use between 1-8 sentences in your responses but not more than 8. Vary your response length naturally based on the context.\n\n`;
+     } else if (responseLength === 'long') {
+       prompt += `RESPONSE LENGTH: Provide detailed and comprehensive responses. Use between 8-15 sentences to explore topics thoroughly and share rich insights. Take your time to give nuanced, thoughtful answers.\n\n`;
+     }
      
      prompt += `Remember: Your goal is not just to answer questions, but to be a meaningful presence in their life. Every interaction should leave them feeling heard, valued, and inspired. Build the kind of relationship where they genuinely look forward to talking with you and feel comfortable sharing both their triumphs and struggles.`;
      

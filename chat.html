@@ -8415,11 +8415,12 @@ function generatePrompt() {
   // Add response length preference
   const responseLength = document.querySelector('input[name="responseLengthCustom"]:checked')?.value || 'medium';
   if (responseLength === 'short') {
-    prompt += 'Keep your responses brief and to the point. Be concise while still being helpful and engaging. ';
+    prompt += 'Keep your responses brief and to the point. Use between 1-3 sentences in your responses. Be concise while still being helpful and engaging. ';
+  } else if (responseLength === 'medium') {
+    prompt += 'Use between 1-8 sentences in your responses but not more than 8. Vary your response length naturally based on the context. ';
   } else if (responseLength === 'long') {
-    prompt += 'Provide detailed and comprehensive responses. Take time to explore topics thoroughly and share rich insights. ';
+    prompt += 'Provide detailed and comprehensive responses. Use between 8-15 sentences to explore topics thoroughly and share rich insights. Take your time to give nuanced, thoughtful answers. ';
   }
-  // For 'medium', we don't add anything specific as it's the default
   
   // Add bonding approach
   if (personalityState.bonding.length > 0) {
