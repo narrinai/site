@@ -2087,14 +2087,7 @@
       if (character.avatarUrl && character.avatarUrl.startsWith('http')) {
         const img = document.createElement('img');
         
-        // Handle replicate.delivery URLs with CORS proxy
-        if (character.avatarUrl.includes('replicate.delivery')) {
-          // Use Cloudinary fetch URL to proxy the image
-          const encodedUrl = encodeURIComponent(character.avatarUrl);
-          img.src = `https://res.cloudinary.com/dqrmopzes/image/fetch/w_200,h_200,c_fill,f_auto/${character.avatarUrl}`;
-        } else {
-          img.src = character.avatarUrl;
-        }
+        img.src = character.avatarUrl;
         
         img.alt = character.name;
         img.style.cssText = 'width: 100%; height: 100%; object-fit: cover; border-radius: 50%;';
