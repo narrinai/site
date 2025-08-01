@@ -2123,6 +2123,63 @@
       line-height: 1.4;
     }
 
+    /* Response Length Options - Similar to Voice Options */
+    .response-length-options {
+      display: flex;
+      gap: var(--spacing-md);
+      margin-top: var(--spacing-md);
+      flex-wrap: wrap;
+    }
+
+    .response-length-option {
+      flex: 1;
+      min-width: 200px;
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+      cursor: pointer;
+      padding: var(--spacing-md) var(--spacing-lg);
+      border: 2px solid var(--color-light-gray);
+      border-radius: var(--radius-md);
+      transition: all var(--transition-base);
+      background: var(--color-white);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .response-length-option:hover {
+      border-color: var(--color-teal);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .response-length-option.selected {
+      border-color: var(--color-teal);
+      background: var(--color-off-white);
+      box-shadow: var(--shadow-colored);
+    }
+
+    .response-length-option input[type="radio"] {
+      margin: 0;
+      width: auto;
+    }
+
+    .response-length-content {
+      flex: 1;
+    }
+
+    .response-length-title {
+      font-weight: 600;
+      margin-bottom: var(--spacing-xs);
+      color: var(--color-navy);
+      font-size: var(--font-size-sm);
+    }
+
+    .response-length-desc {
+      font-size: var(--font-size-xs);
+      color: var(--color-gray);
+      line-height: 1.4;
+    }
+
     .footer-link {
       color: var(--color-gray);
       text-decoration: none;
@@ -2159,6 +2216,15 @@
 
       .footer-links {
         gap: var(--spacing-md);
+      }
+
+      /* Responsive design for response length options */
+      .response-length-options {
+        flex-direction: column;
+      }
+
+      .response-length-option {
+        min-width: 100%;
       }
     }
 
@@ -2575,6 +2641,42 @@
     
 
      
+      <!-- Response Length -->
+      <div class="form-section">
+        <h2>📏 Response Length <span style="font-size: var(--font-size-sm); color: var(--color-gray); font-weight: normal;">(Optional)</span></h2>
+        
+        <div class="form-group">
+          <label>Preferred Response Length</label>
+          <p style="font-size: var(--font-size-sm); color: var(--color-gray); margin-bottom: var(--spacing-md);">
+            Choose how detailed your character's responses typically are. This is a preference, not a strict rule.
+          </p>
+          <div class="response-length-options">
+            <div class="response-length-option" onclick="selectResponseLength('short')">
+              <input type="radio" name="responseLength" value="short">
+              <div class="response-length-content">
+                <div class="response-length-title">💬 Short & Sweet</div>
+                <div class="response-length-desc">Quick, concise responses. Perfect for casual chats.</div>
+              </div>
+            </div>
+            
+            <div class="response-length-option selected" onclick="selectResponseLength('medium')">
+              <input type="radio" name="responseLength" value="medium" checked>
+              <div class="response-length-content">
+                <div class="response-length-title">📝 Balanced</div>
+                <div class="response-length-desc">Natural conversation flow with moderate detail.</div>
+              </div>
+            </div>
+            
+            <div class="response-length-option" onclick="selectResponseLength('long')">
+              <input type="radio" name="responseLength" value="long">
+              <div class="response-length-content">
+                <div class="response-length-title">📚 Detailed & Rich</div>
+                <div class="response-length-desc">Comprehensive responses with depth and nuance.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- Character profile image -->
       <div class="form-section">
@@ -2846,6 +2948,16 @@
      } else {
        customSelection.style.display = 'none';
      }
+   }
+
+   // Response length selection function
+   function selectResponseLength(length) {
+     document.querySelectorAll('.response-length-option').forEach(option => {
+       option.classList.remove('selected');
+     });
+     
+     event.target.closest('.response-length-option').classList.add('selected');
+     document.querySelector(`input[name="responseLength"][value="${length}"]`).checked = true;
    }
 
    // Auto voice assignment
@@ -4933,6 +5045,7 @@ avatar_url: formData.avatarUrl,
 character_url: `https://narrin.ai/chat.html?char=${slug}`,
       voice_id: getSelectedVoiceId(),
       voice_type: document.querySelector('input[name="voiceSelection"]:checked').value,
+      response_length: document.querySelector('input[name="responseLength"]:checked')?.value || 'medium',
       needs_ai_avatar: formData.needs_ai_avatar || false
     };
     
