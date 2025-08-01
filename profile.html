@@ -3633,7 +3633,7 @@ function handleLoginSuccess(user, eventType = 'unknown') {
         handleAuthEvent(user, 'login'); // Then handle auth event
       });
 
-      window.netlifyIdentity.on('signup', user => {
+      window.netlifyIdentity.on('signup', async user => {
         console.log('🎉 SIGNUP event fired for:', user.email);
         
         // IMPORTANT: Clear any stored redirect URL immediately to prevent redirects
@@ -3644,8 +3644,54 @@ function handleLoginSuccess(user, eventType = 'unknown') {
         handleLoginSuccess(user); // Store auth data first
         handleAuthEvent(user, 'signup'); // Then handle auth event
         
-        // Prevent any redirects by staying on profile page
-        showSuccess('Welcome! Your account has been created successfully.');
+        // Check voor referral user ID
+        const referralUserId = localStorage.getItem('referralUserId');
+        console.log('🔍 Referral check in profile.html - localStorage value:', referralUserId);
+        
+        // Process referral after signup
+        const referralCode = localStorage.getItem('referralCode');
+        
+        if (referralCode && referralUserId) {
+          console.log('🎁 Processing referral bonus...');
+          
+          // Show immediate success with note about bonus
+          showSuccess('Welcome! Your account has been created. Your 50 bonus messages are being added and may take up to 1 minute...');
+          
+          // Send referral to be processed
+          setTimeout(async () => {
+            try {
+              const response = await fetch('/.netlify/functions/referral', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  user_uid: user.id,
+                  referrer_id: referralCode // Send the 4-char code
+                })
+              });
+              
+              const data = await response.json();
+              
+              if (data.success) {
+                console.log('✅ Referral bonus applied successfully!');
+                showInfo('✅ Great news! Your 50 bonus messages have been added to your account!');
+                // Reload profile to show updated quota
+                setTimeout(() => {
+                  loadUserProfile();
+                }, 1000);
+              } else {
+                console.error('❌ Failed to apply referral bonus:', data.error);
+              }
+            } catch (error) {
+              console.error('❌ Error processing referral:', error);
+            }
+            
+            // Clear referral data
+            localStorage.removeItem('referralUserId');
+            localStorage.removeItem('referralCode');
+          }, 2000); // Wait 2 seconds for user to be created in Airtable
+        } else {
+          showSuccess('Welcome! Your account has been created successfully.');
+        }
         
         // Update the UI to show logged-in state
         showProfileUI();
@@ -3984,12 +4030,14 @@ function handleLoginSuccess(user, eventType = 'unknown') {
           .then(data => {
             if (data.valid && data.referrer_id) {
               console.log('✅ Valid referral from:', data.referrer_email);
-              // Store the full Airtable record ID for the referrer
+              // Store both the code and the Airtable ID
               localStorage.setItem('referralUserId', data.referrer_id);
-              console.log('📌 Referral Airtable ID opgeslagen:', data.referrer_id);
+              localStorage.setItem('referralCode', referralCode);
+              console.log('📌 Referral data opgeslagen:', referralCode, data.referrer_id);
             } else {
               console.log('❌ Invalid referral code:', referralCode);
               localStorage.removeItem('referralUserId');
+              localStorage.removeItem('referralCode');
             }
           })
           .catch(error => {

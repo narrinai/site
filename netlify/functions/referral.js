@@ -29,20 +29,43 @@ exports.handler = async (event, context) => {
 
     // Handle GET - Check referral user validity
     if (httpMethod === 'GET') {
-      const { ref } = queryStringParameters || {};
+      const { ref, email } = queryStringParameters || {};
       
-      if (!ref) {
+      if (!ref && !email) {
         return {
           statusCode: 400,
           headers,
-          body: JSON.stringify({ error: 'Referral ID required' })
+          body: JSON.stringify({ error: 'Referral ID or email required' })
         };
       }
 
-      console.log('🔍 Checking referral ID (NetlifyUID):', ref);
+      let url;
+      
+      // Check if searching by email
+      if (email) {
+        console.log('📧 Looking up stored referral code for email:', email);
+        
+        // For email lookup, we check if there's a referral code stored for this user
+        // This assumes the frontend stored the referral info when the user signed up
+        // Make.com can call this to check if the new user had a referral
+        
+        // Since we can't store server-side state, we'll return instructions
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify({
+            success: true,
+            valid: false,
+            message: 'Email lookup not implemented. Use ref parameter with referral code instead.',
+            instructions: 'Call with ?ref=CODE where CODE is the 4-character referral code'
+          })
+        };
+      } else {
+        console.log('🔍 Checking referral ID (NetlifyUID):', ref);
 
-      // Find user with netlify_uid that starts with the referral code
-      const url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Users?filterByFormula=LEFT({netlify_uid},${ref.length})='${ref}'`;
+        // Find user with netlify_uid that starts with the referral code
+        url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Users?filterByFormula=LEFT({netlify_uid},${ref.length})='${ref}'`;
+      }
       
       const response = await fetch(url, {
         headers: {
@@ -99,8 +122,15 @@ exports.handler = async (event, context) => {
 
       console.log('💰 Processing referral bonus:', { user_id, user_uid, referrer_id });
 
-      // Find referrer by full NetlifyUID
-      const referrerUrl = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Users?filterByFormula={netlify_uid}='${referrer_id}'`;
+      // Check if referrer_id is a short code (4 chars) or full NetlifyUID
+      let referrerUrl;
+      if (referrer_id.length === 4) {
+        console.log('🔍 Looking up referrer by short code:', referrer_id);
+        referrerUrl = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Users?filterByFormula=LEFT({netlify_uid},4)='${referrer_id}'`;
+      } else {
+        console.log('🔍 Looking up referrer by full NetlifyUID:', referrer_id);
+        referrerUrl = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Users?filterByFormula={netlify_uid}='${referrer_id}'`;
+      }
       
       const referrerResponse = await fetch(referrerUrl, {
         headers: {
