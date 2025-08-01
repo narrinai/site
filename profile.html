@@ -2830,10 +2830,11 @@
     let authProcessTimeout = null;
     let lastProcessedUser = null; // Track laatste geprocesste user
     let authCallLock = false; // Extra lock mechanisme
+    let registrationInProgress = false; // NEW: Track if registration is in progress
 
     // Verbeterde webhook call cache
     const webhookCallCache = new Map();
-    const CACHE_DURATION = 10000; // Verhoogd naar 10 seconden
+    const CACHE_DURATION = 30000; // Verhoogd naar 30 seconden om dubbele calls te voorkomen
 
     // ===== VERBETERDE DEBOUNCING FUNCTIE =====
     function shouldAllowWebhookCall(type, email, userId) {
@@ -3475,11 +3476,20 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       const email = user.email;
       const userId = user.id;
       
+      // NEW: Check if registration is already in progress
+      if (registrationInProgress) {
+        console.log('🚫 BLOCKED: Registration already in progress');
+        return;
+      }
+      
       // EXTRA CHECK: Nog een keer debouncing controleren
       if (!shouldAllowWebhookCall('register', email, userId)) {
         console.log('🚫 FINAL BLOCK: Webhook call blocked by final debouncing check');
         return;
       }
+      
+      // Set registration flag
+      registrationInProgress = true;
       
       console.log(`👤 ${isNewUser ? 'Creating NEW' : 'Updating EXISTING'} user: ${email}`);
       
@@ -3547,6 +3557,12 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       } catch (error) {
         console.error('❌ Error in createOrUpdateUser:', error);
         showError(`Account creation failed: ${error.message}`);
+      } finally {
+        // Always reset the flag
+        setTimeout(() => {
+          registrationInProgress = false;
+          console.log('🔓 Registration flag reset');
+        }, 5000); // Reset after 5 seconds
       }
     }
 
@@ -3629,8 +3645,8 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       // ===== BELANGRIJKSTE FIX: Gescheiden event handling =====
       window.netlifyIdentity.on('login', user => {
         console.log('🔑 LOGIN event fired for:', user.email);
-        handleLoginSuccess(user); // Store auth data first
-        handleAuthEvent(user, 'login'); // Then handle auth event
+        // Only call handleAuthEvent - it will call handleLoginSuccess internally
+        handleAuthEvent(user, 'login');
       });
 
       window.netlifyIdentity.on('signup', async user => {
@@ -3640,9 +3656,8 @@ function handleLoginSuccess(user, eventType = 'unknown') {
         localStorage.removeItem('login_redirect_url');
         console.log('🚫 Cleared redirect URL to prevent signup redirect');
         
-        // Store auth data and handle signup
-        handleLoginSuccess(user); // Store auth data first
-        handleAuthEvent(user, 'signup'); // Then handle auth event
+        // Only call handleAuthEvent - it will call handleLoginSuccess internally
+        handleAuthEvent(user, 'signup');
         
         // Check voor referral user ID
         const referralUserId = localStorage.getItem('referralUserId');
