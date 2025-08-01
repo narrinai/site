@@ -1230,6 +1230,63 @@
       cursor: not-allowed;
     }
 
+    /* Response Length Options - Similar to create-character.html */
+    .response-length-options {
+      display: flex;
+      gap: var(--spacing-md);
+      margin-top: var(--spacing-md);
+      flex-wrap: wrap;
+    }
+
+    .response-length-option {
+      flex: 1;
+      min-width: 180px;
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+      cursor: pointer;
+      padding: var(--spacing-md) var(--spacing-lg);
+      border: 2px solid var(--color-light-gray);
+      border-radius: var(--radius-md);
+      transition: all var(--transition-base);
+      background: var(--color-white);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .response-length-option:hover {
+      border-color: var(--color-teal);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .response-length-option.selected {
+      border-color: var(--color-teal);
+      background: var(--color-off-white);
+      box-shadow: 0 4px 12px rgba(45, 183, 181, 0.2);
+    }
+
+    .response-length-option input[type="radio"] {
+      margin: 0;
+      width: auto;
+    }
+
+    .response-length-content {
+      flex: 1;
+    }
+
+    .response-length-title {
+      font-weight: 600;
+      margin-bottom: var(--spacing-xs);
+      color: var(--color-navy);
+      font-size: var(--font-size-sm);
+    }
+
+    .response-length-desc {
+      font-size: var(--font-size-xs);
+      color: var(--color-gray);
+      line-height: 1.4;
+    }
+
     /* Form Sections */
     .form-section {
       background: var(--color-white);
@@ -2950,6 +3007,15 @@
         padding: var(--spacing-md);
       }
       
+      /* Response length options on mobile */
+      .response-length-options {
+        flex-direction: column;
+      }
+
+      .response-length-option {
+        min-width: 100%;
+      }
+      
       .form-section {
         padding: var(--spacing-lg);
         margin-bottom: var(--spacing-md);
@@ -3818,18 +3884,43 @@
               <div class="selection-counter" id="speakingCounter">Select 0-3 speaking patterns</div>
             </div>
             
-            <!-- Response Style Sliders (existing) -->
+            <!-- Response Length -->
+            <div class="personality-section">
+              <h3>Response Length</h3>
+              <p style="font-size: var(--font-size-sm); color: var(--color-gray); margin-bottom: var(--spacing-md);">
+                Choose how detailed the character's responses typically are.
+              </p>
+              <div class="response-length-options">
+                <div class="response-length-option" onclick="selectResponseLength('short')">
+                  <input type="radio" name="responseLengthCustom" value="short">
+                  <div class="response-length-content">
+                    <div class="response-length-title">💬 Short & Sweet</div>
+                    <div class="response-length-desc">Quick, concise responses</div>
+                  </div>
+                </div>
+                
+                <div class="response-length-option selected" onclick="selectResponseLength('medium')">
+                  <input type="radio" name="responseLengthCustom" value="medium" checked>
+                  <div class="response-length-content">
+                    <div class="response-length-title">📝 Balanced</div>
+                    <div class="response-length-desc">Natural conversation flow</div>
+                  </div>
+                </div>
+                
+                <div class="response-length-option" onclick="selectResponseLength('long')">
+                  <input type="radio" name="responseLengthCustom" value="long">
+                  <div class="response-length-content">
+                    <div class="response-length-title">📚 Detailed & Rich</div>
+                    <div class="response-length-desc">Comprehensive responses</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Response Style Sliders (remaining) -->
             <div class="personality-section">
               <h3>Response Style</h3>
               <div class="slider-group">
-                <div class="slider-item">
-                  <div class="slider-labels">
-                    <span class="slider-label">Brief</span>
-                    <span class="slider-label">Detailed</span>
-                  </div>
-                  <input type="range" min="0" max="100" value="50" class="personality-slider" id="briefDetailed" data-response="length">
-                </div>
-                
                 <div class="slider-item">
                   <div class="slider-labels">
                     <span class="slider-label">Direct</span>
@@ -7295,6 +7386,22 @@ function openCustomizationModal() {
       voiceSelect.value = existingCustom.voice_type || 'none';
     }
     
+    // Load response length preference
+    if (existingCustom.response_length) {
+      const responseLengthOption = document.querySelector(`input[name="responseLengthCustom"][value="${existingCustom.response_length}"]`);
+      if (responseLengthOption) {
+        responseLengthOption.checked = true;
+        // Update UI
+        document.querySelectorAll('.response-length-option').forEach(option => {
+          option.classList.remove('selected');
+        });
+        const selectedOption = document.querySelector(`.response-length-option input[value="${existingCustom.response_length}"]`)?.closest('.response-length-option');
+        if (selectedOption) {
+          selectedOption.classList.add('selected');
+        }
+      }
+    }
+    
     // Load personality state if saved
     if (existingCustom.personality_state) {
       personalityState = existingCustom.personality_state;
@@ -7377,6 +7484,21 @@ function closeCustomizationModal() {
   isCustomizationSubmitting = false;
   // Reset avatar upload state
   customAvatarUploadUrl = '';
+}
+
+// Response length selection function
+function selectResponseLength(length) {
+  document.querySelectorAll('.response-length-option').forEach(option => {
+    option.classList.remove('selected');
+  });
+  
+  if (event && event.target) {
+    event.target.closest('.response-length-option').classList.add('selected');
+  }
+  document.querySelector(`input[name="responseLengthCustom"][value="${length}"]`).checked = true;
+  
+  // Regenerate prompt with new response length
+  generatePrompt();
 }
 
 // Avatar upload state
@@ -7627,6 +7749,10 @@ function initializeCustomizationForm() {
     if (selectedVoice) {
       requestData.voice_id = selectedVoice;
     }
+    
+    // Add response length preference
+    const responseLength = document.querySelector('input[name="responseLengthCustom"]:checked')?.value || 'medium';
+    requestData.response_length = responseLength;
     
     // Only add transfer fields if transfer history is enabled
     if (shouldTransferHistory) {
@@ -8285,6 +8411,15 @@ function generatePrompt() {
   
   // Add response style from sliders
   prompt += buildResponseStyleFromSliders();
+  
+  // Add response length preference
+  const responseLength = document.querySelector('input[name="responseLengthCustom"]:checked')?.value || 'medium';
+  if (responseLength === 'short') {
+    prompt += 'Keep your responses brief and to the point. Be concise while still being helpful and engaging. ';
+  } else if (responseLength === 'long') {
+    prompt += 'Provide detailed and comprehensive responses. Take time to explore topics thoroughly and share rich insights. ';
+  }
+  // For 'medium', we don't add anything specific as it's the default
   
   // Add bonding approach
   if (personalityState.bonding.length > 0) {
