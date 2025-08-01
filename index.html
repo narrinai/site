@@ -2472,10 +2472,10 @@ function processNetlifyData(characters, category, gridId, limit) {
 
    // FIRST: Check for referral code before anything else
    const urlParams = new URLSearchParams(window.location.search);
-   const referralUserId = urlParams.get('ref');
-   if (referralUserId) {
-     localStorage.setItem('referralUserId', referralUserId);
-     console.log('📌 Referral user ID saved BEFORE Identity init:', referralUserId);
+   const referralCode = urlParams.get('ref');
+   if (referralCode) {
+     localStorage.setItem('referralCode', referralCode);
+     console.log('📌 Referral code saved BEFORE Identity init:', referralCode);
    }
    
    // Initialize Netlify Identity
@@ -2610,9 +2610,8 @@ if (window.netlifyIdentity) {
     
     // Process referral after signup
     const referralCode = localStorage.getItem('referralCode');
-    const referralUserId = localStorage.getItem('referralUserId');
     
-    if (referralCode && referralUserId) {
+    if (referralCode) {
       console.log('🎁 Processing referral bonus...');
       
       // Show notification about bonus processing
@@ -2643,7 +2642,6 @@ if (window.netlifyIdentity) {
         }
         
         // Clear referral data
-        localStorage.removeItem('referralUserId');
         localStorage.removeItem('referralCode');
       }, 2000); // Wait 2 seconds for user to be created in Airtable
     }
@@ -2701,13 +2699,7 @@ if (window.netlifyIdentity) {
       debugLoadProcess();
       
       console.log('✅ Initialization complete');
-      // Check voor referral parameter bij pagina load
-const urlParams = new URLSearchParams(window.location.search);
-const referralUserId = urlParams.get('ref');
-if (referralUserId) {
-  localStorage.setItem('referralUserId', referralUserId);
-  console.log('📌 Referral user ID opgeslagen:', referralUserId);
-}
+      // Referral check is already done above, no need to repeat
     });
 
 // ===== REFERRAL FLOW DETECTION =====
@@ -2728,7 +2720,7 @@ async function checkReferralCode() {
         console.error('❌ Referral API error:', response.status);
         // Still store the code for later processing
         localStorage.setItem('referralCode', referralCode);
-        localStorage.setItem('referralUserId', 'pending-' + referralCode);
+        localStorage.setItem('referralCode', referralCode);
         console.log('⚠️ Storing referral for later processing:', referralCode);
         
         // Toon referral banner anyway
@@ -2742,10 +2734,9 @@ async function checkReferralCode() {
       if (data.valid && data.referrer_id) {
         console.log('✅ Valid referral from:', data.referrer_email);
         // Store both the code and the Airtable ID
-        localStorage.setItem('referralUserId', data.referrer_id);
+        // Only store the referral code, Make.com will handle the lookup
         localStorage.setItem('referralCode', referralCode);
         console.log('📦 Stored in localStorage:');
-        console.log('  - referralUserId:', data.referrer_id);
         console.log('  - referralCode:', referralCode);
         
         // Toon referral banner
@@ -2754,7 +2745,6 @@ async function checkReferralCode() {
         updateLoginButton();
       } else {
         console.log('❌ Invalid referral code:', referralCode);
-        localStorage.removeItem('referralUserId');
         localStorage.removeItem('referralCode');
       }
     } catch (error) {
@@ -2909,21 +2899,21 @@ function showNotification(message, duration = 5000) {
 // Update registration functie om referral user ID mee te sturen
 function updateRegistrationWithReferral(originalRegistrationFunction) {
   return function(user) {
-    // Haal referral user ID op
-    const referralUserId = localStorage.getItem('referralUserId');
+    // Haal referral code op
+    const referralCode = localStorage.getItem('referralCode');
     
-    if (referralUserId) {
-      console.log('📤 Sending referral user ID with registration:', referralUserId);
+    if (referralCode) {
+      console.log('📤 Sending referral code with registration:', referralCode);
       
-      // Voeg referral user ID toe aan user data
+      // Voeg referral code toe aan user data
       const payload = {
         email: user.email,
         name: user.user_metadata?.full_name || '',
         nickname: user.user_metadata?.full_name || user.user_metadata?.name || '',
         netlify_uid: user.id,
-        referrer_id: referralUserId,
-        referred_id: referralUserId,
-        referred_by: referralUserId  // This is the 4-char code, Make.com should look up full NetlifyUID
+        referrer_id: referralCode,
+        referred_id: referralCode,
+        referred_by: referralCode  // This is the 4-char code, Make.com should look up full NetlifyUID
       };
       
       // Verstuur naar webhook
@@ -2933,8 +2923,8 @@ function updateRegistrationWithReferral(originalRegistrationFunction) {
         body: JSON.stringify(payload)
       }).then(() => {
         console.log('✅ Registration with referral sent successfully');
-        // Clear referral user ID na gebruik
-        localStorage.removeItem('referralUserId');
+        // Clear referral code na gebruik
+        localStorage.removeItem('referralCode');
       }).catch(error => {
         console.error('❌ Error sending referral registration:', error);
       });

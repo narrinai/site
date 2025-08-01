@@ -3494,9 +3494,9 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       console.log(`👤 ${isNewUser ? 'Creating NEW' : 'Updating EXISTING'} user: ${email}`);
       
       try {
-        // Check voor referral user ID
-        const referralUserId = localStorage.getItem('referralUserId');
-        console.log('🔍 Referral check - localStorage value:', referralUserId);
+        // Check voor referral code
+        const referralCode = localStorage.getItem('referralCode');
+        console.log('🔍 Referral check - localStorage referralCode:', referralCode);
         
         const payload = {
           user_email: email,
@@ -3511,9 +3511,9 @@ function handleLoginSuccess(user, eventType = 'unknown') {
           is_new_user: isNewUser,
           timestamp: new Date().toISOString(),
           source: 'profile_page_auth',
-          referrer_id: referralUserId || null,
-          referred_id: referralUserId || null,
-          referred_by: referralUserId || null,
+          referrer_id: referralCode || null,
+          referred_id: referralCode || null,
+          referred_by: referralCode || null,
           nickname: user.user_metadata?.full_name || user.user_metadata?.name || ''
         };
         
@@ -3659,15 +3659,13 @@ function handleLoginSuccess(user, eventType = 'unknown') {
         // Only call handleAuthEvent - it will call handleLoginSuccess internally
         handleAuthEvent(user, 'signup');
         
-        // Check voor referral user ID
-        const referralUserId = localStorage.getItem('referralUserId');
+        // Check voor referral code
         const referralCode = localStorage.getItem('referralCode');
         console.log('🔍 Referral check in profile.html:');
-        console.log('  - referralUserId:', referralUserId);
         console.log('  - referralCode:', referralCode);
         console.log('  - localStorage keys:', Object.keys(localStorage));
         
-        if (referralCode && referralUserId) {
+        if (referralCode) {
           console.log('🎁 Processing referral bonus...');
           
           // Show immediate success with note about bonus
@@ -3702,7 +3700,6 @@ function handleLoginSuccess(user, eventType = 'unknown') {
             }
             
             // Clear referral data
-            localStorage.removeItem('referralUserId');
             localStorage.removeItem('referralCode');
           }, 2000); // Wait 2 seconds for user to be created in Airtable
         } else {
@@ -4039,26 +4036,9 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       const referralCode = urlParams.get('ref');
       if (referralCode) {
         console.log('🎁 Referral code detected:', referralCode);
-        
-        // Validate referral and get full referrer ID
-        fetch(`/.netlify/functions/referral?ref=${referralCode}`)
-          .then(response => response.json())
-          .then(data => {
-            if (data.valid && data.referrer_id) {
-              console.log('✅ Valid referral from:', data.referrer_email);
-              // Store both the code and the Airtable ID
-              localStorage.setItem('referralUserId', data.referrer_id);
-              localStorage.setItem('referralCode', referralCode);
-              console.log('📌 Referral data opgeslagen:', referralCode, data.referrer_id);
-            } else {
-              console.log('❌ Invalid referral code:', referralCode);
-              localStorage.removeItem('referralUserId');
-              localStorage.removeItem('referralCode');
-            }
-          })
-          .catch(error => {
-            console.error('❌ Error validating referral:', error);
-          });
+        // Simply store the referral code - Make.com will handle validation
+        localStorage.setItem('referralCode', referralCode);
+        console.log('📌 Referral code opgeslagen:', referralCode);
         
         // Clean URL
         const cleanUrl = window.location.pathname;
