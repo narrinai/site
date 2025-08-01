@@ -19,10 +19,30 @@ exports.handler = async (event, context) => {
   try {
     // Check environment variables
     if (!process.env.AIRTABLE_TOKEN) {
-      throw new Error('AIRTABLE_TOKEN not found');
+      console.error('❌ AIRTABLE_TOKEN not found');
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          success: true,
+          valid: false,
+          message: 'Configuration error',
+          referrer_id: null
+        })
+      };
     }
     if (!process.env.AIRTABLE_BASE_ID) {
-      throw new Error('AIRTABLE_BASE_ID not found');
+      console.error('❌ AIRTABLE_BASE_ID not found');
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          success: true,
+          valid: false,
+          message: 'Configuration error',
+          referrer_id: null
+        })
+      };
     }
 
     const { httpMethod, body, queryStringParameters } = event;
@@ -50,6 +70,10 @@ exports.handler = async (event, context) => {
       // Check if searching by email - for Make.com integration
       if (email && !ref) {
         console.log('📧 Email lookup requested for:', email);
+        
+        // Decode the email properly (+ becomes space in URLs)
+        const decodedEmail = decodeURIComponent(email.replace(/\+/g, '%20'));
+        console.log('📧 Decoded email:', decodedEmail);
         
         // For Make.com - we return no referral for email lookups
         // The actual referral is processed after signup via the frontend
