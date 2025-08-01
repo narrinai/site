@@ -3514,7 +3514,8 @@ function handleLoginSuccess(user, eventType = 'unknown') {
         console.log('🔍 Referrer ID in payload:', payload.referrer_id);
         console.log('🔍 Full payload JSON:', JSON.stringify(payload, null, 2));
         
-        const REGISTER_WEBHOOK_URL = 'https://hook.eu2.make.com/03ug6qzucda4ksrkcc06nu3bu3vetj15';
+        // Use Netlify function proxy to avoid timeout issues
+        const REGISTER_WEBHOOK_URL = '/.netlify/functions/register-user';
         
         const resp = await fetch(REGISTER_WEBHOOK_URL, {
           method: 'POST',
@@ -4190,7 +4191,7 @@ async function loadProfile() {
         };
         
         console.log('📤 Creating missing user in Airtable...');
-        const createResp = await fetch('https://hook.eu2.make.com/03ug6qzucda4ksrkcc06nu3bu3vetj15', {
+        const createResp = await fetch('/.netlify/functions/register-user', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(createPayload)
