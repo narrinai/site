@@ -2083,10 +2083,17 @@
       
       // Create card HTML with proper avatar handling
       if (character.avatarUrl && character.avatarUrl.startsWith('http')) {
+        // Check if it's a replicate.delivery URL that needs CORS proxy
+        let avatarSrc = character.avatarUrl;
+        if (avatarSrc.includes('replicate.delivery')) {
+          // Use a CORS proxy for replicate.delivery URLs
+          avatarSrc = `https://corsproxy.io/?${encodeURIComponent(character.avatarUrl)}`;
+        }
+        
         card.innerHTML = `
           ${userBadgeHTML}
           <div class="character-avatar">
-            <img src="${character.avatarUrl}" 
+            <img src="${avatarSrc}" 
                  alt="${character.name}" 
                  onload="console.log('✅ Avatar loaded for', '${character.name.replace(/'/g, "\\'")}')"
                  onerror="console.error('❌ Avatar failed for', '${character.name.replace(/'/g, "\\'")}'); this.style.display='none'; this.parentNode.innerHTML='👤';">
