@@ -64,8 +64,8 @@ exports.handler = async (event, context) => {
         console.log('🔍 Checking referral ID (NetlifyUID):', ref);
 
         // Find user with netlify_uid that starts with the referral code
-        // Airtable formula needs proper escaping
-        const formula = `LEFT({netlify_uid}, ${ref.length}) = "${ref}"`;
+        // Use SEARCH which is more forgiving than LEFT
+        const formula = `SEARCH("${ref}", {netlify_uid}) = 1`;
         url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Users?filterByFormula=${encodeURIComponent(formula)}`;
       }
       

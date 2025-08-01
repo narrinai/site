@@ -2723,6 +2723,20 @@ async function checkReferralCode() {
     try {
       // Validate referral and get full referrer ID
       const response = await fetch(`/.netlify/functions/referral?ref=${referralCode}`);
+      
+      if (!response.ok) {
+        console.error('❌ Referral API error:', response.status);
+        // Still store the code for later processing
+        localStorage.setItem('referralCode', referralCode);
+        localStorage.setItem('referralUserId', 'pending-' + referralCode);
+        console.log('⚠️ Storing referral for later processing:', referralCode);
+        
+        // Toon referral banner anyway
+        showReferralBanner();
+        updateLoginButton();
+        return;
+      }
+      
       const data = await response.json();
       
       if (data.valid && data.referrer_id) {
@@ -2745,6 +2759,14 @@ async function checkReferralCode() {
       }
     } catch (error) {
       console.error('❌ Error validating referral:', error);
+      // Still store the code for later processing
+      localStorage.setItem('referralCode', referralCode);
+      localStorage.setItem('referralUserId', 'pending-' + referralCode);
+      console.log('⚠️ Storing referral for later processing:', referralCode);
+      
+      // Toon referral banner anyway
+      showReferralBanner();
+      updateLoginButton();
     }
     
     // Clean URL (verwijder ?ref= parameter)
