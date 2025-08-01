@@ -31,36 +31,42 @@ exports.handler = async (event, context) => {
     if (httpMethod === 'GET') {
       const { ref, email } = queryStringParameters || {};
       
+      // If no parameters, return no referral (for Make.com compatibility)
       if (!ref && !email) {
-        return {
-          statusCode: 400,
-          headers,
-          body: JSON.stringify({ error: 'Referral ID or email required' })
-        };
-      }
-
-      let url;
-      
-      // Check if searching by email
-      if (email) {
-        console.log('📧 Looking up stored referral code for email:', email);
-        
-        // For email lookup, we check if there's a referral code stored for this user
-        // This assumes the frontend stored the referral info when the user signed up
-        // Make.com can call this to check if the new user had a referral
-        
-        // Since we can't store server-side state, we'll return instructions
         return {
           statusCode: 200,
           headers,
           body: JSON.stringify({
             success: true,
             valid: false,
-            message: 'Email lookup not implemented. Use ref parameter with referral code instead.',
-            instructions: 'Call with ?ref=CODE where CODE is the 4-character referral code'
+            message: 'No referral parameters provided',
+            referrer_id: null
           })
         };
-      } else {
+      }
+
+      let url;
+      
+      // Check if searching by email - for Make.com integration
+      if (email && !ref) {
+        console.log('📧 Email lookup requested for:', email);
+        
+        // For Make.com - we return no referral for email lookups
+        // The actual referral is processed after signup via the frontend
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify({
+            success: true,
+            valid: false,
+            message: 'Email lookup - no referral found',
+            referrer_id: null
+          })
+        };
+      }
+      
+      // Regular referral code lookup
+      if (ref) {
         console.log('🔍 Checking referral ID (NetlifyUID):', ref);
 
         // Find user with netlify_uid that starts with the referral code
