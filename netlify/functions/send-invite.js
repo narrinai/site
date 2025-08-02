@@ -18,72 +18,57 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Get the Netlify Identity instance URL from environment
-    const identityUrl = `https://${process.env.URL}/.netlify/identity`;
-    
-    // Use the Netlify API to send invitation
-    // Note: This requires NETLIFY_ACCESS_TOKEN to be set in environment variables
-    const netlifyToken = process.env.NETLIFY_ACCESS_TOKEN;
-    
-    if (!netlifyToken) {
-      console.error('❌ NETLIFY_ACCESS_TOKEN not configured');
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
       return {
-        statusCode: 500,
-        body: JSON.stringify({ error: 'Server configuration error' })
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Invalid email format' })
       };
     }
 
-    // Get site ID from context or environment
-    const siteId = process.env.SITE_ID || context.clientContext?.custom?.netlify?.site_id;
+    // For now, we'll use a Make.com webhook to handle the invitation
+    // This gives us more flexibility and doesn't require special Netlify permissions
+    const INVITE_WEBHOOK_URL = process.env.INVITE_WEBHOOK_URL || 'https://hook.eu2.make.com/YOUR_WEBHOOK_URL';
     
-    if (!siteId) {
-      console.error('❌ Site ID not found');
+    if (INVITE_WEBHOOK_URL === 'https://hook.eu2.make.com/YOUR_WEBHOOK_URL') {
+      console.error('❌ INVITE_WEBHOOK_URL not configured');
       return {
         statusCode: 500,
-        body: JSON.stringify({ error: 'Site configuration error' })
+        body: JSON.stringify({ error: 'Invitation system not configured. Please contact support.' })
       };
     }
 
-    // Send invitation using Netlify API
-    const response = await fetch(`https://api.netlify.com/api/v1/sites/${siteId}/identity/users/invite`, {
+    // Send invitation request to Make.com
+    const webhookResponse = await fetch(INVITE_WEBHOOK_URL, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${netlifyToken}`
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        email: email,
-        roles: [] // Default role, can be customized
+        invitee_email: email,
+        inviter_email: inviterEmail,
+        timestamp: new Date().toISOString(),
+        site_url: process.env.URL || process.env.SITE_URL
       })
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error('❌ Netlify API error:', data);
-      
-      // Handle specific error cases
-      if (response.status === 422 && data.msg?.includes('already exists')) {
-        return {
-          statusCode: 400,
-          body: JSON.stringify({ error: 'This email is already registered' })
-        };
-      }
-      
+    if (!webhookResponse.ok) {
+      console.error('❌ Webhook error:', webhookResponse.status);
       return {
-        statusCode: response.status,
-        body: JSON.stringify({ error: data.msg || 'Failed to send invitation' })
+        statusCode: 500,
+        body: JSON.stringify({ error: 'Failed to send invitation. Please try again.' })
       };
     }
 
     // Log invitation for tracking
-    console.log(`✅ Invitation sent from ${inviterEmail} to ${email}`);
+    console.log(`✅ Invitation request sent: ${inviterEmail} → ${email}`);
 
     return {
       statusCode: 200,
       body: JSON.stringify({ 
         success: true, 
-        message: `Invitation sent to ${email}` 
+        message: `Invitation sent to ${email}! They'll receive an email shortly.` 
       })
     };
 
@@ -91,7 +76,7 @@ exports.handler = async (event, context) => {
     console.error('❌ Send invite error:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Internal server error' })
+      body: JSON.stringify({ error: 'Failed to process invitation. Please try again.' })
     };
   }
 };
