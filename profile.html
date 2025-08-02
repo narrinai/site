@@ -3114,7 +3114,7 @@
       return `${window.location.origin}?ref=invite`;
     }
     
-    function handleInvite(event) {
+    async function handleInvite(event) {
       event.preventDefault();
       
       const inviteEmail = document.getElementById('inviteEmail').value.trim();
@@ -3125,24 +3125,57 @@
         return;
       }
       
-      // Open email client with pre-filled invitation
-      const inviteLink = getInviteLink();
-      const subject = "You're invited to join Narrin AI!";
-      const body = `Hi!
-
-I'd like to invite you to join Narrin AI, where you can chat with over 1000+ unique AI characters. Each character has their own personality and can help with everything from creative writing to learning new skills.
-
-Join me here: ${inviteLink}
-
-See you there!`;
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(inviteEmail)) {
+        showInviteFeedback('error', 'Please enter a valid email address');
+        return;
+      }
       
-      window.location.href = `mailto:${inviteEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      // Check if user is authenticated
+      const currentUser = window.netlifyIdentity?.currentUser();
+      if (!currentUser) {
+        showInviteFeedback('error', 'You must be logged in to invite friends');
+        return;
+      }
       
-      // Show success message
-      showInviteFeedback('success', `Email client opened for ${inviteEmail}`);
+      // Disable button and show loading state
+      inviteButton.disabled = true;
+      inviteButton.textContent = 'Sending...';
       
-      // Clear the form
-      document.getElementById('inviteEmail').value = '';
+      try {
+        // Call our Netlify Function to send the email
+        const response = await fetch('/.netlify/functions/send-invite-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email: inviteEmail,
+            inviterEmail: currentUser.email
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(result.error || 'Failed to send invitation');
+        }
+        
+        // Success
+        showInviteFeedback('success', result.message || `Invitation sent to ${inviteEmail}!`);
+        
+        // Clear the form
+        document.getElementById('inviteEmail').value = '';
+        
+      } catch (error) {
+        console.error('❌ Error sending invitation:', error);
+        showInviteFeedback('error', error.message || 'Failed to send invitation. Please try again.');
+      } finally {
+        // Reset button
+        inviteButton.disabled = false;
+        inviteButton.textContent = 'Send Invite';
+      }
     }
     
     async function copyInviteLink() {
