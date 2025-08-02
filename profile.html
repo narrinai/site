@@ -1270,28 +1270,34 @@
     }
 
     .invite-actions {
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: var(--spacing-md);
-      justify-content: center;
-      flex-wrap: wrap;
+      margin-top: var(--spacing-lg);
     }
 
     .invite-action-btn {
-      padding: var(--spacing-sm) var(--spacing-lg);
+      padding: var(--spacing-md) var(--spacing-lg);
       background: var(--color-white);
       border: 2px solid var(--color-light-gray);
       border-radius: var(--radius-md);
       font-size: var(--font-size-base);
-      font-weight: 500;
+      font-weight: 600;
       cursor: pointer;
       transition: all var(--transition-base);
       font-family: var(--font-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-sm);
+      text-align: center;
     }
 
     .invite-action-btn:hover {
       border-color: var(--color-teal);
       background: rgba(20, 184, 166, 0.05);
       transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
     }
 
     @media (max-width: 768px) {
@@ -2761,40 +2767,17 @@
             <h3 class="invite-title">Invite Friends</h3>
           </div>
           <p class="invite-description">
-            Share Narrin AI with your friends! Enter their email address below to send them an invitation.
+            Share Narrin AI with your friends! Choose how you'd like to share:
           </p>
-          <form class="invite-form" id="inviteForm" name="invite" method="POST" data-netlify="true" onsubmit="handleInviteSubmit(event)">
-            <input type="hidden" name="form-name" value="invite" />
-            <input 
-              type="hidden" 
-              name="inviter_email" 
-              id="inviterEmail"
-              value=""
-            />
-            <input 
-              type="hidden" 
-              name="invite_link" 
-              id="inviteLinkHidden"
-              value=""
-            />
-            <input 
-              type="email" 
-              class="invite-input" 
-              name="friend_email"
-              id="inviteEmail" 
-              placeholder="friend@example.com" 
-              required
-            />
-            <button type="submit" class="invite-button" id="inviteButton">
-              Send Invite
-            </button>
-          </form>
           <div class="invite-actions">
-            <button class="invite-action-btn" onclick="copyInviteLink()">
-              🔗 Copy Invite Link
+            <button class="invite-action-btn" onclick="shareViaEmail()">
+              📧 Share via Email
             </button>
             <button class="invite-action-btn" onclick="shareViaWhatsApp()">
               💬 Share via WhatsApp
+            </button>
+            <button class="invite-action-btn" onclick="copyInviteLink()">
+              🔗 Copy Invite Link
             </button>
           </div>
           <div class="invite-feedback" id="inviteFeedback"></div>
@@ -3131,100 +3114,46 @@
       return `${window.location.origin}?ref=invite`;
     }
     
-    function initializeInviteForm() {
-      // Set hidden field values
-      const inviterEmailField = document.getElementById('inviterEmail');
-      const inviteLinkField = document.getElementById('inviteLinkHidden');
+    function shareViaEmail() {
+      const inviteLink = getInviteLink();
+      const currentUser = window.netlifyIdentity?.currentUser();
+      const inviterName = currentUser?.email?.split('@')[0] || 'A friend';
       
-      if (inviterEmailField && inviteLinkField) {
-        const currentUser = window.netlifyIdentity?.currentUser();
-        inviterEmailField.value = currentUser?.email || localStorage.getItem('user_email') || 'A Narrin AI user';
-        inviteLinkField.value = getInviteLink();
-      }
+      const subject = "You're invited to join Narrin AI!";
+      const body = `Hi!
+
+${inviterName} thinks you'll love Narrin AI, where you can chat with over 1000+ unique AI characters. Each character has their own personality and can help with everything from creative writing to learning new skills.
+
+Join me here: ${inviteLink}
+
+What you'll get:
+- 🤖 1000+ unique AI characters
+- 💬 50 free messages every month
+- 🧠 Smart memory system
+- ✨ Personalized conversations
+
+See you there!`;
+      
+      window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      showInviteFeedback('success', 'Email client opened with invitation!');
     }
     
-    async function handleInviteSubmit(event) {
-      event.preventDefault();
+    function shareViaWhatsApp() {
+      const inviteLink = getInviteLink();
+      const message = `Check out Narrin AI! Chat with 1000+ unique AI characters 🤖✨
+
+Each character has their own personality and expertise. It's like having a team of experts and friends at your fingertips!
+
+Join here: ${inviteLink}`;
       
-      const form = event.target;
-      const inviteButton = document.getElementById('inviteButton');
-      const friendEmail = document.getElementById('inviteEmail').value;
-      const inviterEmail = document.getElementById('inviterEmail').value;
-      const inviteLink = document.getElementById('inviteLinkHidden').value;
+      // Detect if mobile or desktop
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      const whatsappUrl = isMobile 
+        ? `whatsapp://send?text=${encodeURIComponent(message)}`
+        : `https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`;
       
-      // Disable button and show loading
-      inviteButton.disabled = true;
-      inviteButton.textContent = 'Sending...';
-      
-      try {
-        // Initialize EmailJS (you'll need to sign up at emailjs.com and get these IDs)
-        // For now, using demo values - replace with your actual values
-        emailjs.init("YOUR_PUBLIC_KEY"); // Get from EmailJS dashboard
-        
-        // Send email via EmailJS
-        const templateParams = {
-          to_email: friendEmail,
-          from_email: inviterEmail,
-          invite_link: inviteLink,
-          inviter_name: inviterEmail.split('@')[0] // Get name part of email
-        };
-        
-        // Uncomment this when you have EmailJS configured:
-        /*
-        const emailResponse = await emailjs.send(
-          'YOUR_SERVICE_ID', // Get from EmailJS dashboard
-          'YOUR_TEMPLATE_ID', // Create an invite template
-          templateParams
-        );
-        
-        if (emailResponse.status === 200) {
-          // Also submit to Netlify Forms for record keeping
-          const formData = new FormData(form);
-          await fetch('/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams(formData).toString()
-          });
-          
-          showInviteFeedback('success', `Invitation sent to ${friendEmail}!`);
-          form.reset();
-          initializeInviteForm();
-        }
-        */
-        
-        // Send actual email via our function
-        const emailResponse = await fetch('/.netlify/functions/send-invite', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: friendEmail,
-            inviterEmail: inviterEmail
-          })
-        });
-        
-        if (emailResponse.ok) {
-          // Also submit to Netlify Forms for record keeping
-          const formData = new FormData(form);
-          await fetch('/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams(formData).toString()
-          });
-          
-          showInviteFeedback('success', `Invitation sent to ${friendEmail}!`);
-          form.reset();
-          initializeInviteForm();
-        } else {
-          throw new Error('Failed to send email');
-        }
-        
-      } catch (error) {
-        console.error('❌ Error:', error);
-        showInviteFeedback('error', 'Failed to send invitation. Please try again.');
-      } finally {
-        inviteButton.disabled = false;
-        inviteButton.textContent = 'Send Invite';
-      }
+      window.open(whatsappUrl, '_blank');
+      showInviteFeedback('success', 'Opening WhatsApp...');
     }
     
     async function copyInviteLink() {
@@ -4159,7 +4088,6 @@ function handleLoginSuccess(user, eventType = 'unknown') {
           // For existing logged-in users, just load profile (don't redirect)
           showProfileUI();
           loadProfile();
-          initializeInviteForm();
         } else {
           console.log('❌ No user logged in');
           checkLocalStorage();
