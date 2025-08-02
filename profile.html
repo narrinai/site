@@ -2760,10 +2760,24 @@
           <p class="invite-description">
             Share Narrin AI with your friends! Enter their email address below to send them an invitation.
           </p>
-          <form class="invite-form" id="inviteForm" onsubmit="handleInvite(event)">
+          <form class="invite-form" id="inviteForm" name="invite" method="POST" data-netlify="true" action="/profile.html?invited=success">
+            <input type="hidden" name="form-name" value="invite" />
+            <input 
+              type="hidden" 
+              name="inviter_email" 
+              id="inviterEmail"
+              value=""
+            />
+            <input 
+              type="hidden" 
+              name="invite_link" 
+              id="inviteLinkHidden"
+              value=""
+            />
             <input 
               type="email" 
               class="invite-input" 
+              name="friend_email"
               id="inviteEmail" 
               placeholder="friend@example.com" 
               required
@@ -3114,67 +3128,23 @@
       return `${window.location.origin}?ref=invite`;
     }
     
-    async function handleInvite(event) {
-      event.preventDefault();
+    function initializeInviteForm() {
+      // Set hidden field values
+      const inviterEmailField = document.getElementById('inviterEmail');
+      const inviteLinkField = document.getElementById('inviteLinkHidden');
       
-      const inviteEmail = document.getElementById('inviteEmail').value.trim();
-      const inviteButton = document.getElementById('inviteButton');
-      
-      if (!inviteEmail) {
-        showInviteFeedback('error', 'Please enter an email address');
-        return;
+      if (inviterEmailField && inviteLinkField) {
+        const currentUser = window.netlifyIdentity?.currentUser();
+        inviterEmailField.value = currentUser?.email || localStorage.getItem('user_email') || 'A Narrin AI user';
+        inviteLinkField.value = getInviteLink();
       }
       
-      // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(inviteEmail)) {
-        showInviteFeedback('error', 'Please enter a valid email address');
-        return;
-      }
-      
-      // Check if user is authenticated
-      const currentUser = window.netlifyIdentity?.currentUser();
-      if (!currentUser) {
-        showInviteFeedback('error', 'You must be logged in to invite friends');
-        return;
-      }
-      
-      // Disable button and show loading state
-      inviteButton.disabled = true;
-      inviteButton.textContent = 'Sending...';
-      
-      try {
-        // Call our Netlify Function to send the email
-        const response = await fetch('/.netlify/functions/send-invite-email', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            email: inviteEmail,
-            inviterEmail: currentUser.email
-          })
-        });
-        
-        const result = await response.json();
-        
-        if (!response.ok) {
-          throw new Error(result.error || 'Failed to send invitation');
-        }
-        
-        // Success
-        showInviteFeedback('success', result.message || `Invitation sent to ${inviteEmail}!`);
-        
-        // Clear the form
-        document.getElementById('inviteEmail').value = '';
-        
-      } catch (error) {
-        console.error('❌ Error sending invitation:', error);
-        showInviteFeedback('error', error.message || 'Failed to send invitation. Please try again.');
-      } finally {
-        // Reset button
-        inviteButton.disabled = false;
-        inviteButton.textContent = 'Send Invite';
+      // Check for success parameter
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('invited') === 'success') {
+        showInviteFeedback('success', 'Invitation sent successfully!');
+        // Clean URL
+        window.history.replaceState({}, document.title, 'profile.html');
       }
     }
     
@@ -3534,6 +3504,7 @@ function handleLoginSuccess(user, eventType = 'unknown') {
     console.log('🔄 EXISTING LOGIN: Loading profile without webhook call');
     showProfileUI();
     loadProfile();
+    initializeInviteForm();
     // TEMPORARY: Log redirect check
     console.log('🔍 Checking for post-login redirect...');
     handlePostLoginRedirect();
@@ -3541,6 +3512,7 @@ function handleLoginSuccess(user, eventType = 'unknown') {
     console.log('🤔 UNKNOWN EVENT TYPE: Defaulting to profile load');
     showProfileUI();
     loadProfile();
+    initializeInviteForm();
   }
   
   updateLoginButton();
@@ -4108,6 +4080,7 @@ function handleLoginSuccess(user, eventType = 'unknown') {
           // For existing logged-in users, just load profile (don't redirect)
           showProfileUI();
           loadProfile();
+          initializeInviteForm();
         } else {
           console.log('❌ No user logged in');
           checkLocalStorage();
