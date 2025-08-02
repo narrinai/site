@@ -3192,20 +3192,30 @@
         }
         */
         
-        // For now, just submit to Netlify Forms
-        const formData = new FormData(form);
-        const response = await fetch('/', {
+        // Send actual email via our function
+        const emailResponse = await fetch('/.netlify/functions/send-invite', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: new URLSearchParams(formData).toString()
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: friendEmail,
+            inviterEmail: inviterEmail
+          })
         });
         
-        if (response.ok) {
-          showInviteFeedback('success', `Invitation recorded! To send emails, configure EmailJS or use Netlify Form notifications.`);
+        if (emailResponse.ok) {
+          // Also submit to Netlify Forms for record keeping
+          const formData = new FormData(form);
+          await fetch('/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams(formData).toString()
+          });
+          
+          showInviteFeedback('success', `Invitation sent to ${friendEmail}!`);
           form.reset();
           initializeInviteForm();
         } else {
-          throw new Error('Form submission failed');
+          throw new Error('Failed to send email');
         }
         
       } catch (error) {
