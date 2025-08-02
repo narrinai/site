@@ -1150,6 +1150,123 @@
       }
     }
 
+    /* ===== INVITE FRIEND SECTION ===== */
+    .invite-section {
+      background: var(--color-white);
+      border-radius: var(--radius-xl);
+      padding: var(--spacing-xl);
+      box-shadow: var(--shadow-base);
+      margin-bottom: var(--spacing-lg);
+      border: 2px solid var(--color-light-gray);
+      width: 100%;
+    }
+
+    .invite-header {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .invite-icon {
+      font-size: var(--font-size-2xl);
+    }
+
+    .invite-title {
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-xl);
+      font-weight: 700;
+      color: var(--color-navy);
+      margin: 0;
+    }
+
+    .invite-description {
+      color: var(--color-gray-dark);
+      font-size: var(--font-size-base);
+      margin-bottom: var(--spacing-lg);
+      line-height: 1.6;
+    }
+
+    .invite-form {
+      display: flex;
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .invite-input {
+      flex: 1;
+      padding: var(--spacing-md) var(--spacing-lg);
+      border: 2px solid var(--color-light-gray);
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-base);
+      font-family: var(--font-primary);
+      transition: border-color var(--transition-base);
+    }
+
+    .invite-input:focus {
+      outline: none;
+      border-color: var(--color-teal);
+    }
+
+    .invite-button {
+      padding: var(--spacing-md) var(--spacing-xl);
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-base);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      white-space: nowrap;
+      font-family: var(--font-primary);
+    }
+
+    .invite-button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .invite-button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .invite-feedback {
+      font-size: var(--font-size-sm);
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-radius: var(--radius-sm);
+      display: none;
+    }
+
+    .invite-feedback.success {
+      display: block;
+      background: rgba(20, 184, 166, 0.1);
+      color: var(--color-teal);
+      border: 1px solid var(--color-teal);
+    }
+
+    .invite-feedback.error {
+      display: block;
+      background: rgba(255, 123, 114, 0.1);
+      color: var(--color-coral);
+      border: 1px solid var(--color-coral);
+    }
+
+    @media (max-width: 768px) {
+      .invite-section {
+        padding: var(--spacing-lg);
+      }
+
+      .invite-form {
+        flex-direction: column;
+      }
+
+      .invite-button {
+        width: 100%;
+      }
+    }
+
     /* Subtle gradient overlay for depth */
     .gradient-overlay {
       position: absolute;
@@ -2583,6 +2700,30 @@
             </div>
           </div>
         </div>
+
+        <!-- Invite Friends Section -->
+        <div class="invite-section">
+          <div class="invite-header">
+            <span class="invite-icon">📧</span>
+            <h3 class="invite-title">Invite Friends</h3>
+          </div>
+          <p class="invite-description">
+            Share Narrin AI with your friends! Enter their email address below and we'll send them an invitation to join.
+          </p>
+          <form class="invite-form" id="inviteForm" onsubmit="handleInvite(event)">
+            <input 
+              type="email" 
+              class="invite-input" 
+              id="inviteEmail" 
+              placeholder="friend@example.com" 
+              required
+            />
+            <button type="submit" class="invite-button" id="inviteButton">
+              Send Invite
+            </button>
+          </form>
+          <div class="invite-feedback" id="inviteFeedback"></div>
+        </div>
       </div>
       
       
@@ -2908,6 +3049,76 @@
         // Clean URL
         window.history.replaceState({}, document.title, 'profile.html');
       }
+    }
+    
+    // ===== INVITE FUNCTIONALITY =====
+    async function handleInvite(event) {
+      event.preventDefault();
+      
+      const inviteEmail = document.getElementById('inviteEmail').value.trim();
+      const inviteButton = document.getElementById('inviteButton');
+      const inviteFeedback = document.getElementById('inviteFeedback');
+      
+      if (!inviteEmail) {
+        showInviteFeedback('error', 'Please enter a valid email address');
+        return;
+      }
+      
+      // Check if user is authenticated
+      const currentUser = window.netlifyIdentity?.currentUser();
+      if (!currentUser) {
+        showInviteFeedback('error', 'You must be logged in to invite friends');
+        return;
+      }
+      
+      // Disable button and show loading state
+      inviteButton.disabled = true;
+      inviteButton.textContent = 'Sending...';
+      
+      try {
+        // Call our Netlify Function to send invitation
+        const response = await fetch('/.netlify/functions/send-invite', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email: inviteEmail,
+            inviterEmail: currentUser.email
+          })
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || 'Failed to send invitation');
+        }
+        
+        const result = await response.json();
+        
+        // Success
+        showInviteFeedback('success', `Invitation sent to ${inviteEmail}!`);
+        document.getElementById('inviteEmail').value = '';
+        
+      } catch (error) {
+        console.error('❌ Error sending invitation:', error);
+        showInviteFeedback('error', error.message || 'Failed to send invitation. Please try again.');
+      } finally {
+        // Reset button
+        inviteButton.disabled = false;
+        inviteButton.textContent = 'Send Invite';
+      }
+    }
+    
+    function showInviteFeedback(type, message) {
+      const feedbackEl = document.getElementById('inviteFeedback');
+      feedbackEl.className = `invite-feedback ${type}`;
+      feedbackEl.textContent = message;
+      feedbackEl.style.display = 'block';
+      
+      // Hide feedback after 5 seconds
+      setTimeout(() => {
+        feedbackEl.style.display = 'none';
+      }, 5000);
     }
     
     
