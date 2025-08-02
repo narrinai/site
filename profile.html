@@ -2760,7 +2760,7 @@
           <p class="invite-description">
             Share Narrin AI with your friends! Enter their email address below to send them an invitation.
           </p>
-          <form class="invite-form" id="inviteForm" name="invite" method="POST" data-netlify="true" action="/profile.html?invited=success">
+          <form class="invite-form" id="inviteForm" name="invite" method="POST" data-netlify="true" onsubmit="handleInviteSubmit(event)">
             <input type="hidden" name="form-name" value="invite" />
             <input 
               type="hidden" 
@@ -3138,13 +3138,46 @@
         inviterEmailField.value = currentUser?.email || localStorage.getItem('user_email') || 'A Narrin AI user';
         inviteLinkField.value = getInviteLink();
       }
+    }
+    
+    async function handleInviteSubmit(event) {
+      event.preventDefault();
       
-      // Check for success parameter
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('invited') === 'success') {
-        showInviteFeedback('success', 'Invitation sent successfully!');
-        // Clean URL
-        window.history.replaceState({}, document.title, 'profile.html');
+      const form = event.target;
+      const inviteButton = document.getElementById('inviteButton');
+      const friendEmail = document.getElementById('inviteEmail').value;
+      
+      // Disable button and show loading
+      inviteButton.disabled = true;
+      inviteButton.textContent = 'Sending...';
+      
+      try {
+        // Submit form data to Netlify Forms
+        const formData = new FormData(form);
+        
+        const response = await fetch('/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams(formData).toString()
+        });
+        
+        if (response.ok) {
+          // Success
+          showInviteFeedback('success', `Invitation recorded for ${friendEmail}! They'll be notified soon.`);
+          form.reset();
+          // Re-initialize to set hidden fields again
+          initializeInviteForm();
+        } else {
+          throw new Error('Form submission failed');
+        }
+        
+      } catch (error) {
+        console.error('❌ Error submitting form:', error);
+        showInviteFeedback('error', 'Failed to send invitation. Please try again.');
+      } finally {
+        // Reset button
+        inviteButton.disabled = false;
+        inviteButton.textContent = 'Send Invite';
       }
     }
     
