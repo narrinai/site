@@ -1246,11 +1246,49 @@
       border: 1px solid var(--color-teal);
     }
 
+    .invite-feedback.info {
+      display: block;
+      background: rgba(59, 130, 246, 0.1);
+      color: #3b82f6;
+      border: 1px solid #3b82f6;
+    }
+
     .invite-feedback.error {
       display: block;
       background: rgba(255, 123, 114, 0.1);
       color: var(--color-coral);
       border: 1px solid var(--color-coral);
+    }
+
+    .invite-link-container {
+      display: flex;
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .invite-actions {
+      display: flex;
+      gap: var(--spacing-md);
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .invite-action-btn {
+      padding: var(--spacing-sm) var(--spacing-lg);
+      background: var(--color-white);
+      border: 2px solid var(--color-light-gray);
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-base);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      font-family: var(--font-primary);
+    }
+
+    .invite-action-btn:hover {
+      border-color: var(--color-teal);
+      background: rgba(20, 184, 166, 0.05);
+      transform: translateY(-2px);
     }
 
     @media (max-width: 768px) {
@@ -1263,6 +1301,18 @@
       }
 
       .invite-button {
+        width: 100%;
+      }
+
+      .invite-link-container {
+        flex-direction: column;
+      }
+
+      .invite-actions {
+        flex-direction: column;
+      }
+
+      .invite-action-btn {
         width: 100%;
       }
     }
@@ -2708,20 +2758,28 @@
             <h3 class="invite-title">Invite Friends</h3>
           </div>
           <p class="invite-description">
-            Share Narrin AI with your friends! Enter their email address below and we'll send them an invitation to join.
+            Share Narrin AI with your friends! Copy the link below or share via email.
           </p>
-          <form class="invite-form" id="inviteForm" onsubmit="handleInvite(event)">
+          <div class="invite-link-container">
             <input 
-              type="email" 
+              type="text" 
               class="invite-input" 
-              id="inviteEmail" 
-              placeholder="friend@example.com" 
-              required
+              id="inviteLink" 
+              value="" 
+              readonly
             />
-            <button type="submit" class="invite-button" id="inviteButton">
-              Send Invite
+            <button class="invite-button" onclick="copyInviteLink()">
+              Copy Link
             </button>
-          </form>
+          </div>
+          <div class="invite-actions">
+            <button class="invite-action-btn" onclick="shareViaEmail()">
+              📧 Share via Email
+            </button>
+            <button class="invite-action-btn" onclick="shareViaWhatsApp()">
+              💬 Share via WhatsApp
+            </button>
+          </div>
           <div class="invite-feedback" id="inviteFeedback"></div>
         </div>
       </div>
@@ -3052,61 +3110,53 @@
     }
     
     // ===== INVITE FUNCTIONALITY =====
-    async function handleInvite(event) {
-      event.preventDefault();
-      
-      const inviteEmail = document.getElementById('inviteEmail').value.trim();
-      const inviteButton = document.getElementById('inviteButton');
-      const inviteFeedback = document.getElementById('inviteFeedback');
-      
-      if (!inviteEmail) {
-        showInviteFeedback('error', 'Please enter a valid email address');
-        return;
+    function initializeInviteLink() {
+      const inviteLinkInput = document.getElementById('inviteLink');
+      if (inviteLinkInput) {
+        inviteLinkInput.value = `${window.location.origin}?ref=invite`;
       }
-      
-      // Check if user is authenticated
-      const currentUser = window.netlifyIdentity?.currentUser();
-      if (!currentUser) {
-        showInviteFeedback('error', 'You must be logged in to invite friends');
-        return;
-      }
-      
-      // Disable button and show loading state
-      inviteButton.disabled = true;
-      inviteButton.textContent = 'Sending...';
+    }
+    
+    async function copyInviteLink() {
+      const inviteLink = document.getElementById('inviteLink').value;
       
       try {
-        // Call our Netlify Function to send invitation
-        const response = await fetch('/.netlify/functions/send-invite', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            email: inviteEmail,
-            inviterEmail: currentUser.email
-          })
-        });
-        
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.error || 'Failed to send invitation');
-        }
-        
-        const result = await response.json();
-        
-        // Success
-        showInviteFeedback('success', `Invitation sent to ${inviteEmail}!`);
-        document.getElementById('inviteEmail').value = '';
-        
+        await navigator.clipboard.writeText(inviteLink);
+        showInviteFeedback('success', 'Link copied to clipboard!');
       } catch (error) {
-        console.error('❌ Error sending invitation:', error);
-        showInviteFeedback('error', error.message || 'Failed to send invitation. Please try again.');
-      } finally {
-        // Reset button
-        inviteButton.disabled = false;
-        inviteButton.textContent = 'Send Invite';
+        // Fallback for older browsers
+        const inviteLinkInput = document.getElementById('inviteLink');
+        inviteLinkInput.select();
+        document.execCommand('copy');
+        showInviteFeedback('success', 'Link copied to clipboard!');
       }
+    }
+    
+    function shareViaEmail() {
+      const inviteLink = document.getElementById('inviteLink').value;
+      const subject = "You're invited to join Narrin AI!";
+      const body = `Hi!
+
+I'd like to invite you to join Narrin AI, where you can chat with over 1000+ unique AI characters. Each character has their own personality and can help with everything from creative writing to learning new skills.
+
+Join me here: ${inviteLink}
+
+See you there!`;
+      
+      window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    }
+    
+    function shareViaWhatsApp() {
+      const inviteLink = document.getElementById('inviteLink').value;
+      const message = `Check out Narrin AI! Chat with 1000+ unique AI characters 🤖✨\n\nJoin here: ${inviteLink}`;
+      
+      // Detect if mobile or desktop
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      const whatsappUrl = isMobile 
+        ? `whatsapp://send?text=${encodeURIComponent(message)}`
+        : `https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+      
+      window.open(whatsappUrl, '_blank');
     }
     
     function showInviteFeedback(type, message) {
@@ -4014,6 +4064,7 @@ function handleLoginSuccess(user, eventType = 'unknown') {
           // For existing logged-in users, just load profile (don't redirect)
           showProfileUI();
           loadProfile();
+          initializeInviteLink();
         } else {
           console.log('❌ No user logged in');
           checkLocalStorage();
