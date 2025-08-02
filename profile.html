@@ -22,6 +22,9 @@
   
 <!-- Netlify Identity Widget met configuratie -->
 <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+
+<!-- EmailJS SDK -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <script>
   // Configureer widget styling
   if (window.netlifyIdentity) {
@@ -3146,15 +3149,51 @@
       const form = event.target;
       const inviteButton = document.getElementById('inviteButton');
       const friendEmail = document.getElementById('inviteEmail').value;
+      const inviterEmail = document.getElementById('inviterEmail').value;
+      const inviteLink = document.getElementById('inviteLinkHidden').value;
       
       // Disable button and show loading
       inviteButton.disabled = true;
       inviteButton.textContent = 'Sending...';
       
       try {
-        // Submit form data to Netlify Forms
-        const formData = new FormData(form);
+        // Initialize EmailJS (you'll need to sign up at emailjs.com and get these IDs)
+        // For now, using demo values - replace with your actual values
+        emailjs.init("YOUR_PUBLIC_KEY"); // Get from EmailJS dashboard
         
+        // Send email via EmailJS
+        const templateParams = {
+          to_email: friendEmail,
+          from_email: inviterEmail,
+          invite_link: inviteLink,
+          inviter_name: inviterEmail.split('@')[0] // Get name part of email
+        };
+        
+        // Uncomment this when you have EmailJS configured:
+        /*
+        const emailResponse = await emailjs.send(
+          'YOUR_SERVICE_ID', // Get from EmailJS dashboard
+          'YOUR_TEMPLATE_ID', // Create an invite template
+          templateParams
+        );
+        
+        if (emailResponse.status === 200) {
+          // Also submit to Netlify Forms for record keeping
+          const formData = new FormData(form);
+          await fetch('/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams(formData).toString()
+          });
+          
+          showInviteFeedback('success', `Invitation sent to ${friendEmail}!`);
+          form.reset();
+          initializeInviteForm();
+        }
+        */
+        
+        // For now, just submit to Netlify Forms
+        const formData = new FormData(form);
         const response = await fetch('/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -3162,20 +3201,17 @@
         });
         
         if (response.ok) {
-          // Success
-          showInviteFeedback('success', `Invitation recorded for ${friendEmail}! They'll be notified soon.`);
+          showInviteFeedback('success', `Invitation recorded! To send emails, configure EmailJS or use Netlify Form notifications.`);
           form.reset();
-          // Re-initialize to set hidden fields again
           initializeInviteForm();
         } else {
           throw new Error('Form submission failed');
         }
         
       } catch (error) {
-        console.error('❌ Error submitting form:', error);
+        console.error('❌ Error:', error);
         showInviteFeedback('error', 'Failed to send invitation. Please try again.');
       } finally {
-        // Reset button
         inviteButton.disabled = false;
         inviteButton.textContent = 'Send Invite';
       }
