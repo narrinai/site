@@ -2758,23 +2758,23 @@
             <h3 class="invite-title">Invite Friends</h3>
           </div>
           <p class="invite-description">
-            Share Narrin AI with your friends! Copy the link below or share via email.
+            Share Narrin AI with your friends! Enter their email address below to send them an invitation.
           </p>
-          <div class="invite-link-container">
+          <form class="invite-form" id="inviteForm" onsubmit="handleInvite(event)">
             <input 
-              type="text" 
+              type="email" 
               class="invite-input" 
-              id="inviteLink" 
-              value="" 
-              readonly
+              id="inviteEmail" 
+              placeholder="friend@example.com" 
+              required
             />
-            <button class="invite-button" onclick="copyInviteLink()">
-              Copy Link
+            <button type="submit" class="invite-button" id="inviteButton">
+              Send Invite
             </button>
-          </div>
+          </form>
           <div class="invite-actions">
-            <button class="invite-action-btn" onclick="shareViaEmail()">
-              📧 Share via Email
+            <button class="invite-action-btn" onclick="copyInviteLink()">
+              🔗 Copy Invite Link
             </button>
             <button class="invite-action-btn" onclick="shareViaWhatsApp()">
               💬 Share via WhatsApp
@@ -3110,30 +3110,23 @@
     }
     
     // ===== INVITE FUNCTIONALITY =====
-    function initializeInviteLink() {
-      const inviteLinkInput = document.getElementById('inviteLink');
-      if (inviteLinkInput) {
-        inviteLinkInput.value = `${window.location.origin}?ref=invite`;
-      }
+    function getInviteLink() {
+      return `${window.location.origin}?ref=invite`;
     }
     
-    async function copyInviteLink() {
-      const inviteLink = document.getElementById('inviteLink').value;
+    function handleInvite(event) {
+      event.preventDefault();
       
-      try {
-        await navigator.clipboard.writeText(inviteLink);
-        showInviteFeedback('success', 'Link copied to clipboard!');
-      } catch (error) {
-        // Fallback for older browsers
-        const inviteLinkInput = document.getElementById('inviteLink');
-        inviteLinkInput.select();
-        document.execCommand('copy');
-        showInviteFeedback('success', 'Link copied to clipboard!');
+      const inviteEmail = document.getElementById('inviteEmail').value.trim();
+      const inviteButton = document.getElementById('inviteButton');
+      
+      if (!inviteEmail) {
+        showInviteFeedback('error', 'Please enter an email address');
+        return;
       }
-    }
-    
-    function shareViaEmail() {
-      const inviteLink = document.getElementById('inviteLink').value;
+      
+      // Open email client with pre-filled invitation
+      const inviteLink = getInviteLink();
       const subject = "You're invited to join Narrin AI!";
       const body = `Hi!
 
@@ -3143,11 +3136,29 @@ Join me here: ${inviteLink}
 
 See you there!`;
       
-      window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      window.location.href = `mailto:${inviteEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      
+      // Show success message
+      showInviteFeedback('success', `Email client opened for ${inviteEmail}`);
+      
+      // Clear the form
+      document.getElementById('inviteEmail').value = '';
+    }
+    
+    async function copyInviteLink() {
+      const inviteLink = getInviteLink();
+      
+      try {
+        await navigator.clipboard.writeText(inviteLink);
+        showInviteFeedback('success', 'Invite link copied to clipboard!');
+      } catch (error) {
+        // Fallback for older browsers
+        showInviteFeedback('info', `Copy this link: ${inviteLink}`);
+      }
     }
     
     function shareViaWhatsApp() {
-      const inviteLink = document.getElementById('inviteLink').value;
+      const inviteLink = getInviteLink();
       const message = `Check out Narrin AI! Chat with 1000+ unique AI characters 🤖✨\n\nJoin here: ${inviteLink}`;
       
       // Detect if mobile or desktop
@@ -4064,7 +4075,6 @@ function handleLoginSuccess(user, eventType = 'unknown') {
           // For existing logged-in users, just load profile (don't redirect)
           showProfileUI();
           loadProfile();
-          initializeInviteLink();
         } else {
           console.log('❌ No user logged in');
           checkLocalStorage();
