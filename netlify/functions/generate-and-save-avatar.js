@@ -62,7 +62,7 @@ exports.handler = async (event, context) => {
         version: model,
         input: {
           prompt: prompt,
-          negative_prompt: "multiple people, two faces, group photo, crowd, dark background, black background, cartoon, anime, illustration, low quality, blurry",
+          negative_prompt: "multiple people, multiple faces, two faces, three faces, group photo, crowd, collage, montage, grid, split screen, double exposure, composite image, multiple heads, extra limbs, extra arms, extra legs, dark background, black background, cartoon, anime, illustration, low quality, blurry, duplicated person, twins, mirror image",
           width: 768,
           height: 768,
           num_outputs: 1,
@@ -211,24 +211,74 @@ function createRealisticPortraitPrompt(characterName, characterTitle, category) 
   const ethnicities = ['Caucasian', 'Asian', 'African', 'Hispanic', 'Middle Eastern', 'Mixed'];
   const ethnicity = ethnicities[Math.floor(Math.random() * ethnicities.length)];
   
-  // Build prompt
-  let prompt = `Professional headshot portrait of one ${ethnicity} ${gender}, warm friendly smile, `;
+  // Build prompt - explicitly specify single person
+  let prompt = `Professional headshot portrait of a single ${ethnicity} ${gender}, solo portrait, one person only, centered composition, warm friendly smile, `;
   
-  // Add category-specific clothing
+  // Add category-specific clothing with variety
   const categoryClothing = {
-    business: 'business suit',
-    fitness: 'athletic wear',
-    health: 'medical scrubs',
-    education: 'professional academic attire',
-    technology: 'smart casual tech wear',
-    default: 'professional attire'
+    business: [
+      'navy business suit with white shirt',
+      'charcoal gray suit with light blue shirt',
+      'black blazer with white blouse',
+      'professional dress with blazer',
+      'pinstripe suit with tie',
+      'business casual with sweater vest',
+      'formal business attire with pocket square'
+    ],
+    fitness: [
+      'athletic tank top',
+      'sports jersey',
+      'yoga outfit',
+      'running gear with headband',
+      'gym hoodie',
+      'compression shirt',
+      'athletic polo shirt',
+      'fitness tracker and workout clothes'
+    ],
+    health: [
+      'medical scrubs in blue',
+      'white lab coat over professional clothes',
+      'medical scrubs in green',
+      'doctor coat with stethoscope',
+      'nurse uniform',
+      'medical professional attire',
+      'healthcare worker uniform'
+    ],
+    education: [
+      'tweed jacket with elbow patches',
+      'cardigan over button-up shirt',
+      'professional blazer with scarf',
+      'academic robes',
+      'smart casual with glasses',
+      'sweater with collared shirt',
+      'professional dress with pearl necklace'
+    ],
+    technology: [
+      'tech company hoodie',
+      'smart casual with rolled-up sleeves',
+      'graphic t-shirt with blazer',
+      'startup casual wear',
+      'minimalist black turtleneck',
+      'plaid shirt with jeans',
+      'modern casual with smartwatch'
+    ],
+    default: [
+      'professional blazer',
+      'business casual attire',
+      'smart casual outfit',
+      'formal shirt',
+      'elegant blouse',
+      'professional sweater',
+      'classic business wear'
+    ]
   };
   
-  const clothing = categoryClothing[category?.toLowerCase()] || categoryClothing.default;
+  const clothingOptions = categoryClothing[category?.toLowerCase()] || categoryClothing.default;
+  const clothing = clothingOptions[Math.floor(Math.random() * clothingOptions.length)];
   prompt += `wearing ${clothing}, `;
   
-  // Technical specifications
-  prompt += 'bright white background, studio lighting, professional portrait, sharp focus, high quality';
+  // Technical specifications with single person emphasis
+  prompt += 'bright white background, studio lighting, professional individual portrait, single subject, sharp focus, high quality, isolated person';
   
   return { prompt, gender };
 }
