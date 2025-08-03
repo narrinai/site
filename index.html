@@ -735,11 +735,130 @@
       text-align: center;
       padding: var(--spacing-2xl) var(--spacing-lg) var(--spacing-sm);
       background: var(--color-off-white);
+      position: relative;
     }
 
     .hero-content {
       max-width: 900px;
       margin: 0 auto;
+    }
+    
+    /* ===== USP BADGES STYLES ===== */
+    
+    /* Mobile USP Badges */
+    .usp-badges-mobile {
+      display: none;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 16px;
+      padding: 0 8px;
+    }
+    
+    .usp-badge {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, rgba(249, 115, 22, 0.1) 100%);
+      border: 1px solid rgba(20, 184, 166, 0.2);
+      border-radius: 20px;
+      padding: 6px 10px;
+      font-size: 11px;
+      flex: 0 1 auto;
+      white-space: nowrap;
+    }
+    
+    .usp-badge .usp-icon {
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    
+    .usp-badge .usp-text {
+      color: var(--color-navy);
+      font-weight: 600;
+      font-family: var(--font-primary);
+      letter-spacing: -0.01em;
+    }
+    
+    /* Desktop USP Badges Sidebar */
+    .usp-badges-desktop {
+      display: none;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: -60px;
+      gap: 24px;
+      z-index: 10;
+    }
+    
+    .usp-badge-desktop {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: white;
+      border: 2px solid var(--color-light-gray);
+      border-radius: 12px;
+      padding: 12px 16px;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .usp-badge-desktop:hover {
+      border-color: var(--color-teal);
+      box-shadow: 0 4px 12px rgba(20, 184, 166, 0.15);
+      transform: translateY(-2px);
+    }
+    
+    .usp-badge-desktop .usp-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    
+    .usp-badge-desktop .usp-content {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    
+    .usp-badge-desktop .usp-title {
+      color: var(--color-navy);
+      font-weight: 700;
+      font-size: 13px;
+      font-family: var(--font-secondary);
+      line-height: 1.2;
+    }
+    
+    .usp-badge-desktop .usp-desc {
+      color: var(--color-gray);
+      font-size: 11px;
+      font-family: var(--font-primary);
+      line-height: 1.2;
+    }
+    
+    /* Show desktop badges on larger screens */
+    @media (min-width: 1024px) {
+      .usp-badges-desktop {
+        display: flex;
+        flex-direction: row;
+      }
+      
+      .usp-badges-mobile {
+        display: none !important;
+      }
+      
+      .content {
+        padding-top: 80px; /* Add space for desktop badges */
+      }
+    }
+    
+    /* Tablet - show mobile badges */
+    @media (min-width: 769px) and (max-width: 1023px) {
+      .usp-badges-mobile {
+        display: flex;
+      }
+      
+      .usp-badges-desktop {
+        display: none !important;
+      }
     }
 
     .hero h1 {
@@ -766,6 +885,15 @@
       .hero p {
         white-space: normal;
         max-width: 600px;
+      }
+      
+      /* Show mobile badges */
+      .usp-badges-mobile {
+        display: flex;
+      }
+      
+      .usp-badges-desktop {
+        display: none !important;
       }
     }
 
@@ -1561,6 +1689,58 @@ body.has-referral-banner {
       <div class="hero-content">
         <h1>AI Companions & Coaches</h1>
         <p>Discover mentors and friends who truly get you - and make them your own.</p>
+        
+        <!-- USP Badges - Mobile Only -->
+        <div class="usp-badges-mobile">
+          <div class="usp-badge">
+            <span class="usp-icon">🧠</span>
+            <span class="usp-text">Memory</span>
+          </div>
+          <div class="usp-badge">
+            <span class="usp-icon">🔊</span>
+            <span class="usp-text">TTS</span>
+          </div>
+          <div class="usp-badge">
+            <span class="usp-icon">🎤</span>
+            <span class="usp-text">STT</span>
+          </div>
+          <div class="usp-badge">
+            <span class="usp-icon">✨</span>
+            <span class="usp-text">Personalize</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- USP Badges - Desktop Sidebar -->
+      <div class="usp-badges-desktop">
+        <div class="usp-badge-desktop">
+          <span class="usp-icon">🧠</span>
+          <div class="usp-content">
+            <span class="usp-title">Extensive Memory</span>
+            <span class="usp-desc">Remembers your conversations</span>
+          </div>
+        </div>
+        <div class="usp-badge-desktop">
+          <span class="usp-icon">🔊</span>
+          <div class="usp-content">
+            <span class="usp-title">Text to Speech</span>
+            <span class="usp-desc">Natural voice conversations</span>
+          </div>
+        </div>
+        <div class="usp-badge-desktop">
+          <span class="usp-icon">🎤</span>
+          <div class="usp-content">
+            <span class="usp-title">Speech to Text</span>
+            <span class="usp-desc">Speak naturally to chat</span>
+          </div>
+        </div>
+        <div class="usp-badge-desktop">
+          <span class="usp-icon">✨</span>
+          <div class="usp-content">
+            <span class="usp-title">Advanced Personalization</span>
+            <span class="usp-desc">Personalize your companion</span>
+          </div>
+        </div>
       </div>
     </section>
 
