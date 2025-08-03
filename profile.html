@@ -2742,7 +2742,7 @@
           </div>
         </div>
 
-        <!-- Premium Pricing Cards -->
+        <!-- Pricing Cards -->
         <div class="pricing-container">
           <h2 class="pricing-title">Choose Your Plan</h2>
           
@@ -2839,8 +2839,8 @@
             </div>
             
             <!-- Immerse Plan -->
-            <div class="pricing-card" data-plan="immerse">
-              <div class="card-badge premium">Premium</div>
+            <div class="pricing-card featured" data-plan="immerse">
+              <div class="card-badge">Ultimate Experience</div>
               <div class="card-header">
                 <h3 class="plan-name">Immerse</h3>
                 <div class="plan-price">
@@ -2884,7 +2884,7 @@
               
               <div class="card-action">
                 <button class="plan-button upgrade-button premium" id="immerseButton" onclick="handleUpgrade('immerse')">
-                  Coming Soon
+                  Upgrade to Immerse
                 </button>
                 <div class="plan-active" id="immerseActive" style="display: none;">
                   <div class="active-badge">
@@ -3167,11 +3167,11 @@
     async function handleUpgrade(planType = 'engage') {
       console.log('🚀 Upgrade button clicked for plan:', planType);
       
-      // Check if plan is available
-      if (planType === 'immerse') {
-        showInfo('The Immerse plan will be available soon!');
-        return;
-      }
+      // Check if plan is available - Immerse is now available
+      // if (planType === 'immerse') {
+      //   showInfo('The Immerse plan will be available soon!');
+      //   return;
+      // }
       
       // Check of gebruiker ingelogd is
       const email = localStorage.getItem('user_email');
@@ -3198,8 +3198,7 @@
         // Use different price IDs based on plan
         let priceId = PRICE_ID; // Default to Engage plan
         if (planType === 'immerse') {
-          // priceId will be added later for Immerse plan
-          priceId = 'price_immerse_placeholder'; // Placeholder for now
+          priceId = 'price_1Rs1wFDU567HpUYxYphohLS9'; // Immerse plan price ID
         }
         
         // Redirect direct naar Stripe Checkout
@@ -3244,7 +3243,7 @@
       const downgradeStatus = urlParams.get('downgrade');
       
       if (upgradeStatus === 'success') {
-        showSuccess('🎉 Upgrade successful! Welcome to Narrin AI Premium!');
+        showSuccess('🎉 Upgrade successful! Welcome to your new plan!');
         
         // BELANGRIJKE TOEVOEGING: Automatisch profile data refreshen
         setTimeout(() => {
@@ -4410,8 +4409,8 @@ async function loadProfile() {
     const userPlan = data?.plan || 'Free';
     setField('plan', userPlan);
     
-    // Update premium card
-    updatePremiumCard(userPlan);
+    // Update pricing card
+    updatePricingCard(userPlan);
     
     // VEILIGE usage/quota verwerking
     let usage = 0;
@@ -4474,7 +4473,7 @@ async function loadProfile() {
     const usageFill = document.getElementById('usage-fill');
     if (usageFill) usageFill.style.width = '0%';
     
-    updatePremiumCard('Free');
+    updatePricingCard('Free');
     
     // Toon gebruiksvriendelijke foutmelding
     showError('Profile loaded with default settings. Some data may not be current.');
@@ -4876,9 +4875,9 @@ function setField(field, text) {
       }
     });
 
-    // ===== PREMIUM CARD STATE MANAGEMENT =====
-   // ===== PREMIUM CARD STATE MANAGEMENT =====
-function updatePremiumCard(plan) {
+    // ===== PRICING CARD STATE MANAGEMENT =====
+   // ===== PRICING CARD STATE MANAGEMENT =====
+function updatePricingCard(plan) {
   // Hide all active states and show all upgrade buttons first
   const discoverButton = document.getElementById('discoverButton');
   const engageButton = document.getElementById('engageButton');
@@ -4949,7 +4948,7 @@ function updatePremiumCard(plan) {
     async function handleDowngrade() {
       console.log('⬇️ Downgrade button clicked');
       
-      customConfirm('Are you sure you want to downgrade to the free plan? You will lose access to premium features and be limited to 50 messages per month.', 'Confirm Downgrade', () => {
+      customConfirm('Are you sure you want to downgrade to the free plan? You will lose access to paid features and be limited to 50 messages per month.', 'Confirm Downgrade', () => {
         // Continue with downgrade logic
         performDowngrade();
       });

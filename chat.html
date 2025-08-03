@@ -5070,15 +5070,32 @@ document.addEventListener('DOMContentLoaded', () => {
       saveConversationStarter(starter);
     }
     
-    // Check voice usage limit for Free plan users
+    // Check voice usage limit for Free and Engage plan users
     function checkVoiceUsageLimit() {
-      // Check if user has premium plan
-      const isPremium = localStorage.getItem('user_plan') === 'premium' || 
-                       localStorage.getItem('user_plan') === 'pro' ||
-                       localStorage.getItem('isPremium') === 'true';
+      // Check user plan
+      const userPlan = localStorage.getItem('user_plan');
+      const isImmerse = userPlan === 'immerse' || userPlan === 'Immerse';
+      const isEngage = userPlan === 'engage' || userPlan === 'Engage' || userPlan === 'premium' || userPlan === 'pro';
       
-      if (isPremium) {
-        console.log('🗣️ Premium user - unlimited voice conversations');
+      if (isImmerse) {
+        console.log('🗣️ Immerse user - unlimited voice conversations');
+        return true;
+      }
+      
+      if (isEngage) {
+        // Check if Engage user has reached 25 voice limit
+        const voiceUsage = JSON.parse(localStorage.getItem('voiceUsage') || '[]');
+        const currentMonth = new Date().toISOString().slice(0, 7);
+        const monthlyUsage = voiceUsage.filter(date => date.startsWith(currentMonth)).length;
+        
+        if (monthlyUsage >= 25) {
+          showEngageVoiceUpgradeModal();
+          return false;
+        }
+        console.log(`🗣️ Engage user - ${monthlyUsage}/25 voice conversations used`);
+        // Track usage
+        voiceUsage.push(new Date().toISOString());
+        localStorage.setItem('voiceUsage', JSON.stringify(voiceUsage));
         return true;
       }
       
@@ -5128,7 +5145,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <div class="voice-upgrade-body">
             <p>You've reached your limit of <strong>3 voice conversations</strong> per 30 days on the Free plan.</p>
-            <p>Upgrade to <strong>Premium</strong> for unlimited voice chat and more features!</p>
+            <p>Upgrade to unlock more voice conversations and features!</p>
             <div class="voice-upgrade-benefits">
               <div class="voice-benefit">
                 <div class="checkmark"></div>
@@ -5305,10 +5322,50 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
     
-    // Upgrade to premium function
+    // Upgrade function
     window.upgradeToPremuim = function() {
       closeVoiceUpgradeModal();
-      window.location.href = 'profile.html#upgrade';
+      window.location.href = 'profile.html';
+    }
+    
+    // Show Engage to Immerse upgrade modal for voice limit
+    function showEngageVoiceUpgradeModal() {
+      const modal = document.createElement('div');
+      modal.className = 'voice-upgrade-modal';
+      modal.innerHTML = `
+        <div class="voice-upgrade-content">
+          <div class="voice-upgrade-header">
+            <h3>🎯 Voice Limit Reached</h3>
+            <button class="voice-upgrade-close" onclick="closeVoiceUpgradeModal()">&times;</button>
+          </div>
+          <div class="voice-upgrade-body">
+            <p>You've reached your limit of <strong>25 voice conversations</strong> per month on the Engage plan.</p>
+            <p>Upgrade to <strong>Immerse</strong> for unlimited voice conversations!</p>
+            <div class="voice-upgrade-benefits">
+              <div class="voice-benefit">
+                <div class="checkmark"></div>
+                <div class="benefit-text">Unlimited Voice Conversations</div>
+              </div>
+              <div class="voice-benefit">
+                <div class="checkmark"></div>
+                <div class="benefit-text">Priority Response Time</div>
+              </div>
+              <div class="voice-benefit">
+                <div class="checkmark"></div>
+                <div class="benefit-text">Advanced Character Features</div>
+              </div>
+            </div>
+          </div>
+          <div class="voice-upgrade-buttons">
+            <button class="btn-secondary" onclick="closeVoiceUpgradeModal()">Maybe Later</button>
+            <button class="btn-primary" onclick="window.location.href='profile.html'">Upgrade to Immerse</button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      // Reuse existing styles
     }
     
     // Manual voice conversation met caching en loading indicator
@@ -9455,9 +9512,9 @@ async function checkUsageLimit() {
 
     console.log('📊 Usage check:', { plan, usage, quota });
 
-    // If premium user, always allow
-    if (plan.toLowerCase() === 'premium' || plan.toLowerCase() === 'pro' || plan.toLowerCase() === 'paid') {
-      console.log('✅ Premium user - unlimited messages');
+    // Check user plan for message limits
+    if (plan.toLowerCase() === 'immerse' || plan.toLowerCase() === 'engage' || plan.toLowerCase() === 'premium' || plan.toLowerCase() === 'pro' || plan.toLowerCase() === 'paid') {
+      console.log('✅ Paid user - unlimited messages');
       return true;
     }
 
@@ -9490,7 +9547,7 @@ function showUpgradePrompt(usage, quota) {
         <div class="upgrade-header">
           <div class="upgrade-icon">💎</div>
           <h3 class="upgrade-title">Continue Your Journey</h3>
-          <p class="upgrade-subtitle">You've shared ${quota} meaningful conversations this month. Ready to explore deeper connections?</p>
+          <p class="upgrade-subtitle">You've shared ${quota} meaningful conversations this month. Unlock unlimited conversations to explore deeper connections.</p>
         </div>
         
         <div class="upgrade-benefits">
@@ -9518,15 +9575,15 @@ function showUpgradePrompt(usage, quota) {
 
         <div class="upgrade-pricing">
           <div class="price-tag">
-            <span class="currency">$</span>
+            <span class="currency">Starting at $</span>
             <span class="amount">14.99</span>
             <span class="period">/month</span>
           </div>
         </div>
 
         <div class="upgrade-buttons">
-          <button class="upgrade-btn primary" onclick="handleUpgradeFromChat()">
-            Continue My Journey
+          <button class="upgrade-btn primary" onclick="window.location.href='profile.html'">
+            View Upgrade Options
           </button>
           <button class="upgrade-btn secondary" onclick="closeUpgradePrompt()">
             I'll Think About It
@@ -9550,10 +9607,14 @@ function closeUpgradePrompt() {
   }
 }
 
-// ===== STRIPE UPGRADE FROM CHAT =====
+// ===== REDIRECT TO PROFILE FOR UPGRADE =====
 async function handleUpgradeFromChat() {
-  console.log('🚀 Upgrade from chat clicked');
+  console.log('🚀 Redirecting to profile for upgrade options');
+  window.location.href = 'profile.html';
+  return;
   
+  // Old Stripe code kept for reference
+  /*
   const email = localStorage.getItem('user_email');
   const uid = localStorage.getItem('user_uid');
   
