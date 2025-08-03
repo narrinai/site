@@ -39,7 +39,7 @@ def log(color, message):
     print(f"{color}{message}{Colors.RESET}")
 
 # Maximum aantal characters om TOE TE VOEGEN per categorie
-MAX_CHARACTERS_TO_ADD = 15
+MAX_CHARACTERS_TO_ADD = 25
 
 # Character type weights - focus op support en vriendschap
 CHARACTER_TYPE_WEIGHTS = {
@@ -54,112 +54,14 @@ FRIEND_TAGS = ['friendly', 'fun', 'cheerful', 'positive', 'warm', 'welcoming', '
 SUPPORT_TAGS = ['supportive', 'understanding', 'empathetic', 'caring', 'helpful', 'motivating', 'encouraging', 'patient', 'compassionate', 'wise']
 
 def get_categories_from_airtable():
-    """Haal alle unieke categorieën op uit Airtable"""
-    url = f"https://api.airtable.com/v0/{AIRTABLE_BASE}/{AIRTABLE_TABLE}"
-    headers = {
-        'Authorization': f'Bearer {AIRTABLE_TOKEN}',
-        'Content-Type': 'application/json'
-    }
+    """Return alleen de 'love' categorie"""
+    log(Colors.BLUE, "📋 Categorie 'love' wordt gebruikt...")
     
-    log(Colors.BLUE, "📋 Categorieën ophalen uit Airtable...")
+    # We gebruiken alleen de 'love' categorie
+    final_categories = ['love']
+    category_original_names = {'love': 'love'}
     
-    categories = set()
-    offset = None
-    
-    while True:
-        params = {}
-        if offset:
-            params['offset'] = offset
-            
-        try:
-            response = requests.get(url, headers=headers, params=params)
-            response.raise_for_status()
-            data = response.json()
-            
-            # Verzamel unieke categorieën
-            for record in data.get('records', []):
-                category = record.get('fields', {}).get('Category')
-                if category:
-                    categories.add(category)
-            
-            offset = data.get('offset')
-            if not offset:
-                break
-                
-        except Exception as e:
-            log(Colors.RED, f"❌ Fout bij ophalen categorieën: {e}")
-            break
-    
-    # Focus alleen op deze specifieke categorieën - gebruik lowercase voor matching
-    category_mapping = {
-        # Nieuwe categorieën die we willen toevoegen
-        'health': 'health',
-        'spiritual': 'spiritual', 
-        'romance': 'romance',
-        'support': 'support',
-        'purpose': 'purpose',
-        'self-improvement': 'self-improvement',
-        'travel': 'travel',
-        'parenting': 'parenting',
-        'cultural': 'cultural',
-        'life': 'life',
-        'motivation': 'motivation',
-        # Als deze exact in Airtable staan, voeg ze ook toe
-        'fitness': 'fitness',  # Gezien in screenshot
-        'mindfulness': 'mindfulness'  # Mogelijk aanwezig
-    }
-    
-    # Debug: toon alle categorieën uit Airtable
-    log(Colors.BLUE, f"📝 Alle categorieën uit Airtable: {sorted(categories)}")
-    
-    # Filter en map categorieën naar de juiste namen
-    simplified_categories = []
-    category_original_names = {}  # Bewaar originele namen voor Airtable
-    
-    for cat in categories:
-        if cat:
-            # Voor nieuwe categorieën die nog niet in Airtable staan
-            if cat.lower() in category_mapping:
-                # Deze categorie is toegestaan
-                simplified_categories.append(cat)
-                category_original_names[cat] = cat
-                log(Colors.GREEN, f"   ✅ Categorie '{cat}' gevonden en toegestaan")
-            else:
-                # Check of het een van onze gewenste nieuwe categorieën is
-                for desired_cat in ['health', 'spiritual', 'romance', 'support', 'purpose', 'self-improvement', 'travel', 'parenting', 'cultural', 'life', 'motivation']:
-                    if desired_cat not in [c.lower() for c in categories]:
-                        # Deze categorie bestaat nog niet in Airtable, voeg toe
-                        if desired_cat not in simplified_categories:
-                            simplified_categories.append(desired_cat)
-                            category_original_names[desired_cat] = desired_cat
-                            log(Colors.BLUE, f"   ➕ Nieuwe categorie '{desired_cat}' toegevoegd voor creatie")
-    
-    log(Colors.GREEN, f"✅ {len(simplified_categories)} toegestane categorieën gevonden")
-    
-    # Prioriteer bepaalde categorieën - gebruik lowercase
-    priority_categories = ['health', 'spiritual', 'romance', 'support', 'purpose', 'self-improvement', 'life', 'motivation']
-    
-    # Sorteer zodat priority categorieën eerst komen
-    prioritized = []
-    others = []
-    
-    for cat in simplified_categories:
-        if any(p.lower() == cat.lower() for p in priority_categories):
-            prioritized.append(cat)
-        else:
-            others.append(cat)
-    
-    # Sorteer beide lijsten en combineer (priority eerst)
-    final_categories = sorted(prioritized) + sorted(others)
-    
-    # Voeg alle gewenste categorieën toe die nog niet bestaan
-    desired_categories = ['health', 'spiritual', 'romance', 'support', 'purpose', 'self-improvement', 'travel', 'parenting', 'cultural', 'life', 'motivation']
-    
-    for cat in desired_categories:
-        if cat not in [c.lower() for c in final_categories]:
-            final_categories.append(cat)
-            category_original_names[cat] = cat
-            log(Colors.BLUE, f"   ➕ Categorie '{cat}' toegevoegd voor nieuwe characters")
+    log(Colors.GREEN, "✅ Categorie 'love' geselecteerd voor character creatie")
     
     # Return zowel de categorieën als de mapping
     return final_categories, category_original_names
@@ -257,43 +159,73 @@ def get_existing_characters_by_category():
     return existing_names, category_counts
 
 def generate_character_name(category, character_type, existing_names):
-    """Genereer een unieke character naam met veel meer variatie"""
-    # Zeer uitgebreide lijst met unieke namen uit verschillende culturen
+    """Genereer een unieke character naam - alleen voornamen"""
+    # Zeer uitgebreide lijst met unieke voornamen uit verschillende culturen - 300+ namen
     first_names = [
-        # Volledig nieuwe namen batch 1
+        # Batch 1 - Romantische namen
         'Aaliyah', 'Abel', 'Abram', 'Ada', 'Adeline', 'Adonis', 'Adriana', 'Aidan', 'Aisha', 'Alana',
         'Alaric', 'Alba', 'Aldo', 'Alessandra', 'Alfonso', 'Alice', 'Alina', 'Alistair', 'Allegra', 'Alma',
         'Alonso', 'Althea', 'Alton', 'Amara', 'Ambrose', 'Amelie', 'Amos', 'Anastasia', 'Anders', 'Andrea',
         'Angelo', 'Anita', 'Ansel', 'Antonia', 'Apollo', 'April', 'Archer', 'Ariana', 'Ariel', 'Armando',
         'Asa', 'Ashton', 'Asia', 'Atticus', 'Augusta', 'Augustus', 'Aurelia', 'Austin', 'Autumn', 'Axel',
         
-        # Volledig nieuwe namen batch 2
+        # Batch 2 - Klassieke namen
         'Bailey', 'Barbara', 'Barnaby', 'Beatrice', 'Benedict', 'Bernadette', 'Bernard', 'Beverly', 'Blaine', 'Blair',
         'Blanche', 'Boris', 'Bradford', 'Bridget', 'Brigitte', 'Bruno', 'Bryant', 'Byron', 'Cadence', 'Caesar',
         'Caleb', 'Callie', 'Camden', 'Camille', 'Candace', 'Carl', 'Carla', 'Carmen', 'Carol', 'Caroline',
         'Casper', 'Cassidy', 'Cecilia', 'Celeste', 'Cesar', 'Chad', 'Chandler', 'Chantal', 'Charlene', 'Chase',
         
-        # Nieuwe unieke namen set 1
+        # Batch 3 - Internationale namen
         'Adrian', 'Bella', 'Calvin', 'Daphne', 'Edwin', 'Fiona', 'Gavin', 'Helena', 'Ivan', 'Julia',
         'Kevin', 'Laura', 'Marcus', 'Natalie', 'Oscar', 'Priscilla', 'Quentin', 'Rachel', 'Simon', 'Teresa',
         'Ulrich', 'Valerie', 'Wesley', 'Xena', 'Yannick', 'Zelda', 'Aaron', 'Bianca', 'Colin', 'Denise',
         
-        # Nieuwe unieke namen set 2
+        # Batch 4 - Moderne namen
         'Eugene', 'Florence', 'Gregory', 'Haley', 'Ian', 'Jessica', 'Kenneth', 'Lydia', 'Mitchell', 'Nicole',
         'Patrick', 'Rebecca', 'Steven', 'Tiffany', 'Vincent', 'Whitney', 'Xavier', 'Yvonne', 'Zachary', 'Amanda',
         'Bradley', 'Cassandra', 'Derek', 'Eleanor', 'Franklin', 'Gabrielle', 'Howard', 'Irene', 'Jerome', 'Katherine',
         
-        # Nieuwe unieke namen set 3
+        # Batch 5 - Elegante namen
         'Leonard', 'Monica', 'Nicholas', 'Pamela', 'Raymond', 'Stephanie', 'Timothy', 'Ursula', 'Victor', 'Wendy',
         'Albert', 'Bethany', 'Chester', 'Diane', 'Ernest', 'Frances', 'Gerald', 'Holly', 'Irving', 'Janet',
         
-        # Nieuwe unieke namen set 4
+        # Batch 6 - Unieke namen
         'Keith', 'Louise', 'Martin', 'Naomi', 'Peter', 'Quinn', 'Roland', 'Sylvia', 'Travis', 'Uma',
         'Vernon', 'Wanda', 'Arnold', 'Brenda', 'Clarence', 'Donna', 'Edgar', 'Felicia', 'Gordon', 'Heidi',
         
-        # Extra nieuwe namen
+        # Batch 7 - Extra namen
         'Jasper', 'Kendra', 'Lawrence', 'Melanie', 'Norman', 'Ophelia', 'Preston', 'Rita', 'Stanley', 'Tara',
-        'Ulysses', 'Vivian', 'Warren', 'Yvette', 'Alvin', 'Bonnie', 'Curtis', 'Deborah', 'Eugene', 'Faith'
+        'Ulysses', 'Vivian', 'Warren', 'Yvette', 'Alvin', 'Bonnie', 'Curtis', 'Deborah', 'Faith',
+        
+        # Batch 8 - Nieuwe toegevoegde namen voor love category
+        'Romeo', 'Juliet', 'Valentina', 'Amore', 'Casanova', 'Aphrodite', 'Eros', 'Cupid', 'Venus', 'Adore',
+        'Amorous', 'Beloved', 'Cherish', 'Desire', 'Embrace', 'Fleur', 'Grace', 'Harmony', 'Iris', 'Joy',
+        'Kismet', 'Luna', 'Melody', 'Nova', 'Opal', 'Pearl', 'Rose', 'Seraphina', 'Trinity', 'Unity',
+        
+        # Batch 9 - Romantische internationale namen
+        'Aiko', 'Akira', 'Amelia', 'Antoine', 'Arabella', 'Astrid', 'Aurelio', 'Beatriz', 'Benito', 'Birgit',
+        'Bjorn', 'Brigid', 'Bruno', 'Camila', 'Carlos', 'Catalina', 'Chiara', 'Claudia', 'Dario', 'Delilah',
+        'Diego', 'Dimitri', 'Domenico', 'Donatella', 'Eduardo', 'Elena', 'Elias', 'Emilia', 'Enrique', 'Esmeralda',
+        
+        # Batch 10 - Meer diverse namen
+        'Fabian', 'Fatima', 'Felipe', 'Fernanda', 'Fernando', 'Francesca', 'Francisco', 'Freya', 'Gabriel', 'Gemma',
+        'Gianni', 'Giselle', 'Giulia', 'Giuseppe', 'Greta', 'Guillermo', 'Gustavo', 'Hector', 'Hugo', 'Ilaria',
+        'Imogen', 'Ines', 'Ingrid', 'Isabel', 'Isabella', 'Isadora', 'Jacqueline', 'Javier', 'Joaquin', 'Jorge',
+        
+        # Batch 11 - Nog meer namen
+        'Josephine', 'Juan', 'Juliette', 'Kai', 'Katarina', 'Laila', 'Leandro', 'Lena', 'Leonardo', 'Leonie',
+        'Lila', 'Lillian', 'Lorenzo', 'Luca', 'Lucia', 'Luciano', 'Luis', 'Madeleine', 'Magdalena', 'Magnus',
+        'Maite', 'Manuel', 'Marco', 'Margot', 'Maria', 'Mariana', 'Marina', 'Mario', 'Marta', 'Mateo',
+        
+        # Batch 12 - Extra romantische namen
+        'Matteo', 'Maximilian', 'Maya', 'Mercedes', 'Miguel', 'Mila', 'Miriam', 'Nadine', 'Nadia', 'Natasha',
+        'Nathan', 'Nora', 'Octavia', 'Odette', 'Olga', 'Oliver', 'Olivia', 'Orlando', 'Pablo', 'Paloma',
+        'Paolo', 'Pascal', 'Patricia', 'Pedro', 'Penelope', 'Petra', 'Philippe', 'Phoebe', 'Pierre', 'Portia',
+        
+        # Batch 13 - Laatste batch
+        'Rafael', 'Ramona', 'Raquel', 'Regina', 'Renata', 'Ricardo', 'Roberto', 'Rocco', 'Rodrigo', 'Rosa',
+        'Rosalie', 'Rosario', 'Roxanne', 'Ruby', 'Sabrina', 'Salvador', 'Samantha', 'Samuel', 'Sandra', 'Santiago',
+        'Sara', 'Scarlett', 'Sebastian', 'Selena', 'Serena', 'Sergio', 'Sofia', 'Solange', 'Sophia', 'Stella'
     ]
     
     # Verwijder duplicaten en shuffle
@@ -310,66 +242,40 @@ def generate_character_name(category, character_type, existing_names):
     return None
 
 def generate_title_description(name, category, character_type):
-    """Genereer titel en beschrijving gebaseerd op character type"""
+    """Genereer titel en beschrijving gebaseerd op character type - maximaal 2 woorden voor titel"""
     
-    category_contexts = {
-        'health': 'wellness and healthy living',
-        'spiritual': 'spiritual awakening and inner wisdom',
-        'romance': 'love and emotional connections',
-        'support': 'emotional support and understanding',
-        'purpose': 'finding meaning and life direction',
-        'self-improvement': 'personal growth and development',
-        'travel': 'adventures and cultural exploration',
-        'parenting': 'nurturing and family guidance',
-        'cultural': 'cultural wisdom and traditions',
-        'life': 'life wisdom and experiences',
-        'motivation': 'inspiration and achieving goals'
-    }
+    context = 'love, relationships, and emotional connections'
     
-    context = category_contexts.get(category.lower(), 'general assistance and support')
+    # Titels voor love category - allemaal exact 2 woorden
+    love_titles = [
+        'Love Coach', 'Romance Guide', 'Heart Companion', 'Dating Expert', 'Relationship Mentor',
+        'Love Advisor', 'Romance Helper', 'Heart Friend', 'Love Guru', 'Dating Coach',
+        'Passion Guide', 'Love Expert', 'Romance Buddy', 'Heart Helper', 'Love Friend',
+        'Dating Mentor', 'Romance Expert', 'Love Partner', 'Heart Guide', 'Romance Coach',
+        'Love Companion', 'Dating Guide', 'Heart Mentor', 'Love Helper', 'Romance Advisor'
+    ]
     
-    # Volledig nieuwe titels - geen herhaling van vorige batch
-    category_titles = {
-        'health': ['Wellness Ally', 'Vitality Partner', 'Health Helper', 'Wellbeing Pal', 'Fitness Companion'],
-        'spiritual': ['Soul Friend', 'Spirit Ally', 'Mystic Guide', 'Sacred Companion', 'Divine Helper'],
-        'romance': ['Love Helper', 'Heart Guide', 'Affection Coach', 'Passion Mentor', 'Romance Ally'],
-        'support': ['Care Guide', 'Help Friend', 'Comfort Companion', 'Support Helper', 'Relief Mentor'],
-        'purpose': ['Mission Guide', 'Goal Helper', 'Dream Coach', 'Aim Mentor', 'Focus Friend'],
-        'self-improvement': ['Better Coach', 'Rise Mentor', 'Grow Helper', 'Upgrade Guide', 'Boost Friend'],
-        'travel': ['Trip Helper', 'Route Guide', 'Journey Friend', 'Voyage Mentor', 'Trek Companion'],
-        'parenting': ['Parent Helper', 'Child Guide', 'Family Friend', 'Kid Coach', 'Parent Pal'],
-        'cultural': ['Heritage Guide', 'Culture Helper', 'Tradition Friend', 'Custom Coach', 'Heritage Pal'],
-        'life': ['Living Guide', 'Being Mentor', 'Exist Coach', 'Daily Helper', 'Life Pal'],
-        'motivation': ['Drive Guide', 'Push Coach', 'Boost Mentor', 'Power Friend', 'Energy Helper'],
-        'fitness': ['Exercise Guide', 'Movement Coach', 'Active Friend', 'Strength Helper', 'Energy Pal'],
-        'mindfulness': ['Calm Guide', 'Peace Helper', 'Quiet Coach', 'Still Friend', 'Zen Helper']
-    }
+    # Selecteer een random titel van exact 2 woorden
+    title = random.choice(love_titles)
     
-    # Selecteer titel gebaseerd op categorie
-    if category.lower() in category_titles:
-        title = random.choice(category_titles[category.lower()])
-    else:
-        # Fallback titels
-        title = random.choice(['Guide', 'Mentor', 'Coach', 'Friend', 'Companion'])
-    
-    # Beschrijvingen per character type
+    # Beschrijvingen voor love category
     if character_type == 'companion':
         descriptions = [
-            f"A warm {title.lower()} specializing in {context}. Always here to support and share meaningful moments with you.",
-            f"Your caring {title.lower()} passionate about {context}. Offers genuine friendship and understanding.",
-            f"A dedicated {title.lower()} focused on {context}. Ready to be your trusted companion through life's journey."
+            f"A warm {title.lower()} specializing in {context}. Always here to support your romantic journey.",
+            f"Your caring {title.lower()} passionate about {context}. Offers genuine advice and understanding.",
+            f"A dedicated {title.lower()} focused on {context}. Ready to help you find and nurture love."
         ]
     elif character_type == 'friend':  
         descriptions = [
-            f"An energetic {title.lower()} who loves {context}. Brings joy and positivity to every conversation.",
-            f"Your fun {title.lower()} exploring {context} together. Always ready for great chats and laughter.",
-            f"A cheerful {title.lower()} passionate about {context}. Makes every interaction enjoyable and meaningful."
+            f"An energetic {title.lower()} who loves talking about {context}. Brings joy to your love life.",
+            f"Your fun {title.lower()} exploring {context} together. Always ready for relationship advice.",
+            f"A cheerful {title.lower()} passionate about {context}. Makes dating and relationships enjoyable."
         ]
     else:  # support
         descriptions = [
-            f"A compassionate {title.lower()} specializing in {context}. Provides emotional support and guidance.",
-            f"Your understanding {title.lower()} focused on {context}. Here to listen and help you grow.",
-            f"An empathetic {title.lower()} dedicated to {context}. Offers wisdom and support when you need it most."
+            f"A compassionate {title.lower()} specializing in {context}. Provides relationship support and guidance.",
+            f"Your understanding {title.lower()} focused on {context}. Here to help you navigate love.",
+            f"An empathetic {title.lower()} dedicated to {context}. Offers wisdom for your romantic life."
         ]
     
     description = random.choice(descriptions)
