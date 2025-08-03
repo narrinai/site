@@ -6183,13 +6183,47 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     }
     
     // Normalize avatar URL field - webhook returns character_url which contains the avatar
-    if (!currentCharacter.avatar_url && currentCharacter.character_url) {
-      currentCharacter.avatar_url = currentCharacter.character_url;
-    }
+    normalizeAvatarUrl();
     
-    // Also check for Avatar_URL (uppercase from Airtable)
-    if (!currentCharacter.avatar_url && currentCharacter.Avatar_URL) {
-      currentCharacter.avatar_url = currentCharacter.Avatar_URL;
+    function normalizeAvatarUrl() {
+      // Check multiple possible avatar URL fields
+      const possibleAvatarFields = [
+        'avatar_url',
+        'Avatar_URL',
+        'character_url',
+        'image_url',
+        'Image_URL',
+        'avatar',
+        'Avatar'
+      ];
+      
+      let avatarUrl = null;
+      for (const field of possibleAvatarFields) {
+        if (currentCharacter[field] && currentCharacter[field].trim() !== '') {
+          avatarUrl = currentCharacter[field];
+          break;
+        }
+      }
+      
+      // Set the normalized avatar_url
+      if (avatarUrl) {
+        currentCharacter.avatar_url = avatarUrl;
+        console.log('✅ Avatar URL normalized:', avatarUrl);
+        
+        // Preload the avatar image to ensure it's cached
+        const img = new Image();
+        img.onload = () => {
+          console.log('✅ Avatar preloaded successfully');
+        };
+        img.onerror = () => {
+          console.error('❌ Failed to preload avatar:', avatarUrl);
+          // Clear invalid avatar URL
+          currentCharacter.avatar_url = null;
+        };
+        img.src = avatarUrl;
+      } else {
+        console.log('⚠️ No avatar URL found for character');
+      }
     }
     
     // Normalize name field BEFORE setting up the interface
@@ -6294,10 +6328,18 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
             <div class="spinner"></div>
           </div>
         `;
-      } else if (currentCharacter.avatar_url) {
-        avatarElement.innerHTML = `<img src="${currentCharacter.avatar_url}" alt="${currentCharacter.name}">`;
       } else {
-        avatarElement.innerHTML = '👤';
+        // Check for avatar URL from multiple sources
+        const avatarUrl = currentCharacter.avatar_url || 
+                         currentCharacter.Avatar_URL || 
+                         currentCharacter.character_url ||
+                         currentCharacter.image_url;
+        
+        if (avatarUrl && avatarUrl.trim() !== '') {
+          avatarElement.innerHTML = `<img src="${avatarUrl}" alt="${currentCharacter.name}" onerror="this.onerror=null; this.parentElement.innerHTML='👤';">`;
+        } else {
+          avatarElement.innerHTML = '👤';
+        }
       }
 
       document.getElementById('loadingState').style.display = 'none';
@@ -6715,9 +6757,18 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
 }
 
     function getAvatarHtml() {
-      if (currentCharacter?.avatar_url) {
-        return `<img class="avatar" src="${currentCharacter.avatar_url}" alt="avatar">`;
+      // Check multiple possible avatar URL fields
+      const avatarUrl = currentCharacter?.avatar_url || 
+                       currentCharacter?.Avatar_URL || 
+                       currentCharacter?.character_url ||
+                       currentCharacter?.image_url;
+      
+      if (avatarUrl && avatarUrl.trim() !== '') {
+        // Add error handling for broken images
+        return `<img class="avatar" src="${avatarUrl}" alt="avatar" onerror="this.onerror=null; this.style.display='none'; this.insertAdjacentHTML('afterend', '<span class=\\'message-avatar\\'>👤</span>');">`;
       }
+      
+      // Default fallback avatar
       return '<span class="message-avatar">👤</span>';
     }
     
