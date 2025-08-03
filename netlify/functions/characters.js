@@ -148,13 +148,30 @@ exports.handler = async (event, context) => {
       
       // Extract avatar URL properly
       let avatarUrl = '';
+      
+      // First check for local avatar path
+      if (fields.Local_Avatar_Path && typeof fields.Local_Avatar_Path === 'string') {
+        // Use local path if available
+        avatarUrl = fields.Local_Avatar_Path;
+      } 
       // Check for Airtable attachment field Avatar_URL
-      if (fields.Avatar_URL && Array.isArray(fields.Avatar_URL) && fields.Avatar_URL.length > 0) {
+      else if (fields.Avatar_URL && Array.isArray(fields.Avatar_URL) && fields.Avatar_URL.length > 0) {
         avatarUrl = fields.Avatar_URL[0].url || '';
       } else if (fields.Avatar_File && Array.isArray(fields.Avatar_File) && fields.Avatar_File.length > 0) {
         avatarUrl = fields.Avatar_File[0].url || '';
       } else if (fields.Avatar_URL && typeof fields.Avatar_URL === 'string') {
         avatarUrl = fields.Avatar_URL;
+      } else if (fields.avatar_url && typeof fields.avatar_url === 'string') {
+        avatarUrl = fields.avatar_url;
+      }
+      
+      // Convert Replicate URLs to local paths if they exist
+      if (avatarUrl && avatarUrl.includes('replicate.delivery')) {
+        // Try to use local version if available
+        const slug = fields.Slug || fields.Name?.toLowerCase().replace(/[^a-z0-9]/g, '-') || 'unknown';
+        const localPath = `/avatars/${slug}.webp`;
+        // We'll use the Replicate URL for now but log it
+        console.log(`⚠️ Replicate URL found for ${fields.Name}, should be replaced with local avatar`);
       }
       
       // Debug Created_By field (with capital B)
