@@ -77,7 +77,7 @@ def get_characters_without_avatars():
                     elif isinstance(fields['Avatar_URL'], list) and len(fields['Avatar_URL']) > 0:
                         has_avatar = True
                 
-                # Check avatar_url (lowercase text field)
+                # Check avatar_url (lowercase text field) - voor backwards compatibility
                 if 'avatar_url' in fields:
                     avatar_val = fields['avatar_url']
                     if avatar_val and avatar_val != '' and avatar_val != 'null':
@@ -177,15 +177,12 @@ def update_character_avatar(character_id, avatar_url, local_path=None):
     fields = {}
     
     if local_path:
-        # Gebruik de volledige URL voor avatar_url (text field)
+        # Gebruik de volledige URL voor Avatar_URL (met hoofdletters!)
         full_url = f"https://narrin.ai{local_path}"
-        fields['avatar_url'] = full_url  # lowercase field name
-        fields['Local_Avatar_Path'] = local_path
-        fields['Avatar_Generated'] = datetime.now().isoformat()
+        fields['Avatar_URL'] = full_url  # Hoofdletters!
     else:
         # Als alleen Replicate URL (fallback)
-        fields['avatar_url'] = avatar_url
-        fields['Avatar_Generated'] = datetime.now().isoformat()
+        fields['Avatar_URL'] = avatar_url
     
     data = {'fields': fields}
     
