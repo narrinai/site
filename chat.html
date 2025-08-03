@@ -716,9 +716,9 @@
     
     /* Desktop USP Badges Sidebar */
     .chat-layout-wrapper {
-      display: flex;
-      gap: 24px;
-      max-width: 1400px;
+      display: block;
+      position: relative;
+      max-width: 1200px;
       margin: 0 auto;
     }
     
@@ -726,9 +726,10 @@
       display: none;
       flex-direction: column;
       gap: 16px;
-      width: 280px;
-      flex-shrink: 0;
-      padding-top: 24px;
+      width: 260px;
+      position: absolute;
+      left: -280px;
+      top: 24px;
     }
     
     .usp-badge-desktop {
@@ -773,12 +774,11 @@
     }
     
     .chat-main-content {
-      flex: 1;
-      min-width: 0;
+      width: 100%;
     }
     
-    /* Show desktop badges on larger screens */
-    @media (min-width: 1024px) {
+    /* Show desktop badges on larger screens with enough space */
+    @media (min-width: 1440px) {
       .usp-badges-desktop {
         display: flex;
       }
@@ -788,18 +788,14 @@
       }
     }
     
-    /* Tablet - show mobile badges */
-    @media (min-width: 769px) and (max-width: 1023px) {
+    /* Tablet and smaller desktop - show mobile badges */
+    @media (min-width: 769px) and (max-width: 1439px) {
       .usp-badges-mobile {
         display: flex;
       }
       
       .usp-badges-desktop {
         display: none !important;
-      }
-      
-      .chat-layout-wrapper {
-        display: block;
       }
     }
 
@@ -816,10 +812,6 @@
       
       .usp-badges-desktop {
         display: none !important;
-      }
-      
-      .chat-layout-wrapper {
-        display: block;
       }
 
       .header-content {
