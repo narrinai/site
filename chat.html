@@ -4931,7 +4931,8 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
               const avatarHtml = getAvatarHtml();
               if (currentCharacter.voice_id) {
-                p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${safeMessage}<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice(\`${safeMessage.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
+                const escapedMessage = safeMessage.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${safeMessage}<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice('${escapedMessage}', '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
               } else {
                 p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${safeMessage}`;
               }
@@ -5041,7 +5042,8 @@ document.addEventListener('DOMContentLoaded', () => {
       starterMessage.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span>`;
       
       if (currentCharacter.voice_id) {
-        starterMessage.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span><br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice(\`${starter.replace(/`/g, '\\`')}\`, '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
+        const escapedStarter = starter.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+        starterMessage.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span><br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice('${escapedStarter}', '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
       }
       
       starterChatlog.appendChild(starterMessage);
@@ -5357,13 +5359,19 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           </div>
           <div class="voice-upgrade-buttons">
-            <button class="btn-secondary" onclick="closeVoiceUpgradeModal()">Maybe Later</button>
-            <button class="btn-primary" onclick="window.location.href=\`profile.html\`">Upgrade to Immerse</button>
+            <button class="btn-secondary" id="engageCloseLater">Maybe Later</button>
+            <button class="btn-primary" id="engageUpgradeBtn">Upgrade to Immerse</button>
           </div>
         </div>
       `;
       
       document.body.appendChild(modal);
+      
+      // Add event handlers
+      document.getElementById('engageCloseLater').onclick = closeVoiceUpgradeModal;
+      document.getElementById('engageUpgradeBtn').onclick = function() {
+        window.location.href = 'profile.html';
+      };
       
       // Reuse existing styles
     }
@@ -9582,10 +9590,10 @@ function showUpgradePrompt(usage, quota) {
         </div>
 
         <div class="upgrade-buttons">
-          <button class="upgrade-btn primary" onclick="window.location.href=\`profile.html\`">
+          <button class="upgrade-btn primary" id="mainUpgradeBtn">
             View Upgrade Options
           </button>
-          <button class="upgrade-btn secondary" onclick="closeUpgradePrompt()">
+          <button class="upgrade-btn secondary" id="mainUpgradeClose">
             I'll Think About It
           </button>
         </div>
@@ -9593,6 +9601,12 @@ function showUpgradePrompt(usage, quota) {
     `;
     
     document.body.appendChild(upgradeOverlay);
+    
+    // Add event handlers
+    document.getElementById('mainUpgradeBtn').onclick = function() {
+      window.location.href = 'profile.html';
+    };
+    document.getElementById('mainUpgradeClose').onclick = closeUpgradePrompt;
   }
   
   upgradeOverlay.classList.add('active');
