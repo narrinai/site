@@ -54,14 +54,47 @@ FRIEND_TAGS = ['friendly', 'fun', 'cheerful', 'positive', 'warm', 'welcoming', '
 SUPPORT_TAGS = ['supportive', 'understanding', 'empathetic', 'caring', 'helpful', 'motivating', 'encouraging', 'patient', 'compassionate', 'wise']
 
 def get_categories_from_airtable():
-    """Return alleen de 'love' categorie"""
-    log(Colors.BLUE, "📋 Categorie 'love' wordt gebruikt...")
+    """Haal alle unieke categorieën op uit Airtable"""
+    url = f"https://api.airtable.com/v0/{AIRTABLE_BASE}/{AIRTABLE_TABLE}"
+    headers = {
+        'Authorization': f'Bearer {AIRTABLE_TOKEN}',
+        'Content-Type': 'application/json'
+    }
     
-    # We gebruiken alleen de 'love' categorie
-    final_categories = ['love']
-    category_original_names = {'love': 'love'}
+    log(Colors.BLUE, "📋 Categorieën ophalen uit Airtable...")
     
-    log(Colors.GREEN, "✅ Categorie 'love' geselecteerd voor character creatie")
+    categories = set()
+    offset = None
+    
+    while True:
+        params = {}
+        if offset:
+            params['offset'] = offset
+            
+        try:
+            response = requests.get(url, headers=headers, params=params)
+            response.raise_for_status()
+            data = response.json()
+            
+            # Verzamel unieke categorieën
+            for record in data.get('records', []):
+                category = record.get('fields', {}).get('Category')
+                if category:
+                    categories.add(category)
+            
+            offset = data.get('offset')
+            if not offset:
+                break
+                
+        except Exception as e:
+            log(Colors.RED, f"❌ Fout bij ophalen categorieën: {e}")
+            break
+    
+    # Gebruik alle categorieën uit Airtable
+    final_categories = list(categories)
+    category_original_names = {cat: cat for cat in categories}
+    
+    log(Colors.GREEN, f"✅ {len(final_categories)} categorieën gevonden in Airtable")
     
     # Return zowel de categorieën als de mapping
     return final_categories, category_original_names
@@ -244,38 +277,68 @@ def generate_character_name(category, character_type, existing_names):
 def generate_title_description(name, category, character_type):
     """Genereer titel en beschrijving gebaseerd op character type - maximaal 2 woorden voor titel"""
     
-    context = 'love, relationships, and emotional connections'
+    category_contexts = {
+        'health': 'wellness and healthy living',
+        'spiritual': 'spiritual awakening and inner wisdom',
+        'romance': 'love and emotional connections',
+        'love': 'love, relationships, and emotional connections',
+        'support': 'emotional support and understanding',
+        'purpose': 'finding meaning and life direction',
+        'self-improvement': 'personal growth and development',
+        'travel': 'adventures and cultural exploration',
+        'parenting': 'nurturing and family guidance',
+        'cultural': 'cultural wisdom and traditions',
+        'life': 'life wisdom and experiences',
+        'motivation': 'inspiration and achieving goals',
+        'fitness': 'physical fitness and exercise',
+        'mindfulness': 'meditation and mental wellness'
+    }
     
-    # Titels voor love category - allemaal exact 2 woorden
-    love_titles = [
-        'Love Coach', 'Romance Guide', 'Heart Companion', 'Dating Expert', 'Relationship Mentor',
-        'Love Advisor', 'Romance Helper', 'Heart Friend', 'Love Guru', 'Dating Coach',
-        'Passion Guide', 'Love Expert', 'Romance Buddy', 'Heart Helper', 'Love Friend',
-        'Dating Mentor', 'Romance Expert', 'Love Partner', 'Heart Guide', 'Romance Coach',
-        'Love Companion', 'Dating Guide', 'Heart Mentor', 'Love Helper', 'Romance Advisor'
-    ]
+    context = category_contexts.get(category.lower(), 'general assistance and support')
     
-    # Selecteer een random titel van exact 2 woorden
-    title = random.choice(love_titles)
+    # Titels per categorie - allemaal exact 2 woorden
+    category_titles = {
+        'health': ['Wellness Coach', 'Health Guide', 'Vitality Expert', 'Wellness Mentor', 'Health Advisor'],
+        'spiritual': ['Soul Guide', 'Spirit Mentor', 'Mystic Coach', 'Sacred Guide', 'Divine Mentor'],
+        'romance': ['Love Coach', 'Romance Guide', 'Heart Mentor', 'Dating Expert', 'Love Advisor'],
+        'love': ['Love Coach', 'Romance Guide', 'Heart Companion', 'Dating Expert', 'Relationship Mentor'],
+        'support': ['Support Coach', 'Care Guide', 'Help Mentor', 'Support Friend', 'Care Advisor'],
+        'purpose': ['Purpose Guide', 'Mission Coach', 'Goal Mentor', 'Dream Guide', 'Vision Coach'],
+        'self-improvement': ['Growth Coach', 'Success Mentor', 'Progress Guide', 'Better Coach', 'Rise Mentor'],
+        'travel': ['Travel Guide', 'Adventure Coach', 'Journey Mentor', 'Trip Advisor', 'Route Guide'],
+        'parenting': ['Parent Coach', 'Family Guide', 'Child Expert', 'Parent Mentor', 'Family Advisor'],
+        'cultural': ['Culture Guide', 'Heritage Coach', 'Tradition Mentor', 'Culture Expert', 'Heritage Guide'],
+        'life': ['Life Coach', 'Living Guide', 'Life Mentor', 'Daily Coach', 'Life Expert'],
+        'motivation': ['Drive Coach', 'Success Guide', 'Power Mentor', 'Energy Coach', 'Boost Guide'],
+        'fitness': ['Fitness Coach', 'Exercise Guide', 'Workout Mentor', 'Training Expert', 'Gym Coach'],
+        'mindfulness': ['Calm Guide', 'Peace Coach', 'Zen Mentor', 'Mind Expert', 'Meditation Guide']
+    }
     
-    # Beschrijvingen voor love category
+    # Selecteer titel gebaseerd op categorie
+    if category.lower() in category_titles:
+        title = random.choice(category_titles[category.lower()])
+    else:
+        # Fallback titels - ook 2 woorden
+        title = random.choice(['Life Guide', 'Personal Mentor', 'Support Coach', 'Helpful Friend', 'Caring Companion'])
+    
+    # Beschrijvingen per character type
     if character_type == 'companion':
         descriptions = [
-            f"A warm {title.lower()} specializing in {context}. Always here to support your romantic journey.",
-            f"Your caring {title.lower()} passionate about {context}. Offers genuine advice and understanding.",
-            f"A dedicated {title.lower()} focused on {context}. Ready to help you find and nurture love."
+            f"A warm {title.lower()} specializing in {context}. Always here to support and share meaningful moments.",
+            f"Your caring {title.lower()} passionate about {context}. Offers genuine friendship and understanding.",
+            f"A dedicated {title.lower()} focused on {context}. Ready to be your trusted companion."
         ]
     elif character_type == 'friend':  
         descriptions = [
-            f"An energetic {title.lower()} who loves talking about {context}. Brings joy to your love life.",
-            f"Your fun {title.lower()} exploring {context} together. Always ready for relationship advice.",
-            f"A cheerful {title.lower()} passionate about {context}. Makes dating and relationships enjoyable."
+            f"An energetic {title.lower()} who loves {context}. Brings joy and positivity to conversations.",
+            f"Your fun {title.lower()} exploring {context} together. Always ready for great chats.",
+            f"A cheerful {title.lower()} passionate about {context}. Makes every interaction enjoyable."
         ]
     else:  # support
         descriptions = [
-            f"A compassionate {title.lower()} specializing in {context}. Provides relationship support and guidance.",
-            f"Your understanding {title.lower()} focused on {context}. Here to help you navigate love.",
-            f"An empathetic {title.lower()} dedicated to {context}. Offers wisdom for your romantic life."
+            f"A compassionate {title.lower()} specializing in {context}. Provides support and guidance.",
+            f"Your understanding {title.lower()} focused on {context}. Here to listen and help.",
+            f"An empathetic {title.lower()} dedicated to {context}. Offers wisdom when you need it."
         ]
     
     description = random.choice(descriptions)
@@ -446,7 +509,13 @@ def main():
         # Process elke categorie
         for category in categories:
             current_count = category_counts.get(category, 0)
-            to_add = MAX_CHARACTERS_TO_ADD  # Voeg altijd het maximum toe
+            
+            # Alleen categorieën met minder dan 30 characters aanvullen
+            if current_count >= 30:
+                log(Colors.YELLOW, f"\n⏭️  Categorie: {category} heeft al {current_count} characters (≥30), wordt overgeslagen")
+                continue
+            
+            to_add = 25  # Voeg 25 characters toe aan categorieën onder de 30
             
             log(Colors.BLUE, f"\n🎯 Categorie: {category}")
             log(Colors.CYAN, f"   📊 Huidige aantal: {current_count}")
