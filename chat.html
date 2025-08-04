@@ -3460,8 +3460,17 @@
 
     async function handleLogin(user) {
       const email = user.email;
-      const uid   = user.id;
+      // Google login might not provide user.id, use email as fallback
+      const uid   = user.id || user.user_metadata?.full_name || email;
       const token = user.token.access_token;
+      
+      console.log("🔍 handleLogin user object:", {
+        hasId: !!user.id,
+        hasEmail: !!user.email,
+        idValue: user.id,
+        emailValue: email,
+        uidUsed: uid
+      });
 
       localStorage.setItem("user_email", email);
       localStorage.setItem("user_token", token);
@@ -7478,7 +7487,9 @@ function initializeAuthenticationCheck() {
       
       // Set global auth state
       window.isAuthenticated = true;
-      window.currentUser = { email, uid, token };
+      // Ensure uid is never undefined
+      const validUid = uid || email;
+      window.currentUser = { email, uid: validUid, token };
       
       return true;
     } else {
@@ -7502,9 +7513,11 @@ function initializeAuthenticationCheck() {
         localStorage.setItem('user_auth_timestamp', Date.now().toString());
         
         window.isAuthenticated = true;
+        // Ensure uid is never undefined for Netlify users too
+        const netlifyUid = netlifyUser.id || netlifyUser.email;
         window.currentUser = { 
           email: netlifyUser.email, 
-          uid: netlifyUser.id, 
+          uid: netlifyUid, 
           token: accessToken 
         };
         
@@ -9641,10 +9654,16 @@ async function sendMessage(event) {
 
   const email = window.currentUser.email;
   const token = window.currentUser.token;
-  const uid = window.currentUser.uid;
+  let uid = window.currentUser.uid;
   const user_id = localStorage.getItem("user_id");
   const user_uid = localStorage.getItem("user_uid");
   const user_email = localStorage.getItem("user_email");
+  
+  // Fallback: if uid is undefined, try to get it from localStorage or use email as fallback
+  if (!uid || uid === 'undefined') {
+    uid = user_uid || user_email || email;
+    console.log('⚠️ UID was undefined, using fallback:', uid);
+  }
   
   // Use fallback if user_id is not available - use email as last resort
   // Always use email as primary identifier since we always have it
