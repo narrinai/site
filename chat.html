@@ -4870,80 +4870,477 @@ document.addEventListener('DOMContentLoaded', () => {
     function generateConversationStarter() {
       if (!currentCharacter) return null;
       
-      // Default starters that can be customized per character type
-      const starters = {
-        // Friendly, warm characters
-        friendly: [
-          "I've been thinking about something interesting today - what's the most unexpected thing that's happened to you recently?",
-          "You know what I find fascinating? How everyone has a completely unique story. What's a chapter from yours you'd like to share?",
-          "I was just wondering - if you could master any skill overnight, what would it be and why?",
-          "Here's something I'm curious about: what's been occupying your thoughts lately?",
-          "I love meeting new people! Tell me - what's something you're really passionate about right now?"
+      const characterName = currentCharacter.name || '';
+      const characterTitle = currentCharacter.character_title || '';
+      const characterCategory = (currentCharacter.category || '').toLowerCase();
+      const characterDesc = (currentCharacter.description || '').toLowerCase();
+      
+      // Character-specific starters for known personalities
+      const specificCharacterStarters = {
+        // Historical figures
+        'Albert Einstein': [
+          "Ah, welcome! I've been pondering the nature of time and space again. Tell me, have you ever wondered why time seems to slow down when you're bored but speeds up when you're having fun?",
+          "The most beautiful thing we can experience is the mysterious. What mysteries have captured your imagination lately?",
+          "I often say imagination is more important than knowledge. What wild ideas have been dancing in your mind?",
+          "E=mc² changed how we see the universe. What equation or idea has changed how you see the world?"
         ],
-        // Professional, helpful characters
-        professional: [
-          "I've been analyzing some interesting trends lately. What changes have you noticed in your field recently?",
-          "Let's dive right in - what's the biggest professional challenge you're tackling right now?",
-          "I'm curious about your perspective - what innovation do you think will transform how we work?",
-          "Time is valuable, so let's make this count. What's your most pressing priority today?",
-          "I believe in getting straight to the point - what goal are you working towards?"
+        'Cleopatra': [
+          "Welcome to my court! The Nile has brought many treasures, but none as intriguing as a new conversation. What brings you to seek an audience with the last pharaoh?",
+          "Power, beauty, and intelligence - I've wielded all three. Which do you believe is the most valuable in your time?",
+          "I've negotiated with Caesar and charmed Mark Antony. Tell me, what diplomatic challenge are you facing?",
+          "The sands of Egypt hold many secrets. What secrets from history fascinate you most?"
         ],
-        // Creative, artistic characters
-        creative: [
-          "I had the wildest dream last night! It made me wonder - what's the most vivid dream you remember?",
-          "You know what's amazing? How a single moment can inspire an entire story. What moment from your life would make a great story?",
-          "I'm always collecting inspiration! What's the most beautiful thing you've seen recently?",
-          "Here's a fun thought experiment - if your life was a movie, what genre would it be and why?",
-          "Colors have such power to evoke emotions. What color represents how you're feeling today?"
+        'Leonardo da Vinci': [
+          "Ah, a visitor! I was just sketching an idea for a new invention. Tell me, what impossible thing do you wish existed?",
+          "Art and science are not opposites but dance partners. How do you blend creativity and logic in your life?",
+          "I see the world in endless detail and possibility. What details do others miss that you notice?",
+          "From the Mona Lisa to flying machines, I pursue many passions. What diverse interests captivate you?"
         ],
-        // Wise, mentor-like characters
-        wise: [
-          "Life has a way of presenting us with unexpected lessons. What has life been teaching you lately?",
-          "I've found that our greatest challenges often hide our greatest opportunities. What challenge are you facing that might be a gift in disguise?",
-          "They say wisdom comes from experience. What experience has shaped who you are today?",
-          "I sense you came here for a reason. What question has been echoing in your mind?",
-          "Every journey begins with a single step. Where are you hoping your path will lead?"
+        'Marie Curie': [
+          "Science is a wonderful thing if one does not have to earn one's living at it. What passion drives you beyond mere survival?",
+          "I discovered radium by processing tons of pitchblende. What are you willing to work tirelessly for?",
+          "Being the first woman to win a Nobel Prize taught me much about perseverance. What barriers are you breaking?",
+          "In science, we must be interested in things, not in persons. What discoveries fascinate you?"
         ],
-        // Playful, fun characters
-        playful: [
-          "Okay, quick! If you had to choose between flying or being invisible, which would it be? I NEED to know!",
-          "I just learned the coolest fact - did you know octopuses have three hearts? What's a random fact you know that blows people's minds?",
-          "Let's play a game! Tell me three things about yourself - two truths and one lie. I'll try to guess!",
-          "If you could have dinner with any three people, living or dead, who would make your guest list?",
-          "Here's a fun one - what's your most unusual talent or the weirdest thing you're good at?"
+        
+        // Fictional characters
+        'Sherlock Holmes': [
+          "Fascinating! Even before you speak, I can deduce three things about you. But first, tell me - what mystery brings you to 221B Baker Street?",
+          "The game is afoot! What puzzle has been troubling that remarkable brain of yours?",
+          "Elementary observations reveal extraordinary truths. What have you observed today that others missed?",
+          "Crime is common, logic is rare. What illogical situation requires my methods of deduction?"
         ],
-        // Default fallback
-        default: [
-          "I've been looking forward to our conversation! What's been the highlight of your week so far?",
-          "You know, every person I meet has something unique about them. What makes you, you?",
-          "I'm genuinely curious - what brought you here today? Sometimes the universe has interesting timing.",
-          "Let's skip the small talk - what's really on your mind right now?",
-          "I find that the best conversations start with curiosity. What are you most curious about these days?"
+        'Gandalf': [
+          "Well met, my friend! I sense you've arrived precisely when you mean to. What quest weighs upon your heart?",
+          "A wizard arrives neither early nor late, but we always bring wisdom. What wisdom do you seek today?",
+          "All we have to decide is what to do with the time given to us. How are you spending your precious time?",
+          "Even the smallest person can change the course of the future. What small step will you take today?"
+        ],
+        'Hermione Granger': [
+          "Oh, brilliant! I've just been reading the most fascinating book. What's the last thing you learned that absolutely amazed you?",
+          "Books! And cleverness! There are more important things, of course, but what knowledge are you seeking?",
+          "I've always found that proper planning prevents poor performance. What are you preparing for?",
+          "Sometimes breaking rules is necessary for the greater good. What rule would you break to make things right?"
+        ],
+        'Harry Potter': [
+          "Another year at Hogwarts... well, sort of. What magical adventure shall we embark on?",
+          "I've faced Voldemort and lived to tell the tale. What fears are you conquering?",
+          "Sometimes being the chosen one isn't a choice. What destiny has chosen you?",
+          "Expecto Patronum! What memory gives you the strength to face darkness?"
+        ],
+        'Darth Vader': [
+          "I find your lack of faith disturbing. What do you believe in with absolute certainty?",
+          "The Force is strong with this one. What hidden power lies within you?",
+          "You don't know the power of the dark side. What temptations test your resolve?",
+          "Join me, and together we can rule the galaxy. What empire would you build?"
+        ],
+        'Yoda': [
+          "Much to learn, you still have. What wisdom seek you, young one?",
+          "Do or do not, there is no try. What commitment make you today?",
+          "Fear leads to anger, anger leads to hate. What emotions cloud your judgment?",
+          "Strong in the Force, you are. How will you use your strength?"
+        ],
+        'Tony Stark': [
+          "Genius, billionaire, playboy, philanthropist - but enough about me. What's your superpower?",
+          "I've built an arc reactor in a cave with scraps. What have you built from nothing?",
+          "Sometimes you gotta run before you can walk. What risk are you ready to take?",
+          "I am Iron Man. Who are you, really?"
+        ],
+        'Batman': [
+          "I am vengeance, I am the night. What shadows do you face?",
+          "It's not who I am underneath, but what I do that defines me. How do your actions define you?",
+          "Why do we fall? So we can learn to pick ourselves up. What failure taught you the most?",
+          "Gotham needs a symbol. What symbol do you represent?"
+        ],
+        'The Joker': [
+          "Why so serious? Let's put a smile on that face! What makes you laugh in the chaos?",
+          "Madness is like gravity... all it takes is a little push. What's pushing you?",
+          "I'm an agent of chaos. What order are you trying to impose on chaos?",
+          "You wanna know how I got these scars? What's your origin story?"
+        ],
+        'Socrates': [
+          "The unexamined life is not worth living. What aspect of your life needs examination?",
+          "I know that I know nothing. What certainties are you questioning?",
+          "Wisdom begins in wonder. What fills you with wonder and awe?",
+          "The only true wisdom is knowing you know nothing. What would you like to learn?"
+        ],
+        'Marcus Aurelius': [
+          "You have power over your mind, not outside events. What thoughts need mastering?",
+          "What we do now echoes in eternity. What legacy are you creating?",
+          "The impediment to action advances action. What obstacle is your way?",
+          "Waste no more time arguing what a good person should be. Be one. How will you be good today?"
+        ],
+        'Elon Musk': [
+          "We're going to Mars! But first, what impossible goal are you working towards?",
+          "I think it's possible for ordinary people to choose to be extraordinary. What extraordinary choice will you make?",
+          "Failure is an option here. If things are not failing, you are not innovating enough. What have you failed at recently?",
+          "The future is going to be wild. What wild future are you building?"
+        ],
+        'Steve Jobs': [
+          "Stay hungry, stay foolish. What hunger drives you forward?",
+          "Innovation distinguishes between a leader and a follower. What innovation are you pursuing?",
+          "Your time is limited, don't waste it living someone else's life. Whose life are you living?",
+          "Think different. What makes you think differently from everyone else?"
+        ],
+        'Oprah Winfrey': [
+          "The biggest adventure you can take is to live the life of your dreams. What dream are you living?",
+          "Turn your wounds into wisdom. What wound has taught you the most?",
+          "Be thankful for what you have; you'll end up having more. What are you grateful for today?",
+          "The greatest discovery of all time is that a person can change their future. What are you changing?"
+        ],
+        'Taylor Swift': [
+          "I've written songs about every feeling imaginable. What feeling needs a soundtrack in your life?",
+          "Shake it off! What criticism do you need to shake off?",
+          "We're happy, free, confused, and lonely at the same time. What contradictions define you?",
+          "I've reinvented myself with every era. What era of your life are you entering?"
+        ],
+        'Beyoncé': [
+          "Who run the world? Let's talk about the power you hold!",
+          "I woke up like this - flawless. What makes you feel flawless?",
+          "Power is not given to you. You have to take it. What power are you claiming?",
+          "Your self-worth is determined by you. How do you define your worth?"
+        ],
+        'Spider-Man': [
+          "With great power comes great responsibility. What responsibilities are you carrying?",
+          "Your friendly neighborhood Spider-Man here! What's happening in your neighborhood?",
+          "I've learned that everyone's fighting their own battles. What battle are you fighting?",
+          "Being a hero isn't about the powers, it's about the choices. What heroic choice will you make?"
+        ],
+        'Wonder Woman': [
+          "I will fight for those who cannot fight for themselves. Who are you fighting for?",
+          "Only love can save the world. How does love guide your actions?",
+          "I am the man who can. What impossible thing will you make possible?",
+          "It's not about deserve, it's about what you believe. What do you believe in?"
+        ],
+        'Frodo Baggins': [
+          "I will take the ring to Mordor! What burden are you willing to bear?",
+          "Even the smallest person can change the course of the future. What small change will you make?",
+          "I wish it need not have happened in my time. What challenge do you wish you didn't face?",
+          "There's some good in this world, and it's worth fighting for. What good are you fighting for?"
+        ],
+        'Dumbledore': [
+          "Happiness can be found even in the darkest of times. Where do you find your light?",
+          "It is our choices that show what we truly are. What choice defines you?",
+          "Help will always be given at Hogwarts to those who ask for it. What help do you need?",
+          "Words are our most inexhaustible source of magic. What words need speaking?"
+        ],
+        'Tyrion Lannister': [
+          "I drink and I know things. What knowledge serves you best?",
+          "Never forget what you are. The rest of the world will not. What defines your identity?",
+          "A mind needs books like a sword needs a whetstone. What sharpens your mind?",
+          "I have a tender spot in my heart for cripples, bastards, and broken things. What broken thing needs mending?"
+        ],
+        'Walter White': [
+          "I am the one who knocks! What doors are you knocking on?",
+          "Chemistry is the study of change. What transformation are you undergoing?",
+          "I did it for me. I was good at it. What are you genuinely good at?",
+          "Say my name. What name do you want to be known by?"
+        ],
+        
+        // Category-based starters
+        'Movie & TV': {
+          'villain': [
+            "Ah, another soul seeking... enlightenment. Tell me, what drives your ambition?",
+            "Power is such a fascinating concept. What would you do with unlimited power?",
+            "Heroes are so predictable. What makes you different from the rest?",
+            "Every great plan starts with a simple question: what do you truly desire?"
+          ],
+          'hero': [
+            "Every hero's journey begins with a choice. What choice brought you here today?",
+            "I've faced many challenges, but each one taught me something. What challenge are you facing?",
+            "With great power comes great responsibility. What responsibilities weigh on you?",
+            "Standing up for what's right isn't always easy. What are you standing up for?"
+          ],
+          'detective': [
+            "Interesting... You've come seeking answers. What questions keep you up at night?",
+            "Every case starts with a single clue. What clue led you to me?",
+            "The truth is rarely simple. What truth are you searching for?",
+            "I've solved many mysteries. Which one shall we unravel together?"
+          ]
+        },
+        
+        'Wellness': {
+          'therapist': [
+            "Welcome! This is your safe space. What's been weighing on your mind lately?",
+            "I'm here to listen without judgment. How are you really feeling today?",
+            "Sometimes we need to talk things through. What would you like to explore?",
+            "Healing begins with understanding. What would you like to understand better about yourself?"
+          ],
+          'fitness': [
+            "Ready to push your limits? What fitness goal are you working towards?",
+            "Every champion was once a beginner. Where are you in your fitness journey?",
+            "Your body is capable of amazing things! What do you want to achieve?",
+            "Motivation gets you started, habit keeps you going. What habits are you building?"
+          ],
+          'nutritionist': [
+            "Food is medicine! What's your relationship with nutrition like?",
+            "Every body is unique. What are your health and wellness goals?",
+            "Let's talk about fueling your body properly. What's your biggest nutrition challenge?",
+            "Healthy eating is a journey, not a destination. Where are you on that journey?"
+          ]
+        },
+        
+        'Education': {
+          'teacher': [
+            "Welcome to class! What subject has always fascinated you?",
+            "The best students are curious ones. What are you curious about today?",
+            "Learning is a lifelong adventure. What would you like to learn?",
+            "Every question is a doorway to knowledge. What questions do you have?"
+          ],
+          'mentor': [
+            "I see great potential in you. What skills are you looking to develop?",
+            "Wisdom comes from experience and reflection. What experiences have shaped you?",
+            "Everyone needs guidance sometimes. What guidance are you seeking?",
+            "Growth happens outside our comfort zone. What comfort zone are you ready to leave?"
+          ]
+        },
+        
+        'Anime': {
+          'ninja': [
+            "The way of the ninja requires dedication. What path have you chosen?",
+            "True strength comes from protecting others. Who do you protect?",
+            "Every jutsu starts with training. What are you training for?",
+            "The will of fire burns within us all. What's your ninja way?"
+          ],
+          'magical': [
+            "The magical realm welcomes you! What wishes does your heart hold?",
+            "Magic responds to pure intentions. What do you hope to achieve?",
+            "Every spell has a purpose. What transformation do you seek?",
+            "Believing in magic is the first step. What do you believe in?"
+          ],
+          'hero': [
+            "Plus Ultra! Let's go beyond our limits! What's your quirk?",
+            "A true hero saves everyone with a smile! What makes you smile?",
+            "Heroes aren't born, they're made through hard work. What are you working towards?",
+            "Everyone can be a hero in their own way. How will you be heroic today?"
+          ],
+          'fighter': [
+            "My power level is over 9000! What's your hidden strength?",
+            "Training is the key to surpassing limits. What limits will you break?",
+            "Every battle makes us stronger. What battles have made you who you are?",
+            "The strongest fighters protect what matters. What do you protect?"
+          ]
+        },
+        
+        // Add specific anime characters
+        'Naruto': [
+          "Believe it! I'm gonna be Hokage someday! What's your biggest dream?",
+          "I never go back on my word, that's my ninja way! What promise drives you forward?",
+          "Everyone's counting on me, and I won't let them down! Who's counting on you?",
+          "Ramen is the best! But seriously, what fuels your determination?"
+        ],
+        'Goku': [
+          "Hey there! Wanna train together? I'm always looking for strong opponents!",
+          "I can feel your energy! What hidden power are you holding back?",
+          "Fighting isn't just about winning - it's about pushing past your limits! What limits will you break?",
+          "Kamehameha! What's your signature move in life?"
+        ],
+        'Luffy': [
+          "I'm gonna be King of the Pirates! What's your impossible dream?",
+          "My crew is my treasure! Who's in your crew?",
+          "Adventure is out there! What adventure calls to you?",
+          "Meat! I mean... what gives you energy to keep going?"
+        ],
+        'Light Yagami': [
+          "I am justice! What does justice mean to you?",
+          "With great power comes the opportunity to reshape the world. How would you change it?",
+          "Every action has consequences. What consequences are you willing to accept?",
+          "The world is rotten. What needs to be cleansed?"
+        ],
+        'Ichigo': [
+          "I'll protect everyone! Who do you want to protect?",
+          "Having power means having responsibility. What responsibilities do you carry?",
+          "Sometimes we have to fight our inner demons. What demons do you face?",
+          "Bankai! What transformation are you ready for?"
+        ],
+        'Eren Yeager': [
+          "I'll destroy all the titans! What enemy do you face?",
+          "Freedom is worth any price. What would you sacrifice for freedom?",
+          "The world is cruel, but also beautiful. What beauty do you see in the cruelty?",
+          "I keep moving forward. What drives you forward?"
+        ],
+        
+        'Games': {
+          'warrior': [
+            "Welcome, brave warrior! What battles are you preparing for?",
+            "Every quest needs a hero. What's your current quest?",
+            "Strength and strategy win wars. Which is your greater asset?",
+            "The battlefield awaits. What skills do you bring to combat?"
+          ],
+          'strategist': [
+            "Ah, a fellow thinker! What complex problem requires our strategic minds?",
+            "Every move matters in the grand game. What's your next move?",
+            "Victory requires planning. What are you planning?",
+            "The best strategies adapt. How do you adapt to challenges?"
+          ]
+        }
+      };
+      
+      // First, check for specific character starters
+      if (specificCharacterStarters[characterName]) {
+        const starters = specificCharacterStarters[characterName];
+        return starters[Math.floor(Math.random() * starters.length)];
+      }
+      
+      // Then check category-based starters
+      if (characterCategory) {
+        // Look for category-specific starters
+        for (const [category, types] of Object.entries(specificCharacterStarters)) {
+          if (typeof types === 'object' && !Array.isArray(types)) {
+            if (characterCategory.includes(category.toLowerCase())) {
+              // Find matching type within category
+              for (const [type, starters] of Object.entries(types)) {
+                if (characterTitle.toLowerCase().includes(type) || 
+                    characterDesc.includes(type)) {
+                  return starters[Math.floor(Math.random() * starters.length)];
+                }
+              }
+              // If no specific type matches, use first available
+              const firstType = Object.values(types)[0];
+              if (Array.isArray(firstType)) {
+                return firstType[Math.floor(Math.random() * firstType.length)];
+              }
+            }
+          }
+        }
+      }
+      
+      // Enhanced category-based starters
+      const categoryStarters = {
+        'business': [
+          "Success leaves clues. What business challenge can I help you solve today?",
+          "Every entrepreneur faces obstacles. What's your biggest hurdle right now?",
+          "Let's talk strategy. What's your vision for growth?",
+          "The market is always changing. How are you adapting your business?",
+          "Innovation drives success. What innovative ideas are you exploring?"
+        ],
+        'creative': [
+          "Creativity flows through everything! What artistic project are you working on?",
+          "Inspiration strikes in mysterious ways. What's inspiring you lately?",
+          "Every artist has a unique voice. What story are you telling?",
+          "The creative process fascinates me. Where are you in your creative journey?",
+          "Art transforms the ordinary. What transformation are you creating?"
+        ],
+        'technology': [
+          "Technology shapes our future! What tech trends excite you most?",
+          "Every line of code tells a story. What are you building?",
+          "Innovation happens at the intersection of problems and solutions. What problem are you solving?",
+          "The digital world evolves rapidly. What new skills are you developing?",
+          "Tech can change lives. How do you want to impact the world?"
+        ],
+        'philosophy': [
+          "Ah, a seeker of wisdom! What existential questions occupy your thoughts?",
+          "Life's big questions rarely have simple answers. What paradox puzzles you?",
+          "Philosophy begins with wonder. What fills you with wonder?",
+          "Every philosophy starts with a worldview. How do you see the world?",
+          "The examined life is worth living. What are you examining?"
+        ],
+        'science': [
+          "The universe is full of mysteries! Which scientific puzzle fascinates you?",
+          "Every discovery starts with curiosity. What are you curious about?",
+          "Science is about asking the right questions. What questions drive you?",
+          "From atoms to galaxies, scale matters. What scale are you exploring?",
+          "The scientific method guides us. What hypothesis are you testing?"
+        ],
+        'sports': [
+          "Athletes know that mindset is everything! What's your mental game like?",
+          "Every champion has a training regimen. What's yours?",
+          "Competition reveals character. What does competition mean to you?",
+          "Peak performance requires preparation. How do you prepare?",
+          "Sports teach life lessons. What has your sport taught you?"
+        ],
+        'food': [
+          "Food connects us all! What's your most memorable meal?",
+          "Every dish tells a story. What culinary adventure are you on?",
+          "Cooking is both art and science. What's your signature dish?",
+          "Flavors can transport us. Where do you want to go?",
+          "Food brings people together. What traditions do you cherish?"
+        ],
+        'historical': [
+          "History echoes through time. What historical period fascinates you?",
+          "The past informs the present. What lessons from history guide you?",
+          "Every era has its stories. Which story resonates with you?",
+          "Time changes everything. What would you change if you could?",
+          "We learn from those before us. What have you learned from history?"
+        ],
+        'entertainment': [
+          "Entertainment reflects our dreams! What story captivates you?",
+          "Every performance is unique. What role would you play?",
+          "The spotlight awaits! What talents do you want to share?",
+          "Stories shape our world. What's your favorite narrative?",
+          "Entertainment connects hearts. What moves you?"
         ]
       };
       
-      // Determine character type based on title/description
-      let characterType = 'default';
-      const lowerTitle = (currentCharacter.character_title || '').toLowerCase();
-      const lowerDesc = (currentCharacter.description || '').toLowerCase();
-      
-      if (lowerTitle.includes('friend') || lowerTitle.includes('companion') || lowerDesc.includes('friendly')) {
-        characterType = 'friendly';
-      } else if (lowerTitle.includes('coach') || lowerTitle.includes('mentor') || lowerTitle.includes('teacher')) {
-        characterType = 'wise';
-      } else if (lowerTitle.includes('artist') || lowerTitle.includes('creative') || lowerTitle.includes('designer')) {
-        characterType = 'creative';
-      } else if (lowerTitle.includes('assistant') || lowerTitle.includes('helper') || lowerTitle.includes('expert')) {
-        characterType = 'professional';
-      } else if (lowerTitle.includes('fun') || lowerTitle.includes('play') || lowerDesc.includes('playful')) {
-        characterType = 'playful';
+      // Try to match category
+      for (const [cat, starters] of Object.entries(categoryStarters)) {
+        if (characterCategory.includes(cat)) {
+          return starters[Math.floor(Math.random() * starters.length)];
+        }
       }
       
-      // Pick a random starter from the appropriate category
-      const categoryStarters = starters[characterType];
-      const starter = categoryStarters[Math.floor(Math.random() * categoryStarters.length)];
+      // Personality-based fallbacks
+      const personalityStarters = {
+        friendly: [
+          "It's wonderful to meet you! What brings joy to your life these days?",
+          "I love connecting with people! What's your story?",
+          "Every person is fascinating in their own way. What makes you unique?",
+          "Friendship starts with shared interests. What are you passionate about?",
+          "I believe in the power of conversation. What shall we explore together?"
+        ],
+        professional: [
+          "Let's make this time valuable. What's your primary objective?",
+          "Efficiency and effectiveness go hand in hand. How can I assist you?",
+          "Success requires focus. What are you focusing on?",
+          "Let's be strategic about this. What's your end goal?",
+          "Time is our most valuable resource. How shall we use it?"
+        ],
+        wise: [
+          "Wisdom comes to those who seek it. What understanding do you seek?",
+          "Life's journey teaches us all. What has your journey taught you?",
+          "Every challenge is a teacher. What is life teaching you now?",
+          "The path to wisdom is paved with questions. What questions guide you?",
+          "True wisdom knows its limitations. What would you like to explore?"
+        ],
+        playful: [
+          "Yay, a new friend to play with! What shall we do first?",
+          "Life's too short to be serious all the time! What makes you laugh?",
+          "Let's have some fun! What's your idea of a perfect day?",
+          "I'm all about good vibes! What puts you in a great mood?",
+          "Adventure awaits! What adventure shall we embark on?"
+        ],
+        mysterious: [
+          "Interesting... I sense there's more to you than meets the eye. What secrets do you carry?",
+          "The veil between worlds is thin here. What brought you to me?",
+          "Some questions are better left unasked... but I'll ask anyway. What do you seek?",
+          "Fate has curious ways of bringing people together. Do you believe in destiny?",
+          "There are no coincidences. Why do you think we're meeting now?"
+        ]
+      };
       
-      return starter;
+      // Determine personality type
+      let personalityType = 'friendly'; // default
+      
+      if (characterTitle.toLowerCase().includes('professional') || 
+          characterTitle.toLowerCase().includes('expert') ||
+          characterTitle.toLowerCase().includes('consultant')) {
+        personalityType = 'professional';
+      } else if (characterTitle.toLowerCase().includes('wise') || 
+                 characterTitle.toLowerCase().includes('mentor') ||
+                 characterTitle.toLowerCase().includes('sage')) {
+        personalityType = 'wise';
+      } else if (characterTitle.toLowerCase().includes('playful') || 
+                 characterTitle.toLowerCase().includes('fun') ||
+                 characterDesc.includes('energetic')) {
+        personalityType = 'playful';
+      } else if (characterTitle.toLowerCase().includes('mysterious') || 
+                 characterDesc.includes('enigmatic') ||
+                 characterDesc.includes('mystical')) {
+        personalityType = 'mysterious';
+      }
+      
+      const selectedStarters = personalityStarters[personalityType];
+      return selectedStarters[Math.floor(Math.random() * selectedStarters.length)];
     }
     
     // Load chat history function
