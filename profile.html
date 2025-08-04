@@ -2969,12 +2969,23 @@
     }
 
     function handleLoginSuccess(user) {
-      console.log('💾 Storing authentication data for:', user.email);
+      // Get email from various possible locations (Google login fix)
+      const email = user.email || user.user_metadata?.email || user.user_metadata?.full_name || 'unknown@email.com';
+      const userId = user.id || user.user_metadata?.sub || email;
+      
+      console.log('💾 Storing authentication data for:', email);
+      console.log('🔍 User object structure:', {
+        hasEmail: !!user.email,
+        hasId: !!user.id,
+        hasUserMetadata: !!user.user_metadata,
+        email: email,
+        userId: userId
+      });
       
       // Store authentication data with timestamp
-      localStorage.setItem('user_email', user.email);
+      localStorage.setItem('user_email', email);
       localStorage.setItem('user_token', user.token?.access_token || user.access_token);
-      localStorage.setItem('user_uid', user.id);
+      localStorage.setItem('user_uid', userId);
       localStorage.setItem('user_auth_timestamp', Date.now().toString());
       
       // Store additional user data if available
@@ -3621,7 +3632,17 @@ Join here: ${inviteLink}`;
 
     // GEFIXTE versie van handleLoginSuccess functie
 function handleLoginSuccess(user, eventType = 'unknown') {
-  console.log(`✅ handleLoginSuccess called for: ${user.email} (${eventType})`);
+  // Debug logging to see what Google provides
+  console.log('🔍 Full user object:', JSON.stringify(user, null, 2));
+  console.log('🔍 User email:', user.email);
+  console.log('🔍 User id:', user.id);
+  console.log('🔍 User user_metadata:', user.user_metadata);
+  
+  // Get email from various possible locations
+  const email = user.email || user.user_metadata?.email || user.user_metadata?.full_name || 'unknown@email.com';
+  const userId = user.id || user.user_metadata?.sub || email;
+  
+  console.log(`✅ handleLoginSuccess called for: ${email} (${eventType})`);
   
   // KRITIEKE FIX: Betere token storage
   const accessToken = user.token?.access_token || user.access_token;
@@ -3633,9 +3654,9 @@ function handleLoginSuccess(user, eventType = 'unknown') {
   }
   
   // Store ALL noodzakelijke authentication data
-  localStorage.setItem('user_email', user.email);
+  localStorage.setItem('user_email', email);
   localStorage.setItem('user_token', accessToken);
-  localStorage.setItem('user_uid', user.id);
+  localStorage.setItem('user_uid', userId);
   localStorage.setItem('user_auth_timestamp', Date.now().toString());
   
   // NIEUW: Store refresh token als beschikbaar
