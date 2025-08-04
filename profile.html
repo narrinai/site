@@ -4296,15 +4296,55 @@ function handleLoginSuccess(user, eventType = 'unknown') {
 
     function handleLogout() {
       customConfirm('Are you sure you want to log out?', 'Confirm Logout', () => {
+        console.log('🚪 Logout initiated...');
+        
+        // Try Netlify Identity logout first
         if (window.netlifyIdentity) {
-          window.netlifyIdentity.logout();
+          try {
+            const currentUser = window.netlifyIdentity.currentUser();
+            if (currentUser) {
+              console.log('👤 Logging out Netlify user:', currentUser.email);
+              window.netlifyIdentity.logout();
+            } else {
+              console.log('⚠️ No Netlify user found, clearing local storage');
+              // No Netlify user, just clear localStorage
+              clearAllAuthData();
+            }
+          } catch (error) {
+            console.error('❌ Error during Netlify logout:', error);
+            // Fallback to clearing everything
+            clearAllAuthData();
+          }
         } else {
-          // Fallback if Netlify Identity is not available
-          localStorage.clear();
-          showLoginUI();
-          window.location.href = 'index.html';
+          console.log('⚠️ Netlify Identity not available, clearing local storage');
+          clearAllAuthData();
         }
       });
+    }
+    
+    function clearAllAuthData() {
+      console.log('🧹 Clearing all auth data...');
+      
+      // Clear all auth-related localStorage items
+      localStorage.removeItem('user_email');
+      localStorage.removeItem('user_token');
+      localStorage.removeItem('user_uid');
+      localStorage.removeItem('user_auth_timestamp');
+      localStorage.removeItem('user_metadata');
+      localStorage.removeItem('user_netlify_data');
+      localStorage.removeItem('user_refresh_token');
+      localStorage.removeItem('user_id');
+      localStorage.removeItem('login_redirect_url');
+      
+      // Clear session storage too
+      sessionStorage.clear();
+      
+      // Show login UI briefly then redirect
+      showLoginUI();
+      
+      setTimeout(() => {
+        window.location.href = 'index.html';
+      }, 500);
     }
 
     function showLoginUI() {
