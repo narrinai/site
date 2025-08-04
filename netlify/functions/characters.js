@@ -70,9 +70,10 @@ exports.handler = async (event, context) => {
       // Always filter to show only public characters
       filterParts.push(`OR({Visibility} = "public", {Visibility} = "", NOT({Visibility}))`);
       
-      // Add category filter if specified
+      // Add category filter if specified (case-insensitive)
       if (category) {
-        filterParts.push(`{Category} = "${category}"`);
+        // Use LOWER() for case-insensitive comparison
+        filterParts.push(`LOWER({Category}) = "${category.toLowerCase()}"`);
       }
       
       // Combine filters with AND
