@@ -2970,7 +2970,19 @@
 
     function handleLoginSuccess(user) {
       // Get email from various possible locations (Google login fix)
-      const email = user.email || user.user_metadata?.email || user.user_metadata?.full_name || 'unknown@email.com';
+      console.log('📱 handleLoginSuccess (first function) - Platform:', {
+        isMobile: window.innerWidth <= 768,
+        userObject: user,
+        userEmail: user?.email
+      });
+      
+      const email = user.email || 
+                    user.user_metadata?.email || 
+                    user.user_metadata?.email_address ||
+                    user.app_metadata?.email ||
+                    localStorage.getItem('user_email') ||
+                    'unknown@email.com';
+                    
       const userId = user.id || user.user_metadata?.sub || email;
       
       console.log('💾 Storing authentication data for:', email);
@@ -3639,7 +3651,30 @@ function handleLoginSuccess(user, eventType = 'unknown') {
   console.log('🔍 User user_metadata:', user.user_metadata);
   
   // Get email from various possible locations
-  const email = user.email || user.user_metadata?.email || user.user_metadata?.full_name || 'unknown@email.com';
+  // Enhanced debugging for mobile vs desktop issue
+  console.log('📱 Platform check:', {
+    isMobile: window.innerWidth <= 768,
+    screenWidth: window.innerWidth,
+    userAgent: navigator.userAgent
+  });
+  
+  // Try more locations for email
+  const email = user.email || 
+                user.user_metadata?.email || 
+                user.user_metadata?.email_address ||
+                user.app_metadata?.email ||
+                localStorage.getItem('user_email') ||
+                'unknown@email.com';
+                
+  console.log('📧 Email resolution:', {
+    finalEmail: email,
+    sources: {
+      'user.email': user.email,
+      'user_metadata.email': user.user_metadata?.email,
+      'localStorage': localStorage.getItem('user_email')
+    }
+  });
+  
   const userId = user.id || user.user_metadata?.sub || email;
   
   console.log(`✅ handleLoginSuccess called for: ${email} (${eventType})`);
@@ -4372,8 +4407,19 @@ function handleLoginSuccess(user, eventType = 'unknown') {
     // GEFIXTE versie van loadProfile() functie
 async function loadProfile() {
   const token = localStorage.getItem('user_token');
-  const email = localStorage.getItem('user_email');
+  let email = localStorage.getItem('user_email');
   const uid = localStorage.getItem('user_uid');
+  
+  // Extra fallback for email if it's 'unknown@email.com'
+  if (email === 'unknown@email.com' || !email) {
+    // Try to get from Netlify Identity current user
+    const netlifyUser = window.netlifyIdentity?.currentUser();
+    if (netlifyUser?.email) {
+      email = netlifyUser.email;
+      localStorage.setItem('user_email', email);
+      console.log('📧 Retrieved email from Netlify Identity:', email);
+    }
+  }
   
   if (!token || !email || !uid) {
     console.log('⚠️ No auth data - showing login UI');
@@ -4382,6 +4428,11 @@ async function loadProfile() {
   }
 
   console.log('📡 Loading profile for:', email);
+  console.log('📱 Device context:', {
+    isMobile: window.innerWidth <= 768,
+    storedEmail: localStorage.getItem('user_email'),
+    netlifyEmail: window.netlifyIdentity?.currentUser()?.email
+  });
   showLoading();
   
   try {
