@@ -258,7 +258,98 @@ def generate_character_name(category, character_type, existing_names):
         # Batch 13 - Laatste batch
         'Rafael', 'Ramona', 'Raquel', 'Regina', 'Renata', 'Ricardo', 'Roberto', 'Rocco', 'Rodrigo', 'Rosa',
         'Rosalie', 'Rosario', 'Roxanne', 'Ruby', 'Sabrina', 'Salvador', 'Samantha', 'Samuel', 'Sandra', 'Santiago',
-        'Sara', 'Scarlett', 'Sebastian', 'Selena', 'Serena', 'Sergio', 'Sofia', 'Solange', 'Sophia', 'Stella'
+        'Sara', 'Scarlett', 'Sebastian', 'Selena', 'Serena', 'Sergio', 'Sofia', 'Solange', 'Sophia', 'Stella',
+        
+        # Batch 14 - Nederlandse namen
+        'Daan', 'Sem', 'Milan', 'Levi', 'Luuk', 'Bram', 'Finn', 'Jesse', 'Mees', 'Thomas',
+        'Lars', 'Ruben', 'Tim', 'Thijs', 'Stijn', 'Sven', 'Jasper', 'Floris', 'Joost', 'Maarten',
+        'Sophie', 'Emma', 'Mila', 'Zoë', 'Evi', 'Lotte', 'Tess', 'Sara', 'Anna', 'Nina',
+        'Fleur', 'Lieke', 'Eva', 'Noa', 'Liv', 'Isa', 'Lynn', 'Amber', 'Iris', 'Femke',
+        'Dirk', 'Pieter', 'Jan', 'Kees', 'Henk', 'Willem', 'Jeroen', 'Michiel', 'Wouter', 'Bas',
+        
+        # Batch 15 - Duitse namen
+        'Lukas', 'Leon', 'Elias', 'Maximilian', 'Felix', 'Jonas', 'Paul', 'Ben', 'Noah', 'Luis',
+        'Moritz', 'Johann', 'Friedrich', 'Wilhelm', 'Heinrich', 'Klaus', 'Dieter', 'Günther', 'Wolfgang', 'Jürgen',
+        'Marie', 'Sophie', 'Maria', 'Emilia', 'Mia', 'Hannah', 'Lea', 'Lena', 'Leonie', 'Amelie',
+        'Klara', 'Charlotte', 'Johanna', 'Katharina', 'Franziska', 'Annika', 'Stefanie', 'Sabine', 'Anja', 'Petra',
+        
+        # Batch 16 - Franse namen
+        'Louis', 'Jules', 'Gabriel', 'Arthur', 'Raphaël', 'Lucas', 'Adam', 'Léo', 'Hugo', 'Nathan',
+        'Maël', 'Ethan', 'Tom', 'Nolan', 'Théo', 'Sacha', 'Antoine', 'Valentin', 'Paul', 'Maxime',
+        'Louise', 'Camille', 'Léa', 'Manon', 'Chloé', 'Inès', 'Jade', 'Ambre', 'Alice', 'Lina',
+        'Rose', 'Anna', 'Juliette', 'Zoé', 'Adèle', 'Margaux', 'Charlotte', 'Amélie', 'Céline', 'Aurélie',
+        
+        # Batch 17 - Spaanse/Latijns-Amerikaanse namen
+        'Alejandro', 'Daniel', 'Pablo', 'David', 'Adrián', 'Javier', 'Álvaro', 'Sergio', 'Carlos', 'Jorge',
+        'Mario', 'Diego', 'Manuel', 'José', 'Juan', 'Antonio', 'Francisco', 'Luis', 'Miguel', 'Pedro',
+        'Lucía', 'María', 'Paula', 'Daniela', 'Sara', 'Carla', 'Claudia', 'Valeria', 'Alba', 'Nerea',
+        'Marta', 'Andrea', 'Elena', 'Natalia', 'Cristina', 'Laura', 'Carmen', 'Rocío', 'Beatriz', 'Isabel',
+        
+        # Batch 18 - Italiaanse namen
+        'Francesco', 'Alessandro', 'Lorenzo', 'Matteo', 'Andrea', 'Gabriele', 'Riccardo', 'Tommaso', 'Edoardo', 'Federico',
+        'Giuseppe', 'Antonio', 'Giovanni', 'Roberto', 'Vincenzo', 'Stefano', 'Angelo', 'Franco', 'Salvatore', 'Pietro',
+        'Giulia', 'Chiara', 'Francesca', 'Alice', 'Sofia', 'Giorgia', 'Martina', 'Sara', 'Alessia', 'Valentina',
+        'Elisa', 'Ilaria', 'Elena', 'Beatrice', 'Vittoria', 'Giada', 'Rebecca', 'Federica', 'Silvia', 'Laura',
+        
+        # Batch 19 - Portugese/Braziliaanse namen
+        'João', 'Pedro', 'Miguel', 'Tiago', 'Diogo', 'André', 'Rodrigo', 'Bruno', 'Rui', 'Nuno',
+        'Paulo', 'José', 'António', 'Carlos', 'Fernando', 'Luís', 'Vasco', 'Gonçalo', 'Tomás', 'Ricardo',
+        'Ana', 'Beatriz', 'Carolina', 'Diana', 'Filipa', 'Inês', 'Joana', 'Leonor', 'Mariana', 'Matilde',
+        'Rita', 'Sara', 'Sofia', 'Teresa', 'Catarina', 'Daniela', 'Francisca', 'Madalena', 'Raquel', 'Patrícia',
+        
+        # Batch 20 - Scandinavische namen
+        'Erik', 'Olaf', 'Magnus', 'Bjorn', 'Sven', 'Lars', 'Anders', 'Johan', 'Kristian', 'Henrik',
+        'Nils', 'Oscar', 'Gustav', 'Karl', 'Axel', 'Viktor', 'Emil', 'Anton', 'Mikael', 'Frederik',
+        'Astrid', 'Ingrid', 'Freya', 'Sigrid', 'Gunhild', 'Helga', 'Solveig', 'Liv', 'Maja', 'Ida',
+        'Agnes', 'Elsa', 'Linnea', 'Saga', 'Wilma', 'Ebba', 'Stella', 'Vera', 'Alma', 'Selma',
+        
+        # Batch 21 - Poolse namen
+        'Jakub', 'Kacper', 'Mateusz', 'Szymon', 'Aleksander', 'Filip', 'Mikołaj', 'Wojciech', 'Adam', 'Michał',
+        'Wiktor', 'Piotr', 'Krzysztof', 'Andrzej', 'Tomasz', 'Paweł', 'Marcin', 'Marek', 'Grzegorz', 'Łukasz',
+        'Julia', 'Zuzanna', 'Maja', 'Hanna', 'Lena', 'Alicja', 'Maria', 'Amelia', 'Oliwia', 'Wiktoria',
+        'Aleksandra', 'Zofia', 'Natalia', 'Magdalena', 'Agnieszka', 'Katarzyna', 'Anna', 'Joanna', 'Małgorzata', 'Ewa',
+        
+        # Batch 22 - Russische namen
+        'Alexander', 'Dmitri', 'Mikhail', 'Ivan', 'Sergei', 'Andrei', 'Alexei', 'Vladimir', 'Nikolai', 'Pavel',
+        'Maxim', 'Artem', 'Denis', 'Kirill', 'Anton', 'Boris', 'Viktor', 'Oleg', 'Igor', 'Yuri',
+        'Anastasia', 'Maria', 'Daria', 'Anna', 'Ekaterina', 'Elena', 'Olga', 'Natalia', 'Tatiana', 'Irina',
+        'Yulia', 'Svetlana', 'Marina', 'Valentina', 'Galina', 'Lyudmila', 'Vera', 'Nina', 'Larisa', 'Oksana',
+        
+        # Batch 23 - Griekse namen
+        'Dimitris', 'Giannis', 'Kostas', 'Nikos', 'Panagiotis', 'Georgios', 'Christos', 'Petros', 'Vasilis', 'Michalis',
+        'Stavros', 'Andreas', 'Alexandros', 'Ioannis', 'Thanasis', 'Spiros', 'Manolis', 'Antonis', 'Stelios', 'Yannis',
+        'Maria', 'Eleni', 'Katerina', 'Dimitra', 'Sofia', 'Anna', 'Georgia', 'Christina', 'Evangelia', 'Panagiota',
+        'Stavroula', 'Despina', 'Fotini', 'Ioanna', 'Konstantina', 'Paraskevi', 'Vasiliki', 'Alexandra', 'Athina', 'Zoe',
+        
+        # Batch 24 - Japanse namen
+        'Haruki', 'Takashi', 'Yuki', 'Hiroshi', 'Kenji', 'Satoshi', 'Masaru', 'Ichiro', 'Jiro', 'Taro',
+        'Akihiro', 'Kazuki', 'Ryota', 'Shota', 'Daiki', 'Yuta', 'Kenta', 'Naoki', 'Sho', 'Ren',
+        'Yui', 'Sakura', 'Hana', 'Aoi', 'Mei', 'Mio', 'Rin', 'Saki', 'Nanami', 'Ayumi',
+        'Haruka', 'Yuka', 'Nana', 'Miki', 'Emi', 'Yuri', 'Sayuri', 'Keiko', 'Michiko', 'Yumiko',
+        
+        # Batch 25 - Koreaanse namen
+        'Min-jun', 'Ji-hoon', 'Hyun-woo', 'Jun-seo', 'Jae-hyun', 'Seung-ho', 'Min-ho', 'Sung-min', 'Young-ho', 'Dong-hyun',
+        'Tae-yang', 'Jin-woo', 'Woo-jin', 'Dae-sung', 'Kyung-ho', 'Sang-woo', 'Jung-ho', 'Hoon', 'Chan', 'Joon',
+        'Ji-woo', 'Seo-yeon', 'Ha-eun', 'Min-ji', 'Soo-jin', 'Hye-jin', 'Yoo-jin', 'Eun-ji', 'Da-eun', 'Seo-jin',
+        'Ye-jin', 'Na-yeon', 'Mi-young', 'Sun-hee', 'Jung-hee', 'Hae-won', 'So-yeon', 'Yu-ri', 'Hyo-jin', 'Bo-ra',
+        
+        # Batch 26 - Chinese namen (pinyin)
+        'Wei', 'Lei', 'Tao', 'Chen', 'Yang', 'Zhang', 'Li', 'Wang', 'Liu', 'Zhao',
+        'Ming', 'Jing', 'Hong', 'Hui', 'Xin', 'Yan', 'Feng', 'Jun', 'Qiang', 'Long',
+        'Mei', 'Ling', 'Xiao', 'Fang', 'Juan', 'Ying', 'Xiu', 'Lan', 'Jie', 'Qing',
+        'Yun', 'Rui', 'Shan', 'Ping', 'Hua', 'Jia', 'Wen', 'Xue', 'Yu', 'Zhen',
+        
+        # Batch 27 - Arabische namen
+        'Ahmed', 'Mohamed', 'Ali', 'Hassan', 'Hussein', 'Omar', 'Khalid', 'Abdullah', 'Mahmoud', 'Youssef',
+        'Ibrahim', 'Mustafa', 'Sami', 'Tariq', 'Nasser', 'Faisal', 'Hamza', 'Karim', 'Samir', 'Walid',
+        'Fatima', 'Aisha', 'Layla', 'Zahra', 'Maryam', 'Nour', 'Yasmin', 'Salma', 'Hana', 'Sara',
+        'Amira', 'Dina', 'Leila', 'Rania', 'Samira', 'Najla', 'Lubna', 'Manal', 'Ghada', 'Huda',
+        
+        # Batch 28 - Indiase namen
+        'Arjun', 'Rohan', 'Aditya', 'Vivek', 'Rahul', 'Amit', 'Raj', 'Karan', 'Nikhil', 'Sanjay',
+        'Vikram', 'Ravi', 'Ankit', 'Manish', 'Deepak', 'Ashok', 'Suresh', 'Prakash', 'Rajesh', 'Ajay',
+        'Priya', 'Anjali', 'Neha', 'Pooja', 'Kavya', 'Divya', 'Shreya', 'Ananya', 'Aadhya', 'Ishita',
+        'Meera', 'Radha', 'Sita', 'Gita', 'Rekha', 'Sunita', 'Anita', 'Kavita', 'Nisha', 'Ritu'
     ]
     
     # Verwijder duplicaten en shuffle
