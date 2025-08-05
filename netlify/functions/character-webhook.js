@@ -92,22 +92,59 @@ exports.handler = async (event, context) => {
       }
     }
     
-    // Forward the (possibly modified) request to Make.com webhook
-    const makeResponse = await fetch('https://hook.eu2.make.com/c36jubkn9rbbqg0ovgfbx2ca1iwgf16q', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestBody)
-    });
+    // Only forward character creation requests to Make.com
+    if (requestBody.action === 'create_character') {
+      console.log('📤 Forwarding character creation to Make.com');
+      
+      const makeResponse = await fetch('https://hook.eu2.make.com/c36jubkn9rbbqg0ovgfbx2ca1iwgf16q', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+      });
 
-    const responseText = await makeResponse.text();
-    
-    return {
-      statusCode: makeResponse.status,
-      headers,
-      body: responseText
-    };
+      const responseText = await makeResponse.text();
+      
+      return {
+        statusCode: makeResponse.status,
+        headers,
+        body: responseText
+      };
+    } 
+    // Handle get_tags action locally
+    else if (requestBody.action === 'get_tags') {
+      console.log('📋 Handling get_tags request locally');
+      
+      // Return predefined tags or empty array
+      // These should match the tags available in Airtable
+      const tags = [
+        'wise', 'funny', 'helpful', 'mysterious', 'leader',
+        'creative', 'romantic', 'adventure', 'teacher', 'mentor',
+        'villain', 'hero', 'scientist', 'artist', 'warrior',
+        'historical', 'magical', 'supportive', 'strategic', 'philosophical'
+      ];
+      
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({ 
+          success: true,
+          tags: tags
+        })
+      };
+    }
+    else {
+      // Unknown action
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ 
+          error: 'Unknown action',
+          receivedAction: requestBody.action
+        })
+      };
+    }
 
   } catch (error) {
     console.error('❌ Webhook proxy error:', error);
