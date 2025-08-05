@@ -3463,14 +3463,24 @@
       // Netlify Identity (including Google SSO) should always provide user.id
       const uid = user.id;
       
+      // Enhanced logging to debug Google SSO
+      console.log("🔍 Full Netlify Identity user object:", JSON.stringify(user, null, 2));
+      console.log("🆔 User ID details:", {
+        id: user.id,
+        email: user.email,
+        provider: user.app_metadata?.provider,
+        providers: user.app_metadata?.providers,
+        isGoogleSSO: user.app_metadata?.provider === 'google' || user.app_metadata?.providers?.includes('google')
+      });
+      
       if (!uid) {
         console.error('❌ No user.id provided by Netlify Identity - this should not happen!');
-        // Still use the ID if available, but log the issue
+        console.error('User object:', user);
       }
       
       const token = user.token.access_token;
       
-      console.log("🔍 handleLogin user object:", {
+      console.log("🔍 handleLogin summary:", {
         hasId: !!user.id,
         hasEmail: !!user.email,
         idValue: user.id,
