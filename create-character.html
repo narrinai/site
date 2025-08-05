@@ -3406,11 +3406,22 @@
        });
 
        window.netlifyIdentity.on('login', user => {
+         console.log('🔐 Login event triggered:', {
+           email: user.email,
+           id: user.id,
+           hasToken: !!user.token,
+           provider: user.app_metadata?.provider,
+           isGoogleSSO: user.app_metadata?.provider === 'google'
+         });
+         
          // Store user data on login
          localStorage.setItem('user_email', user.email);
          localStorage.setItem('user_token', user.token?.access_token || 'true');
          localStorage.setItem('user_uid', user.id);
-         localStorage.setItem('netlify_uid', user.id);
+         // Don't store netlify_uid for Google SSO users as it might confuse things
+         if (user.app_metadata?.provider !== 'google') {
+           localStorage.setItem('netlify_uid', user.id);
+         }
          
          updateLoginButton();
          window.netlifyIdentity.close();
@@ -5044,12 +5055,22 @@ console.log('🔗 Generated slug:', slug);
     console.log('- localStorage netlify_uid:', localStorage.getItem("netlify_uid"));
     console.log('- localStorage user_uid:', localStorage.getItem("user_uid"));
     
-    const userUid = currentNetlifyUser?.id || localStorage.getItem("netlify_uid") || localStorage.getItem("user_uid");
+    // For Google SSO users, the ID is stored in user_uid, not netlify_uid
+    const userUid = currentNetlifyUser?.id || localStorage.getItem("user_uid") || localStorage.getItem("netlify_uid");
     console.log('- Final user_uid to send:', userUid);
+    
+    // Also ensure we have the email - Google SSO might store it differently
+    const finalEmail = userEmail || currentNetlifyUser?.email || localStorage.getItem("user_email");
+    console.log('- Final email to send:', finalEmail);
+    
+    if (!userUid || userUid === 'undefined') {
+      console.error('❌ No valid user UID found!');
+      throw new Error('User authentication incomplete - please log out and log in again');
+    }
 
     const requestData = {
       action: 'create_character',
-      user_email: userEmail,
+      user_email: finalEmail,
       user_token: userToken,
       user_uid: userUid,
       
