@@ -75,6 +75,13 @@ exports.handler = async (event, context) => {
   try {
     const requestBody = JSON.parse(event.body || '{}');
     
+    // Log all incoming requests to debug
+    console.log('📥 Incoming request:', {
+      action: requestBody.action,
+      hasUserUID: !!requestBody.user_uid,
+      timestamp: new Date().toISOString()
+    });
+    
     // If this is a character creation request, validate content first
     if (requestBody.action === 'create_character') {
       console.log('🔍 Validating character content before creation');
@@ -94,7 +101,23 @@ exports.handler = async (event, context) => {
     
     // Only forward character creation requests to Make.com
     if (requestBody.action === 'create_character') {
-      console.log('📤 Forwarding character creation to Make.com');
+      // Extra validation: ensure we have actual character data
+      if (!requestBody.name || !requestBody.user_uid) {
+        console.log('⚠️ Blocking incomplete character creation request');
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ 
+            error: 'Missing required fields for character creation',
+            missingFields: {
+              name: !requestBody.name,
+              user_uid: !requestBody.user_uid
+            }
+          })
+        };
+      }
+      
+      console.log('📤 Forwarding valid character creation to Make.com');
       
       const makeResponse = await fetch('https://hook.eu2.make.com/c36jubkn9rbbqg0ovgfbx2ca1iwgf16q', {
         method: 'POST',
@@ -135,13 +158,15 @@ exports.handler = async (event, context) => {
       };
     }
     else {
-      // Unknown action
+      // Unknown action - log it for debugging
+      console.log('❓ Unknown action received:', requestBody.action);
       return {
         statusCode: 400,
         headers,
         body: JSON.stringify({ 
           error: 'Unknown action',
-          receivedAction: requestBody.action
+          receivedAction: requestBody.action,
+          message: 'Only create_character and get_tags actions are supported'
         })
       };
     }
