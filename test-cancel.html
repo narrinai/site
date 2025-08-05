@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Cancel Subscription</title>
+</head>
+<body>
+  <h1>Test Cancel Subscription</h1>
+  <p>Enter a Stripe Customer ID to test cancellation:</p>
+  
+  <input type="text" id="customerIdInput" placeholder="cus_..." style="width: 300px; padding: 10px;">
+  <button onclick="testCancel()" style="padding: 10px 20px;">Test Cancel</button>
+  
+  <div id="result" style="margin-top: 20px; padding: 20px; background: #f0f0f0; display: none;">
+    <h3>Result:</h3>
+    <pre id="resultContent"></pre>
+  </div>
+  
+  <script>
+    async function testCancel() {
+      const customerId = document.getElementById('customerIdInput').value;
+      const resultDiv = document.getElementById('result');
+      const resultContent = document.getElementById('resultContent');
+      
+      if (!customerId) {
+        alert('Please enter a customer ID');
+        return;
+      }
+      
+      resultDiv.style.display = 'block';
+      resultContent.textContent = 'Calling cancel-subscription function...';
+      
+      try {
+        const response = await fetch('/.netlify/functions/cancel-subscription', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customer_id: customerId,
+            user_uid: 'test-user'
+          })
+        });
+        
+        const text = await response.text();
+        let result;
+        try {
+          result = JSON.parse(text);
+        } catch (e) {
+          result = text;
+        }
+        
+        resultContent.textContent = JSON.stringify({
+          status: response.status,
+          ok: response.ok,
+          result: result
+        }, null, 2);
+        
+      } catch (error) {
+        resultContent.textContent = 'Error: ' + error.message;
+      }
+    }
+  </script>
+</body>
+</html>
