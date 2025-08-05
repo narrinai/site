@@ -4022,6 +4022,39 @@ function handleLoginSuccess(user, eventType = 'unknown') {
         localStorage.removeItem('login_redirect_url');
         console.log('🚫 Cleared redirect URL to prevent signup redirect');
         
+        // CRITICAL: Manually ensure localStorage is set immediately
+        if (user) {
+          // Extract email
+          let email = user.email || 
+                      user.user_metadata?.email || 
+                      user.user_metadata?.email_address ||
+                      'unknown@email.com';
+          
+          // For Google SSO, check more locations
+          if (email === 'unknown@email.com') {
+            const userString = JSON.stringify(user);
+            const emailMatch = userString.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+            if (emailMatch) {
+              email = emailMatch[0];
+            }
+          }
+          
+          const userId = user.id;
+          const accessToken = user.token?.access_token || user.access_token || 'temp-token';
+          
+          console.log('💾 Manually storing auth data for signup:', {
+            email: email,
+            userId: userId,
+            hasToken: !!accessToken
+          });
+          
+          // Manually store auth data to ensure it's available after refresh
+          localStorage.setItem('user_email', email);
+          localStorage.setItem('user_token', accessToken);
+          localStorage.setItem('user_uid', userId);
+          localStorage.setItem('user_auth_timestamp', Date.now().toString());
+        }
+        
         // Only call handleAuthEvent - it will call handleLoginSuccess internally
         handleAuthEvent(user, 'signup');
         
@@ -4034,7 +4067,7 @@ function handleLoginSuccess(user, eventType = 'unknown') {
         setTimeout(() => {
           console.log('📊 Loading profile after signup...');
           loadProfile(); // Use correct function name
-        }, 1000);
+        }, 1500);
         
         // Prevent default redirect behavior
         return false;
@@ -4356,6 +4389,13 @@ function handleLoginSuccess(user, eventType = 'unknown') {
     document.addEventListener('DOMContentLoaded', () => {
       console.log('🚀 Page loaded, initializing...');
       
+      // Debug localStorage state
+      console.log('📦 LocalStorage state:', {
+        email: localStorage.getItem('user_email'),
+        token: localStorage.getItem('user_token')?.substring(0, 20) + '...',
+        uid: localStorage.getItem('user_uid'),
+        timestamp: localStorage.getItem('user_auth_timestamp')
+      });
       
       // FIRST: Run universal authentication check
       const isAuthenticated = initializeAuthenticationCheck();
@@ -4377,6 +4417,19 @@ function handleLoginSuccess(user, eventType = 'unknown') {
           setTimeout(() => {
             loadProfile();
           }, 500);
+        } else {
+          // FALLBACK: Check if we just signed up (within last 10 seconds)
+          const authTimestamp = localStorage.getItem('user_auth_timestamp');
+          if (authTimestamp) {
+            const timeSinceAuth = Date.now() - parseInt(authTimestamp);
+            if (timeSinceAuth < 10000) { // 10 seconds
+              console.log('🆕 Recent signup detected, showing profile UI');
+              showProfileUI();
+              setTimeout(() => {
+                loadProfile();
+              }, 1000);
+            }
+          }
         }
         
         window.netlifyIdentity.init({
