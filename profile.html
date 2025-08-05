@@ -5540,6 +5540,8 @@ function updatePricingCard(plan) {
         showLoading();
         
         // First: Cancel the Stripe subscription if customer ID exists
+        console.log('🔍 Checking for Stripe customer ID:', stripeCustomerId);
+        
         if (stripeCustomerId) {
           console.log('🚫 Cancelling Stripe subscription first...');
           
@@ -5566,6 +5568,13 @@ function updatePricingCard(plan) {
             console.error('❌ Stripe cancellation error:', stripeError);
             // Continue with downgrade anyway
           }
+        } else {
+          console.warn('⚠️ No Stripe customer ID found in localStorage');
+          console.log('📋 localStorage contents:', {
+            user_email: localStorage.getItem('user_email'),
+            user_uid: localStorage.getItem('user_uid'),
+            stripe_customer_id: localStorage.getItem('stripe_customer_id')
+          });
         }
         
         // Then: Call webhook to handle downgrade in database
