@@ -5322,6 +5322,7 @@ function updatePricingCard(plan) {
       const email = localStorage.getItem('user_email');
       const uid = localStorage.getItem('user_uid');
       const token = localStorage.getItem('user_token');
+      const stripeCustomerId = localStorage.getItem('stripe_customer_id');
       
       if (!email || !uid || !token) {
         showError('You must be logged in to manage your subscription');
@@ -5331,7 +5332,36 @@ function updatePricingCard(plan) {
       try {
         showLoading();
         
-        // Call webhook to handle downgrade
+        // First: Cancel the Stripe subscription if customer ID exists
+        if (stripeCustomerId) {
+          console.log('🚫 Cancelling Stripe subscription first...');
+          
+          try {
+            const cancelResponse = await fetch('/.netlify/functions/cancel-subscription', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                customer_id: stripeCustomerId,
+                user_uid: uid
+              })
+            });
+            
+            const cancelResult = await cancelResponse.json();
+            
+            if (!cancelResponse.ok) {
+              console.error('❌ Failed to cancel Stripe subscription:', cancelResult);
+              // Continue with downgrade even if Stripe cancellation fails
+              // The user can always cancel manually via Stripe
+            } else {
+              console.log('✅ Stripe subscription cancelled:', cancelResult);
+            }
+          } catch (stripeError) {
+            console.error('❌ Stripe cancellation error:', stripeError);
+            // Continue with downgrade anyway
+          }
+        }
+        
+        // Then: Call webhook to handle downgrade in database
         const payload = {
   type: 'customer.subscription.deleted',
   netlifyuid: uid,           // Use netlifyuid as primary identifier
