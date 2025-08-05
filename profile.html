@@ -5306,6 +5306,69 @@ function updatePricingCard(plan) {
   }
 }
 
+    // ===== PLAN CHANGE FUNCTIONALITY =====
+    window.handlePlanChange = async function(targetPlan) {
+      console.log('🔄 Plan change requested to:', targetPlan);
+      
+      const currentPlan = document.getElementById('plan')?.textContent?.toLowerCase();
+      const stripeCustomerId = localStorage.getItem('stripe_customer_id');
+      const uid = localStorage.getItem('user_uid');
+      
+      if (!stripeCustomerId || !uid) {
+        showError('Unable to change plan. Please contact support.');
+        return;
+      }
+      
+      // Determine if this is a downgrade to free or a plan change
+      if (targetPlan === 'free') {
+        // Use existing downgrade flow
+        handleDowngrade();
+        return;
+      }
+      
+      // For Engage <-> Immerse changes
+      customConfirm(
+        `Are you sure you want to change to the ${targetPlan} plan? Your billing will be adjusted accordingly.`,
+        'Confirm Plan Change',
+        async () => {
+          try {
+            showLoading();
+            
+            // Update Stripe subscription
+            const response = await fetch('/.netlify/functions/update-subscription', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                customer_id: stripeCustomerId,
+                user_uid: uid,
+                new_plan: targetPlan
+              })
+            });
+            
+            const result = await response.json();
+            
+            if (!response.ok) {
+              throw new Error(result.error || 'Failed to update subscription');
+            }
+            
+            console.log('✅ Subscription updated:', result);
+            showSuccess(`Successfully changed to ${targetPlan} plan!`);
+            
+            // Reload to show new plan
+            setTimeout(() => {
+              window.location.reload();
+            }, 1500);
+            
+          } catch (error) {
+            console.error('❌ Plan change error:', error);
+            showError(`Failed to change plan: ${error.message}`);
+          } finally {
+            hideLoading();
+          }
+        }
+      );
+    };
+
     // ===== DOWNGRADE FUNCTIONALITY =====
     window.handleDowngrade = async function() {
       console.log('⬇️ Downgrade button clicked');
