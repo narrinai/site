@@ -92,35 +92,6 @@ exports.handler = async (event, context) => {
       };
     }
     
-    // Content moderation - detect potentially inappropriate content
-    const inappropriatePatterns = [
-      /\b(squirm|pink folds|trembling beneath|teasing licks|fingertips)\b/i,
-      /\b(sexual|nude|nsfw|explicit)\b/i
-    ];
-    
-    const hasInappropriateContent = inappropriatePatterns.some(pattern => pattern.test(message));
-    
-    if (hasInappropriateContent) {
-      console.log('⚠️ Inappropriate content detected, using safe fallback');
-      
-      // Return a neutral analysis for inappropriate content
-      return {
-        statusCode: 200,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          success: true,
-          analysis: {
-            memory_importance: 1,
-            emotional_state: 'neutral',
-            summary: 'Casual conversation',
-            memory_tags: ['casual']
-          },
-          method: 'content_filtered',
-          message: 'Content filtered for safety'
-        })
-      };
-    }
-    
     // Fallback analysis als OpenAI niet beschikbaar is
     if (!OPENAI_API_KEY) {
       console.log('⚠️ No OpenAI API key, using rule-based analysis');
@@ -225,7 +196,8 @@ Respond only with valid JSON.`;
         headers: Object.fromEntries(openAIResponse.headers.entries())
       });
       
-      // Fallback to rule-based analysis
+      // Always fallback to rule-based analysis on API errors
+      console.log('🔄 Using rule-based fallback due to OpenAI API error');
       const analysis = analyzeMessageRuleBased(message, context);
       
       return {
