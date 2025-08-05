@@ -3795,7 +3795,12 @@ function handleLoginSuccess(user, eventType = 'unknown') {
     console.log('🆕 NEW SIGNUP: Will create user in Airtable');
     // Clear any redirect URL for signup to prevent redirects
     localStorage.removeItem('login_redirect_url');
-    createOrUpdateUser(user, true);
+    
+    // CRITICAL FIX: Add small delay to ensure localStorage is properly set
+    setTimeout(() => {
+      console.log('⏰ Delayed createOrUpdateUser call to ensure localStorage is ready');
+      createOrUpdateUser(user, true);
+    }, 500); // 500ms delay to ensure localStorage operations complete
   } else if (eventType === 'login') {
     console.log('🔄 EXISTING LOGIN: Loading profile without webhook call');
     showProfileUI();
@@ -3845,8 +3850,40 @@ function handleLoginSuccess(user, eventType = 'unknown') {
 
     // ===== AANGEPASTE createOrUpdateUser functie =====
     async function createOrUpdateUser(user, isNewUser = false) {
-      const email = user.email;
-      const userId = user.id;
+      // CRITICAL FIX: Get email and userId from localStorage first, fallback to user object
+      let email = localStorage.getItem('user_email') || user.email;
+      let userId = localStorage.getItem('user_uid') || user.id;
+      
+      // If still no email, try to extract from user object in different ways
+      if (!email || email === 'unknown@email.com') {
+        email = user.email || 
+                user.user_metadata?.email || 
+                user.user_metadata?.email_address ||
+                'unknown@email.com';
+                
+        // For Google SSO, check if email is in the user object as a string
+        if (email === 'unknown@email.com') {
+          const userString = JSON.stringify(user);
+          const emailMatch = userString.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+          if (emailMatch) {
+            email = emailMatch[0];
+            console.log('📧 Extracted email from user object string:', email);
+          }
+        }
+      }
+      
+      // If still no userId, this is critical
+      if (!userId) {
+        console.error('❌ CRITICAL: No user ID available for createOrUpdateUser');
+        return;
+      }
+      
+      console.log('🔍 CreateOrUpdateUser data sources:', {
+        email: email,
+        emailSource: localStorage.getItem('user_email') ? 'localStorage' : 'user object',
+        userId: userId,
+        userIdSource: localStorage.getItem('user_uid') ? 'localStorage' : 'user object'
+      });
       
       // NEW: Check if registration is already in progress
       if (registrationInProgress) {
@@ -3866,11 +3903,16 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       console.log(`👤 ${isNewUser ? 'Creating NEW' : 'Updating EXISTING'} user: ${email}`);
       
       try {
+        // Get token from localStorage or user object
+        const token = localStorage.getItem('user_token') || 
+                     user.token?.access_token || 
+                     user.access_token ||
+                     'temp-token-' + Date.now();
         
         const payload = {
           user_email: email,
           user_uid: userId,
-          user_token: user.token.access_token,
+          user_token: token,
           user_metadata: {
             full_name: user.user_metadata?.full_name || '',
             avatar_url: user.user_metadata?.avatar_url || '',
