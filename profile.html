@@ -4029,7 +4029,12 @@ function handleLoginSuccess(user, eventType = 'unknown') {
         
         // Update the UI to show logged-in state
         showProfileUI();
-        loadUserProfile();
+        
+        // Wait a bit for all data to be saved, then load profile
+        setTimeout(() => {
+          console.log('📊 Loading profile after signup...');
+          loadProfile(); // Use correct function name
+        }, 1000);
         
         // Prevent default redirect behavior
         return false;
@@ -4363,19 +4368,30 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       
       // Initialize Netlify Identity
       if (window.netlifyIdentity) {
+        // CRITICAL: Always show profile UI if we have auth data in localStorage
+        if (isAuthenticated) {
+          console.log('✅ User authenticated via localStorage');
+          showProfileUI();
+          
+          // Give Netlify Identity time to init, then load profile
+          setTimeout(() => {
+            loadProfile();
+          }, 500);
+        }
+        
         window.netlifyIdentity.init({
           namePlaceholder: 'Nickname'
         });
         
-        // Check if user is already logged in
+        // Check if user is already logged in (might be null right after signup)
         netlifyUser = window.netlifyIdentity.currentUser();
         
-        if (netlifyUser || isAuthenticated) {
-          console.log('✅ User authenticated:', netlifyUser?.email || localStorage.getItem('user_email'));
+        if (netlifyUser && !isAuthenticated) {
+          console.log('✅ User authenticated via Netlify Identity:', netlifyUser?.email);
           // For existing logged-in users, just load profile (don't redirect)
           showProfileUI();
           loadProfile();
-        } else {
+        } else if (!netlifyUser && !isAuthenticated) {
           console.log('❌ No user logged in');
           checkLocalStorage();
         }
@@ -4384,6 +4400,13 @@ function handleLoginSuccess(user, eventType = 'unknown') {
         setupEventListeners();
       } else {
         console.error('❌ Netlify Identity not loaded');
+        if (isAuthenticated) {
+          // If we have auth data but no Netlify Identity, still show profile
+          showProfileUI();
+          setTimeout(() => {
+            loadProfile();
+          }, 500);
+        }
       }
     });
 
