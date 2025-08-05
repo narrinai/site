@@ -978,7 +978,7 @@
       margin: 0 auto var(--spacing-2xl) auto;
       max-width: 800px;
       box-shadow: var(--shadow-md);
-      text-align: left;
+      text-align: center;
     }
 
     .welcome-story p {
@@ -2807,10 +2807,10 @@
       </div>
 
       <!-- Welcome Message Section -->
-      <div class="welcome-story">
+      <div class="welcome-story" id="welcome-story">
         <p>Welcome to Narrin.ai, where AI companions remember your stories and grow with every conversation. Experience genuine connections with <strong>50 free messages</strong>, including <strong>voice chat</strong> and <strong>voice notes</strong> powered by premium text-to-speech and speech-to-text technology. Start your journey today and discover companions who truly understand you.</p>
         
-        <a href="index.html" class="welcome-cta">Find Companions</a>
+        <a href="index.html" class="welcome-cta">Start Your AI Companion Journey</a>
       </div>
 
       <!-- Pricing Plans Section -->
@@ -4890,6 +4890,17 @@ async function loadProfile() {
     
     // Update pricing card
     updatePricingCard(userPlan);
+    
+    // Hide welcome story for paid users (Engage or Immerse plans)
+    const welcomeStory = document.getElementById('welcome-story');
+    if (welcomeStory) {
+      const planLower = userPlan.toLowerCase();
+      if (planLower === 'engage' || planLower === 'immerse') {
+        welcomeStory.style.display = 'none';
+      } else {
+        welcomeStory.style.display = 'block';
+      }
+    }
     
     // VEILIGE usage/quota verwerking
     let usage = 0;

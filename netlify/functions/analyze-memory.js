@@ -92,6 +92,35 @@ exports.handler = async (event, context) => {
       };
     }
     
+    // Content moderation - detect potentially inappropriate content
+    const inappropriatePatterns = [
+      /\b(squirm|pink folds|trembling beneath|teasing licks|fingertips)\b/i,
+      /\b(sexual|nude|nsfw|explicit)\b/i
+    ];
+    
+    const hasInappropriateContent = inappropriatePatterns.some(pattern => pattern.test(message));
+    
+    if (hasInappropriateContent) {
+      console.log('⚠️ Inappropriate content detected, using safe fallback');
+      
+      // Return a neutral analysis for inappropriate content
+      return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          success: true,
+          analysis: {
+            memory_importance: 1,
+            emotional_state: 'neutral',
+            summary: 'Casual conversation',
+            memory_tags: ['casual']
+          },
+          method: 'content_filtered',
+          message: 'Content filtered for safety'
+        })
+      };
+    }
+    
     // Fallback analysis als OpenAI niet beschikbaar is
     if (!OPENAI_API_KEY) {
       console.log('⚠️ No OpenAI API key, using rule-based analysis');
@@ -178,6 +207,10 @@ Respond only with valid JSON.`;
         max_tokens: 200,
         temperature: 0.3
       })
+    }).catch(fetchError => {
+      console.error('❌ Fetch to OpenAI failed:', fetchError.message);
+      console.error('❌ Stack trace:', fetchError.stack);
+      throw fetchError;
     });
     
     console.log('📨 OpenAI response status:', openAIResponse.status);
