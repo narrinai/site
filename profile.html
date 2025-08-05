@@ -2897,9 +2897,6 @@
                 <div class="active-badge">
                   ✓ Active Plan
                 </div>
-                <a href="#" class="downgrade-link" onclick="handleDowngrade(); return false;">
-                  Downgrade to Free
-                </a>
               </div>
             </div>
           </div>
@@ -2956,9 +2953,6 @@
                 <div class="active-badge">
                   ✓ Active Plan
                 </div>
-                <a href="#" class="downgrade-link" onclick="handleDowngrade(); return false;">
-                  Downgrade Plan
-                </a>
               </div>
             </div>
           </div>
@@ -5397,11 +5391,20 @@ function updatePricingCard(plan) {
         discoverButton.textContent = 'Cancel Subscription';
         discoverButton.disabled = false;
         discoverButton.classList.remove('current-plan');
-        discoverButton.classList.add('upgrade-button');
+        discoverButton.classList.add('upgrade-button', 'downgrade');
         discoverButton.onclick = () => handleDowngrade();
       }
+      
+      // Hide Engage button, show active badge
       if (engageButton) engageButton.style.display = 'none';
       if (engageActive) engageActive.style.display = 'block';
+      
+      // Show Immerse button as upgrade option
+      if (immerseButton) {
+        immerseButton.textContent = 'Upgrade to Immerse';
+        immerseButton.onclick = () => handleUpgrade('immerse');
+      }
+      
       console.log('✅ Showing Engage plan as active');
       
     } else if (planLower === 'immerse') {
@@ -5410,15 +5413,26 @@ function updatePricingCard(plan) {
         discoverButton.textContent = 'Cancel Subscription';
         discoverButton.disabled = false;
         discoverButton.classList.remove('current-plan');
-        discoverButton.classList.add('upgrade-button');
+        discoverButton.classList.add('upgrade-button', 'downgrade');
         discoverButton.onclick = () => handleDowngrade();
       }
+      
+      // Show Engage button as downgrade option
+      if (engageButton) {
+        engageButton.textContent = 'Change to Engage';
+        engageButton.classList.add('downgrade');
+        engageButton.onclick = () => handlePlanChange('engage');
+      }
+      
+      // Hide Immerse button, show active badge
       if (immerseButton) immerseButton.style.display = 'none';
       if (immerseActive) immerseActive.style.display = 'block';
+      
       console.log('✅ Showing Immerse plan as active');
       
     } else {
       // User has Free/Discover plan
+      // Keep default upgrade buttons
       console.log('📦 Showing upgrade options for free plan');
     }
   }
