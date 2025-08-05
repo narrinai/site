@@ -55,6 +55,17 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
+    /* Smooth scrolling */
+    html {
+      scroll-behavior: smooth;
+    }
+    
+    /* Scroll offset for fixed header */
+    #pricing-section,
+    #personal-info {
+      scroll-margin-top: 100px;
+    }
+    
     /* ===== NETLIFY IDENTITY CUSTOMIZATION ===== */
     .netlify-identity-widget iframe {
       border-radius: 24px !important;
@@ -927,6 +938,38 @@
       width: 100%;
     }
 
+    /* ===== PROFILE NAVIGATION ===== */
+    .profile-nav {
+      display: flex;
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-2xl);
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .nav-button {
+      flex: 1;
+      padding: var(--spacing-md) var(--spacing-xl);
+      background: var(--color-white);
+      border: 2px solid var(--color-light-gray);
+      border-radius: var(--radius-md);
+      text-align: center;
+      text-decoration: none;
+      color: var(--color-navy);
+      font-weight: 600;
+      font-size: var(--font-size-base);
+      transition: all var(--transition-base);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .nav-button:hover {
+      border-color: var(--color-teal);
+      background: var(--color-teal-light);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
     /* ===== WELCOME SECTION ===== */
     .welcome-section {
       background: var(--color-white);
@@ -937,68 +980,112 @@
       max-width: 1200px;
       margin-left: auto;
       margin-right: auto;
+      border: 2px solid var(--color-light-gray);
     }
 
-    .welcome-section h2 {
-      font-size: var(--font-size-3xl);
+    .welcome-header {
+      text-align: center;
+      margin-bottom: var(--spacing-2xl);
+    }
+
+    .welcome-tagline {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-md);
+      flex-wrap: wrap;
+    }
+
+    .gradient-text {
+      font-size: var(--font-size-2xl);
       font-weight: 800;
-      margin-bottom: var(--spacing-xl);
       background: var(--gradient-primary);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      text-align: center;
     }
 
-    .welcome-content {
-      color: var(--color-gray-dark);
-      font-size: var(--font-size-base);
-      line-height: 1.8;
+    .separator {
+      color: var(--color-light-gray);
+      font-size: var(--font-size-lg);
     }
 
-    .welcome-content p {
-      margin-bottom: var(--spacing-lg);
+    .subtext {
+      color: var(--color-gray);
+      font-size: var(--font-size-lg);
+      font-weight: 500;
     }
 
-    .welcome-features {
-      margin: var(--spacing-xl) 0;
+    .feature-grid {
       display: grid;
-      gap: var(--spacing-md);
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: var(--spacing-lg);
+      margin-bottom: var(--spacing-2xl);
     }
 
-    .welcome-features .feature-item {
+    .feature-card {
+      text-align: center;
+      padding: var(--spacing-lg);
+      border-radius: var(--radius-lg);
+      background: var(--color-light-bg);
+      transition: all var(--transition-base);
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .feature-icon-wrapper {
+      width: 60px;
+      height: 60px;
+      margin: 0 auto var(--spacing-md);
+      background: var(--color-teal-light);
+      border-radius: 50%;
       display: flex;
-      align-items: flex-start;
-      gap: var(--spacing-md);
-      padding: var(--spacing-sm) 0;
+      align-items: center;
+      justify-content: center;
     }
 
-    .welcome-features .feature-icon {
-      font-size: var(--font-size-xl);
-      flex-shrink: 0;
-      margin-top: 2px;
+    .feature-card .feature-icon {
+      font-size: var(--font-size-2xl);
     }
 
-    .welcome-features strong {
+    .feature-card h3 {
+      font-size: var(--font-size-lg);
+      font-weight: 700;
       color: var(--color-navy);
-      display: block;
       margin-bottom: var(--spacing-xs);
     }
 
-    .welcome-features span:not(.feature-icon):not(strong) {
+    .feature-card p {
       color: var(--color-gray);
       font-size: var(--font-size-sm);
-      display: block;
+      line-height: 1.5;
+      margin: 0;
     }
 
-    .welcome-footer {
-      margin-top: var(--spacing-xl);
-      padding-top: var(--spacing-lg);
-      border-top: 1px solid var(--color-light-gray);
+    .welcome-cta {
+      text-align: center;
     }
 
-    .welcome-footer strong {
-      color: var(--color-teal);
+    .free-tier-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      background: var(--gradient-primary);
+      color: white;
+      padding: var(--spacing-sm) var(--spacing-lg);
+      border-radius: var(--radius-full);
+      font-size: var(--font-size-sm);
+      box-shadow: 0 4px 14px rgba(20, 184, 166, 0.3);
+    }
+
+    .badge-icon {
+      font-size: var(--font-size-lg);
+    }
+
+    .badge-text strong {
       font-weight: 700;
     }
 
@@ -2772,44 +2859,66 @@
     </div>
     
     <div id="profile" style="display: none;">
+      <!-- Navigation Buttons -->
+      <div class="profile-nav">
+        <a href="#pricing-section" class="nav-button">Your Plan</a>
+        <a href="#personal-info" class="nav-button">Personal Information</a>
+      </div>
+
       <!-- Welcome Message Section -->
       <div class="welcome-section">
-        <h2>Welcome to Narrin.ai</h2>
-        <div class="welcome-content">
-          <p>Narrin.ai works hard to provide the best AI companionship experience out there. We are obsessed with high-quality conversations with strong memory and user & companion relationships.</p>
-          
-          <div class="welcome-features">
-            <div class="feature-item">
+        <div class="welcome-header">
+          <div class="welcome-tagline">
+            <span class="gradient-text">Premium AI Companionship</span>
+            <span class="separator">•</span>
+            <span class="subtext">Built by the community, for the community</span>
+          </div>
+        </div>
+        
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-icon-wrapper">
               <span class="feature-icon">🔒</span>
-              <strong>100% guaranteed privacy</strong>
-              <span>We don't sell our data like most of other sites do</span>
             </div>
-            <div class="feature-item">
-              <span class="feature-icon">👥</span>
-              <strong>Created by an active community who uses the platform daily</strong>
-            </div>
-            <div class="feature-item">
-              <span class="feature-icon">⚡</span>
-              <strong>Guaranteed 24/7 service</strong>
-            </div>
-            <div class="feature-item">
-              <span class="feature-icon">🎙️</span>
-              <strong>Top-notch Text to Speech (TTS) and Speech to Text (STT) through Elevenlabs</strong>
-            </div>
-            <div class="feature-item">
-              <span class="feature-icon">🤖</span>
-              <strong>High-quality conversational AI modelling tested continuously</strong>
-            </div>
+            <h3>100% Privacy</h3>
+            <p>Your data stays yours. No selling, no sharing.</p>
           </div>
           
-          <p class="welcome-footer">We don't believe in a messy and non-engaging experience. That's why we let every new user experience high-quality AI companionship with <strong>50 free chat messages</strong>, and <strong>3 voice chats</strong> and <strong>3 voice notes</strong>.</p>
+          <div class="feature-card">
+            <div class="feature-icon-wrapper">
+              <span class="feature-icon">🎙️</span>
+            </div>
+            <h3>Premium Voice</h3>
+            <p>ElevenLabs TTS & STT for natural conversations</p>
+          </div>
           
-          <p class="welcome-footer">To maintain this level of quality, we provide you with 2 additional plans to enrich your companionship experience with unlimited TTS and STT.</p>
+          <div class="feature-card">
+            <div class="feature-icon-wrapper">
+              <span class="feature-icon">🤖</span>
+            </div>
+            <h3>Advanced AI</h3>
+            <p>Continuously tested for quality conversations</p>
+          </div>
+          
+          <div class="feature-card">
+            <div class="feature-icon-wrapper">
+              <span class="feature-icon">⚡</span>
+            </div>
+            <h3>Always Online</h3>
+            <p>24/7 availability with guaranteed uptime</p>
+          </div>
+        </div>
+        
+        <div class="welcome-cta">
+          <div class="free-tier-badge">
+            <span class="badge-icon">🎁</span>
+            <span class="badge-text">Start free with <strong>50 messages</strong>, <strong>3 voice chats</strong> & <strong>3 voice notes</strong></span>
+          </div>
         </div>
       </div>
 
       <!-- Pricing Plans Section -->
-      <div class="pricing-container">
+      <div class="pricing-container" id="pricing-section">
         <h2 class="pricing-title">Choose Your Plan</h2>
         
         <div class="pricing-cards">
@@ -2959,7 +3068,7 @@
         </div>
       </div>
       
-      <div class="profile-content">
+      <div class="profile-content" id="personal-info">
         <!-- Account Information -->
         <div class="form-section">
           <h2>Account Information</h2>
@@ -5505,7 +5614,7 @@ function updatePricingCard(plan) {
     window.handleDowngrade = async function() {
       console.log('⬇️ Downgrade button clicked');
       
-      customConfirm('Are you sure you want to cancel your subscription? You will lose access to all features and your remaining messages.', 'Confirm Cancellation', () => {
+      customConfirm("Are you sure you want to cancel your subscription? You won't lose your character memories, we will store them for you safely. But you will lose access to your paid features.", 'Confirm Cancellation', () => {
         // Continue with downgrade logic
         performDowngrade();
       });
