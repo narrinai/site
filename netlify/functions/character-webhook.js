@@ -95,6 +95,26 @@ exports.handler = async (event, context) => {
     // Only forward character creation requests to Make.com
     if (requestBody.action === 'create_character') {
       console.log('📤 Forwarding character creation to Make.com');
+      console.log('📊 Request data:', {
+        hasUserEmail: !!requestBody.user_email,
+        hasUserUid: !!requestBody.user_uid,
+        userUidValue: requestBody.user_uid,
+        action: requestBody.action,
+        characterName: requestBody.name
+      });
+      
+      // Don't forward if no user_uid
+      if (!requestBody.user_uid || requestBody.user_uid === '') {
+        console.error('❌ Blocking request: No user_uid provided');
+        return {
+          statusCode: 401,
+          headers,
+          body: JSON.stringify({ 
+            error: 'Authentication required',
+            message: 'No user ID provided. Please log in and try again.'
+          })
+        };
+      }
       
       const makeResponse = await fetch('https://hook.eu2.make.com/c36jubkn9rbbqg0ovgfbx2ca1iwgf16q', {
         method: 'POST',
