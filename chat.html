@@ -7336,13 +7336,15 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       try {
         console.log('🎨 Starting background avatar generation...');
         
-        const response = await fetch('/.netlify/functions/generate-avatar-replicate', {
+        const response = await fetch('/.netlify/functions/generate-and-save-avatar', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             characterName: currentCharacter.name,
             characterTitle: currentCharacter.title || currentCharacter.Title || currentCharacter.Character_Title || currentCharacter.character_title || '',
-            category: currentCharacter.category || 'original'
+            category: currentCharacter.category || 'original',
+            characterId: currentCharacter.id || currentCharacter.Character_ID,
+            characterSlug: currentCharacter.slug || currentCharacter.Slug
           })
         });
         
