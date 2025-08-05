@@ -2983,7 +2983,11 @@
                     localStorage.getItem('user_email') ||
                     'unknown@email.com';
                     
-      const userId = user.id || user.user_metadata?.sub || email;
+      // Netlify Identity (including Google SSO) should provide user.id
+      const userId = user.id || user.user_metadata?.sub;
+      if (!userId) {
+        console.error('❌ No user.id from Netlify Identity - this should not happen!');
+      }
       
       console.log('💾 Storing authentication data for:', email);
       console.log('🔍 User object structure:', {
@@ -3675,7 +3679,11 @@ function handleLoginSuccess(user, eventType = 'unknown') {
     }
   });
   
-  const userId = user.id || user.user_metadata?.sub || email;
+  // Netlify Identity (including Google SSO) should provide user.id
+  const userId = user.id || user.user_metadata?.sub;
+  if (!userId) {
+    console.error('❌ No user.id from Netlify Identity - this should not happen!');
+  }
   
   console.log(`✅ handleLoginSuccess called for: ${email} (${eventType})`);
   

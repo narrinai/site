@@ -3460,8 +3460,14 @@
 
     async function handleLogin(user) {
       const email = user.email;
-      // Google login might not provide user.id, use email as fallback
-      const uid   = user.id || user.user_metadata?.full_name || email;
+      // Netlify Identity (including Google SSO) should always provide user.id
+      const uid = user.id;
+      
+      if (!uid) {
+        console.error('❌ No user.id provided by Netlify Identity - this should not happen!');
+        // Still use the ID if available, but log the issue
+      }
+      
       const token = user.token.access_token;
       
       console.log("🔍 handleLogin user object:", {
@@ -7487,9 +7493,8 @@ function initializeAuthenticationCheck() {
       
       // Set global auth state
       window.isAuthenticated = true;
-      // Ensure uid is never undefined
-      const validUid = uid || email;
-      window.currentUser = { email, uid: validUid, token };
+      // Use the stored uid as-is, it should be a proper Netlify ID
+      window.currentUser = { email, uid, token };
       
       return true;
     } else {
@@ -7513,11 +7518,10 @@ function initializeAuthenticationCheck() {
         localStorage.setItem('user_auth_timestamp', Date.now().toString());
         
         window.isAuthenticated = true;
-        // Ensure uid is never undefined for Netlify users too
-        const netlifyUid = netlifyUser.id || netlifyUser.email;
+        // Netlify users always have an id
         window.currentUser = { 
           email: netlifyUser.email, 
-          uid: netlifyUid, 
+          uid: netlifyUser.id, 
           token: accessToken 
         };
         
@@ -9659,9 +9663,14 @@ async function sendMessage(event) {
   const user_uid = localStorage.getItem("user_uid");
   const user_email = localStorage.getItem("user_email");
   
-  // Fallback: if uid is undefined, try to get it from localStorage or use email as fallback
+  // Fallback: if uid is undefined, try to get it from localStorage
   if (!uid || uid === 'undefined') {
-    uid = user_uid || user_email || email;
+    uid = user_uid;
+    if (!uid) {
+      console.error('❌ No valid UID found! This should not happen with Netlify Identity');
+      // Use a placeholder to prevent crashes, but this indicates a serious issue
+      uid = 'error_no_uid_' + Date.now();
+    }
     console.log('⚠️ UID was undefined, using fallback:', uid);
   }
   
