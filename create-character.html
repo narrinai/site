@@ -2747,49 +2747,8 @@
 </select>
        </div>
        
-       <div class="form-group">
-         <label>Tags <span style="font-size: var(--font-size-xs); color: var(--color-gray); font-weight: normal;">(Optional - Select up to 6)</span></label>
-         <div class="suggested-tags-section">
-           <div class="suggested-tags" id="suggestedTags">
-             <!-- Suggested tags will be generated here -->
-           </div>
-           <button type="button" class="more-tags-button" id="moreTagsButton">
-             Browse More Tags
-           </button>
-         </div>
-         <div class="tags-help">
-           Select up to 6 tags that best describe your character. These help others discover your character.
-         </div>
-         <div class="tags-preview" id="tagsPreview"></div>
-       </div>
      </div>
 
-     <!-- Tags Modal -->
-     <div class="tags-modal" id="tagsModal">
-       <div class="tags-modal-content">
-         <div class="tags-modal-header">
-           <h3>Browse Tags</h3>
-           <button type="button" class="close-modal" id="closeModalBtn">×</button>
-         </div>
-         
-         <div class="tags-modal-body">
-           <div class="common-tags-section">
-             <h4>🏷️ Available Tags</h4>
-             <div class="common-tags" id="commonTags"></div>
-           </div>
-         </div>
-         
-         <div class="tags-modal-footer">
-           <div class="selected-tags-preview">
-             <strong>Selected:</strong> <span id="selectedTagsPreview">None</span>
-           </div>
-           <div class="modal-buttons">
-             <button type="button" class="btn-secondary" id="cancelTagsBtn">Cancel</button>
-             <button type="button" class="btn-primary" id="applyTagsBtn">Apply Tags</button>
-           </div>
-         </div>
-       </div>
-     </div>
 
      <!-- Visibility -->
      <div class="form-section">
@@ -2840,7 +2799,6 @@
 
  <script>
    // Global variables
-   let selectedTags = [];
    let currentAvatarUrl = '';
    let pendingCharacterData = null;
    
@@ -3792,12 +3750,6 @@ function handleRedirectAfterLogin() {
           personalityState = characterData.personalityState;
         }
         
-        // Restore tags
-        if (characterData.tags && Array.isArray(characterData.tags)) {
-          selectedTags = characterData.tags;
-          updateTagsPreview();
-          updateSuggestedTagsSelection();
-        }
         
         // Show success message
         showSuccess('Welcome back! Your character data has been restored.', 'Data Restored');
@@ -3951,270 +3903,8 @@ function handleRedirectAfterLogin() {
      });
    }
 
-   // ===== EXISTING FUNCTIONALITY (TAGS, AVATAR, ETC.) =====
-   
-   // Tags functionality
-   let allTags = [];
-   let modalSelectedTags = [];
+   // ===== EXISTING FUNCTIONALITY (AVATAR, ETC.) =====
 
-   // Load tags from Airtable
-   async function loadTags() {
-     try {
-       console.log('🏷️ Loading tags from Airtable...');
-       
-       const requestData = {
-         action: 'get_tags'
-       };
-       
-       const response = await fetch('/.netlify/functions/character-webhook', {
-         method: 'POST',
-         headers: {
-           'Content-Type': 'application/json'
-         },
-         body: JSON.stringify(requestData)
-       });
-
-       if (!response.ok) {
-         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-       }
-
-       const responseText = await response.text();
-       let data = {};
-       
-       if (responseText && responseText.trim() !== '') {
-         try {
-           data = JSON.parse(responseText);
-         } catch (parseError) {
-           throw new Error('Invalid JSON response from tags API');
-         }
-       }
-       
-       if (data.tags && Array.isArray(data.tags)) {
-         allTags = data.tags;
-         generateSuggestedTags();
-         populateTagsModal();
-       } else {
-         useFallbackTags();
-       }
-     } catch (error) {
-       console.error('❌ Error loading tags:', error);
-       useFallbackTags();
-     }
-   }
-
-   // Fallback tags if Airtable fails
-function useFallbackTags() {
-  allTags = [
-    'academic', 'action', 'actor', 'advancement', 'adventure', 'ancient', 'arcade', 'artist', 
-    'artistic', 'artistic-block', 'athletic', 'awareness', 'baking', 'balance', 'brainstorming', 
-    'calm', 'cardio', 'chef', 'comedy', 'communication', 'concept', 'connection', 'conversation', 
-    'cooking', 'corporate', 'creative', 'cuisine', 'culinary', 'culture', 'custom', 'dating', 
-    'design', 'detective', 'development', 'digital', 'divine', 'documentary', 'drama', 'efficient', 
-    'empathy', 'emperor', 'entertainment', 'entrepreneur', 'epic', 'exam-prep', 'exercise', 
-    'experimental', 'expression', 'famous', 'fantasy', 'fluency', 'focus', 'folklore', 'food', 
-    'fps', 'friendly', 'friendship', 'gen-z', 'goals', 'god', 'goddess', 'grammar', 'growth', 'guidance', 
-    'health', 'helpful', 'hero', 'hollywood', 'horror', 'humor', 'imagination', 'imaginative', 'indie', 
-    'influencer', 'ingredients', 'inner-peace', 'innovation', 'innovative', 'inspiration', 
-    'interview', 'job-search', 'josei', 'king', 'kitchen', 'knowledge', 'knowledgeable', 'leader', 
-    'leadership', 'learning', 'legend', 'love', 'magic', 'management', 'marriage', 'mecha', 
-    'medieval', 'meditation', 'mentor', 'middle-aged', 'military', 'mindset', 'mmorpg', 'modern', 'motivation', 
-    'multilingual', 'musician', 'mystery', 'mystical', 'myth', 'networking', 'ninja', 'note-taking', 
-    'nutrition', 'older', 'organization', 'parody', 'peaceful', 'personal', 'personal-growth', 'platformer', 
-    'politician', 'pop-culture', 'positive', 'present', 'productivity', 'professional', 'professor', 
-    'pronunciation', 'puzzle', 'recipe', 'renaissance', 'research', 'resume', 'revolutionary', 
-    'romance', 'rpg', 'samurai', 'school', 'sci-fi', 'science', 'science-fiction', 'seinen', 
-    'self-improvement', 'series', 'shoujo', 'shounen', 'simulation', 'singer', 'skills', 'smart', 
-    'social', 'spiritual', 'star', 'strategy', 'strength', 'stress-relief', 'study', 'study-tips', 
-    'success', 'superhero', 'supernatural', 'support', 'supportive', 'teacher', 'tech', 'thriller', 
-    'time-management', 'training', 'tutor', 'understanding', 'unique', 'villain', 'vision', 
-    'vocabulary', 'warrior', 'wellness', 'wizard', 'workout', 'workplace', 'writing-coach', 'zen'
-  ];
-  generateSuggestedTags();
-  populateTagsModal();
-}
-
-   // Generate suggested tags based on category
-function generateSuggestedTags() {
-  const category = document.getElementById('characterCategory').value;
-  let suggested = [];
-  
-  // Category-based suggestions
-  const categoryTags = {
-    'historical': ['ancient', 'leader', 'emperor', 'king', 'warrior', 'revolutionary'],
-    'anime-manga': ['shounen', 'shoujo', 'seinen', 'action', 'romance', 'school'],
-    'mythology': ['god', 'goddess', 'legend', 'myth', 'divine', 'epic'],
-    'fictional': ['creative', 'imaginative', 'fantasy', 'adventure', 'unique', 'artistic'],
-    'gaming': ['rpg', 'fps', 'mmorpg', 'strategy', 'adventure', 'action'],
-    'relationship': ['communication', 'love', 'dating', 'friendship', 'empathy', 'support'],
-    'career': ['professional', 'advancement', 'interview', 'networking', 'success', 'development'],
-    'fitness': ['workout', 'training', 'health', 'exercise', 'strength', 'motivation'],
-    'mindfulness': ['meditation', 'zen', 'peaceful', 'calm', 'balance', 'inner-peace'],
-    'business': ['leadership', 'entrepreneur', 'strategy', 'success', 'professional', 'growth'],
-    'health': ['wellness', 'nutrition', 'healthy', 'healing', 'medical', 'lifestyle'],
-    'spiritual': ['spiritual', 'enlightened', 'peaceful', 'wise', 'transcendent', 'divine'],
-    'cooking': ['culinary', 'chef', 'delicious', 'gourmet', 'recipes', 'kitchen'],
-    'negotiation': ['diplomatic', 'persuasive', 'strategic', 'analytical', 'skilled', 'professional'],
-    'education': ['teacher', 'knowledgeable', 'patient', 'educational', 'informative', 'helpful']
-  };
-  
-  if (category && categoryTags[category]) {
-    suggested = categoryTags[category];
-  } else {
-    // Default suggestions
-    suggested = ['friendly', 'helpful', 'creative', 'supportive'];
-  }
-  
-  // Filter to only include tags that exist in allTags
-  suggested = suggested.filter(tag => allTags.includes(tag));
-  
-  // Add some random popular tags if we don't have enough
-  if (suggested.length < 4) {
-    const popularTags = ['helpful', 'friendly', 'creative', 'supportive', 'smart', 'funny'].filter(tag => 
-      allTags.includes(tag) && !suggested.includes(tag)
-    );
-    suggested = [...suggested, ...popularTags].slice(0, 6);
-  }
-  
-  displaySuggestedTags(suggested);
-}
-
-   // Display suggested tags
-   function displaySuggestedTags(tags) {
-     const container = document.getElementById('suggestedTags');
-     container.innerHTML = '';
-     
-     tags.forEach(tag => {
-       const tagElement = document.createElement('div');
-       tagElement.className = 'suggested-tag';
-       tagElement.textContent = tag;
-       tagElement.onclick = () => toggleSuggestedTag(tagElement, tag);
-       
-       if (selectedTags.includes(tag)) {
-         tagElement.classList.add('selected');
-       }
-       
-       container.appendChild(tagElement);
-     });
-   }
-
-   // Toggle suggested tag
-   function toggleSuggestedTag(element, tag) {
-     if (selectedTags.includes(tag)) {
-       selectedTags = selectedTags.filter(t => t !== tag);
-       element.classList.remove('selected');
-     } else {
-       if (selectedTags.length < 6) {
-         selectedTags.push(tag);
-         element.classList.add('selected');
-       } else {
-         showWarning('You can select up to 6 tags maximum.', 'Tag Limit Reached');
-         return;
-       }
-     }
-     updateTagsPreview();
-     updatePreview();
-   }
-
-   // Populate tags modal
-   function populateTagsModal() {
-     const container = document.getElementById('commonTags');
-     container.innerHTML = '';
-     
-     allTags.forEach(tag => {
-       const tagElement = document.createElement('div');
-       tagElement.className = 'tag-option';
-       tagElement.textContent = tag;
-       tagElement.onclick = () => toggleModalTag(tagElement, tag);
-       container.appendChild(tagElement);
-     });
-   }
-
-   // Toggle modal tag
-   function toggleModalTag(element, tag) {
-     if (modalSelectedTags.includes(tag)) {
-       modalSelectedTags = modalSelectedTags.filter(t => t !== tag);
-       element.classList.remove('selected');
-     } else {
-       if (modalSelectedTags.length < 6) {
-         modalSelectedTags.push(tag);
-         element.classList.add('selected');
-       } else {
-         showWarning('You can select up to 6 tags maximum.', 'Tag Limit Reached');
-         return;
-       }
-     }
-     updateModalPreview();
-   }
-
-   // Update modal preview
-   function updateModalPreview() {
-     const preview = document.getElementById('selectedTagsPreview');
-     preview.textContent = modalSelectedTags.length > 0 ? modalSelectedTags.join(', ') : 'None';
-   }
-
-   // Update tags preview
-   function updateTagsPreview() {
-     const container = document.getElementById('tagsPreview');
-     container.innerHTML = '';
-     
-     selectedTags.forEach(tag => {
-       const tagElement = document.createElement('div');
-       tagElement.className = 'tag';
-       tagElement.textContent = tag;
-       container.appendChild(tagElement);
-     });
-   }
-
-   // Modal functionality
-   document.getElementById('moreTagsButton').onclick = () => {
-     modalSelectedTags = [...selectedTags];
-     updateModalTagsSelection();
-     updateModalPreview();
-     document.getElementById('tagsModal').style.display = 'block';
-   };
-
-   document.getElementById('closeModalBtn').onclick = () => {
-     document.getElementById('tagsModal').style.display = 'none';
-   };
-
-   document.getElementById('cancelTagsBtn').onclick = () => {
-     document.getElementById('tagsModal').style.display = 'none';
-   };
-
-   document.getElementById('applyTagsBtn').onclick = () => {
-     selectedTags = [...modalSelectedTags];
-     updateTagsPreview();
-     updateSuggestedTagsSelection();
-     updatePreview();
-     document.getElementById('tagsModal').style.display = 'none';
-   };
-
-   // Update modal tags selection
-   function updateModalTagsSelection() {
-     document.querySelectorAll('.tag-option').forEach(element => {
-       const tag = element.textContent;
-       if (modalSelectedTags.includes(tag)) {
-         element.classList.add('selected');
-       } else {
-         element.classList.remove('selected');
-       }
-     });
-   }
-
-   // Update suggested tags selection
-   function updateSuggestedTagsSelection() {
-     document.querySelectorAll('.suggested-tag').forEach(element => {
-       const tag = element.textContent;
-       if (selectedTags.includes(tag)) {
-         element.classList.add('selected');
-       } else {
-         element.classList.remove('selected');
-       }
-     });
-   }
-
-   // Category change handler
-   document.getElementById('characterCategory').addEventListener('change', generateSuggestedTags);
 
 // Add debugging for user data
 function debugUserData() {
@@ -4383,18 +4073,8 @@ function updatePromptCounter() {
        previewAvatar.innerHTML = '👤';
      }
      
-     // Update tags
-     const previewTags = document.getElementById('previewTags');
-     previewTags.innerHTML = '';
-     selectedTags.forEach(tag => {
-       const tagElement = document.createElement('div');
-       tagElement.className = 'preview-tag';
-       tagElement.textContent = tag;
-       previewTags.appendChild(tagElement);
-     });
-     
      // Show preview if there's content
-     const hasContent = name !== 'Character Name' || title !== 'Character title will appear here' || selectedTags.length > 0;
+     const hasContent = name !== 'Character Name' || title !== 'Character title will appear here';
      document.getElementById('previewSection').style.display = hasContent ? 'block' : 'none';
    }
 
@@ -4656,7 +4336,6 @@ document.addEventListener('DOMContentLoaded', () => {
   setupCustomQuirks();
   setupPromptActions();
   setupVoiceTest();
-  loadTags();
   
   // Initialize preview
   updatePreview();
@@ -4870,7 +4549,6 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
     description: document.getElementById('characterDescription').value.trim(),
     prompt: document.getElementById('characterPrompt').value.trim(),
     category: document.getElementById('characterCategory').value,
-    tags: selectedTags,
     visibility: document.querySelector('input[name="visibility"]:checked').value,
     avatarUrl: currentAvatarUrl
   };
@@ -4899,7 +4577,6 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
     description: document.getElementById('characterDescription').value.trim(),
     prompt: document.getElementById('characterPrompt').value.trim(),
     category: document.getElementById('characterCategory').value,
-    tags: selectedTags,
     visibility: document.querySelector('input[name="visibility"]:checked').value,
     avatarUrl: currentAvatarUrl,
     
@@ -4910,7 +4587,6 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
       description: document.getElementById('characterDescription').value.trim(), 
       prompt: document.getElementById('characterPrompt').value.trim(),
       category: document.getElementById('characterCategory').value,
-      tags: selectedTags,
       visibility: document.querySelector('input[name="visibility"]:checked').value,
       avatar_url: currentAvatarUrl || ''
     }
@@ -5086,8 +4762,6 @@ console.log('🔗 Generated slug:', slug);
       Prompt: formData.prompt,  // Also send with exact Airtable field name
       category: formData.category,
       Category: formData.category,  // Also send with exact Airtable field name
-      tags: selectedTags && selectedTags.length > 0 ? selectedTags.map(tag => tag.toLowerCase()).join(',') : '',
-      Tags: selectedTags && selectedTags.length > 0 ? selectedTags : [],  // Send as array for Airtable
       visibility: formData.visibility,
       Visibility: formData.visibility,  // Also send with exact Airtable field name
 avatar_url: formData.avatarUrl,      
