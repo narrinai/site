@@ -3013,11 +3013,35 @@
         email = localStorage.getItem('user_email') || 'unknown@email.com';
       }
                     
-      // Netlify Identity ALWAYS provides user.id for all auth methods (including Google SSO)
-      const userId = user.id;
+      // Netlify Identity user object structure can vary - extract ID properly
+      let userId = user.id;
+      
+      // If user.id is not directly available, extract from JWT token
+      if (!userId && user.token?.access_token) {
+        try {
+          const tokenParts = user.token.access_token.split('.');
+          const payload = JSON.parse(atob(tokenParts[1]));
+          userId = payload.sub; // 'sub' field contains the user ID
+          console.log('✅ Extracted user ID from JWT:', userId);
+          
+          // Also get email from JWT if not found earlier
+          if ((!email || email === 'unknown@email.com') && payload.email) {
+            email = payload.email;
+            console.log('✅ Also found email in JWT:', email);
+          }
+        } catch (e) {
+          console.error('❌ Failed to parse JWT:', e);
+        }
+      }
+      
+      // Another fallback - check for _id property
+      if (!userId && user._id) {
+        userId = user._id;
+      }
+      
       if (!userId) {
-        console.error('❌ CRITICAL: No user.id from Netlify Identity - this should never happen!');
-        console.error('❌ User object:', user);
+        console.error('❌ CRITICAL: Could not extract user ID from Netlify Identity');
+        console.error('❌ User object structure:', Object.keys(user));
         return; // Don't continue without a valid user ID
       }
       
@@ -3742,11 +3766,35 @@ function handleLoginSuccess(user, eventType = 'unknown') {
     }
   });
   
-  // Netlify Identity ALWAYS provides user.id for all auth methods (including Google SSO)
-  const userId = user.id;
+  // Netlify Identity user object structure can vary - extract ID properly
+  let userId = user.id;
+  
+  // If user.id is not directly available, extract from JWT token
+  if (!userId && user.token?.access_token) {
+    try {
+      const tokenParts = user.token.access_token.split('.');
+      const payload = JSON.parse(atob(tokenParts[1]));
+      userId = payload.sub; // 'sub' field contains the user ID
+      console.log('✅ Extracted user ID from JWT:', userId);
+      
+      // Also get email from JWT if not found earlier
+      if ((!email || email === 'unknown@email.com') && payload.email) {
+        email = payload.email;
+        console.log('✅ Also found email in JWT:', email);
+      }
+    } catch (e) {
+      console.error('❌ Failed to parse JWT:', e);
+    }
+  }
+  
+  // Another fallback - check for _id property
+  if (!userId && user._id) {
+    userId = user._id;
+  }
+  
   if (!userId) {
-    console.error('❌ CRITICAL: No user.id from Netlify Identity - this should never happen!');
-    console.error('❌ User object:', user);
+    console.error('❌ CRITICAL: Could not extract user ID from Netlify Identity');
+    console.error('❌ User object structure:', Object.keys(user));
     return; // Don't continue without a valid user ID
   }
   
@@ -4081,7 +4129,22 @@ function handleLoginSuccess(user, eventType = 'unknown') {
             }
           }
           
-          const userId = user.id;
+          // Extract user ID - might need to parse from JWT
+          let userId = user.id;
+          if (!userId && user.token?.access_token) {
+            try {
+              const tokenParts = user.token.access_token.split('.');
+              const payload = JSON.parse(atob(tokenParts[1]));
+              userId = payload.sub;
+              // Also try to get email from JWT
+              if (email === 'unknown@email.com' && payload.email) {
+                email = payload.email;
+              }
+            } catch (e) {
+              console.error('❌ Failed to parse JWT in signup:', e);
+            }
+          }
+          
           const accessToken = user.token?.access_token || user.access_token || 'temp-token';
           
           console.log('💾 Manually storing auth data for signup:', {
