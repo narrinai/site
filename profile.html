@@ -2976,18 +2976,52 @@
         userEmail: user?.email
       });
       
-      const email = user.email || 
-                    user.user_metadata?.email || 
-                    user.user_metadata?.email_address ||
-                    user.app_metadata?.email ||
-                    localStorage.getItem('user_email') ||
-                    'unknown@email.com';
-                    
-      // Netlify Identity (including Google SSO) should provide user.id
-      const userId = user.id || user.user_metadata?.sub;
-      if (!userId) {
-        console.error('❌ No user.id from Netlify Identity - this should not happen!');
+      // ENHANCED: For Google SSO, check all possible email locations
+      let email = null;
+      
+      // Try all possible email locations in order of preference
+      const emailSources = [
+        user.email,
+        user.user_metadata?.email,
+        user.user_metadata?.email_address,
+        user.user_metadata?.full_name, // Sometimes Google puts email in full_name
+        user.app_metadata?.email,
+        user.app_metadata?.provider_data?.email
+      ];
+      
+      // Find first valid email
+      for (const source of emailSources) {
+        if (source && source.includes('@')) {
+          email = source;
+          console.log('✅ Found email from source:', source);
+          break;
+        }
       }
+      
+      // If still no email, try to extract from any field that might contain it
+      if (!email) {
+        const userString = JSON.stringify(user);
+        const emailMatch = userString.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+        if (emailMatch) {
+          email = emailMatch[0];
+          console.log('✅ Extracted email from user data:', email);
+        }
+      }
+      
+      // Final fallback
+      if (!email) {
+        email = localStorage.getItem('user_email') || 'unknown@email.com';
+      }
+                    
+      // Netlify Identity ALWAYS provides user.id for all auth methods (including Google SSO)
+      const userId = user.id;
+      if (!userId) {
+        console.error('❌ CRITICAL: No user.id from Netlify Identity - this should never happen!');
+        console.error('❌ User object:', user);
+        return; // Don't continue without a valid user ID
+      }
+      
+      console.log('✅ Got Netlify UID:', userId);
       
       console.log('💾 Storing authentication data for:', email);
       console.log('🔍 User object structure:', {
@@ -3662,13 +3696,42 @@ function handleLoginSuccess(user, eventType = 'unknown') {
     userAgent: navigator.userAgent
   });
   
-  // Try more locations for email
-  const email = user.email || 
-                user.user_metadata?.email || 
-                user.user_metadata?.email_address ||
-                user.app_metadata?.email ||
-                localStorage.getItem('user_email') ||
-                'unknown@email.com';
+  // ENHANCED: For Google SSO, check all possible email locations
+  let email = null;
+  
+  // Try all possible email locations in order of preference
+  const emailSources = [
+    user.email,
+    user.user_metadata?.email,
+    user.user_metadata?.email_address,
+    user.user_metadata?.full_name, // Sometimes Google puts email in full_name
+    user.app_metadata?.email,
+    user.app_metadata?.provider_data?.email
+  ];
+  
+  // Find first valid email
+  for (const source of emailSources) {
+    if (source && source.includes('@')) {
+      email = source;
+      console.log('✅ Found email from source:', source);
+      break;
+    }
+  }
+  
+  // If still no email, try to extract from any field that might contain it
+  if (!email) {
+    const userString = JSON.stringify(user);
+    const emailMatch = userString.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+    if (emailMatch) {
+      email = emailMatch[0];
+      console.log('✅ Extracted email from user data:', email);
+    }
+  }
+  
+  // Final fallback
+  if (!email) {
+    email = localStorage.getItem('user_email') || 'unknown@email.com';
+  }
                 
   console.log('📧 Email resolution:', {
     finalEmail: email,
@@ -3679,11 +3742,15 @@ function handleLoginSuccess(user, eventType = 'unknown') {
     }
   });
   
-  // Netlify Identity (including Google SSO) should provide user.id
-  const userId = user.id || user.user_metadata?.sub;
+  // Netlify Identity ALWAYS provides user.id for all auth methods (including Google SSO)
+  const userId = user.id;
   if (!userId) {
-    console.error('❌ No user.id from Netlify Identity - this should not happen!');
+    console.error('❌ CRITICAL: No user.id from Netlify Identity - this should never happen!');
+    console.error('❌ User object:', user);
+    return; // Don't continue without a valid user ID
   }
+  
+  console.log('✅ Got Netlify UID:', userId);
   
   console.log(`✅ handleLoginSuccess called for: ${email} (${eventType})`);
   
