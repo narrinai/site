@@ -4883,6 +4883,12 @@ async function loadProfile() {
     const userPlan = data?.plan || 'Free';
     setField('plan', userPlan);
     
+    // Save stripe_customer_id to localStorage if available
+    if (data?.stripe_customer_id) {
+      localStorage.setItem('stripe_customer_id', data.stripe_customer_id);
+      console.log('💳 Stripe customer ID saved:', data.stripe_customer_id);
+    }
+    
     // Update pricing card
     updatePricingCard(userPlan);
     
