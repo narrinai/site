@@ -4993,24 +4993,22 @@ async function loadProfile() {
       // User just completed Stripe checkout - use URL plan as most recent
       const capitalizedUrlPlan = urlPlan.charAt(0).toUpperCase() + urlPlan.slice(1);
       console.log(`🎉 Stripe checkout success - using URL plan "${capitalizedUrlPlan}" instead of Airtable plan "${userPlan}"`);
-      userPlan = capitalizedUrlPlan;
       
-      // Update localStorage to match
-      localStorage.setItem('user_plan', capitalizedUrlPlan);
-      
-      // Clear any old cancellation data since this is a fresh subscription
+      // FORCE clear ALL plan-related localStorage first
+      localStorage.removeItem('user_plan');
       localStorage.removeItem('subscription_cancel_at');
       localStorage.removeItem('cancelled_plan_type');
-      localStorage.removeItem('user_plan'); // Clear any stuck Free plan
-      
-      // Force clear any stale localStorage to prevent bugs
       localStorage.removeItem('justDowngraded');
       
-      // Set the new plan
+      // Set the new plan fresh
+      userPlan = capitalizedUrlPlan;
       localStorage.setItem('user_plan', capitalizedUrlPlan);
       
-      console.log('🧹 Cleared old cancellation data after successful checkout');
+      console.log('🧹 Cleared ALL old plan data');
       console.log('✅ Force set plan to:', capitalizedUrlPlan);
+      
+      // IMPORTANT: Ignore any conflicting data from Airtable/localStorage
+      // URL parameter is the source of truth after Stripe checkout
       
     } else if (downgradeSuccess === 'success') {
       // User just completed downgrade - force plan to Free
@@ -5022,20 +5020,19 @@ async function loadProfile() {
       console.log('📱 Updated localStorage to Free after downgrade');
       
     } else if (localPlan && localPlan !== userPlan) {
-      // Check if localStorage has outdated Free plan while Airtable shows paid plan
-      if (localPlan === 'Free' && (userPlan === 'Engage' || userPlan === 'Immerse')) {
-        console.log(`🔄 Airtable shows paid plan "${userPlan}", clearing outdated localStorage "Free"`);
+      // ALWAYS clear conflicting localStorage when it doesn't match Airtable
+      console.log(`⚠️ Conflict: localStorage="${localPlan}" vs Airtable="${userPlan}"`);
+      
+      // If URL has no special parameters, trust Airtable over localStorage
+      if (!upgradeSuccess && !downgradeSuccess) {
+        console.log(`🔄 No URL params - using Airtable plan "${userPlan}" and clearing localStorage`);
         localStorage.removeItem('user_plan');
-        
-        // Also clear cancellation data since user has active paid plan
         localStorage.removeItem('subscription_cancel_at');
         localStorage.removeItem('cancelled_plan_type');
-        console.log('🧹 Cleared cancellation data - user has active paid plan');
-        
-        // Use Airtable plan (paid plan takes precedence)
+        // Use Airtable plan
       } else {
-        // For other cases, use localStorage
-        console.log(`📱 Using localStorage plan "${localPlan}" instead of Airtable plan "${userPlan}"`);
+        // Only during active upgrade/downgrade, use localStorage
+        console.log(`📱 Active operation - keeping localStorage plan "${localPlan}"`);
         userPlan = localPlan;
       }
     }
