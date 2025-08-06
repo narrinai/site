@@ -5723,7 +5723,7 @@ function updatePricingCard(plan) {
                 source: 'plan_change'
               };
               
-              console.log('📤 Updating Airtable with new plan:', updatePayload);
+              console.log('📤 Updating Airtable with new plan:', JSON.stringify(updatePayload, null, 2));
               
               const airtableResponse = await fetch('https://hook.eu2.make.com/p4qk5bzmdq987erwlo0g0bjv2xvgb5mt', {
                 method: 'POST',
@@ -5755,6 +5755,13 @@ function updatePricingCard(plan) {
             
           } catch (error) {
             console.error('❌ Plan change error:', error);
+            console.error('❌ Error details:', {
+              message: error.message,
+              stack: error.stack,
+              targetPlan: targetPlan,
+              stripeCustomerId: stripeCustomerId,
+              uid: uid
+            });
             showError(`Failed to change plan: ${error.message}`);
           } finally {
             hideLoading();
