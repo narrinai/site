@@ -5557,6 +5557,8 @@ function updatePricingCard(plan) {
     function showCancellationNotice(cancelAtDate, planType) {
       if (!cancelAtDate) return;
       
+      console.log('📅 showCancellationNotice called with:', { cancelAtDate, planType });
+      
       // Convert timestamp to date if needed
       let date;
       if (typeof cancelAtDate === 'number' || /^\d+$/.test(cancelAtDate)) {
@@ -5569,21 +5571,35 @@ function updatePricingCard(plan) {
       const options = { month: 'short', day: 'numeric' };
       const formattedDate = date.toLocaleDateString('en-US', options);
       
-      // Show notice for the appropriate plan
-      if (planType === 'Engage') {
-        const notice = document.getElementById('engageCancelNotice');
-        const dateEl = document.getElementById('engageCancelDate');
-        if (notice && dateEl) {
-          dateEl.textContent = formattedDate;
-          notice.style.display = 'block';
+      console.log('📅 Formatted date:', formattedDate);
+      
+      // Show notice - try Engage first (most common downgrade), then Immerse as fallback
+      let noticeShown = false;
+      
+      // Try Engage notice first
+      const engageNotice = document.getElementById('engageCancelNotice');
+      const engageDateEl = document.getElementById('engageCancelDate');
+      if (engageNotice && engageDateEl) {
+        engageDateEl.textContent = formattedDate;
+        engageNotice.style.display = 'block';
+        noticeShown = true;
+        console.log('✅ Engage cancellation notice shown');
+      }
+      
+      // If no Engage notice, try Immerse notice
+      if (!noticeShown) {
+        const immerseCancelNotice = document.getElementById('immerseCancelNotice');
+        const immerseDateEl = document.getElementById('immerseCancelDate');
+        if (immerseCancelNotice && immerseDateEl) {
+          immerseDateEl.textContent = formattedDate;
+          immerseCancelNotice.style.display = 'block';
+          noticeShown = true;
+          console.log('✅ Immerse cancellation notice shown');
         }
-      } else if (planType === 'Immerse') {
-        const notice = document.getElementById('immerseCancelNotice');
-        const dateEl = document.getElementById('immerseCancelDate');
-        if (notice && dateEl) {
-          dateEl.textContent = formattedDate;
-          notice.style.display = 'block';
-        }
+      }
+      
+      if (!noticeShown) {
+        console.log('❌ No cancellation notice elements found in DOM');
       }
     }
 
