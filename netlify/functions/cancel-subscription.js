@@ -88,7 +88,9 @@ exports.handler = async (event, context) => {
         cancelledSubscriptions.push({
           id: cancelled.id,
           cancel_at: cancelled.cancel_at,
-          current_period_end: cancelled.current_period_end
+          current_period_end: cancelled.current_period_end,
+          cancel_at_timestamp: cancelled.cancel_at,
+          cancel_at_date: new Date(cancelled.cancel_at * 1000).toISOString()
         });
         
         console.log(`✅ Subscription ${subscription.id} will cancel at period end`);
