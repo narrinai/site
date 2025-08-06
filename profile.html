@@ -5705,6 +5705,17 @@ function updatePricingCard(plan) {
         }
         
         // Then: Call webhook to handle downgrade in database
+        let cancelAt = localStorage.getItem('subscription_cancel_at');
+        
+        // If no cancel_at from Stripe, set to end of current month for manual downgrade
+        if (!cancelAt && !stripeCustomerId) {
+          const endOfMonth = new Date();
+          endOfMonth.setMonth(endOfMonth.getMonth() + 1, 0); // Last day of current month
+          endOfMonth.setHours(23, 59, 59, 999); // End of day
+          cancelAt = endOfMonth.toISOString();
+          console.log('⏰ Setting manual downgrade expiry to end of month:', cancelAt);
+        }
+        
         const payload = {
   type: 'customer.subscription.deleted',
   netlifyuid: uid,           // Use netlifyuid as primary identifier
@@ -5719,7 +5730,9 @@ function updatePricingCard(plan) {
     }
   },
   action: 'manual_downgrade',
-  source: 'profile_page'
+  source: 'profile_page',
+  cancel_at: cancelAt,       // Include cancel_at date if available
+  subscription_status: 'cancelled'
 };
         
         console.log('📡 Sending downgrade request...');
