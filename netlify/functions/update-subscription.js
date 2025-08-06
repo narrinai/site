@@ -65,12 +65,27 @@ exports.handler = async (event, context) => {
     
     console.log('🔍 Looking up subscriptions for customer:', customer_id);
 
+    // Get all subscriptions for this customer to debug
+    const allSubscriptions = await stripe.subscriptions.list({
+      customer: customer_id,
+      limit: 10
+    });
+    
+    console.log('🔍 All subscriptions for customer:', allSubscriptions.data.map(sub => ({
+      id: sub.id,
+      status: sub.status,
+      price_id: sub.items.data[0].price.id,
+      created: new Date(sub.created * 1000).toISOString()
+    })));
+    
     // Get active subscriptions for this customer
     const subscriptions = await stripe.subscriptions.list({
       customer: customer_id,
       status: 'active',
-      limit: 1
+      limit: 5 // Get more to see if there are multiple
     });
+    
+    console.log('📊 Active subscriptions found:', subscriptions.data.length);
 
     if (subscriptions.data.length === 0) {
       return {
@@ -86,10 +101,13 @@ exports.handler = async (event, context) => {
     const subscription = subscriptions.data[0];
     const currentPriceId = subscription.items.data[0].price.id;
 
-    console.log('📊 Current subscription:', {
+    console.log('📊 Current subscription details:', {
       id: subscription.id,
+      status: subscription.status,
       current_price: currentPriceId,
-      new_price: newPriceId
+      new_price: newPriceId,
+      customer: subscription.customer,
+      metadata: subscription.metadata
     });
 
     // Check if already on the requested plan
