@@ -2163,6 +2163,9 @@
       font-weight: 700;
       color: var(--color-navy);
       margin-bottom: var(--spacing-md);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .notification-message {
@@ -2191,14 +2194,15 @@
     }
 
     .notification-btn.primary {
-      background: var(--gradient-primary);
+      background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%);
       color: var(--color-white);
-      box-shadow: var(--shadow-colored);
+      box-shadow: 0 10px 25px -5px rgba(249, 115, 22, 0.3);
     }
 
     .notification-btn.primary:hover {
       transform: translateY(-2px);
-      box-shadow: var(--shadow-lg);
+      box-shadow: 0 15px 30px -5px rgba(249, 115, 22, 0.4);
+      background: linear-gradient(135deg, #fb923c 0%, #dc2626 100%);
     }
 
     .notification-btn.secondary {
@@ -5776,95 +5780,13 @@ function updatePricingCard(plan) {
         return;
       }
       
-      // For Engage <-> Immerse changes
+      // For Engage <-> Immerse changes - use direct Stripe checkout instead of update-subscription
       customConfirm(
-        `Are you sure you want to change to the ${targetPlan} plan? Your billing will be adjusted accordingly.`,
+        `Are you sure you want to change to the ${targetPlan} plan? This will create a new subscription and cancel your current one.`,
         'Confirm Plan Change',
         async () => {
-          try {
-            showLoading();
-            
-            // Update Stripe subscription
-            const response = await fetch('/.netlify/functions/update-subscription', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                customer_id: stripeCustomerId,
-                user_uid: uid,
-                new_plan: targetPlan
-              })
-            });
-            
-            const result = await response.json();
-            
-            if (!response.ok) {
-              throw new Error(result.error || 'Failed to update subscription');
-            }
-            
-            console.log('✅ Subscription updated:', result);
-            
-            // Also update Airtable with the new plan info
-            try {
-              const email = localStorage.getItem('user_email');
-              const updatePayload = {
-                netlifyuid: uid,
-                user_email: email,
-                action: 'manual_upgrade', // Use existing action that Make.com recognizes
-                plan: targetPlan.charAt(0).toUpperCase() + targetPlan.slice(1), // Capitalize first letter
-                subscription_status: 'active',
-                source: 'plan_change'
-              };
-              
-              console.log('📤 Updating Airtable with new plan:', JSON.stringify(updatePayload, null, 2));
-              
-              const airtableResponse = await fetch('https://hook.eu2.make.com/p4qk5bzmdq987erwlo0g0bjv2xvgb5mt', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatePayload)
-              });
-              
-              if (airtableResponse.ok) {
-                console.log('✅ Airtable updated with new plan');
-              } else {
-                console.warn('⚠️ Failed to update Airtable, but Stripe was updated');
-              }
-              
-              // Always update localStorage to ensure UI shows correct plan immediately
-              const capitalizedPlan = targetPlan.charAt(0).toUpperCase() + targetPlan.slice(1);
-              localStorage.setItem('user_plan', capitalizedPlan);
-              console.log('📱 Updated localStorage user_plan to:', capitalizedPlan);
-              
-              // DON'T clear cancellation data yet - let it show on the old plan card
-              // It will be cleared after page reload when new plan is fully loaded
-              console.log('🔄 Keeping cancellation data to show notice on old plan card');
-              
-            } catch (airtableError) {
-              console.warn('⚠️ Error updating Airtable:', airtableError);
-            }
-            
-            showSuccess(`Successfully changed to ${targetPlan} plan! Refreshing page...`);
-            
-            // Show loading message to user
-            showLoading('Updating your account...');
-            
-            // Reload to show new plan (shorter delay)
-            setTimeout(() => {
-              window.location.reload();
-            }, 2500); // Wait 2.5 seconds for Make.com to process the webhook
-            
-          } catch (error) {
-            console.error('❌ Plan change error:', error);
-            console.error('❌ Error details:', {
-              message: error.message,
-              stack: error.stack,
-              targetPlan: targetPlan,
-              stripeCustomerId: stripeCustomerId,
-              uid: uid
-            });
-            showError(`Failed to change plan: ${error.message}`);
-          } finally {
-            hideLoading();
-          }
+          // Use the upgrade flow instead which works better
+          handleUpgrade(targetPlan);
         }
       );
     };
