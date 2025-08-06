@@ -1623,7 +1623,7 @@
       </div>
       <h1 id="category-title">Loading Characters...</h1>
       <p id="category-description">Discover amazing characters in this category</p>
-      <a href="create-character.html" class="category-btn create-companion-special" id="create-category-btn" style="margin-top: var(--spacing-lg);">
+      <a href="create-character.html" class="category-btn create-companion-special" id="create-category-btn" style="margin-top: var(--spacing-2xl);">
         ✨ <span id="create-btn-text">Create Companion</span>
       </a>
     </div>
@@ -1989,8 +1989,15 @@
       
       // Update the create button text with category name
       const createBtnText = document.getElementById('create-btn-text');
-      if (createBtnText) {
+      if (createBtnText && config && config.title) {
         createBtnText.textContent = `Create ${config.title} Companion`;
+        console.log(`Updated button text to: Create ${config.title} Companion`);
+      } else {
+        console.log('Could not update button text:', {
+          createBtnText: !!createBtnText,
+          config: !!config,
+          title: config?.title
+        });
       }
     }
 
@@ -2479,6 +2486,18 @@
       initializePage();
       setupEventListeners(); 
       loadCharacters();
+      
+      // Fallback to ensure button text gets updated
+      setTimeout(() => {
+        const categoryTitle = document.getElementById('category-title')?.textContent;
+        const createBtnText = document.getElementById('create-btn-text');
+        if (createBtnText && categoryTitle && categoryTitle !== 'Loading Characters...') {
+          if (!createBtnText.textContent.includes(categoryTitle)) {
+            createBtnText.textContent = `Create ${categoryTitle} Companion`;
+            console.log(`Fallback updated button text to: Create ${categoryTitle} Companion`);
+          }
+        }
+      }, 500);
       
       // Generate category navigation
       generateCategoryNavigation();
