@@ -981,6 +981,16 @@
       text-align: center;
     }
 
+    .welcome-story h2 {
+      font-size: var(--font-size-2xl);
+      font-weight: 800;
+      margin-bottom: var(--spacing-lg);
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
     .welcome-story p {
       font-size: var(--font-size-lg);
       line-height: 1.8;
@@ -1001,18 +1011,19 @@
       display: inline-block;
       background: var(--gradient-primary);
       color: var(--color-white);
-      padding: var(--spacing-md) var(--spacing-xl);
+      padding: var(--spacing-md) var(--spacing-2xl);
       border-radius: var(--radius-full);
-      font-size: var(--font-size-lg);
+      font-size: var(--font-size-base);
       font-weight: 700;
       text-decoration: none;
       transition: all 0.3s ease;
       box-shadow: var(--shadow-sm);
       text-align: center;
       width: 100%;
-      max-width: 300px;
+      max-width: 400px;
       margin: 0 auto;
       display: block;
+      white-space: nowrap;
     }
 
     .welcome-cta:hover {
@@ -2808,7 +2819,8 @@
 
       <!-- Welcome Message Section -->
       <div class="welcome-story" id="welcome-story">
-        <p>Welcome to Narrin.ai, where AI companions remember your stories and grow with every conversation. Experience genuine connections with <strong>50 free messages</strong>, including <strong>voice chat</strong> and <strong>voice notes</strong> powered by premium text-to-speech and speech-to-text technology. Start your journey today and discover companions who truly understand you.</p>
+        <h2>Welcome to Narrin.ai</h2>
+        <p>Discover AI companions that remember your stories and grow with every conversation. Experience genuine connections with <strong>50 free messages</strong>, including <strong>voice chat</strong> and <strong>voice notes</strong> powered by premium text-to-speech and speech-to-text technology. Start your journey today and find companions who truly understand you.</p>
         
         <a href="index.html" class="welcome-cta">Start Your AI Companion Journey</a>
       </div>
@@ -5404,7 +5416,7 @@ function updatePricingCard(plan) {
     if (planLower === 'engage' || planLower === 'premium' || planLower === 'pro' || planLower === 'paid') {
       // User has Engage plan
       if (discoverButton) {
-        discoverButton.textContent = 'Cancel Subscription';
+        discoverButton.textContent = 'Downgrade to Free';
         discoverButton.disabled = false;
         discoverButton.classList.remove('current-plan');
         discoverButton.classList.add('upgrade-button', 'downgrade');
@@ -5426,7 +5438,7 @@ function updatePricingCard(plan) {
     } else if (planLower === 'immerse') {
       // User has Immerse plan
       if (discoverButton) {
-        discoverButton.textContent = 'Cancel Subscription';
+        discoverButton.textContent = 'Downgrade to Free';
         discoverButton.disabled = false;
         discoverButton.classList.remove('current-plan');
         discoverButton.classList.add('upgrade-button', 'downgrade');
@@ -5435,7 +5447,7 @@ function updatePricingCard(plan) {
       
       // Show Engage button as downgrade option
       if (engageButton) {
-        engageButton.textContent = 'Change to Engage';
+        engageButton.textContent = 'Downgrade to Engage';
         engageButton.classList.add('downgrade');
         engageButton.onclick = () => handlePlanChange('engage');
       }
@@ -5448,7 +5460,15 @@ function updatePricingCard(plan) {
       
     } else {
       // User has Free/Discover plan
-      // Keep default upgrade buttons
+      // Reset button texts to default upgrade options
+      if (engageButton) {
+        engageButton.textContent = 'Upgrade to Engage';
+        engageButton.onclick = () => handleUpgrade('engage');
+      }
+      if (immerseButton) {
+        immerseButton.textContent = 'Upgrade to Immerse';
+        immerseButton.onclick = () => handleUpgrade('immerse');
+      }
       console.log('📦 Showing upgrade options for free plan');
     }
   }
