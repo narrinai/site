@@ -50,7 +50,10 @@ const femaleNames = [
   'rachel', 'carolyn', 'martha', 'virginia', 'susan', 'margaret',
   'cleopatra', 'joan', 'athena', 'aphrodite', 'hera', 'artemis', 'demeter',
   'persephone', 'freya', 'brigid', 'kali', 'lakshmi', 'saraswati', 'parvati',
-  'amaterasu', 'isis', 'nefertiti', 'boudicca', 'zenobia', 'hatshepsut'
+  'amaterasu', 'isis', 'nefertiti', 'boudicca', 'zenobia', 'hatshepsut',
+  'frida', 'kahlo', 'indira', 'gandhi', 'greta', 'marie', 'curie', 'dorothy',
+  'hodgkin', 'patricia', 'lillian', 'xena', 'jade', 'natasha', 'hana', 'kimura',
+  'jean', 'grey', 'diana', 'amara', 'moon', 'lumina', 'morgana'
 ];
 
 // Special character mappings
@@ -88,13 +91,20 @@ const specialCharacterVoices = {
   'mother-teresa': 'female_nurturing',
   'joan-of-arc': 'female_energetic',
   'amelia-earhart': 'female_energetic',
-  'frida-kahlo': 'creative_dreamer',
+  'frida-kahlo': 'female_wise',
   'virginia-woolf': 'female_wise',
   'jane-austen': 'female_friendly',
   'maya-angelou': 'female_wise',
   'oprah': 'female_nurturing',
   'ellen': 'cheerful_comedian',
-  'marilyn-monroe': 'romantic_partner'
+  'marilyn-monroe': 'romantic_partner',
+  'indira-gandhi': 'female_professional',
+  'frida-kahlo': 'female_wise',
+  'marie-curie': 'female_professional',
+  'jean-grey': 'female_energetic',
+  'morgana-shadowweaver': 'female_wise',
+  'persephone': 'female_wise',
+  'spider-grandmother': 'female_wise'
 };
 
 // Category to voice type mapping
@@ -133,7 +143,8 @@ function detectGender(name, description = '') {
   if (descLower.includes('she') || descLower.includes('her') || 
       descLower.includes('woman') || descLower.includes('lady') ||
       descLower.includes('queen') || descLower.includes('goddess') ||
-      descLower.includes('mother') || descLower.includes('daughter')) {
+      descLower.includes('mother') || descLower.includes('daughter') ||
+      descLower.includes('grandmother') || descLower.includes('sister')) {
     return 'female';
   }
   
@@ -182,7 +193,7 @@ async function fetchCharactersWithoutVoice(limit = 50) {
   const tableName = 'Characters';
   
   // Filter for characters without voice_id
-  const filterFormula = encodeURIComponent('AND(OR(voice_id = "", NOT(voice_id)), Active = TRUE())');
+  const filterFormula = encodeURIComponent('OR(voice_id = "", NOT(voice_id))');
   const url = `https://api.airtable.com/v0/${baseId}/${tableName}?filterByFormula=${filterFormula}&maxRecords=${limit}`;
   
   try {
