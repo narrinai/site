@@ -4963,7 +4963,15 @@ async function loadProfile() {
     // VEILIGE data processing met null checks
     setField('email', data?.email || email);
     setField('nickname', data?.nickname || data?.Name || data?.name || data?.user_metadata?.nickname || '');
+    
+    // Use localStorage as fallback if more recent than Airtable data (for immediate UI updates)
+    const localPlan = localStorage.getItem('user_plan');
     let userPlan = data?.plan || 'Free';
+    
+    if (localPlan && localPlan !== userPlan) {
+      console.log(`📱 Using localStorage plan "${localPlan}" instead of Airtable plan "${userPlan}"`);
+      userPlan = localPlan;
+    }
     
     // Check if subscription has expired
     if (data?.cancel_at && data.cancel_at !== '1970-01-01') {
@@ -5733,14 +5741,19 @@ function updatePricingCard(plan) {
               
               if (airtableResponse.ok) {
                 console.log('✅ Airtable updated with new plan');
-                
-                // Clear any old cancellation data since we have a new active plan
-                localStorage.removeItem('subscription_cancel_at');
-                localStorage.removeItem('cancelled_plan_type');
-                console.log('🧹 Cleared old cancellation data');
               } else {
                 console.warn('⚠️ Failed to update Airtable, but Stripe was updated');
               }
+              
+              // Always update localStorage to ensure UI shows correct plan immediately
+              const capitalizedPlan = targetPlan.charAt(0).toUpperCase() + targetPlan.slice(1);
+              localStorage.setItem('user_plan', capitalizedPlan);
+              console.log('📱 Updated localStorage user_plan to:', capitalizedPlan);
+              
+              // Clear any old cancellation data since we have a new active plan
+              localStorage.removeItem('subscription_cancel_at');
+              localStorage.removeItem('cancelled_plan_type');
+              console.log('🧹 Cleared old cancellation data');
               
             } catch (airtableError) {
               console.warn('⚠️ Error updating Airtable:', airtableError);
@@ -5748,10 +5761,10 @@ function updatePricingCard(plan) {
             
             showSuccess(`Successfully changed to ${targetPlan} plan!`);
             
-            // Reload to show new plan
+            // Reload to show new plan (wait longer for Make.com to process)
             setTimeout(() => {
               window.location.reload();
-            }, 1500);
+            }, 5000); // Wait 5 seconds for Make.com to process the webhook
             
           } catch (error) {
             console.error('❌ Plan change error:', error);
