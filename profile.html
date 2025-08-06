@@ -5012,12 +5012,20 @@ async function loadProfile() {
     } else {
       // Fallback: Check localStorage for cancel_at if webhook data is missing
       const localCancelAt = localStorage.getItem('subscription_cancel_at');
-      const cancelledPlanType = localStorage.getItem('cancelled_plan_type') || userPlan;
+      const cancelledPlanType = localStorage.getItem('cancelled_plan_type');
       
       if (localCancelAt) {
         console.log('📱 Using localStorage cancel_at as fallback:', localCancelAt);
         console.log('📱 Cancelled plan type:', cancelledPlanType);
-        showCancellationNotice(localCancelAt, cancelledPlanType);
+        console.log('📱 Current plan type:', userPlan);
+        
+        // Show notice on the plan that was cancelled, not the current plan
+        if (cancelledPlanType && cancelledPlanType !== 'Unknown') {
+          showCancellationNotice(localCancelAt, cancelledPlanType);
+        } else {
+          // If no cancelled plan info, show on current plan as fallback
+          showCancellationNotice(localCancelAt, userPlan);
+        }
       } else {
         console.log('❌ No cancellation data found in either Airtable or localStorage');
       }
@@ -5750,21 +5758,23 @@ function updatePricingCard(plan) {
               localStorage.setItem('user_plan', capitalizedPlan);
               console.log('📱 Updated localStorage user_plan to:', capitalizedPlan);
               
-              // Clear any old cancellation data since we have a new active plan
-              localStorage.removeItem('subscription_cancel_at');
-              localStorage.removeItem('cancelled_plan_type');
-              console.log('🧹 Cleared old cancellation data');
+              // DON'T clear cancellation data yet - let it show on the old plan card
+              // It will be cleared after page reload when new plan is fully loaded
+              console.log('🔄 Keeping cancellation data to show notice on old plan card');
               
             } catch (airtableError) {
               console.warn('⚠️ Error updating Airtable:', airtableError);
             }
             
-            showSuccess(`Successfully changed to ${targetPlan} plan!`);
+            showSuccess(`Successfully changed to ${targetPlan} plan! Refreshing page...`);
             
-            // Reload to show new plan (wait longer for Make.com to process)
+            // Show loading message to user
+            showLoading('Updating your account...');
+            
+            // Reload to show new plan (shorter delay)
             setTimeout(() => {
               window.location.reload();
-            }, 5000); // Wait 5 seconds for Make.com to process the webhook
+            }, 2500); // Wait 2.5 seconds for Make.com to process the webhook
             
           } catch (error) {
             console.error('❌ Plan change error:', error);
