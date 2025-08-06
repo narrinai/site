@@ -4944,8 +4944,17 @@ async function loadProfile() {
       console.log('💳 Stripe customer ID saved:', data.stripe_customer_id);
     }
     
+    // Debug: Log all relevant data for cancellation notice
+    console.log('🔍 Checking for cancellation notice:', {
+      subscription_status: data?.subscription_status,
+      cancel_at: data?.cancel_at,
+      localStorage_cancel_at: localStorage.getItem('subscription_cancel_at'),
+      userPlan: userPlan
+    });
+
     // Check for subscription cancellation (show notice even if not expired yet)
     if (data?.subscription_status === 'cancelled' && data?.cancel_at && data.cancel_at !== '1970-01-01') {
+      console.log('✅ Showing notice from Airtable data');
       showCancellationNotice(data.cancel_at, userPlan);
     } else {
       // Fallback: Check localStorage for cancel_at if webhook data is missing
@@ -4953,6 +4962,8 @@ async function loadProfile() {
       if (localCancelAt) {
         console.log('📱 Using localStorage cancel_at as fallback:', localCancelAt);
         showCancellationNotice(localCancelAt, userPlan);
+      } else {
+        console.log('❌ No cancellation data found in either Airtable or localStorage');
       }
     }
     
