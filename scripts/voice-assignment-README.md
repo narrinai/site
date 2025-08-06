@@ -12,7 +12,7 @@ node scripts/test-voice-assignment.js
 ```
 
 Dit script:
-- Haalt de eerste 50 characters zonder voice op
+- Haalt de eerste 50 PLATFORM characters zonder voice op (geen user-created characters)
 - Toont welke voice elk character zou krijgen
 - Geeft een overzicht per categorie
 - Maakt GEEN wijzigingen in Airtable
@@ -25,13 +25,16 @@ node scripts/assign-voices-to-characters.js
 ```
 
 Dit script:
-- Haalt ALLE characters zonder voice op (max 1000)
+- Haalt ALLE PLATFORM characters zonder voice op (max 1000, geen user-created characters)
 - Wijst passende voices toe op basis van:
   - Character naam (gender detectie)
   - Category (type stem)
   - Speciale character mappings (bijv. Einstein → wise_elder)
 - Update elk character in Airtable met de voice_id
 - 200ms delay tussen updates om rate limits te voorkomen
+
+**BELANGRIJK**: Dit script wijst alleen voices toe aan platform characters (zonder created_by veld).
+User-created characters behouden hun eigen voice keuzes.
 
 ## Voice Toewijzing Logica
 

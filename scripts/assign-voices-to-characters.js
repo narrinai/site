@@ -53,7 +53,8 @@ const femaleNames = [
   'amaterasu', 'isis', 'nefertiti', 'boudicca', 'zenobia', 'hatshepsut',
   'frida', 'kahlo', 'indira', 'gandhi', 'greta', 'marie', 'curie', 'dorothy',
   'hodgkin', 'patricia', 'lillian', 'xena', 'jade', 'natasha', 'hana', 'kimura',
-  'jean', 'grey', 'diana', 'amara', 'moon', 'lumina', 'morgana'
+  'jean', 'grey', 'diana', 'amara', 'moon', 'lumina', 'morgana', 'julia', 'carol',
+  'ophelia', 'felicia', 'ruby', 'wendy', 'lise', 'meitner', 'zara', 'hildegard'
 ];
 
 // Special character mappings
@@ -192,8 +193,8 @@ async function fetchCharactersWithoutVoice() {
   const token = process.env.AIRTABLE_TOKEN || process.env.AIRTABLE_API_KEY;
   const tableName = 'Characters';
   
-  // Filter for characters without voice_id
-  const filterFormula = encodeURIComponent('OR(voice_id = "", NOT(voice_id))');
+  // Filter for characters without voice_id AND without created_by (platform characters only)
+  const filterFormula = encodeURIComponent('AND(OR(voice_id = "", NOT(voice_id)), OR(created_by = "", NOT(created_by)))');
   const url = `https://api.airtable.com/v0/${baseId}/${tableName}?filterByFormula=${filterFormula}&maxRecords=1000`;
   
   try {
