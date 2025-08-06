@@ -3439,7 +3439,37 @@
           priceId = 'price_1Rs1wFDU567HpUYxYphohLS9'; // Immerse plan price ID
         }
         
-        // Redirect direct naar Stripe Checkout
+        // FIRST: Cancel any existing subscriptions to prevent multiple subscriptions
+        const stripeCustomerId = localStorage.getItem('stripe_customer_id');
+        if (stripeCustomerId) {
+          console.log('🚫 Cancelling existing subscriptions before upgrade...');
+          
+          try {
+            const cancelResponse = await fetch('/.netlify/functions/cancel-subscription', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                customer_id: stripeCustomerId,
+                user_uid: uid
+              })
+            });
+            
+            const cancelResult = await cancelResponse.json();
+            
+            if (cancelResponse.ok) {
+              console.log('✅ Existing subscriptions cancelled:', cancelResult);
+            } else {
+              console.warn('⚠️ Failed to cancel existing subscriptions:', cancelResult);
+              // Continue with upgrade anyway - Stripe will handle duplicates
+            }
+            
+          } catch (cancelError) {
+            console.warn('⚠️ Error cancelling existing subscriptions:', cancelError);
+            // Continue with upgrade anyway
+          }
+        }
+        
+        // THEN: Redirect to Stripe Checkout for new subscription
         const { error } = await stripe.redirectToCheckout({
           lineItems: [{
             price: priceId,
