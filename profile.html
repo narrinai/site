@@ -3444,6 +3444,9 @@
         if (stripeCustomerId) {
           console.log('🚫 Cancelling existing subscriptions before upgrade...');
           
+          // Store info about what plan is being cancelled
+          const currentPlan = localStorage.getItem('user_plan') || 'Unknown';
+          
           try {
             const cancelResponse = await fetch('/.netlify/functions/cancel-subscription', {
               method: 'POST',
@@ -3458,6 +3461,15 @@
             
             if (cancelResponse.ok) {
               console.log('✅ Existing subscriptions cancelled:', cancelResult);
+              
+              // Store info about cancelled plan for showing correct notice
+              if (cancelResult.subscriptions_cancelled && cancelResult.subscriptions_cancelled[0]) {
+                const cancelData = cancelResult.subscriptions_cancelled[0];
+                if (cancelData.cancel_at_date) {
+                  localStorage.setItem('subscription_cancel_at', cancelData.cancel_at_date);
+                  localStorage.setItem('cancelled_plan_type', currentPlan); // Store which plan was cancelled
+                }
+              }
             } else {
               console.warn('⚠️ Failed to cancel existing subscriptions:', cancelResult);
               // Continue with upgrade anyway - Stripe will handle duplicates
@@ -4968,6 +4980,9 @@ async function loadProfile() {
     
     setField('plan', userPlan);
     
+    // Store current plan in localStorage for cancellation logic
+    localStorage.setItem('user_plan', userPlan);
+    
     // Save stripe_customer_id to localStorage if available
     if (data?.stripe_customer_id) {
       localStorage.setItem('stripe_customer_id', data.stripe_customer_id);
@@ -4989,9 +5004,12 @@ async function loadProfile() {
     } else {
       // Fallback: Check localStorage for cancel_at if webhook data is missing
       const localCancelAt = localStorage.getItem('subscription_cancel_at');
+      const cancelledPlanType = localStorage.getItem('cancelled_plan_type') || userPlan;
+      
       if (localCancelAt) {
         console.log('📱 Using localStorage cancel_at as fallback:', localCancelAt);
-        showCancellationNotice(localCancelAt, userPlan);
+        console.log('📱 Cancelled plan type:', cancelledPlanType);
+        showCancellationNotice(localCancelAt, cancelledPlanType);
       } else {
         console.log('❌ No cancellation data found in either Airtable or localStorage');
       }
@@ -5603,28 +5621,41 @@ function updatePricingCard(plan) {
       
       console.log('📅 Formatted date:', formattedDate);
       
-      // Show notice - try Engage first (most common downgrade), then Immerse as fallback
+      // Hide any existing notices first
+      const engageNotice = document.getElementById('engageCancelNotice');
+      const immerseCancelNotice = document.getElementById('immerseCancelNotice');
+      if (engageNotice) engageNotice.style.display = 'none';
+      if (immerseCancelNotice) immerseCancelNotice.style.display = 'none';
+      
+      // Show notice based on current plan (where the user is now)
       let noticeShown = false;
       
-      // Try Engage notice first
-      const engageNotice = document.getElementById('engageCancelNotice');
-      const engageDateEl = document.getElementById('engageCancelDate');
-      if (engageNotice && engageDateEl) {
-        engageDateEl.textContent = formattedDate;
-        engageNotice.style.display = 'block';
-        noticeShown = true;
-        console.log('✅ Engage cancellation notice shown');
-      }
-      
-      // If no Engage notice, try Immerse notice
-      if (!noticeShown) {
-        const immerseCancelNotice = document.getElementById('immerseCancelNotice');
+      if (planType === 'Engage') {
+        // User is on Engage plan with cancellation notice
+        const engageDateEl = document.getElementById('engageCancelDate');
+        if (engageNotice && engageDateEl) {
+          engageDateEl.textContent = formattedDate;
+          engageNotice.style.display = 'block';
+          noticeShown = true;
+          console.log('✅ Engage cancellation notice shown');
+        }
+      } else if (planType === 'Immerse') {
+        // User is on Immerse plan with cancellation notice  
         const immerseDateEl = document.getElementById('immerseCancelDate');
         if (immerseCancelNotice && immerseDateEl) {
           immerseDateEl.textContent = formattedDate;
           immerseCancelNotice.style.display = 'block';
           noticeShown = true;
           console.log('✅ Immerse cancellation notice shown');
+        }
+      } else {
+        // For Free users, try to show appropriate notice (fallback to Engage)
+        const engageDateEl = document.getElementById('engageCancelDate');
+        if (engageNotice && engageDateEl) {
+          engageDateEl.textContent = formattedDate;
+          engageNotice.style.display = 'block';
+          noticeShown = true;
+          console.log('✅ Engage cancellation notice shown (fallback for Free user)');
         }
       }
       
