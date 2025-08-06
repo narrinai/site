@@ -54,7 +54,12 @@ const femaleNames = [
   'frida', 'kahlo', 'indira', 'gandhi', 'greta', 'marie', 'curie', 'dorothy',
   'hodgkin', 'patricia', 'lillian', 'xena', 'jade', 'natasha', 'hana', 'kimura',
   'jean', 'grey', 'diana', 'amara', 'moon', 'lumina', 'morgana', 'julia', 'carol',
-  'ophelia', 'felicia', 'ruby', 'wendy', 'lise', 'meitner', 'zara', 'hildegard'
+  'ophelia', 'felicia', 'ruby', 'wendy', 'lise', 'meitner', 'zara', 'hildegard',
+  'eleanor', 'violet', 'magdalena', 'raven', 'kagome', 'claudia', 'janet', 'lucy',
+  'charlene', 'donna', 'tina', 'mercedes', 'aurora', 'adeline', 'emma', 'giulia',
+  'amelie', 'yasmin', 'aisha', 'jane', 'sheele', 'cecilia', 'harriet', 'betsy',
+  'martha', 'callie', 'lia', 'nami', 'shalltear', 'cortana', 'kassandra', 'ciri',
+  'rosalind', 'mai', 'faye', 'astrid'
 ];
 
 // Special character mappings
@@ -100,12 +105,19 @@ const specialCharacterVoices = {
   'ellen': 'cheerful_comedian',
   'marilyn-monroe': 'romantic_partner',
   'indira-gandhi': 'female_professional',
-  'frida-kahlo': 'female_wise',
   'marie-curie': 'female_professional',
   'jean-grey': 'female_energetic',
   'morgana-shadowweaver': 'female_wise',
   'persephone': 'female_wise',
-  'spider-grandmother': 'female_wise'
+  'spider-grandmother': 'female_wise',
+  'queen-victoria': 'female_wise',
+  'harriet-tubman': 'female_wise',
+  'betsy-ross': 'female_friendly',
+  'martha-washington': 'female_friendly',
+  'margaret-fuller': 'female_wise',
+  'lucy-hayes': 'female_friendly',
+  'rosalind-franklin': 'female_professional',
+  'jane-goodall': 'female_professional'
 };
 
 // Category to voice type mapping
@@ -234,13 +246,13 @@ async function fetchCharactersWithoutVoice() {
   }
 }
 
-// Update character with voice_id
-async function updateCharacterVoice(recordId, voiceId) {
+// Batch update characters
+async function batchUpdateCharacters(updates) {
   const baseId = process.env.AIRTABLE_BASE_ID;
   const token = process.env.AIRTABLE_TOKEN || process.env.AIRTABLE_API_KEY;
   const tableName = 'Characters';
   
-  const url = `https://api.airtable.com/v0/${baseId}/${tableName}/${recordId}`;
+  const url = `https://api.airtable.com/v0/${baseId}/${tableName}`;
   
   try {
     const response = await fetch(url, {
@@ -250,9 +262,12 @@ async function updateCharacterVoice(recordId, voiceId) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        fields: {
-          voice_id: voiceId
-        }
+        records: updates.map(u => ({
+          id: u.recordId,
+          fields: {
+            voice_id: u.voiceId
+          }
+        }))
       })
     });
     
@@ -262,14 +277,14 @@ async function updateCharacterVoice(recordId, voiceId) {
     
     return await response.json();
   } catch (error) {
-    console.error(`❌ Error updating character ${recordId}:`, error);
+    console.error(`❌ Error batch updating characters:`, error);
     throw error;
   }
 }
 
 // Main function
 async function assignVoicesToCharacters() {
-  console.log('🎙️ Starting voice assignment for characters...\n');
+  console.log('🎙️ Starting batch voice assignment for characters...\n');
   
   try {
     // Fetch characters without voice
@@ -282,31 +297,46 @@ async function assignVoicesToCharacters() {
       return;
     }
     
-    // Process each character
-    let updated = 0;
-    let failed = 0;
+    // Process characters and prepare batch updates
+    const updates = [];
     
     for (const record of characters) {
       const character = record.fields;
       const recordId = record.id;
       
+      // Get appropriate voice
+      const voiceId = getVoiceForCharacter(character);
+      const voiceKey = Object.keys(voiceLibrary).find(key => voiceLibrary[key] === voiceId);
+      
+      console.log(`🎤 ${character.Name} (${character.Category || 'no category'}) → ${voiceKey}`);
+      
+      updates.push({
+        recordId,
+        voiceId,
+        characterName: character.Name
+      });
+    }
+    
+    // Process in batches of 10 (Airtable limit)
+    console.log(`\n📦 Processing ${updates.length} updates in batches of 10...`);
+    
+    let updated = 0;
+    let failed = 0;
+    
+    for (let i = 0; i < updates.length; i += 10) {
+      const batch = updates.slice(i, i + 10);
+      
       try {
-        // Get appropriate voice
-        const voiceId = getVoiceForCharacter(character);
-        const voiceKey = Object.keys(voiceLibrary).find(key => voiceLibrary[key] === voiceId);
+        await batchUpdateCharacters(batch);
+        updated += batch.length;
+        console.log(`✅ Batch ${Math.floor(i/10) + 1}: Updated ${batch.length} characters`);
         
-        console.log(`🎤 ${character.Name} (${character.Category || 'no category'}) → ${voiceKey}`);
-        
-        // Update in Airtable
-        await updateCharacterVoice(recordId, voiceId);
-        updated++;
-        
-        // Small delay to avoid rate limits
-        await new Promise(resolve => setTimeout(resolve, 200));
+        // Small delay between batches
+        await new Promise(resolve => setTimeout(resolve, 100));
         
       } catch (error) {
-        console.error(`❌ Failed to update ${character.Name}:`, error.message);
-        failed++;
+        console.error(`❌ Batch ${Math.floor(i/10) + 1} failed:`, error.message);
+        failed += batch.length;
       }
     }
     
