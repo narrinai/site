@@ -6097,9 +6097,9 @@ document.addEventListener('DOMContentLoaded', () => {
           return; // Early return to pause instead of restart
         }
         
-        // Check voice usage limit for Free plan users
-        if (!checkVoiceUsageLimit()) {
-          showVoiceUpgradeModal();
+        // Check TTS usage limit for Free plan users
+        const canUseTTS = await checkVoiceLimit('tts');
+        if (!canUseTTS) {
           return;
         }
         
@@ -6181,6 +6181,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         await currentAudio.play();
+        
+        // Increment TTS usage for Free users
+        incrementVoiceUsage('tts');
         
       } catch (error) {
         console.error('Voice conversation error:', error);
@@ -10315,8 +10318,87 @@ async function checkUsageLimit() {
   }
 }
 
+// ===== VOICE USAGE TRACKING =====
+function getVoiceUsage() {
+  const today = new Date().toDateString();
+  const storedData = localStorage.getItem('voiceUsage');
+  
+  if (!storedData) {
+    return { tts: 0, stt: 0, date: today };
+  }
+  
+  const data = JSON.parse(storedData);
+  
+  // Reset if it's a new day
+  if (data.date !== today) {
+    return { tts: 0, stt: 0, date: today };
+  }
+  
+  return data;
+}
+
+function incrementVoiceUsage(type) {
+  const usage = getVoiceUsage();
+  usage[type] = (usage[type] || 0) + 1;
+  localStorage.setItem('voiceUsage', JSON.stringify(usage));
+  console.log(`📊 Voice usage updated: ${type} = ${usage[type]}`);
+  return usage[type];
+}
+
+async function checkVoiceLimit(type) {
+  // Get user plan first
+  const email = localStorage.getItem('user_email');
+  const token = localStorage.getItem('user_token');
+  
+  if (!email || !token) {
+    console.log('⚠️ No user credentials, allowing voice feature');
+    return true;
+  }
+  
+  try {
+    const payload = {
+      user_email: email,
+      user_token: token,
+      action: 'check_usage'
+    };
+    
+    const resp = await fetch('https://hook.eu2.make.com/lya166veex7oo2wwo8mx4fuhlkssxlog', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    
+    const data = await resp.json();
+    const plan = data.plan || 'Free';
+    
+    // Paid users have unlimited voice features
+    if (plan.toLowerCase() === 'immerse' || plan.toLowerCase() === 'engage' || plan.toLowerCase() === 'premium' || plan.toLowerCase() === 'pro') {
+      console.log('✅ Paid user - unlimited voice features');
+      return true;
+    }
+    
+    // Free users have 15 TTS and 15 STT per day
+    const usage = getVoiceUsage();
+    const limit = 15;
+    const currentUsage = usage[type] || 0;
+    
+    if (currentUsage >= limit) {
+      console.log(`🚫 ${type.toUpperCase()} limit reached: ${currentUsage}/${limit}`);
+      showUpgradePrompt(currentUsage, limit, type);
+      return false;
+    }
+    
+    console.log(`✅ ${type.toUpperCase()} within limit: ${currentUsage}/${limit}`);
+    return true;
+    
+  } catch (error) {
+    console.error('❌ Error checking voice limit:', error);
+    return true; // Allow on error
+  }
+}
+
 // ===== UPGRADE PROMPT =====
-function showUpgradePrompt(usage, quota) {
+function showUpgradePrompt(usage, quota, type = 'messages') {
   let upgradeOverlay = document.getElementById('upgradeOverlay');
   
   if (!upgradeOverlay) {
@@ -10328,7 +10410,13 @@ function showUpgradePrompt(usage, quota) {
         <div class="upgrade-header">
           <div class="upgrade-icon">💎</div>
           <h3 class="upgrade-title">Continue Your Journey</h3>
-          <p class="upgrade-subtitle">You've used all your ${quota} meaningful conversations on the Free plan. Unlock unlimited conversations to explore deeper connections.</p>
+          <p class="upgrade-subtitle">${
+            type === 'tts' 
+              ? `You've used all your ${quota} voice messages today. Upgrade to enjoy unlimited voice conversations with your AI companions.`
+              : type === 'stt' 
+              ? `You've reached your ${quota} voice recording limit for today. Upgrade for unlimited voice interactions.`
+              : `You've used all your ${quota} meaningful conversations on the Free plan. Unlock unlimited conversations to explore deeper connections.`
+          }</p>
         </div>
         
         <div class="upgrade-benefits">
@@ -10482,6 +10570,12 @@ async function toggleSpeechToText() {
   const userInput = document.getElementById('userInput');
   
   if (!isRecording) {
+    // Check STT usage limit for Free plan users
+    const canUseSTT = await checkVoiceLimit('stt');
+    if (!canUseSTT) {
+      return;
+    }
+    
     try {
       // Request microphone permission
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
