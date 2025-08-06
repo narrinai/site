@@ -5768,33 +5768,8 @@ function updatePricingCard(plan) {
 function updateUsageCountdown(plan, usage, quota) {
   const countdownEl = document.getElementById('reset-countdown');
   
-  if (plan.toLowerCase() === 'free' && usage >= quota) {
-    // User is over limit - show countdown
-    const resetDate = new Date();
-    resetDate.setDate(resetDate.getDate() + 30); // 30 days from now
-    
-    countdownEl.style.display = 'block';
-    
-    function updateTimer() {
-      const now = new Date().getTime();
-      const resetTime = resetDate.getTime();
-      const distance = resetTime - now;
-      
-      if (distance < 0) {
-        countdownEl.innerHTML = "Messages reset! Refresh page to see updated quota.";
-        return;
-      }
-      
-      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-      
-      countdownEl.innerHTML = `Messages reset in: ${days}d ${hours}h ${minutes}m`;
-    }
-    
-    updateTimer();
-    setInterval(updateTimer, 60000); // Update every minute
-  } else {
+  // Hide countdown - we now use subscription-based system instead of 30-day resets
+  if (countdownEl) {
     countdownEl.style.display = 'none';
   }
 }
