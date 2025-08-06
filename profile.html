@@ -4924,8 +4924,8 @@ async function loadProfile() {
     let userPlan = data?.plan || 'Free';
     
     // Check if subscription has expired
-    if (data?.expires_at) {
-      const expiresDate = new Date(data.expires_at * 1000); // Convert timestamp to date
+    if (data?.cancel_at && data.cancel_at !== '1970-01-01') {
+      const expiresDate = new Date(data.cancel_at);
       const now = new Date();
       
       if (now > expiresDate) {
@@ -4945,8 +4945,8 @@ async function loadProfile() {
     }
     
     // Check for subscription cancellation (show notice even if not expired yet)
-    if (data?.subscription_status === 'cancelled' && data?.expires_at) {
-      showCancellationNotice(data.expires_at, userPlan);
+    if (data?.subscription_status === 'cancelled' && data?.cancel_at && data.cancel_at !== '1970-01-01') {
+      showCancellationNotice(data.cancel_at, userPlan);
     }
     
     // Update pricing card
@@ -4976,8 +4976,8 @@ async function loadProfile() {
     }
     
     // If subscription expired, enforce Free tier limits
-    if (userPlan === 'Free' && data?.expires_at) {
-      const expiresDate = new Date(data.expires_at * 1000);
+    if (userPlan === 'Free' && data?.cancel_at && data.cancel_at !== '1970-01-01') {
+      const expiresDate = new Date(data.cancel_at);
       const now = new Date();
       
       if (now > expiresDate) {

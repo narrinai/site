@@ -1,4 +1,5 @@
 const Stripe = require('stripe');
+const fetch = require('node-fetch');
 
 exports.handler = async (event, context) => {
   // CORS headers
@@ -101,8 +102,37 @@ exports.handler = async (event, context) => {
       }
     }
 
-    // If you want immediate cancellation instead, use this:
-    // const cancelled = await stripe.subscriptions.cancel(subscription.id);
+    // Update Airtable with cancellation info via Make.com webhook
+    if (cancelledSubscriptions.length > 0) {
+      try {
+        const webhookPayload = {
+          user_uid: user_uid,
+          customer_id: customer_id,
+          subscription_status: 'cancelled',
+          cancel_at: cancelledSubscriptions[0].cancel_at_date, // Use the ISO date string
+          action: 'subscription_cancelled'
+        };
+        
+        console.log('📤 Updating Airtable via webhook:', webhookPayload);
+        
+        // Call Make.com webhook to update user record
+        const webhookResponse = await fetch('https://hook.eu2.make.com/p4qk5bzmdq987erwlo0g0bjv2xvgb5mt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(webhookPayload)
+        });
+        
+        if (webhookResponse.ok) {
+          console.log('✅ Airtable updated successfully');
+        } else {
+          console.error('❌ Failed to update Airtable:', await webhookResponse.text());
+        }
+        
+      } catch (webhookError) {
+        console.error('❌ Error updating Airtable:', webhookError);
+        // Don't fail the main cancellation if webhook fails
+      }
+    }
 
     return {
       statusCode: 200,
