@@ -4997,9 +4997,14 @@ async function loadProfile() {
       // Clear any old cancellation data since this is a fresh subscription
       localStorage.removeItem('subscription_cancel_at');
       localStorage.removeItem('cancelled_plan_type');
+      localStorage.removeItem('user_plan'); // Clear any stuck Free plan
       
       // Force clear any stale localStorage to prevent bugs
       localStorage.removeItem('justDowngraded');
+      
+      // Set the new plan
+      localStorage.setItem('user_plan', capitalizedUrlPlan);
+      
       console.log('🧹 Cleared old cancellation data after successful checkout');
       console.log('✅ Force set plan to:', capitalizedUrlPlan);
       
@@ -5012,15 +5017,23 @@ async function loadProfile() {
       localStorage.setItem('user_plan', 'Free');
       console.log('📱 Updated localStorage to Free after downgrade');
       
-    } else if (localPlan && localPlan !== userPlan && localPlan !== 'Engage') {
-      // Only use localStorage if it's not the old 'Engage' plan that might be stuck
-      console.log(`📱 Using localStorage plan "${localPlan}" instead of Airtable plan "${userPlan}"`);
-      userPlan = localPlan;
-    } else if (localPlan === 'Engage' && userPlan !== 'Engage') {
-      // Clear stuck Engage plan from localStorage
-      console.log('🧹 Clearing stuck Engage plan from localStorage');
-      localStorage.removeItem('user_plan');
-      // Use Airtable plan instead
+    } else if (localPlan && localPlan !== userPlan) {
+      // Check if localStorage has outdated Free plan while Airtable shows paid plan
+      if (localPlan === 'Free' && (userPlan === 'Engage' || userPlan === 'Immerse')) {
+        console.log(`🔄 Airtable shows paid plan "${userPlan}", clearing outdated localStorage "Free"`);
+        localStorage.removeItem('user_plan');
+        
+        // Also clear cancellation data since user has active paid plan
+        localStorage.removeItem('subscription_cancel_at');
+        localStorage.removeItem('cancelled_plan_type');
+        console.log('🧹 Cleared cancellation data - user has active paid plan');
+        
+        // Use Airtable plan (paid plan takes precedence)
+      } else {
+        // For other cases, use localStorage
+        console.log(`📱 Using localStorage plan "${localPlan}" instead of Airtable plan "${userPlan}"`);
+        userPlan = localPlan;
+      }
     }
     
     // Check if subscription has expired
