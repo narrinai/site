@@ -4964,9 +4964,10 @@ async function loadProfile() {
     setField('email', data?.email || email);
     setField('nickname', data?.nickname || data?.Name || data?.name || data?.user_metadata?.nickname || '');
     
-    // Check URL parameters for recent Stripe checkout success
+    // Check URL parameters for recent actions
     const urlParams = new URLSearchParams(window.location.search);
     const upgradeSuccess = urlParams.get('upgrade');
+    const downgradeSuccess = urlParams.get('downgrade');
     const urlPlan = urlParams.get('plan');
     
     // Use localStorage as fallback if more recent than Airtable data (for immediate UI updates)
@@ -4986,6 +4987,15 @@ async function loadProfile() {
       localStorage.removeItem('subscription_cancel_at');
       localStorage.removeItem('cancelled_plan_type');
       console.log('🧹 Cleared old cancellation data after successful checkout');
+      
+    } else if (downgradeSuccess === 'success') {
+      // User just completed downgrade - force plan to Free
+      console.log(`⬇️ Downgrade success - forcing plan to "Free" instead of Airtable plan "${userPlan}"`);
+      userPlan = 'Free';
+      
+      // Update localStorage to match
+      localStorage.setItem('user_plan', 'Free');
+      console.log('📱 Updated localStorage to Free after downgrade');
       
     } else if (localPlan && localPlan !== userPlan) {
       console.log(`📱 Using localStorage plan "${localPlan}" instead of Airtable plan "${userPlan}"`);
