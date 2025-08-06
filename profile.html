@@ -5710,6 +5710,42 @@ function updatePricingCard(plan) {
             }
             
             console.log('✅ Subscription updated:', result);
+            
+            // Also update Airtable with the new plan info
+            try {
+              const email = localStorage.getItem('user_email');
+              const updatePayload = {
+                netlifyuid: uid,
+                user_email: email,
+                action: 'plan_change',
+                plan: targetPlan.charAt(0).toUpperCase() + targetPlan.slice(1), // Capitalize first letter
+                subscription_status: 'active',
+                source: 'plan_change'
+              };
+              
+              console.log('📤 Updating Airtable with new plan:', updatePayload);
+              
+              const airtableResponse = await fetch('https://hook.eu2.make.com/p4qk5bzmdq987erwlo0g0bjv2xvgb5mt', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatePayload)
+              });
+              
+              if (airtableResponse.ok) {
+                console.log('✅ Airtable updated with new plan');
+                
+                // Clear any old cancellation data since we have a new active plan
+                localStorage.removeItem('subscription_cancel_at');
+                localStorage.removeItem('cancelled_plan_type');
+                console.log('🧹 Cleared old cancellation data');
+              } else {
+                console.warn('⚠️ Failed to update Airtable, but Stripe was updated');
+              }
+              
+            } catch (airtableError) {
+              console.warn('⚠️ Error updating Airtable:', airtableError);
+            }
+            
             showSuccess(`Successfully changed to ${targetPlan} plan!`);
             
             // Reload to show new plan
