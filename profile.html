@@ -4964,11 +4964,30 @@ async function loadProfile() {
     setField('email', data?.email || email);
     setField('nickname', data?.nickname || data?.Name || data?.name || data?.user_metadata?.nickname || '');
     
+    // Check URL parameters for recent Stripe checkout success
+    const urlParams = new URLSearchParams(window.location.search);
+    const upgradeSuccess = urlParams.get('upgrade');
+    const urlPlan = urlParams.get('plan');
+    
     // Use localStorage as fallback if more recent than Airtable data (for immediate UI updates)
     const localPlan = localStorage.getItem('user_plan');
     let userPlan = data?.plan || 'Free';
     
-    if (localPlan && localPlan !== userPlan) {
+    if (upgradeSuccess === 'success' && urlPlan) {
+      // User just completed Stripe checkout - use URL plan as most recent
+      const capitalizedUrlPlan = urlPlan.charAt(0).toUpperCase() + urlPlan.slice(1);
+      console.log(`🎉 Stripe checkout success - using URL plan "${capitalizedUrlPlan}" instead of Airtable plan "${userPlan}"`);
+      userPlan = capitalizedUrlPlan;
+      
+      // Update localStorage to match
+      localStorage.setItem('user_plan', capitalizedUrlPlan);
+      
+      // Clear any old cancellation data since this is a fresh subscription
+      localStorage.removeItem('subscription_cancel_at');
+      localStorage.removeItem('cancelled_plan_type');
+      console.log('🧹 Cleared old cancellation data after successful checkout');
+      
+    } else if (localPlan && localPlan !== userPlan) {
       console.log(`📱 Using localStorage plan "${localPlan}" instead of Airtable plan "${userPlan}"`);
       userPlan = localPlan;
     }
