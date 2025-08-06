@@ -4680,6 +4680,17 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       }, 100);
     }
 
+    // Debug function to clear stuck localStorage
+    window.debugClearPlan = function() {
+      console.log('🧹 Clearing all plan-related localStorage...');
+      localStorage.removeItem('user_plan');
+      localStorage.removeItem('subscription_cancel_at');
+      localStorage.removeItem('cancelled_plan_type');
+      localStorage.removeItem('justDowngraded');
+      console.log('✅ Cleared! Refreshing...');
+      window.location.reload();
+    }
+
     // Initialize Netlify Identity and check login status
     document.addEventListener('DOMContentLoaded', () => {
       console.log('🚀 Page loaded, initializing...');
@@ -4986,7 +4997,11 @@ async function loadProfile() {
       // Clear any old cancellation data since this is a fresh subscription
       localStorage.removeItem('subscription_cancel_at');
       localStorage.removeItem('cancelled_plan_type');
+      
+      // Force clear any stale localStorage to prevent bugs
+      localStorage.removeItem('justDowngraded');
       console.log('🧹 Cleared old cancellation data after successful checkout');
+      console.log('✅ Force set plan to:', capitalizedUrlPlan);
       
     } else if (downgradeSuccess === 'success') {
       // User just completed downgrade - force plan to Free
@@ -4997,9 +5012,15 @@ async function loadProfile() {
       localStorage.setItem('user_plan', 'Free');
       console.log('📱 Updated localStorage to Free after downgrade');
       
-    } else if (localPlan && localPlan !== userPlan) {
+    } else if (localPlan && localPlan !== userPlan && localPlan !== 'Engage') {
+      // Only use localStorage if it's not the old 'Engage' plan that might be stuck
       console.log(`📱 Using localStorage plan "${localPlan}" instead of Airtable plan "${userPlan}"`);
       userPlan = localPlan;
+    } else if (localPlan === 'Engage' && userPlan !== 'Engage') {
+      // Clear stuck Engage plan from localStorage
+      console.log('🧹 Clearing stuck Engage plan from localStorage');
+      localStorage.removeItem('user_plan');
+      // Use Airtable plan instead
     }
     
     // Check if subscription has expired
@@ -5062,6 +5083,19 @@ async function loadProfile() {
     
     // Update pricing card
     updatePricingCard(userPlan);
+    
+    // Debug: Log final plan decision
+    console.log('🎯 FINAL PLAN DECISION:', {
+      airtablePlan: data?.plan,
+      localStoragePlan: localStorage.getItem('user_plan'),
+      urlParams: {
+        upgrade: urlParams.get('upgrade'),
+        downgrade: urlParams.get('downgrade'),
+        plan: urlParams.get('plan')
+      },
+      finalPlan: userPlan,
+      currentURL: window.location.href
+    });
     
     // Hide welcome story for paid users (Engage or Immerse plans)
     const welcomeStory = document.getElementById('welcome-story');
