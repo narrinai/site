@@ -4947,6 +4947,13 @@ async function loadProfile() {
     // Check for subscription cancellation (show notice even if not expired yet)
     if (data?.subscription_status === 'cancelled' && data?.cancel_at && data.cancel_at !== '1970-01-01') {
       showCancellationNotice(data.cancel_at, userPlan);
+    } else {
+      // Fallback: Check localStorage for cancel_at if webhook data is missing
+      const localCancelAt = localStorage.getItem('subscription_cancel_at');
+      if (localCancelAt) {
+        console.log('📱 Using localStorage cancel_at as fallback:', localCancelAt);
+        showCancellationNotice(localCancelAt, userPlan);
+      }
     }
     
     // Update pricing card
@@ -5714,6 +5721,9 @@ function updatePricingCard(plan) {
           endOfMonth.setHours(23, 59, 59, 999); // End of day
           cancelAt = endOfMonth.toISOString();
           console.log('⏰ Setting manual downgrade expiry to end of month:', cancelAt);
+          
+          // Save to localStorage so UI can show notice immediately
+          localStorage.setItem('subscription_cancel_at', cancelAt);
         }
         
         const payload = {
