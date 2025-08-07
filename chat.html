@@ -3234,6 +3234,42 @@
       color: var(--color-gray);
       line-height: 1.4;
     }
+    
+    /* Avatar Styles */
+    .avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 6px;
+      object-fit: cover;
+    }
+    
+    .message-avatar {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      line-height: 24px;
+      text-align: center;
+      margin-right: 6px;
+      vertical-align: middle;
+      font-size: 16px;
+    }
+    
+    .avatar-loading {
+      animation: rotate 2s linear infinite;
+      opacity: 0.7;
+    }
+    
+    @keyframes rotate {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
   </style>
 
   <!-- Netlify Identity Widget -->
@@ -6797,6 +6833,69 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       generateAvatarInBackground();
     }
     
+    async function generateAvatarInBackground() {
+      console.log('🎨 Starting avatar generation in background...');
+      window.avatarGenerationInProgress = true;
+      
+      // Update all existing avatar displays to show loading indicator
+      updateAllAvatarDisplays();
+      
+      try {
+        const response = await fetch('/.netlify/functions/generate-and-save-avatar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            characterName: currentCharacter.name,
+            characterTitle: currentCharacter.title || currentCharacter.Title || currentCharacter.Character_Title || '',
+            category: currentCharacter.category || currentCharacter.Category || '',
+            characterId: currentCharacter.id || currentCharacter.record_id,
+            characterSlug: characterSlug
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Avatar generation failed: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log('✅ Avatar generated successfully:', result.avatarUrl);
+        
+        // Update the character's avatar URL
+        currentCharacter.avatar_url = result.avatarUrl;
+        currentCharacter.needs_ai_avatar = false;
+        
+        // Update all avatar displays with the new avatar
+        window.avatarGenerationInProgress = false;
+        updateAllAvatarDisplays();
+        
+      } catch (error) {
+        console.error('❌ Avatar generation error:', error);
+        window.avatarGenerationInProgress = false;
+        // Update displays to show default avatar
+        updateAllAvatarDisplays();
+      }
+    }
+    
+    function updateAllAvatarDisplays() {
+      // Update all avatar elements in chat messages
+      const avatarElements = document.querySelectorAll('.message-avatar, .avatar-loading, .avatar');
+      const newAvatarHtml = getAvatarHtml();
+      
+      avatarElements.forEach(element => {
+        // Create a temporary container to parse the new HTML
+        const temp = document.createElement('div');
+        temp.innerHTML = newAvatarHtml;
+        const newElement = temp.firstChild;
+        
+        // Replace the old element with the new one
+        if (newElement && element.parentNode) {
+          element.parentNode.replaceChild(newElement, element);
+        }
+      });
+      
+      console.log(`🔄 Updated ${avatarElements.length} avatar displays`);
+    }
+    
   } catch (error) {
     console.error("Error loading character:", error);
     showError("We're having trouble connecting you right now. Please know that we're here for you - let's try again in a moment.");
@@ -7272,6 +7371,11 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
                        currentCharacter?.Avatar_URL || 
                        currentCharacter?.character_url ||
                        currentCharacter?.image_url;
+      
+      // Check if avatar is being generated
+      if (window.avatarGenerationInProgress) {
+        return '<span class="message-avatar avatar-loading" title="Avatar being generated...">⏳</span>';
+      }
       
       if (avatarUrl && avatarUrl.trim() !== '') {
         // Add error handling for broken images
