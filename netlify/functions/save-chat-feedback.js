@@ -80,10 +80,22 @@ exports.handler = async (event, context) => {
     
     // Get existing feedback and append new one with timestamp
     const existingFeedback = userRecord.fields.chat_feedback || '';
-    const timestamp = new Date().toISOString();
+    
+    // Format date nicely: "7 Aug 2025, 10:59 AM"
+    const date = new Date();
+    const options = { 
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    };
+    const formattedDate = date.toLocaleString('en-US', options);
+    
     const newFeedback = existingFeedback 
-      ? `${existingFeedback}\n\n[${timestamp}] ${feedback}`
-      : `[${timestamp}] ${feedback}`;
+      ? `${existingFeedback}\n\n[${formattedDate}] ${feedback}`
+      : `[${formattedDate}] ${feedback}`;
     
     const updateResponse = await fetch(updateUrl, {
       method: 'PATCH',
