@@ -3431,25 +3431,6 @@
 <script src="https://js.stripe.com/v3/"></script>
 
   <script>
-    // ===== FEEDBACK POPUP FUNCTIONALITY =====
-    let hasShownFeedbackPopup = false;
-    let currentMessageCount = 0;
-    
-    // Function to increment message count
-    function incrementMessageCount() {
-      currentMessageCount++;
-      console.log('📊 Message count:', currentMessageCount);
-      
-      // Get character slug from URL
-      const urlParams = new URLSearchParams(window.location.search);
-      const characterSlug = urlParams.get('char');
-      
-      // Check if we should show feedback popup (after 2 messages)
-      if (currentMessageCount === 2 && !sessionStorage.getItem('feedbackShown_' + characterSlug)) {
-        setTimeout(() => showFeedbackPopup(), 1500);
-      }
-    }
-    
     document.addEventListener("DOMContentLoaded", () => {
       // Check voor referral parameter
       const urlParams = new URLSearchParams(window.location.search);
@@ -4975,7 +4956,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const characterTitle = currentCharacter.character_title || '';
       const characterCategory = (currentCharacter.category || '').toLowerCase();
       const characterDesc = (currentCharacter.description || '').toLowerCase();
-      const characterPrompt = (currentCharacter.prompt || '').toLowerCase();
       
       // Character-specific starters for known personalities
       const specificCharacterStarters = {
@@ -5375,19 +5355,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
       
-      // Enhanced category-based starters that adapt to character personality
+      // Enhanced category-based starters
       const categoryStarters = {
         'business': [
-          characterDesc.includes('coach') || characterDesc.includes('mentor') ? 
-            "I've guided many to success. What specific business goal are you working towards, and what's holding you back?" :
-          characterDesc.includes('entrepreneur') || characterDesc.includes('founder') ?
-            "Building something from nothing is my specialty. What's your vision, and how can we make it reality?" :
-          characterDesc.includes('expert') || characterDesc.includes('consultant') ?
-            "Let's dive deep into your business challenge. Walk me through your situation - I'm here to provide expert insights." :
-            "Business is about solving problems profitably. What problem keeps you up at night?",
-          "Tell me about your business journey - where you are now and where you want to be in 12 months.",
-          "What's the one thing in your business that, if solved, would make everything else easier or unnecessary?",
-          "I believe in practical solutions. What's your most pressing business challenge right now?"
+          "Success leaves clues. What business challenge can I help you solve today?",
+          "Every entrepreneur faces obstacles. What's your biggest hurdle right now?",
+          "Let's talk strategy. What's your vision for growth?",
+          "The market is always changing. How are you adapting your business?",
+          "Innovation drives success. What innovative ideas are you exploring?"
         ],
         'creative': [
           "Creativity flows through everything! What artistic project are you working on?",
@@ -7830,13 +7805,7 @@ function analyzeRecentConversation() {
 }
 
 function getTopicsForCharacter(character) {
-  // Get character's category and prompt for context
-  const category = character.Category || character.category || "";
-  const prompt = character.prompt || character.Prompt || "";
-  const description = character.description || character.Description || "";
-  const title = character.title || character.Title || character.Character_Title || "";
-  
-  // More diverse base topics based on character context
+  // Extended base topics that work for most characters
   const baseTopics = [
     "Tell me about yourself",
     "What inspires you?",
@@ -7848,7 +7817,7 @@ function getTopicsForCharacter(character) {
     "What should I know about you?"
   ];
   
-  // Enhanced category-specific topics with more depth and variety
+  // Add character-specific topics based on their category/type
   const categoryTopics = {
     "Life Coach": [
       "Help me set goals",
@@ -7860,12 +7829,7 @@ function getTopicsForCharacter(character) {
       "Creating positive change",
       "Developing confidence",
       "Time management strategies",
-      "Work-life harmony",
-      "What's holding me back from success?",
-      "How do I overcome fear of failure?",
-      "Building resilience in tough times",
-      "Aligning my actions with my values",
-      "Turning dreams into reality"
+      "Work-life harmony"
     ],
     "Mental Health": [
       "I'm feeling stressed",
@@ -7877,12 +7841,7 @@ function getTopicsForCharacter(character) {
       "Healthy coping strategies",
       "Emotional wellness tips",
       "Mindfulness techniques",
-      "Self-compassion practices",
-      "Dealing with negative thoughts",
-      "How to be kinder to myself",
-      "Creating healthy boundaries",
-      "Processing difficult emotions",
-      "Finding balance in chaos"
+      "Self-compassion practices"
     ],
     "Business": [
       "Career advice",
@@ -7894,15 +7853,7 @@ function getTopicsForCharacter(character) {
       "Decision making skills",
       "Team building insights",
       "Innovation mindset",
-      "Success strategies",
-      "How to negotiate effectively",
-      "Building my personal brand",
-      "Scaling a business sustainably",
-      "Managing difficult conversations",
-      "Creating a winning strategy",
-      "Turning ideas into revenue",
-      "Mastering time management",
-      "Leading through uncertainty"
+      "Success strategies"
     ],
     "Creative": [
       "Spark my creativity",
@@ -7914,14 +7865,7 @@ function getTopicsForCharacter(character) {
       "Exploring new ideas",
       "Creative routines",
       "Pushing boundaries",
-      "Finding your voice",
-      "Turning passion into profession",
-      "Embracing imperfection in art",
-      "Creating without judgment",
-      "Finding your unique style",
-      "Balancing art and commerce",
-      "Staying inspired daily",
-      "Breaking creative rules"
+      "Finding your voice"
     ],
     "Fitness": [
       "Workout motivation",
@@ -7933,14 +7877,7 @@ function getTopicsForCharacter(character) {
       "Staying consistent",
       "Mind-body connection",
       "Fitness mindset",
-      "Wellness journey",
-      "Overcoming workout plateaus",
-      "Creating sustainable habits",
-      "Balancing cardio and strength",
-      "Meal prep strategies",
-      "Training for mental health",
-      "Finding your fitness why",
-      "Recovery is growth"
+      "Wellness journey"
     ],
     "Spiritual": [
       "Finding purpose",
@@ -7952,14 +7889,7 @@ function getTopicsForCharacter(character) {
       "Living authentically",
       "Gratitude practices",
       "Spiritual insights",
-      "Connecting deeply",
-      "Awakening consciousness",
-      "Finding meaning in suffering",
-      "Transcending ego",
-      "Living in the present",
-      "Cultivating inner peace",
-      "Sacred daily rituals",
-      "Connecting with source"
+      "Connecting deeply"
     ],
     "Relationship": [
       "Communication tips",
@@ -7971,14 +7901,7 @@ function getTopicsForCharacter(character) {
       "Conflict resolution",
       "Love languages",
       "Emotional intelligence",
-      "Building intimacy",
-      "Healing from past hurt",
-      "Attracting healthy love",
-      "Being vulnerable safely",
-      "Navigating relationship changes",
-      "Self-love as foundation",
-      "Creating lasting bonds",
-      "Understanding attachment styles"
+      "Building intimacy"
     ],
     "Education": [
       "Study strategies",
@@ -7990,14 +7913,7 @@ function getTopicsForCharacter(character) {
       "Skill development",
       "Educational goals",
       "Learning mindset",
-      "Academic success",
-      "Overcoming learning blocks",
-      "Making education fun",
-      "Critical thinking skills",
-      "Learning from failure",
-      "Curiosity as superpower",
-      "Teaching others effectively",
-      "Lifelong learning habits"
+      "Academic success"
     ],
     "Entertainment": [
       "Tell me a story",
@@ -8009,14 +7925,7 @@ function getTopicsForCharacter(character) {
       "Fun facts",
       "Entertaining tales",
       "Lighthearted chat",
-      "Amusing anecdotes",
-      "Share your wildest adventure",
-      "What's your funniest memory?",
-      "Create a story together",
-      "Riddle me this",
-      "Unexpected plot twists",
-      "Comedy gold moments",
-      "Behind the scenes secrets"
+      "Amusing anecdotes"
     ],
     "Philosophy": [
       "Life's big questions",
@@ -8028,14 +7937,7 @@ function getTopicsForCharacter(character) {
       "Moral philosophy",
       "Existential thoughts",
       "Deep reflections",
-      "Universal truths",
-      "Free will vs determinism",
-      "What makes a good life?",
-      "Nature of consciousness",
-      "Truth in a post-truth world",
-      "Ethics of AI and technology",
-      "Philosophy of happiness",
-      "Reality and perception"
+      "Universal truths"
     ],
     "Science": [
       "Explain a concept",
@@ -8047,14 +7949,7 @@ function getTopicsForCharacter(character) {
       "Scientific method",
       "Future predictions",
       "Amazing facts",
-      "Science simplified",
-      "Quantum mysteries",
-      "Space exploration updates",
-      "Climate science explained",
-      "Breakthrough technologies",
-      "Biology of human behavior",
-      "Physics of everyday life",
-      "Future of humanity"
+      "Science simplified"
     ],
     "Technology": [
       "Tech trends",
@@ -8066,269 +7961,7 @@ function getTopicsForCharacter(character) {
       "Tech ethics",
       "Innovation insights",
       "Digital transformation",
-      "Tech simplified",
-      "Cybersecurity basics",
-      "Building digital products",
-      "Tech career transitions",
-      "Privacy in digital age",
-      "Emerging technologies",
-      "Code as creative expression",
-      "Tech for social good"
-    ],
-    "Historical": [
-      "Lessons from history",
-      "Historical parallels today",
-      "Untold stories",
-      "What shaped our world",
-      "Historical mysteries",
-      "Pivotal moments",
-      "Learning from the past",
-      "Historical figures' wisdom",
-      "Evolution of ideas",
-      "History's greatest lessons",
-      "Alternative histories",
-      "Cultural evolution",
-      "Historical turning points",
-      "Forgotten heroes",
-      "Ancient wisdom"
-    ],
-    "Gaming": [
-      "Gaming strategies",
-      "Favorite gaming moments",
-      "Character builds",
-      "Gaming philosophy",
-      "Esports insights",
-      "Game design principles",
-      "Virtual worlds",
-      "Gaming communities",
-      "Speedrun techniques",
-      "Gaming life lessons",
-      "Epic boss battles",
-      "Hidden game mechanics",
-      "Gaming psychology",
-      "Future of gaming",
-      "Indie game gems"
-    ],
-    "Anime": [
-      "Favorite anime moments",
-      "Character development",
-      "Anime life lessons",
-      "Hidden anime gems",
-      "Anime philosophies",
-      "Character analysis",
-      "Anime recommendations",
-      "Cultural insights",
-      "Power scaling debates",
-      "Emotional anime scenes",
-      "Manga vs anime",
-      "Character motivations",
-      "Anime fighting styles",
-      "Studio comparisons",
-      "Seasonal favorites"
-    ],
-    "Movies & TV": [
-      "Character motivations",
-      "Plot analysis",
-      "Behind the scenes",
-      "Character arcs",
-      "Cinematic techniques",
-      "Story themes",
-      "Acting insights",
-      "Director's vision",
-      "Hidden meanings",
-      "Character psychology",
-      "Alternate endings",
-      "Fan theories",
-      "Method acting stories",
-      "Production challenges",
-      "Character evolution"
-    ],
-    "Music": [
-      "Musical inspiration",
-      "Creative process",
-      "Genre evolution",
-      "Performance tips",
-      "Music theory basics",
-      "Emotional connection",
-      "Industry insights",
-      "Collaboration stories",
-      "Musical influences",
-      "Live performance energy",
-      "Songwriting secrets",
-      "Music production tips",
-      "Finding your sound",
-      "Music as therapy",
-      "Breaking music rules"
-    ],
-    "Sports": [
-      "Training mindset",
-      "Peak performance",
-      "Overcoming defeats",
-      "Team dynamics",
-      "Mental game",
-      "Nutrition for athletes",
-      "Recovery strategies",
-      "Competition psychology",
-      "Building endurance",
-      "Sports leadership",
-      "Clutch moments",
-      "Injury comeback stories",
-      "Pre-game rituals",
-      "Coaching philosophy",
-      "Athletic longevity"
-    ],
-    "Food": [
-      "Culinary adventures",
-      "Cooking techniques",
-      "Food memories",
-      "Recipe secrets",
-      "Cultural cuisines",
-      "Kitchen experiments",
-      "Food philosophy",
-      "Ingredient stories",
-      "Cooking disasters",
-      "Comfort food tales",
-      "Restaurant experiences",
-      "Food pairings",
-      "Cooking for others",
-      "Food traditions",
-      "Kitchen wisdom"
-    ],
-    "Travel": [
-      "Travel stories",
-      "Hidden destinations",
-      "Cultural experiences",
-      "Travel tips",
-      "Adventure tales",
-      "Local insights",
-      "Travel philosophy",
-      "Solo travel wisdom",
-      "Travel mishaps",
-      "Transformative journeys",
-      "Off the beaten path",
-      "Travel life lessons",
-      "Cultural immersion",
-      "Travel planning secrets",
-      "Wanderlust inspiration"
-    ],
-    "Fashion": [
-      "Style philosophy",
-      "Fashion evolution",
-      "Personal expression",
-      "Wardrobe essentials",
-      "Fashion confidence",
-      "Trend insights",
-      "Sustainable fashion",
-      "Style icons",
-      "Fashion mistakes",
-      "Signature looks",
-      "Fashion psychology",
-      "Breaking fashion rules",
-      "Timeless vs trendy",
-      "Fashion storytelling",
-      "Style transformation"
-    ],
-    "Wellness": [
-      "Holistic health",
-      "Mind-body balance",
-      "Wellness routines",
-      "Natural healing",
-      "Energy management",
-      "Sleep optimization",
-      "Stress reduction",
-      "Wellness myths",
-      "Preventive health",
-      "Wellness journey",
-      "Biohacking basics",
-      "Intuitive wellness",
-      "Healing practices",
-      "Wellness community",
-      "Self-healing power"
-    ],
-    "Psychology": [
-      "Understanding behavior",
-      "Mental patterns",
-      "Cognitive biases",
-      "Emotional regulation",
-      "Personality insights",
-      "Habit formation",
-      "Decision psychology",
-      "Social dynamics",
-      "Memory techniques",
-      "Psychological growth",
-      "Trauma healing",
-      "Behavioral change",
-      "Mind tricks",
-      "Psychology myths",
-      "Human potential"
-    ],
-    "Art": [
-      "Artistic vision",
-      "Creative process",
-      "Art interpretation",
-      "Technique mastery",
-      "Art history insights",
-      "Finding inspiration",
-      "Art as expression",
-      "Breaking art rules",
-      "Artist struggles",
-      "Art movements",
-      "Color psychology",
-      "Artistic breakthroughs",
-      "Art criticism",
-      "Digital vs traditional",
-      "Art as therapy"
-    ],
-    "Literature": [
-      "Writing insights",
-      "Story structure",
-      "Character creation",
-      "Literary themes",
-      "Reading recommendations",
-      "Writing process",
-      "Literary analysis",
-      "Author influences",
-      "Book discussions",
-      "Writing challenges",
-      "Plot development",
-      "Literary devices",
-      "Genre exploration",
-      "Publishing journey",
-      "Reading impact"
-    ],
-    "Comedy": [
-      "Comedy timing",
-      "Finding humor",
-      "Stand-up stories",
-      "Comedy writing",
-      "Audience connection",
-      "Comedy philosophy",
-      "Bombing stories",
-      "Joke construction",
-      "Comedy influences",
-      "Improvisation tips",
-      "Dark humor ethics",
-      "Comedy evolution",
-      "Making people laugh",
-      "Comedy therapy",
-      "Humor in hard times"
-    ],
-    "Mythology": [
-      "Mythological wisdom",
-      "Origin stories",
-      "Hero's journey",
-      "Divine encounters",
-      "Mythical creatures",
-      "Ancient mysteries",
-      "Mythology parallels",
-      "Sacred stories",
-      "Mythological symbols",
-      "Gods and mortals",
-      "Creation myths",
-      "Legendary quests",
-      "Mythology lessons",
-      "Modern mythology",
-      "Timeless myths"
+      "Tech simplified"
     ]
   };
   
@@ -8339,49 +7972,18 @@ function getTopicsForCharacter(character) {
   const category = character.Category || character.category || "";
   const specificTopics = categoryTopics[category] || [];
   
-  // Add character-specific topics based on prompt analysis
-  const characterSpecificTopics = analyzeCharacterForTopics(character);
+  // Combine all topic sources
+  const allTopics = [...baseTopics, ...specificTopics, ...timeBasedTopics];
   
-  // Add personality-based topics
-  const personalityTopics = getPersonalityBasedTopics(prompt, description, title);
-  
-  // Combine all topic sources with weights
-  // Priority: character-specific > category-specific > personality > time-based > base
-  const allTopics = [
-    ...characterSpecificTopics,
-    ...specificTopics.slice(0, 10), // Limit category topics
-    ...personalityTopics,
-    ...timeBasedTopics,
-    ...baseTopics
-  ];
-  
-  // Remove duplicates while preserving order
-  const uniqueTopics = [...new Set(allTopics)];
-  
-  // Smart selection: ensure variety by picking from different sources
-  const selectedTopics = [];
-  
-  // First, add 1-2 character-specific topics if available
-  if (characterSpecificTopics.length > 0) {
-    selectedTopics.push(...characterSpecificTopics.slice(0, 2));
+  // Shuffle array using Fisher-Yates algorithm for better randomization
+  const shuffled = allTopics.slice();
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
   
-  // Then add 1-2 category-specific topics
-  const categorySelection = specificTopics.filter(t => !selectedTopics.includes(t));
-  if (categorySelection.length > 0) {
-    const shuffledCategory = categorySelection.sort(() => Math.random() - 0.5);
-    selectedTopics.push(...shuffledCategory.slice(0, 2));
-  }
-  
-  // Fill remaining slots with mixed topics
-  const remainingTopics = uniqueTopics.filter(t => !selectedTopics.includes(t));
-  const shuffledRemaining = remainingTopics.sort(() => Math.random() - 0.5);
-  
-  // Add remaining topics to reach 5 total
-  const needed = 5 - selectedTopics.length;
-  selectedTopics.push(...shuffledRemaining.slice(0, needed));
-  
-  return selectedTopics.slice(0, 5);
+  // Return 5 random topics, ensuring variety
+  return shuffled.slice(0, 5);
 }
 
 // Add time-based topics for more variety
@@ -8407,116 +8009,6 @@ function getTimeBasedTopics() {
     topics.push("Weekend plans", "Relaxation ideas", "Fun activities");
   } else {
     topics.push("Weekday motivation", "Productivity tips", "Work-life balance");
-  }
-  
-  return topics;
-}
-
-// Analyze character's prompt and description for specific topics
-function analyzeCharacterForTopics(character) {
-  const topics = [];
-  const prompt = (character.prompt || character.Prompt || '').toLowerCase();
-  const description = (character.description || character.Description || '').toLowerCase();
-  const name = (character.name || character.Name || '').toLowerCase();
-  
-  // Check for specific expertise or focus areas
-  if (prompt.includes('coach') || description.includes('coach')) {
-    topics.push("What's my biggest potential?", "How to break through my plateau");
-  }
-  
-  if (prompt.includes('mentor') || description.includes('mentor')) {
-    topics.push("Guide me through this challenge", "What would you do in my situation?");
-  }
-  
-  if (prompt.includes('therapist') || description.includes('therapist')) {
-    topics.push("Help me understand my feelings", "How to process this experience");
-  }
-  
-  if (prompt.includes('expert') || description.includes('expert')) {
-    topics.push("Explain this like I'm a beginner", "What's the most important thing to know?");
-  }
-  
-  if (prompt.includes('creative') || description.includes('artist')) {
-    topics.push("Inspire my next project", "How to see things differently");
-  }
-  
-  if (prompt.includes('spiritual') || description.includes('spiritual')) {
-    topics.push("What's the deeper meaning here?", "How to find inner peace");
-  }
-  
-  if (prompt.includes('funny') || prompt.includes('humor') || description.includes('comedian')) {
-    topics.push("Make me laugh", "Share your funniest story");
-  }
-  
-  if (prompt.includes('wise') || prompt.includes('wisdom')) {
-    topics.push("Share your greatest life lesson", "What truth changed your life?");
-  }
-  
-  if (prompt.includes('adventur') || description.includes('adventur')) {
-    topics.push("Tell me about your wildest adventure", "What's the most daring thing you've done?");
-  }
-  
-  if (prompt.includes('philosoph') || description.includes('philosoph')) {
-    topics.push("What's your philosophy on life?", "Challenge my worldview");
-  }
-  
-  // Character name-based topics
-  if (name.includes('professor') || name.includes('dr.') || name.includes('doctor')) {
-    topics.push("Teach me something fascinating", "What's your field of expertise?");
-  }
-  
-  if (name.includes('captain') || name.includes('commander')) {
-    topics.push("Leadership in tough times", "How to command respect");
-  }
-  
-  return topics;
-}
-
-// Get personality-based topics from character traits
-function getPersonalityBasedTopics(prompt, description, title) {
-  const topics = [];
-  const combinedText = `${prompt} ${description} ${title}`.toLowerCase();
-  
-  // Emotional support traits
-  if (combinedText.includes('caring') || combinedText.includes('compassionate') || 
-      combinedText.includes('empathetic') || combinedText.includes('supportive')) {
-    topics.push("I need someone to listen", "Help me feel better", "Understanding my emotions");
-  }
-  
-  // Motivational traits
-  if (combinedText.includes('motivat') || combinedText.includes('inspir') || 
-      combinedText.includes('encourag') || combinedText.includes('uplift')) {
-    topics.push("I need motivation", "Help me believe in myself", "Push me to be better");
-  }
-  
-  // Intellectual traits
-  if (combinedText.includes('intelligent') || combinedText.includes('brilliant') || 
-      combinedText.includes('genius') || combinedText.includes('analytical')) {
-    topics.push("Solve this puzzle with me", "Explain complex ideas simply", "Challenge my thinking");
-  }
-  
-  // Mysterious traits
-  if (combinedText.includes('mysterious') || combinedText.includes('enigmatic') || 
-      combinedText.includes('cryptic') || combinedText.includes('mystical')) {
-    topics.push("Tell me a secret", "What mysteries do you know?", "Read between the lines");
-  }
-  
-  // Playful traits
-  if (combinedText.includes('playful') || combinedText.includes('fun') || 
-      combinedText.includes('cheerful') || combinedText.includes('energetic')) {
-    topics.push("Let's have some fun", "Brighten my day", "Play a game with me");
-  }
-  
-  // Wise traits
-  if (combinedText.includes('wise') || combinedText.includes('sage') || 
-      combinedText.includes('enlightened') || combinedText.includes('insightful')) {
-    topics.push("Share your wisdom", "What's truly important?", "Life's deepest truths");
-  }
-  
-  // Practical traits
-  if (combinedText.includes('practical') || combinedText.includes('pragmatic') || 
-      combinedText.includes('realistic') || combinedText.includes('grounded')) {
-    topics.push("Give me practical advice", "How to get things done", "Real-world solutions");
   }
   
   return topics;
@@ -10197,59 +9689,6 @@ function showGentleCheckIn() {
   chatlog.scrollTop = chatlog.scrollHeight;
 }
 
-// Track conversation messages for summary generation
-let conversationMessages = [];
-let lastSummaryTime = Date.now();
-let messageCountForSummary = 0;
-
-// ===== RELATIONSHIP TRACKING FUNCTIONS =====
-async function updateRelationship(email, uid, token, characterSlug, aiResponse) {
-  try {
-    // Get all possible user identifiers
-    const stored_user_id = localStorage.getItem("user_id");
-    const stored_user_uid = localStorage.getItem("user_uid");
-    const stored_user_email = localStorage.getItem("user_email");
-    
-    // Prioritize the email parameter passed to the function, then stored values
-    const effective_user_id = email || stored_user_id || stored_user_email || stored_user_uid;
-    
-    // Skip relationship update only if no user identifier at all
-    if (!effective_user_id) {
-      console.log('ℹ️ Skipping relationship update - no user identifier available');
-      return;
-    }
-    
-    console.log('🔄 Updating relationship data...', { user: effective_user_id, character: characterSlug });
-    
-    const response = await fetch('/.netlify/functions/update-relationship', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        user_id: effective_user_id,
-        user_uid: uid || stored_user_uid,
-        user_email: email || stored_user_email,
-        character_slug: characterSlug,
-        ai_response: aiResponse
-      })
-    });
-    
-    if (response.ok) {
-      const result = await response.json();
-      if (result.relationshipData) {
-        // Store updated relationship context
-        window.relationshipContext = result.relationshipData;
-        console.log('✅ Relationship updated:', window.relationshipContext);
-      }
-    } else {
-      console.error('❌ Failed to update relationship:', response.status);
-    }
-  } catch (error) {
-    console.error('❌ Failed to update relationship:', error);
-  }
-}
-
 async function sendMessage(event) {
   event?.preventDefault();
   
@@ -11369,7 +10808,71 @@ document.addEventListener('DOMContentLoaded', () => {
   </footer>
   
   <script>
+    // ===== RELATIONSHIP TRACKING FUNCTIONS =====
+    async function updateRelationship(email, uid, token, characterSlug, aiResponse) {
+      try {
+        // Get all possible user identifiers
+        const stored_user_id = localStorage.getItem("user_id");
+        const stored_user_uid = localStorage.getItem("user_uid");
+        const stored_user_email = localStorage.getItem("user_email");
+        
+        // Prioritize the email parameter passed to the function, then stored values
+        const effective_user_id = email || stored_user_id || stored_user_email || stored_user_uid;
+        
+        // Skip relationship update only if no user identifier at all
+        if (!effective_user_id) {
+          console.log('⚠️ Skipping relationship update - no user identifier');
+          return;
+        }
+        
+        console.log('📊 Updating relationship for user:', effective_user_id, '(type:', typeof effective_user_id, ')');
+        
+        // Extract emotional state from response
+        let emotionalState = 'neutral';
+        if (aiResponse.toLowerCase().match(/happy|excited|great|wonderful|love/)) {
+          emotionalState = 'positive';
+        } else if (aiResponse.toLowerCase().match(/sad|sorry|hurt|angry|upset/)) {
+          emotionalState = 'negative';
+        }
+        
+        // Extract topics (simple keyword extraction)
+        const topics = [];
+        const topicKeywords = ['work', 'family', 'love', 'health', 'hobby', 'travel', 'food', 'music', 'movie', 'book'];
+        topicKeywords.forEach(keyword => {
+          if (aiResponse.toLowerCase().includes(keyword)) {
+            topics.push(keyword);
+          }
+        });
+        
+        const relationshipResponse = await fetch('/.netlify/functions/update-relationship', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            netlify_uid: uid || stored_user_uid,  // Use NetlifyUID
+            slug: characterSlug,  // Match Airtable field name
+            emotional_state: emotionalState,
+            topics: topics,
+            message_count: 1
+          })
+        });
+        
+        if (!relationshipResponse.ok) {
+          const errorData = await relationshipResponse.json();
+          console.error('❌ Relationship update failed:', errorData);
+          return;
+        }
+        
+        const result = await relationshipResponse.json();
+        console.log('✅ Relationship updated:', result);
+      } catch (error) {
+        console.error('❌ Failed to update relationship:', error);
+      }
+    }
     
+    // Track conversation messages for summary generation
+    let conversationMessages = [];
+    let lastSummaryTime = Date.now();
+    let messageCountForSummary = 0;
     
     async function generateConversationSummary(email, uid, token, characterSlug) {
       try {
@@ -11686,10 +11189,23 @@ document.addEventListener('DOMContentLoaded', () => {
       document.body.style.overflow = '';
     }
     
+    let selectedRating = 0;
+    
     function selectRating(rating) {
       selectedRating = rating;
       updateStarDisplay(rating);
       document.getElementById('submitRatingBtn').disabled = false;
+    }
+    
+    function updateStarDisplay(rating) {
+      const stars = document.querySelectorAll('.rating-star');
+      stars.forEach((star, index) => {
+        if (index < rating) {
+          star.classList.add('active');
+        } else {
+          star.classList.remove('active');
+        }
+      });
     }
     
     async function submitRating() {
@@ -11734,6 +11250,24 @@ document.addEventListener('DOMContentLoaded', () => {
         showError('Sorry, we couldn\'t save your rating. Please try again.');
         submitBtn.disabled = false;
         submitBtn.textContent = 'Submit Rating';
+      }
+    }
+    // ===== FEEDBACK POPUP FUNCTIONALITY =====
+    let hasShownFeedbackPopup = false;
+    let currentMessageCount = 0;
+    
+    // Function to increment message count
+    function incrementMessageCount() {
+      currentMessageCount++;
+      console.log('📊 Message count:', currentMessageCount);
+      
+      // Get character slug from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const characterSlug = urlParams.get('char');
+      
+      // Check if we should show feedback popup (after 2 messages)
+      if (currentMessageCount === 2 && !sessionStorage.getItem('feedbackShown_' + characterSlug)) {
+        setTimeout(() => showFeedbackPopup(), 1500);
       }
     }
     
