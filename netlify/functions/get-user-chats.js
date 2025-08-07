@@ -118,23 +118,53 @@ exports.handler = async (event, context) => {
     const allUsersData = await allUsersResponse.json();
     console.log('👥 DEBUG Total users in Airtable:', allUsersData.records.length);
 
-    // Log details van alle users
+    // Log details van alle users - EXTRA VERBOSE voor debugging
+    console.log('🔍 Looking for user with email:', user_email, 'and UID:', user_uid);
+    
     allUsersData.records.forEach((record, index) => {
-      console.log(`👤 DEBUG User ${index + 1}:`, {
-        id: record.id,
-        email_field: record.fields.Email,
-        email_lowercase: record.fields.email,
-        all_fields: Object.keys(record.fields),
-        matches_target: record.fields.Email === user_email
-      });
+      const emailMatch = record.fields.Email === user_email || 
+                        (record.fields.Email && record.fields.Email.toLowerCase() === user_email.toLowerCase());
+      const uidMatch = record.fields.NetlifyUID === user_uid;
+      
+      // Log alleen potentiële matches of eerste paar users
+      if (emailMatch || uidMatch || index < 3) {
+        console.log(`👤 DEBUG User ${index + 1}:`, {
+          id: record.id,
+          email_field: record.fields.Email,
+          netlify_uid: record.fields.NetlifyUID,
+          email_matches: emailMatch,
+          uid_matches: uidMatch,
+          all_fields: Object.keys(record.fields)
+        });
+      }
+      
+      // Speciale check voor de probleem user
+      if (record.fields.Email && record.fields.Email.includes('smitssebastiaan2+7')) {
+        console.log('🎯 FOUND SIMILAR EMAIL:', {
+          exact_email: record.fields.Email,
+          searching_for: user_email,
+          exact_match: record.fields.Email === user_email,
+          uid_in_record: record.fields.NetlifyUID,
+          uid_searching: user_uid
+        });
+      }
     });
 
-    // Zoek handmatig naar de gebruiker
-    const targetUser = allUsersData.records.find(record => 
-      record.fields.Email === user_email || 
-      record.fields.email === user_email ||
-      (record.fields.Email && record.fields.Email.toLowerCase() === user_email.toLowerCase())
+    // Zoek handmatig naar de gebruiker - EERST op UID (meest betrouwbaar), dan op email
+    let targetUser = allUsersData.records.find(record => 
+      record.fields.NetlifyUID === user_uid
     );
+    
+    if (!targetUser) {
+      console.log('⚠️ No user found with UID:', user_uid, '- trying email lookup');
+      targetUser = allUsersData.records.find(record => 
+        record.fields.Email === user_email || 
+        record.fields.email === user_email ||
+        (record.fields.Email && record.fields.Email.toLowerCase() === user_email.toLowerCase())
+      );
+    } else {
+      console.log('✅ Found user by UID:', targetUser.fields.Email);
+    }
 
     if (!targetUser) {
       console.log('❌ DEBUG Target user NOT found');
