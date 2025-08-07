@@ -46,12 +46,8 @@ exports.handler = async (event, context) => {
             
             <!-- Main content -->
             <div style="padding: 50px 40px; text-align: center;">
-              <h2 style="font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 28px; font-weight: 700; color: #1e293b; margin-bottom: 20px; letter-spacing: -0.01em;">
-                ${character.Name} Sent You a Message
-              </h2>
-              
               <p style="font-size: 18px; color: #64748b; margin-bottom: 30px; line-height: 1.6;">
-                You have an unread message waiting for you!
+                Continue your conversation. Jump back in anytime!
               </p>
               
               <!-- TEST NOTICE -->
@@ -101,7 +97,7 @@ exports.handler = async (event, context) => {
       },
       subject: `${character.Name} sent you a message 💌`,
       html: emailHtml,
-      text: `Continue your conversation with ${character.Name}. You have an unread message waiting.\n\n${chatUrl}`
+      text: `Continue your conversation. Jump back in anytime!\n\n${chatUrl}`
     };
 
     await sgMail.send(msg);
