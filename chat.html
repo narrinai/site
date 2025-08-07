@@ -3431,6 +3431,25 @@
 <script src="https://js.stripe.com/v3/"></script>
 
   <script>
+    // ===== FEEDBACK POPUP FUNCTIONALITY =====
+    let hasShownFeedbackPopup = false;
+    let currentMessageCount = 0;
+    
+    // Function to increment message count
+    function incrementMessageCount() {
+      currentMessageCount++;
+      console.log('📊 Message count:', currentMessageCount);
+      
+      // Get character slug from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const characterSlug = urlParams.get('char');
+      
+      // Check if we should show feedback popup (after 2 messages)
+      if (currentMessageCount === 2 && !sessionStorage.getItem('feedbackShown_' + characterSlug)) {
+        setTimeout(() => showFeedbackPopup(), 1500);
+      }
+    }
+    
     document.addEventListener("DOMContentLoaded", () => {
       // Check voor referral parameter
       const urlParams = new URLSearchParams(window.location.search);
@@ -4956,6 +4975,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const characterTitle = currentCharacter.character_title || '';
       const characterCategory = (currentCharacter.category || '').toLowerCase();
       const characterDesc = (currentCharacter.description || '').toLowerCase();
+      const characterPrompt = (currentCharacter.prompt || '').toLowerCase();
       
       // Character-specific starters for known personalities
       const specificCharacterStarters = {
@@ -5355,14 +5375,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
       
-      // Enhanced category-based starters
+      // Enhanced category-based starters that adapt to character personality
       const categoryStarters = {
         'business': [
-          "Success leaves clues. What business challenge can I help you solve today?",
-          "Every entrepreneur faces obstacles. What's your biggest hurdle right now?",
-          "Let's talk strategy. What's your vision for growth?",
-          "The market is always changing. How are you adapting your business?",
-          "Innovation drives success. What innovative ideas are you exploring?"
+          characterDesc.includes('coach') || characterDesc.includes('mentor') ? 
+            "I've guided many to success. What specific business goal are you working towards, and what's holding you back?" :
+          characterDesc.includes('entrepreneur') || characterDesc.includes('founder') ?
+            "Building something from nothing is my specialty. What's your vision, and how can we make it reality?" :
+          characterDesc.includes('expert') || characterDesc.includes('consultant') ?
+            "Let's dive deep into your business challenge. Walk me through your situation - I'm here to provide expert insights." :
+            "Business is about solving problems profitably. What problem keeps you up at night?",
+          "Tell me about your business journey - where you are now and where you want to be in 12 months.",
+          "What's the one thing in your business that, if solved, would make everything else easier or unnecessary?",
+          "I believe in practical solutions. What's your most pressing business challenge right now?"
         ],
         'creative': [
           "Creativity flows through everything! What artistic project are you working on?",
@@ -11250,24 +11275,6 @@ document.addEventListener('DOMContentLoaded', () => {
         showError('Sorry, we couldn\'t save your rating. Please try again.');
         submitBtn.disabled = false;
         submitBtn.textContent = 'Submit Rating';
-      }
-    }
-    // ===== FEEDBACK POPUP FUNCTIONALITY =====
-    let hasShownFeedbackPopup = false;
-    let currentMessageCount = 0;
-    
-    // Function to increment message count
-    function incrementMessageCount() {
-      currentMessageCount++;
-      console.log('📊 Message count:', currentMessageCount);
-      
-      // Get character slug from URL
-      const urlParams = new URLSearchParams(window.location.search);
-      const characterSlug = urlParams.get('char');
-      
-      // Check if we should show feedback popup (after 2 messages)
-      if (currentMessageCount === 2 && !sessionStorage.getItem('feedbackShown_' + characterSlug)) {
-        setTimeout(() => showFeedbackPopup(), 1500);
       }
     }
     
