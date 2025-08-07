@@ -6714,7 +6714,8 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       id: currentCharacter.id,
       record_id: currentCharacter.record_id,
       airtable_id: currentCharacter.airtable_id,
-      ID: currentCharacter.ID
+      ID: currentCharacter.ID,
+      character_id: currentCharacter.character_id
     });
     
     // Check if this is a custom character by looking for it in localStorage
@@ -6870,10 +6871,17 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
         const characterId = currentCharacter.id || 
                            currentCharacter.record_id || 
                            currentCharacter.airtable_id || 
-                           currentCharacter.ID;
+                           currentCharacter.ID ||
+                           currentCharacter.character_id;
         
         if (!characterId) {
-          console.error('❌ No character ID found, cannot generate avatar');
+          console.error('❌ No character ID found in any field:', {
+            id: currentCharacter.id,
+            record_id: currentCharacter.record_id,
+            airtable_id: currentCharacter.airtable_id,
+            ID: currentCharacter.ID,
+            character_id: currentCharacter.character_id
+          });
           throw new Error('Character ID not found');
         }
         
@@ -6896,7 +6904,14 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
         if (!response.ok) {
           const errorText = await response.text();
           console.error('❌ Response error:', errorText);
-          throw new Error(`Avatar generation failed: ${response.status} - ${errorText}`);
+          let errorMessage = 'Unknown error';
+          try {
+            const errorJson = JSON.parse(errorText);
+            errorMessage = errorJson.error || errorJson.message || errorText;
+          } catch (e) {
+            errorMessage = errorText;
+          }
+          throw new Error(`Avatar generation failed: ${response.status} - ${errorMessage}`);
         }
         
         const responseText = await response.text();

@@ -38,11 +38,11 @@ exports.handler = async (event, context) => {
       characterSlug
     });
     
-    if (!characterName || !characterId) {
+    if (!characterName || (!characterId && !characterSlug)) {
       return {
         statusCode: 400,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'Missing required fields' })
+        body: JSON.stringify({ error: 'Missing required fields: name and either ID or slug required' })
       };
     }
     
@@ -122,30 +122,102 @@ exports.handler = async (event, context) => {
     // Step 4: Update Airtable with base64 data URL
     const dataUrl = `data:image/webp;base64,${base64Image}`;
     
-    const airtableUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters/${characterId}`;
-    
-    const updateResponse = await fetch(airtableUrl, {
-      method: 'PATCH',
-      headers: {
-        'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        fields: {
-          // Store as a data URL that will always work
-          avatar_url: dataUrl,
-          // Also store metadata
-          avatar_filename: fileName,
-          avatar_generated_at: new Date().toISOString(),
-          avatar_prompt: prompt
+    // If we have a proper Airtable record ID, update directly
+    if (characterId && characterId.startsWith('rec')) {
+      const airtableUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters/${characterId}`;
+      
+      const updateResponse = await fetch(airtableUrl, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          fields: {
+            // Store as a data URL that will always work
+            avatar_url: dataUrl,
+            // Also store metadata
+            avatar_filename: fileName,
+            avatar_generated_at: new Date().toISOString(),
+            avatar_prompt: prompt
+          }
+        })
+      });
+      
+      if (!updateResponse.ok) {
+        const errorText = await updateResponse.text();
+        console.error('❌ Airtable update error:', errorText);
+        throw new Error('Failed to update Airtable');
+      }
+    } else if (characterSlug) {
+      // For characters without proper Airtable IDs, we need to find the record first
+      console.log('🔍 Looking up character by slug:', characterSlug);
+      
+      // Find the character by slug
+      const searchUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula={Slug}='${characterSlug}'`;
+      
+      const searchResponse = await fetch(searchUrl, {
+        headers: {
+          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+          'Content-Type': 'application/json'
         }
-      })
-    });
-    
-    if (!updateResponse.ok) {
-      const errorText = await updateResponse.text();
-      console.error('❌ Airtable update error:', errorText);
-      throw new Error('Failed to update Airtable');
+      });
+      
+      if (!searchResponse.ok) {
+        throw new Error('Failed to find character in Airtable');
+      }
+      
+      const searchData = await searchResponse.json();
+      
+      if (!searchData.records || searchData.records.length === 0) {
+        console.error('❌ Character not found in Airtable with slug:', characterSlug);
+        // Still return the generated avatar URL even if we can't save to Airtable
+        console.log('⚠️ Returning avatar without saving to Airtable');
+        return {
+          statusCode: 200,
+          headers: { 
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+          },
+          body: JSON.stringify({
+            success: true,
+            avatarUrl: dataUrl,
+            fileName: fileName,
+            message: 'Avatar generated but not saved to Airtable (character not found)'
+          })
+        };
+      }
+      
+      // Get the real Airtable ID
+      const realCharacterId = searchData.records[0].id;
+      console.log('✅ Found character with ID:', realCharacterId);
+      
+      // Now update with the real ID
+      const updateUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters/${realCharacterId}`;
+      
+      const updateResponse = await fetch(updateUrl, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          fields: {
+            avatar_url: dataUrl,
+            avatar_filename: fileName,
+            avatar_generated_at: new Date().toISOString(),
+            avatar_prompt: prompt
+          }
+        })
+      });
+      
+      if (!updateResponse.ok) {
+        const errorText = await updateResponse.text();
+        console.error('❌ Airtable update error:', errorText);
+        throw new Error('Failed to update Airtable');
+      }
+    } else {
+      throw new Error('No valid character ID or slug provided');
     }
     
     console.log('✅ Avatar saved successfully');
