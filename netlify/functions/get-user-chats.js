@@ -92,31 +92,43 @@ exports.handler = async (event, context) => {
     // DEBUG: Haal ALLE users op om te zien wat er in de tabel staat
     console.log('🔍 DEBUG Fetching ALL users for debugging...');
     
-    const allUsersUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users`;
-    console.log('🔗 DEBUG Users URL:', allUsersUrl);
+    // Airtable heeft een limiet van 100 records per pagina, dus we moeten pagineren
+    let allUsers = [];
+    let offset = null;
     
-    const allUsersResponse = await fetch(allUsersUrl, {
-      method: 'GET',
-      headers: airtableHeaders
-    });
+    do {
+      const allUsersUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users${offset ? `?offset=${offset}` : ''}`;
+      console.log('🔗 DEBUG Users URL:', allUsersUrl);
+      
+      const allUsersResponse = await fetch(allUsersUrl, {
+        method: 'GET',
+        headers: airtableHeaders
+      });
 
-    if (!allUsersResponse.ok) {
-      console.error('❌ Error fetching all users:', allUsersResponse.status, allUsersResponse.statusText);
-      const errorText = await allUsersResponse.text();
-      console.error('❌ Error details:', errorText);
-      return {
-        statusCode: 500,
-        headers,
-        body: JSON.stringify({ 
-          success: false, 
-          error: `Users table fetch failed: ${allUsersResponse.statusText}`,
-          debug: errorText
-        })
-      };
-    }
+      if (!allUsersResponse.ok) {
+        console.error('❌ Error fetching all users:', allUsersResponse.status, allUsersResponse.statusText);
+        const errorText = await allUsersResponse.text();
+        console.error('❌ Error details:', errorText);
+        return {
+          statusCode: 500,
+          headers,
+          body: JSON.stringify({ 
+            success: false, 
+            error: `Users table fetch failed: ${allUsersResponse.statusText}`,
+            debug: errorText
+          })
+        };
+      }
 
-    const allUsersData = await allUsersResponse.json();
-    console.log('👥 DEBUG Total users in Airtable:', allUsersData.records.length);
+      const pageData = await allUsersResponse.json();
+      allUsers = allUsers.concat(pageData.records);
+      offset = pageData.offset; // Als er meer pagina's zijn, krijgen we een offset
+      
+      console.log(`📄 Fetched page with ${pageData.records.length} users, total so far: ${allUsers.length}`);
+    } while (offset); // Blijf doorgaan zolang er een offset is
+    
+    const allUsersData = { records: allUsers };
+    console.log('👥 DEBUG Total users in Airtable:', allUsers.length);
 
     // Log details van alle users - EXTRA VERBOSE voor debugging
     console.log('🔍 Looking for user with email:', user_email, 'and UID:', user_uid);
