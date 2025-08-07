@@ -156,8 +156,8 @@ exports.handler = async (event, context) => {
       // For characters without proper Airtable IDs, we need to find the record first
       console.log('🔍 Looking up character by slug:', characterSlug);
       
-      // Find the character by slug
-      const searchUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula={Slug}='${characterSlug}'`;
+      // Find the character by slug - use SEARCH to handle special characters
+      const searchUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula=SEARCH("${characterSlug}",{Slug})`;
       
       const searchResponse = await fetch(searchUrl, {
         headers: {
@@ -167,10 +167,13 @@ exports.handler = async (event, context) => {
       });
       
       if (!searchResponse.ok) {
-        throw new Error('Failed to find character in Airtable');
+        const errorText = await searchResponse.text();
+        console.error('❌ Airtable search error:', errorText);
+        throw new Error(`Failed to find character in Airtable: ${errorText}`);
       }
       
       const searchData = await searchResponse.json();
+      console.log('🔍 Search results:', searchData);
       
       if (!searchData.records || searchData.records.length === 0) {
         console.error('❌ Character not found in Airtable with slug:', characterSlug);
@@ -193,7 +196,13 @@ exports.handler = async (event, context) => {
       
       // Get the real Airtable ID
       const realCharacterId = searchData.records[0].id;
+      const characterFields = searchData.records[0].fields;
       console.log('✅ Found character with ID:', realCharacterId);
+      console.log('🔍 Character fields:', {
+        Name: characterFields.Name,
+        Slug: characterFields.Slug,
+        current_avatar: characterFields.avatar_url
+      });
       
       // Now update with the real ID
       const updateUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters/${realCharacterId}`;
