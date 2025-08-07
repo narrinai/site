@@ -235,7 +235,7 @@ exports.handler = async (event, context) => {
                 
                 <div style="display: flex; justify-content: center; gap: 20px; margin-bottom: 20px; flex-wrap: wrap;">
                   <a href="https://narrin.ai" style="color: #14b8a6; text-decoration: none; font-size: 14px; font-weight: 500;">Visit Website</a>
-                  <a href="https://narrin.ai/profile.html" style="color: #14b8a6; text-decoration: none; font-size: 14px; font-weight: 500;">Manage Preferences</a>
+                  <a href="https://narrin.ai/profile.html#notifications" style="color: #14b8a6; text-decoration: none; font-size: 14px; font-weight: 500;">Unsubscribe</a>
                   <a href="https://narrin.ai/contact.html" style="color: #14b8a6; text-decoration: none; font-size: 14px; font-weight: 500;">Contact Support</a>
                 </div>
                 
