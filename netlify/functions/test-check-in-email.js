@@ -1,29 +1,80 @@
 const sgMail = require('@sendgrid/mail');
 
 exports.handler = async (event, context) => {
-  console.log('📧 Sending test check-in email...');
+  console.log('📧 Sending test check-in email for specific user...');
   
+  const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
+  const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN || process.env.AIRTABLE_API_KEY;
   const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
-  const TEST_EMAIL = event.queryStringParameters?.email || 'sebastiaan@narrin.ai'; // Pas dit aan naar jouw email
   
-  if (!SENDGRID_API_KEY) {
-    console.error('❌ Missing SendGrid API key');
+  // Test specifiek voor jouw account
+  const TEST_USER_ID = '0f9504cb-0545-4b44-8301-d1599667f44f';
+  const TEST_EMAIL = 'info@narrin.ai';
+  
+  if (!AIRTABLE_BASE_ID || !AIRTABLE_TOKEN || !SENDGRID_API_KEY) {
+    console.error('❌ Missing configuration');
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Missing SendGrid configuration' })
+      body: JSON.stringify({ error: 'Missing configuration' })
     };
   }
 
   sgMail.setApiKey(SENDGRID_API_KEY);
 
   try {
-    // Test data
-    const character = {
-      Name: 'Gandalf',
-      Slug: 'gandalf'
+    // Haal een recente chat op voor deze user
+    const chatsResponse = await fetch(
+      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatMessages?` + 
+      `filterByFormula=AND({user_id}='${TEST_USER_ID}', {is_user}=TRUE())` +
+      `&sort[0][field]=created_time&sort[0][direction]=desc&maxRecords=1`,
+      {
+        headers: {
+          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    if (!chatsResponse.ok) {
+      throw new Error(`Airtable error: ${chatsResponse.status}`);
+    }
+
+    const chatsData = await chatsResponse.json();
+    
+    if (!chatsData.records || chatsData.records.length === 0) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ error: 'No chat history found for this user' })
+      };
+    }
+
+    const lastChat = chatsData.records[0].fields;
+    const characterId = lastChat.character_id;
+    const characterName = lastChat.character_name || 'Your AI companion';
+    
+    // Haal character details op
+    const characterResponse = await fetch(
+      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula={character_id}='${characterId}'`,
+      {
+        headers: {
+          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    const characterData = await characterResponse.json();
+    let character = {
+      Name: characterName,
+      Slug: 'chat'
     };
     
-    const checkInMessage = "Hey! I've been thinking about what we discussed regarding your journey. How are things going with that?";
+    if (characterData.records && characterData.records.length > 0) {
+      character = characterData.records[0].fields;
+    }
+
+    // Genereer check-in bericht
+    const checkInMessage = generateCheckInMessage(character.Name, lastChat.message);
     const chatUrl = `https://narrin.ai/chat.html?character=${character.Slug}`;
     
     const emailHtml = `
@@ -58,6 +109,13 @@ exports.handler = async (event, context) => {
               <p style="font-size: 18px; color: #64748b; margin-bottom: 30px; line-height: 1.6;">
                 You have an unread message waiting for you!
               </p>
+              
+              <!-- TEST NOTICE -->
+              <div style="background: #dbeafe; border: 2px solid #3b82f6; border-radius: 12px; padding: 16px; margin: 20px 0;">
+                <p style="font-size: 14px; color: #1e40af; font-weight: 600; margin: 0;">
+                  🧪 TEST EMAIL - This is what users will receive after 24h of inactivity
+                </p>
+              </div>
               
               <!-- CTA Button -->
               <a href="${chatUrl}" 
@@ -96,12 +154,12 @@ exports.handler = async (event, context) => {
       },
       subject: `${character.Name} sent you a message 💌`,
       html: emailHtml,
-      text: `${character.Name} says: "${checkInMessage}"\n\nContinue your conversation: ${chatUrl}`
+      text: `${character.Name} sent you a message!\n\nContinue your conversation: ${chatUrl}`
     };
 
     await sgMail.send(msg);
     
-    console.log(`✅ Test email sent to ${TEST_EMAIL}`);
+    console.log(`✅ Test email sent to ${TEST_EMAIL} for character ${character.Name}`);
     
     return {
       statusCode: 200,
@@ -111,7 +169,9 @@ exports.handler = async (event, context) => {
       body: JSON.stringify({ 
         success: true, 
         message: `Test email sent to ${TEST_EMAIL}`,
-        note: 'This is a TEST email. The real system will run every 4 hours for all users.'
+        character: character.Name,
+        checkInMessage: checkInMessage,
+        note: 'This is a TEST. The real system will run every 4 hours.'
       })
     };
 
@@ -126,3 +186,40 @@ exports.handler = async (event, context) => {
     };
   }
 };
+
+function generateCheckInMessage(characterName, lastUserMessage) {
+  const topics = extractTopics(lastUserMessage || '');
+  const topic = topics.length > 0 ? topics[0] : 'our conversation';
+  
+  const templates = [
+    `Hey! I've been thinking about what we discussed regarding ${topic}. How are things going with that?`,
+    `Hi there! I wanted to check in and see how ${topic} is progressing. Any updates?`,
+    `Hello! I hope you're doing well. I was wondering how things are with ${topic}?`,
+    `Hey! Just wanted to follow up on ${topic}. How's everything going?`,
+    `Hi! I've been curious about how ${topic} turned out. How are you doing?`
+  ];
+  
+  return templates[Math.floor(Math.random() * templates.length)];
+}
+
+function extractTopics(message) {
+  if (!message) return ['what we talked about'];
+  
+  const combined = message.toLowerCase();
+  const topics = [];
+  
+  const indicators = ['about', 'regarding', 'with', 'my', 'the', 'working on', 'dealing with'];
+  
+  for (const indicator of indicators) {
+    const index = combined.indexOf(indicator);
+    if (index !== -1) {
+      const afterIndicator = combined.substring(index + indicator.length).trim();
+      const words = afterIndicator.split(/[\s,.!?]+/).slice(0, 5);
+      if (words.length > 0) {
+        topics.push(words.join(' '));
+      }
+    }
+  }
+  
+  return topics.length > 0 ? topics : ['what we talked about'];
+}
