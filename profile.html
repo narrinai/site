@@ -2524,70 +2524,8 @@
     font-size: var(--font-size-base) !important;
   }
 
-  /* Fix "By signing up..." text positioning on mobile */
-  /* Target the modal container to ensure proper layout */
-  .modalContainer[role="dialog"],
-  .netlify-identity-widget .modalContainer {
-    display: flex !important;
-    flex-direction: column !important;
-    height: 100vh !important;
-    max-height: 100vh !important;
-  }
-
-  /* Target the modal content to allow scrolling */
-  .modalContainer .modalContent,
-  .netlify-identity-widget .modalContent {
-    display: flex !important;
-    flex-direction: column !important;
-    overflow-y: auto !important;
-    flex: 1 !important;
-  }
-
-  /* Target the form container */
-  .modalContainer form,
-  .netlify-identity-widget form {
-    display: flex !important;
-    flex-direction: column !important;
-    min-height: 100% !important;
-  }
-
-  /* Push the "By signing up..." text to the bottom */
-  .modalContainer .formFooter,
-  .modalContainer .signupTerms,
-  .modalContainer form > p:last-child,
-  .modalContainer form > div:last-child > p,
-  .modalContainer [class*="terms"],
-  .modalContainer [class*="Terms"],
-  .netlify-identity-widget .formFooter,
-  .netlify-identity-widget .signupTerms,
-  .netlify-identity-widget form > p:last-child,
-  .netlify-identity-widget [class*="terms"] {
-    margin-top: auto !important;
-    padding-top: 20px !important;
-    padding-bottom: 20px !important;
-    position: sticky !important;
-    bottom: 0 !important;
-    background: white !important;
-    z-index: 10 !important;
-  }
-
-  /* Ensure Google SSO button has proper spacing and doesn't get overlapped */
-  .modalContainer .providerGroup,
-  .modalContainer .providersGroup,
-  .modalContainer [class*="provider"],
-  .netlify-identity-widget .providerGroup,
-  .netlify-identity-widget .providersGroup,
-  .netlify-identity-widget [class*="provider"] {
-    margin-bottom: 15px !important;
-    position: relative !important;
-    z-index: 20 !important;
-  }
-
-  /* Add padding to the form to prevent overlap */
-  .modalContainer form > div:last-of-type,
-  .netlify-identity-widget form > div:last-of-type {
-    padding-bottom: 100px !important;
-  }
+  /* Fix "By signing up..." text positioning on mobile - prevent overlap with Google button */
+  /* Since the modal is in an iframe, we need a different approach */
 }
 
 /* Loading states */
@@ -4308,6 +4246,84 @@ function handleLoginSuccess(user, eventType = 'unknown') {
         console.log('🔓 Modal opened');
         forceModalToTop();
         document.body.classList.add('modal-open');
+        
+        // Fix mobile positioning for "By signing up..." text
+        const fixMobileTermsPosition = () => {
+          // Try to access the iframe
+          const iframe = document.querySelector('.netlify-identity-widget iframe');
+          if (iframe && window.innerWidth <= 768) {
+            try {
+              // Try to inject styles into the iframe
+              const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+              if (iframeDoc) {
+                // Check if styles already injected
+                if (!iframeDoc.getElementById('mobile-terms-fix')) {
+                  const style = iframeDoc.createElement('style');
+                  style.id = 'mobile-terms-fix';
+                  style.textContent = `
+                    @media (max-width: 768px) {
+                      /* Fix terms text positioning on mobile */
+                      p:contains("By signing up"),
+                      div:contains("By signing up"),
+                      .formFooter,
+                      .signupTerms,
+                      [class*="terms"] {
+                        position: fixed !important;
+                        bottom: 0 !important;
+                        left: 0 !important;
+                        right: 0 !important;
+                        background: white !important;
+                        padding: 15px !important;
+                        margin: 0 !important;
+                        box-shadow: 0 -2px 10px rgba(0,0,0,0.1) !important;
+                        z-index: 1000 !important;
+                      }
+                      
+                      /* Add padding to form to prevent overlap */
+                      form {
+                        padding-bottom: 80px !important;
+                      }
+                      
+                      /* Ensure Google button has space */
+                      button[class*="provider"],
+                      .providerBtn {
+                        margin-bottom: 100px !important;
+                      }
+                    }
+                  `;
+                  iframeDoc.head.appendChild(style);
+                  console.log('✅ Injected mobile terms fix styles');
+                }
+              }
+            } catch (e) {
+              // Cross-origin restriction, try alternative approach
+              console.log('⚠️ Cannot access iframe content, using alternative approach');
+              
+              // Alternative: Add styles to the parent document that might cascade
+              if (!document.getElementById('mobile-terms-fix-parent')) {
+                const style = document.createElement('style');
+                style.id = 'mobile-terms-fix-parent';
+                style.textContent = `
+                  @media (max-width: 768px) {
+                    /* Make the iframe scrollable and full height */
+                    .netlify-identity-widget iframe {
+                      height: 100vh !important;
+                      max-height: 100vh !important;
+                      overflow-y: auto !important;
+                    }
+                  }
+                `;
+                document.head.appendChild(style);
+              }
+            }
+          }
+        };
+        
+        // Try to fix mobile positioning
+        fixMobileTermsPosition();
+        setTimeout(fixMobileTermsPosition, 300);
+        setTimeout(fixMobileTermsPosition, 600);
+        setTimeout(fixMobileTermsPosition, 1000);
         
         // Update Optional field to Name (optional)
         const updateOptionalField = () => {
