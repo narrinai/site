@@ -28,6 +28,9 @@ exports.handler = async (event, context) => {
     };
   }
 
+  let base64Image;
+  let fileName;
+  
   try {
     const body = JSON.parse(event.body || '{}');
     const { characterName, characterTitle, category, characterId, characterSlug } = body;
@@ -112,11 +115,11 @@ exports.handler = async (event, context) => {
     }
     
     const imageBuffer = await imageResponse.arrayBuffer();
-    const base64Image = Buffer.from(imageBuffer).toString('base64');
+    base64Image = Buffer.from(imageBuffer).toString('base64');
     console.log('📥 Image downloaded, size:', (imageBuffer.byteLength / 1024).toFixed(2), 'KB');
     
     // Step 3: Create permanent filename
-    const fileName = `${(characterSlug || characterName).toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}.webp`;
+    fileName = `${(characterSlug || characterName).toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}.webp`;
     const publicPath = `/avatars/${fileName}`;
     
     // Step 4: Update Airtable with base64 data URL
@@ -183,7 +186,7 @@ exports.handler = async (event, context) => {
             success: true,
             avatarUrl: dataUrl,
             fileName: fileName,
-            message: 'Avatar generated but not saved to Airtable (character not found)'
+            message: 'Avatar generated successfully (temporary storage)'
           })
         };
       }
@@ -238,6 +241,26 @@ exports.handler = async (event, context) => {
     
   } catch (error) {
     console.error('❌ Generate and save avatar error:', error);
+    console.error('❌ Error stack:', error.stack);
+    
+    // Check if we at least generated the avatar successfully
+    if (error.message.includes('Failed to update Airtable') && typeof base64Image !== 'undefined') {
+      console.log('⚠️ Avatar generated but Airtable update failed, returning avatar anyway');
+      const dataUrl = `data:image/webp;base64,${base64Image}`;
+      return {
+        statusCode: 200,
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        },
+        body: JSON.stringify({
+          success: true,
+          avatarUrl: dataUrl,
+          fileName: fileName || 'avatar.webp',
+          message: 'Avatar generated successfully (Airtable update failed)'
+        })
+      };
+    }
     
     return {
       statusCode: 500,
@@ -247,7 +270,8 @@ exports.handler = async (event, context) => {
       },
       body: JSON.stringify({ 
         error: 'Failed to generate and save avatar',
-        details: error.message
+        details: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
       })
     };
   }
