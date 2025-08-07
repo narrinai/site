@@ -7253,6 +7253,12 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
         }
       }
       chatlog.appendChild(p);
+      
+      // Increment message count for feedback popup (only for assistant messages)
+      if (role === 'assistant') {
+        incrementMessageCount();
+      }
+      
       messagesProcessed++;
     });
 
@@ -10101,6 +10107,9 @@ hideTypingIndicator();
       divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span>`;
     }
     chatlog.appendChild(divBot);
+    
+    // Increment message count for feedback popup when bot responds
+    incrementMessageCount();
     chatlog.scrollTop = chatlog.scrollHeight;
     
     // Reset inactivity timer when AI responds
