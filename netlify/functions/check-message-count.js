@@ -195,34 +195,28 @@ exports.handler = async (event, context) => {
     // Get last rating to check if already rated at this count
     if (shouldShowRating) {
       try {
-        // ChatRatings uses linked records
-        console.log('🔍 Checking previous ratings for user:', userRecordId, 'character:', characterRecordId);
-        const lastRatingResponse = await fetch(
-          `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatRatings?filterByFormula=AND(SEARCH('${userRecordId}',ARRAYJOIN({User})),SEARCH('${characterRecordId}',ARRAYJOIN({Character})),{MessageCount}=${messageCount})&maxRecords=1`,
-          {
-            headers: {
-              'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
-              'Content-Type': 'application/json'
-            }
+        // Check if user already rated at this message count
+        console.log('🔍 Checking previous ratings from user record');
+        const userRatings = userData.records[0].fields.chat_ratings;
+        
+        if (userRatings) {
+          let existingRatings = [];
+          try {
+            existingRatings = JSON.parse(userRatings);
+          } catch (e) {
+            console.error('⚠️ Failed to parse chat_ratings:', e);
           }
-        );
-
-        if (lastRatingResponse.ok) {
-          const lastRatingData = await lastRatingResponse.json();
-          if (lastRatingData.records.length > 0) {
-            // Already rated at this message count
+          
+          // Check if already rated this character at this message count
+          const alreadyRated = existingRatings.some(rating => 
+            rating.character === char && 
+            rating.message_count === messageCount
+          );
+          
+          if (alreadyRated) {
+            console.log('⚠️ User already rated this character at message count:', messageCount);
             shouldShowRating = false;
           }
-        } else if (lastRatingResponse.status === 404) {
-          // ChatRatings table doesn't exist - skip rating check
-          console.log('⚠️ ChatRatings table not found (404), skipping rating check');
-          shouldShowRating = false;
-        } else {
-          console.log('⚠️ ChatRatings request failed with status:', lastRatingResponse.status);
-          const errorText = await lastRatingResponse.text();
-          console.log('⚠️ Error response:', errorText);
-          // Don't show rating if we can't check
-          shouldShowRating = false;
         }
       } catch (ratingCheckError) {
         console.error('⚠️ Error checking previous ratings:', ratingCheckError);

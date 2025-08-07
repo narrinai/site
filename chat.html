@@ -11189,15 +11189,41 @@ document.addEventListener('DOMContentLoaded', () => {
       document.body.style.overflow = '';
     }
     
+    let selectedRating = 0;
+    
+    function selectRating(rating) {
+      selectedRating = rating;
+      updateStarDisplay(rating);
+      document.getElementById('submitRatingBtn').disabled = false;
+    }
+    
+    function updateStarDisplay(rating) {
+      const stars = document.querySelectorAll('.rating-star');
+      stars.forEach((star, index) => {
+        if (index < rating) {
+          star.classList.add('active');
+        } else {
+          star.classList.remove('active');
+        }
+      });
+    }
+    
     async function submitRating() {
-      if (!selectedRating) return;
-      
-      const user_email = localStorage.getItem('user_email');
-      const user_uid = localStorage.getItem('user_uid');
-      const characterSlug = window.location.search.split('=')[1];
-      const feedback = document.getElementById('ratingFeedback').value;
+      if (!selectedRating) {
+        showError('Please select a rating');
+        return;
+      }
       
       const submitBtn = document.getElementById('submitRatingBtn');
+      const user_uid = localStorage.getItem('user_uid');
+      const urlParams = new URLSearchParams(window.location.search);
+      const characterSlug = urlParams.get('char');
+      
+      if (!user_uid || !characterSlug) {
+        showError('Missing user or character information');
+        return;
+      }
+      
       submitBtn.disabled = true;
       submitBtn.textContent = 'Submitting...';
       
@@ -11206,23 +11232,16 @@ document.addEventListener('DOMContentLoaded', () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            user_email,
             user_uid,
-            char: characterSlug,
+            character_slug: characterSlug,
             rating: selectedRating,
-            message_count: messageCount,
-            feedback: feedback
+            message_count: messageCount || 0
           })
         });
         
         if (response.ok) {
-          console.log('✅ Rating saved successfully');
-          // Close the rating popup first
-          skipRating();
-          // Then show success notification after a brief delay
-          setTimeout(() => {
-            showSuccess('Thank you for your feedback!');
-          }, 100);
+          skipRating(); // Close modal
+          showSuccess('Thank you for rating your experience!');
         } else {
           throw new Error('Failed to save rating');
         }
@@ -11230,7 +11249,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('❌ Error saving rating:', error);
         showError('Sorry, we couldn\'t save your rating. Please try again.');
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Submit';
+        submitBtn.textContent = 'Submit Rating';
       }
     }
     // ===== FEEDBACK POPUP FUNCTIONALITY =====
@@ -11352,5 +11371,48 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     </div>
   </div>
+  <!-- Rating Modal -->
+  <div id="ratingOverlay" class="rating-overlay">
+    <div class="rating-modal">
+      <button class="close-btn" onclick="skipRating()">×</button>
+      
+      <div class="rating-header">
+        <h2 class="rating-title">Rate Your Experience</h2>
+        <p class="rating-subtitle">How's your conversation going?</p>
+      </div>
+      
+      <div class="rating-stars" id="ratingStars">
+        <span class="rating-star" data-rating="1" onclick="selectRating(1)">⭐</span>
+        <span class="rating-star" data-rating="2" onclick="selectRating(2)">⭐</span>
+        <span class="rating-star" data-rating="3" onclick="selectRating(3)">⭐</span>
+        <span class="rating-star" data-rating="4" onclick="selectRating(4)">⭐</span>
+        <span class="rating-star" data-rating="5" onclick="selectRating(5)">⭐</span>
+      </div>
+      
+      <textarea 
+        id="ratingFeedback" 
+        placeholder="Any feedback? (optional)"
+        style="width: 100%; min-height: 80px; padding: 1rem; margin-top: 1.5rem; border: 1px solid var(--color-gray-light); border-radius: var(--radius-md); font-family: var(--font-primary); resize: vertical; display: none;"
+      ></textarea>
+      
+      <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
+        <button 
+          onclick="skipRating()" 
+          style="padding: 0.75rem 1.5rem; background: transparent; border: 1px solid var(--color-gray-light); border-radius: var(--radius-md); cursor: pointer;"
+        >
+          Skip
+        </button>
+        <button 
+          id="submitRatingBtn"
+          onclick="submitRating()" 
+          style="padding: 0.75rem 1.5rem; background: var(--gradient-primary); color: white; border: none; border-radius: var(--radius-md); cursor: pointer; font-weight: 500;"
+          disabled
+        >
+          Submit Rating
+        </button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
