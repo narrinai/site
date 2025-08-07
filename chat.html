@@ -6708,6 +6708,14 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     console.log('🔍 Character title field:', currentCharacter.title || 'not found');
     console.log('🔍 Character Title field:', currentCharacter.Title || 'not found');
     console.log('🔍 Character Character_Title field:', currentCharacter.Character_Title || 'not found');
+    console.log('🔍 needs_ai_avatar field:', currentCharacter.needs_ai_avatar);
+    console.log('🔍 avatar_url field:', currentCharacter.avatar_url);
+    console.log('🔍 Character ID fields:', {
+      id: currentCharacter.id,
+      record_id: currentCharacter.record_id,
+      airtable_id: currentCharacter.airtable_id,
+      ID: currentCharacter.ID
+    });
     
     // Check if this is a custom character by looking for it in localStorage
     // This ensures that when loading a custom character by slug, we can still edit it properly
@@ -6823,15 +6831,32 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     // Check if AI avatar needs to be generated
     console.log('🔍 Checking needs_ai_avatar:', currentCharacter.needs_ai_avatar);
     console.log('🔍 Current avatar_url:', currentCharacter.avatar_url);
+    console.log('🔍 Character ID:', currentCharacter.id || currentCharacter.record_id);
+    console.log('🔍 Character slug:', characterSlug);
     
     // Check if avatar is an emoji SVG (needs AI generation)
-    const needsAIAvatar = currentCharacter.needs_ai_avatar || 
-                         (currentCharacter.avatar_url && currentCharacter.avatar_url.includes('data:image/svg+xml'));
+    const isEmojiAvatar = currentCharacter.avatar_url && 
+                         (currentCharacter.avatar_url.includes('data:image/svg+xml') || 
+                          currentCharacter.avatar_url.includes('data:image/svg%2Bxml'));
+    
+    const needsAIAvatar = currentCharacter.needs_ai_avatar === true || 
+                         currentCharacter.needs_ai_avatar === 'true' || 
+                         isEmojiAvatar;
+    
+    console.log('🔍 Is emoji avatar:', isEmojiAvatar);
+    console.log('🔍 Needs AI avatar:', needsAIAvatar);
     
     if (needsAIAvatar) {
       console.log('🎨 Character needs AI avatar generation');
       generateAvatarInBackground();
     }
+    
+    // Make function globally available for debugging
+    window.generateAvatarInBackground = generateAvatarInBackground;
+    window.forceGenerateAvatar = () => {
+      console.log('🔧 Force generating avatar...');
+      generateAvatarInBackground();
+    };
     
     async function generateAvatarInBackground() {
       console.log('🎨 Starting avatar generation in background...');
@@ -6841,24 +6866,55 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       updateAllAvatarDisplays();
       
       try {
+        // Get the character ID - try multiple fields
+        const characterId = currentCharacter.id || 
+                           currentCharacter.record_id || 
+                           currentCharacter.airtable_id || 
+                           currentCharacter.ID;
+        
+        if (!characterId) {
+          console.error('❌ No character ID found, cannot generate avatar');
+          throw new Error('Character ID not found');
+        }
+        
+        const requestBody = {
+          characterName: currentCharacter.name || currentCharacter.Name,
+          characterTitle: currentCharacter.title || currentCharacter.Title || currentCharacter.Character_Title || '',
+          category: currentCharacter.category || currentCharacter.Category || '',
+          characterId: characterId,
+          characterSlug: characterSlug
+        };
+        
+        console.log('📤 Sending avatar generation request:', requestBody);
+        
         const response = await fetch('/.netlify/functions/generate-and-save-avatar', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            characterName: currentCharacter.name,
-            characterTitle: currentCharacter.title || currentCharacter.Title || currentCharacter.Character_Title || '',
-            category: currentCharacter.category || currentCharacter.Category || '',
-            characterId: currentCharacter.id || currentCharacter.record_id,
-            characterSlug: characterSlug
-          })
+          body: JSON.stringify(requestBody)
         });
         
         if (!response.ok) {
-          throw new Error(`Avatar generation failed: ${response.status}`);
+          const errorText = await response.text();
+          console.error('❌ Response error:', errorText);
+          throw new Error(`Avatar generation failed: ${response.status} - ${errorText}`);
         }
         
-        const result = await response.json();
-        console.log('✅ Avatar generated successfully:', result.avatarUrl);
+        const responseText = await response.text();
+        console.log('📥 Raw response:', responseText);
+        
+        let result;
+        try {
+          result = JSON.parse(responseText);
+        } catch (e) {
+          console.error('❌ Failed to parse response:', e);
+          throw new Error('Invalid JSON response from avatar generation');
+        }
+        
+        console.log('✅ Avatar generated successfully:', result);
+        
+        if (!result.avatarUrl) {
+          throw new Error('No avatarUrl in response');
+        }
         
         // Update the character's avatar URL
         currentCharacter.avatar_url = result.avatarUrl;
@@ -6868,11 +6924,25 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
         window.avatarGenerationInProgress = false;
         updateAllAvatarDisplays();
         
+        console.log('🎉 Avatar updated successfully!');
+        
       } catch (error) {
         console.error('❌ Avatar generation error:', error);
+        console.error('❌ Error details:', {
+          message: error.message,
+          stack: error.stack,
+          response: error.response
+        });
         window.avatarGenerationInProgress = false;
         // Update displays to show default avatar
         updateAllAvatarDisplays();
+        
+        // Show user-friendly error
+        if (error.message.includes('404')) {
+          console.error('❌ Avatar generation function not found - check if deployed');
+        } else if (error.message.includes('500')) {
+          console.error('❌ Server error - check Replicate API key configuration');
+        }
       }
     }
     
