@@ -148,9 +148,11 @@ exports.handler = async (event, context) => {
     console.log('📊 Counting messages for user:', userNetlifyUID, 'character slug:', char);
     
     // Get all messages for this user/character combination
-    // Check both direct NetlifyUID and linked record references
+    // Use the custom User_ID from the Users table which is used in ChatHistory
+    console.log('🔍 Querying ChatHistory with User_ID:', customUserId, 'and character slug:', char);
+    
     const allMessagesResponse = await fetch(
-      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND(OR({User}='${userNetlifyUID}',FIND('${userRecordId}',ARRAYJOIN({User}))>0),{Character Slug}='${char}')`,
+      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${customUserId}',{Character Slug}='${char}')`,
       {
         headers: {
           'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -160,7 +162,10 @@ exports.handler = async (event, context) => {
     );
 
     if (!allMessagesResponse.ok) {
-      throw new Error(`Failed to fetch messages: ${allMessagesResponse.status}`);
+      const errorText = await allMessagesResponse.text();
+      console.error('❌ ChatHistory fetch failed:', allMessagesResponse.status, errorText);
+      console.error('❌ Query details:', { customUserId, char });
+      throw new Error(`Failed to fetch messages: ${allMessagesResponse.status} - ${errorText}`);
     }
 
     const allMessagesData = await allMessagesResponse.json();
