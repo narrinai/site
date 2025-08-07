@@ -189,7 +189,7 @@ exports.handler = async (event, context) => {
       }
 
       // Send email notification
-      const chatUrl = `https://narrin.ai/chat.html?character=${character.Slug}`;
+      const chatUrl = `https://narrin.ai/chat.html?char=${character.Slug}`;
       
       const emailHtml = `
         <!DOCTYPE html>
@@ -204,11 +204,7 @@ exports.handler = async (event, context) => {
             <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); border: 2px solid #f5f5f5;">
               
               <!-- Header with gradient -->
-              <div style="background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%); padding: 40px 30px; text-align: center; position: relative; overflow: hidden;">
-                <!-- Chat Icon in header -->
-                <div style="width: 80px; height: 80px; background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; border: 1px solid rgba(255, 255, 255, 0.3); position: relative; z-index: 2;">
-                  <span style="font-size: 40px;">💬</span>
-                </div>
+              <div style="background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%); padding: 50px 30px; text-align: center; position: relative; overflow: hidden;">
                 <h1 style="font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 36px; font-weight: 800; color: #ffffff; margin: 0; letter-spacing: -0.02em; position: relative; z-index: 2; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
                   Narrin AI
                 </h1>
@@ -226,8 +222,8 @@ exports.handler = async (event, context) => {
                 
                 <!-- CTA Button -->
                 <a href="${chatUrl}" 
-                   style="display: inline-block; background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%); color: #ffffff !important; text-decoration: none !important; padding: 18px 36px; border-radius: 16px; font-size: 18px; font-weight: 700; font-family: 'Plus Jakarta Sans', sans-serif; margin: 30px 0; box-shadow: 0 10px 25px -5px rgba(20, 184, 166, 0.2); transition: all 0.3s ease; position: relative; overflow: hidden; letter-spacing: -0.01em;">
-                  <span style="color: #ffffff !important;">💬 Read Message & Reply</span>
+                   style="display: inline-block; background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%); color: #ffffff !important; text-decoration: none !important; padding: 18px 40px; border-radius: 16px; font-size: 18px; font-weight: 700; font-family: 'Plus Jakarta Sans', sans-serif; margin: 30px 0; box-shadow: 0 10px 25px -5px rgba(20, 184, 166, 0.2); transition: all 0.3s ease; position: relative; overflow: hidden; letter-spacing: -0.01em; white-space: nowrap;">
+                  Read Message
                 </a>
               </div>
               
@@ -261,7 +257,20 @@ exports.handler = async (event, context) => {
         },
         subject: `${character.Name} sent you a message 💌`,
         html: emailHtml,
-        text: `${character.Name} says: "${checkInMessage}"\n\nContinue your conversation: ${chatUrl}`
+        text: `Continue your conversation with ${character.Name}. You have an unread message waiting.\n\n${chatUrl}`,
+        mailSettings: {
+          sandboxMode: {
+            enable: false
+          }
+        },
+        trackingSettings: {
+          clickTracking: {
+            enable: true
+          },
+          openTracking: {
+            enable: true
+          }
+        }
       };
 
       try {
