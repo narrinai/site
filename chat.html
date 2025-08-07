@@ -11256,6 +11256,21 @@ document.addEventListener('DOMContentLoaded', () => {
     let hasShownFeedbackPopup = false;
     let currentMessageCount = 0;
     
+    // Function to increment message count
+    function incrementMessageCount() {
+      currentMessageCount++;
+      console.log('📊 Message count:', currentMessageCount);
+      
+      // Get character slug from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const characterSlug = urlParams.get('char');
+      
+      // Check if we should show feedback popup (after 2 messages)
+      if (currentMessageCount === 2 && !sessionStorage.getItem('feedbackShown_' + characterSlug)) {
+        setTimeout(() => showFeedbackPopup(), 1500);
+      }
+    }
+    
     // Function to show feedback popup after 2 messages
     function showFeedbackPopup() {
       if (hasShownFeedbackPopup) return;
