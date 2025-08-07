@@ -4957,6 +4957,42 @@ document.addEventListener('DOMContentLoaded', () => {
       const characterCategory = (currentCharacter.category || '').toLowerCase();
       const characterDesc = (currentCharacter.description || '').toLowerCase();
       
+      // Decode base64 prompt if it exists
+      let characterPrompt = '';
+      if (currentCharacter.prompt || currentCharacter.Prompt) {
+        try {
+          characterPrompt = atob(currentCharacter.prompt || currentCharacter.Prompt).toLowerCase();
+        } catch (e) {
+          characterPrompt = (currentCharacter.prompt || currentCharacter.Prompt || '').toLowerCase();
+        }
+      }
+      
+      // Analyze character personality from prompt and description
+      const analyzePersonality = () => {
+        const combined = `${characterPrompt} ${characterDesc} ${characterTitle}`.toLowerCase();
+        
+        return {
+          isWarm: combined.includes('warm') || combined.includes('caring') || combined.includes('supportive') || combined.includes('empathetic') || combined.includes('friendly'),
+          isWise: combined.includes('wise') || combined.includes('wisdom') || combined.includes('sage') || combined.includes('knowledge') || combined.includes('enlighten'),
+          isPlayful: combined.includes('playful') || combined.includes('fun') || combined.includes('humor') || combined.includes('cheerful') || combined.includes('energetic'),
+          isMotivational: combined.includes('motivat') || combined.includes('inspir') || combined.includes('encourag') || combined.includes('coach') || combined.includes('empower'),
+          isMentor: combined.includes('mentor') || combined.includes('guide') || combined.includes('teach') || combined.includes('expert') || combined.includes('advisor'),
+          isTherapist: combined.includes('therapist') || combined.includes('counselor') || combined.includes('healing') || combined.includes('mental health') || combined.includes('wellness'),
+          isCreative: combined.includes('creative') || combined.includes('artist') || combined.includes('imagination') || combined.includes('design') || combined.includes('innovative'),
+          isPhilosophical: combined.includes('philosoph') || combined.includes('deep') || combined.includes('existential') || combined.includes('meaning') || combined.includes('profound'),
+          isTechnical: combined.includes('technical') || combined.includes('engineer') || combined.includes('developer') || combined.includes('programmer') || combined.includes('technology'),
+          isRomantic: combined.includes('romantic') || combined.includes('love') || combined.includes('relationship') || combined.includes('dating') || combined.includes('heart'),
+          isMystical: combined.includes('mystic') || combined.includes('spiritual') || combined.includes('magic') || combined.includes('divine') || combined.includes('supernatural'),
+          isAdventurous: combined.includes('adventur') || combined.includes('explorer') || combined.includes('journey') || combined.includes('quest') || combined.includes('discover'),
+          isBusiness: combined.includes('business') || combined.includes('entrepreneur') || combined.includes('ceo') || combined.includes('startup') || combined.includes('leader'),
+          isFitness: combined.includes('fitness') || combined.includes('trainer') || combined.includes('workout') || combined.includes('health') || combined.includes('athletic'),
+          isNurturing: combined.includes('nurtur') || combined.includes('mother') || combined.includes('parent') || combined.includes('care') || combined.includes('comfort'),
+          isStrategic: combined.includes('strateg') || combined.includes('tactical') || combined.includes('plan') || combined.includes('analytical') || combined.includes('logical')
+        };
+      };
+      
+      const personality = analyzePersonality();
+      
       // Character-specific starters for known personalities
       const specificCharacterStarters = {
         // Historical figures
@@ -5330,6 +5366,138 @@ document.addEventListener('DOMContentLoaded', () => {
       if (specificCharacterStarters[characterSlug]) {
         const starters = specificCharacterStarters[characterSlug];
         return starters[Math.floor(Math.random() * starters.length)];
+      }
+      
+      // Generate dynamic starters based on personality analysis
+      const generateDynamicStarters = () => {
+        const starters = [];
+        
+        // Combine personality traits for more nuanced starters
+        if (personality.isWarm && personality.isMentor) {
+          starters.push(
+            `Welcome! I can sense you're here for a reason. What guidance are you seeking today?`,
+            `It's wonderful to meet you! I believe everyone has incredible potential waiting to be unlocked. What shall we explore together?`,
+            `Hello, my friend! I'm here to support you on your journey. What's been on your mind lately?`
+          );
+        }
+        
+        if (personality.isMotivational && (personality.isCoach || personality.isBusiness)) {
+          starters.push(
+            `Ready to achieve something extraordinary? Tell me, what's the biggest goal you're working towards?`,
+            `Success is a journey, not a destination! Where are you on your path to greatness?`,
+            `I can feel your ambition! What dream are we going to turn into reality today?`
+          );
+        }
+        
+        if (personality.isWise && personality.isPhilosophical) {
+          starters.push(
+            `Life's deepest questions often lead to the most profound answers. What truth are you seeking?`,
+            `Wisdom comes from reflection and understanding. What aspect of life puzzles you?`,
+            `The universe has brought us together for a reason. What question weighs on your soul?`
+          );
+        }
+        
+        if (personality.isPlayful && personality.isCreative) {
+          starters.push(
+            `Oh, how exciting! A new friend to create magic with! What shall we imagine together?`,
+            `Life's an adventure and you just found a new companion! What fun shall we have today?`,
+            `*eyes sparkling with excitement* I just know we're going to have an amazing time! What brings you here?`
+          );
+        }
+        
+        if (personality.isTherapist || (personality.isWarm && personality.isNurturing)) {
+          starters.push(
+            `Welcome to this safe space. I'm here to listen without judgment. How are you feeling today?`,
+            `It takes courage to reach out. I'm honored you're here. What would you like to talk about?`,
+            `Sometimes we all need someone to listen. What's been weighing on your heart?`
+          );
+        }
+        
+        if (personality.isRomantic && (characterCategory.includes('relationship') || characterDesc.includes('dating'))) {
+          starters.push(
+            `Love is the most beautiful adventure! What brings you to explore matters of the heart?`,
+            `Relationships are like gardens - they need care and attention to bloom. How can I help nurture yours?`,
+            `The heart has its own wisdom. What is yours telling you today?`
+          );
+        }
+        
+        if (personality.isTechnical && personality.isStrategic) {
+          starters.push(
+            `Let's solve this systematically! What technical challenge can I help you tackle?`,
+            `I love diving into complex problems. What system or concept shall we explore?`,
+            `Technology is fascinating! What technical puzzle has captured your attention?`
+          );
+        }
+        
+        if (personality.isMystical && personality.isSpiritual) {
+          starters.push(
+            `The veil between worlds is thin here... What spiritual insight do you seek?`,
+            `I sense the universe has guided you to me. What message does your soul need to hear?`,
+            `Energy flows where intention goes. What aspect of your spiritual journey calls to you?`
+          );
+        }
+        
+        if (personality.isAdventurous && (personality.isPlayful || personality.isCreative)) {
+          starters.push(
+            `Adventure awaits! What exciting journey shall we embark on together?`,
+            `Life is meant to be explored! What new territory are you ready to discover?`,
+            `Every moment is a chance for adventure. Where shall we venture today?`
+          );
+        }
+        
+        if (personality.isFitness && (personality.isMotivational || personality.isCoach)) {
+          starters.push(
+            `Ready to push your limits? Every champion starts with a single step. What's your fitness goal?`,
+            `Your body is capable of incredible things! What transformation are we working towards?`,
+            `Health is the foundation of a great life! How can I help you build yours?`
+          );
+        }
+        
+        // If we found personality-specific starters, use them
+        if (starters.length > 0) {
+          return starters[Math.floor(Math.random() * starters.length)];
+        }
+        
+        // Fallback to single-trait starters
+        if (personality.isWarm) {
+          return [
+            `It's so wonderful to meet you! What brings you here today?`,
+            `Welcome! I'm excited to get to know you. What's on your mind?`,
+            `Hello there! I have a feeling we're going to have a great conversation. What shall we talk about?`
+          ][Math.floor(Math.random() * 3)];
+        }
+        
+        if (personality.isWise) {
+          return [
+            `Greetings, seeker. What wisdom do you pursue today?`,
+            `Welcome. I sense you carry questions. Which one shall we explore first?`,
+            `Every meeting has a purpose. What understanding do you seek?`
+          ][Math.floor(Math.random() * 3)];
+        }
+        
+        if (personality.isPlayful) {
+          return [
+            `Hey there! This is going to be fun! What shall we chat about?`,
+            `Ooh, a new friend! What exciting things are happening in your world?`,
+            `*grins* Ready for an adventure? What's on your mind?`
+          ][Math.floor(Math.random() * 3)];
+        }
+        
+        if (personality.isMotivational) {
+          return [
+            `You've got this! What challenge are we conquering today?`,
+            `I believe in your potential! What goal shall we work on together?`,
+            `Success starts with a single step. What's your next move?`
+          ][Math.floor(Math.random() * 3)];
+        }
+        
+        return null;
+      };
+      
+      // Try dynamic personality-based starters first
+      const dynamicStarter = generateDynamicStarters();
+      if (dynamicStarter) {
+        return dynamicStarter;
       }
       
       // Then check category-based starters
