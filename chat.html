@@ -5646,6 +5646,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             chatlog.appendChild(p);
+            
+            // Increment message count for feedback popup
+            if (msg.role === 'assistant') {
+              incrementMessageCount();
+            }
           });
           
           chatlog.scrollTop = chatlog.scrollHeight;
@@ -11165,6 +11170,124 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.textContent = 'Submit';
       }
     }
+    // ===== FEEDBACK POPUP FUNCTIONALITY =====
+    let hasShownFeedbackPopup = false;
+    let currentMessageCount = 0;
+    
+    // Function to show feedback popup after 2 messages
+    function showFeedbackPopup() {
+      if (hasShownFeedbackPopup) return;
+      
+      const feedbackOverlay = document.getElementById('feedbackOverlay');
+      if (feedbackOverlay) {
+        feedbackOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        hasShownFeedbackPopup = true;
+        
+        // Save that we've shown the feedback for this session
+        sessionStorage.setItem('feedbackShown_' + characterSlug, 'true');
+      }
+    }
+    
+    function closeFeedbackPopup() {
+      const feedbackOverlay = document.getElementById('feedbackOverlay');
+      if (feedbackOverlay) {
+        feedbackOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    }
+    
+    async function submitFeedback() {
+      const feedbackInput = document.getElementById('feedbackInput');
+      const feedback = feedbackInput.value.trim();
+      
+      if (!feedback) {
+        showError('Please enter your feedback');
+        return;
+      }
+      
+      const submitBtn = document.getElementById('submitFeedbackBtn');
+      const user_uid = localStorage.getItem('user_uid');
+      
+      if (!user_uid) {
+        showError('Please log in to submit feedback');
+        return;
+      }
+      
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+      
+      try {
+        const response = await fetch('/.netlify/functions/save-chat-feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_uid,
+            feedback
+          })
+        });
+        
+        if (response.ok) {
+          closeFeedbackPopup();
+          setTimeout(() => {
+            showSuccess('Thank you for your feedback!');
+          }, 100);
+        } else {
+          throw new Error('Failed to save feedback');
+        }
+      } catch (error) {
+        console.error('❌ Error saving feedback:', error);
+        showError('Sorry, we couldn\'t save your feedback. Please try again.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit';
+      }
+    }
+    
+    // Update message counting to trigger feedback popup
+    function incrementMessageCount() {
+      currentMessageCount++;
+      console.log('📊 Message count:', currentMessageCount);
+      
+      // Check if we should show feedback popup (after 2 messages)
+      if (currentMessageCount === 2 && !sessionStorage.getItem('feedbackShown_' + characterSlug)) {
+        setTimeout(() => showFeedbackPopup(), 1500);
+      }
+    }
   </script>
+  
+  <!-- Feedback Popup -->
+  <div id="feedbackOverlay" class="rating-overlay">
+    <div class="rating-modal" style="max-width: 500px;">
+      <button class="close-btn" onclick="closeFeedbackPopup()">×</button>
+      
+      <h2 style="font-size: 1.5rem; margin-bottom: 1rem;">Help us improve! 💭</h2>
+      
+      <p style="color: var(--color-gray); margin-bottom: 1.5rem;">
+        What would you add or change to make this chat experience or platform better?
+      </p>
+      
+      <textarea 
+        id="feedbackInput" 
+        placeholder="Share your thoughts..."
+        style="width: 100%; min-height: 120px; padding: 1rem; border: 1px solid var(--color-gray-light); border-radius: var(--radius-md); font-family: var(--font-primary); resize: vertical; margin-bottom: 1.5rem;"
+      ></textarea>
+      
+      <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+        <button 
+          onclick="closeFeedbackPopup()" 
+          style="padding: 0.75rem 1.5rem; background: transparent; border: 1px solid var(--color-gray-light); border-radius: var(--radius-md); cursor: pointer;"
+        >
+          Skip
+        </button>
+        <button 
+          id="submitFeedbackBtn"
+          onclick="submitFeedback()" 
+          style="padding: 0.75rem 1.5rem; background: var(--gradient-primary); color: white; border: none; border-radius: var(--radius-md); cursor: pointer; font-weight: 500;"
+        >
+          Submit
+        </button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

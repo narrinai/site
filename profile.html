@@ -2523,6 +2523,71 @@
     min-height: var(--touch-target) !important;
     font-size: var(--font-size-base) !important;
   }
+
+  /* Fix "By signing up..." text positioning on mobile */
+  /* Target the modal container to ensure proper layout */
+  .modalContainer[role="dialog"],
+  .netlify-identity-widget .modalContainer {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+  }
+
+  /* Target the modal content to allow scrolling */
+  .modalContainer .modalContent,
+  .netlify-identity-widget .modalContent {
+    display: flex !important;
+    flex-direction: column !important;
+    overflow-y: auto !important;
+    flex: 1 !important;
+  }
+
+  /* Target the form container */
+  .modalContainer form,
+  .netlify-identity-widget form {
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 100% !important;
+  }
+
+  /* Push the "By signing up..." text to the bottom */
+  .modalContainer .formFooter,
+  .modalContainer .signupTerms,
+  .modalContainer form > p:last-child,
+  .modalContainer form > div:last-child > p,
+  .modalContainer [class*="terms"],
+  .modalContainer [class*="Terms"],
+  .netlify-identity-widget .formFooter,
+  .netlify-identity-widget .signupTerms,
+  .netlify-identity-widget form > p:last-child,
+  .netlify-identity-widget [class*="terms"] {
+    margin-top: auto !important;
+    padding-top: 20px !important;
+    padding-bottom: 20px !important;
+    position: sticky !important;
+    bottom: 0 !important;
+    background: white !important;
+    z-index: 10 !important;
+  }
+
+  /* Ensure Google SSO button has proper spacing and doesn't get overlapped */
+  .modalContainer .providerGroup,
+  .modalContainer .providersGroup,
+  .modalContainer [class*="provider"],
+  .netlify-identity-widget .providerGroup,
+  .netlify-identity-widget .providersGroup,
+  .netlify-identity-widget [class*="provider"] {
+    margin-bottom: 15px !important;
+    position: relative !important;
+    z-index: 20 !important;
+  }
+
+  /* Add padding to the form to prevent overlap */
+  .modalContainer form > div:last-of-type,
+  .netlify-identity-widget form > div:last-of-type {
+    padding-bottom: 100px !important;
+  }
 }
 
 /* Loading states */
