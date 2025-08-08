@@ -11110,7 +11110,11 @@ showTypingIndicator();
         
         // Add context about the previous welcome message and suggestions
         if (window.additionalContext.welcomeMessage) {
-          onboardingSummaryContext = '\n\n[IMPORTANT: In your previous message, you provided these specific suggestions to the user:\n' + window.additionalContext.welcomeMessage + '\n\nIf the user responds with a number like "1", "2", or "3", they are referring to one of these suggestions you made. Please continue the conversation based on their choice.]\n';
+          // Extract just the suggestions part for cleaner context
+          const suggestionsMatch = window.additionalContext.welcomeMessage.match(/Here are.*?\n\n([\s\S]*?)\n\nWhich of these/);
+          const suggestions = suggestionsMatch ? suggestionsMatch[1] : window.additionalContext.welcomeMessage;
+          
+          onboardingSummaryContext = '\n\n[IMPORTANT: In your previous message, you provided these specific suggestions to the user:\n\n' + suggestions + '\n\nIf the user responds with a number like "1", "2", "3", "4", "5", or "6", they are referring to one of these suggestions you made. Please continue the conversation based on their choice and remember the full context of their onboarding answers.]\n';
         }
         
         console.log('📋 Including onboarding context in message');
@@ -13049,29 +13053,50 @@ document.addEventListener('DOMContentLoaded', () => {
           welcomeMessage += `I understand that ${challenge} is your biggest challenge right now, and you're motivated by ${motivation}. `;
           welcomeMessage += `Since you're looking for ${support}, I have some specific ideas on how we can work together.\n\n`;
           
-          // Add specific suggestions based on their goals
-          welcomeMessage += `Here are three areas where I can help you immediately:\n\n`;
+          // Add 5-6 specific suggestions based on their goals
+          welcomeMessage += `Here are some areas where I can help you immediately:\n\n`;
           
           if (answers.career_goal === 'promotion') {
             welcomeMessage += `1. 📈 Create a strategic plan to demonstrate your value and readiness for the next level\n`;
             welcomeMessage += `2. 🎯 Identify key skills and achievements that will make you stand out\n`;
             welcomeMessage += `3. 💬 Prepare for promotion conversations with your manager\n`;
+            welcomeMessage += `4. 🏆 Build visibility and strengthen relationships with key stakeholders\n`;
+            welcomeMessage += `5. 📊 Track and showcase your accomplishments effectively\n`;
           } else if (answers.career_goal === 'different_industry') {
             welcomeMessage += `1. 🔄 Map your transferable skills to your target industry\n`;
             welcomeMessage += `2. 🌐 Build a network in your new field\n`;
             welcomeMessage += `3. 📝 Craft a compelling career change story\n`;
+            welcomeMessage += `4. 🎓 Identify skill gaps and create a learning plan\n`;
+            welcomeMessage += `5. 💼 Optimize your resume and LinkedIn for career pivoting\n`;
           } else if (answers.career_goal === 'entrepreneur') {
             welcomeMessage += `1. 💡 Validate your business idea and identify your target market\n`;
             welcomeMessage += `2. 📊 Create a roadmap for transitioning from employee to entrepreneur\n`;
             welcomeMessage += `3. 🚀 Build the key skills you'll need as a business owner\n`;
+            welcomeMessage += `4. 💰 Plan your financial runway and funding strategy\n`;
+            welcomeMessage += `5. 🤝 Develop your network and find mentors in entrepreneurship\n`;
           } else if (answers.career_goal === 'skills') {
             welcomeMessage += `1. 🎓 Identify the most valuable skills for your career trajectory\n`;
             welcomeMessage += `2. 📚 Create a personalized learning plan that fits your schedule\n`;
             welcomeMessage += `3. 🏆 Find ways to apply new skills in your current role\n`;
+            welcomeMessage += `4. 🔍 Explore certifications and credentials that matter in your field\n`;
+            welcomeMessage += `5. 💡 Build a portfolio to demonstrate your new competencies\n`;
+          } else if (answers.career_goal === 'same_industry') {
+            welcomeMessage += `1. 🎯 Define your ideal role and target companies\n`;
+            welcomeMessage += `2. 🔄 Update your professional brand for internal mobility\n`;
+            welcomeMessage += `3. 🤝 Leverage your network for hidden opportunities\n`;
+            welcomeMessage += `4. 💪 Strengthen your unique value proposition\n`;
+            welcomeMessage += `5. 📈 Position yourself as an expert in your domain\n`;
           } else {
             welcomeMessage += `1. 🎯 Clarify your career vision and create actionable goals\n`;
             welcomeMessage += `2. 💪 Build confidence and overcome limiting beliefs\n`;
             welcomeMessage += `3. 📈 Develop a personal brand that showcases your unique value\n`;
+            welcomeMessage += `4. 🗺️ Create a career roadmap with clear milestones\n`;
+            welcomeMessage += `5. 🌟 Identify and leverage your core strengths\n`;
+          }
+          
+          // Add 6th suggestion if they provided additional context
+          if (answers.additional_context && answers.additional_context.trim()) {
+            welcomeMessage += `6. 💭 Address your specific situation based on what you shared\n`;
           }
           
           // Add personal touch if they provided additional context
@@ -13098,35 +13123,32 @@ document.addEventListener('DOMContentLoaded', () => {
         const divBot = document.createElement("p");
         divBot.className = "message bot-message";
         
-        // Add avatar if available (with proper size)
-        if (currentCharacter?.avatar_url) {
-          const avatarImg = document.createElement("img");
-          avatarImg.src = currentCharacter.avatar_url;
-          avatarImg.alt = currentCharacter.name || 'Character';
-          avatarImg.style.width = '30px';
-          avatarImg.style.height = '30px';
-          avatarImg.style.borderRadius = '50%';
-          avatarImg.style.marginRight = '8px';
-          avatarImg.style.verticalAlign = 'middle';
-          avatarImg.onerror = function() { this.style.display = 'none'; };
-          divBot.appendChild(avatarImg);
-        }
+        // Get avatar HTML
+        const avatarHtml = getAvatarHtml();
         
-        // Add character name
-        const nameSpan = document.createElement("strong");
-        nameSpan.textContent = `${currentCharacter?.name || 'Character'}: `;
-        divBot.appendChild(nameSpan);
-        
-        // Add empty span for typewriter effect
-        const messageSpan = document.createElement("span");
-        messageSpan.className = "typing-text";
-        divBot.appendChild(messageSpan);
+        // Create the base HTML structure without the message content
+        divBot.innerHTML = `${avatarHtml}<strong>${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text"></span>`;
         
         chatlog.appendChild(divBot);
         chatlog.scrollTop = chatlog.scrollHeight;
         
-        // Start typewriter effect with voice
-        typewriterWithVoice(messageSpan, welcomeMessage, currentCharacter?.voice_id, 20); // Use same speed as regular messages
+        // Get the typing span for typewriter effect
+        const messageSpan = divBot.querySelector('.typing-text');
+        
+        // Start typewriter effect
+        typewriterWithVoice(messageSpan, welcomeMessage, currentCharacter?.voice_id, 20);
+        
+        // After typewriter completes, add voice button if voice is available
+        if (currentCharacter?.voice_id) {
+          setTimeout(() => {
+            // Convert line breaks to HTML for proper formatting
+            const formattedMessage = welcomeMessage.replace(/\n/g, '<br>');
+            const escapedForOnclick = formattedMessage.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+            
+            // Update the message with proper formatting and voice button
+            divBot.innerHTML = `${avatarHtml}<strong>${currentCharacter?.name || 'Character'}:</strong> ${formattedMessage}<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice('${escapedForOnclick}', '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
+          }, (welcomeMessage.length * 20) + 100); // Wait for typewriter to complete
+        }
         
         // Save this as the first message in the conversation
         saveOnboardingWelcomeMessage(welcomeMessage);
