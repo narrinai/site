@@ -12615,6 +12615,50 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         container.appendChild(grid);
+        
+        // Add "Other" input field that shows when "other" is selected
+        const otherContainer = document.createElement('div');
+        otherContainer.className = 'other-input-container';
+        otherContainer.style.display = 'none';
+        otherContainer.style.marginTop = '1rem';
+        
+        const otherInput = document.createElement('textarea');
+        otherInput.className = 'other-text-input';
+        otherInput.placeholder = 'Please specify...';
+        otherInput.maxLength = 200;
+        otherInput.style.width = '100%';
+        otherInput.style.minHeight = '80px';
+        otherInput.style.padding = 'var(--spacing-sm)';
+        otherInput.style.border = '2px solid var(--color-light-gray)';
+        otherInput.style.borderRadius = 'var(--radius-sm)';
+        otherInput.style.fontFamily = 'var(--font-primary)';
+        otherInput.style.fontSize = 'var(--font-size-base)';
+        otherInput.style.resize = 'vertical';
+        
+        // Restore value if going back
+        if (onboardingAnswers[question.id + '_other']) {
+          otherInput.value = onboardingAnswers[question.id + '_other'];
+          if (onboardingAnswers[question.id] === 'other') {
+            otherContainer.style.display = 'block';
+          }
+        }
+        
+        otherInput.oninput = (e) => {
+          onboardingAnswers[question.id + '_other'] = e.target.value;
+          updateOtherCharCounter(e.target);
+          updateButtons();
+        };
+        
+        const otherCounter = document.createElement('div');
+        otherCounter.className = 'char-counter';
+        otherCounter.style.fontSize = '12px';
+        otherCounter.style.color = 'var(--color-gray)';
+        otherCounter.style.marginTop = '4px';
+        otherCounter.textContent = `${otherInput.value.length}/${otherInput.maxLength}`;
+        
+        otherContainer.appendChild(otherInput);
+        otherContainer.appendChild(otherCounter);
+        container.appendChild(otherContainer);
       } else if (question.type === 'open_text') {
         // Create text area
         const textContainer = document.createElement('div');
@@ -12655,10 +12699,29 @@ document.addEventListener('DOMContentLoaded', () => {
       buttons.forEach(btn => btn.classList.remove('selected'));
       buttonElement.classList.add('selected');
       
+      // Show/hide "Other" input field
+      const otherContainer = document.querySelector('.other-input-container');
+      if (otherContainer) {
+        if (value === 'other') {
+          otherContainer.style.display = 'block';
+          const otherInput = otherContainer.querySelector('textarea');
+          if (otherInput) {
+            otherInput.focus();
+          }
+          // Don't auto-advance for "other" option
+          updateButtons();
+          return;
+        } else {
+          otherContainer.style.display = 'none';
+          // Clear the "other" text if a different option is selected
+          delete onboardingAnswers[questionId + '_other'];
+        }
+      }
+      
       // Update navigation buttons
       updateButtons();
       
-      // Auto-advance to next question after a short delay
+      // Auto-advance to next question after a short delay (except for "other")
       setTimeout(() => {
         if (currentQuestionIndex < currentQuestions.length - 1) {
           currentQuestionIndex++;
@@ -12680,6 +12743,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
     
+    function updateOtherCharCounter(textarea) {
+      const counter = textarea.nextElementSibling;
+      if (counter) {
+        counter.textContent = `${textarea.value.length}/${textarea.maxLength}`;
+      }
+    }
+    
     function updateButtons() {
       const prevButton = document.getElementById('prevButton');
       const nextButton = document.getElementById('nextButton');
@@ -12689,8 +12759,14 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Check if current question has an answer
       const currentQuestion = currentQuestions[currentQuestionIndex];
-      const hasAnswer = onboardingAnswers[currentQuestion.id] !== undefined && 
+      let hasAnswer = onboardingAnswers[currentQuestion.id] !== undefined && 
                        onboardingAnswers[currentQuestion.id] !== '';
+      
+      // For "other" option, also check if the text field has content
+      if (onboardingAnswers[currentQuestion.id] === 'other') {
+        hasAnswer = hasAnswer && onboardingAnswers[currentQuestion.id + '_other'] && 
+                   onboardingAnswers[currentQuestion.id + '_other'].trim() !== '';
+      }
       
       // Next/Submit button
       if (currentQuestionIndex === currentQuestions.length - 1) {
@@ -12712,8 +12788,14 @@ document.addEventListener('DOMContentLoaded', () => {
     
     window.nextQuestion = function() {
       const currentQuestion = currentQuestions[currentQuestionIndex];
-      const hasAnswer = onboardingAnswers[currentQuestion.id] !== undefined && 
+      let hasAnswer = onboardingAnswers[currentQuestion.id] !== undefined && 
                        onboardingAnswers[currentQuestion.id] !== '';
+      
+      // For "other" option, also check if the text field has content
+      if (onboardingAnswers[currentQuestion.id] === 'other') {
+        hasAnswer = hasAnswer && onboardingAnswers[currentQuestion.id + '_other'] && 
+                   onboardingAnswers[currentQuestion.id + '_other'].trim() !== '';
+      }
       
       if (currentQuestion.required && !hasAnswer) {
         return;
@@ -12729,17 +12811,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     async function submitOnboarding() {
-      console.log('📤 Submitting onboarding answers:', onboardingAnswers);
+      // Process answers to merge "other" text with "other" selection
+      const processedAnswers = {};
+      for (const [key, value] of Object.entries(onboardingAnswers)) {
+        if (!key.endsWith('_other')) {
+          if (value === 'other' && onboardingAnswers[key + '_other']) {
+            // Replace "other" with the actual text entered
+            processedAnswers[key] = onboardingAnswers[key + '_other'];
+          } else {
+            processedAnswers[key] = value;
+          }
+        }
+      }
+      
+      console.log('📤 Submitting onboarding answers:', processedAnswers);
       
       const userId = localStorage.getItem('user_id') || localStorage.getItem('user_uid') || 'anonymous';
       const userToken = localStorage.getItem('user_token');
       const characterId = currentCharacter.character_id || currentCharacter.id || currentCharacter.Character_ID || '';
       const category = currentCharacter.Category || currentCharacter.category || '';
       
-      // Store onboarding answers temporarily
+      // Store onboarding answers temporarily (use processed answers)
       const tempOnboardingKey = `temp_onboarding_${characterId}`;
       localStorage.setItem(tempOnboardingKey, JSON.stringify({
-        answers: onboardingAnswers,
+        answers: processedAnswers,
         timestamp: new Date().toISOString(),
         characterId: characterId,
         category: category
@@ -12763,21 +12858,21 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       // User is logged in, proceed normally
-      // Mark onboarding as complete
+      // Mark onboarding as complete (use processed answers)
       if (typeof markOnboardingComplete === 'function') {
-        markOnboardingComplete(userId, characterId, onboardingAnswers);
+        markOnboardingComplete(userId, characterId, processedAnswers);
       }
       
-      // Save to Airtable
-      await saveOnboardingToAirtable(onboardingAnswers);
+      // Save to Airtable (use processed answers)
+      await saveOnboardingToAirtable(processedAnswers);
       
       // Hide overlay and start chat with personalized message
       const overlay = document.getElementById('onboardingOverlay');
       overlay.style.display = 'none';
       document.body.style.overflow = '';
       
-      // Generate personalized first message
-      generatePersonalizedWelcome(onboardingAnswers);
+      // Generate personalized first message (use processed answers)
+      generatePersonalizedWelcome(processedAnswers);
     }
     
     function showAuthPrompt() {
