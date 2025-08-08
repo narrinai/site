@@ -3311,25 +3311,41 @@
     }
     
     .onboarding-header {
-      padding: var(--spacing-2xl) var(--spacing-2xl) var(--spacing-xl);
+      padding: var(--spacing-xl) var(--spacing-xl) var(--spacing-lg);
       text-align: center;
       border-bottom: 1px solid var(--color-light-gray);
     }
     
+    .onboarding-avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      margin: 0 auto var(--spacing-md);
+      overflow: hidden;
+      border: 3px solid var(--color-white);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .onboarding-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
     .onboarding-header h2 {
       font-family: var(--font-secondary);
-      font-size: var(--font-size-3xl);
+      font-size: var(--font-size-2xl);
       font-weight: 800;
       color: var(--color-navy);
-      margin: 0 0 var(--spacing-md) 0;
+      margin: 0 0 var(--spacing-sm) 0;
       letter-spacing: -0.02em;
     }
     
     .onboarding-header p {
       color: var(--color-gray);
-      font-size: var(--font-size-lg);
+      font-size: var(--font-size-base);
       margin: 0;
-      line-height: 1.6;
+      line-height: 1.5;
     }
     
     .onboarding-progress {
@@ -3360,7 +3376,9 @@
     }
     
     .onboarding-content {
-      padding: var(--spacing-2xl);
+      padding: var(--spacing-lg);
+      max-height: 50vh;
+      overflow-y: auto;
     }
     
     .question-container {
@@ -3377,32 +3395,32 @@
     }
     
     .question-title {
-      font-size: var(--font-size-xl);
+      font-size: var(--font-size-lg);
       font-weight: 600;
       color: var(--color-navy);
-      margin-bottom: var(--spacing-xl);
-      line-height: 1.4;
+      margin-bottom: var(--spacing-lg);
+      line-height: 1.3;
     }
     
     .options-grid {
       display: grid;
-      gap: var(--spacing-md);
+      gap: var(--spacing-sm);
     }
     
     .option-button {
       background: var(--color-white);
       border: 2px solid var(--color-light-gray);
-      border-radius: var(--radius-lg);
-      padding: var(--spacing-lg);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-md);
       text-align: left;
       cursor: pointer;
       transition: all var(--transition-base);
       font-family: var(--font-primary);
-      font-size: var(--font-size-base);
+      font-size: var(--font-size-sm);
       color: var(--color-navy);
       display: flex;
       align-items: center;
-      gap: var(--spacing-md);
+      gap: var(--spacing-sm);
     }
     
     .option-button:hover {
@@ -3912,6 +3930,7 @@
     <div id="onboardingOverlay" class="onboarding-overlay">
       <div class="onboarding-container">
         <div class="onboarding-header">
+          <div id="onboardingAvatar" class="onboarding-avatar"></div>
           <h2>Let's Get to Know You</h2>
           <p>Help me understand your situation better so I can provide personalized guidance</p>
         </div>
@@ -12398,6 +12417,18 @@ document.addEventListener('DOMContentLoaded', () => {
       overlay.style.display = 'flex';
       document.body.style.overflow = 'hidden';
       
+      // Add character avatar
+      const avatarDiv = document.getElementById('onboardingAvatar');
+      if (currentCharacter && currentCharacter.avatar_url) {
+        avatarDiv.innerHTML = `<img src="${currentCharacter.avatar_url}" alt="${currentCharacter.name || 'Character'}" />`;
+      } else {
+        avatarDiv.innerHTML = '👤';
+        avatarDiv.style.fontSize = '30px';
+        avatarDiv.style.display = 'flex';
+        avatarDiv.style.alignItems = 'center';
+        avatarDiv.style.justifyContent = 'center';
+      }
+      
       // Start with first question
       currentQuestionIndex = 0;
       onboardingAnswers = {};
@@ -12499,6 +12530,20 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Update navigation buttons
       updateButtons();
+      
+      // Auto-advance to next question after a short delay
+      setTimeout(() => {
+        if (currentQuestionIndex < currentQuestions.length - 1) {
+          currentQuestionIndex++;
+          displayQuestion(currentQuestionIndex);
+        } else {
+          // Last question - check if we can submit
+          const currentQuestion = currentQuestions[currentQuestionIndex];
+          if (!currentQuestion.required || onboardingAnswers[currentQuestion.id]) {
+            submitOnboarding();
+          }
+        }
+      }, 300); // 300ms delay for visual feedback
     }
     
     function updateCharCounter(textarea) {
