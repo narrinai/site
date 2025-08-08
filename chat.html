@@ -11088,6 +11088,23 @@ showTypingIndicator();
       emotionalComplexity = 0.9;
     }
     
+    // Get the last AI message from the chat for context
+    let previousAIMessage = '';
+    const allMessages = chatlog.querySelectorAll('p');
+    for (let i = allMessages.length - 1; i >= 0; i--) {
+      const messageText = allMessages[i].textContent || '';
+      // Check if it's an AI message (not starting with "You:")
+      if (!messageText.startsWith('You:')) {
+        // Extract the message content after the character name
+        const colonIndex = messageText.indexOf(':');
+        if (colonIndex !== -1) {
+          previousAIMessage = messageText.substring(colonIndex + 1).trim();
+          console.log('📝 Found previous AI message:', previousAIMessage.substring(0, 100) + '...');
+          break;
+        }
+      }
+    }
+    
     // Include onboarding context if available
     let onboardingContext = '';
     let onboardingSummaryContext = '';
@@ -11108,9 +11125,15 @@ showTypingIndicator();
           }
         }
         
-        // Add context about the previous welcome message and suggestions
-        if (window.additionalContext.welcomeMessage) {
+        // Add context about the previous AI message if it contains suggestions
+        if (previousAIMessage && previousAIMessage.includes('Here are')) {
           // Extract just the suggestions part for cleaner context
+          const suggestionsMatch = previousAIMessage.match(/Here are.*?\n\n([\s\S]*?)$/);
+          const suggestions = suggestionsMatch ? suggestionsMatch[1] : previousAIMessage;
+          
+          onboardingSummaryContext = '\n\n[IMPORTANT: In your previous message, you said:\n"' + previousAIMessage.substring(0, 1000) + '"\n\nIf the user responds with a number like "1", "2", "3", "4", "5", or "6", they are referring to one of the suggestions you made. Please continue the conversation based on their choice and remember the full context of their onboarding answers.]\n';
+        } else if (window.additionalContext.welcomeMessage) {
+          // Fallback to stored welcome message if needed
           const suggestionsMatch = window.additionalContext.welcomeMessage.match(/Here are.*?\n\n([\s\S]*?)\n\nWhich of these/);
           const suggestions = suggestionsMatch ? suggestionsMatch[1] : window.additionalContext.welcomeMessage;
           
@@ -13138,17 +13161,14 @@ document.addEventListener('DOMContentLoaded', () => {
         // Start typewriter effect
         typewriterWithVoice(messageSpan, welcomeMessage, currentCharacter?.voice_id, 20);
         
-        // After typewriter completes, add voice button if voice is available
-        if (currentCharacter?.voice_id) {
-          setTimeout(() => {
-            // Convert line breaks to HTML for proper formatting
-            const formattedMessage = welcomeMessage.replace(/\n/g, '<br>');
-            const escapedForOnclick = formattedMessage.replace(/'/g, "\\'").replace(/"/g, "&quot;");
-            
-            // Update the message with proper formatting and voice button
-            divBot.innerHTML = `${avatarHtml}<strong>${currentCharacter?.name || 'Character'}:</strong> ${formattedMessage}<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice('${escapedForOnclick}', '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
-          }, (welcomeMessage.length * 20) + 100); // Wait for typewriter to complete
-        }
+        // After typewriter completes, format the message properly (but no voice button for long messages)
+        setTimeout(() => {
+          // Convert line breaks to HTML for proper formatting
+          const formattedMessage = welcomeMessage.replace(/\n/g, '<br>');
+          
+          // Update the message with proper formatting (no voice button for onboarding summary >1000 chars)
+          divBot.innerHTML = `${avatarHtml}<strong>${currentCharacter?.name || 'Character'}:</strong> ${formattedMessage}`;
+        }, (welcomeMessage.length * 20) + 100); // Wait for typewriter to complete
         
         // Save this as the first message in the conversation
         saveOnboardingWelcomeMessage(welcomeMessage);
