@@ -255,10 +255,19 @@ exports.handler = async (event, context) => {
          Message: fields.Message ? fields.Message.substring(0, 50) + '...' : null
        });
        
-       // Skip non-user messages (assistant messages)
-       if (fields.Role !== 'user' && fields.Role !== 'User') {
-         console.log(`⏭️ Skipping assistant message (Role=${fields.Role}), record:`, record.id);
+       // Include both user messages AND onboarding messages for memory
+       const isUserMessage = fields.Role === 'user' || fields.Role === 'User';
+       const isOnboardingMessage = fields.message_type === 'onboarding';
+       
+       if (!isUserMessage && !isOnboardingMessage) {
+         console.log(`⏭️ Skipping non-memory message (Role=${fields.Role}, type=${fields.message_type}), record:`, record.id);
          continue;
+       }
+       
+       // For onboarding messages, set high importance automatically
+       if (isOnboardingMessage && !fields.Memory_Importance) {
+         fields.Memory_Importance = 10; // Max importance for onboarding
+         console.log(`🎯 Setting onboarding message to max importance`);
        }
        
        // Check user match - properly handle all field types
@@ -405,10 +414,23 @@ if (!userMatch && Array.isArray(recordUserField) && recordUserField.length > 0) 
        console.log(`🧠 Memory check: importance=${memoryImportance}, min=${min_importance}, has_summary=${!!summary}, role=${fields.Role}`);
        
        if (memoryImportance >= min_importance && (summary || message)) {
-         console.log(`✅ Adding USER memory: importance=${memoryImportance}, summary="${summary.substring(0, 30)}..."`, {
+         const memoryType = isOnboardingMessage ? 'ONBOARDING' : 'USER';
+         console.log(`✅ Adding ${memoryType} memory: importance=${memoryImportance}, summary="${summary.substring(0, 30)}..."`, {
            role: fields.Role,
-           message: message.substring(0, 50) + '...'
+           message: message.substring(0, 50) + '...',
+           type: fields.message_type
          });
+         
+         // For onboarding messages, extract the metadata
+         let additionalData = {};
+         if (isOnboardingMessage && fields.metadata) {
+           try {
+             additionalData = JSON.parse(fields.metadata);
+             console.log(`📋 Parsed onboarding metadata:`, additionalData);
+           } catch (e) {
+             console.log(`⚠️ Could not parse onboarding metadata:`, e);
+           }
+         }
          
          memories.push({
            id: record.id,
@@ -418,7 +440,9 @@ if (!userMatch && Array.isArray(recordUserField) && recordUserField.length > 0) 
            importance: memoryImportance,
            emotional_state: fields.Emotional_State || 'neutral',
            tags: fields.Memory_Tags || [],
-           context: message.substring(0, 200)
+           context: message.substring(0, 200),
+           type: fields.message_type || 'user',
+           metadata: additionalData
          });
        } else {
          console.log(`❌ Memory doesn't meet criteria: importance=${memoryImportance}, has_content=${!!(summary || message)}`);
