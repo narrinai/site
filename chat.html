@@ -12348,6 +12348,12 @@ document.addEventListener('DOMContentLoaded', () => {
       // Try to get category from various fields
       let category = currentCharacter.Category || currentCharacter.category || '';
       
+      // Normalize category (capitalize first letter)
+      if (category) {
+        category = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
+        console.log('📐 Normalized category:', category);
+      }
+      
       // Fallback: if no category but title contains "Career", use Career category
       if (!category && currentCharacter.character_title && currentCharacter.character_title.toLowerCase().includes('career')) {
         category = 'Career';

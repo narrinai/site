@@ -171,11 +171,18 @@ Which of these would you like to explore first? Or is there something else you'd
 function needsOnboarding(category, userId, characterId) {
   console.log('🔍 needsOnboarding called with:', { category, userId, characterId });
   
+  // Normalize category to match our config (capitalize first letter)
+  const normalizedCategory = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
+  console.log('📐 Normalized category:', normalizedCategory);
+  
   // Check if category has onboarding enabled
-  if (!onboardingQuestions[category]) {
-    console.log(`❌ No onboarding config for category: ${category}`);
+  if (!onboardingQuestions[normalizedCategory]) {
+    console.log(`❌ No onboarding config for category: ${normalizedCategory}`);
     return false;
   }
+  
+  // Use normalized category from here
+  category = normalizedCategory;
   
   if (!onboardingQuestions[category].enabled) {
     console.log(`❌ Onboarding disabled for category: ${category}`);
