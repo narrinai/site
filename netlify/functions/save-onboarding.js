@@ -169,13 +169,21 @@ exports.handler = async (event, context) => {
     }
     
     // Add the new optional fields that exist in the ChatHistory table
-    chatHistoryRecord.fields['is_system'] = true;
-    chatHistoryRecord.fields['message_type'] = 'onboarding';
-    chatHistoryRecord.fields['metadata'] = JSON.stringify({
-      type: 'onboarding_complete',
-      category: category,
-      answers: answers
-    });
+    // Try adding these fields - Airtable will ignore if they don't exist
+    try {
+      chatHistoryRecord.fields['is_system'] = true;
+      chatHistoryRecord.fields['message_type'] = 'onboarding';
+      chatHistoryRecord.fields['metadata'] = JSON.stringify({
+        type: 'onboarding_complete',
+        category: category,
+        answers: answers
+      });
+      console.log('✅ Added optional fields to record');
+    } catch (err) {
+      console.log('⚠️ Could not add optional fields:', err);
+    }
+    
+    console.log('📤 Final record to save:', JSON.stringify(chatHistoryRecord, null, 2));
 
     const response = await fetch(
       `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory`,
@@ -204,7 +212,21 @@ exports.handler = async (event, context) => {
 
     const data = await response.json();
     console.log('✅ Onboarding saved successfully to ChatHistory:', data.id);
-    console.log('✅ Saved record:', data);
+    console.log('✅ Saved record fields:', JSON.stringify(data.fields, null, 2));
+    
+    // Check which fields were actually saved
+    const savedFields = Object.keys(data.fields);
+    const missingFields = [];
+    if (!savedFields.includes('is_system')) missingFields.push('is_system');
+    if (!savedFields.includes('message_type')) missingFields.push('message_type');
+    if (!savedFields.includes('metadata')) missingFields.push('metadata');
+    
+    if (missingFields.length > 0) {
+      console.log('⚠️ These fields were not saved:', missingFields);
+      console.log('💡 Make sure these fields exist in the ChatHistory table in Airtable');
+    } else {
+      console.log('✅ All optional fields were saved successfully');
+    }
 
     return {
       statusCode: 200,
