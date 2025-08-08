@@ -5974,14 +5974,15 @@ document.addEventListener('DOMContentLoaded', () => {
           data.history.forEach((msg, index) => {
             console.log(`📝 Displaying message ${index + 1}:`, msg.role, msg.message.substring(0, 50) + '...');
             
-            // Filter out messages that are system instructions or empty placeholders
+            // Filter out messages that are system instructions, onboarding data, or empty placeholders
             // Only filter if the ENTIRE message is a system instruction, not if it contains these words in normal conversation
             if ((msg.role === 'user' && (!msg.message || msg.message.trim() === '')) ||
                 (msg.message && msg.role === 'user' && msg.message.startsWith('[CRITICAL INSTRUCTION:')) ||
                 (msg.message && msg.message.trim().startsWith('Previous conversations and important information') && msg.message.includes('[Belangrijk geheugen')) ||
-                (msg.message && msg.message.trim().startsWith('Vorige gesprekken en belangrijke informatie:') && msg.message.includes('[Belangrijk geheugen'))
+                (msg.message && msg.message.trim().startsWith('Vorige gesprekken en belangrijke informatie:') && msg.message.includes('[Belangrijk geheugen')) ||
+                (msg.message && msg.message.startsWith('[Onboarding Information'))  // Filter out onboarding memory records
             ) {
-              console.log('🧹 Filtering out system instruction or empty message from history:', msg.message?.substring(0, 50) + '...');
+              console.log('🧹 Filtering out system instruction, onboarding data, or empty message from history:', msg.message?.substring(0, 50) + '...');
               return; // Skip this message
             }
             
