@@ -11136,60 +11136,100 @@ showTypingIndicator();
           }
         }
         
-        // Add context about the previous AI message if it contains suggestions
-        if (previousAIMessage && (previousAIMessage.includes('Here are') || previousAIMessage.includes('1.') || previousAIMessage.includes('1 '))) {
-          // Extract the specific suggestions from the message
-          const suggestionLines = previousAIMessage.split('\n').filter(line => line.match(/^[1-6]\./));
-          
-          // Include the full previous message for context
-          onboardingSummaryContext = '\n\n[IMPORTANT CONTEXT: In your previous message, you provided this response to the user:\n\n"' + previousAIMessage + '"\n\n';
-          
-          // Check if user's message is a number
-          if (input.match(/^[1-6]$/)) {
-            const optionNumber = parseInt(input);
-            const selectedSuggestion = suggestionLines[optionNumber - 1] || '';
-            
-            onboardingSummaryContext += 'THE USER SELECTED OPTION ' + input + ':\n';
-            if (selectedSuggestion) {
-              onboardingSummaryContext += '"' + selectedSuggestion + '"\n\n';
-            }
-            onboardingSummaryContext += 'You MUST respond specifically about this option. Provide detailed, actionable advice for: ' + selectedSuggestion + '\n';
-            onboardingSummaryContext += 'DO NOT give a generic greeting. Address their specific choice directly.\n\n';
-          }
-          
-          onboardingSummaryContext += 'Remember the full context of their onboarding answers when responding.]\n';
-        } else if (window.additionalContext.welcomeMessage) {
-          // Fallback to stored welcome message if needed
+        // ALWAYS include the onboarding conversation context - the AI needs to remember what they suggested
+        if (window.additionalContext.welcomeMessage) {
+          // Extract the suggestions for reference
           const suggestionLines = window.additionalContext.welcomeMessage.split('\n').filter(line => line.match(/^[1-6]\./));
           
-          onboardingSummaryContext = '\n\n[IMPORTANT CONTEXT: In your previous message, you provided this response to the user:\n\n"' + window.additionalContext.welcomeMessage + '"\n\n';
+          // Store suggestions for persistent reference
+          if (!window.additionalContext.suggestions) {
+            window.additionalContext.suggestions = suggestionLines;
+            console.log('💾 Stored suggestions for future reference:', suggestionLines);
+          }
+          
+          // Build comprehensive context about the onboarding conversation
+          onboardingSummaryContext = '\n\n[ONBOARDING CONVERSATION CONTEXT:\n';
+          onboardingSummaryContext += 'You are continuing a conversation with a user who completed onboarding questions.\n\n';
+          
+          onboardingSummaryContext += 'Their onboarding answers were:\n';
+          // Include the actual answers
+          if (answers.career_goal) {
+            const goalLabels = {
+              'promotion': 'Get promoted',
+              'different_industry': 'Transition to a different industry',
+              'entrepreneur': 'Start my own business',
+              'skills': 'Improve my skills',
+              'same_industry': 'Find a new job in the same industry'
+            };
+            onboardingSummaryContext += `- Career goal: ${goalLabels[answers.career_goal] || answers.career_goal}\n`;
+          }
+          if (answers.biggest_challenge) {
+            const challengeLabels = {
+              'confidence': 'Lack of confidence or imposter syndrome',
+              'direction': 'Not sure what direction to take',
+              'skills': 'Need to develop new skills',
+              'networking': 'Networking and building connections',
+              'balance': 'Work-life balance'
+            };
+            onboardingSummaryContext += `- Biggest challenge: ${challengeLabels[answers.biggest_challenge] || answers.biggest_challenge}\n`;
+          }
+          if (answers.timeline) {
+            const timelineLabels = {
+              'asap': 'As soon as possible',
+              '3_months': 'Within 3 months',
+              '6_months': 'Within 6 months',
+              '1_year': 'Within a year',
+              'exploring': 'Just exploring options'
+            };
+            onboardingSummaryContext += `- Timeline: ${timelineLabels[answers.timeline] || answers.timeline}\n`;
+          }
+          if (answers.support_needed) {
+            const supportLabels = {
+              'planning': 'Strategic planning and goal setting',
+              'accountability': 'Accountability and motivation',
+              'skills': 'Skill development and learning',
+              'confidence': 'Building confidence',
+              'networking': 'Networking strategies'
+            };
+            onboardingSummaryContext += `- Support needed: ${supportLabels[answers.support_needed] || answers.support_needed}\n`;
+          }
+          if (answers.additional_context) {
+            onboardingSummaryContext += `- Additional context: ${answers.additional_context}\n`;
+          }
+          
+          onboardingSummaryContext += '\nBased on these answers, you provided them with these suggestions:\n';
+          suggestionLines.forEach(line => {
+            onboardingSummaryContext += line + '\n';
+          });
+          
+          onboardingSummaryContext += '\nThe user is now responding to your suggestions. They might:\n';
+          onboardingSummaryContext += '- Reference a suggestion by number (1-6)\n';
+          onboardingSummaryContext += '- Describe or mention a topic from your suggestions\n';
+          onboardingSummaryContext += '- Ask about something related to their onboarding answers\n';
+          onboardingSummaryContext += '- Continue the conversation naturally\n\n';
+          
+          onboardingSummaryContext += 'Current user message: "' + input + '"\n\n';
           
           // Check if user's message is a number
           if (input.match(/^[1-6]$/)) {
             const optionNumber = parseInt(input);
             const selectedSuggestion = suggestionLines[optionNumber - 1] || '';
-            
-            onboardingSummaryContext += 'THE USER SELECTED OPTION ' + input + ':\n';
-            if (selectedSuggestion) {
-              onboardingSummaryContext += '"' + selectedSuggestion + '"\n\n';
-            }
-            onboardingSummaryContext += 'You MUST respond specifically about this option. Provide detailed, actionable advice for: ' + selectedSuggestion + '\n';
-            onboardingSummaryContext += 'DO NOT give a generic greeting. Address their specific choice directly.\n\n';
+            onboardingSummaryContext += 'The user typed the number ' + input + ', referring to: ' + selectedSuggestion + '\n';
+            onboardingSummaryContext += 'Respond specifically about this suggestion.\n';
           }
           
-          onboardingSummaryContext += 'Remember the full context of their onboarding answers when responding.]\n';
+          onboardingSummaryContext += 'IMPORTANT: You must remember and build upon the suggestions you made and their onboarding answers. This is a continuous conversation about their career coaching needs.]\n';
         }
         
         console.log('📋 Including onboarding context in message');
       }
     }
     
-    // Check if user is responding with a number to onboarding suggestions
+    // For onboarding conversations, emphasize continuity
     let priorityContext = '';
-    if (window.additionalContext && window.additionalContext.onboarding && input.match(/^[1-6]$/)) {
-      // Put numbered response context at the very beginning for highest priority
-      priorityContext = `[CRITICAL INSTRUCTION: The user typed "${input}" which is a direct response to option ${input} from your previous suggestions. You MUST address that specific option directly and help them with it. Do not give a generic response.]\n\n`;
-      console.log('🎯 Priority context for numbered response:', priorityContext);
+    if (window.additionalContext && window.additionalContext.onboarding) {
+      priorityContext = `[REMEMBER: This is a continuing conversation. You already know the user's career goals and have made suggestions. Build on that foundation rather than starting fresh.]\n\n`;
+      console.log('🎯 Priority context for onboarding continuation:', priorityContext);
     }
     
     const requestPayload = {
