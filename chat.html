@@ -6600,9 +6600,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (index < text.length) {
           const char = text[index];
           
-          // Use text node instead of span for better handling of special characters
-          const textNode = document.createTextNode(char);
-          element.appendChild(textNode);
+          // Check if we're at a newline character
+          if (char === '\n') {
+            // Add a line break element
+            const br = document.createElement('br');
+            element.appendChild(br);
+          } else {
+            // Use text node for regular characters
+            const textNode = document.createTextNode(char);
+            element.appendChild(textNode);
+          }
           
           // Auto-scroll to keep new text visible
           const chatlog = document.getElementById("chatlog");
@@ -11217,11 +11224,12 @@ showTypingIndicator();
             onboardingSummaryContext += line + '\n';
           });
           
-          onboardingSummaryContext += '\nThe user wants YOUR HELP with one of these areas. Remember:\n';
-          onboardingSummaryContext += '- You are the expert coach providing guidance\n';
-          onboardingSummaryContext += '- The user is seeking your advice for THEIR career\n';
-          onboardingSummaryContext += '- Never talk about your own career problems (you don\'t have any)\n';
-          onboardingSummaryContext += '- Focus on helping THEM with actionable advice\n\n';
+          onboardingSummaryContext += '\nIMPORTANT CONTEXT FOR YOUR RESPONSE:\n';
+          onboardingSummaryContext += '- You = Career Coach (helper/advisor)\n';
+          onboardingSummaryContext += '- User = Person needing career help\n';
+          onboardingSummaryContext += '- Your job = Give them advice, not talk about yourself\n';
+          onboardingSummaryContext += '- This is message #2+ in the conversation (no more greetings)\n';
+          onboardingSummaryContext += '- If they type a number, they want help with that specific suggestion\n\n';
           
           onboardingSummaryContext += 'Current user message: "' + input + '"\n\n';
           
@@ -11229,12 +11237,25 @@ showTypingIndicator();
           if (input.match(/^[1-6]$/)) {
             const optionNumber = parseInt(input);
             const selectedSuggestion = suggestionLines[optionNumber - 1] || '';
-            onboardingSummaryContext += 'The USER typed the number ' + input + ', referring to: ' + selectedSuggestion + '\n';
-            onboardingSummaryContext += 'YOU must now provide coaching advice to help THEM with this specific area.\n';
-            onboardingSummaryContext += 'Example: If they selected "Build a network in your new field", YOU should give THEM networking advice.\n';
+            
+            // Extract the actual suggestion text (remove emoji and number)
+            const suggestionText = selectedSuggestion.replace(/^[1-6]\.\s*[^\s]+\s*/, '');
+            
+            onboardingSummaryContext += '\n[USER ACTION]: The user typed "' + input + '" selecting this option:\n';
+            onboardingSummaryContext += '"' + selectedSuggestion + '"\n\n';
+            onboardingSummaryContext += 'YOUR TASK: Provide immediate, specific coaching advice about: ' + suggestionText + '\n';
+            onboardingSummaryContext += 'Start with actionable steps they can take TODAY.\n';
+            onboardingSummaryContext += 'Be specific to their situation (mid-career, wanting to start a business, etc.)\n';
+            onboardingSummaryContext += 'DO NOT ask what they need - they just told you by selecting option ' + input + '.\n';
           }
           
-          onboardingSummaryContext += 'CRITICAL: You are the COACH/HELPER, not the one seeking help. The USER is the one who needs career guidance. You must help THEM with their career transition, not talk about your own (you don\'t have one). When they select an option, provide coaching and advice for THEIR situation based on THEIR onboarding answers. Never speak as if you are the one changing careers or needing help. Since you already greeted them in your welcome message, DO NOT start with "Hey" or another greeting - continue the conversation naturally.]\n';
+          onboardingSummaryContext += 'CRITICAL INSTRUCTIONS:\n';
+          onboardingSummaryContext += '1. You are the COACH/HELPER providing guidance to the USER about THEIR career\n';
+          onboardingSummaryContext += '2. The USER selected option ' + input + ' - give them specific advice about that topic\n';
+          onboardingSummaryContext += '3. DO NOT greet them again - jump straight into helping with their selected topic\n';
+          onboardingSummaryContext += '4. DO NOT add your character name to the response - it will be added automatically\n';
+          onboardingSummaryContext += '5. DO NOT ask what they need help with - they already told you by selecting an option\n';
+          onboardingSummaryContext += '6. IMMEDIATELY provide actionable advice for their selected topic]\n';
         }
         
         console.log('📋 Including onboarding context in message');
@@ -11244,7 +11265,12 @@ showTypingIndicator();
     // For onboarding conversations, emphasize continuity and role clarity
     let priorityContext = '';
     if (window.additionalContext && window.additionalContext.onboarding) {
-      priorityContext = `[REMEMBER: You are the career coach helping the USER. The USER needs help with their career transition, not you. You have no career problems - you are here to HELP THEM with theirs. Continue the conversation without greetings, and focus on providing actionable advice for THEIR situation.]\n\n`;
+      // Check if this is a numbered response
+      if (input.match(/^[1-6]$/)) {
+        priorityContext = `[IMMEDIATE ACTION: The user selected option ${input}. Skip ALL greetings and pleasantries. Start your response with specific, actionable advice about that topic. You are their coach, not someone needing help. Never prefix your response with your character name.]\n\n`;
+      } else {
+        priorityContext = `[ONGOING CONVERSATION: You are the career coach. The user needs YOUR help. No greetings - continue helping them. Never prefix your response with your character name.]\n\n`;
+      }
       console.log('🎯 Priority context for onboarding continuation:', priorityContext);
     }
     
@@ -11418,6 +11444,22 @@ let reply = (data.reply && data.reply.trim()) ||
               (data.response && data.response.trim()) || 
               (data.message && data.message.trim()) || 
               "I want to be fully present for our conversation. It seems I'm having a moment of difficulty - could you share that with me once more? Your thoughts are important to me.";
+
+// Strip character name from the response if present
+const characterName = currentCharacter?.name || currentCharacter?.Name || '';
+if (characterName) {
+  // Check if it starts with character name
+  if (reply.startsWith(characterName + ':')) {
+    reply = reply.substring(characterName.length + 1).trim();
+    console.log(`🔧 Stripped character name "${characterName}:" from beginning of response`);
+  }
+  // Also check for character name anywhere in first 50 chars (sometimes AI adds it mid-sentence)
+  const namePattern = new RegExp(`^${characterName}:\\s*`, 'i');
+  if (namePattern.test(reply)) {
+    reply = reply.replace(namePattern, '').trim();
+    console.log(`🔧 Removed character name "${characterName}:" from response`);
+  }
+}
 
 // No longer limiting reply length - AI should give concise answers through prompt engineering
 console.log(`📏 Reply length: ${reply.length} characters`);
