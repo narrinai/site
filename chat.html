@@ -10902,6 +10902,19 @@ async function sendMessage(event) {
     } else {
       console.log("⚠️ No relationship context found in response");
     }
+    
+    // Check for onboarding memory and restore it to window.additionalContext
+    if (memories && memories.length > 0) {
+      const onboardingMemory = memories.find(m => m.type === 'onboarding' && m.metadata?.type === 'onboarding_complete');
+      if (onboardingMemory && onboardingMemory.metadata?.answers) {
+        console.log("🎯 Found onboarding memory, restoring to window.additionalContext");
+        if (!window.additionalContext) {
+          window.additionalContext = {};
+        }
+        window.additionalContext.onboarding = onboardingMemory.metadata.answers;
+        console.log("✅ Onboarding context restored:", window.additionalContext.onboarding);
+      }
+    }
   } catch (error) {
     console.error("❌ Memory retrieval failed:", error);
     memories = []; // Fallback to empty array
@@ -12945,14 +12958,9 @@ document.addEventListener('DOMContentLoaded', () => {
           welcomeMessage += `\nWhich of these would you like to explore first? Or is there something else on your mind?`;
         }
         
-        // Store context for AI to use
-        if (window.additionalContext) {
-          window.additionalContext.onboardingContext = answers;
-        } else {
-          window.additionalContext = { onboardingContext: answers };
-        }
-        
+        // The context is already stored at line 12880-12882 with the correct property name
         console.log('🎯 Onboarding context prepared:', answers);
+        console.log('📋 window.additionalContext.onboarding:', window.additionalContext?.onboarding);
         
         // Clear any existing conversation starter
         const chatlog = document.getElementById("chatlog");
