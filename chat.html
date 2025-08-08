@@ -12776,16 +12776,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const chatlog = document.getElementById("chatlog");
         chatlog.innerHTML = '';
         
-        // Add personalized welcome message to chat
+        // Add personalized welcome message with typewriter effect
         const divBot = document.createElement("p");
         divBot.className = "message bot-message";
         
-        // Add avatar if available
+        // Add avatar if available (with proper size)
         if (currentCharacter?.avatar_url) {
           const avatarImg = document.createElement("img");
           avatarImg.src = currentCharacter.avatar_url;
           avatarImg.alt = currentCharacter.name || 'Character';
-          avatarImg.className = "chat-avatar";
+          avatarImg.style.width = '30px';
+          avatarImg.style.height = '30px';
+          avatarImg.style.borderRadius = '50%';
+          avatarImg.style.marginRight = '8px';
+          avatarImg.style.verticalAlign = 'middle';
           avatarImg.onerror = function() { this.style.display = 'none'; };
           divBot.appendChild(avatarImg);
         }
@@ -12795,13 +12799,16 @@ document.addEventListener('DOMContentLoaded', () => {
         nameSpan.textContent = `${currentCharacter?.name || 'Character'}: `;
         divBot.appendChild(nameSpan);
         
-        // Add message with proper formatting (preserve line breaks)
+        // Add empty span for typewriter effect
         const messageSpan = document.createElement("span");
-        messageSpan.innerHTML = welcomeMessage.replace(/\n/g, '<br>');
+        messageSpan.className = "typing-text";
         divBot.appendChild(messageSpan);
         
         chatlog.appendChild(divBot);
         chatlog.scrollTop = chatlog.scrollHeight;
+        
+        // Start typewriter effect
+        typewriterEffect(messageSpan, welcomeMessage, 30); // 30ms per character for natural speed
         
         // Save this as the first message in the conversation
         saveOnboardingWelcomeMessage(welcomeMessage);

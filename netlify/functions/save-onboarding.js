@@ -109,8 +109,8 @@ exports.handler = async (event, context) => {
     
     const chatHistoryRecord = {
       fields: {
-        user_id: user_id,
-        character_id: character_id,
+        NetlifyUID: user_uid || user_id,  // ChatHistory uses NetlifyUID as primary
+        Slug: character_id,  // ChatHistory uses Slug for character
         character_name: character_name || '',
         message: fullMessage,
         is_user: false,

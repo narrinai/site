@@ -157,10 +157,10 @@ exports.handler = async (event, context) => {
       
       // Only send check-in for Career category if onboarding is completed
       if (category === 'Career') {
-        // Check ChatHistory for onboarding completion
+        // Check ChatHistory for onboarding completion (using NetlifyUID and Slug)
         const onboardingCheckResponse = await fetch(
           `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?` +
-          `filterByFormula=${encodeURIComponent(`AND({user_id}='${chat.user_id}',{character_id}='${chat.character_id}',{message_type}='onboarding')`)}`,
+          `filterByFormula=${encodeURIComponent(`AND({NetlifyUID}='${chat.user_id}',{Slug}='${chat.character_id}',{message_type}='onboarding')`)}`,
           {
             headers: {
               'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
