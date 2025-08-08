@@ -25,6 +25,33 @@ function formatOnboardingAnswers(answers, category) {
       'other': 'Other goals'
     };
     
+    const challengeMap = {
+      'growth': 'Lack of growth opportunities',
+      'skills': 'Limited skills or experience for desired role',
+      'opportunities': 'Difficulty finding the right job opportunities',
+      'culture': 'Workplace culture or management issues',
+      'balance': 'Balancing work and personal life',
+      'other': 'Other challenges'
+    };
+    
+    const supportMap = {
+      'strategy': 'Career strategy and long-term planning',
+      'jobsearch': 'Job search guidance and application tips',
+      'interview': 'Interview preparation and personal branding',
+      'networking': 'Networking strategies and connections',
+      'confidence': 'Confidence and mindset coaching',
+      'other': 'Other support'
+    };
+    
+    const motivationMap = {
+      'financial': 'Financial rewards',
+      'growth': 'Career growth and promotions',
+      'learning': 'Learning and personal development',
+      'purpose': 'Purpose and meaningful work',
+      'balance': 'Work-life balance',
+      'recognition': 'Recognition and respect'
+    };
+    
     if (answers.career_stage) {
       lines.push(`Career Stage: ${careerStageMap[answers.career_stage] || answers.career_stage}`);
     }
@@ -32,13 +59,13 @@ function formatOnboardingAnswers(answers, category) {
       lines.push(`Main Goal: ${goalMap[answers.career_goal] || answers.career_goal}`);
     }
     if (answers.biggest_challenge) {
-      lines.push(`Biggest Challenge: ${answers.biggest_challenge}`);
+      lines.push(`Biggest Challenge: ${challengeMap[answers.biggest_challenge] || answers.biggest_challenge}`);
     }
     if (answers.support_type) {
-      lines.push(`Support Needed: ${answers.support_type}`);
+      lines.push(`Support Needed: ${supportMap[answers.support_type] || answers.support_type}`);
     }
     if (answers.motivation) {
-      lines.push(`Motivation: ${answers.motivation}`);
+      lines.push(`Motivation: ${motivationMap[answers.motivation] || answers.motivation}`);
     }
     if (answers.additional_context) {
       lines.push(`Additional Context: ${answers.additional_context}`);
