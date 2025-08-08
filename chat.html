@@ -11092,14 +11092,25 @@ showTypingIndicator();
     let previousAIMessage = '';
     const allMessages = chatlog.querySelectorAll('p');
     for (let i = allMessages.length - 1; i >= 0; i--) {
+      const messageHTML = allMessages[i].innerHTML || '';
       const messageText = allMessages[i].textContent || '';
       // Check if it's an AI message (not starting with "You:")
       if (!messageText.startsWith('You:')) {
-        // Extract the message content after the character name
-        const colonIndex = messageText.indexOf(':');
-        if (colonIndex !== -1) {
-          previousAIMessage = messageText.substring(colonIndex + 1).trim();
-          console.log('📝 Found previous AI message:', previousAIMessage.substring(0, 100) + '...');
+        // Extract the message content after the character name from innerHTML
+        // This preserves line breaks as <br> tags
+        const colonMatch = messageHTML.match(/:<\/strong>\s*(.*?)(?:<br><div|$)/s);
+        if (colonMatch) {
+          // Convert <br> back to newlines and clean up HTML
+          previousAIMessage = colonMatch[1]
+            .replace(/<br>/g, '\n')
+            .replace(/<[^>]*>/g, '') // Remove any other HTML tags
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;/g, "'")
+            .trim();
+          console.log('📝 Found previous AI message (length: ' + previousAIMessage.length + '):', previousAIMessage.substring(0, 200) + '...');
           break;
         }
       }
@@ -11126,18 +11137,26 @@ showTypingIndicator();
         }
         
         // Add context about the previous AI message if it contains suggestions
-        if (previousAIMessage && previousAIMessage.includes('Here are')) {
-          // Extract just the suggestions part for cleaner context
-          const suggestionsMatch = previousAIMessage.match(/Here are.*?\n\n([\s\S]*?)$/);
-          const suggestions = suggestionsMatch ? suggestionsMatch[1] : previousAIMessage;
+        if (previousAIMessage && (previousAIMessage.includes('Here are') || previousAIMessage.includes('1.') || previousAIMessage.includes('1 '))) {
+          // Include the full previous message for context
+          onboardingSummaryContext = '\n\n[IMPORTANT CONTEXT: In your previous message, you provided this response to the user:\n\n"' + previousAIMessage + '"\n\n';
           
-          onboardingSummaryContext = '\n\n[IMPORTANT: In your previous message, you said:\n"' + previousAIMessage.substring(0, 1000) + '"\n\nIf the user responds with a number like "1", "2", "3", "4", "5", or "6", they are referring to one of the suggestions you made. Please continue the conversation based on their choice and remember the full context of their onboarding answers.]\n';
+          // Check if user's message is a number
+          if (input.match(/^[1-6]$/)) {
+            onboardingSummaryContext += 'The user has responded with the number "' + input + '", which refers to option ' + input + ' from the suggestions you provided above. Please respond specifically about that option and help them with it.\n\n';
+          }
+          
+          onboardingSummaryContext += 'Remember the full context of their onboarding answers when responding.]\n';
         } else if (window.additionalContext.welcomeMessage) {
           // Fallback to stored welcome message if needed
-          const suggestionsMatch = window.additionalContext.welcomeMessage.match(/Here are.*?\n\n([\s\S]*?)\n\nWhich of these/);
-          const suggestions = suggestionsMatch ? suggestionsMatch[1] : window.additionalContext.welcomeMessage;
+          onboardingSummaryContext = '\n\n[IMPORTANT CONTEXT: In your previous message, you provided this response to the user:\n\n"' + window.additionalContext.welcomeMessage + '"\n\n';
           
-          onboardingSummaryContext = '\n\n[IMPORTANT: In your previous message, you provided these specific suggestions to the user:\n\n' + suggestions + '\n\nIf the user responds with a number like "1", "2", "3", "4", "5", or "6", they are referring to one of these suggestions you made. Please continue the conversation based on their choice and remember the full context of their onboarding answers.]\n';
+          // Check if user's message is a number
+          if (input.match(/^[1-6]$/)) {
+            onboardingSummaryContext += 'The user has responded with the number "' + input + '", which refers to option ' + input + ' from the suggestions you provided above. Please respond specifically about that option and help them with it.\n\n';
+          }
+          
+          onboardingSummaryContext += 'Remember the full context of their onboarding answers when responding.]\n';
         }
         
         console.log('📋 Including onboarding context in message');
