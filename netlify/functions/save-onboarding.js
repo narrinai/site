@@ -104,23 +104,34 @@ exports.handler = async (event, context) => {
     // Save directly to ChatHistory to keep memory system simple
     const onboardingSummary = formatOnboardingAnswers(answers, category);
     
+    // Add the raw answers to the summary for storage
+    const fullMessage = onboardingSummary + '\n\n[Onboarding Data: ' + JSON.stringify(answers) + ']';
+    
     const chatHistoryRecord = {
       fields: {
         user_id: user_id,
         character_id: character_id,
         character_name: character_name || '',
-        message: onboardingSummary,
+        message: fullMessage,
         is_user: false,
-        is_system: true, // Mark as system message
-        message_type: 'onboarding', // Special type for onboarding
-        created_time: new Date().toISOString(),
-        metadata: JSON.stringify({
-          type: 'onboarding_complete',
-          category: category,
-          answers: answers
-        })
+        created_time: new Date().toISOString()
       }
     };
+    
+    // Try to add optional fields if they exist in Airtable
+    // These will be ignored if the fields don't exist
+    if (category) {
+      chatHistoryRecord.fields.category = category;
+    }
+    
+    // Add the new fields only if they exist in Airtable
+    chatHistoryRecord.fields.is_system = true;
+    chatHistoryRecord.fields.message_type = 'onboarding';
+    chatHistoryRecord.fields.metadata = JSON.stringify({
+      type: 'onboarding_complete',
+      category: category,
+      answers: answers
+    });
 
     const response = await fetch(
       `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory`,
@@ -137,11 +148,19 @@ exports.handler = async (event, context) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('❌ Failed to save to ChatHistory:', errorText);
+      console.error('❌ Request body was:', JSON.stringify(chatHistoryRecord, null, 2));
+      
+      // Check if it's a field validation error
+      if (errorText.includes('UNKNOWN_FIELD_NAME') || errorText.includes('field')) {
+        console.error('❌ Airtable field error - check if these fields exist: is_system, message_type, metadata');
+      }
+      
       throw new Error(`Failed to save onboarding: ${errorText}`);
     }
 
     const data = await response.json();
-    console.log('✅ Onboarding saved successfully:', data.id);
+    console.log('✅ Onboarding saved successfully to ChatHistory:', data.id);
+    console.log('✅ Saved record:', data);
 
     return {
       statusCode: 200,
