@@ -7955,7 +7955,7 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       }
     }
 
-    // Improved typewriter effect with fade-in animation
+    // Improved typewriter effect with fade-in animation that preserves line breaks
 function typewriterEffect(element, text, speed = 20) {
   console.log('🎬 Starting typewriter effect');
   console.log('📝 Text to type:', text);
@@ -7964,21 +7964,30 @@ function typewriterEffect(element, text, speed = 20) {
   element.style.opacity = '1';
   let index = 0;
   
+  // Convert newlines to HTML line breaks for proper display
+  const htmlText = text.replace(/\n/g, '<br>');
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = htmlText;
+  const textContent = tempDiv.innerHTML;
+  
   function addNextChar() {
-    if (index < text.length) {
-      const char = text[index];
+    if (index < textContent.length) {
+      // Check if we're at the start of a <br> tag
+      if (textContent.substr(index, 4) === '<br>') {
+        element.innerHTML += '<br>';
+        index += 4;
+      } else {
+        // Add regular character
+        element.innerHTML += textContent[index];
+        index++;
+      }
       
-      // Use text node instead of span for better handling of special characters
-      const textNode = document.createTextNode(char);
-      element.appendChild(textNode);
-      
-      // Auto-scroll on newlines, periods, or every 10 characters to keep text visible smoothly
+      // Auto-scroll to keep text visible
       const chatlog = document.getElementById("chatlog");
-      if (chatlog && (char === '\n' || char === '.' || index % 10 === 0)) {
+      if (chatlog && index % 10 === 0) {
         chatlog.scrollTop = chatlog.scrollHeight;
       }
       
-      index++;
       setTimeout(addNextChar, speed);
     } else {
       console.log('✅ Typewriter completed. Total chars typed:', index);

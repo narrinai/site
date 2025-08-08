@@ -107,27 +107,71 @@ exports.handler = async (event, context) => {
     // Add the raw answers to the summary for storage
     const fullMessage = onboardingSummary + '\n\n[Onboarding Data: ' + JSON.stringify(answers) + ']';
     
+    // Create record with proper field names matching ChatHistory table
     const chatHistoryRecord = {
       fields: {
-        NetlifyUID: user_uid || user_id,  // ChatHistory uses NetlifyUID as primary
-        Slug: character_id,  // ChatHistory uses Slug for character
-        character_name: character_name || '',
-        message: fullMessage,
-        is_user: false,
-        created_time: new Date().toISOString()
+        'Role': 'system',  // System message for onboarding
+        'Message': fullMessage
       }
     };
     
-    // Try to add optional fields if they exist in Airtable
-    // These will be ignored if the fields don't exist
-    if (category) {
-      chatHistoryRecord.fields.category = category;
+    // Add User and Character as arrays of record IDs if we have them
+    // First, look up the User record ID
+    let userRecordId = null;
+    if (user_uid) {
+      const userLookupResponse = await fetch(
+        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={NetlifyUID}='${user_uid}'&maxRecords=1`,
+        {
+          headers: {
+            'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      if (userLookupResponse.ok) {
+        const userLookupData = await userLookupResponse.json();
+        if (userLookupData.records.length > 0) {
+          userRecordId = userLookupData.records[0].id;
+          console.log('✅ Found user record ID:', userRecordId);
+        }
+      }
     }
     
-    // Add the new fields only if they exist in Airtable
-    chatHistoryRecord.fields.is_system = true;
-    chatHistoryRecord.fields.message_type = 'onboarding';
-    chatHistoryRecord.fields.metadata = JSON.stringify({
+    // Look up Character record ID
+    let characterRecordId = null;
+    if (character_id) {
+      const charLookupResponse = await fetch(
+        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula={Slug}='${character_id}'&maxRecords=1`,
+        {
+          headers: {
+            'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      if (charLookupResponse.ok) {
+        const charLookupData = await charLookupResponse.json();
+        if (charLookupData.records.length > 0) {
+          characterRecordId = charLookupData.records[0].id;
+          console.log('✅ Found character record ID:', characterRecordId);
+        }
+      }
+    }
+    
+    // Add the record IDs if we have them
+    if (userRecordId) {
+      chatHistoryRecord.fields['User'] = [userRecordId];
+    }
+    if (characterRecordId) {
+      chatHistoryRecord.fields['Character'] = [characterRecordId];
+    }
+    
+    // Add the new optional fields that exist in the ChatHistory table
+    chatHistoryRecord.fields['is_system'] = true;
+    chatHistoryRecord.fields['message_type'] = 'onboarding';
+    chatHistoryRecord.fields['metadata'] = JSON.stringify({
       type: 'onboarding_complete',
       category: category,
       answers: answers
