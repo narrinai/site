@@ -11880,13 +11880,132 @@ document.addEventListener('DOMContentLoaded', () => {
       currentMessageCount++;
       console.log('📊 Message count:', currentMessageCount);
       
-      // Feedback popup disabled - was blocking mobile interface
-      // if (currentMessageCount === 2 && !sessionStorage.getItem('feedbackShown_' + characterSlug)) {
-      //   setTimeout(() => showFeedbackPopup(), 1500);
-      // }
+      // Check if we should show feedback popup (after 2 messages)
+      if (currentMessageCount === 2 && !sessionStorage.getItem('feedbackShown_' + characterSlug)) {
+        setTimeout(() => showFeedbackPopup(), 1500);
+      }
     }
   </script>
   
-  <!-- Feedback Popup removed - was blocking mobile interface -->
+  <!-- Feedback Popup with mobile fixes -->
+  <div id="feedbackOverlay" class="rating-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); z-index: 10000; padding: 20px;">
+    <div class="rating-modal" style="position: relative; max-width: 500px; margin: 50px auto; background: white; border-radius: 16px; padding: 24px; max-height: 90vh; overflow-y: auto;">
+      <button class="close-btn" id="feedbackCloseBtn" style="position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 32px; cursor: pointer; padding: 0; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: #666; z-index: 10;">×</button>
+      
+      <h2 style="font-size: 1.5rem; margin-bottom: 1rem; padding-right: 40px;">Help us improve! 💭</h2>
+      
+      <p style="color: var(--color-gray); margin-bottom: 1.5rem;">
+        What would you add or change to make this chat experience or platform better?
+      </p>
+      
+      <textarea 
+        id="feedbackInput" 
+        placeholder="Share your thoughts..."
+        style="width: 100%; min-height: 120px; padding: 1rem; border: 1px solid var(--color-gray-light); border-radius: var(--radius-md); font-family: var(--font-primary); resize: vertical; margin-bottom: 1.5rem; box-sizing: border-box;"
+      ></textarea>
+      
+      <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+        <button 
+          id="feedbackSkipBtn"
+          style="padding: 0.75rem 1.5rem; background: transparent; border: 1px solid var(--color-gray-light); border-radius: var(--radius-md); cursor: pointer; font-size: 16px; min-width: 80px;"
+        >
+          Skip
+        </button>
+        <button 
+          id="submitFeedbackBtn"
+          style="padding: 0.75rem 1.5rem; background: var(--gradient-primary); color: white; border: none; border-radius: var(--radius-md); cursor: pointer; font-weight: 500; font-size: 16px; min-width: 100px;"
+        >
+          Submit
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // Add event listeners after DOM loads for mobile compatibility
+    document.addEventListener('DOMContentLoaded', function() {
+      const closeBtn = document.getElementById('feedbackCloseBtn');
+      const skipBtn = document.getElementById('feedbackSkipBtn');
+      const submitBtn = document.getElementById('submitFeedbackBtn');
+      const overlay = document.getElementById('feedbackOverlay');
+      
+      // Close button
+      if (closeBtn) {
+        closeBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          closeFeedbackPopup();
+        });
+        
+        // Add touch event for mobile
+        closeBtn.addEventListener('touchend', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          closeFeedbackPopup();
+        });
+      }
+      
+      // Skip button
+      if (skipBtn) {
+        skipBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          closeFeedbackPopup();
+        });
+        
+        skipBtn.addEventListener('touchend', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          closeFeedbackPopup();
+        });
+      }
+      
+      // Submit button
+      if (submitBtn) {
+        submitBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          submitFeedback();
+        });
+        
+        submitBtn.addEventListener('touchend', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          submitFeedback();
+        });
+      }
+      
+      // Click overlay to close
+      if (overlay) {
+        overlay.addEventListener('click', function(e) {
+          if (e.target === overlay) {
+            closeFeedbackPopup();
+          }
+        });
+      }
+    });
+    
+    // Update show function to use display instead of class
+    window.showFeedbackPopup = function() {
+      if (hasShownFeedbackPopup) return;
+      
+      const feedbackOverlay = document.getElementById('feedbackOverlay');
+      if (feedbackOverlay) {
+        feedbackOverlay.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        hasShownFeedbackPopup = true;
+        sessionStorage.setItem('feedbackShown_' + characterSlug, 'true');
+      }
+    }
+    
+    // Update close function
+    window.closeFeedbackPopup = function() {
+      const feedbackOverlay = document.getElementById('feedbackOverlay');
+      if (feedbackOverlay) {
+        feedbackOverlay.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+    }
+  </script>
 </body>
 </html>
