@@ -110,7 +110,7 @@ exports.handler = async (event, context) => {
     // Create record with proper field names matching ChatHistory table
     const chatHistoryRecord = {
       fields: {
-        'Role': 'system',  // System message for onboarding
+        'Role': 'ai assistant',  // Use valid Role option for onboarding
         'Message': fullMessage
       }
     };

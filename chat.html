@@ -7406,8 +7406,11 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       div.textContent = text;
       const escaped = div.innerHTML;
       
-      // Return escaped text which will properly display emojis
-      return escaped;
+      // Convert newlines to <br> tags to preserve formatting
+      const withLineBreaks = escaped.replace(/\n/g, '<br>');
+      
+      // Return escaped text with line breaks preserved
+      return withLineBreaks;
     }
 
     // ===== CHAT FUNCTIONALITY =====
