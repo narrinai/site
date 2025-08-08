@@ -3404,24 +3404,25 @@
     
     .options-grid {
       display: grid;
-      gap: 6px;
+      gap: 4px;
     }
     
     .option-button {
       background: var(--color-white);
       border: 1.5px solid var(--color-light-gray);
       border-radius: var(--radius-sm);
-      padding: 10px 12px;
+      padding: 8px 10px;
       text-align: left;
       cursor: pointer;
       transition: all var(--transition-base);
       font-family: var(--font-primary);
-      font-size: 13px;
+      font-size: 12px;
       color: var(--color-navy);
       display: flex;
-      align-items: center;
-      gap: 8px;
-      line-height: 1.3;
+      align-items: flex-start;
+      gap: 6px;
+      line-height: 1.15;
+      min-height: auto;
     }
     
     .option-button:hover {
@@ -3438,15 +3439,19 @@
     }
     
     .option-emoji {
-      font-size: 18px;
+      font-size: 16px;
       flex-shrink: 0;
-      width: 20px;
+      width: 18px;
       text-align: center;
+      margin-top: 1px;
     }
     
     .option-text {
       flex: 1;
-      line-height: 1.2;
+      line-height: 1.1;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      hyphens: auto;
     }
     
     .open-text-container {
@@ -12367,6 +12372,35 @@ document.addEventListener('DOMContentLoaded', () => {
         return false;
       }
       
+      const characterId = currentCharacter.character_id || currentCharacter.id || currentCharacter.Character_ID || '';
+      
+      // Check for temporary onboarding data (from before login)
+      const tempOnboardingKey = `temp_onboarding_${characterId}`;
+      const tempData = localStorage.getItem(tempOnboardingKey);
+      
+      if (tempData) {
+        console.log('📋 Found temporary onboarding data, processing...');
+        const parsedData = JSON.parse(tempData);
+        
+        // Remove temp data
+        localStorage.removeItem(tempOnboardingKey);
+        
+        // Process the saved onboarding
+        const userId = localStorage.getItem('user_id') || localStorage.getItem('user_uid') || 'anonymous';
+        
+        // Mark as complete
+        if (typeof markOnboardingComplete === 'function') {
+          markOnboardingComplete(userId, characterId, parsedData.answers);
+        }
+        
+        // Save to Airtable and show welcome
+        saveOnboardingToAirtable(parsedData.answers).then(() => {
+          generatePersonalizedWelcome(parsedData.answers);
+        });
+        
+        return false; // Don't show onboarding again
+      }
+      
       // Try to get category from various fields
       let category = currentCharacter.Category || currentCharacter.category || '';
       
@@ -12383,7 +12417,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       const userId = localStorage.getItem('user_id') || localStorage.getItem('user_uid') || 'anonymous';
-      const characterId = currentCharacter.character_id || currentCharacter.id || currentCharacter.Character_ID || '';
       
       console.log('🎯 Checking onboarding for:', { 
         category, 
@@ -12608,15 +12641,43 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('📤 Submitting onboarding answers:', onboardingAnswers);
       
       const userId = localStorage.getItem('user_id') || localStorage.getItem('user_uid') || 'anonymous';
+      const userToken = localStorage.getItem('user_token');
       const characterId = currentCharacter.character_id || currentCharacter.id || currentCharacter.Character_ID || '';
       const category = currentCharacter.Category || currentCharacter.category || '';
       
+      // Store onboarding answers temporarily
+      const tempOnboardingKey = `temp_onboarding_${characterId}`;
+      localStorage.setItem(tempOnboardingKey, JSON.stringify({
+        answers: onboardingAnswers,
+        timestamp: new Date().toISOString(),
+        characterId: characterId,
+        category: category
+      }));
+      
+      // Check if user is logged in
+      if (!userToken || userId === 'anonymous') {
+        console.log('🔐 User not logged in, redirecting to login/register');
+        
+        // Store current URL to return after login
+        localStorage.setItem('post_login_redirect', window.location.href);
+        
+        // Hide onboarding overlay
+        const overlay = document.getElementById('onboardingOverlay');
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+        
+        // Show login/register prompt
+        showAuthPrompt();
+        return;
+      }
+      
+      // User is logged in, proceed normally
       // Mark onboarding as complete
       if (typeof markOnboardingComplete === 'function') {
         markOnboardingComplete(userId, characterId, onboardingAnswers);
       }
       
-      // Save to Airtable (will be implemented in next step)
+      // Save to Airtable
       await saveOnboardingToAirtable(onboardingAnswers);
       
       // Hide overlay and start chat with personalized message
@@ -12626,6 +12687,78 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Generate personalized first message
       generatePersonalizedWelcome(onboardingAnswers);
+    }
+    
+    function showAuthPrompt() {
+      // Create auth prompt overlay
+      const authOverlay = document.createElement('div');
+      authOverlay.className = 'auth-prompt-overlay';
+      authOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(30, 41, 59, 0.95);
+        backdrop-filter: blur(10px);
+        z-index: 10001;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      `;
+      
+      const authContainer = document.createElement('div');
+      authContainer.style.cssText = `
+        background: white;
+        border-radius: 16px;
+        padding: 32px;
+        max-width: 400px;
+        width: 100%;
+        text-align: center;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      `;
+      
+      authContainer.innerHTML = `
+        <h2 style="margin: 0 0 16px 0; font-size: 24px; color: #1e293b;">Almost There!</h2>
+        <p style="margin: 0 0 24px 0; color: #64748b; line-height: 1.6;">
+          Create a free account to save your progress and continue your personalized journey with ${currentCharacter?.name || 'your AI companion'}.
+        </p>
+        <button onclick="handleAuthChoice('register')" style="
+          width: 100%;
+          padding: 12px 24px;
+          background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%);
+          color: white;
+          border: none;
+          border-radius: 12px;
+          font-size: 16px;
+          font-weight: 600;
+          cursor: pointer;
+          margin-bottom: 12px;
+        ">Create Free Account</button>
+        <button onclick="handleAuthChoice('login')" style="
+          width: 100%;
+          padding: 12px 24px;
+          background: #f5f5f5;
+          color: #1e293b;
+          border: none;
+          border-radius: 12px;
+          font-size: 16px;
+          font-weight: 600;
+          cursor: pointer;
+        ">I Already Have an Account</button>
+      `;
+      
+      authOverlay.appendChild(authContainer);
+      document.body.appendChild(authOverlay);
+    }
+    
+    window.handleAuthChoice = function(choice) {
+      if (choice === 'register') {
+        showRegistrationForm();
+      } else {
+        showLoginForm();
+      }
     }
     
     async function saveOnboardingToAirtable(answers) {
