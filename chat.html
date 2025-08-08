@@ -11138,22 +11138,43 @@ showTypingIndicator();
         
         // Add context about the previous AI message if it contains suggestions
         if (previousAIMessage && (previousAIMessage.includes('Here are') || previousAIMessage.includes('1.') || previousAIMessage.includes('1 '))) {
+          // Extract the specific suggestions from the message
+          const suggestionLines = previousAIMessage.split('\n').filter(line => line.match(/^[1-6]\./));
+          
           // Include the full previous message for context
           onboardingSummaryContext = '\n\n[IMPORTANT CONTEXT: In your previous message, you provided this response to the user:\n\n"' + previousAIMessage + '"\n\n';
           
           // Check if user's message is a number
           if (input.match(/^[1-6]$/)) {
-            onboardingSummaryContext += 'The user has responded with the number "' + input + '", which refers to option ' + input + ' from the suggestions you provided above. Please respond specifically about that option and help them with it.\n\n';
+            const optionNumber = parseInt(input);
+            const selectedSuggestion = suggestionLines[optionNumber - 1] || '';
+            
+            onboardingSummaryContext += 'THE USER SELECTED OPTION ' + input + ':\n';
+            if (selectedSuggestion) {
+              onboardingSummaryContext += '"' + selectedSuggestion + '"\n\n';
+            }
+            onboardingSummaryContext += 'You MUST respond specifically about this option. Provide detailed, actionable advice for: ' + selectedSuggestion + '\n';
+            onboardingSummaryContext += 'DO NOT give a generic greeting. Address their specific choice directly.\n\n';
           }
           
           onboardingSummaryContext += 'Remember the full context of their onboarding answers when responding.]\n';
         } else if (window.additionalContext.welcomeMessage) {
           // Fallback to stored welcome message if needed
+          const suggestionLines = window.additionalContext.welcomeMessage.split('\n').filter(line => line.match(/^[1-6]\./));
+          
           onboardingSummaryContext = '\n\n[IMPORTANT CONTEXT: In your previous message, you provided this response to the user:\n\n"' + window.additionalContext.welcomeMessage + '"\n\n';
           
           // Check if user's message is a number
           if (input.match(/^[1-6]$/)) {
-            onboardingSummaryContext += 'The user has responded with the number "' + input + '", which refers to option ' + input + ' from the suggestions you provided above. Please respond specifically about that option and help them with it.\n\n';
+            const optionNumber = parseInt(input);
+            const selectedSuggestion = suggestionLines[optionNumber - 1] || '';
+            
+            onboardingSummaryContext += 'THE USER SELECTED OPTION ' + input + ':\n';
+            if (selectedSuggestion) {
+              onboardingSummaryContext += '"' + selectedSuggestion + '"\n\n';
+            }
+            onboardingSummaryContext += 'You MUST respond specifically about this option. Provide detailed, actionable advice for: ' + selectedSuggestion + '\n';
+            onboardingSummaryContext += 'DO NOT give a generic greeting. Address their specific choice directly.\n\n';
           }
           
           onboardingSummaryContext += 'Remember the full context of their onboarding answers when responding.]\n';
@@ -11163,11 +11184,19 @@ showTypingIndicator();
       }
     }
     
+    // Check if user is responding with a number to onboarding suggestions
+    let priorityContext = '';
+    if (window.additionalContext && window.additionalContext.onboarding && input.match(/^[1-6]$/)) {
+      // Put numbered response context at the very beginning for highest priority
+      priorityContext = `[CRITICAL INSTRUCTION: The user typed "${input}" which is a direct response to option ${input} from your previous suggestions. You MUST address that specific option directly and help them with it. Do not give a generic response.]\n\n`;
+      console.log('🎯 Priority context for numbered response:', priorityContext);
+    }
+    
     const requestPayload = {
       action: "send_message",
       text: input, // Clean user input only
       user_message: input, // Voor database opslag
-      memory_context: memoryContext + onboardingContext + onboardingSummaryContext, // Add onboarding to memory context
+      memory_context: priorityContext + onboardingSummaryContext + memoryContext + onboardingContext, // Priority context first
       // Model selection happens in Make.com, not here
       emotional_complexity: emotionalComplexity, // Emotional complexity score for analytics only
       relationship_phase: relationshipContext?.phase || 'new',
