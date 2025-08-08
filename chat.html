@@ -12673,42 +12673,140 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function generatePersonalizedWelcome(answers) {
       // Generate a personalized welcome message based on answers
-      const category = currentCharacter.Category || currentCharacter.category || '';
+      let category = currentCharacter.Category || currentCharacter.category || '';
+      
+      // Normalize category
+      if (category) {
+        category = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
+      }
+      
       const config = onboardingQuestions[category];
       
       if (config && config.contextMappings) {
-        // Build context from answers
-        const context = {};
-        for (const [questionId, answer] of Object.entries(answers)) {
-          if (config.contextMappings[questionId] && config.contextMappings[questionId][answer]) {
-            context[questionId + '_context'] = config.contextMappings[questionId][answer];
+        // Build personalized message based on Career answers
+        let welcomeMessage = "";
+        
+        if (category === 'Career') {
+          // Get readable answers
+          const careerStage = config.contextMappings.career_stage[answers.career_stage] || answers.career_stage || "in your career";
+          const careerGoal = config.contextMappings.career_goal[answers.career_goal] || answers.career_goal || "achieve your goals";
+          const challenge = config.contextMappings.biggest_challenge[answers.biggest_challenge] || answers.biggest_challenge || "your challenges";
+          const support = config.contextMappings.support_type[answers.support_type] || answers.support_type || "support";
+          const motivation = config.contextMappings.motivation[answers.motivation] || answers.motivation || "growth";
+          
+          // Create personalized welcome based on their situation
+          welcomeMessage = `Thank you for sharing that with me! I can see you're ${careerStage} and your main goal is to ${careerGoal} in the next 6-12 months.\n\n`;
+          
+          welcomeMessage += `I understand that ${challenge} is your biggest challenge right now, and you're motivated by ${motivation}. `;
+          welcomeMessage += `Since you're looking for ${support}, I have some specific ideas on how we can work together.\n\n`;
+          
+          // Add specific suggestions based on their goals
+          welcomeMessage += `Here are three areas where I can help you immediately:\n\n`;
+          
+          if (answers.career_goal === 'promotion') {
+            welcomeMessage += `1. 📈 Create a strategic plan to demonstrate your value and readiness for the next level\n`;
+            welcomeMessage += `2. 🎯 Identify key skills and achievements that will make you stand out\n`;
+            welcomeMessage += `3. 💬 Prepare for promotion conversations with your manager\n`;
+          } else if (answers.career_goal === 'different_industry') {
+            welcomeMessage += `1. 🔄 Map your transferable skills to your target industry\n`;
+            welcomeMessage += `2. 🌐 Build a network in your new field\n`;
+            welcomeMessage += `3. 📝 Craft a compelling career change story\n`;
+          } else if (answers.career_goal === 'entrepreneur') {
+            welcomeMessage += `1. 💡 Validate your business idea and identify your target market\n`;
+            welcomeMessage += `2. 📊 Create a roadmap for transitioning from employee to entrepreneur\n`;
+            welcomeMessage += `3. 🚀 Build the key skills you'll need as a business owner\n`;
+          } else if (answers.career_goal === 'skills') {
+            welcomeMessage += `1. 🎓 Identify the most valuable skills for your career trajectory\n`;
+            welcomeMessage += `2. 📚 Create a personalized learning plan that fits your schedule\n`;
+            welcomeMessage += `3. 🏆 Find ways to apply new skills in your current role\n`;
           } else {
-            context[questionId + '_context'] = answer;
+            welcomeMessage += `1. 🎯 Clarify your career vision and create actionable goals\n`;
+            welcomeMessage += `2. 💪 Build confidence and overcome limiting beliefs\n`;
+            welcomeMessage += `3. 📈 Develop a personal brand that showcases your unique value\n`;
           }
+          
+          // Add personal touch if they provided additional context
+          if (answers.additional_context && answers.additional_context.trim()) {
+            welcomeMessage += `\nI also noted what you shared about your specific situation. `;
+          }
+          
+          welcomeMessage += `\nWhich of these would you like to explore first? Or is there something else on your mind?`;
         }
         
         // Store context for AI to use
         if (window.additionalContext) {
-          window.additionalContext.onboardingContext = context;
+          window.additionalContext.onboardingContext = answers;
         } else {
-          window.additionalContext = { onboardingContext: context };
+          window.additionalContext = { onboardingContext: answers };
         }
         
-        console.log('🎯 Onboarding context prepared:', context);
+        console.log('🎯 Onboarding context prepared:', answers);
         
-        // Add a system message to chat indicating onboarding is complete
-        const welcomeMessage = "Thank you for sharing that information with me! I now have a better understanding of your situation and can provide more personalized guidance. What would you like to explore first?";
-        
-        // Add welcome message to chat
+        // Clear any existing conversation starter
         const chatlog = document.getElementById("chatlog");
+        chatlog.innerHTML = '';
+        
+        // Add personalized welcome message to chat
         const divBot = document.createElement("p");
         divBot.className = "message bot-message";
-        const avatarHtml = currentCharacter?.avatar_url 
-          ? `<img src="${currentCharacter.avatar_url}" alt="${currentCharacter.name}" class="chat-avatar" onerror="this.style.display='none'">`
-          : '';
-        divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${welcomeMessage}`;
+        
+        // Add avatar if available
+        if (currentCharacter?.avatar_url) {
+          const avatarImg = document.createElement("img");
+          avatarImg.src = currentCharacter.avatar_url;
+          avatarImg.alt = currentCharacter.name || 'Character';
+          avatarImg.className = "chat-avatar";
+          avatarImg.onerror = function() { this.style.display = 'none'; };
+          divBot.appendChild(avatarImg);
+        }
+        
+        // Add character name
+        const nameSpan = document.createElement("strong");
+        nameSpan.textContent = `${currentCharacter?.name || 'Character'}: `;
+        divBot.appendChild(nameSpan);
+        
+        // Add message with proper formatting (preserve line breaks)
+        const messageSpan = document.createElement("span");
+        messageSpan.innerHTML = welcomeMessage.replace(/\n/g, '<br>');
+        divBot.appendChild(messageSpan);
+        
         chatlog.appendChild(divBot);
         chatlog.scrollTop = chatlog.scrollHeight;
+        
+        // Save this as the first message in the conversation
+        saveOnboardingWelcomeMessage(welcomeMessage);
+      }
+    }
+    
+    async function saveOnboardingWelcomeMessage(message) {
+      // Save the personalized welcome as the first message
+      const token = localStorage.getItem('user_token');
+      const uid = localStorage.getItem('user_uid');
+      const email = localStorage.getItem('user_email');
+      
+      if (!token || !uid) {
+        console.log('⚠️ Cannot save welcome message - user not authenticated');
+        return;
+      }
+      
+      try {
+        const response = await fetch('/.netlify/functions/save-chat-message', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_email: email,
+            user_uid: uid,
+            user_token: token,
+            char: characterSlug,
+            ai_response: message
+          })
+        });
+        
+        if (response.ok) {
+          console.log('✅ Onboarding welcome message saved');
+        }
+      } catch (error) {
+        console.error('❌ Error saving welcome message:', error);
       }
     }
   </script>
