@@ -150,6 +150,34 @@ exports.handler = async (event, context) => {
       }
       
       const character = characterData.records[0].fields;
+      
+      // Check if character category requires onboarding
+      const category = character.Category || character.category || '';
+      console.log(`🎯 Character category: ${category}`);
+      
+      // Only send check-in for Career category if onboarding is completed
+      if (category === 'Career') {
+        // Check ChatHistory for onboarding completion
+        const onboardingCheckResponse = await fetch(
+          `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?` +
+          `filterByFormula=${encodeURIComponent(`AND({user_id}='${chat.user_id}',{character_id}='${chat.character_id}',{message_type}='onboarding')`)}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        
+        if (onboardingCheckResponse.ok) {
+          const onboardingData = await onboardingCheckResponse.json();
+          if (!onboardingData.records || onboardingData.records.length === 0) {
+            console.log(`⏭️ Skipping check-in for ${userName} - Career character onboarding not completed`);
+            continue;
+          }
+          console.log(`✅ Onboarding completed for ${userName}, proceeding with check-in`);
+        }
+      }
 
       // Generate check-in message
       const checkInMessage = generateCheckInMessage(
