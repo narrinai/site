@@ -169,14 +169,27 @@ Which of these would you like to explore first? Or is there something else you'd
 
 // Function to check if onboarding is needed
 function needsOnboarding(category, userId, characterId) {
+  console.log('🔍 needsOnboarding called with:', { category, userId, characterId });
+  
   // Check if category has onboarding enabled
-  if (!onboardingQuestions[category] || !onboardingQuestions[category].enabled) {
+  if (!onboardingQuestions[category]) {
+    console.log(`❌ No onboarding config for category: ${category}`);
     return false;
   }
+  
+  if (!onboardingQuestions[category].enabled) {
+    console.log(`❌ Onboarding disabled for category: ${category}`);
+    return false;
+  }
+  
+  console.log(`✅ Onboarding config found and enabled for category: ${category}`);
   
   // Check localStorage for completed onboarding
   const onboardingKey = `onboarding_${userId}_${characterId}`;
   const completed = localStorage.getItem(onboardingKey);
+  
+  console.log(`🔍 Checking localStorage key: ${onboardingKey}`);
+  console.log(`📦 Completed status: ${completed ? 'YES' : 'NO'}`);
   
   return !completed;
 }
@@ -198,7 +211,15 @@ function getOnboardingData(userId, characterId) {
   return data ? JSON.parse(data) : null;
 }
 
-// Export for use in chat.html
+// Make functions globally available for browser
+if (typeof window !== 'undefined') {
+  window.onboardingQuestions = onboardingQuestions;
+  window.needsOnboarding = needsOnboarding;
+  window.markOnboardingComplete = markOnboardingComplete;
+  window.getOnboardingData = getOnboardingData;
+}
+
+// Export for use in Node.js environment
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     onboardingQuestions,
