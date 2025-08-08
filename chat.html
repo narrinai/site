@@ -12345,7 +12345,15 @@ document.addEventListener('DOMContentLoaded', () => {
         return false;
       }
       
-      const category = currentCharacter.Category || currentCharacter.category || '';
+      // Try to get category from various fields
+      let category = currentCharacter.Category || currentCharacter.category || '';
+      
+      // Fallback: if no category but title contains "Career", use Career category
+      if (!category && currentCharacter.character_title && currentCharacter.character_title.toLowerCase().includes('career')) {
+        category = 'Career';
+        console.log('📌 Using Career category based on character_title:', currentCharacter.character_title);
+      }
+      
       const userId = localStorage.getItem('user_id') || localStorage.getItem('user_uid') || 'anonymous';
       const characterId = currentCharacter.character_id || currentCharacter.id || currentCharacter.Character_ID || '';
       
