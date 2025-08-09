@@ -1733,7 +1733,6 @@ body.has-referral-banner {
     { id: 'life', name: '🌟 Life', title: 'Life' },
     { id: 'career', name: '💼 Career', title: 'Career' },
     { id: 'love', name: '💖 Love', title: 'Love' },
-    { id: 'business', name: '📈 Business', title: 'Business' },
     { id: 'spiritual', name: '🙏 Spiritual', title: 'Spiritual' },
     { id: 'relationship', name: '❤️ Relationship', title: 'Relationship' },
     { id: 'historical', name: '🏛️ Historical', title: 'Historical' },
@@ -2032,7 +2031,6 @@ function generateExtraTagButtons() {
         { id: 'life', name: 'Life', title: 'Life' },
         { id: 'career', name: 'Career', title: 'Career' },
         { id: 'love', name: 'Love', title: 'Love' },
-        { id: 'business', name: 'Business', title: 'Business' },
         { id: 'spiritual', name: 'Spiritual', title: 'Spiritual' },
         { id: 'relationship', name: 'Relationship', title: 'Relationship' },
         { id: 'historical', name: 'Historical', title: 'Historical' },
@@ -2244,9 +2242,10 @@ function processNetlifyData(characters, category, gridId, limit) {
   grid.innerHTML = '';
   
   if (characters && characters.length > 0) {
-    // Filter for this category first
+    // Filter for this category first, excluding user-created characters
     const categoryCharacters = characters.filter(char => 
-      char.Category && char.Category.toLowerCase() === category.toLowerCase()
+      char.Category && char.Category.toLowerCase() === category.toLowerCase() &&
+      !char.Created_by // Exclude user-created characters
     );
     
     // Sort characters - those with avatars first, then others
