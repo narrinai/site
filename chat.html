@@ -4165,6 +4165,17 @@
             </div>
             
             <div class="form-group">
+              <label for="customCharacterType">Companion Type</label>
+              <select id="customCharacterType" name="customCharacterType">
+                <option value="">Select companion type...</option>
+                <option value="friendship">🤝 Friendship - A supportive friend and companion</option>
+                <option value="mentor">🎓 Mentor - A guide and teacher</option>
+                <option value="romance">💕 Romance - A romantic companion</option>
+                <option value="other">✨ Other - A unique type of companion</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
               <label for="customAvatar">Avatar (optional)</label>
               <div style="display: flex; gap: var(--spacing-md); align-items: center;">
                 <input type="file" id="customAvatarFile" accept="image/*" style="display: none;">
@@ -9415,6 +9426,7 @@ function openCustomizationModal() {
     // Load existing customization
     document.getElementById('customName').value = existingCustom.name || currentCharacter.name || '';
     document.getElementById('customTitle').value = existingCustom.title || currentCharacter.title || currentCharacter.Title || currentCharacter.Character_Title || '';
+    document.getElementById('customCharacterType').value = existingCustom.character_type || currentCharacter.character_type || '';
     document.getElementById('customAvatarUrl').value = existingCustom.avatar_url || existingCustom.Avatar_URL || '';
     
     // Show avatar preview if exists
@@ -9491,6 +9503,7 @@ function openCustomizationModal() {
     // Pre-fill with original character data
     document.getElementById('customName').value = currentCharacter.name || currentCharacter.Name || '';
     document.getElementById('customTitle').value = currentCharacter.title || currentCharacter.Title || currentCharacter.Character_Title || '';
+    document.getElementById('customCharacterType').value = currentCharacter.character_type || '';
     document.getElementById('customAvatarUrl').value = currentCharacter.avatar_url || currentCharacter.Avatar_URL || '';
     
     // Show current avatar preview
@@ -9778,6 +9791,7 @@ function initializeCustomizationForm() {
       slug: customSlug,
       character_id: customSlug,
       title: customTitle,
+      character_type: document.getElementById('customCharacterType').value || 'other',
       description: currentCharacter.description || currentCharacter.Description || customTitle,
       prompt: fullPrompt || `You are ${customName}, a unique AI character.`, // Ensure never null
       category: 'custom', // Always use 'custom' for Save as new characters
@@ -9923,6 +9937,7 @@ function initializeCustomizationForm() {
           name: customName,
           title: customTitle,
           Character_Title: customTitle, // Add this field for compatibility
+          character_type: document.getElementById('customCharacterType').value || 'other',
           slug: customSlug,
           prompt: fullPrompt,
           generated_prompt: generatedPrompt,
