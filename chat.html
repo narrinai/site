@@ -5976,6 +5976,9 @@ document.addEventListener('DOMContentLoaded', () => {
           const chatlog = document.getElementById("chatlog");
           chatlog.innerHTML = ''; // Clear existing messages
           
+          // Track the last AI message for onboarding context
+          let lastAIMessage = '';
+          
           // Display all messages from history
           data.history.forEach((msg, index) => {
             console.log(`📝 Displaying message ${index + 1}:`, msg.role, msg.message.substring(0, 50) + '...');
@@ -6025,8 +6028,20 @@ document.addEventListener('DOMContentLoaded', () => {
             // Increment message count for feedback popup
             if (msg.role === 'assistant') {
               incrementMessageCount();
+              // Store the last AI message for onboarding context
+              lastAIMessage = msg.message;
             }
           });
+          
+          // If we found AI messages with onboarding suggestions, store them
+          if (lastAIMessage && lastAIMessage.includes('Here are') && lastAIMessage.includes('1.')) {
+            console.log('🎯 Found onboarding welcome message in chat history');
+            if (!window.additionalContext) {
+              window.additionalContext = {};
+            }
+            window.additionalContext.welcomeMessage = lastAIMessage;
+            console.log('✅ Stored welcome message from chat history for context');
+          }
           
           chatlog.scrollTop = chatlog.scrollHeight;
           // Mark that we've loaded chat history
@@ -7701,6 +7716,7 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     });
 
     let messagesProcessed = 0;
+    let lastAIMessage = ''; // Track the last AI message for onboarding context
 
     history.forEach((record, index) => {
       console.log(`💬 Processing message ${index + 1}:`, record);
@@ -7798,10 +7814,22 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       // Increment message count for feedback popup (only for assistant messages)
       if (role === 'assistant') {
         incrementMessageCount();
+        // Store the last AI message for onboarding context
+        lastAIMessage = message;
       }
       
       messagesProcessed++;
     });
+    
+    // If we found AI messages with onboarding suggestions, store them
+    if (lastAIMessage && lastAIMessage.includes('Here are') && lastAIMessage.includes('1.')) {
+      console.log('🎯 Found onboarding welcome message in fetchHistory');
+      if (!window.additionalContext) {
+        window.additionalContext = {};
+      }
+      window.additionalContext.welcomeMessage = lastAIMessage;
+      console.log('✅ Stored welcome message from fetchHistory for context');
+    }
 
     chatlog.scrollTop = chatlog.scrollHeight;
     console.log(`📜 Chat history loaded successfully - ${messagesProcessed} messages displayed`);
@@ -11144,6 +11172,8 @@ showTypingIndicator();
     
     // Get the last AI message from the chat for context
     let previousAIMessage = '';
+    
+    // First try to get it from the DOM (if the page hasn't been refreshed)
     const allMessages = chatlog.querySelectorAll('p');
     for (let i = allMessages.length - 1; i >= 0; i--) {
       const messageHTML = allMessages[i].innerHTML || '';
@@ -11164,10 +11194,16 @@ showTypingIndicator();
             .replace(/&quot;/g, '"')
             .replace(/&#39;/g, "'")
             .trim();
-          console.log('📝 Found previous AI message (length: ' + previousAIMessage.length + '):', previousAIMessage.substring(0, 200) + '...');
+          console.log('📝 Found previous AI message in DOM (length: ' + previousAIMessage.length + '):', previousAIMessage.substring(0, 200) + '...');
           break;
         }
       }
+    }
+    
+    // If no message found in DOM (e.g., after page refresh), try to get from stored welcomeMessage
+    if (!previousAIMessage && window.additionalContext && window.additionalContext.welcomeMessage) {
+      previousAIMessage = window.additionalContext.welcomeMessage;
+      console.log('📝 Using stored welcome message as previous AI message (length: ' + previousAIMessage.length + ')');
     }
     
     // Include onboarding context if available
