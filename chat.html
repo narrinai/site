@@ -7969,9 +7969,36 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     // Update avatar in database
     async function updateCharacterAvatarInDatabase(avatarUrl) {
       try {
-        // This would call a webhook or Netlify function to update Airtable
-        console.log('📝 Would update avatar in database:', avatarUrl);
-        // TODO: Implement the actual update logic
+        console.log('📝 Updating avatar in database:', avatarUrl);
+        
+        // Get character ID or slug
+        const characterId = currentCharacter.id || currentCharacter.record_id || currentCharacter.airtable_id;
+        const characterSlug = currentCharacter.slug || currentCharacter.Slug || 
+                            new URLSearchParams(window.location.search).get('char');
+        
+        // Call Netlify function to update avatar
+        const response = await fetch('/.netlify/functions/update-character-avatar', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            characterId: characterId,
+            slug: characterSlug,
+            avatarUrl: avatarUrl
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to update avatar: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ Avatar updated in database:', result);
+        
+        // Update the needs_ai_avatar flag locally
+        currentCharacter.needs_ai_avatar = false;
+        
       } catch (error) {
         console.error('❌ Error updating avatar in database:', error);
       }
@@ -11648,33 +11675,9 @@ hideTypingIndicator();
     // Increment message counter
     messageCountForSummary++;
     
-    // Generate summary every 5 messages or after significant time gap
-    const currentTime = Date.now();
-    const timeSinceLastSummary = currentTime - lastSummaryTime;
-    
-    // Use relationship total messages if available, otherwise use our counter
-    const totalMessages = relationshipContext?.totalMessages || messageCountForSummary;
-    
-    const shouldGenerateSummary = 
-      (totalMessages > 0 && totalMessages % 5 === 0) ||
-      (timeSinceLastSummary > 300000); // 5 minutes
-    
-    console.log('🔍 Checking summary generation:', {
-      totalMessages: totalMessages,
-      messageCounter: messageCountForSummary,
-      relationshipMessages: relationshipContext?.totalMessages,
-      timeSinceLastSummary: Math.round(timeSinceLastSummary / 1000) + 's',
-      shouldGenerate: shouldGenerateSummary
-    });
-    
-    if (shouldGenerateSummary) {
-      try {
-        console.log('📝 Triggering conversation summary generation');
-        await generateConversationSummary(email, uid, token, characterSlug);
-      } catch (sumError) {
-        console.error('⚠️ Summary generation failed:', sumError);
-      }
-    }
+    // Don't auto-generate summaries during conversation anymore
+    // We'll create one summary per session when user leaves or switches context
+    console.log('📊 Messages in current session:', messageCountForSummary);
     
     // Check if we should show rating - but don't let it break the chat
     try {
@@ -12303,17 +12306,30 @@ document.addEventListener('DOMContentLoaded', () => {
     let conversationMessages = [];
     let lastSummaryTime = Date.now();
     let messageCountForSummary = 0;
+    let sessionSummaryCreated = false; // Track if we already created a summary this session
     
-    async function generateConversationSummary(email, uid, token, characterSlug) {
+    async function generateConversationSummary(email, uid, token, characterSlug, forceCreate = false) {
       try {
+        // Skip if we already created a summary this session (unless forced)
+        if (sessionSummaryCreated && !forceCreate) {
+          console.log('📝 Summary already created for this session, skipping...');
+          return;
+        }
+        
         console.log('📝 Generating conversation summary...');
         
-        // Get the last 10 messages from the chatlog for context
+        // Get ALL messages from the current session
         const chatMessages = [];
         const chatElements = document.querySelectorAll('#chatlog p:not([data-starter="true"])');
         
-        // Get recent messages from DOM
-        const recentMessages = Array.from(chatElements).slice(-10);
+        // Skip if no real messages (at least 1 user and 1 AI message needed)
+        if (chatElements.length < 2) {
+          console.log('📝 Not enough messages for summary (need at least 2)');
+          return;
+        }
+        
+        // Get ALL messages from DOM (not just last 10)
+        const recentMessages = Array.from(chatElements);
         recentMessages.forEach(elem => {
           const text = elem.textContent;
           if (text.includes('You:')) {
@@ -12360,9 +12376,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (response.ok && responseData.success) {
           console.log('✅ Conversation summary saved successfully');
+          sessionSummaryCreated = true; // Mark that we created a summary this session
           lastSummaryTime = Date.now();
-          // Reset counter after successful summary
-          messageCountForSummary = 0;
+          // Don't reset counter - we want to track total messages in session
         } else {
           console.error('❌ Summary save failed:', responseData);
         }
@@ -12495,23 +12511,64 @@ document.addEventListener('DOMContentLoaded', () => {
       return insights.join('. ');
     }
     
-    // Save conversation summary when user leaves the page
-    window.addEventListener('beforeunload', async (event) => {
-      // Check if we have an active conversation
+    // Function to trigger summary creation
+    async function triggerSessionSummary() {
       const hasMessages = document.querySelectorAll('#chatlog p:not([data-starter="true"])').length > 0;
       const uid = localStorage.getItem("user_uid");
       const email = localStorage.getItem("user_email");
       const token = localStorage.getItem("user_token");
       
-      if (hasMessages && uid && characterSlug) {
-        // Try to save summary (note: this might not complete if browser closes too quickly)
+      if (hasMessages && uid && characterSlug && !sessionSummaryCreated) {
+        console.log('🔄 Attempting to save session summary...');
         try {
           await generateConversationSummary(email, uid, token, characterSlug);
         } catch (error) {
-          console.log('⚠️ Could not save summary on page unload');
+          console.error('⚠️ Could not save summary:', error);
         }
       }
+    }
+    
+    // Save conversation summary when user leaves the page
+    window.addEventListener('beforeunload', (event) => {
+      // Use sendBeacon for more reliable delivery
+      const hasMessages = document.querySelectorAll('#chatlog p:not([data-starter="true"])').length > 0;
+      const uid = localStorage.getItem("user_uid");
+      
+      if (hasMessages && uid && characterSlug && !sessionSummaryCreated) {
+        // Try async first (might work in some browsers)
+        triggerSessionSummary();
+      }
     });
+    
+    // Also save when tab becomes hidden (more reliable than beforeunload)
+    document.addEventListener('visibilitychange', async () => {
+      if (document.hidden) {
+        await triggerSessionSummary();
+      }
+    });
+    
+    // Save when user switches to a different character
+    window.addEventListener('character-switch', async () => {
+      await triggerSessionSummary();
+      // Reset for new character
+      sessionSummaryCreated = false;
+      messageCountForSummary = 0;
+    });
+    
+    // Save after period of inactivity (10 minutes)
+    let inactivityTimer;
+    function resetInactivityTimer() {
+      clearTimeout(inactivityTimer);
+      inactivityTimer = setTimeout(async () => {
+        console.log('⏰ Inactivity detected, saving summary...');
+        await triggerSessionSummary();
+      }, 600000); // 10 minutes
+    }
+    
+    // Reset timer on any user activity
+    document.addEventListener('click', resetInactivityTimer);
+    document.addEventListener('keypress', resetInactivityTimer);
+    resetInactivityTimer(); // Start the timer
     // ===== FEEDBACK POPUP FUNCTIONALITY =====
     let hasShownFeedbackPopup = false;
     let currentMessageCount = 0;
