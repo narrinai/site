@@ -10928,6 +10928,39 @@ async function sendMessage(event) {
         window.additionalContext.onboarding = onboardingMemory.metadata.answers;
         console.log("✅ Onboarding context restored:", window.additionalContext.onboarding);
       }
+      
+      // ALSO look for the AI's welcome message with suggestions in recent memories
+      // Look for messages that contain the onboarding context marker OR numbered suggestions
+      const welcomeMemory = memories.find(m => 
+        m.context && m.context.includes('[AI ASSISTANT MESSAGE - ONBOARDING WELCOME WITH SUGGESTIONS]')
+      );
+      
+      if (welcomeMemory) {
+        console.log("🎯 Found AI's onboarding welcome message in memory!");
+        if (!window.additionalContext) {
+          window.additionalContext = {};
+        }
+        window.additionalContext.welcomeMessage = welcomeMemory.message;
+        console.log("✅ Welcome message restored from memory:", welcomeMemory.message.substring(0, 100) + '...');
+      } else {
+        // Fallback: Try to find it by looking for numbered suggestions with emojis
+        const suggestionMemory = memories.find(m => 
+          m.message && 
+          m.message.includes('Here are') &&
+          (m.message.includes('1. 💡') || m.message.includes('1. 📈') || m.message.includes('1. 🔄') || 
+           m.message.includes('1. 🎯') || m.message.includes('1. 📊') || m.message.includes('1. 🌐'))
+        );
+        if (suggestionMemory) {
+          console.log("🎯 Found AI's suggestion message in memory (by pattern)");
+          if (!window.additionalContext) {
+            window.additionalContext = {};
+          }
+          window.additionalContext.welcomeMessage = suggestionMemory.message;
+          console.log("✅ Welcome message restored from memory");
+        } else {
+          console.log("⚠️ Could not find AI's welcome message in memories");
+        }
+      }
     }
   } catch (error) {
     console.error("❌ Memory retrieval failed:", error);
@@ -11158,7 +11191,7 @@ showTypingIndicator();
         }
         
         // ALWAYS include the onboarding conversation context - the AI needs to remember what they suggested
-        if (window.additionalContext.welcomeMessage) {
+        if (window.additionalContext && window.additionalContext.welcomeMessage) {
           // Extract the suggestions for reference
           const suggestionLines = window.additionalContext.welcomeMessage.split('\n').filter(line => line.match(/^[1-6]\./));
           
@@ -13346,7 +13379,33 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         if (response.ok) {
+          const data = await response.json();
           console.log('✅ Onboarding welcome message saved');
+          
+          // CRITICAL: Process memory for the AI's welcome message so it remembers what it suggested!
+          const recordId = data.record_id || data.id || null;
+          if (recordId) {
+            console.log('🧠 Processing memory for onboarding welcome message...');
+            
+            // Create context that includes the AI's message with special marker
+            const context = `[AI ASSISTANT MESSAGE - ONBOARDING WELCOME WITH SUGGESTIONS]\n${message}`;
+            
+            // Process memory after a short delay
+            setTimeout(() => {
+              processMemoryForMessage(recordId, message, context);
+              
+              // Also show the memory indicator
+              const chatlog = document.getElementById("chatlog");
+              const messages = chatlog.querySelectorAll('.bot-message');
+              if (messages.length > 0) {
+                const lastBotMessage = messages[messages.length - 1];
+                const memoryIndicator = document.createElement('div');
+                memoryIndicator.className = 'memory-indicator';
+                memoryIndicator.innerHTML = '<small style="color: #888; font-size: 11px;">💾 Memory saved</small>';
+                lastBotMessage.appendChild(memoryIndicator);
+              }
+            }, 2000);
+          }
         }
       } catch (error) {
         console.error('❌ Error saving welcome message:', error);
