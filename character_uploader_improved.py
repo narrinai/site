@@ -39,7 +39,7 @@ def log(color, message):
     print(f"{color}{message}{Colors.RESET}")
 
 # Maximum aantal characters om TOE TE VOEGEN per categorie
-MAX_CHARACTERS_TO_ADD = 25
+MAX_CHARACTERS_TO_ADD = 15
 
 # Character type weights - focus op support en vriendschap
 CHARACTER_TYPE_WEIGHTS = {
@@ -369,6 +369,8 @@ def generate_title_description(name, category, character_type):
     """Genereer titel en beschrijving gebaseerd op character type - maximaal 2 woorden voor titel"""
     
     category_contexts = {
+        'business': 'business strategy and professional growth',
+        'friendship': 'meaningful friendships and social connections',
         'health': 'wellness and healthy living',
         'spiritual': 'spiritual awakening and inner wisdom',
         'romance': 'love and emotional connections',
@@ -389,6 +391,8 @@ def generate_title_description(name, category, character_type):
     
     # Titels per categorie - allemaal exact 2 woorden
     category_titles = {
+        'business': ['Business Mentor', 'Strategy Coach', 'Success Guide', 'Growth Expert', 'Career Advisor'],
+        'friendship': ['Best Friend', 'Social Buddy', 'Loyal Companion', 'True Friend', 'Fun Partner'],
         'health': ['Wellness Coach', 'Health Guide', 'Vitality Expert', 'Wellness Mentor', 'Health Advisor'],
         'spiritual': ['Soul Guide', 'Spirit Mentor', 'Mystic Coach', 'Sacred Guide', 'Divine Mentor'],
         'romance': ['Love Coach', 'Romance Guide', 'Heart Mentor', 'Dating Expert', 'Love Advisor'],
@@ -574,7 +578,7 @@ def main():
     """Hoofdfunctie"""
     try:
         log(Colors.CYAN, "🚀 Character Uploader Improved gestart")
-        log(Colors.CYAN, f"📊 Voegt maximaal {MAX_CHARACTERS_TO_ADD} characters toe per categorie")
+        log(Colors.CYAN, f"📊 Voegt {MAX_CHARACTERS_TO_ADD} characters toe voor Business en Friendship categorieën")
         log(Colors.CYAN, f"🎯 Character type verdeling: {CHARACTER_TYPE_WEIGHTS}")
         
         # Debug environment variabelen
@@ -584,9 +588,19 @@ def main():
         log(Colors.BLUE, f"   AIRTABLE_TOKEN: {'✅ Set' if AIRTABLE_TOKEN else '❌ Not set!'}")
         
         # Haal categorieën uit Airtable
-        categories, category_original_names = get_categories_from_airtable()
+        all_categories, all_category_original_names = get_categories_from_airtable()
         
-        log(Colors.CYAN, f"📋 Volgorde van categorieën: {categories[:4]} (eerst), dan de rest...")
+        # Filter alleen Business en Friendship categorieën
+        target_categories = ['Business', 'Friendship']
+        categories = []
+        category_original_names = {}
+        
+        for cat in all_categories:
+            if cat in target_categories:
+                categories.append(cat)
+                category_original_names[cat] = all_category_original_names[cat]
+        
+        log(Colors.CYAN, f"📋 Gefilterde categorieën: {categories}")
         
         # Haal bestaande characters op
         existing_names, category_counts = get_existing_characters_by_category()
@@ -601,12 +615,8 @@ def main():
         for category in categories:
             current_count = category_counts.get(category, 0)
             
-            # Alleen categorieën met minder dan 30 characters aanvullen
-            if current_count >= 30:
-                log(Colors.YELLOW, f"\n⏭️  Categorie: {category} heeft al {current_count} characters (≥30), wordt overgeslagen")
-                continue
-            
-            to_add = 25  # Voeg 25 characters toe aan categorieën onder de 30
+            # Voeg altijd 15 characters toe aan Business en Friendship
+            to_add = MAX_CHARACTERS_TO_ADD  # 15 characters
             
             log(Colors.BLUE, f"\n🎯 Categorie: {category}")
             log(Colors.CYAN, f"   📊 Huidige aantal: {current_count}")
