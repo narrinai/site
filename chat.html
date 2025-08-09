@@ -11206,6 +11206,11 @@ showTypingIndicator();
       console.log('📝 Using stored welcome message as previous AI message (length: ' + previousAIMessage.length + ')');
     }
     
+    // Debug: log what we have
+    console.log('🔍 Previous AI message available:', !!previousAIMessage);
+    console.log('🔍 Window additionalContext available:', !!window.additionalContext);
+    console.log('🔍 Welcome message in additionalContext:', !!(window.additionalContext && window.additionalContext.welcomeMessage));
+    
     // Include onboarding context if available
     let onboardingContext = '';
     let onboardingSummaryContext = '';
@@ -11227,9 +11232,16 @@ showTypingIndicator();
         }
         
         // ALWAYS include the onboarding conversation context - the AI needs to remember what they suggested
-        if (window.additionalContext && window.additionalContext.welcomeMessage) {
+        // Use either the stored welcome message or the previous AI message
+        const contextMessage = window.additionalContext?.welcomeMessage || previousAIMessage;
+        console.log('🎯 Context message source:', contextMessage ? 'Found' : 'Not found');
+        console.log('🎯 Context message includes "Here are":', contextMessage?.includes('Here are'));
+        
+        if (contextMessage && (contextMessage.includes('Here are') || contextMessage.includes('1.'))) {
+          console.log('✅ Building onboarding context from message');
           // Extract the suggestions for reference
-          const suggestionLines = window.additionalContext.welcomeMessage.split('\n').filter(line => line.match(/^[1-6]\./));
+          const suggestionLines = contextMessage.split('\n').filter(line => line.match(/^[1-6]\./));
+          console.log('📋 Found suggestion lines:', suggestionLines);
           
           // Store suggestions for persistent reference
           if (!window.additionalContext.suggestions) {
@@ -11238,9 +11250,10 @@ showTypingIndicator();
           }
           
           // Build comprehensive context about the onboarding conversation
-          onboardingSummaryContext = '\n\n[ONBOARDING CONVERSATION CONTEXT:\n';
-          onboardingSummaryContext += 'You are the CAREER COACH. The USER came to you for help with their career.\n';
-          onboardingSummaryContext += 'You are continuing a conversation with a user who needs YOUR help and guidance.\n\n';
+          onboardingSummaryContext = '\n\n[CRITICAL ONBOARDING CONTEXT:\n';
+          onboardingSummaryContext += 'You are the CAREER COACH. The USER came to you for help.\n';
+          onboardingSummaryContext += 'YOU JUST GAVE THEM 5-6 NUMBERED SUGGESTIONS (shown below).\n';
+          onboardingSummaryContext += 'THE USER IS NOW RESPONDING TO YOUR SUGGESTIONS.\n\n';
           
           onboardingSummaryContext += 'THE USER\'s career situation (they need YOUR help with this):\n';
           // Include the actual answers
@@ -11288,8 +11301,11 @@ showTypingIndicator();
             onboardingSummaryContext += `- Additional context: ${answers.additional_context}\n`;
           }
           
-          onboardingSummaryContext += '\nBased on THEIR career needs, you offered THEM these coaching suggestions:\n';
-          suggestionLines.forEach(line => {
+          onboardingSummaryContext += '\n[YOUR PREVIOUS MESSAGE WITH SUGGESTIONS]:\n';
+          onboardingSummaryContext += '"' + contextMessage + '"\n\n';
+          
+          onboardingSummaryContext += 'EXTRACTED SUGGESTIONS YOU GAVE:\n';
+          suggestionLines.forEach((line, index) => {
             onboardingSummaryContext += line + '\n';
           });
           
@@ -11302,20 +11318,30 @@ showTypingIndicator();
           
           onboardingSummaryContext += 'Current user message: "' + input + '"\n\n';
           
-          // Check if user's message is a number
-          if (input.match(/^[1-6]$/)) {
-            const optionNumber = parseInt(input);
-            const selectedSuggestion = suggestionLines[optionNumber - 1] || '';
+          // Check if user's message contains numbers (could be "1", "1 and 3", "option 2", etc.)
+          const numberMatches = input.match(/\b[1-6]\b/g);
+          if (numberMatches) {
+            onboardingSummaryContext += '\n[USER RESPONSE TO YOUR SUGGESTIONS]:\n';
+            onboardingSummaryContext += 'The user typed: "' + input + '"\n';
             
-            // Extract the actual suggestion text (remove emoji and number)
-            const suggestionText = selectedSuggestion.replace(/^[1-6]\.\s*[^\s]+\s*/, '');
+            if (numberMatches.length === 1) {
+              const optionNumber = parseInt(numberMatches[0]);
+              const selectedSuggestion = suggestionLines[optionNumber - 1] || '';
+              onboardingSummaryContext += 'They are selecting option ' + optionNumber + ': ' + selectedSuggestion + '\n';
+              onboardingSummaryContext += 'PROVIDE SPECIFIC HELP FOR THIS OPTION.\n';
+            } else {
+              onboardingSummaryContext += 'They are selecting multiple options: ' + numberMatches.join(' and ') + '\n';
+              numberMatches.forEach(num => {
+                const optionNumber = parseInt(num);
+                const suggestion = suggestionLines[optionNumber - 1] || '';
+                if (suggestion) {
+                  onboardingSummaryContext += 'Option ' + num + ': ' + suggestion + '\n';
+                }
+              });
+              onboardingSummaryContext += 'PROVIDE SPECIFIC HELP FOR THESE OPTIONS.\n';
+            }
             
-            onboardingSummaryContext += '\n[USER ACTION]: The user typed "' + input + '" selecting this option:\n';
-            onboardingSummaryContext += '"' + selectedSuggestion + '"\n\n';
-            onboardingSummaryContext += 'YOUR TASK: Provide immediate, specific coaching advice about: ' + suggestionText + '\n';
-            onboardingSummaryContext += 'Start with actionable steps they can take TODAY.\n';
-            onboardingSummaryContext += 'Be specific to their situation (mid-career, wanting to start a business, etc.)\n';
-            onboardingSummaryContext += 'DO NOT ask what they need - they just told you by selecting option ' + input + '.\n';
+            onboardingSummaryContext += 'DO NOT ask for clarification - you know they are referring to YOUR suggestions above.\n';
           }
           
           onboardingSummaryContext += 'CRITICAL INSTRUCTIONS:\n';
@@ -11334,9 +11360,10 @@ showTypingIndicator();
     // For onboarding conversations, emphasize continuity and role clarity
     let priorityContext = '';
     if (window.additionalContext && window.additionalContext.onboarding) {
-      // Check if this is a numbered response
-      if (input.match(/^[1-6]$/)) {
-        priorityContext = `[IMMEDIATE ACTION: The user selected option ${input}. Skip ALL greetings and pleasantries. Start your response with specific, actionable advice about that topic. You are their coach, not someone needing help. Never prefix your response with your character name.]\n\n`;
+      // Check if this message contains numbers referring to suggestions
+      const hasNumbers = /\b[1-6]\b/.test(input);
+      if (hasNumbers) {
+        priorityContext = `[IMMEDIATE ACTION: The user is referring to the numbered suggestions YOU JUST GAVE THEM. They said "${input}". DO NOT ask for clarification. Provide specific advice for those options. You are their coach. Skip greetings.]\n\n`;
       } else {
         priorityContext = `[ONGOING CONVERSATION: You are the career coach. The user needs YOUR help. No greetings - continue helping them. Never prefix your response with your character name.]\n\n`;
       }
