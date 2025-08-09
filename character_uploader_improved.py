@@ -39,7 +39,7 @@ def log(color, message):
     print(f"{color}{message}{Colors.RESET}")
 
 # Maximum aantal characters om TOE TE VOEGEN per categorie
-MAX_CHARACTERS_TO_ADD = 15
+MAX_CHARACTERS_TO_ADD = 10
 
 # Character type weights - focus op support en vriendschap
 CHARACTER_TYPE_WEIGHTS = {
@@ -192,11 +192,59 @@ def get_existing_characters_by_category():
     return existing_names, category_counts
 
 def generate_character_name(category, character_type, existing_names):
-    """Genereer een unieke character naam - alleen voornamen"""
-    # Zeer uitgebreide lijst met unieke voornamen uit verschillende culturen - 300+ namen
-    first_names = [
-        # Batch 1 - Romantische namen
-        'Aaliyah', 'Abel', 'Abram', 'Ada', 'Adeline', 'Adonis', 'Adriana', 'Aidan', 'Aisha', 'Alana',
+    """Genereer een unieke character naam - alleen mannelijke voornamen voor life categorie"""
+    
+    # Alleen mannelijke namen selecteren voor life categorie
+    if category.lower() == 'life':
+        first_names = [
+            # Mannelijke namen uit verschillende culturen
+            'Abel', 'Abram', 'Adonis', 'Aidan', 'Alaric', 'Aldo', 'Alfonso', 'Alistair', 'Alonso', 'Alton',
+            'Ambrose', 'Amos', 'Anders', 'Angelo', 'Ansel', 'Apollo', 'Archer', 'Armando', 'Asa', 'Ashton',
+            'Atticus', 'Augustus', 'Austin', 'Axel', 'Barnaby', 'Benedict', 'Bernard', 'Blaine', 'Boris', 'Bradford',
+            'Bryant', 'Byron', 'Caesar', 'Caleb', 'Camden', 'Carl', 'Casper', 'Cesar', 'Chad', 'Chandler',
+            'Adrian', 'Calvin', 'Edwin', 'Gavin', 'Ivan', 'Kevin', 'Marcus', 'Oscar', 'Quentin', 'Simon',
+            'Ulrich', 'Wesley', 'Yannick', 'Aaron', 'Colin', 'Eugene', 'Gregory', 'Ian', 'Kenneth', 'Mitchell',
+            'Patrick', 'Steven', 'Vincent', 'Xavier', 'Zachary', 'Bradley', 'Derek', 'Franklin', 'Howard', 'Jerome',
+            'Leonard', 'Nicholas', 'Raymond', 'Timothy', 'Victor', 'Albert', 'Chester', 'Ernest', 'Gerald', 'Irving',
+            'Keith', 'Martin', 'Peter', 'Roland', 'Travis', 'Ulysses', 'Vernon', 'Warren', 'Arnold', 'Clarence',
+            'Curtis', 'Edgar', 'Gordon', 'Jasper', 'Lawrence', 'Norman', 'Preston', 'Stanley', 'Romeo', 'Casanova',
+            'Eros', 'Cupid', 'Akira', 'Antoine', 'Aurelio', 'Benito', 'Bjorn', 'Bruno', 'Carlos', 'Dario',
+            'Diego', 'Dimitri', 'Domenico', 'Eduardo', 'Elias', 'Enrique', 'Fabian', 'Felipe', 'Fernando', 'Francisco',
+            'Gabriel', 'Gianni', 'Giuseppe', 'Guillermo', 'Gustavo', 'Hector', 'Hugo', 'Javier', 'Joaquin', 'Jorge',
+            'Juan', 'Kai', 'Leandro', 'Leonardo', 'Lorenzo', 'Luca', 'Luciano', 'Luis', 'Magnus', 'Manuel',
+            'Marco', 'Mario', 'Mateo', 'Matteo', 'Maximilian', 'Miguel', 'Nathan', 'Oliver', 'Orlando', 'Pablo',
+            'Paolo', 'Pascal', 'Pedro', 'Philippe', 'Pierre', 'Rafael', 'Ricardo', 'Roberto', 'Rocco', 'Rodrigo',
+            'Salvador', 'Samuel', 'Santiago', 'Sebastian', 'Sergio', 'Daan', 'Sem', 'Milan', 'Levi', 'Luuk',
+            'Bram', 'Finn', 'Jesse', 'Mees', 'Thomas', 'Lars', 'Ruben', 'Thijs', 'Stijn', 'Sven', 'Floris',
+            'Joost', 'Maarten', 'Dirk', 'Pieter', 'Jan', 'Kees', 'Henk', 'Jeroen', 'Michiel', 'Wouter', 'Bas',
+            'Lukas', 'Leon', 'Maximilian', 'Felix', 'Jonas', 'Ben', 'Noah', 'Moritz', 'Johann', 'Friedrich',
+            'Wilhelm', 'Heinrich', 'Klaus', 'Dieter', 'Günther', 'Wolfgang', 'Jürgen', 'Louis', 'Jules', 'Arthur',
+            'Raphaël', 'Lucas', 'Adam', 'Léo', 'Maël', 'Ethan', 'Tom', 'Nolan', 'Théo', 'Sacha', 'Valentin',
+            'Maxime', 'Alejandro', 'Daniel', 'Adrián', 'Álvaro', 'José', 'Antonio', 'Alessandro', 'Riccardo', 'Tommaso',
+            'Edoardo', 'Federico', 'Giovanni', 'Stefano', 'Franco', 'Salvatore', 'Pietro', 'João', 'Tiago', 'Diogo',
+            'André', 'Rodrigo', 'Rui', 'Nuno', 'Paulo', 'António', 'Fernando', 'Vasco', 'Gonçalo', 'Tomás',
+            'Erik', 'Olaf', 'Kristian', 'Henrik', 'Nils', 'Gustav', 'Karl', 'Emil', 'Anton', 'Mikael',
+            'Frederik', 'Jakub', 'Kacper', 'Mateusz', 'Aleksander', 'Filip', 'Mikołaj', 'Wojciech', 'Wiktor', 'Piotr',
+            'Krzysztof', 'Andrzej', 'Tomasz', 'Paweł', 'Marcin', 'Marek', 'Grzegorz', 'Łukasz', 'Alexander', 'Dmitri',
+            'Mikhail', 'Sergei', 'Andrei', 'Alexei', 'Vladimir', 'Nikolai', 'Pavel', 'Maxim', 'Artem', 'Denis',
+            'Kirill', 'Boris', 'Viktor', 'Oleg', 'Igor', 'Yuri', 'Dimitris', 'Giannis', 'Kostas', 'Nikos',
+            'Panagiotis', 'Georgios', 'Christos', 'Petros', 'Vasilis', 'Michalis', 'Stavros', 'Andreas', 'Alexandros',
+            'Ioannis', 'Thanasis', 'Spiros', 'Manolis', 'Antonis', 'Stelios', 'Yannis', 'Haruki', 'Takashi', 'Yuki',
+            'Hiroshi', 'Kenji', 'Satoshi', 'Masaru', 'Ichiro', 'Jiro', 'Taro', 'Akihiro', 'Kazuki', 'Ryota',
+            'Shota', 'Daiki', 'Yuta', 'Kenta', 'Naoki', 'Sho', 'Ren', 'Min-jun', 'Ji-hoon', 'Hyun-woo', 'Jun-seo',
+            'Jae-hyun', 'Seung-ho', 'Min-ho', 'Sung-min', 'Young-ho', 'Dong-hyun', 'Jin-woo', 'Woo-jin', 'Dae-sung',
+            'Kyung-ho', 'Sang-woo', 'Jung-ho', 'Hoon', 'Chan', 'Joon', 'Wei', 'Lei', 'Tao', 'Chen', 'Yang',
+            'Zhang', 'Li', 'Wang', 'Liu', 'Zhao', 'Ming', 'Jing', 'Hong', 'Hui', 'Xin', 'Yan', 'Feng',
+            'Jun', 'Qiang', 'Long', 'Mohamed', 'Ali', 'Hassan', 'Hussein', 'Omar', 'Khalid', 'Abdullah', 'Mahmoud',
+            'Youssef', 'Ibrahim', 'Mustafa', 'Sami', 'Tariq', 'Nasser', 'Faisal', 'Hamza', 'Karim', 'Walid',
+            'Arjun', 'Rohan', 'Aditya', 'Vivek', 'Rahul', 'Amit', 'Raj', 'Karan', 'Nikhil', 'Sanjay',
+            'Vikram', 'Ravi', 'Ankit', 'Manish', 'Deepak', 'Ashok', 'Suresh', 'Prakash', 'Rajesh', 'Ajay'
+        ]
+    else:
+        # Originele lijst voor andere categorieën
+        first_names = [
+            # Batch 1 - Romantische namen
+            'Aaliyah', 'Abel', 'Abram', 'Ada', 'Adeline', 'Adonis', 'Adriana', 'Aidan', 'Aisha', 'Alana',
         'Alaric', 'Alba', 'Aldo', 'Alessandra', 'Alfonso', 'Alice', 'Alina', 'Alistair', 'Allegra', 'Alma',
         'Alonso', 'Althea', 'Alton', 'Amara', 'Ambrose', 'Amelie', 'Amos', 'Anastasia', 'Anders', 'Andrea',
         'Angelo', 'Anita', 'Ansel', 'Antonia', 'Apollo', 'April', 'Archer', 'Ariana', 'Ariel', 'Armando',
@@ -578,7 +626,7 @@ def main():
     """Hoofdfunctie"""
     try:
         log(Colors.CYAN, "🚀 Character Uploader Improved gestart")
-        log(Colors.CYAN, f"📊 Voegt {MAX_CHARACTERS_TO_ADD} characters toe voor Business en Friendship categorieën")
+        log(Colors.CYAN, f"📊 Voegt {MAX_CHARACTERS_TO_ADD} mannelijke characters toe voor Life categorie")
         log(Colors.CYAN, f"🎯 Character type verdeling: {CHARACTER_TYPE_WEIGHTS}")
         
         # Debug environment variabelen
@@ -590,8 +638,8 @@ def main():
         # Haal categorieën uit Airtable
         all_categories, all_category_original_names = get_categories_from_airtable()
         
-        # Filter alleen Business en Friendship categorieën (case-insensitive)
-        target_categories = ['business', 'friendship']
+        # Filter alleen Life categorie (case-insensitive)
+        target_categories = ['life']
         categories = []
         category_original_names = {}
         
