@@ -2194,10 +2194,11 @@ function createPredefinedCharacterCard(character) {
 async function loadCharactersFromNetlify(category, gridId, limit = CONFIG.MAX_CHARACTERS_PER_CATEGORY) {
   const grid = document.getElementById(gridId);
 
-  // Build API URL
+  // Build API URL - fetch more to account for filtered characters
   const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
   url.searchParams.set('category', category);
-  url.searchParams.set('limit', limit.toString());
+  // Fetch extra characters to account for user-created ones being filtered out
+  url.searchParams.set('limit', (limit * 2).toString());
   
   console.log(`📡 Fetching from Netlify Function:`, url.toString());
   
@@ -2258,10 +2259,10 @@ function processNetlifyData(characters, category, gridId, limit) {
       return 0;
     });
     
-    // Take exactly 8 characters (prioritizing those with avatars)
-    const limitedCharacters = sortedCharacters.slice(0, 8);
+    // Take exactly 8 characters or all available (prioritizing those with avatars)
+    const limitedCharacters = sortedCharacters.slice(0, limit);
     
-    console.log(`📋 Showing ${limitedCharacters.length} characters for ${category} (from ${categoryCharacters.length} total, ${limitedCharacters.filter(hasValidAvatar).length} with avatars)`);
+    console.log(`📋 Showing ${limitedCharacters.length} characters for ${category} (from ${categoryCharacters.length} non-user-created, ${limitedCharacters.filter(hasValidAvatar).length} with avatars)`);
     
     limitedCharacters.forEach((character, index) => {
       console.log(`🔍 Character ${index + 1}:`, character.Name, character.Avatar_URL);
