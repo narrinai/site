@@ -37,42 +37,43 @@ exports.handler = async (event, context) => {
 
     console.log('🎨 Generating avatar for:', characterName);
 
-    // Call Make.com webhook for avatar generation
-    // Using the working webhook URL from create-character.html
-    const webhookUrl = 'https://hook.eu2.make.com/cxjehgl3ncdfo8c58pbqd9vk92u6qgla';
+    // Call the generate-avatar-replicate Netlify function instead of Make.com webhook
+    const generateUrl = `${process.env.URL || 'https://narrin.ai'}/.netlify/functions/generate-avatar-replicate`;
     
-    const webhookPayload = {
-      character_name: characterName,
-      description: `${characterName}${characterTitle ? ', ' + characterTitle : ''}. Professional character portrait, high quality, detailed.`
+    const generatePayload = {
+      characterName: characterName,
+      characterTitle: characterTitle || '',
+      category: category || 'general'
     };
 
-    console.log('📤 Calling Make.com webhook:', webhookUrl);
+    console.log('📤 Calling generate-avatar-replicate function:', generateUrl);
     
-    const webhookResponse = await fetch(webhookUrl, {
+    const generateResponse = await fetch(generateUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(webhookPayload)
+      body: JSON.stringify(generatePayload)
     });
 
-    if (!webhookResponse.ok) {
-      console.error('❌ Webhook returned error:', webhookResponse.status);
+    if (!generateResponse.ok) {
+      const errorText = await generateResponse.text();
+      console.error('❌ Avatar generation returned error:', generateResponse.status, errorText);
       return {
         statusCode: 500,
         headers,
         body: JSON.stringify({ 
           error: 'Avatar generation failed',
-          details: `Webhook returned ${webhookResponse.status}`
+          details: `Generation returned ${generateResponse.status}`
         })
       };
     }
 
-    const webhookResult = await webhookResponse.json();
-    console.log('✅ Webhook response received');
+    const generateResult = await generateResponse.json();
+    console.log('✅ Avatar generation response received');
 
-    if (!webhookResult.success || !webhookResult.imageUrl) {
-      console.error('❌ No image URL in webhook response');
+    if (!generateResult.success || !generateResult.imageUrl) {
+      console.error('❌ No image URL in generation response');
       return {
         statusCode: 500,
         headers,
@@ -82,6 +83,9 @@ exports.handler = async (event, context) => {
         })
       };
     }
+    
+    // The imageUrl from generate-avatar-replicate is the Replicate URL
+    const replicateUrl = generateResult.imageUrl;
 
     // Now update the character in Airtable with the new avatar URL
     if (characterId || characterSlug) {
@@ -128,7 +132,7 @@ exports.handler = async (event, context) => {
             },
             body: JSON.stringify({
               fields: {
-                Avatar_URL: webhookResult.imageUrl,
+                Avatar_URL: replicateUrl,
                 needs_ai_avatar: false
               }
             })
@@ -152,8 +156,8 @@ exports.handler = async (event, context) => {
       },
       body: JSON.stringify({ 
         success: true,
-        avatarUrl: webhookResult.imageUrl,
-        imageUrl: webhookResult.imageUrl // Support both field names
+        avatarUrl: replicateUrl,
+        imageUrl: replicateUrl // Support both field names
       })
     };
 
