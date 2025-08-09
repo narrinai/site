@@ -3278,7 +3278,7 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(30, 41, 59, 0.95);
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.95) 0%, rgba(74, 222, 128, 0.95) 100%);
       backdrop-filter: blur(10px);
       z-index: 10000;
       display: none;
@@ -4898,6 +4898,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===== CHARACTER LOADING & SETUP =====
     let currentCharacter = null;
     let characterSlug = null;
+    let currentMessageCount = 0;
+    
+    // Message counting for feedback popup
+    function incrementMessageCount() {
+      currentMessageCount++;
+      console.log('📊 Message count:', currentMessageCount);
+      
+      // Check if we should show feedback popup (after 5 messages)
+      if (currentMessageCount === 5 && !sessionStorage.getItem('feedbackShown_' + characterSlug)) {
+        setTimeout(() => showFeedbackPopup(), 1500);
+      }
+    }
     
     // Reliable scroll to bottom function
     function scrollChatToBottom() {
@@ -12522,7 +12534,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     // Save after period of inactivity (10 minutes)
-    let inactivityTimer;
     function resetInactivityTimer() {
       clearTimeout(inactivityTimer);
       inactivityTimer = setTimeout(async () => {
@@ -12537,9 +12548,8 @@ document.addEventListener('DOMContentLoaded', () => {
     resetInactivityTimer(); // Start the timer
     // ===== FEEDBACK POPUP FUNCTIONALITY =====
     let hasShownFeedbackPopup = false;
-    let currentMessageCount = 0;
     
-    // Function to show feedback popup after 2 messages
+    // Function to show feedback popup after 5 messages
     function showFeedbackPopup() {
       if (hasShownFeedbackPopup) return;
       
@@ -12605,17 +12615,6 @@ document.addEventListener('DOMContentLoaded', () => {
         showError('Sorry, we couldn\'t save your feedback. Please try again.');
         submitBtn.disabled = false;
         submitBtn.textContent = 'Submit';
-      }
-    }
-    
-    // Update message counting to trigger feedback popup
-    function incrementMessageCount() {
-      currentMessageCount++;
-      console.log('📊 Message count:', currentMessageCount);
-      
-      // Check if we should show feedback popup (after 5 messages)
-      if (currentMessageCount === 5 && !sessionStorage.getItem('feedbackShown_' + characterSlug)) {
-        setTimeout(() => showFeedbackPopup(), 1500);
       }
     }
   </script>
