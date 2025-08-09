@@ -590,13 +590,13 @@ def main():
         # Haal categorieën uit Airtable
         all_categories, all_category_original_names = get_categories_from_airtable()
         
-        # Filter alleen Business en Friendship categorieën
-        target_categories = ['Business', 'Friendship']
+        # Filter alleen Business en Friendship categorieën (case-insensitive)
+        target_categories = ['business', 'friendship']
         categories = []
         category_original_names = {}
         
         for cat in all_categories:
-            if cat in target_categories:
+            if cat.lower() in target_categories:
                 categories.append(cat)
                 category_original_names[cat] = all_category_original_names[cat]
         
