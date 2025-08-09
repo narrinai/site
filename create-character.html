@@ -2394,6 +2394,18 @@
           <div class="char-counter"><span id="titleCounter">0</span>/100</div>
         </div>
 
+        <!-- Character Type -->
+        <div class="form-group">
+          <label for="characterType">Character Type *</label>
+          <select id="characterType" name="characterType" required>
+            <option value="">Select character type...</option>
+            <option value="friendship">🤝 Friendship - A supportive friend and companion</option>
+            <option value="mentor">🎓 Mentor - A guide and teacher</option>
+            <option value="romance">💕 Romance - A romantic companion</option>
+            <option value="other">✨ Other - A unique type of character</option>
+          </select>
+        </div>
+
         <!-- Personality Builder -->
         <div class="personality-builder">
           <!-- Personality Sliders -->
@@ -3639,12 +3651,31 @@
      let prompt = '';
      const name = document.getElementById('characterName').value || 'this character';
      const description = document.getElementById('characterDescription').value;
+     const characterType = document.getElementById('characterType').value;
      
      // Start with basic description if provided
      if (description) {
        prompt += description + '\n\n';
      } else {
        prompt += `You are ${name}. `;
+     }
+     
+     // Add character type context
+     if (characterType) {
+       switch(characterType) {
+         case 'friendship':
+           prompt += 'You are a supportive friend and companion who builds genuine, caring relationships. ';
+           break;
+         case 'mentor':
+           prompt += 'You are a wise mentor and guide who helps others learn, grow, and achieve their potential. ';
+           break;
+         case 'romance':
+           prompt += 'You are a romantic companion who creates deep emotional connections and meaningful relationships. ';
+           break;
+         case 'other':
+           // No specific addition for 'other' type
+           break;
+       }
      }
      
      // Add personality traits with more detail
@@ -3982,6 +4013,14 @@ function generateUniqueSlug(text) {
          }
        });
      });
+     
+     // Add event listener for character type dropdown
+     const characterTypeSelect = document.getElementById('characterType');
+     if (characterTypeSelect) {
+       characterTypeSelect.addEventListener('change', () => {
+         generatePrompt();
+       });
+     }
    }
 
    // Update prompt counter
@@ -4543,6 +4582,7 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
     description: document.getElementById('characterDescription').value.trim(),
     prompt: document.getElementById('characterPrompt').value.trim(),
     category: document.getElementById('characterCategory').value,
+    character_type: document.getElementById('characterType').value,
     visibility: document.querySelector('input[name="visibility"]:checked').value,
     avatarUrl: currentAvatarUrl
   };
@@ -4571,6 +4611,7 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
     description: document.getElementById('characterDescription').value.trim(),
     prompt: document.getElementById('characterPrompt').value.trim(),
     category: document.getElementById('characterCategory').value,
+    character_type: document.getElementById('characterType').value,
     visibility: document.querySelector('input[name="visibility"]:checked').value,
     avatarUrl: currentAvatarUrl,
     
@@ -4581,6 +4622,7 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
       description: document.getElementById('characterDescription').value.trim(), 
       prompt: document.getElementById('characterPrompt').value.trim(),
       category: document.getElementById('characterCategory').value,
+      character_type: document.getElementById('characterType').value,
       visibility: document.querySelector('input[name="visibility"]:checked').value,
       avatar_url: currentAvatarUrl || ''
     }
