@@ -986,6 +986,10 @@
         rgba(240, 253, 250, 0.95) 100%);
       border-color: var(--color-teal);
     }
+    
+    .chat-card:hover .delete-chat-btn {
+      opacity: 1 !important;
+    }
 
     /* Floating animation for cards */
     .chat-card:nth-child(2n),
@@ -2856,24 +2860,25 @@ function extractAvatarUrl(chat) {
         <h3 class="chat-name">${chat.character_name || 'Unknown Character'}</h3>
         <p class="chat-title">${chat.character_title || 'AI Character'}</p>
       </div>
-      <button class="delete-chat-btn" onclick="event.preventDefault(); event.stopPropagation(); confirmDeleteChat('${chat.character_slug}', '${(chat.character_name || 'Unknown Character').replace(/'/g, "\\'")}')" title="Delete chat" style="
+      <button class="delete-chat-btn" onclick="event.preventDefault(); event.stopPropagation(); confirmDeleteChat('${chat.character_slug}', '${(chat.character_name || 'Unknown Character').replace(/'/g, "\\'")}')" title="Delete companion" style="
         position: absolute;
         top: 10px;
         right: 10px;
-        background: #ef4444;
-        color: white;
-        border: none;
+        background: rgba(255, 255, 255, 0.9);
+        color: #6b7280;
+        border: 1px solid #e5e7eb;
         border-radius: 50%;
-        width: 30px;
-        height: 30px;
-        font-size: 16px;
+        width: 28px;
+        height: 28px;
+        font-size: 18px;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
         transition: all 0.3s;
         z-index: 10;
-      " onmouseover="this.style.backgroundColor='#dc2626'" onmouseout="this.style.backgroundColor='#ef4444'">
+        opacity: 0;
+      " onmouseover="this.style.backgroundColor='#fee2e2'; this.style.color='#dc2626'; this.style.borderColor='#fca5a5';" onmouseout="this.style.backgroundColor='rgba(255, 255, 255, 0.9)'; this.style.color='#6b7280'; this.style.borderColor='#e5e7eb';">
         ×
       </button>
     </div>
@@ -2889,10 +2894,124 @@ function extractAvatarUrl(chat) {
 
     // Delete character confirmation and functionality
     function confirmDeleteChat(characterSlug, characterName) {
-      const confirmDelete = confirm(`Are you sure you want to delete ${characterName}?\n\nThis will:\n• Remove the character from your account\n• Clear local conversation history\n\nYour memories will be preserved in the background for future use.\n\nThis action cannot be undone.`);
+      // Create modal if it doesn't exist
+      let modal = document.getElementById('deleteModal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'deleteModal';
+        modal.style.cssText = `
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.8);
+          z-index: 10000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+        `;
+        
+        modal.innerHTML = `
+          <div style="
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 480px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+          " id="deleteModalContent">
+            <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);"></div>
+            
+            <div style="margin-bottom: 24px;">
+              <div style="font-size: 48px; margin-bottom: 16px;">🗑️</div>
+              <h3 style="font-size: 24px; font-weight: 700; color: #0f172a; margin: 0 0 8px 0;">Delete Companion</h3>
+              <p style="color: #64748b; line-height: 1.6; margin-bottom: 20px;">
+                Are you sure you want to delete <strong id="characterNameToDelete"></strong>?
+              </p>
+              
+              <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 16px; margin-bottom: 20px; text-align: left;">
+                <p style="color: #991b1b; font-weight: 600; margin: 0 0 8px 0; font-size: 14px;">This will:</p>
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                  <li style="color: #7f1d1d; padding: 4px 0; font-size: 14px;">• Remove the companion from your account</li>
+                  <li style="color: #7f1d1d; padding: 4px 0; font-size: 14px;">• Clear local conversation history</li>
+                </ul>
+                <p style="color: #059669; font-size: 13px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #fecaca;">
+                  ✓ Your memories will be preserved for future use
+                </p>
+              </div>
+              
+              <p style="color: #ef4444; font-weight: 600; font-size: 14px;">This action cannot be undone.</p>
+            </div>
+            
+            <div style="display: flex; gap: 12px;">
+              <button onclick="executeDelete()" style="
+                flex: 1;
+                padding: 12px 20px;
+                background: #ef4444;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: background 0.3s;
+              " onmouseover="this.style.backgroundColor='#dc2626'" onmouseout="this.style.backgroundColor='#ef4444'">
+                Delete Companion
+              </button>
+              <button onclick="closeDeleteModal()" style="
+                flex: 1;
+                padding: 12px 20px;
+                background: #e2e8f0;
+                color: #475569;
+                border: none;
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: background 0.3s;
+              " onmouseover="this.style.backgroundColor='#cbd5e1'" onmouseout="this.style.backgroundColor='#e2e8f0'">
+                Cancel
+              </button>
+            </div>
+          </div>
+        `;
+        
+        document.body.appendChild(modal);
+      }
       
-      if (confirmDelete) {
-        deleteChat(characterSlug);
+      // Store the character slug for deletion
+      window.characterToDelete = characterSlug;
+      
+      // Update character name in modal
+      document.getElementById('characterNameToDelete').textContent = characterName;
+      
+      // Show modal with animation
+      modal.style.display = 'flex';
+      setTimeout(() => {
+        modal.style.opacity = '1';
+        document.getElementById('deleteModalContent').style.transform = 'scale(1)';
+      }, 10);
+    }
+    
+    function closeDeleteModal() {
+      const modal = document.getElementById('deleteModal');
+      if (modal) {
+        modal.style.opacity = '0';
+        document.getElementById('deleteModalContent').style.transform = 'scale(0.9)';
+        setTimeout(() => {
+          modal.style.display = 'none';
+        }, 300);
+      }
+    }
+    
+    function executeDelete() {
+      if (window.characterToDelete) {
+        deleteChat(window.characterToDelete);
+        closeDeleteModal();
       }
     }
     
