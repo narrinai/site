@@ -2058,14 +2058,16 @@
     function getAvatarUrl(character) {
       // The Netlify function already processed the avatar URL and returns it as a string
       // Check the Avatar_URL field directly (it's already extracted from Airtable)
-      if (character.Avatar_URL && typeof character.Avatar_URL === 'string' && character.Avatar_URL.startsWith('http')) {
-        console.log(`✅ Using Avatar_URL for ${character.Name}:`, character.Avatar_URL);
+      if (character.Avatar_URL && typeof character.Avatar_URL === 'string' && 
+          (character.Avatar_URL.startsWith('http') || character.Avatar_URL.startsWith('data:'))) {
+        console.log(`✅ Using Avatar_URL for ${character.Name}:`, character.Avatar_URL.substring(0, 50) + '...');
         return character.Avatar_URL;
       }
       
       // Fallback to other possible field names
-      if (character.avatar_url && typeof character.avatar_url === 'string' && character.avatar_url.startsWith('http')) {
-        console.log(`✅ Using avatar_url for ${character.Name}:`, character.avatar_url);
+      if (character.avatar_url && typeof character.avatar_url === 'string' && 
+          (character.avatar_url.startsWith('http') || character.avatar_url.startsWith('data:'))) {
+        console.log(`✅ Using avatar_url for ${character.Name}:`, character.avatar_url.substring(0, 50) + '...');
         return character.avatar_url;
       }
       
@@ -2103,7 +2105,7 @@
       const avatarDiv = document.createElement('div');
       avatarDiv.className = 'character-avatar';
       
-      if (character.avatarUrl && character.avatarUrl.startsWith('http')) {
+      if (character.avatarUrl && (character.avatarUrl.startsWith('http') || character.avatarUrl.startsWith('data:'))) {
         const img = document.createElement('img');
         
         img.src = character.avatarUrl;
@@ -2117,7 +2119,7 @@
         };
         
         img.onerror = function() {
-          console.error('❌ Avatar failed for', character.name, 'URL:', character.avatarUrl);
+          console.error('❌ Avatar failed for', character.name, 'URL:', character.avatarUrl.substring(0, 50) + '...');
           avatarDiv.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 3rem; color: #94a3b8;">👤</div>';
         };
         
