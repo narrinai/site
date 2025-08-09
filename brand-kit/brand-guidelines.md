@@ -6,6 +6,7 @@
 - **Teal**: `#14b8a6` (Primary brand color)
 - **Coral**: `#f97316` (Accent color)
 - **Navy**: `#1e293b` (Text/Dark color)
+- **Green**: `#22c55e` (Eco/Alternative color)
 
 ### Extended Palette
 - **Teal Light**: `#5eead4`
@@ -43,6 +44,7 @@
 2. **Inverted** - White on dark backgrounds
 3. **Monochrome Teal** - Single color for simpler applications
 4. **Monochrome Dark** - Navy version for professional contexts
+5. **Green** - Eco-friendly green version on white background
 
 ### Clear Space
 Maintain minimum clear space equal to the height of the "N" in Narrin around all sides of the logo.

@@ -2887,9 +2887,9 @@ function extractAvatarUrl(chat) {
   return card;
 }
 
-    // Delete chat confirmation and functionality
+    // Delete character confirmation and functionality
     function confirmDeleteChat(characterSlug, characterName) {
-      const confirmDelete = confirm(`Are you sure you want to delete your chat with ${characterName}?\n\nThis will permanently delete:\n• All conversation history\n• All saved memories\n• All personalization data\n\nThis action cannot be undone.`);
+      const confirmDelete = confirm(`Are you sure you want to delete ${characterName}?\n\nThis will:\n• Remove the character from your account\n• Clear local conversation history\n\nYour memories will be preserved in the background for future use.\n\nThis action cannot be undone.`);
       
       if (confirmDelete) {
         deleteChat(characterSlug);
@@ -2903,18 +2903,18 @@ function extractAvatarUrl(chat) {
         const userToken = localStorage.getItem('user_token');
         
         if (!userEmail || !userUid || !userToken) {
-          alert('You must be logged in to delete chats.');
+          alert('You must be logged in to delete characters.');
           return;
         }
         
-        // Call webhook to delete chat data
-        const response = await fetch('https://hook.eu2.make.com/your-delete-webhook-url', {
+        // Call webhook to delete user-created character
+        const response = await fetch('https://hook.eu2.make.com/your-delete-character-webhook-url', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            action: 'delete_chat',
+            action: 'delete_character',
             user_email: userEmail,
             user_uid: userUid,
             user_token: userToken,
@@ -2923,8 +2923,7 @@ function extractAvatarUrl(chat) {
         });
         
         if (response.ok) {
-          // Remove from local storage
-          const chatHistory = JSON.parse(localStorage.getItem(`chat_history_${characterSlug}`) || '[]');
+          // Remove chat history from local storage (but keep memories in Airtable)
           localStorage.removeItem(`chat_history_${characterSlug}`);
           
           // Remove customization if exists
@@ -2933,14 +2932,14 @@ function extractAvatarUrl(chat) {
           localStorage.setItem('characterCustomizations', JSON.stringify(customizations));
           
           // Reload the page to refresh the chat list
-          alert('Chat deleted successfully.');
+          alert('Character deleted successfully.');
           window.location.reload();
         } else {
-          alert('Failed to delete chat. Please try again.');
+          alert('Failed to delete character. Please try again.');
         }
       } catch (error) {
-        console.error('Error deleting chat:', error);
-        alert('An error occurred while deleting the chat. Please try again.');
+        console.error('Error deleting character:', error);
+        alert('An error occurred while deleting the character. Please try again.');
       }
     }
 

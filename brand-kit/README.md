@@ -10,6 +10,7 @@ Open this file in your browser to view and download:
 - **Inverted Logo** - White version for dark backgrounds  
 - **Teal Monochrome** - Single color version
 - **Dark/Navy Version** - Professional contexts
+- **Green Version** - Eco-friendly green on white
 - **White on Brand** - For teal backgrounds
 - **Minimal/Outline** - Subtle branding
 - **Logo with Tagline** - Complete signature
@@ -39,6 +40,7 @@ Complete guide including:
 --color-teal: #14b8a6;
 --color-coral: #f97316;
 --color-navy: #1e293b;
+--color-green: #22c55e;
 ```
 
 ### Extended Palette
