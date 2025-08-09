@@ -3278,7 +3278,7 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: linear-gradient(135deg, rgba(34, 197, 94, 0.95) 0%, rgba(74, 222, 128, 0.95) 100%);
+      background: linear-gradient(135deg, rgba(20, 184, 166, 0.95) 0%, rgba(249, 115, 22, 0.95) 100%);
       backdrop-filter: blur(10px);
       z-index: 10000;
       display: none;
@@ -11577,6 +11577,20 @@ if (characterName) {
     console.log(`🔧 Removed character name "${characterName}:" from response`);
   }
 }
+
+// Format the reply for better readability
+// Add double line breaks before numbered lists
+reply = reply.replace(/(\d+\.\s)/g, '\n\n$1');
+// Add line break after colons that introduce lists
+reply = reply.replace(/:\s*(\d+\.)/g, ':\n\n$1');
+// Add line break before paragraphs starting with emoji
+reply = reply.replace(/([.!?])\s*([😊🚀💪🎯💡📚🏆🔍])/g, '$1\n\n$2');
+// Add line break before "P.S." or similar
+reply = reply.replace(/\s*\*(P\.S\.|Note:|Tip:|Remember:)/g, '\n\n*$1');
+// Clean up any triple+ line breaks
+reply = reply.replace(/\n{3,}/g, '\n\n');
+// Trim any leading/trailing whitespace
+reply = reply.trim();
 
 // No longer limiting reply length - AI should give concise answers through prompt engineering
 console.log(`📏 Reply length: ${reply.length} characters`);
