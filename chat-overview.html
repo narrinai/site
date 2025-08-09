@@ -2856,6 +2856,26 @@ function extractAvatarUrl(chat) {
         <h3 class="chat-name">${chat.character_name || 'Unknown Character'}</h3>
         <p class="chat-title">${chat.character_title || 'AI Character'}</p>
       </div>
+      <button class="delete-chat-btn" onclick="event.preventDefault(); event.stopPropagation(); confirmDeleteChat('${chat.character_slug}', '${(chat.character_name || 'Unknown Character').replace(/'/g, "\\'")}')" title="Delete chat" style="
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: #ef4444;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        font-size: 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+        z-index: 10;
+      " onmouseover="this.style.backgroundColor='#dc2626'" onmouseout="this.style.backgroundColor='#ef4444'">
+        ×
+      </button>
     </div>
     <div class="chat-preview">${previewText}</div>
     <div class="chat-meta">
@@ -2866,6 +2886,63 @@ function extractAvatarUrl(chat) {
 
   return card;
 }
+
+    // Delete chat confirmation and functionality
+    function confirmDeleteChat(characterSlug, characterName) {
+      const confirmDelete = confirm(`Are you sure you want to delete your chat with ${characterName}?\n\nThis will permanently delete:\n• All conversation history\n• All saved memories\n• All personalization data\n\nThis action cannot be undone.`);
+      
+      if (confirmDelete) {
+        deleteChat(characterSlug);
+      }
+    }
+    
+    async function deleteChat(characterSlug) {
+      try {
+        const userEmail = localStorage.getItem('user_email');
+        const userUid = localStorage.getItem('user_uid');
+        const userToken = localStorage.getItem('user_token');
+        
+        if (!userEmail || !userUid || !userToken) {
+          alert('You must be logged in to delete chats.');
+          return;
+        }
+        
+        // Call webhook to delete chat data
+        const response = await fetch('https://hook.eu2.make.com/your-delete-webhook-url', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            action: 'delete_chat',
+            user_email: userEmail,
+            user_uid: userUid,
+            user_token: userToken,
+            character_slug: characterSlug
+          })
+        });
+        
+        if (response.ok) {
+          // Remove from local storage
+          const chatHistory = JSON.parse(localStorage.getItem(`chat_history_${characterSlug}`) || '[]');
+          localStorage.removeItem(`chat_history_${characterSlug}`);
+          
+          // Remove customization if exists
+          const customizations = JSON.parse(localStorage.getItem('characterCustomizations') || '{}');
+          delete customizations[characterSlug];
+          localStorage.setItem('characterCustomizations', JSON.stringify(customizations));
+          
+          // Reload the page to refresh the chat list
+          alert('Chat deleted successfully.');
+          window.location.reload();
+        } else {
+          alert('Failed to delete chat. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error deleting chat:', error);
+        alert('An error occurred while deleting the chat. Please try again.');
+      }
+    }
 
     // UI State Functions
     function showLoading() {
