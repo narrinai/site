@@ -62,10 +62,11 @@ exports.handler = async (event, context) => {
     let recordId = characterId;
     
     // If we only have a slug, we need to find the record ID first
-    if (!recordId && slug) {
+    if (!recordId || !recordId.startsWith('rec')) {
       console.log('🔍 Looking up character by slug:', slug);
       
-      const searchUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?filterByFormula={Slug}='${slug}'&maxRecords=1`;
+      // Try multiple search methods
+      let searchUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?filterByFormula=OR({Slug}='${slug}',{Character_ID}='${slug}')&maxRecords=1`;
       
       const searchResponse = await fetch(searchUrl, {
         headers: {
@@ -95,6 +96,7 @@ exports.handler = async (event, context) => {
 
       recordId = searchData.records[0].id;
       console.log('✅ Found character record:', recordId);
+      console.log('   Current Avatar_URL:', searchData.records[0].fields.Avatar_URL?.substring(0, 50) + '...');
     }
 
     // Update the character's avatar URL in Airtable

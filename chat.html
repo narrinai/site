@@ -7221,20 +7221,33 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     console.log('🔍 Character ID:', currentCharacter.id || currentCharacter.record_id);
     console.log('🔍 Character slug:', characterSlug);
     
+    // Check if we've already generated an avatar for this character in this session
+    const avatarGenerationKey = `avatar_generated_${characterSlug}`;
+    const avatarGeneratedTime = sessionStorage.getItem(avatarGenerationKey);
+    const recentlyGenerated = avatarGeneratedTime && (Date.now() - parseInt(avatarGeneratedTime)) < 3600000; // 1 hour
+    
     // Check if avatar is an emoji SVG (needs AI generation)
     const isEmojiAvatar = currentCharacter.avatar_url && 
                          (currentCharacter.avatar_url.includes('data:image/svg+xml') || 
                           currentCharacter.avatar_url.includes('data:image/svg%2Bxml'));
     
-    const needsAIAvatar = currentCharacter.needs_ai_avatar === true || 
+    // Check if it's a Replicate URL (already generated)
+    const hasReplicateAvatar = currentCharacter.avatar_url && 
+                               currentCharacter.avatar_url.includes('replicate.delivery');
+    
+    const needsAIAvatar = !recentlyGenerated && !hasReplicateAvatar && (
+                         currentCharacter.needs_ai_avatar === true || 
                          currentCharacter.needs_ai_avatar === 'true' || 
-                         isEmojiAvatar;
+                         isEmojiAvatar);
     
     console.log('🔍 Is emoji avatar:', isEmojiAvatar);
+    console.log('🔍 Has Replicate avatar:', hasReplicateAvatar);
+    console.log('🔍 Recently generated:', recentlyGenerated);
     console.log('🔍 Needs AI avatar:', needsAIAvatar);
     
-    if (needsAIAvatar) {
+    if (needsAIAvatar && !window.avatarGenerationInProgress) {
       console.log('🎨 Character needs AI avatar generation');
+      sessionStorage.setItem(avatarGenerationKey, Date.now().toString());
       generateAvatarInBackground();
     }
     
@@ -7916,53 +7929,6 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
         }
       } catch (error) {
         console.error('❌ Error saving conversation starter:', error);
-      }
-    }
-    
-    // Generate AI avatar in background
-    async function generateAvatarInBackground() {
-      try {
-        console.log('🎨 Starting background avatar generation...');
-        
-        const response = await fetch('/.netlify/functions/generate-and-save-avatar', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            characterName: currentCharacter.name,
-            characterTitle: currentCharacter.title || currentCharacter.Title || currentCharacter.Character_Title || currentCharacter.character_title || '',
-            category: currentCharacter.category || 'original',
-            characterId: currentCharacter.id || currentCharacter.Character_ID,
-            characterSlug: currentCharacter.slug || currentCharacter.Slug
-          })
-        });
-        
-        const data = await response.json();
-        
-        if (data.success && data.imageUrl) {
-          console.log('✅ AI avatar generated successfully');
-          
-          // Update the character's avatar URL
-          currentCharacter.avatar_url = data.imageUrl;
-          
-          // Update the avatar display with fade effect
-          const avatarElement = document.getElementById('characterAvatar');
-          avatarElement.style.opacity = '0';
-          
-          setTimeout(() => {
-            avatarElement.innerHTML = `<img src="${data.imageUrl}" alt="${currentCharacter.name}">`;
-            avatarElement.style.opacity = '1';
-          }, 300);
-          
-          // TODO: Update the avatar URL in Airtable via webhook
-          updateCharacterAvatarInDatabase(data.imageUrl);
-        } else {
-          console.log('⚠️ Avatar generation failed, keeping loading state');
-        }
-      } catch (error) {
-        console.error('❌ Error generating avatar:', error);
-        // Keep the loading spinner or show a default avatar
-        const avatarElement = document.getElementById('characterAvatar');
-        avatarElement.innerHTML = '👤';
       }
     }
     
