@@ -6496,6 +6496,63 @@ document.addEventListener('DOMContentLoaded', () => {
       window.location.href = 'profile.html';
     }
     
+    // Show upgrade modal for companion limits
+    function showUpgradeModal(type, currentLimit) {
+      const modal = document.createElement('div');
+      modal.className = 'voice-upgrade-modal';
+      
+      let title, message, benefits;
+      
+      if (type === 'companions') {
+        if (currentLimit === 2) {
+          // Free to Engage upgrade
+          title = '🎭 Companion Limit Reached';
+          message = `You've reached your limit of <strong>2 active companions</strong> on the Free plan.`;
+          benefits = [
+            '5 Active Companions',
+            '25 Voice Conversations/month',
+            'Advanced Memory System'
+          ];
+        } else if (currentLimit === 5) {
+          // Engage to Immerse upgrade
+          title = '🎭 Companion Limit Reached';
+          message = `You've reached your limit of <strong>5 active companions</strong> on the Engage plan.`;
+          benefits = [
+            'Unlimited Active Companions',
+            'Unlimited Voice Conversations',
+            'Priority Response Time'
+          ];
+        }
+      }
+      
+      modal.innerHTML = `
+        <div class="voice-upgrade-content">
+          <div class="voice-upgrade-header">
+            <h3>${title}</h3>
+            <button class="voice-upgrade-close" onclick="closeVoiceUpgradeModal()">&times;</button>
+          </div>
+          <div class="voice-upgrade-body">
+            <p>${message}</p>
+            <p>Upgrade to unlock more companions and features!</p>
+            <div class="voice-upgrade-benefits">
+              ${benefits.map(benefit => `
+                <div class="voice-benefit">
+                  <div class="checkmark"></div>
+                  <div class="benefit-text">${benefit}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          <div class="voice-upgrade-buttons">
+            <button class="btn-secondary" onclick="closeVoiceUpgradeModal()">Maybe Later</button>
+            <button class="btn-primary" onclick="window.location.href='profile.html'">Upgrade Now</button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+    }
+
     // Show Engage to Immerse upgrade modal for voice limit
     function showEngageVoiceUpgradeModal() {
       const modal = document.createElement('div');
