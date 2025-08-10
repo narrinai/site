@@ -7048,6 +7048,48 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     const uid = localStorage.getItem("user_uid");
     const email = localStorage.getItem("user_email");
     
+    // Check if this is a new chat (not in user's chat history)
+    const userPlan = localStorage.getItem('user_plan') || 'Free';
+    const pausedChats = JSON.parse(localStorage.getItem('pausedChats') || '[]');
+    
+    // Get user's existing chats from chat-overview data if available
+    const chatHistoryResponse = await fetch('/.netlify/functions/get-user-chats', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_email: email,
+        user_uid: uid,
+        user_token: token
+      })
+    });
+    
+    if (chatHistoryResponse.ok) {
+      const chatData = await chatHistoryResponse.json();
+      if (chatData.success && chatData.chats) {
+        // Check if this character is already in user's chats
+        const existingChat = chatData.chats.find(chat => chat.character_slug === slug);
+        
+        if (!existingChat) {
+          // This is a new character - check active companion limits
+          const activeChats = chatData.chats.filter(chat => !pausedChats.includes(chat.character_slug));
+          const maxActive = userPlan === 'Free' ? 2 : userPlan === 'Engage' ? 5 : Infinity;
+          
+          if (activeChats.length >= maxActive) {
+            console.log(`⚠️ Active companion limit reached: ${activeChats.length}/${maxActive}`);
+            
+            // Show upgrade modal
+            showUpgradeModal('companions', maxActive);
+            
+            // Stop loading and redirect back
+            setTimeout(() => {
+              window.location.href = 'index.html';
+            }, 3000);
+            return;
+          }
+        }
+      }
+    }
+    
     const requestData = {
       action: "get_character",
       Slug: slug,
