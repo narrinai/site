@@ -995,6 +995,14 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      font-size: 24px;
+      animation: hourglassRotate 2s ease-in-out infinite;
+    }
+    
+    @keyframes hourglassRotate {
+      0% { transform: rotate(0deg); }
+      50% { transform: rotate(180deg); }
+      100% { transform: rotate(180deg); }
     }
     
     .avatar-loading .spinner {
@@ -8043,18 +8051,19 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
                        currentCharacter?.character_url ||
                        currentCharacter?.image_url;
       
-      // Check if avatar is being generated
-      if (window.avatarGenerationInProgress) {
-        return '<span class="message-avatar avatar-loading" title="Avatar being generated...">⏳</span>';
+      // Check if avatar is being generated or needs to be generated
+      if (window.avatarGenerationInProgress || 
+          (currentCharacter?.needs_ai_avatar && (!avatarUrl || avatarUrl.trim() === ''))) {
+        return '<span class="message-avatar avatar-loading" title="Generating avatar...">⏳</span>';
       }
       
       if (avatarUrl && avatarUrl.trim() !== '') {
         // Add error handling for broken images
-        return `<img class="avatar" src="${avatarUrl}" alt="avatar" onerror="this.onerror=null; this.style.display='none'; this.insertAdjacentHTML('afterend', '<span class=\\'message-avatar\\'>👤</span>');">`;
+        return `<img class="avatar" src="${avatarUrl}" alt="avatar" onerror="this.onerror=null; this.style.display='none'; this.insertAdjacentHTML('afterend', '<span class=\\'message-avatar avatar-loading\\' title=\\'Loading avatar...\\'>⏳</span>');">`;
       }
       
-      // Default fallback avatar
-      return '<span class="message-avatar">👤</span>';
+      // If no avatar and not generating, show loading indicator
+      return '<span class="message-avatar avatar-loading" title="Avatar pending...">⏳</span>';
     }
     
     // Save conversation starter to chat history
@@ -8468,33 +8477,33 @@ function analyzeRecentConversation() {
   // Analyze patterns in recent conversation
   const conversationText = messageTexts.join(' ');
   
-  // Check for specific themes and suggest follow-ups
+  // Check for specific themes and suggest follow-ups (from user perspective)
   if (conversationText.includes('goal') || conversationText.includes('plan')) {
-    topics.push("Let's break down your goals into actionable steps");
+    topics.push("Help me break down my goals into actionable steps");
   }
   
   if (conversationText.includes('feel') || conversationText.includes('emotion')) {
-    topics.push("How can we work through these feelings together?");
+    topics.push("Help me work through these feelings");
   }
   
   if (conversationText.includes('help') || conversationText.includes('advice')) {
-    topics.push("What specific area would you like more guidance on?");
+    topics.push("I need more guidance on specific areas");
   }
   
   if (conversationText.includes('story') || conversationText.includes('experience')) {
-    topics.push("I'd love to hear more details about that");
+    topics.push("Let me tell you more details about that");
   }
   
   if (conversationText.includes('challenge') || conversationText.includes('difficult')) {
-    topics.push("What strategies have you tried so far?");
+    topics.push("Here are the strategies I've tried so far");
   }
   
   if (conversationText.includes('success') || conversationText.includes('achieve')) {
-    topics.push("What's your next milestone?");
+    topics.push("Help me set my next milestone");
   }
   
   if (conversationText.includes('learn') || conversationText.includes('understand')) {
-    topics.push("What would you like to explore deeper?");
+    topics.push("I want to explore this topic deeper");
   }
   
   // Add contextual follow-ups based on character type
@@ -8502,15 +8511,15 @@ function analyzeRecentConversation() {
     const category = currentCharacter.Category || currentCharacter.category || "";
     
     if (category === "Life Coach" && conversationText.includes('habit')) {
-      topics.push("Let's create a habit tracking plan");
+      topics.push("Help me create a habit tracking plan");
     }
     
     if (category === "Mental Health" && conversationText.includes('stress')) {
-      topics.push("Would you like to try a calming exercise?");
+      topics.push("I'd like to try a calming exercise");
     }
     
     if (category === "Business" && conversationText.includes('career')) {
-      topics.push("What's your ideal career trajectory?");
+      topics.push("Let me describe my ideal career trajectory");
     }
   }
   
@@ -9252,15 +9261,15 @@ function getTimeBasedTopics() {
     );
   }
   
-  // Seasonal topics
+  // Seasonal topics (from user perspective)
   if (month >= 2 && month <= 4) { // Spring
-    topics.push("Spring renewal energy", "Fresh start ideas");
+    topics.push("I'm feeling spring renewal energy", "I need fresh start ideas");
   } else if (month >= 5 && month <= 7) { // Summer
-    topics.push("Summer adventure plans", "Sunshine state of mind");
+    topics.push("Let's plan my summer adventures", "I'm in a sunshine state of mind");
   } else if (month >= 8 && month <= 10) { // Fall
-    topics.push("Autumn reflection time", "Harvest season wisdom");
+    topics.push("It's my autumn reflection time", "Share some harvest season wisdom");
   } else { // Winter
-    topics.push("Winter comfort strategies", "Cozy season insights");
+    topics.push("I need winter comfort strategies", "Give me cozy season insights");
   }
   
   return topics;
@@ -9273,66 +9282,66 @@ function getContextualTopics(character) {
   const title = (character.Title || character.title || character.Character_Title || "").toLowerCase();
   const name = (character.Name || character.name || "").toLowerCase();
   
-  // Analyze character traits for contextual topics
+  // Analyze character traits for contextual topics (from user perspective)
   if (description.includes("wise") || description.includes("wisdom")) {
-    topics.push("Ancient wisdom for modern times", "Life lessons worth sharing");
+    topics.push("Give me ancient wisdom for modern times", "Share life lessons with me");
   }
   
   if (description.includes("funny") || description.includes("humor") || description.includes("comedian")) {
-    topics.push("Laughter as medicine", "Finding humor in chaos");
+    topics.push("I need laughter as medicine", "Help me find humor in chaos");
   }
   
   if (description.includes("adventur") || description.includes("explorer")) {
-    topics.push("Next adventure planning", "Unexplored territories");
+    topics.push("Help me plan my next adventure", "Tell me about unexplored territories");
   }
   
   if (description.includes("romantic") || description.includes("love")) {
-    topics.push("Romance in modern times", "Love story inspirations");
+    topics.push("Talk to me about romance in modern times", "Inspire me with love stories");
   }
   
   if (description.includes("warrior") || description.includes("fighter")) {
-    topics.push("Battle strategies for life", "Inner warrior awakening");
+    topics.push("Teach me battle strategies for life", "Help awaken my inner warrior");
   }
   
   if (description.includes("teacher") || description.includes("mentor")) {
-    topics.push("Teaching moments", "Wisdom transfer methods");
+    topics.push("Share teaching moments with me", "Transfer your wisdom to me");
   }
   
   if (description.includes("creative") || description.includes("artist")) {
-    topics.push("Creative breakthrough techniques", "Artistic inspiration sources");
+    topics.push("Give me creative breakthrough techniques", "Share artistic inspiration sources");
   }
   
   if (description.includes("scientific") || description.includes("research")) {
-    topics.push("Scientific curiosities", "Research rabbit holes");
+    topics.push("Explore scientific curiosities with me", "Take me down research rabbit holes");
   }
   
   if (title.includes("ceo") || title.includes("founder") || title.includes("entrepreneur")) {
-    topics.push("Startup wisdom nuggets", "Leadership challenges");
+    topics.push("Share startup wisdom nuggets", "Help me with leadership challenges");
   }
   
   if (title.includes("coach") || title.includes("trainer")) {
-    topics.push("Performance optimization", "Breakthrough moments");
+    topics.push("Help me optimize my performance", "Guide me to breakthrough moments");
   }
   
   if (title.includes("therapist") || title.includes("counselor")) {
-    topics.push("Emotional wellness check", "Mental health insights");
+    topics.push("Do an emotional wellness check with me", "Share mental health insights");
   }
   
   if (title.includes("chef") || title.includes("foodie")) {
-    topics.push("Culinary adventures", "Food philosophy");
+    topics.push("Take me on culinary adventures", "Share your food philosophy");
   }
   
   // Name-based topics for specific well-known characters
   if (name.includes("sherlock") || name.includes("detective")) {
-    topics.push("Mystery solving techniques", "Deduction skills");
+    topics.push("Teach me mystery solving techniques", "Help me develop deduction skills");
   }
   
   if (name.includes("wizard") || name.includes("mage")) {
-    topics.push("Magical thinking benefits", "Spell-binding conversations");
+    topics.push("Show me magical thinking benefits", "Have spell-binding conversations with me");
   }
   
   if (name.includes("captain") || name.includes("commander")) {
-    topics.push("Leadership under pressure", "Team dynamics");
+    topics.push("Teach me leadership under pressure", "Explain team dynamics to me");
   }
   
   return topics;
