@@ -24,9 +24,9 @@ exports.handler = async (event, context) => {
     
     // Fetch all recent chat messages
     const chatsResponse = await fetch(
-      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatMessages?` + 
-      `filterByFormula=IS_AFTER(created_time, '${fortyEightHoursAgo}')` +
-      `&sort[0][field]=created_time&sort[0][direction]=desc`,
+      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?` + 
+      `filterByFormula=IS_AFTER(Created, '${fortyEightHoursAgo}')` +
+      `&sort[0][field]=Created&sort[0][direction]=desc`,
       {
         headers: {
           'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -45,15 +45,24 @@ exports.handler = async (event, context) => {
     const conversations = {};
     
     for (const record of chatsData.records) {
-      const userId = record.fields.user_id;
-      const characterId = record.fields.character_id;
+      // Get linked User and Character records
+      const userIds = record.fields.User || [];
+      const characterIds = record.fields.Character || [];
+      
+      if (userIds.length === 0 || characterIds.length === 0) {
+        console.log('⚠️ Skipping record without User or Character links');
+        continue;
+      }
+      
+      const userId = userIds[0];  // First linked User record ID
+      const characterId = characterIds[0];  // First linked Character record ID
       const key = `${userId}_${characterId}`;
       
       if (!conversations[key]) {
         conversations[key] = {
-          user_id: userId,
-          character_id: characterId,
-          character_name: record.fields.character_name,
+          user_record_id: userId,
+          character_record_id: characterId,
+          character_name: record.fields.CharacterName || '',
           messages: [],
           last_message_time: null,
           last_user_message: null
@@ -61,22 +70,22 @@ exports.handler = async (event, context) => {
       }
       
       conversations[key].messages.push({
-        message: record.fields.message,
-        is_user: record.fields.is_user,
-        created_time: new Date(record.fields.created_time),
+        message: record.fields.Message,
+        is_user: record.fields.Role === 'user',
+        created_time: new Date(record.fields.Created),
         is_checkin: record.fields.is_checkin || false
       });
       
       // Track last user message
-      if (record.fields.is_user) {
+      if (record.fields.Role === 'user') {
         if (!conversations[key].last_user_message || 
-            new Date(record.fields.created_time) > new Date(conversations[key].last_user_message.created_time)) {
-          conversations[key].last_user_message = record.fields.message;
+            new Date(record.fields.Created) > new Date(conversations[key].last_user_message.created_time)) {
+          conversations[key].last_user_message = record.fields.Message;
         }
       }
       
       // Track overall last message time
-      const msgTime = new Date(record.fields.created_time);
+      const msgTime = new Date(record.fields.Created);
       if (!conversations[key].last_message_time || msgTime > conversations[key].last_message_time) {
         conversations[key].last_message_time = msgTime;
       }
@@ -100,7 +109,7 @@ exports.handler = async (event, context) => {
         m.is_checkin && (now - m.created_time) < 48 * 60 * 60 * 1000
       );
       
-      const lastMessageWasUser = conv.messages[0]?.is_user === true;
+      const lastMessageWasUser = conv.messages.length > 0 && conv.messages[0]?.is_user === true;
       
       if (hoursSinceLastMessage >= 24 && hoursSinceLastMessage < 48 && !recentCheckin && lastMessageWasUser) {
         inactiveChats.push(conv);
@@ -111,9 +120,9 @@ exports.handler = async (event, context) => {
 
     // Process each inactive chat
     for (const chat of inactiveChats) {
-      // Get user details
+      // Get user details from linked record ID
       const userResponse = await fetch(
-        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={user_id}='${chat.user_id}'`,
+        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users/${chat.user_record_id}`,
         {
           headers: {
             'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -123,18 +132,19 @@ exports.handler = async (event, context) => {
       );
 
       const userData = await userResponse.json();
-      if (!userData.records || userData.records.length === 0) {
-        console.log(`User ${chat.user_id} not found`);
+      if (!userData.fields) {
+        console.log(`User record ${chat.user_record_id} not found`);
         continue;
       }
       
-      const user = userData.records[0].fields;
-      const userEmail = user.email;
-      const userName = user.name || 'there';
+      const user = userData.fields;
+      const userEmail = user.Email || user.email;
+      const userName = user.Name || user.name || 'there';
+      const userNetlifyUID = user.NetlifyUID;
 
-      // Get character details
+      // Get character details from linked record ID
       const characterResponse = await fetch(
-        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula={character_id}='${chat.character_id}'`,
+        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters/${chat.character_record_id}`,
         {
           headers: {
             'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -144,12 +154,13 @@ exports.handler = async (event, context) => {
       );
 
       const characterData = await characterResponse.json();
-      if (!characterData.records || characterData.records.length === 0) {
-        console.log(`Character ${chat.character_id} not found`);
+      if (!characterData.fields) {
+        console.log(`Character record ${chat.character_record_id} not found`);
         continue;
       }
       
-      const character = characterData.records[0].fields;
+      const character = characterData.fields;
+      const characterSlug = character.Slug || character.slug;
       
       // Check if character category requires onboarding
       const category = character.Category || character.category || '';
@@ -160,7 +171,7 @@ exports.handler = async (event, context) => {
         // Check ChatHistory for onboarding completion (using NetlifyUID and Slug)
         const onboardingCheckResponse = await fetch(
           `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?` +
-          `filterByFormula=${encodeURIComponent(`AND({NetlifyUID}='${chat.user_id}',{Slug}='${chat.character_id}',{message_type}='onboarding')`)}`,
+          `filterByFormula=${encodeURIComponent(`AND({NetlifyUID}='${userNetlifyUID}',{Slug}='${characterSlug}',{message_type}='onboarding')`)}`,
           {
             headers: {
               'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -189,18 +200,19 @@ exports.handler = async (event, context) => {
       // Save check-in message to chat history
       const checkInRecord = {
         fields: {
-          user_id: chat.user_id,
-          character_id: chat.character_id,
-          character_name: character.Name,
-          message: checkInMessage,
-          is_user: false,
-          created_time: new Date().toISOString(),
-          is_checkin: true
+          Role: 'ai assistant',
+          Message: checkInMessage,
+          User: [chat.user_record_id],
+          Character: [chat.character_record_id],
+          CharacterName: character.Name,
+          is_checkin: true,
+          NetlifyUID: userNetlifyUID,
+          Slug: characterSlug
         }
       };
 
       const saveResponse = await fetch(
-        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatMessages`,
+        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory`,
         {
           method: 'POST',
           headers: {
@@ -217,7 +229,7 @@ exports.handler = async (event, context) => {
       }
 
       // Send email notification
-      const chatUrl = `https://narrin.ai/chat.html?char=${character.Slug}`;
+      const chatUrl = `https://narrin.ai/chat.html?char=${characterSlug}`;
       
       const emailHtml = `
         <!DOCTYPE html>
