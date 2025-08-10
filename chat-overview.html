@@ -1927,6 +1927,91 @@ line-clamp: 3;
       <p>Continue your conversations with AI characters</p>
     </div>
 
+    <!-- Companion Status Counter -->
+    <div class="companion-status-counter" id="companionStatusCounter" style="
+      background: white;
+      border-radius: 12px;
+      padding: 16px 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      flex-wrap: wrap;
+    ">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="
+          width: 48px;
+          height: 48px;
+          background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-size: 20px;
+          font-weight: 700;
+        " id="activeCount">0</div>
+        <div>
+          <div style="font-size: 14px; color: #64748b;">Active</div>
+          <div style="font-size: 16px; font-weight: 600; color: #0f172a;">Companions</div>
+        </div>
+      </div>
+      
+      <div style="width: 1px; height: 40px; background: #e5e7eb;"></div>
+      
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="
+          width: 48px;
+          height: 48px;
+          background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-size: 20px;
+          font-weight: 700;
+        " id="pausedCount">0</div>
+        <div>
+          <div style="font-size: 14px; color: #64748b;">Paused</div>
+          <div style="font-size: 16px; font-weight: 600; color: #0f172a;">Companions</div>
+        </div>
+      </div>
+      
+      <div style="width: 1px; height: 40px; background: #e5e7eb;"></div>
+      
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="
+          width: 48px;
+          height: 48px;
+          background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%);
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-size: 20px;
+          font-weight: 700;
+        " id="totalCount">0</div>
+        <div>
+          <div style="font-size: 14px; color: #64748b;">Total</div>
+          <div style="font-size: 16px; font-weight: 600; color: #0f172a;">Companions</div>
+        </div>
+      </div>
+      
+      <div id="planLimitInfo" style="
+        margin-left: auto;
+        padding: 8px 16px;
+        background: linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, rgba(249, 115, 22, 0.1) 100%);
+        border-radius: 8px;
+        font-size: 14px;
+        color: #0f172a;
+        font-weight: 500;
+      "></div>
+    </div>
+
     <!-- Loading State -->
     <div id="loadingState" class="loading-state">
       <h3>Loading your chats...</h3>
@@ -2812,6 +2897,9 @@ function extractAvatarUrl(chat) {
 
       hideLoading();
       showMainContent();
+      
+      // Update companion status counter
+      updateCompanionStatusCounter();
 
       const chatsGrid = document.getElementById('chatsGrid');
       const emptyState = document.getElementById('emptyState');
@@ -3229,6 +3317,45 @@ function extractAvatarUrl(chat) {
         console.error('Error deleting character:', error);
         alert('An error occurred while deleting the character. Please try again.');
       }
+    }
+
+    // Update companion status counter
+    function updateCompanionStatusCounter() {
+      const counter = document.getElementById('companionStatusCounter');
+      if (!counter) return;
+      
+      // Count active and paused companions
+      const activeCompanions = userChats.filter(chat => !chat.isPaused);
+      const pausedCompanions = userChats.filter(chat => chat.isPaused);
+      const totalCompanions = userChats.length;
+      
+      // Update counts
+      document.getElementById('activeCount').textContent = activeCompanions.length;
+      document.getElementById('pausedCount').textContent = pausedCompanions.length;
+      document.getElementById('totalCount').textContent = totalCompanions;
+      
+      // Get user plan and show limit info
+      const userPlan = localStorage.getItem('user_plan') || 'Free';
+      const planLimitInfo = document.getElementById('planLimitInfo');
+      
+      if (userPlan === 'Free') {
+        planLimitInfo.innerHTML = `Free Plan: ${activeCompanions.length}/2 active`;
+        if (activeCompanions.length >= 2) {
+          planLimitInfo.style.background = 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(249, 115, 22, 0.1) 100%)';
+          planLimitInfo.style.color = '#dc2626';
+        }
+      } else if (userPlan === 'Engage') {
+        planLimitInfo.innerHTML = `Engage Plan: ${activeCompanions.length}/5 active`;
+        if (activeCompanions.length >= 5) {
+          planLimitInfo.style.background = 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(249, 115, 22, 0.1) 100%)';
+          planLimitInfo.style.color = '#dc2626';
+        }
+      } else {
+        planLimitInfo.innerHTML = 'Immerse Plan: Unlimited';
+      }
+      
+      // Show the counter
+      counter.style.display = 'flex';
     }
 
     // UI State Functions
