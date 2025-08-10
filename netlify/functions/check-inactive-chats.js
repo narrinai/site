@@ -122,7 +122,7 @@ exports.handler = async (event, context) => {
     for (const chat of inactiveChats) {
       // Get user details using filterByFormula with record ID
       const userResponse = await fetch(
-        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=RECORD_ID()='${chat.user_record_id}'`,
+        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=${encodeURIComponent(`RECORD_ID()='${chat.user_record_id}'`)}`,
         {
           headers: {
             'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -144,7 +144,7 @@ exports.handler = async (event, context) => {
 
       // Get character details using filterByFormula with record ID
       const characterResponse = await fetch(
-        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula=RECORD_ID()='${chat.character_record_id}'`,
+        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula=${encodeURIComponent(`RECORD_ID()='${chat.character_record_id}'`)}`,
         {
           headers: {
             'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
