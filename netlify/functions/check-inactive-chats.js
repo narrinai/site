@@ -25,7 +25,7 @@ exports.handler = async (event, context) => {
     // Fetch all recent chat messages
     const chatsResponse = await fetch(
       `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?` + 
-      `filterByFormula=IS_AFTER(CreatedTime, '${fortyEightHoursAgo}')` +
+      `filterByFormula=${encodeURIComponent(`IS_AFTER({CreatedTime}, '${fortyEightHoursAgo}')`)}` +
       `&sort[0][field]=CreatedTime&sort[0][direction]=desc`,
       {
         headers: {
