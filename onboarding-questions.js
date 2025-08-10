@@ -227,7 +227,50 @@ Which of these would you like to explore first? Or is there something else you'd
         maxLength: 500,
         required: false
       }
-    ]
+    ],
+    // Context mappings for AI understanding
+    contextMappings: {
+      business_stage: {
+        idea: "at the idea stage",
+        startup: "running an early-stage startup",
+        growing: "managing a growing business",
+        established: "running an established business",
+        scaling: "scaling your business",
+        pivoting: "pivoting or restructuring"
+      },
+      business_goal: {
+        launch: "launching your business",
+        growth: "achieving growth targets",
+        profitability: "improving profitability",
+        innovation: "driving innovation",
+        team: "building a strong team",
+        exit: "planning an exit strategy"
+      },
+      biggest_challenge: {
+        funding: "securing funding",
+        customers: "acquiring customers",
+        operations: "operational efficiency",
+        competition: "dealing with competition",
+        team: "team and leadership challenges",
+        strategy: "strategic direction"
+      },
+      industry: {
+        tech: "technology",
+        retail: "retail and e-commerce",
+        services: "professional services",
+        healthcare: "healthcare",
+        finance: "finance and banking",
+        other: "another industry"
+      },
+      support_needed: {
+        strategy: "strategic planning",
+        marketing: "marketing and sales",
+        operations: "operational excellence",
+        leadership: "leadership development",
+        finance: "financial management",
+        innovation: "innovation and growth"
+      }
+    }
   },
   
   "Love": {
@@ -565,7 +608,49 @@ Which of these would you like to explore first? Or is there something else you'd
         maxLength: 500,
         required: false
       }
-    ]
+    ],
+    // Context mappings for AI understanding
+    contextMappings: {
+      mindfulness_experience: {
+        none: "completely new to mindfulness",
+        beginner: "a beginner with some exposure",
+        intermediate: "somewhat experienced with mindfulness",
+        advanced: "experienced in mindfulness practices",
+        inconsistent: "experienced but inconsistent"
+      },
+      mindfulness_goal: {
+        stress: "reduce stress and anxiety",
+        focus: "improve focus and clarity",
+        peace: "find inner peace",
+        sleep: "improve sleep quality",
+        emotions: "manage emotions better",
+        presence: "live more in the present"
+      },
+      biggest_obstacle: {
+        time: "not having enough time",
+        mind: "dealing with racing thoughts",
+        consistency: "staying consistent",
+        understanding: "not sure how to practice",
+        patience: "lack of patience",
+        environment: "a distracting environment"
+      },
+      preferred_practice: {
+        meditation: "seated meditation",
+        breathing: "breathing exercises",
+        walking: "walking meditation",
+        body_scan: "body awareness practices",
+        gratitude: "gratitude practice",
+        mindful_activities: "mindful daily activities"
+      },
+      time_commitment: {
+        "5min": "about 5 minutes",
+        "10min": "around 10 minutes",
+        "15min": "15 minutes",
+        "20min": "20 minutes",
+        "30min": "30 minutes or more",
+        flexible: "flexible time"
+      }
+    }
   },
   
   "Friendship": {
@@ -649,7 +734,50 @@ Which of these would you like to explore first? Or is there something else you'd
         maxLength: 500,
         required: false
       }
-    ]
+    ],
+    // Context mappings for AI understanding
+    contextMappings: {
+      friendship_situation: {
+        lonely: "feeling lonely and isolated",
+        few_friends: "having a few friends but wanting more",
+        many_shallow: "having many acquaintances but few deep connections",
+        conflict: "dealing with friendship conflicts",
+        transition: "in a life transition affecting friendships",
+        satisfied: "satisfied but always open to new connections"
+      },
+      friendship_goal: {
+        make_friends: "make new meaningful friendships",
+        deepen: "deepen existing friendships",
+        resolve: "resolve conflicts with friends",
+        boundaries: "set better boundaries",
+        quality: "improve friendship quality",
+        social: "expand your social circle"
+      },
+      friendship_challenge: {
+        meeting: "meeting new people",
+        connecting: "forming deep connections",
+        maintaining: "maintaining friendships",
+        trust: "trusting others",
+        communication: "communicating effectively",
+        time: "finding time for friends"
+      },
+      social_style: {
+        introvert: "introverted and prefer small groups",
+        extrovert: "extroverted and love large gatherings",
+        ambivert: "a mix of both",
+        one_on_one: "preferring one-on-one connections",
+        group: "thriving in group settings",
+        flexible: "adaptable to different situations"
+      },
+      support_type: {
+        making: "making new friends",
+        deepening: "deepening connections",
+        social_skills: "improving social skills",
+        conflict: "handling conflicts",
+        boundaries: "setting boundaries",
+        confidence: "building social confidence"
+      }
+    }
   },
   
   "Self-Improvement": {
@@ -734,7 +862,50 @@ Which of these would you like to explore first? Or is there something else you'd
         maxLength: 500,
         required: false
       }
-    ]
+    ],
+    // Context mappings for AI understanding
+    contextMappings: {
+      improvement_area: {
+        habits: "building better habits",
+        productivity: "increasing productivity",
+        confidence: "building confidence",
+        mindset: "developing a growth mindset",
+        skills: "learning new skills",
+        health: "improving health and wellness"
+      },
+      biggest_challenge: {
+        consistency: "staying consistent",
+        motivation: "maintaining motivation",
+        time: "finding time",
+        knowledge: "knowing where to start",
+        accountability: "lack of accountability",
+        fear: "fear of failure"
+      },
+      improvement_style: {
+        structured: "structured plans and routines",
+        flexible: "flexible approaches",
+        intensive: "intensive focused efforts",
+        gradual: "gradual small changes",
+        experimental: "trying different methods",
+        guided: "guided instruction"
+      },
+      success_measure: {
+        goals: "achieving specific goals",
+        progress: "consistent progress",
+        feeling: "how I feel",
+        feedback: "feedback from others",
+        metrics: "measurable metrics",
+        growth: "personal growth"
+      },
+      time_commitment: {
+        daily_30: "30 minutes daily",
+        daily_hour: "1 hour daily",
+        weekly_few: "a few hours weekly",
+        weekend: "weekends only",
+        flexible: "flexible schedule",
+        intensive: "intensive periods"
+      }
+    }
   },
   
   "Motivation": {
@@ -820,7 +991,50 @@ Which of these would you like to explore first? Or is there something else you'd
         maxLength: 500,
         required: false
       }
-    ]
+    ],
+    // Context mappings for AI understanding
+    contextMappings: {
+      motivation_area: {
+        career: "career and professional goals",
+        fitness: "fitness and health",
+        personal: "personal projects",
+        learning: "learning and education",
+        creative: "creative pursuits",
+        life_change: "major life changes"
+      },
+      motivation_blocker: {
+        procrastination: "procrastination",
+        fear: "fear of failure",
+        overwhelm: "feeling overwhelmed",
+        unclear: "unclear goals",
+        energy: "low energy",
+        support: "lack of support"
+      },
+      motivation_style: {
+        gentle: "gentle encouragement",
+        tough: "tough love approach",
+        analytical: "logical reasoning",
+        emotional: "emotional connection",
+        competitive: "competitive challenges",
+        collaborative: "collaborative support"
+      },
+      energy_pattern: {
+        morning: "high energy in mornings",
+        evening: "evening person",
+        variable: "variable energy",
+        consistent: "consistent throughout",
+        low: "generally low energy",
+        bursts: "energy in bursts"
+      },
+      support_type: {
+        accountability: "accountability partner",
+        cheerleader: "enthusiastic cheerleader",
+        strategist: "strategic planner",
+        mentor: "wise mentor",
+        coach: "action-oriented coach",
+        friend: "supportive friend"
+      }
+    }
   },
   
   "Purpose": {
@@ -904,7 +1118,49 @@ Which of these would you like to explore first? Or is there something else you'd
         maxLength: 500,
         required: false
       }
-    ]
+    ],
+    // Context mappings for AI understanding
+    contextMappings: {
+      purpose_stage: {
+        lost: "feeling completely lost",
+        questioning: "questioning everything",
+        exploring: "actively exploring purpose",
+        transitioning: "transitioning to new purpose",
+        refining: "refining your purpose",
+        living: "living your purpose"
+      },
+      life_satisfaction: {
+        very_dissatisfied: "very dissatisfied with life",
+        dissatisfied: "somewhat dissatisfied",
+        neutral: "neutral about life",
+        satisfied: "fairly satisfied",
+        very_satisfied: "very satisfied with life"
+      },
+      values_clarity: {
+        very_clear: "very clear on your values",
+        somewhat_clear: "somewhat clear on values",
+        exploring: "still exploring values",
+        confused: "confused about values",
+        changing: "values are changing",
+        undefined: "haven't thought about values"
+      },
+      purpose_blocker: {
+        fear: "fear of change",
+        expectations: "others' expectations",
+        financial: "financial constraints",
+        clarity: "lack of clarity",
+        confidence: "lack of confidence",
+        opportunity: "lack of opportunity"
+      },
+      fulfillment_source: {
+        helping: "helping others",
+        creating: "creating something meaningful",
+        achieving: "achieving goals",
+        learning: "continuous learning",
+        connecting: "deep connections",
+        contributing: "making a difference"
+      }
+    }
   }
 };
 
