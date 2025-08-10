@@ -1827,10 +1827,10 @@ line-clamp: 3;
 
         <!-- Desktop Navigation Links -->
         <nav class="nav-links" role="navigation" aria-label="Secondary navigation">
-          <a href="index.html" class="nav-link">Characters</a>
-          <a href="chat-overview.html" class="nav-link">Chats</a>
+          <a href="index.html" class="nav-link">Explore</a>
+          <a href="chat-overview.html" class="nav-link">My Companions</a>
           <a href="profile.html" class="nav-link" id="loginBtn">Login/Register</a>
-          <a href="create-character.html" class="btn btn-primary">✨ Create Character</a>
+          <a href="create-character.html" class="btn btn-primary">✨ Create Companion</a>
         </nav>
 
         <!-- Mobile Navigation Container -->
@@ -1915,7 +1915,7 @@ line-clamp: 3;
         </a>
         <a href="create-character.html" class="mobile-menu-link btn-primary">
           <span class="mobile-menu-link-icon">✨</span>
-          Create Character
+          Create Companion
         </a>
       </nav>
     </div>
@@ -1923,8 +1923,8 @@ line-clamp: 3;
 
   <div class="container">
     <div class="page-header">
-      <h1>My Chats</h1>
-      <p>Continue your conversations with AI characters</p>
+      <h1>My Companions</h1>
+      <p>Continue your conversations with AI companions</p>
     </div>
 
     <!-- Companion Status Counter -->
@@ -2001,7 +2001,7 @@ line-clamp: 3;
         </div>
       </div>
       
-      <div id="planLimitInfo" style="
+      <a href="profile.html#plans" id="planLimitInfo" style="
         margin-left: auto;
         padding: 8px 16px;
         background: linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, rgba(249, 115, 22, 0.1) 100%);
@@ -2009,7 +2009,10 @@ line-clamp: 3;
         font-size: 14px;
         color: #0f172a;
         font-weight: 500;
-      "></div>
+        text-decoration: none;
+        transition: all 0.3s;
+        cursor: pointer;
+      " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(20, 184, 166, 0.2)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'"></a>
     </div>
 
     <!-- Loading State -->
@@ -2916,7 +2919,16 @@ function extractAvatarUrl(chat) {
       emptyState.style.display = 'none';
       chatsGrid.innerHTML = '';
 
-      userChats.forEach(chat => {
+      // Sort chats: active first, then paused
+      const sortedChats = [...userChats].sort((a, b) => {
+        // Active chats come first
+        if (!a.isPaused && b.isPaused) return -1;
+        if (a.isPaused && !b.isPaused) return 1;
+        // Within the same status, keep original order (or sort by last message date)
+        return 0;
+      });
+
+      sortedChats.forEach(chat => {
         const chatCard = createChatCard(chat);
         chatsGrid.appendChild(chatCard);
       });
@@ -2965,53 +2977,48 @@ function extractAvatarUrl(chat) {
         <h3 class="chat-name">${chat.character_name || 'Unknown Character'}</h3>
         <p class="chat-title">${chat.character_title || 'AI Character'}</p>
       </div>
-      <div class="pause-toggle-container" onclick="event.preventDefault(); event.stopPropagation();" style="
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        background: rgba(255, 255, 255, 0.95);
-        border-radius: 20px;
-        padding: 6px 10px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        border: 1px solid #e5e7eb;
-        transition: all 0.3s;
-        z-index: 10;
-      ">
-        <span style="font-size: 12px; color: ${chat.isPaused ? '#ef4444' : '#10b981'}; font-weight: 600;">
-          ${chat.isPaused ? 'Paused' : 'Active'}
-        </span>
-        <button class="pause-toggle-btn" onclick="event.preventDefault(); event.stopPropagation(); togglePauseChat('${chat.character_slug}', '${(chat.character_name || 'Unknown Character').replace(/'/g, "\\'")}', ${chat.isPaused || false})" style="
-          background: ${chat.isPaused ? '#fee2e2' : '#dcfce7'};
-          color: ${chat.isPaused ? '#dc2626' : '#16a34a'};
-          border: 1px solid ${chat.isPaused ? '#fca5a5' : '#86efac'};
-          border-radius: 12px;
-          width: 40px;
-          height: 20px;
-          position: relative;
-          cursor: pointer;
-          transition: all 0.3s;
-          padding: 0;
-        ">
-          <div style="
-            position: absolute;
-            top: 2px;
-            ${chat.isPaused ? 'left: 2px' : 'right: 2px'};
-            width: 14px;
-            height: 14px;
-            background: white;
-            border-radius: 50%;
-            transition: all 0.3s;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-          "></div>
-        </button>
-      </div>
     </div>
     <div class="chat-preview">${previewText}</div>
     <div class="chat-meta">
       <span class="chat-date">${formatChatDate(chat.last_message_date)}</span>
       <span class="message-count">${chat.message_count || 0} messages</span>
+    </div>
+    <div class="pause-toggle-container" onclick="event.preventDefault(); event.stopPropagation();" style="
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    ">
+      <span style="font-size: 13px; color: ${chat.isPaused ? '#ef4444' : '#10b981'}; font-weight: 600;">
+        ${chat.isPaused ? 'Paused' : 'Active'}
+      </span>
+      <button class="pause-toggle-btn" onclick="event.preventDefault(); event.stopPropagation(); togglePauseChat('${chat.character_slug}', '${(chat.character_name || 'Unknown Character').replace(/'/g, "\\'")}', ${chat.isPaused || false})" style="
+        background: ${chat.isPaused ? '#fee2e2' : '#dcfce7'};
+        color: ${chat.isPaused ? '#dc2626' : '#16a34a'};
+        border: 1px solid ${chat.isPaused ? '#fca5a5' : '#86efac'};
+        border-radius: 12px;
+        width: 44px;
+        height: 24px;
+        position: relative;
+        cursor: pointer;
+        transition: all 0.3s;
+        padding: 0;
+      ">
+        <div style="
+          position: absolute;
+          top: 3px;
+          ${chat.isPaused ? 'left: 3px' : 'right: 3px'};
+          width: 16px;
+          height: 16px;
+          background: white;
+          border-radius: 50%;
+          transition: all 0.3s;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        "></div>
+      </button>
     </div>
   `;
 
@@ -3481,11 +3488,11 @@ function extractAvatarUrl(chat) {
   <footer class="footer">
     <div class="footer-container">
       <div class="footer-links">
-        <a href="index.html" class="footer-link">Characters</a>
+        <a href="index.html" class="footer-link">Explore</a>
         <span class="footer-separator">•</span>
         <a href="chat-overview.html" class="footer-link">Chats</a>
         <span class="footer-separator">•</span>
-        <a href="create-character.html" class="footer-link">Create Character</a>
+        <a href="create-character.html" class="footer-link">Create Companion</a>
         <span class="footer-separator">•</span>
         <a href="contact.html" class="footer-link">Contact</a>
         <span class="footer-separator">•</span>
