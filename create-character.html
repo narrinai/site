@@ -2526,19 +2526,6 @@
           </div>
         </div>
 
-        <!-- Bonding Approach -->
-        <div class="personality-section">
-<h3>Bonding Approach 🤝<br><span style="font-size: var(--font-size-xs); color: var(--color-gray); font-weight: normal;">(Optional)</span></h3>          <div class="button-group-personality" id="bondingApproach">
-            <button type="button" class="personality-button" data-bonding="mentor-teacher">🏆 Mentor & Teacher</button>
-            <button type="button" class="personality-button" data-bonding="friend-companion">👥 Friend & Companion</button>
-            <button type="button" class="personality-button" data-bonding="protector-guide">🛡️ Protector & Guide</button>
-            <button type="button" class="personality-button" data-bonding="challenger-motivator">🎯 Challenger & Motivator</button>
-            <button type="button" class="personality-button" data-bonding="advisor-counselor">💡 Advisor & Counselor</button>
-            <button type="button" class="personality-button" data-bonding="entertainer-inspiring">🎪 Entertainer & Inspiring</button>
-          </div>
-          <div class="selection-counter" id="bondingCounter">Select 0-2 approaches that define how your character connects</div>
-        </div>
-
         <!-- Personality Quirks -->
         <div class="personality-section">
 <h3>Personality Quirks 🎭<br><span style="font-size: var(--font-size-xs); color: var(--color-gray); font-weight: normal;">(Optional)</span></h3>          <div class="button-group-personality" id="personalityQuirks">
@@ -2823,7 +2810,6 @@
      },
      traits: [],
      speaking: [],
-     bonding: [],
      quirks: []
    };
 
@@ -3528,16 +3514,6 @@
        });
      });
 
-     // Bonding approach (max 2)
-     const bondingButtons = document.querySelectorAll('#bondingApproach .personality-button');
-     bondingButtons.forEach(button => {
-       button.addEventListener('click', (e) => {
-         e.preventDefault();
-         const bonding = button.getAttribute('data-bonding');
-         toggleArraySelection(personalityState.bonding, bonding, 2, button, 'bondingCounter', 'bonding approaches');
-       });
-     });
-
      // Personality quirks (no max)
      const quirkButtons = document.querySelectorAll('#personalityQuirks .personality-button');
      quirkButtons.forEach(button => {
@@ -3701,14 +3677,6 @@
      
      // Add response style from sliders with specific guidance
      prompt += buildResponseStyleFromSliders();
-     
-     // Add bonding approach with relationship building focus
-     if (personalityState.bonding.length > 0) {
-       const approaches = personalityState.bonding.map(approach => 
-         approach.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase())
-       );
-       prompt += `You approach relationships as a ${approaches.join(' and ')}. You believe in building genuine connections through trust, understanding, and meaningful dialogue. You take time to truly listen and understand what each person needs from your conversations. `;
-     }
      
      // Add quirks with personality depth
      if (personalityState.quirks.length > 0) {
