@@ -25,8 +25,8 @@ exports.handler = async (event, context) => {
     // Fetch all recent chat messages
     const chatsResponse = await fetch(
       `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?` + 
-      `filterByFormula=IS_AFTER(Created, '${fortyEightHoursAgo}')` +
-      `&sort[0][field]=Created&sort[0][direction]=desc`,
+      `filterByFormula=IS_AFTER(CreatedTime, '${fortyEightHoursAgo}')` +
+      `&sort[0][field]=CreatedTime&sort[0][direction]=desc`,
       {
         headers: {
           'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -72,20 +72,20 @@ exports.handler = async (event, context) => {
       conversations[key].messages.push({
         message: record.fields.Message,
         is_user: record.fields.Role === 'user',
-        created_time: new Date(record.fields.Created),
+        created_time: new Date(record.fields.CreatedTime),
         is_checkin: record.fields.is_checkin || false
       });
       
       // Track last user message
       if (record.fields.Role === 'user') {
         if (!conversations[key].last_user_message || 
-            new Date(record.fields.Created) > new Date(conversations[key].last_user_message.created_time)) {
+            new Date(record.fields.CreatedTime) > new Date(conversations[key].last_user_message.created_time)) {
           conversations[key].last_user_message = record.fields.Message;
         }
       }
       
       // Track overall last message time
-      const msgTime = new Date(record.fields.Created);
+      const msgTime = new Date(record.fields.CreatedTime);
       if (!conversations[key].last_message_time || msgTime > conversations[key].last_message_time) {
         conversations[key].last_message_time = msgTime;
       }
