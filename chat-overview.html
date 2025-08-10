@@ -1931,73 +1931,126 @@ line-clamp: 3;
     <div class="companion-status-counter" id="companionStatusCounter" style="
       background: white;
       border-radius: 12px;
-      padding: 16px 24px;
-      margin-bottom: 24px;
+      padding: 12px 16px;
+      margin-bottom: 20px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
       display: none;
-      align-items: center;
-      justify-content: center;
-      gap: 32px;
-      flex-wrap: wrap;
     ">
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <div style="
-          width: 48px;
-          height: 48px;
+      <style>
+        @media (min-width: 769px) {
+          .companion-status-counter {
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+          }
+          .status-divider {
+            width: 1px;
+            height: 36px;
+            background: #e5e7eb;
+          }
+          .status-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+          }
+          .status-box {
+            width: 42px;
+            height: 42px;
+            font-size: 18px;
+          }
+        }
+        
+        @media (max-width: 768px) {
+          .companion-status-counter {
+            display: grid !important;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            padding: 12px !important;
+          }
+          .status-divider {
+            display: none !important;
+          }
+          .status-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 6px;
+          }
+          .status-box {
+            width: 36px;
+            height: 36px;
+            font-size: 16px;
+            border-radius: 10px !important;
+          }
+          .status-label {
+            font-size: 11px !important;
+            line-height: 1.2;
+          }
+          .status-type {
+            font-size: 13px !important;
+            line-height: 1.2;
+          }
+          #planLimitInfo {
+            grid-column: 1 / -1;
+            margin: 0 !important;
+            padding: 6px 12px !important;
+            font-size: 12px !important;
+            text-align: center;
+          }
+        }
+      </style>
+      
+      <div class="status-item">
+        <div class="status-box" style="
           background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%);
           border-radius: 12px;
           display: flex;
           align-items: center;
           justify-content: center;
           color: white;
-          font-size: 20px;
           font-weight: 700;
         " id="activeCount">0</div>
         <div>
-          <div style="font-size: 14px; color: #64748b;">Active</div>
-          <div style="font-size: 16px; font-weight: 600; color: #0f172a;">Companions</div>
+          <div class="status-label" style="font-size: 13px; color: #64748b;">Active</div>
+          <div class="status-type" style="font-size: 14px; font-weight: 600; color: #0f172a;">Companions</div>
         </div>
       </div>
       
-      <div style="width: 1px; height: 40px; background: #e5e7eb;"></div>
+      <div class="status-divider"></div>
       
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <div style="
-          width: 48px;
-          height: 48px;
+      <div class="status-item">
+        <div class="status-box" style="
           background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
           border-radius: 12px;
           display: flex;
           align-items: center;
           justify-content: center;
           color: white;
-          font-size: 20px;
           font-weight: 700;
         " id="pausedCount">0</div>
         <div>
-          <div style="font-size: 14px; color: #64748b;">Paused</div>
-          <div style="font-size: 16px; font-weight: 600; color: #0f172a;">Companions</div>
+          <div class="status-label" style="font-size: 13px; color: #64748b;">Paused</div>
+          <div class="status-type" style="font-size: 14px; font-weight: 600; color: #0f172a;">Companions</div>
         </div>
       </div>
       
-      <div style="width: 1px; height: 40px; background: #e5e7eb;"></div>
+      <div class="status-divider"></div>
       
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <div style="
-          width: 48px;
-          height: 48px;
+      <div class="status-item">
+        <div class="status-box" style="
           background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%);
           border-radius: 12px;
           display: flex;
           align-items: center;
           justify-content: center;
           color: white;
-          font-size: 20px;
           font-weight: 700;
         " id="totalCount">0</div>
         <div>
-          <div style="font-size: 14px; color: #64748b;">Total</div>
-          <div style="font-size: 16px; font-weight: 600; color: #0f172a;">Companions</div>
+          <div class="status-label" style="font-size: 13px; color: #64748b;">Total</div>
+          <div class="status-type" style="font-size: 14px; font-weight: 600; color: #0f172a;">Companions</div>
         </div>
       </div>
       
@@ -2959,6 +3012,15 @@ function extractAvatarUrl(chat) {
            message.includes('what are you doing?]') && message.includes('[Belangrijk geheugen') ||
            message.includes('whats on your mind?]') && message.includes('[Belangrijk geheugen') ||
            message.includes('how is your day?]') && message.includes('[Belangrijk geheugen') ||
+           message.includes('[Onboarding Information') ||
+           message.includes('[User Onboarding') ||
+           message.includes('Life Phase:') ||
+           message.includes('Focus Area:') ||
+           message.includes('Relationship Status:') ||
+           message.includes('Career Stage:') ||
+           message.includes('Business Stage:') ||
+           message.includes('Mindfulness Experience:') ||
+           message.includes('Friendship Situation:') ||
            (message.startsWith('{') && message.endsWith('}') && message.includes('"role"') && message.includes('"message"')) ||
            /^rec[A-Za-z0-9]{14}$/.test(message.trim()) ||
            (message.length > 500 && message.includes('[Belangrijk geheugen'));

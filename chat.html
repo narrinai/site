@@ -3017,6 +3017,36 @@
         margin-bottom: var(--spacing-md);
       }
       
+      /* Fix customization actions on mobile */
+      .customization-actions {
+        flex-wrap: wrap;
+        padding: var(--spacing-md) !important;
+      }
+      
+      .customization-actions button {
+        min-width: 100px;
+        font-size: var(--font-size-sm);
+      }
+      
+      #deleteCustomBtn {
+        width: 100%;
+        margin-bottom: var(--spacing-sm);
+      }
+      
+      #customizationSubmitBtn {
+        flex: 1;
+        min-width: 120px;
+      }
+      
+      .customization-actions .btn-secondary-form {
+        flex: 1;
+        min-width: 100px;
+      }
+      
+      .customization-actions > div[style*="flex: 1"] {
+        display: none !important;
+      }
+      
       .personality-section {
         padding: var(--spacing-md);
         margin-bottom: var(--spacing-md);
@@ -5861,7 +5891,14 @@ document.addEventListener('DOMContentLoaded', () => {
         personalityType = 'mysterious';
       }
       
-      const selectedStarters = personalityStarters[personalityType];
+      // Ensure we always have a fallback starter
+      const selectedStarters = personalityStarters[personalityType] || personalityStarters['default'];
+      
+      // If we still don't have starters, use a generic one
+      if (!selectedStarters || selectedStarters.length === 0) {
+        return "Hello! I'm excited to chat with you. What brings you here today?";
+      }
+      
       return selectedStarters[Math.floor(Math.random() * selectedStarters.length)];
     }
     
@@ -6174,15 +6211,18 @@ document.addEventListener('DOMContentLoaded', () => {
       
       starterChatlog.appendChild(starterMessage);
       
+      // Clean up any strange formatting symbols
+      const cleanStarter = starter.replace(/≡/g, '\n').replace(/\n\n+/g, '\n\n').trim();
+      
       // Use typewriter effect for the starter
       const typingSpan = starterMessage.querySelector('.typing-text');
       
       // Add a small delay to ensure the element is rendered
       setTimeout(() => {
         if (currentCharacter.voice_id) {
-          typewriterWithVoice(typingSpan, starter, currentCharacter.voice_id);
+          typewriterWithVoice(typingSpan, cleanStarter, currentCharacter.voice_id);
         } else {
-          typewriterEffect(typingSpan, starter);
+          typewriterEffect(typingSpan, cleanStarter);
         }
       }, 100);
       
@@ -11691,14 +11731,17 @@ hideTypingIndicator();
       return div.innerHTML;
     };
     
+    // Clean up any strange formatting symbols in the reply
+    const cleanReply = reply.replace(/≡/g, '\n').replace(/\n\n+/g, '\n\n').trim();
+    
     // Store the reply in a data attribute to avoid escaping issues
-    divBot.setAttribute('data-reply', reply);
+    divBot.setAttribute('data-reply', cleanReply);
     
     // Use voice-enabled typewriter if character has voice
     if (currentCharacter.voice_id) {
-      typewriterWithVoice(typingSpan, reply, currentCharacter.voice_id);
+      typewriterWithVoice(typingSpan, cleanReply, currentCharacter.voice_id);
     } else {
-      typewriterEffect(typingSpan, reply);
+      typewriterEffect(typingSpan, cleanReply);
     }
     
     // Add click handler to voice button after it's created
