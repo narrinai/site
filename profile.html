@@ -4391,9 +4391,9 @@ function handleLoginSuccess(user, eventType = 'unknown') {
         setTimeout(updateOptionalField, 300);
         setTimeout(updateOptionalField, 500);
         
-        // Add terms acceptance text directly to the modal form
+        // Add terms notice at bottom of screen for mobile
         setTimeout(() => {
-          addTermsToModalForm();
+          addFixedTermsNotice();
         }, 500);
       });
 
@@ -4401,10 +4401,15 @@ function handleLoginSuccess(user, eventType = 'unknown') {
         console.log('🔒 Modal closed');
         document.body.classList.remove('modal-open');
         
-        // Remove floating terms notice
-        const existingNotice = document.getElementById('floating-terms-notice');
-        if (existingNotice) {
-          existingNotice.remove();
+        // Remove any terms notices
+        const floatingNotice = document.getElementById('floating-terms-notice');
+        if (floatingNotice) {
+          floatingNotice.remove();
+        }
+        
+        const fixedNotice = document.getElementById('fixed-terms-notice');
+        if (fixedNotice) {
+          fixedNotice.remove();
         }
         
         if (window.innerWidth <= 768) {
@@ -4628,7 +4633,78 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       setTimeout(() => observer.disconnect(), 5000);
     }
 
-    // Function to add terms directly into the modal form
+    // Function to add fixed terms notice at bottom of screen
+    function addFixedTermsNotice() {
+      // Remove any existing notice
+      const existingNotice = document.getElementById('fixed-terms-notice');
+      if (existingNotice) {
+        existingNotice.remove();
+      }
+      
+      // Create the terms notice
+      const termsNotice = document.createElement('div');
+      termsNotice.id = 'fixed-terms-notice';
+      
+      // Check if mobile
+      const isMobile = window.innerWidth <= 768;
+      
+      if (isMobile) {
+        // Mobile: Fixed at very bottom of viewport
+        termsNotice.style.cssText = `
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          width: 100%;
+          background: linear-gradient(to top, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.98));
+          border-top: 1px solid rgba(20, 184, 166, 0.3);
+          padding: 12px 20px;
+          font-size: 10px;
+          color: #64748b;
+          text-align: center;
+          z-index: 999999998;
+          box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+          font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+          line-height: 1.4;
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+        `;
+      } else {
+        // Desktop: Positioned below modal
+        termsNotice.style.cssText = `
+          position: fixed;
+          bottom: 50px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: rgba(255, 255, 255, 0.98);
+          border: 1px solid rgba(20, 184, 166, 0.4);
+          border-radius: 8px;
+          padding: 10px 20px;
+          font-size: 12px;
+          color: #64748b;
+          text-align: center;
+          z-index: 999999998;
+          max-width: 400px;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+          font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+          line-height: 1.4;
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+        `;
+      }
+      
+      termsNotice.innerHTML = `
+        By signing up, you agree to our 
+        <a href="/terms-and-conditions.html" target="_blank" style="color: #14b8a6; text-decoration: none; font-weight: 500; border-bottom: 1px solid rgba(20, 184, 166, 0.3);">Terms & Conditions</a>
+        and 
+        <a href="/privacy-policy.html" target="_blank" style="color: #14b8a6; text-decoration: none; font-weight: 500; border-bottom: 1px solid rgba(20, 184, 166, 0.3);">Privacy Policy</a>
+      `;
+      
+      document.body.appendChild(termsNotice);
+      console.log('✅ Fixed terms notice added at bottom');
+    }
+    
+    // Keep the old function for compatibility (not used anymore)
     function addTermsToModalForm() {
       // Use MutationObserver to watch for form changes
       const observer = new MutationObserver(() => {
