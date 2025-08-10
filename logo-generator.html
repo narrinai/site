@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Narrin AI - Logo Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #f8fafc;
+      padding: 40px;
+      color: #1e293b;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 36px;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .subtitle {
+      color: #64748b;
+      margin-bottom: 40px;
+    }
+
+    .logo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      margin-bottom: 50px;
+    }
+
+    .logo-card {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .logo-container {
+      width: 100%;
+      height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      position: relative;
+    }
+
+    .logo {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: 48px;
+      letter-spacing: -1px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 42px;
+      height: 42px;
+      position: relative;
+    }
+
+    .logo-icon-circle {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .logo-icon-gradient {
+      background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%);
+    }
+
+    .logo-icon-letter {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: 24px;
+      color: white;
+    }
+
+    /* Logo Variations */
+    .logo-standard {
+      background: #ffffff;
+    }
+
+    .logo-standard .logo {
+      background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .logo-inverted {
+      background: #1e293b;
+    }
+
+    .logo-inverted .logo {
+      color: #ffffff;
+    }
+
+    .logo-inverted .logo-icon-circle {
+      background: #ffffff;
+    }
+
+    .logo-inverted .logo-icon-letter {
+      color: #1e293b;
+    }
+
+    .logo-teal {
+      background: #ffffff;
+    }
+
+    .logo-teal .logo {
+      color: #14b8a6;
+    }
+
+    .logo-teal .logo-icon-circle {
+      background: #14b8a6;
+    }
+
+    .logo-dark {
+      background: #ffffff;
+    }
+
+    .logo-dark .logo {
+      color: #1e293b;
+    }
+
+    .logo-dark .logo-icon-circle {
+      background: #1e293b;
+    }
+
+    .logo-white-bg {
+      background: #14b8a6;
+    }
+
+    .logo-white-bg .logo {
+      color: #ffffff;
+    }
+
+    .logo-white-bg .logo-icon-circle {
+      background: #ffffff;
+    }
+
+    .logo-white-bg .logo-icon-letter {
+      color: #14b8a6;
+    }
+
+    .logo-minimal {
+      background: #ffffff;
+    }
+
+    .logo-minimal .logo {
+      color: #1e293b;
+    }
+
+    .logo-minimal .logo-icon-circle {
+      background: transparent;
+      border: 3px solid #14b8a6;
+    }
+
+    .logo-minimal .logo-icon-letter {
+      color: #14b8a6;
+    }
+
+    .logo-green {
+      background: #ffffff;
+    }
+
+    .logo-green .logo {
+      color: #22c55e;
+    }
+
+    .logo-green .logo-icon-circle {
+      background: #22c55e;
+    }
+
+    .logo-green .logo-icon-letter {
+      color: #ffffff;
+    }
+
+    .card-title {
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #1e293b;
+    }
+
+    .card-description {
+      color: #64748b;
+      font-size: 14px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .download-btn {
+      background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%);
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .download-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+    }
+
+    .color-section {
+      margin-top: 50px;
+    }
+
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .color-card {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .color-sample {
+      height: 80px;
+    }
+
+    .color-info {
+      padding: 15px;
+    }
+
+    .color-name {
+      font-weight: 600;
+      margin-bottom: 5px;
+      font-size: 14px;
+    }
+
+    .color-code {
+      color: #64748b;
+      font-size: 13px;
+      font-family: monospace;
+    }
+
+    h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 28px;
+      margin-bottom: 20px;
+      color: #1e293b;
+    }
+
+    .tagline {
+      font-size: 14px;
+      color: #64748b;
+      margin-top: 5px;
+      font-style: italic;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 20px;
+      }
+
+      .logo {
+        font-size: 36px;
+      }
+
+      .logo-icon {
+        width: 32px;
+        height: 32px;
+      }
+
+      .logo-icon-letter {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Narrin AI Brand Kit</h1>
+    <p class="subtitle">Logo variations and brand colors for all your needs</p>
+
+    <div class="logo-grid">
+      <!-- Standard Logo -->
+      <div class="logo-card">
+        <div class="logo-container logo-standard">
+          <div class="logo">
+            <div class="logo-icon">
+              <div class="logo-icon-circle logo-icon-gradient">
+                <span class="logo-icon-letter">N</span>
+              </div>
+            </div>
+            <span>Narrin</span>
+          </div>
+        </div>
+        <h3 class="card-title">Standard Logo</h3>
+        <p class="card-description">Primary gradient version for light backgrounds</p>
+        <button class="download-btn" onclick="downloadLogo('standard')">Download PNG</button>
+      </div>
+
+      <!-- Inverted Logo -->
+      <div class="logo-card">
+        <div class="logo-container logo-inverted">
+          <div class="logo">
+            <div class="logo-icon">
+              <div class="logo-icon-circle">
+                <span class="logo-icon-letter">N</span>
+              </div>
+            </div>
+            <span>Narrin</span>
+          </div>
+        </div>
+        <h3 class="card-title">Inverted Logo</h3>
+        <p class="card-description">White version for dark backgrounds</p>
+        <button class="download-btn" onclick="downloadLogo('inverted')">Download PNG</button>
+      </div>
+
+      <!-- Teal Monochrome -->
+      <div class="logo-card">
+        <div class="logo-container logo-teal">
+          <div class="logo">
+            <div class="logo-icon">
+              <div class="logo-icon-circle">
+                <span class="logo-icon-letter">N</span>
+              </div>
+            </div>
+            <span>Narrin</span>
+          </div>
+        </div>
+        <h3 class="card-title">Teal Monochrome</h3>
+        <p class="card-description">Single color for simple applications</p>
+        <button class="download-btn" onclick="downloadLogo('teal')">Download PNG</button>
+      </div>
+
+      <!-- Dark/Navy Version -->
+      <div class="logo-card">
+        <div class="logo-container logo-dark">
+          <div class="logo">
+            <div class="logo-icon">
+              <div class="logo-icon-circle">
+                <span class="logo-icon-letter">N</span>
+              </div>
+            </div>
+            <span>Narrin</span>
+          </div>
+        </div>
+        <h3 class="card-title">Dark Version</h3>
+        <p class="card-description">Navy version for professional contexts</p>
+        <button class="download-btn" onclick="downloadLogo('dark')">Download PNG</button>
+      </div>
+
+      <!-- White on Teal -->
+      <div class="logo-card">
+        <div class="logo-container logo-white-bg">
+          <div class="logo">
+            <div class="logo-icon">
+              <div class="logo-icon-circle">
+                <span class="logo-icon-letter">N</span>
+              </div>
+            </div>
+            <span>Narrin</span>
+          </div>
+        </div>
+        <h3 class="card-title">White on Brand</h3>
+        <p class="card-description">For use on brand color backgrounds</p>
+        <button class="download-btn" onclick="downloadLogo('white-brand')">Download PNG</button>
+      </div>
+
+      <!-- Minimal/Outline -->
+      <div class="logo-card">
+        <div class="logo-container logo-minimal">
+          <div class="logo">
+            <div class="logo-icon">
+              <div class="logo-icon-circle">
+                <span class="logo-icon-letter">N</span>
+              </div>
+            </div>
+            <span>Narrin</span>
+          </div>
+        </div>
+        <h3 class="card-title">Minimal Version</h3>
+        <p class="card-description">Outline style for subtle branding</p>
+        <button class="download-btn" onclick="downloadLogo('minimal')">Download PNG</button>
+      </div>
+
+      <!-- Logo with Tagline -->
+      <div class="logo-card">
+        <div class="logo-container logo-standard">
+          <div style="text-align: center;">
+            <div class="logo">
+              <div class="logo-icon">
+                <div class="logo-icon-circle logo-icon-gradient">
+                  <span class="logo-icon-letter">N</span>
+                </div>
+              </div>
+              <span>Narrin</span>
+            </div>
+            <div class="tagline">AI Companions for Life</div>
+          </div>
+        </div>
+        <h3 class="card-title">Logo with Tagline</h3>
+        <p class="card-description">Complete brand signature</p>
+        <button class="download-btn" onclick="downloadLogo('tagline')">Download PNG</button>
+      </div>
+
+      <!-- Green/Eco Version -->
+      <div class="logo-card">
+        <div class="logo-container logo-green">
+          <div class="logo">
+            <div class="logo-icon">
+              <div class="logo-icon-circle">
+                <span class="logo-icon-letter">N</span>
+              </div>
+            </div>
+            <span>Narrin</span>
+          </div>
+        </div>
+        <h3 class="card-title">Green Version</h3>
+        <p class="card-description">Eco-friendly green on white</p>
+        <button class="download-btn" onclick="downloadLogo('green')">Download PNG</button>
+      </div>
+
+      <!-- Icon Only -->
+      <div class="logo-card">
+        <div class="logo-container logo-standard">
+          <div class="logo-icon" style="width: 60px; height: 60px;">
+            <div class="logo-icon-circle logo-icon-gradient">
+              <span class="logo-icon-letter" style="font-size: 32px;">N</span>
+            </div>
+          </div>
+        </div>
+        <h3 class="card-title">Icon Only</h3>
+        <p class="card-description">For app icons and avatars</p>
+        <button class="download-btn" onclick="downloadLogo('icon')">Download PNG</button>
+      </div>
+    </div>
+
+    <!-- Color Palette Section -->
+    <div class="color-section">
+      <h2>Brand Colors</h2>
+      <div class="color-grid">
+        <div class="color-card">
+          <div class="color-sample" style="background: #14b8a6;"></div>
+          <div class="color-info">
+            <div class="color-name">Teal</div>
+            <div class="color-code">#14b8a6</div>
+          </div>
+        </div>
+        <div class="color-card">
+          <div class="color-sample" style="background: #f97316;"></div>
+          <div class="color-info">
+            <div class="color-name">Coral</div>
+            <div class="color-code">#f97316</div>
+          </div>
+        </div>
+        <div class="color-card">
+          <div class="color-sample" style="background: #1e293b;"></div>
+          <div class="color-info">
+            <div class="color-name">Navy</div>
+            <div class="color-code">#1e293b</div>
+          </div>
+        </div>
+        <div class="color-card">
+          <div class="color-sample" style="background: #5eead4;"></div>
+          <div class="color-info">
+            <div class="color-name">Teal Light</div>
+            <div class="color-code">#5eead4</div>
+          </div>
+        </div>
+        <div class="color-card">
+          <div class="color-sample" style="background: #0f766e;"></div>
+          <div class="color-info">
+            <div class="color-name">Teal Dark</div>
+            <div class="color-code">#0f766e</div>
+          </div>
+        </div>
+        <div class="color-card">
+          <div class="color-sample" style="background: #fb923c;"></div>
+          <div class="color-info">
+            <div class="color-name">Coral Light</div>
+            <div class="color-code">#fb923c</div>
+          </div>
+        </div>
+        <div class="color-card">
+          <div class="color-sample" style="background: #ea580c;"></div>
+          <div class="color-info">
+            <div class="color-name">Coral Dark</div>
+            <div class="color-code">#ea580c</div>
+          </div>
+        </div>
+        <div class="color-card">
+          <div class="color-sample" style="background: #22c55e;"></div>
+          <div class="color-info">
+            <div class="color-name">Green</div>
+            <div class="color-code">#22c55e</div>
+          </div>
+        </div>
+        <div class="color-card">
+          <div class="color-sample" style="background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%);"></div>
+          <div class="color-info">
+            <div class="color-name">Primary Gradient</div>
+            <div class="color-code">135°, #14b8a6 → #f97316</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function downloadLogo(type) {
+      // Create canvas
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      // Set dimensions based on type
+      if (type === 'icon') {
+        canvas.width = 512;
+        canvas.height = 512;
+      } else {
+        canvas.width = 800;
+        canvas.height = 300;
+      }
+      
+      // Draw based on type
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Add logo rendering based on type
+      // This is a simplified version - in production you'd want to properly render each variation
+      
+      // Convert to blob and download
+      canvas.toBlob(function(blob) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `narrin-logo-${type}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
+    }
+  </script>
+</body>
+</html>
