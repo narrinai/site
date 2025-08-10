@@ -120,9 +120,9 @@ exports.handler = async (event, context) => {
 
     // Process each inactive chat
     for (const chat of inactiveChats) {
-      // Get user details from linked record ID
+      // Get user details using filterByFormula with record ID
       const userResponse = await fetch(
-        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users/${chat.user_record_id}`,
+        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=RECORD_ID()='${chat.user_record_id}'`,
         {
           headers: {
             'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -132,19 +132,19 @@ exports.handler = async (event, context) => {
       );
 
       const userData = await userResponse.json();
-      if (!userData.fields) {
+      if (!userData.records || userData.records.length === 0) {
         console.log(`User record ${chat.user_record_id} not found`);
         continue;
       }
       
-      const user = userData.fields;
+      const user = userData.records[0].fields;
       const userEmail = user.Email || user.email;
       const userName = user.Name || user.name || 'there';
       const userNetlifyUID = user.NetlifyUID;
 
-      // Get character details from linked record ID
+      // Get character details using filterByFormula with record ID
       const characterResponse = await fetch(
-        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters/${chat.character_record_id}`,
+        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula=RECORD_ID()='${chat.character_record_id}'`,
         {
           headers: {
             'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -154,12 +154,12 @@ exports.handler = async (event, context) => {
       );
 
       const characterData = await characterResponse.json();
-      if (!characterData.fields) {
+      if (!characterData.records || characterData.records.length === 0) {
         console.log(`Character record ${chat.character_record_id} not found`);
         continue;
       }
       
-      const character = characterData.fields;
+      const character = characterData.records[0].fields;
       const characterSlug = character.Slug || character.slug;
       
       // Check if character category requires onboarding
