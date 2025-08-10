@@ -4680,11 +4680,12 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
     
     console.log('📤 Sending character data to API...');
     
-    // If no avatar URL is provided, mark for AI generation
+    // If no avatar URL is provided, generate emoji avatar and mark for AI generation
     if (!formData.avatarUrl) {
-      console.log('🎨 No avatar provided, will generate AI portrait when chat loads');
-      // Don't send SVG data URL, just empty string and flag for AI generation
-      formData.avatarUrl = '';
+      console.log('🎨 No avatar provided, generating emoji avatar and marking for AI generation');
+      // Generate an emoji avatar as fallback
+      const emojiAvatar = generateEmojiAvatar(formData.name, formData.category);
+      formData.avatarUrl = emojiAvatar;
       formData.needs_ai_avatar = true;
     }
     
@@ -4807,8 +4808,8 @@ console.log('🔗 Generated slug:', slug);
       Category: formData.category,  // Also send with exact Airtable field name
       visibility: formData.visibility,
       Visibility: formData.visibility,  // Also send with exact Airtable field name
-      avatar_url: formData.avatarUrl || '',      
-      Avatar_URL: formData.avatarUrl || '',  // Also send with exact Airtable field name
+      avatar_url: formData.avatarUrl || generateEmojiAvatar(formData.name, formData.category),      
+      Avatar_URL: formData.avatarUrl || generateEmojiAvatar(formData.name, formData.category),  // Also send with exact Airtable field name
       character_url: `https://narrin.ai/chat.html?char=${slug}`,
       voice_id: getSelectedVoiceId(),
       voice_type: document.querySelector('input[name="voiceSelection"]:checked').value,
