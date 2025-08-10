@@ -4963,36 +4963,45 @@ document.addEventListener('DOMContentLoaded', () => {
    </div>
  </footer>
 <!-- Upgrade Popup -->
-<div id="upgradePopup" class="upgrade-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.8); z-index: 10000; display: flex; align-items: center; justify-content: center;">
+<div id="upgradePopup" class="upgrade-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.8); z-index: 10000; align-items: center; justify-content: center;">
   <div class="upgrade-modal" style="background: white; border-radius: 16px; padding: 32px; max-width: 500px; width: 90%; text-align: center; position: relative;">
-    <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%);"></div>
+    <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%); border-top-left-radius: 16px; border-top-right-radius: 16px;"></div>
     
     <div class="upgrade-header" style="margin-bottom: 24px;">
       <div class="upgrade-icon" style="font-size: 48px; margin-bottom: 16px;">💎</div>
-      <h3 class="upgrade-title" style="font-size: 24px; font-weight: 700; color: #0f172a; margin: 0 0 8px 0;">Continue Your Journey</h3>
+      <h3 id="upgradeTitle" class="upgrade-title" style="font-size: 24px; font-weight: 700; color: #0f172a; margin: 0 0 8px 0;">Continue Your Journey</h3>
       <p id="upgradeMessage" class="upgrade-subtitle" style="color: #64748b; line-height: 1.6;"></p>
     </div>
     
     <div class="upgrade-benefits" style="background: #f8fafc; border-radius: 12px; padding: 20px; margin-bottom: 24px; text-align: left;">
+      <h4 style="margin: 0 0 12px 0; color: #1e293b; font-size: 14px; font-weight: 600;">Upgrade to Immerse and get:</h4>
       <div class="benefit-item" style="display: flex; align-items: center; padding: 8px 0;">
-        <span class="benefit-icon" style="font-size: 20px; margin-right: 12px;">✨</span>
+        <span class="benefit-icon" style="font-size: 20px; margin-right: 12px;">💬</span>
         <span class="benefit-text" style="color: #475569;">Unlimited Chat Messages</span>
       </div>
       <div class="benefit-item" style="display: flex; align-items: center; padding: 8px 0;">
         <span class="benefit-icon" style="font-size: 20px; margin-right: 12px;">🎙️</span>
-        <span class="benefit-text" style="color: #475569;">Unlimited Voice Chat</span>
+        <span class="benefit-text" style="color: #475569;">Unlimited Voice Messages (Text-to-Speech)</span>
+      </div>
+      <div class="benefit-item" style="display: flex; align-items: center; padding: 8px 0;">
+        <span class="benefit-icon" style="font-size: 20px; margin-right: 12px;">🎧</span>
+        <span class="benefit-text" style="color: #475569;">Voice Input (Speech-to-Text)</span>
       </div>
       <div class="benefit-item" style="display: flex; align-items: center; padding: 8px 0;">
         <span class="benefit-icon" style="font-size: 20px; margin-right: 12px;">🤝</span>
-        <span class="benefit-text" style="color: #475569;">Create More Companions</span>
+        <span class="benefit-text" style="color: #475569;">Unlimited Active Companions</span>
       </div>
       <div class="benefit-item" style="display: flex; align-items: center; padding: 8px 0;">
         <span class="benefit-icon" style="font-size: 20px; margin-right: 12px;">🧠</span>
-        <span class="benefit-text" style="color: #475569;">Extensive Character Memory</span>
+        <span class="benefit-text" style="color: #475569;">Advanced Character Memory</span>
+      </div>
+      <div class="benefit-item" style="display: flex; align-items: center; padding: 8px 0;">
+        <span class="benefit-icon" style="font-size: 20px; margin-right: 12px;">⚡</span>
+        <span class="benefit-text" style="color: #475569;">Faster Response Times</span>
       </div>
       <div class="benefit-item" style="display: flex; align-items: center; padding: 8px 0;">
         <span class="benefit-icon" style="font-size: 20px; margin-right: 12px;">👑</span>
-        <span class="benefit-text" style="color: #475569;">Priority Support & Faster Responses</span>
+        <span class="benefit-text" style="color: #475569;">Priority Support</span>
       </div>
     </div>
     
@@ -5011,14 +5020,25 @@ document.addEventListener('DOMContentLoaded', () => {
 function showUpgradePopup(reason) {
   const popup = document.getElementById('upgradePopup');
   const message = document.getElementById('upgradeMessage');
+  const title = document.getElementById('upgradeTitle');
+  const userPlan = localStorage.getItem('user_plan') || 'Free';
   
   if (reason === 'companion_limit') {
-    const userPlan = localStorage.getItem('user_plan') || 'Free';
+    title.textContent = 'Companion Limit Reached';
     if (userPlan === 'Free') {
-      message.innerHTML = "You've reached your limit of <strong>2 companions</strong> on the Free plan. Upgrade to create more AI companions and unlock additional features!";
+      message.innerHTML = "<strong>You've reached your limit of 2 active companions on the Free plan.</strong><br><br>To create this new companion, you'll need to pause an existing one or upgrade your plan. Free users can have 2 active companions at a time.";
     } else if (userPlan === 'Engage') {
-      message.innerHTML = "You've reached your limit of <strong>5 companions</strong> on the Engage plan. Upgrade to Immerse for unlimited companions and all premium features!";
+      message.innerHTML = "<strong>You've reached your limit of 5 active companions on the Engage plan.</strong><br><br>To create this new companion, you'll need to pause an existing one or upgrade to Immerse for unlimited active companions.";
     }
+  } else if (reason === 'message_limit') {
+    title.textContent = 'Message Limit Reached';
+    message.innerHTML = "<strong>You've used all 10 free messages for today.</strong><br><br>Upgrade to continue chatting with unlimited messages and unlock voice features, more companions, and premium benefits.";
+  } else if (reason === 'voice_feature') {
+    title.textContent = 'Premium Feature';
+    message.innerHTML = "<strong>Voice chat is a premium feature.</strong><br><br>Upgrade to Immerse to use unlimited voice messages (text-to-speech) and voice input (speech-to-text) with all your companions.";
+  } else {
+    title.textContent = 'Continue Your Journey';
+    message.innerHTML = "Unlock the full Narrin AI experience with our premium plans!";
   }
   
   popup.style.display = 'flex';
