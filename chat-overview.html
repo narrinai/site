@@ -987,8 +987,30 @@
       border-color: var(--color-teal);
     }
     
-    .chat-card:hover .delete-chat-btn {
+    .chat-card:hover .pause-toggle-container {
       opacity: 1 !important;
+    }
+    
+    .chat-card.paused {
+      opacity: 0.7;
+      filter: grayscale(30%);
+    }
+    
+    .chat-card.paused::after {
+      content: 'PAUSED';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(239, 68, 68, 0.9);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      pointer-events: none;
+      z-index: 5;
     }
 
     /* Floating animation for cards */
@@ -2587,6 +2609,13 @@ async function loadUserChats() {
     // Process the chats data from Airtable
     userChats = data.chats || [];
     
+    // Add paused state to chats
+    const pausedChats = JSON.parse(localStorage.getItem('pausedChats') || '[]');
+    userChats = userChats.map(chat => ({
+      ...chat,
+      isPaused: pausedChats.includes(chat.character_slug)
+    }));
+    
     console.log('✅ Chats loaded:', userChats.length, 'chats found');
     
     if (userChats.length > 0) {
@@ -2821,7 +2850,7 @@ function extractAvatarUrl(chat) {
   console.log('🃏 Creating card for chat:', chat);
   
   const card = document.createElement('a');
-  card.className = 'chat-card';
+  card.className = chat.isPaused ? 'chat-card paused' : 'chat-card';
   card.href = `chat.html?char=${chat.character_slug}`;
   
   // Verbeterde avatar handling
@@ -2860,27 +2889,49 @@ function extractAvatarUrl(chat) {
         <h3 class="chat-name">${chat.character_name || 'Unknown Character'}</h3>
         <p class="chat-title">${chat.character_title || 'AI Character'}</p>
       </div>
-      <button class="delete-chat-btn" onclick="event.preventDefault(); event.stopPropagation(); confirmDeleteChat('${chat.character_slug}', '${(chat.character_name || 'Unknown Character').replace(/'/g, "\\'")}')" title="Delete companion" style="
+      <div class="pause-toggle-container" style="
         position: absolute;
         top: 10px;
         right: 10px;
-        background: rgba(255, 255, 255, 0.9);
-        color: #6b7280;
-        border: 1px solid #e5e7eb;
-        border-radius: 50%;
-        width: 28px;
-        height: 28px;
-        font-size: 18px;
-        cursor: pointer;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        padding: 6px 10px;
         display: flex;
         align-items: center;
-        justify-content: center;
+        gap: 8px;
+        border: 1px solid #e5e7eb;
         transition: all 0.3s;
-        z-index: 10;
         opacity: 0;
-      " onmouseover="this.style.backgroundColor='#fee2e2'; this.style.color='#dc2626'; this.style.borderColor='#fca5a5';" onmouseout="this.style.backgroundColor='rgba(255, 255, 255, 0.9)'; this.style.color='#6b7280'; this.style.borderColor='#e5e7eb';">
-        ×
-      </button>
+        z-index: 10;
+      ">
+        <span style="font-size: 12px; color: ${chat.isPaused ? '#ef4444' : '#10b981'}; font-weight: 600;">
+          ${chat.isPaused ? 'Paused' : 'Active'}
+        </span>
+        <button class="pause-toggle-btn" onclick="event.preventDefault(); event.stopPropagation(); togglePauseChat('${chat.character_slug}', '${(chat.character_name || 'Unknown Character').replace(/'/g, "\\'")}', ${chat.isPaused || false})" style="
+          background: ${chat.isPaused ? '#fee2e2' : '#dcfce7'};
+          color: ${chat.isPaused ? '#dc2626' : '#16a34a'};
+          border: 1px solid ${chat.isPaused ? '#fca5a5' : '#86efac'};
+          border-radius: 12px;
+          width: 40px;
+          height: 20px;
+          position: relative;
+          cursor: pointer;
+          transition: all 0.3s;
+          padding: 0;
+        ">
+          <div style="
+            position: absolute;
+            top: 2px;
+            ${chat.isPaused ? 'left: 2px' : 'right: 2px'};
+            width: 14px;
+            height: 14px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+          "></div>
+        </button>
+      </div>
     </div>
     <div class="chat-preview">${previewText}</div>
     <div class="chat-meta">
@@ -2892,8 +2943,8 @@ function extractAvatarUrl(chat) {
   return card;
 }
 
-    // Delete character confirmation and functionality
-    function confirmDeleteChat(characterSlug, characterName) {
+    // Pause/unpause character functionality
+    function togglePauseChat(characterSlug, characterName, isPaused) {
       // Create modal if it doesn't exist
       let modal = document.getElementById('deleteModal');
       if (!modal) {
@@ -2995,6 +3046,137 @@ function extractAvatarUrl(chat) {
         modal.style.opacity = '1';
         document.getElementById('deleteModalContent').style.transform = 'scale(1)';
       }, 10);
+    }
+    
+    // New pause toggle function
+    function togglePauseChat(characterSlug, characterName, isPaused) {
+      try {
+        // Get current paused chats
+        let pausedChats = JSON.parse(localStorage.getItem('pausedChats') || '[]');
+        
+        // Check active companion limits before unpausing
+        if (isPaused) {
+          // Trying to unpause (activate) a companion
+          const userPlan = localStorage.getItem('user_plan') || 'Free';
+          const activeCount = userChats.filter(c => !c.isPaused && c.character_slug !== characterSlug).length;
+          
+          let maxActive = userPlan === 'Free' ? 2 : userPlan === 'Engage' ? 5 : Infinity;
+          
+          if (activeCount >= maxActive) {
+            // Show upgrade modal
+            showPauseLimitModal(userPlan, maxActive);
+            return;
+          }
+          
+          // Remove from paused list (activate)
+          pausedChats = pausedChats.filter(slug => slug !== characterSlug);
+        } else {
+          // Pausing a companion
+          if (!pausedChats.includes(characterSlug)) {
+            pausedChats.push(characterSlug);
+          }
+        }
+        
+        // Save updated paused list
+        localStorage.setItem('pausedChats', JSON.stringify(pausedChats));
+        
+        // Reload to update UI
+        window.location.reload();
+      } catch (error) {
+        console.error('Error toggling pause state:', error);
+        alert('An error occurred. Please try again.');
+      }
+    }
+    
+    function showPauseLimitModal(userPlan, maxActive) {
+      // Create modal for limit reached
+      let modal = document.getElementById('pauseLimitModal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'pauseLimitModal';
+        modal.style.cssText = `
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.8);
+          z-index: 10000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        `;
+        
+        document.body.appendChild(modal);
+      }
+      
+      modal.innerHTML = `
+        <div style="
+          background: white;
+          border-radius: 16px;
+          padding: 32px;
+          max-width: 500px;
+          width: 90%;
+          text-align: center;
+          position: relative;
+        ">
+          <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%);"></div>
+          
+          <div style="margin-bottom: 24px;">
+            <div style="font-size: 48px; margin-bottom: 16px;">💎</div>
+            <h3 style="font-size: 24px; font-weight: 700; color: #0f172a; margin: 0 0 8px 0;">Active Companion Limit</h3>
+            <p style="color: #64748b; line-height: 1.6;">
+              You've reached your limit of <strong>${maxActive} active companions</strong> on the ${userPlan} plan.
+              <br><br>
+              To activate this companion, you need to pause another one first, or upgrade your plan.
+            </p>
+          </div>
+          
+          <div style="background: #f8fafc; border-radius: 12px; padding: 20px; margin-bottom: 24px; text-align: left;">
+            <div style="display: flex; align-items: center; padding: 8px 0;">
+              <span style="font-size: 20px; margin-right: 12px;">✨</span>
+              <span style="color: #475569;">Free: 2 active companions</span>
+            </div>
+            <div style="display: flex; align-items: center; padding: 8px 0;">
+              <span style="font-size: 20px; margin-right: 12px;">🎯</span>
+              <span style="color: #475569;">Engage: 5 active companions</span>
+            </div>
+            <div style="display: flex; align-items: center; padding: 8px 0;">
+              <span style="font-size: 20px; margin-right: 12px;">🚀</span>
+              <span style="color: #475569;">Immerse: Unlimited active companions</span>
+            </div>
+          </div>
+          
+          <div style="display: flex; gap: 12px;">
+            <button onclick="window.location.href='profile.html#plans'" style="
+              flex: 1;
+              padding: 12px 20px;
+              background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%);
+              color: white;
+              border: none;
+              border-radius: 8px;
+              font-weight: 600;
+              cursor: pointer;
+            ">
+              Upgrade Plan
+            </button>
+            <button onclick="document.getElementById('pauseLimitModal').style.display='none'" style="
+              flex: 1;
+              padding: 12px 20px;
+              background: #e2e8f0;
+              color: #475569;
+              border: none;
+              border-radius: 8px;
+              font-weight: 600;
+              cursor: pointer;
+            ">
+              OK
+            </button>
+          </div>
+        </div>
+      `;
+      
+      modal.style.display = 'flex';
     }
     
     function closeDeleteModal() {
