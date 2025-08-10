@@ -13449,12 +13449,29 @@ document.addEventListener('DOMContentLoaded', () => {
       // Generate a personalized welcome message based on answers
       let category = currentCharacter.Category || currentCharacter.category || '';
       
-      // Normalize category
+      console.log('🎯 generatePersonalizedWelcome - Raw category:', category);
+      console.log('🎯 Available onboarding categories:', Object.keys(onboardingQuestions));
+      
+      // Normalize category to match onboardingQuestions keys (case-insensitive match)
       if (category) {
-        category = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
+        const categoryKeys = Object.keys(onboardingQuestions);
+        const exactMatch = categoryKeys.find(key => key.toLowerCase() === category.toLowerCase());
+        
+        if (exactMatch) {
+          category = exactMatch;
+          console.log('🎯 Found exact match:', category);
+        } else {
+          // If no exact match, try capitalizing first letter
+          category = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
+          console.log('🎯 No exact match, trying capitalized:', category);
+        }
       }
       
+      console.log('🎯 Final normalized category:', category);
+      
       const config = onboardingQuestions[category];
+      console.log('🎯 Config found:', !!config);
+      console.log('🎯 Config has contextMappings:', !!(config && config.contextMappings));
       
       if (config && config.contextMappings) {
         // Build personalized message based on Career answers

@@ -4839,8 +4839,9 @@ console.log('🔗 Generated slug:', slug);
       Category: formData.category,  // Also send with exact Airtable field name
       visibility: formData.visibility,
       Visibility: formData.visibility,  // Also send with exact Airtable field name
-avatar_url: formData.avatarUrl,      
-character_url: `https://narrin.ai/chat.html?char=${slug}`,
+      avatar_url: formData.avatarUrl ? [{ url: formData.avatarUrl }] : [],      
+      Avatar_URL: formData.avatarUrl ? [{ url: formData.avatarUrl }] : [],  // Also send with exact Airtable field name
+      character_url: `https://narrin.ai/chat.html?char=${slug}`,
       voice_id: getSelectedVoiceId(),
       voice_type: document.querySelector('input[name="voiceSelection"]:checked').value,
       response_length: document.querySelector('input[name="responseLength"]:checked')?.value || 'medium',

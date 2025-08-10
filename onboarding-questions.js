@@ -311,7 +311,50 @@ Which of these would you like to explore first? Or is there something else you'd
         maxLength: 500,
         required: false
       }
-    ]
+    ],
+    // Context mappings for AI understanding
+    contextMappings: {
+      relationship_status: {
+        single: "single and exploring relationships",
+        dating: "actively dating",
+        relationship: "in a committed relationship",
+        married: "married",
+        divorced: "divorced and healing",
+        complicated: "in a complicated situation"
+      },
+      relationship_goal: {
+        find_partner: "looking to find the right partner",
+        improve_current: "wanting to improve your current relationship",
+        heal_past: "healing from past relationships",
+        self_love: "focusing on self-love first",
+        understand_patterns: "understanding your relationship patterns",
+        explore: "exploring what you want in love"
+      },
+      love_challenge: {
+        finding: "finding the right person",
+        trust: "trust and vulnerability",
+        communication: "communication issues",
+        intimacy: "intimacy and connection",
+        past_hurt: "healing from past hurt",
+        self_worth: "self-worth and confidence"
+      },
+      love_style: {
+        traditional: "traditional and committed",
+        casual: "casual and exploratory",
+        deep: "deep emotional connection",
+        independent: "independent yet connected",
+        passionate: "passionate and intense",
+        steady: "steady and secure"
+      },
+      support_needed: {
+        advice: "practical dating advice",
+        healing: "emotional healing support",
+        confidence: "confidence building",
+        understanding: "understanding myself better",
+        skills: "relationship skills",
+        perspective: "new perspectives on love"
+      }
+    }
   },
   
   "Life": {
@@ -395,7 +438,50 @@ Which of these would you like to explore first? Or is there something else you'd
         maxLength: 500,
         required: false
       }
-    ]
+    ],
+    // Context mappings for AI understanding
+    contextMappings: {
+      life_phase: {
+        student: "a student navigating your academic journey",
+        early_career: "in the early stages of your career",
+        established: "established in your career and life",
+        family: "focused on family and relationships",
+        transition: "going through a major life transition",
+        retirement: "in or approaching retirement"
+      },
+      life_area: {
+        career: "your career and professional life",
+        relationships: "your relationships and connections",
+        health: "your health and wellbeing",
+        personal: "your personal growth and development",
+        financial: "your financial situation",
+        purpose: "finding meaning and purpose"
+      },
+      current_feeling: {
+        stuck: "stuck and unable to move forward",
+        overwhelmed: "overwhelmed by everything",
+        lost: "lost and unsure of direction",
+        motivated: "motivated but need guidance",
+        curious: "curious about possibilities",
+        ready: "ready for change"
+      },
+      biggest_challenge: {
+        direction: "lack of clear direction",
+        confidence: "low confidence and self-doubt",
+        balance: "work-life balance issues",
+        decisions: "difficulty making decisions",
+        habits: "breaking old patterns",
+        time: "time management challenges"
+      },
+      desired_outcome: {
+        clarity: "more clarity about your path",
+        confidence: "increased confidence",
+        balance: "better life balance",
+        growth: "personal growth",
+        peace: "inner peace and contentment",
+        success: "achieving your goals"
+      }
+    }
   },
   
   "Mindfulness": {

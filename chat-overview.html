@@ -2994,9 +2994,12 @@ function extractAvatarUrl(chat) {
   card.className = chat.isPaused ? 'chat-card paused' : 'chat-card';
   card.href = `chat.html?char=${chat.character_slug}`;
   
+  // Extract avatar URL using helper function
+  const avatarUrl = extractAvatarUrl(chat);
+  
   // Verbeterde avatar handling
-  const avatarContent = chat.avatar_url 
-    ? `<img src="${chat.avatar_url}" alt="${chat.character_name}" onerror="this.parentElement.innerHTML='👤'" loading="lazy">`
+  const avatarContent = avatarUrl 
+    ? `<img src="${avatarUrl}" alt="${chat.character_name}" onerror="this.parentElement.innerHTML='👤'" loading="lazy">`
     : '👤';
 
   // Filter out debug/memory messages from preview
