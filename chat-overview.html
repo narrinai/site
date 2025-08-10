@@ -1813,8 +1813,8 @@ line-clamp: 3;
             <input 
               type="search" 
               class="nav-search-input" 
-              placeholder="Search characters..." 
-              aria-label="Search characters"
+              placeholder="Search companions..." 
+              aria-label="Search companions"
             />
             <button type="submit" class="search-submit" aria-label="Submit search">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1827,7 +1827,7 @@ line-clamp: 3;
 
         <!-- Desktop Navigation Links -->
         <nav class="nav-links" role="navigation" aria-label="Secondary navigation">
-          <a href="index.html" class="nav-link">Explore</a>
+          <a href="index.html" class="nav-link">Categories</a>
           <a href="chat-overview.html" class="nav-link">My Companions</a>
           <a href="profile.html" class="nav-link" id="loginBtn">Login/Register</a>
           <a href="create-character.html" class="btn btn-primary">✨ Create Companion</a>
@@ -1882,8 +1882,8 @@ line-clamp: 3;
         <input 
           type="search" 
           class="mobile-search-input" 
-          placeholder="Search characters..." 
-          aria-label="Search characters"
+          placeholder="Search companions..." 
+          aria-label="Search companions"
           id="mobileSearchInput"
         />
         <button type="submit" class="btn btn-primary" aria-label="Submit search">
@@ -1902,12 +1902,12 @@ line-clamp: 3;
       </div>
       <nav class="mobile-menu-nav" role="navigation" aria-label="Mobile navigation">
         <a href="index.html" class="mobile-menu-link">
-          <span class="mobile-menu-link-icon">👥</span>
-          Characters
+          <span class="mobile-menu-link-icon">📚</span>
+          Categories
         </a>
         <a href="chat-overview.html" class="mobile-menu-link">
           <span class="mobile-menu-link-icon">💬</span>
-          Chats
+          My Companions
         </a>
         <a href="profile.html" class="mobile-menu-link" id="mobileLoginBtn">
           <span class="mobile-menu-link-icon">👤</span>
@@ -2995,7 +2995,7 @@ function extractAvatarUrl(chat) {
       <span style="font-size: 13px; color: ${chat.isPaused ? '#ef4444' : '#10b981'}; font-weight: 600;">
         ${chat.isPaused ? 'Paused' : 'Active'}
       </span>
-      <button class="pause-toggle-btn" onclick="event.preventDefault(); event.stopPropagation(); togglePauseChat('${chat.character_slug}', '${(chat.character_name || 'Unknown Character').replace(/'/g, "\\'")}', ${chat.isPaused || false})" style="
+      <button class="pause-toggle-btn" onclick="event.preventDefault(); event.stopPropagation(); togglePauseChat('${chat.character_slug}', '${(chat.character_name || 'Unknown Character').replace(/'/g, "\\'")}', ${chat.isPaused || false}, event)" style="
         background: ${chat.isPaused ? '#fee2e2' : '#dcfce7'};
         color: ${chat.isPaused ? '#dc2626' : '#16a34a'};
         border: 1px solid ${chat.isPaused ? '#fca5a5' : '#86efac'};
@@ -3131,7 +3131,7 @@ function extractAvatarUrl(chat) {
     }
     
     // New pause toggle function
-    function togglePauseChat(characterSlug, characterName, isPaused) {
+    function togglePauseChat(characterSlug, characterName, isPaused, event) {
       try {
         // Get current paused chats
         let pausedChats = JSON.parse(localStorage.getItem('pausedChats') || '[]');
@@ -3162,8 +3162,34 @@ function extractAvatarUrl(chat) {
         // Save updated paused list
         localStorage.setItem('pausedChats', JSON.stringify(pausedChats));
         
-        // Reload to update UI
-        window.location.reload();
+        // Animate the toggle before reload
+        const toggleBtn = event.target.closest('.pause-toggle-btn');
+        if (toggleBtn) {
+          const toggleDot = toggleBtn.querySelector('.toggle-dot');
+          if (toggleDot) {
+            // Animate the toggle
+            if (isPaused) {
+              // Moving from right to left (unpausing/activating)
+              toggleDot.style.transform = 'translateX(0)';
+              toggleDot.style.backgroundColor = '#16a34a';
+            } else {
+              // Moving from left to right (pausing)
+              toggleDot.style.transform = 'translateX(20px)';
+              toggleDot.style.backgroundColor = '#dc2626';
+            }
+            
+            // Wait for animation to complete before reload
+            setTimeout(() => {
+              window.location.reload();
+            }, 300);
+          } else {
+            // No animation element found, reload immediately
+            window.location.reload();
+          }
+        } else {
+          // No button found, reload immediately
+          window.location.reload();
+        }
       } catch (error) {
         console.error('Error toggling pause state:', error);
         alert('An error occurred. Please try again.');
@@ -3488,7 +3514,7 @@ function extractAvatarUrl(chat) {
   <footer class="footer">
     <div class="footer-container">
       <div class="footer-links">
-        <a href="index.html" class="footer-link">Explore</a>
+        <a href="index.html" class="footer-link">Categories</a>
         <span class="footer-separator">•</span>
         <a href="chat-overview.html" class="footer-link">Chats</a>
         <span class="footer-separator">•</span>
