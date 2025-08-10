@@ -3917,6 +3917,13 @@ Join here: ${inviteLink}`;
 
     // GEFIXTE versie van handleLoginSuccess functie
 function handleLoginSuccess(user, eventType = 'unknown') {
+  // Remove the terms notice immediately on successful login
+  const fixedNotice = document.getElementById('fixed-terms-notice');
+  if (fixedNotice) {
+    fixedNotice.remove();
+    console.log('✅ Removed terms notice after successful login');
+  }
+  
   // Debug logging to see what Google provides
   console.log('🔍 Full user object:', JSON.stringify(user, null, 2));
   console.log('🔍 User email:', user.email);
