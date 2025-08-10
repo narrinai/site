@@ -564,6 +564,261 @@ Which of these would you like to explore first? Or is there something else you'd
         required: false
       }
     ]
+  },
+  
+  "Self-Improvement": {
+    enabled: true,
+    questions: [
+      {
+        id: "improvement_area",
+        question: "What area of your life do you most want to improve?",
+        type: "multiple_choice",
+        options: [
+          { value: "habits", label: "🎯 Daily habits and routines" },
+          { value: "mindset", label: "🧠 Mindset and thinking patterns" },
+          { value: "skills", label: "📚 Skills and knowledge" },
+          { value: "health", label: "💪 Physical and mental health" },
+          { value: "productivity", label: "⚡ Productivity and time management" },
+          { value: "confidence", label: "🌟 Self-confidence and self-esteem" },
+          { value: "other", label: "✨ Other area" }
+        ],
+        required: true
+      },
+      {
+        id: "current_challenge",
+        question: "What's your biggest challenge right now?",
+        type: "multiple_choice",
+        options: [
+          { value: "consistency", label: "📅 Staying consistent" },
+          { value: "motivation", label: "🔥 Finding motivation" },
+          { value: "clarity", label: "🎯 Lack of clarity on goals" },
+          { value: "time", label: "⏰ Not enough time" },
+          { value: "accountability", label: "🤝 Need accountability" },
+          { value: "knowledge", label: "📖 Don't know where to start" },
+          { value: "other", label: "💭 Other challenge" }
+        ],
+        required: true
+      },
+      {
+        id: "improvement_style",
+        question: "How do you prefer to work on self-improvement?",
+        type: "multiple_choice",
+        options: [
+          { value: "small_steps", label: "🐢 Small, steady steps" },
+          { value: "intensive", label: "🚀 Intensive, focused periods" },
+          { value: "structured", label: "📋 Structured programs" },
+          { value: "flexible", label: "🌊 Flexible and adaptable" },
+          { value: "experimental", label: "🔬 Trying different approaches" },
+          { value: "guided", label: "🧭 With clear guidance" }
+        ],
+        required: true
+      },
+      {
+        id: "success_measure",
+        question: "How will you know when you've succeeded?",
+        type: "multiple_choice",
+        options: [
+          { value: "feelings", label: "😊 How I feel about myself" },
+          { value: "achievements", label: "🏆 Specific achievements" },
+          { value: "others", label: "👥 Feedback from others" },
+          { value: "metrics", label: "📊 Measurable results" },
+          { value: "habits", label: "🔄 Changed behaviors" },
+          { value: "growth", label: "🌱 Personal growth" }
+        ],
+        required: true
+      },
+      {
+        id: "commitment_level",
+        question: "How much time can you dedicate daily?",
+        type: "multiple_choice",
+        options: [
+          { value: "5_min", label: "⏱️ 5-10 minutes" },
+          { value: "15_min", label: "⏰ 15-30 minutes" },
+          { value: "30_min", label: "🕐 30-60 minutes" },
+          { value: "1_hour", label: "⌚ 1-2 hours" },
+          { value: "flexible", label: "🔄 It varies day to day" }
+        ],
+        required: true
+      },
+      {
+        id: "additional_context",
+        question: "What specific goals or situations would you like to share?",
+        type: "open_text",
+        placeholder: "Tell me about your self-improvement goals, what you've tried before, or any specific areas you want to focus on...",
+        maxLength: 500,
+        required: false
+      }
+    ]
+  },
+  
+  "Motivation": {
+    enabled: true,
+    questions: [
+      {
+        id: "motivation_need",
+        question: "What do you need motivation for right now?",
+        type: "multiple_choice",
+        options: [
+          { value: "work", label: "💼 Work or career goals" },
+          { value: "personal", label: "🌟 Personal projects" },
+          { value: "health", label: "💪 Health and fitness" },
+          { value: "learning", label: "📚 Learning something new" },
+          { value: "creative", label: "🎨 Creative pursuits" },
+          { value: "life_change", label: "🔄 Making a life change" },
+          { value: "other", label: "✨ Other area" }
+        ],
+        required: true
+      },
+      {
+        id: "motivation_blocker",
+        question: "What's blocking your motivation?",
+        type: "multiple_choice",
+        options: [
+          { value: "fear", label: "😰 Fear of failure" },
+          { value: "overwhelm", label: "😵 Feeling overwhelmed" },
+          { value: "energy", label: "🔋 Low energy" },
+          { value: "direction", label: "🧭 Lack of direction" },
+          { value: "progress", label: "📉 Not seeing progress" },
+          { value: "support", label: "🤷 Lack of support" },
+          { value: "other", label: "💭 Other blocker" }
+        ],
+        required: true
+      },
+      {
+        id: "motivation_style",
+        question: "What motivates you most?",
+        type: "multiple_choice",
+        options: [
+          { value: "achievement", label: "🏆 Achieving goals" },
+          { value: "growth", label: "🌱 Personal growth" },
+          { value: "impact", label: "💫 Making an impact" },
+          { value: "recognition", label: "⭐ Recognition and praise" },
+          { value: "challenge", label: "🎯 Overcoming challenges" },
+          { value: "freedom", label: "🦅 Freedom and autonomy" }
+        ],
+        required: true
+      },
+      {
+        id: "energy_pattern",
+        question: "When do you feel most motivated?",
+        type: "multiple_choice",
+        options: [
+          { value: "morning", label: "🌅 Early morning" },
+          { value: "midday", label: "☀️ Midday" },
+          { value: "evening", label: "🌆 Evening" },
+          { value: "night", label: "🌙 Late night" },
+          { value: "varies", label: "🔄 It varies" },
+          { value: "rarely", label: "😔 Rarely these days" }
+        ],
+        required: true
+      },
+      {
+        id: "support_type",
+        question: "What type of motivational support works best for you?",
+        type: "multiple_choice",
+        options: [
+          { value: "encouragement", label: "💝 Gentle encouragement" },
+          { value: "accountability", label: "📊 Strict accountability" },
+          { value: "inspiration", label: "✨ Inspirational stories" },
+          { value: "practical", label: "🛠️ Practical strategies" },
+          { value: "challenge", label: "💪 Tough love" },
+          { value: "celebration", label: "🎉 Celebrating small wins" }
+        ],
+        required: true
+      },
+      {
+        id: "additional_context",
+        question: "What else would you like to share about your motivation journey?",
+        type: "open_text",
+        placeholder: "Tell me about your goals, what's been holding you back, or what you've tried before...",
+        maxLength: 500,
+        required: false
+      }
+    ]
+  },
+  
+  "Purpose": {
+    enabled: true,
+    questions: [
+      {
+        id: "purpose_stage",
+        question: "Where are you in your search for purpose?",
+        type: "multiple_choice",
+        options: [
+          { value: "lost", label: "🌫️ Feeling completely lost" },
+          { value: "questioning", label: "❓ Questioning everything" },
+          { value: "exploring", label: "🔍 Actively exploring" },
+          { value: "transitioning", label: "🔄 In transition" },
+          { value: "refining", label: "✨ Refining my purpose" },
+          { value: "living", label: "🌟 Living my purpose" }
+        ],
+        required: true
+      },
+      {
+        id: "life_satisfaction",
+        question: "How satisfied are you with your life direction?",
+        type: "multiple_choice",
+        options: [
+          { value: "very_unsatisfied", label: "😔 Very unsatisfied" },
+          { value: "unsatisfied", label: "😕 Somewhat unsatisfied" },
+          { value: "neutral", label: "😐 Neutral" },
+          { value: "satisfied", label: "🙂 Somewhat satisfied" },
+          { value: "very_satisfied", label: "😊 Very satisfied" }
+        ],
+        required: true
+      },
+      {
+        id: "values_clarity",
+        question: "How clear are you on your core values?",
+        type: "multiple_choice",
+        options: [
+          { value: "very_unclear", label: "🌫️ Very unclear" },
+          { value: "somewhat_unclear", label: "☁️ Somewhat unclear" },
+          { value: "emerging", label: "🌤️ Starting to emerge" },
+          { value: "mostly_clear", label: "⛅ Mostly clear" },
+          { value: "crystal_clear", label: "☀️ Crystal clear" }
+        ],
+        required: true
+      },
+      {
+        id: "purpose_blocker",
+        question: "What's preventing you from living with purpose?",
+        type: "multiple_choice",
+        options: [
+          { value: "clarity", label: "🌫️ Lack of clarity" },
+          { value: "fear", label: "😨 Fear of change" },
+          { value: "obligations", label: "⛓️ Current obligations" },
+          { value: "confidence", label: "💭 Lack of confidence" },
+          { value: "resources", label: "📊 Limited resources" },
+          { value: "support", label: "🤝 Lack of support" },
+          { value: "other", label: "✨ Other obstacle" }
+        ],
+        required: true
+      },
+      {
+        id: "fulfillment_source",
+        question: "What brings you the most fulfillment?",
+        type: "multiple_choice",
+        options: [
+          { value: "helping", label: "🤝 Helping others" },
+          { value: "creating", label: "🎨 Creating something new" },
+          { value: "solving", label: "🧩 Solving problems" },
+          { value: "connecting", label: "💝 Connecting with people" },
+          { value: "learning", label: "📚 Learning and growing" },
+          { value: "leading", label: "🌟 Leading and inspiring" },
+          { value: "other", label: "✨ Other source" }
+        ],
+        required: true
+      },
+      {
+        id: "additional_context",
+        question: "What else would you like to explore about your life purpose?",
+        type: "open_text",
+        placeholder: "Share your thoughts about meaning, what matters to you, or what you're searching for...",
+        maxLength: 500,
+        required: false
+      }
+    ]
   }
 };
 
