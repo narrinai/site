@@ -11918,36 +11918,47 @@ function showUpgradePrompt(usage, quota, type = 'messages') {
       <div class="upgrade-modal">
         <div class="upgrade-header">
           <div class="upgrade-icon">💎</div>
-          <h3 class="upgrade-title">Continue Your Journey</h3>
+          <h3 class="upgrade-title">${
+            type === 'tts' ? 'Voice Message Limit Reached' :
+            type === 'stt' ? 'Voice Recording Limit Reached' :
+            type === 'companions' ? 'Active Companion Limit' :
+            'Message Limit Reached'
+          }</h3>
           <p class="upgrade-subtitle">${
             type === 'tts' 
-              ? `You've used all your ${quota} voice messages today. Upgrade to enjoy unlimited voice conversations with your AI companions.`
+              ? `You've used all your <strong>${quota} voice messages</strong> for today. Your companions are waiting to hear your voice again!`
               : type === 'stt' 
-              ? `You've reached your ${quota} voice recording limit for today. Upgrade for unlimited voice interactions.`
-              : `You've used all your ${quota} meaningful conversations on the Free plan. Unlock unlimited conversations to explore deeper connections.`
+              ? `You've reached your <strong>${quota} voice recordings</strong> for today. Keep the conversation flowing with unlimited voice interactions.`
+              : type === 'companions'
+              ? `You've reached your limit of <strong>${quota} active companions</strong>. Upgrade to connect with unlimited AI friends.`
+              : `You've used your <strong>${quota} messages</strong> for this period. Your companions miss talking with you!`
           }</p>
         </div>
         
         <div class="upgrade-benefits">
-          <div class="benefit-item">
-            <span class="benefit-icon">✨</span>
-            <span class="benefit-text">Unlimited Chat Messages</span>
+          <div class="benefit-item" style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%); padding: 8px 12px; border-radius: 8px; margin-bottom: 8px;">
+            <span class="benefit-icon">🚀</span>
+            <span class="benefit-text"><strong>Immerse Plan Benefits:</strong></span>
           </div>
           <div class="benefit-item">
-            <span class="benefit-icon">🎙️</span>
-            <span class="benefit-text">Unlimited Voice Chat</span>
+            <span class="benefit-icon">♾️</span>
+            <span class="benefit-text">Unlimited Messages & Voice Chat</span>
           </div>
           <div class="benefit-item">
-            <span class="benefit-icon">🎵</span>
-            <span class="benefit-text">Unlimited Voice Notes</span>
+            <span class="benefit-icon">🤝</span>
+            <span class="benefit-text">Unlimited Active Companions</span>
           </div>
           <div class="benefit-item">
             <span class="benefit-icon">🧠</span>
-            <span class="benefit-text">Extensive Character Memory</span>
+            <span class="benefit-text">Advanced Memory System</span>
           </div>
           <div class="benefit-item">
-            <span class="benefit-icon">👑</span>
-            <span class="benefit-text">Priority Support & Faster Responses</span>
+            <span class="benefit-icon">⚡</span>
+            <span class="benefit-text">Priority Response Times</span>
+          </div>
+          <div class="benefit-item">
+            <span class="benefit-icon">🎨</span>
+            <span class="benefit-text">Full Customization Features</span>
           </div>
         </div>
 
@@ -11956,7 +11967,7 @@ function showUpgradePrompt(usage, quota, type = 'messages') {
             View Plans
           </button>
           <button class="upgrade-btn secondary" id="mainUpgradeClose">
-            I'll Think About It
+            Not Now
           </button>
         </div>
       </div>
