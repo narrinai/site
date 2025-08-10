@@ -145,25 +145,425 @@ Which of these would you like to explore first? Or is there something else you'd
     }
   },
   
-  // Placeholder for other categories - disabled for now
+  // Business category
   "Business": {
-    enabled: false,
-    questions: []
+    enabled: true,
+    questions: [
+      {
+        id: "business_stage",
+        question: "What stage is your business at?",
+        type: "multiple_choice",
+        options: [
+          { value: "idea", label: "💡 I have an idea but haven't started yet" },
+          { value: "startup", label: "🚀 Early-stage startup (0-2 years)" },
+          { value: "growing", label: "📈 Growing business (2-5 years)" },
+          { value: "established", label: "🏢 Established business (5+ years)" },
+          { value: "scaling", label: "🌍 Scaling/expanding internationally" },
+          { value: "considering", label: "🤔 Considering starting a business" }
+        ],
+        required: true
+      },
+      {
+        id: "business_industry",
+        question: "What industry is your business in (or will be in)?",
+        type: "multiple_choice",
+        options: [
+          { value: "tech", label: "💻 Technology/Software" },
+          { value: "ecommerce", label: "🛒 E-commerce/Retail" },
+          { value: "service", label: "🤝 Professional Services" },
+          { value: "creative", label: "🎨 Creative/Media" },
+          { value: "health", label: "🏥 Healthcare/Wellness" },
+          { value: "other", label: "📊 Other industry" }
+        ],
+        required: true
+      },
+      {
+        id: "biggest_challenge",
+        question: "What is your biggest business challenge right now?",
+        type: "multiple_choice",
+        options: [
+          { value: "funding", label: "💰 Finding funding/managing cash flow" },
+          { value: "customers", label: "🎯 Acquiring and retaining customers" },
+          { value: "team", label: "👥 Building and managing a team" },
+          { value: "product", label: "📦 Product development and innovation" },
+          { value: "marketing", label: "📣 Marketing and brand visibility" },
+          { value: "strategy", label: "🗺️ Strategic planning and direction" }
+        ],
+        required: true
+      },
+      {
+        id: "business_goal",
+        question: "What is your main business goal for the next 12 months?",
+        type: "multiple_choice",
+        options: [
+          { value: "revenue", label: "💵 Increase revenue by 50%+" },
+          { value: "profitability", label: "📊 Achieve profitability" },
+          { value: "expansion", label: "🌐 Expand to new markets" },
+          { value: "team_growth", label: "🏗️ Build a strong team" },
+          { value: "investment", label: "🚀 Secure investment/funding" },
+          { value: "exit", label: "🎯 Prepare for acquisition/exit" }
+        ],
+        required: true
+      },
+      {
+        id: "support_needed",
+        question: "What type of business support do you need most?",
+        type: "multiple_choice",
+        options: [
+          { value: "strategy", label: "🎯 Strategic planning and decision-making" },
+          { value: "operations", label: "⚙️ Operations and process optimization" },
+          { value: "marketing", label: "📱 Marketing and growth strategies" },
+          { value: "finance", label: "💼 Financial planning and management" },
+          { value: "leadership", label: "👔 Leadership and management skills" },
+          { value: "innovation", label: "💡 Innovation and product development" }
+        ],
+        required: true
+      },
+      {
+        id: "additional_context",
+        question: "Is there anything else you'd like to share about your business situation?",
+        type: "open_text",
+        placeholder: "Tell me more about your business, industry specifics, or particular challenges...",
+        maxLength: 500,
+        required: false
+      }
+    ]
   },
   
   "Love": {
-    enabled: false,
-    questions: []
+    enabled: true,
+    questions: [
+      {
+        id: "relationship_status",
+        question: "What is your current relationship status?",
+        type: "multiple_choice",
+        options: [
+          { value: "single", label: "💝 Single and looking" },
+          { value: "dating", label: "🌹 Dating someone" },
+          { value: "relationship", label: "💑 In a relationship" },
+          { value: "complicated", label: "💭 It's complicated" },
+          { value: "married", label: "💍 Married/Long-term partnership" },
+          { value: "separated", label: "🔄 Recently separated/divorced" }
+        ],
+        required: true
+      },
+      {
+        id: "love_goal",
+        question: "What are you hoping to achieve in your love life?",
+        type: "multiple_choice",
+        options: [
+          { value: "find_love", label: "❤️ Find true love" },
+          { value: "improve_relationship", label: "🌟 Improve my current relationship" },
+          { value: "understand_patterns", label: "🔍 Understand my relationship patterns" },
+          { value: "heal", label: "💚 Heal from past relationships" },
+          { value: "confidence", label: "💪 Build dating confidence" },
+          { value: "communication", label: "💬 Better communication with partner" }
+        ],
+        required: true
+      },
+      {
+        id: "biggest_challenge",
+        question: "What's your biggest challenge in love and relationships?",
+        type: "multiple_choice",
+        options: [
+          { value: "meeting", label: "😔 Meeting the right people" },
+          { value: "trust", label: "🔐 Trust and vulnerability" },
+          { value: "communication", label: "🗣️ Communication issues" },
+          { value: "intimacy", label: "💕 Emotional or physical intimacy" },
+          { value: "boundaries", label: "🚧 Setting healthy boundaries" },
+          { value: "past", label: "💔 Moving on from the past" }
+        ],
+        required: true
+      },
+      {
+        id: "love_style",
+        question: "How would you describe your approach to love?",
+        type: "multiple_choice",
+        options: [
+          { value: "romantic", label: "🌹 Romantic and passionate" },
+          { value: "practical", label: "🤝 Practical and stable" },
+          { value: "adventurous", label: "✨ Adventurous and spontaneous" },
+          { value: "cautious", label: "🛡️ Cautious and careful" },
+          { value: "devoted", label: "💖 Devoted and committed" },
+          { value: "independent", label: "🦋 Independent yet loving" }
+        ],
+        required: true
+      },
+      {
+        id: "priority",
+        question: "What's most important to you in a relationship?",
+        type: "multiple_choice",
+        options: [
+          { value: "connection", label: "🤝 Deep emotional connection" },
+          { value: "trust", label: "🔒 Trust and loyalty" },
+          { value: "growth", label: "🌱 Growing together" },
+          { value: "fun", label: "😊 Fun and adventure" },
+          { value: "stability", label: "🏠 Stability and security" },
+          { value: "passion", label: "🔥 Passion and chemistry" }
+        ],
+        required: true
+      },
+      {
+        id: "additional_context",
+        question: "Is there anything else about your love life you'd like to share?",
+        type: "open_text",
+        placeholder: "Share any specific situations, past experiences, or hopes for the future...",
+        maxLength: 500,
+        required: false
+      }
+    ]
   },
   
-  "Life Coach": {
-    enabled: false,
-    questions: []
+  "Life": {
+    enabled: true,
+    questions: [
+      {
+        id: "life_phase",
+        question: "What phase of life are you currently in?",
+        type: "multiple_choice",
+        options: [
+          { value: "student", label: "📚 Student/Early adulthood" },
+          { value: "building", label: "🏗️ Building my life (20s-30s)" },
+          { value: "established", label: "🏠 Established (30s-40s)" },
+          { value: "midlife", label: "🌅 Midlife (40s-50s)" },
+          { value: "wisdom", label: "🦉 Wisdom years (50s+)" },
+          { value: "transition", label: "🔄 Major life transition" }
+        ],
+        required: true
+      },
+      {
+        id: "life_focus",
+        question: "What area of life needs the most attention right now?",
+        type: "multiple_choice",
+        options: [
+          { value: "purpose", label: "🎯 Finding my purpose" },
+          { value: "balance", label: "⚖️ Work-life balance" },
+          { value: "relationships", label: "👥 Personal relationships" },
+          { value: "health", label: "💚 Health and wellness" },
+          { value: "growth", label: "🌱 Personal growth" },
+          { value: "happiness", label: "😊 Overall happiness" }
+        ],
+        required: true
+      },
+      {
+        id: "biggest_challenge",
+        question: "What's your biggest life challenge currently?",
+        type: "multiple_choice",
+        options: [
+          { value: "direction", label: "🧭 Feeling lost or directionless" },
+          { value: "stress", label: "😰 Managing stress and anxiety" },
+          { value: "decisions", label: "🤔 Making important decisions" },
+          { value: "confidence", label: "💪 Building self-confidence" },
+          { value: "change", label: "🦋 Adapting to change" },
+          { value: "fulfillment", label: "✨ Finding fulfillment" }
+        ],
+        required: true
+      },
+      {
+        id: "life_goal",
+        question: "What do you want to achieve in the next year?",
+        type: "multiple_choice",
+        options: [
+          { value: "clarity", label: "🔮 Gain clarity on my life path" },
+          { value: "habits", label: "📈 Build better habits" },
+          { value: "mindset", label: "🧠 Develop a positive mindset" },
+          { value: "authentic", label: "💎 Live more authentically" },
+          { value: "peace", label: "☮️ Find inner peace" },
+          { value: "adventure", label: "🎒 Have new experiences" }
+        ],
+        required: true
+      },
+      {
+        id: "support_type",
+        question: "What kind of life guidance do you need most?",
+        type: "multiple_choice",
+        options: [
+          { value: "wisdom", label: "🦉 Life wisdom and perspective" },
+          { value: "motivation", label: "🔥 Motivation and encouragement" },
+          { value: "practical", label: "🛠️ Practical life advice" },
+          { value: "emotional", label: "💝 Emotional support" },
+          { value: "spiritual", label: "🕊️ Spiritual guidance" },
+          { value: "accountability", label: "📋 Accountability and structure" }
+        ],
+        required: true
+      },
+      {
+        id: "additional_context",
+        question: "What else would you like me to know about your life journey?",
+        type: "open_text",
+        placeholder: "Share your story, dreams, concerns, or anything that helps me understand you better...",
+        maxLength: 500,
+        required: false
+      }
+    ]
   },
   
-  "Mental Health": {
-    enabled: false,
-    questions: []
+  "Mindfulness": {
+    enabled: true,
+    questions: [
+      {
+        id: "mindfulness_experience",
+        question: "What's your experience with mindfulness practices?",
+        type: "multiple_choice",
+        options: [
+          { value: "beginner", label: "🌱 Complete beginner" },
+          { value: "curious", label: "🔍 Curious and exploring" },
+          { value: "occasional", label: "⏰ Occasional practice" },
+          { value: "regular", label: "📅 Regular practitioner" },
+          { value: "experienced", label: "🧘 Experienced meditator" },
+          { value: "struggling", label: "😔 Tried but struggling" }
+        ],
+        required: true
+      },
+      {
+        id: "mindfulness_goal",
+        question: "What do you hope to achieve through mindfulness?",
+        type: "multiple_choice",
+        options: [
+          { value: "stress", label: "😌 Reduce stress and anxiety" },
+          { value: "focus", label: "🎯 Improve focus and clarity" },
+          { value: "peace", label: "☮️ Find inner peace" },
+          { value: "sleep", label: "😴 Better sleep quality" },
+          { value: "emotions", label: "💭 Manage emotions better" },
+          { value: "presence", label: "🌟 Live more in the present" }
+        ],
+        required: true
+      },
+      {
+        id: "biggest_obstacle",
+        question: "What's your biggest obstacle to mindfulness?",
+        type: "multiple_choice",
+        options: [
+          { value: "time", label: "⏱️ Not enough time" },
+          { value: "mind", label: "🌪️ Racing thoughts" },
+          { value: "consistency", label: "📊 Staying consistent" },
+          { value: "understanding", label: "❓ Not sure how to practice" },
+          { value: "patience", label: "⏳ Lack of patience" },
+          { value: "environment", label: "🏠 Distracting environment" }
+        ],
+        required: true
+      },
+      {
+        id: "preferred_practice",
+        question: "What type of mindfulness practice appeals to you?",
+        type: "multiple_choice",
+        options: [
+          { value: "meditation", label: "🧘 Seated meditation" },
+          { value: "breathing", label: "🌬️ Breathing exercises" },
+          { value: "walking", label: "🚶 Walking meditation" },
+          { value: "body_scan", label: "👤 Body awareness" },
+          { value: "gratitude", label: "🙏 Gratitude practice" },
+          { value: "mindful_activities", label: "🎨 Mindful daily activities" }
+        ],
+        required: true
+      },
+      {
+        id: "practice_time",
+        question: "How much time can you realistically dedicate daily?",
+        type: "multiple_choice",
+        options: [
+          { value: "5min", label: "⏰ 5 minutes" },
+          { value: "10min", label: "⏱️ 10-15 minutes" },
+          { value: "20min", label: "🕐 20-30 minutes" },
+          { value: "30plus", label: "🕰️ 30+ minutes" },
+          { value: "varies", label: "📅 It varies day to day" },
+          { value: "unsure", label: "🤷 Not sure yet" }
+        ],
+        required: true
+      },
+      {
+        id: "additional_context",
+        question: "What else would you like to share about your mindfulness journey?",
+        type: "open_text",
+        placeholder: "Share your experiences, challenges, or specific areas where you need support...",
+        maxLength: 500,
+        required: false
+      }
+    ]
+  },
+  
+  "Friendship": {
+    enabled: true,
+    questions: [
+      {
+        id: "friendship_situation",
+        question: "How would you describe your current friendship situation?",
+        type: "multiple_choice",
+        options: [
+          { value: "lonely", label: "😔 Feeling lonely and isolated" },
+          { value: "few", label: "👥 Have a few close friends" },
+          { value: "many", label: "🎉 Many friends but lacking depth" },
+          { value: "changing", label: "🔄 Friendships are changing" },
+          { value: "new_place", label: "📍 New place, need new friends" },
+          { value: "quality", label: "💎 Good friends, want deeper connections" }
+        ],
+        required: true
+      },
+      {
+        id: "friendship_goal",
+        question: "What do you want to improve about your friendships?",
+        type: "multiple_choice",
+        options: [
+          { value: "make_friends", label: "🤝 Make new friends" },
+          { value: "deepen", label: "💝 Deepen existing friendships" },
+          { value: "boundaries", label: "🚧 Set better boundaries" },
+          { value: "conflict", label: "🕊️ Resolve conflicts" },
+          { value: "maintain", label: "📱 Better at maintaining friendships" },
+          { value: "authentic", label: "✨ Be more authentic" }
+        ],
+        required: true
+      },
+      {
+        id: "biggest_challenge",
+        question: "What's your biggest challenge with friendships?",
+        type: "multiple_choice",
+        options: [
+          { value: "social_anxiety", label: "😰 Social anxiety" },
+          { value: "time", label: "⏰ Finding time to connect" },
+          { value: "trust", label: "🔐 Trusting people" },
+          { value: "communication", label: "💬 Communication difficulties" },
+          { value: "finding", label: "🔍 Finding like-minded people" },
+          { value: "letting_go", label: "🍂 Letting go of toxic friendships" }
+        ],
+        required: true
+      },
+      {
+        id: "friendship_style",
+        question: "What kind of friend are you?",
+        type: "multiple_choice",
+        options: [
+          { value: "listener", label: "👂 The listener and supporter" },
+          { value: "organizer", label: "📅 The organizer and planner" },
+          { value: "adventurer", label: "🎒 The fun adventurer" },
+          { value: "deep", label: "🌊 The deep conversationalist" },
+          { value: "helper", label: "🤲 The helpful problem-solver" },
+          { value: "loyal", label: "💪 The loyal rock" }
+        ],
+        required: true
+      },
+      {
+        id: "ideal_friendship",
+        question: "What matters most in your ideal friendship?",
+        type: "multiple_choice",
+        options: [
+          { value: "trust", label: "🔒 Complete trust and honesty" },
+          { value: "fun", label: "😄 Shared fun and laughter" },
+          { value: "support", label: "🤗 Mutual support" },
+          { value: "growth", label: "🌱 Growing together" },
+          { value: "acceptance", label: "💝 Unconditional acceptance" },
+          { value: "adventure", label: "✨ Shared adventures" }
+        ],
+        required: true
+      },
+      {
+        id: "additional_context",
+        question: "What else would you like to share about your friendship journey?",
+        type: "open_text",
+        placeholder: "Tell me about your friendship experiences, specific situations, or what you're looking for...",
+        maxLength: 500,
+        required: false
+      }
+    ]
   }
 };
 
@@ -171,8 +571,21 @@ Which of these would you like to explore first? Or is there something else you'd
 function needsOnboarding(category, userId, characterId) {
   console.log('🔍 needsOnboarding called with:', { category, userId, characterId });
   
-  // Normalize category to match our config (capitalize first letter)
-  const normalizedCategory = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
+  // Normalize category to match our config
+  // Handle different category formats: "business", "Business", "life", "Life", etc.
+  let normalizedCategory = category;
+  
+  // First, check exact match (case-insensitive)
+  const categoryKeys = Object.keys(onboardingQuestions);
+  const exactMatch = categoryKeys.find(key => key.toLowerCase() === category.toLowerCase());
+  
+  if (exactMatch) {
+    normalizedCategory = exactMatch;
+  } else {
+    // If no exact match, capitalize first letter
+    normalizedCategory = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
+  }
+  
   console.log('📐 Normalized category:', normalizedCategory);
   
   // Check if category has onboarding enabled

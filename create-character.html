@@ -4749,10 +4749,12 @@ if (!characterSlug && formData.name) {
   console.log('🔗 Generated character slug:', characterSlug);
 }
       
-      // Redirect to the new character's chat page
+      // Redirect to the new character's chat page with onboarding flag
       setTimeout(() => {
         if (characterSlug) {
-          window.location.href = `chat.html?char=${characterSlug}`;
+          const category = document.getElementById('characterCategory').value;
+          // Add new=true and category to trigger onboarding for non-roleplaying categories
+          window.location.href = `chat.html?char=${characterSlug}&new=true&cat=${category}`;
         } else {
           window.location.href = 'index.html';
         }

@@ -12873,8 +12873,13 @@ document.addEventListener('DOMContentLoaded', () => {
         return false; // Don't show onboarding again
       }
       
+      // Check if this is a new companion from create-character.html
+      const urlParams = new URLSearchParams(window.location.search);
+      const isNewCompanion = urlParams.get('new') === 'true';
+      const categoryFromUrl = urlParams.get('cat');
+      
       // Try to get category from various fields
-      let category = currentCharacter.Category || currentCharacter.category || '';
+      let category = categoryFromUrl || currentCharacter.Category || currentCharacter.category || '';
       
       // Normalize category (capitalize first letter)
       if (category) {
@@ -12889,6 +12894,19 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       const userId = localStorage.getItem('user_id') || localStorage.getItem('user_uid') || 'anonymous';
+      
+      // If this is a new companion, clear any existing onboarding data to force it to show
+      if (isNewCompanion) {
+        console.log('🆕 New companion detected, clearing onboarding data to force display');
+        const onboardingKey = `onboarding_${userId}_${characterId}`;
+        localStorage.removeItem(onboardingKey);
+        
+        // Clean up URL parameters
+        urlParams.delete('new');
+        urlParams.delete('cat');
+        const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
+        window.history.replaceState({}, '', newUrl);
+      }
       
       console.log('🎯 Checking onboarding for:', { 
         category, 

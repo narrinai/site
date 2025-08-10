@@ -5,8 +5,11 @@ const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
 function formatOnboardingAnswers(answers, category) {
   const lines = [`[Onboarding Information - ${category}]`];
   
+  // Normalize category for checking
+  const normalizedCategory = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
+  
   // Career category specific formatting
-  if (category === 'Career') {
+  if (normalizedCategory === 'Career') {
     const careerStageMap = {
       'student': 'Student or recent graduate',
       'early': 'Early career (0-3 years)',
@@ -70,6 +73,177 @@ function formatOnboardingAnswers(answers, category) {
     if (answers.additional_context) {
       lines.push(`Additional Context: ${answers.additional_context}`);
     }
+  }
+  // Business category
+  else if (normalizedCategory === 'Business') {
+    const stageMap = {
+      'idea': 'I have an idea but haven\'t started yet',
+      'startup': 'Early-stage startup (0-2 years)',
+      'growing': 'Growing business (2-5 years)',
+      'established': 'Established business (5+ years)',
+      'scaling': 'Scaling/expanding internationally',
+      'considering': 'Considering starting a business'
+    };
+    
+    const industryMap = {
+      'tech': 'Technology/Software',
+      'ecommerce': 'E-commerce/Retail',
+      'service': 'Professional Services',
+      'creative': 'Creative/Media',
+      'health': 'Healthcare/Wellness',
+      'other': 'Other industry'
+    };
+    
+    if (answers.business_stage) {
+      lines.push(`Business Stage: ${stageMap[answers.business_stage] || answers.business_stage}`);
+    }
+    if (answers.business_industry) {
+      lines.push(`Industry: ${industryMap[answers.business_industry] || answers.business_industry}`);
+    }
+    if (answers.biggest_challenge) {
+      lines.push(`Biggest Challenge: ${answers.biggest_challenge}`);
+    }
+    if (answers.business_goal) {
+      lines.push(`Main Goal: ${answers.business_goal}`);
+    }
+    if (answers.support_needed) {
+      lines.push(`Support Needed: ${answers.support_needed}`);
+    }
+    if (answers.additional_context) {
+      lines.push(`Additional Context: ${answers.additional_context}`);
+    }
+  }
+  // Love category
+  else if (normalizedCategory === 'Love') {
+    const statusMap = {
+      'single': 'Single and looking',
+      'dating': 'Dating someone',
+      'relationship': 'In a relationship',
+      'complicated': 'It\'s complicated',
+      'married': 'Married/Long-term partnership',
+      'separated': 'Recently separated/divorced'
+    };
+    
+    if (answers.relationship_status) {
+      lines.push(`Relationship Status: ${statusMap[answers.relationship_status] || answers.relationship_status}`);
+    }
+    if (answers.love_goal) {
+      lines.push(`Love Goal: ${answers.love_goal}`);
+    }
+    if (answers.biggest_challenge) {
+      lines.push(`Biggest Challenge: ${answers.biggest_challenge}`);
+    }
+    if (answers.love_style) {
+      lines.push(`Love Style: ${answers.love_style}`);
+    }
+    if (answers.priority) {
+      lines.push(`Priority in Relationships: ${answers.priority}`);
+    }
+    if (answers.additional_context) {
+      lines.push(`Additional Context: ${answers.additional_context}`);
+    }
+  }
+  // Life category
+  else if (normalizedCategory === 'Life') {
+    const phaseMap = {
+      'student': 'Student/Early adulthood',
+      'building': 'Building my life (20s-30s)',
+      'established': 'Established (30s-40s)',
+      'midlife': 'Midlife (40s-50s)',
+      'wisdom': 'Wisdom years (50s+)',
+      'transition': 'Major life transition'
+    };
+    
+    if (answers.life_phase) {
+      lines.push(`Life Phase: ${phaseMap[answers.life_phase] || answers.life_phase}`);
+    }
+    if (answers.life_focus) {
+      lines.push(`Focus Area: ${answers.life_focus}`);
+    }
+    if (answers.biggest_challenge) {
+      lines.push(`Biggest Challenge: ${answers.biggest_challenge}`);
+    }
+    if (answers.life_goal) {
+      lines.push(`Main Goal: ${answers.life_goal}`);
+    }
+    if (answers.support_type) {
+      lines.push(`Support Type: ${answers.support_type}`);
+    }
+    if (answers.additional_context) {
+      lines.push(`Additional Context: ${answers.additional_context}`);
+    }
+  }
+  // Mindfulness category
+  else if (normalizedCategory === 'Mindfulness') {
+    const experienceMap = {
+      'beginner': 'Complete beginner',
+      'curious': 'Curious and exploring',
+      'occasional': 'Occasional practice',
+      'regular': 'Regular practitioner',
+      'experienced': 'Experienced meditator',
+      'struggling': 'Tried but struggling'
+    };
+    
+    if (answers.mindfulness_experience) {
+      lines.push(`Experience Level: ${experienceMap[answers.mindfulness_experience] || answers.mindfulness_experience}`);
+    }
+    if (answers.mindfulness_goal) {
+      lines.push(`Goal: ${answers.mindfulness_goal}`);
+    }
+    if (answers.biggest_obstacle) {
+      lines.push(`Biggest Obstacle: ${answers.biggest_obstacle}`);
+    }
+    if (answers.preferred_practice) {
+      lines.push(`Preferred Practice: ${answers.preferred_practice}`);
+    }
+    if (answers.practice_time) {
+      lines.push(`Practice Time: ${answers.practice_time}`);
+    }
+    if (answers.additional_context) {
+      lines.push(`Additional Context: ${answers.additional_context}`);
+    }
+  }
+  // Friendship category
+  else if (normalizedCategory === 'Friendship') {
+    const situationMap = {
+      'lonely': 'Feeling lonely and isolated',
+      'few': 'Have a few close friends',
+      'many': 'Many friends but lacking depth',
+      'changing': 'Friendships are changing',
+      'new_place': 'New place, need new friends',
+      'quality': 'Good friends, want deeper connections'
+    };
+    
+    if (answers.friendship_situation) {
+      lines.push(`Current Situation: ${situationMap[answers.friendship_situation] || answers.friendship_situation}`);
+    }
+    if (answers.friendship_goal) {
+      lines.push(`Goal: ${answers.friendship_goal}`);
+    }
+    if (answers.biggest_challenge) {
+      lines.push(`Biggest Challenge: ${answers.biggest_challenge}`);
+    }
+    if (answers.friendship_style) {
+      lines.push(`Friend Style: ${answers.friendship_style}`);
+    }
+    if (answers.ideal_friendship) {
+      lines.push(`Ideal Friendship: ${answers.ideal_friendship}`);
+    }
+    if (answers.additional_context) {
+      lines.push(`Additional Context: ${answers.additional_context}`);
+    }
+  }
+  // Generic formatting for any other categories
+  else {
+    Object.keys(answers).forEach(key => {
+      if (answers[key]) {
+        // Convert snake_case to Title Case
+        const label = key.split('_').map(word => 
+          word.charAt(0).toUpperCase() + word.slice(1)
+        ).join(' ');
+        lines.push(`${label}: ${answers[key]}`);
+      }
+    });
   }
   
   return lines.join('\n');
