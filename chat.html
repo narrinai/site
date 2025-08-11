@@ -10225,12 +10225,12 @@ function initializeCustomizationForm() {
     console.log('📦 Prompt value (first 100 chars):', requestData.prompt ? requestData.prompt.substring(0, 100) : 'UNDEFINED');
     
     // Show loading state
-    const submitButton = e.target.querySelector('button[type="submit"]');
-    const originalText = submitButton.textContent;
-    submitButton.disabled = true;
-    submitButton.textContent = existingCustom && existingCustom.airtable_id ? 'Updating Character...' : 'Creating Character...';
-    submitButton.style.opacity = '0.7';
-    submitButton.style.cursor = 'not-allowed';
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = existingCustom && existingCustom.airtable_id ? 'Updating Character...' : 'Creating Character...';
+    submitBtn.style.opacity = '0.7';
+    submitBtn.style.cursor = 'not-allowed';
     
     try {
       // Send to Make.com webhook
@@ -10412,10 +10412,10 @@ function initializeCustomizationForm() {
         `Unable to ${isUpdate ? 'update' : 'create'} your customized character. ${error.message}. Please try again.`);
     } finally {
       // Restore button state
-      submitButton.disabled = false;
-      submitButton.textContent = originalText;
-      submitButton.style.opacity = '1';
-      submitButton.style.cursor = 'pointer';
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalText;
+      submitBtn.style.opacity = '1';
+      submitBtn.style.cursor = 'pointer';
       // Reset submission flag
       isCustomizationSubmitting = false;
     }
@@ -13037,18 +13037,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     // Save after period of inactivity (10 minutes)
-    function resetInactivityTimer() {
-      clearTimeout(inactivityTimer);
-      inactivityTimer = setTimeout(async () => {
+    let summaryInactivityTimer = null;
+    function resetSummaryInactivityTimer() {
+      clearTimeout(summaryInactivityTimer);
+      summaryInactivityTimer = setTimeout(async () => {
         console.log('⏰ Inactivity detected, saving summary...');
         await triggerSessionSummary();
       }, 600000); // 10 minutes
     }
     
     // Reset timer on any user activity
-    document.addEventListener('click', resetInactivityTimer);
-    document.addEventListener('keypress', resetInactivityTimer);
-    resetInactivityTimer(); // Start the timer
+    document.addEventListener('click', resetSummaryInactivityTimer);
+    document.addEventListener('keypress', resetSummaryInactivityTimer);
+    resetSummaryInactivityTimer(); // Start the timer
     // ===== FEEDBACK POPUP FUNCTIONALITY =====
     let hasShownFeedbackPopup = false;
     
