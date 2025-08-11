@@ -126,7 +126,7 @@ exports.handler = async (event, context) => {
       // Check if:
       // 1. More than 24 hours since last message
       // 2. No check-in sent in last 48 hours
-      // 3. Last message was from user (don't follow up on our own messages)
+      // 3. Last message was from AI (we want to follow up when user hasn't responded)
       const recentCheckin = conv.messages.find(m => {
         const isCheckin = m.is_checkin === true || m.is_checkin === 'true';
         const checkinAge = (now - m.created_time) / (1000 * 60 * 60);
@@ -136,7 +136,8 @@ exports.handler = async (event, context) => {
         return isCheckin && (now - m.created_time) < 48 * 60 * 60 * 1000;
       });
       
-      const lastMessageWasUser = conv.messages.length > 0 && conv.messages[0]?.is_user === true;
+      // Check if last message was from AI (not user) - we want to follow up when AI is waiting
+      const lastMessageWasAI = conv.messages.length > 0 && conv.messages[0]?.is_user === false;
       
       // For debugging - we'll get the actual email later when processing
       const userEmail = 'pending-lookup';
@@ -145,7 +146,7 @@ exports.handler = async (event, context) => {
         userEmail,
         hoursSinceLastMessage: hoursSinceLastMessage.toFixed(1),
         hasRecentCheckin: !!recentCheckin,
-        lastMessageWasUser,
+        lastMessageWasAI,
         characterName: conv.character_name,
         totalMessages: conv.messages.length
       });
@@ -162,8 +163,9 @@ exports.handler = async (event, context) => {
       // Skip test conversations in production (we'll check email during processing)
       // For now, just flag them for later checking
       
-      if (hoursSinceLastMessage >= minHours && hoursSinceLastMessage < maxHours && !recentCheckin && lastMessageWasUser) {
-        console.log(`✅ Adding to inactive list: ${conv.character_name} (${userEmail})`);
+      // Send check-in when AI is waiting for user response
+      if (hoursSinceLastMessage >= minHours && hoursSinceLastMessage < maxHours && !recentCheckin && lastMessageWasAI) {
+        console.log(`✅ Adding to inactive list: ${conv.character_name} (AI waiting for response)`);
         inactiveChats.push(conv);
       }
     }

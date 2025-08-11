@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirming Email - Narrin AI</title>
+    
+    <!-- Import Modern Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .confirmation-container {
+            background: white;
+            border-radius: 24px;
+            padding: 50px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .logo {
+            font-family: 'Outfit', sans-serif;
+            font-size: 36px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 30px;
+            letter-spacing: -0.02em;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #14b8a6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 30px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .message {
+            font-size: 18px;
+            color: #475569;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .sub-message {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-top: 20px;
+        }
+
+        .error-message {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .error-text {
+            color: #dc2626;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .button-link {
+            display: inline-block;
+            background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%);
+            color: white;
+            text-decoration: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .button-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(20, 184, 166, 0.3);
+        }
+
+        @media (max-width: 600px) {
+            .confirmation-container {
+                padding: 30px 20px;
+            }
+
+            .logo {
+                font-size: 28px;
+            }
+
+            .message {
+                font-size: 16px;
+            }
+        }
+    </style>
+
+    <!-- Netlify Identity Widget -->
+    <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-D6T01M6XTJ"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-D6T01M6XTJ');
+    </script>
+</head>
+<body>
+    <div class="confirmation-container">
+        <h1 class="logo">Narrin AI</h1>
+        
+        <div class="spinner"></div>
+        
+        <p class="message">
+            Confirming your email address...
+        </p>
+        
+        <p class="sub-message">
+            Please wait while we verify your account
+        </p>
+        
+        <div class="error-message" id="errorMessage">
+            <p class="error-text">
+                Unable to confirm your email. The link may have expired or is invalid.
+            </p>
+            <a href="/register.html" class="button-link">Try Again</a>
+        </div>
+    </div>
+
+    <script>
+        // Extract token from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        
+        if (token) {
+            console.log('Confirmation token found, processing...');
+            
+            // Initialize Netlify Identity
+            if (window.netlifyIdentity) {
+                window.netlifyIdentity.on('init', user => {
+                    console.log('Netlify Identity initialized');
+                });
+                
+                window.netlifyIdentity.init();
+            }
+            
+            // Build the confirmation URL
+            const confirmationUrl = `/#confirmation_token=${token}`;
+            
+            // Set a flag in session storage
+            sessionStorage.setItem('emailJustVerified', 'true');
+            
+            // Redirect to index with the confirmation token
+            // The index page will handle the confirmation and redirect to profile
+            setTimeout(() => {
+                window.location.href = confirmationUrl;
+            }, 1000);
+        } else {
+            // No token found, show error
+            console.error('No confirmation token found in URL');
+            document.querySelector('.spinner').style.display = 'none';
+            document.querySelector('.message').textContent = 'Invalid confirmation link';
+            document.querySelector('.sub-message').style.display = 'none';
+            document.getElementById('errorMessage').classList.add('show');
+        }
+        
+        // Timeout after 10 seconds
+        setTimeout(() => {
+            const errorElement = document.getElementById('errorMessage');
+            if (!errorElement.classList.contains('show')) {
+                document.querySelector('.spinner').style.display = 'none';
+                document.querySelector('.message').textContent = 'This is taking longer than expected...';
+                document.querySelector('.sub-message').innerHTML = 'You may already be verified. <a href="/profile.html">Go to your profile</a>';
+            }
+        }, 10000);
+    </script>
+</body>
+</html>

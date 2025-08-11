@@ -2690,10 +2690,29 @@ if (window.netlifyIdentity) {
     console.log('📧 Email confirmation detected, redirecting to profile...');
     // Store flag that user just confirmed email
     sessionStorage.setItem('email_just_confirmed', 'true');
-    // Let Netlify Identity handle the token, then redirect
+    
+    // Clean up any Netlify Identity overlays/backdrops
     setTimeout(() => {
+      // Close Netlify Identity widget if open
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.close();
+      }
+      
+      // Remove any lingering overlays or backdrops
+      const overlays = document.querySelectorAll('.netlify-identity-widget, [class*="overlay"], [class*="backdrop"], [class*="modal-backdrop"]');
+      overlays.forEach(overlay => {
+        if (overlay.style.display !== 'none') {
+          overlay.style.display = 'none';
+        }
+      });
+      
+      // Reset body overflow
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      
+      // Redirect to profile
       window.location.href = '/profile.html';
-    }, 1500);
+    }, 1000);
   }
   
   window.netlifyIdentity.on('login', (user) => {
