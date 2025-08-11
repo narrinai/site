@@ -42,20 +42,11 @@ exports.handler = async (event, context) => {
 
   try {
     // Find all characters with:
-    // 1. Replicate URLs (they expire after 24h)
-    // 2. Empty avatar URLs
-    // 3. Avatar_Generated_At older than 20 hours (regenerate before expiry)
+    // 1. Empty avatar URLs
+    // 2. Replicate URLs (they expire after 24h)
     
-    const twentyHoursAgo = new Date(Date.now() - 20 * 60 * 60 * 1000).toISOString();
-    
-    const filterFormula = `OR(
-      {Avatar_URL} = '',
-      FIND('replicate.delivery', {Avatar_URL}),
-      AND(
-        {Avatar_Generated_At} != '',
-        IS_BEFORE({Avatar_Generated_At}, '${twentyHoursAgo}')
-      )
-    )`;
+    // Simplified filter - just look for empty or Replicate URLs
+    const filterFormula = `OR({Avatar_URL} = '', FIND('replicate.delivery', {Avatar_URL}))`;
     
     const searchUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?filterByFormula=${encodeURIComponent(filterFormula)}&maxRecords=50`;
     
@@ -149,8 +140,8 @@ exports.handler = async (event, context) => {
               },
               body: JSON.stringify({
                 fields: {
-                  Avatar_URL: newAvatarUrl,
-                  Avatar_Generated_At: new Date().toISOString()
+                  Avatar_URL: newAvatarUrl
+                  // Note: Add Avatar_Generated_At field in Airtable if you want to track generation time
                 }
               })
             }
