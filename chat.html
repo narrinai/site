@@ -7551,6 +7551,9 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
         // Save the avatar URL to the database
         await updateCharacterAvatarInDatabase(result.avatarUrl);
         
+        // Save avatar permanently to Airtable as attachment
+        await saveAvatarPermanently(result.avatarUrl, characterSlug);
+        
       } catch (error) {
         console.error('❌ Avatar generation error:', error);
         console.error('❌ Error details:', {
@@ -8146,6 +8149,39 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     }
     
     // Update avatar in database
+    async function saveAvatarPermanently(replicateUrl, characterSlug) {
+      try {
+        console.log('💾 Saving avatar permanently to Airtable...');
+        
+        const response = await fetch('/.netlify/functions/save-avatar-to-airtable', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            replicateUrl: replicateUrl,
+            characterSlug: characterSlug
+          })
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          console.log('✅ Avatar saved permanently:', result);
+          
+          // Update local avatar URL if we got a permanent one
+          if (result.avatarUrl && result.avatarUrl !== replicateUrl) {
+            currentCharacter.avatar_url = result.avatarUrl;
+            currentCharacter.Avatar_URL = result.avatarUrl;
+            updateAllAvatarDisplays();
+          }
+        } else {
+          console.error('⚠️ Could not save avatar permanently, using temporary URL');
+        }
+      } catch (error) {
+        console.error('❌ Error saving avatar permanently:', error);
+      }
+    }
+
     async function updateCharacterAvatarInDatabase(avatarUrl) {
       try {
         console.log('📝 Updating avatar in database:', avatarUrl);

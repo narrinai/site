@@ -63,7 +63,11 @@ exports.handler = async (event, context) => {
       const characterIds = record.fields.Character || [];
       
       if (userIds.length === 0 || characterIds.length === 0) {
-        console.log('⚠️ Skipping record without User or Character links');
+        console.log('⚠️ Skipping record without User or Character links:', {
+          hasUser: userIds.length > 0,
+          hasCharacter: characterIds.length > 0,
+          fields: Object.keys(record.fields)
+        });
         continue;
       }
       
@@ -75,8 +79,9 @@ exports.handler = async (event, context) => {
         conversations[key] = {
           user_record_id: userId,
           character_record_id: characterId,
-          character_name: record.fields.CharacterName || record.fields.Slug || '',
-          user_netlify_uid: record.fields.NetlifyUID || '',
+          character_name: record.fields.CharacterName || record.fields.character_name || record.fields.Slug || '',
+          user_netlify_uid: record.fields.NetlifyUID || record.fields.netlify_uid || '',
+          character_slug: record.fields.Slug || record.fields.slug || '',
           messages: [],
           last_message_time: null,
           last_user_message: null,
