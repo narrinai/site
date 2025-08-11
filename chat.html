@@ -1076,8 +1076,23 @@
       transition: all var(--transition-base);
       box-shadow: var(--shadow-colored);
       white-space: nowrap;
-      margin-left: var(--spacing-sm);
+      margin-left: var(--spacing-xs);
       min-width: fit-content;
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+    }
+    
+    /* Memory button only shows icon on mobile */
+    @media (max-width: 480px) {
+      .btn-memory span {
+        display: none;
+      }
+      
+      .btn-memory {
+        padding: 4px 8px;
+        margin-left: 4px;
+      }
     }
 
     .btn-memory:hover,
@@ -2116,11 +2131,23 @@
         font-size: var(--font-size-xs);
       }
 
+      .btn-memory,
       .btn-customize {
-        padding: 2px 3px;
-        max-width: 65px;
-        font-size: 9px;
+        padding: 2px 4px;
         font-size: var(--font-size-xs);
+        margin-left: 4px;
+      }
+      
+      .btn-memory {
+        padding: 4px 6px;
+      }
+      
+      .btn-memory span {
+        display: none;
+      }
+      
+      .btn-customize {
+        max-width: 70px;
       }
 
       #chatlog {
@@ -4123,7 +4150,7 @@
             <p id="characterTitle"></p>
           </div>
           <button class="btn-memory" onclick="openMemoryHub()" id="memoryBtn" style="display: none;" title="View memories">
-            🧠 <span style="font-size: var(--font-size-xs);">Memory</span>
+            🧠 <span>Memory</span>
           </button>
           <button class="btn-customize" onclick="openCustomizationModal()" id="customizeBtn" style="display: none;" title="Customize character">
             ✨ <span style="font-size: var(--font-size-xs);">Customize</span>
@@ -14784,11 +14811,34 @@ document.addEventListener('DOMContentLoaded', () => {
       const memoriesContent = document.getElementById('memoriesContent');
       
       try {
-        // Get memories from the memory function
-        const memories = await getMemories(
-          localStorage.getItem('user_uid'),
-          characterSlug
-        );
+        // Get memories using the existing memory fetching logic
+        const userUid = localStorage.getItem('user_uid');
+        const requestData = {
+            action: 'get_memories',
+            user_uid: userUid,
+            slug: characterSlug,
+            min_importance: 1,
+            max_results: 50
+        };
+        
+        const response = await fetch('/.netlify/functions/memory', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(requestData)
+        });
+        
+        let memories = null;
+        if (response.ok) {
+          const responseText = await response.text();
+          try {
+            memories = JSON.parse(responseText);
+          } catch (e) {
+            console.error('Failed to parse memory response:', e);
+          }
+        }
         
         if (memories && memories.memories && memories.memories.length > 0) {
           displayMemories(memories.memories);
