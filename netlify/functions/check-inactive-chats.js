@@ -76,6 +76,7 @@ exports.handler = async (event, context) => {
           user_record_id: userId,
           character_record_id: characterId,
           character_name: record.fields.CharacterName || '',
+          user_email: record.fields.UserEmail || '',
           messages: [],
           last_message_time: null,
           last_user_message: null
@@ -120,17 +121,27 @@ exports.handler = async (event, context) => {
       // 1. More than 24 hours since last message
       // 2. No check-in sent in last 48 hours
       // 3. Last message was from user (don't follow up on our own messages)
-      const recentCheckin = conv.messages.find(m => 
-        m.is_checkin && (now - m.created_time) < 48 * 60 * 60 * 1000
-      );
+      const recentCheckin = conv.messages.find(m => {
+        const isCheckin = m.is_checkin === true || m.is_checkin === 'true';
+        const checkinAge = (now - m.created_time) / (1000 * 60 * 60);
+        if (isCheckin) {
+          console.log(`  📌 Found check-in from ${checkinAge.toFixed(1)} hours ago`);
+        }
+        return isCheckin && (now - m.created_time) < 48 * 60 * 60 * 1000;
+      });
       
       const lastMessageWasUser = conv.messages.length > 0 && conv.messages[0]?.is_user === true;
       
+      // Get user email for debugging
+      const userEmail = conv.user_email || 'unknown';
+      
       console.log(`📝 Conversation ${key.substring(0, 10)}...`, {
+        userEmail,
         hoursSinceLastMessage: hoursSinceLastMessage.toFixed(1),
         hasRecentCheckin: !!recentCheckin,
         lastMessageWasUser,
-        characterName: conv.character_name
+        characterName: conv.character_name,
+        totalMessages: conv.messages.length
       });
       
       // For testing: also check messages from last 48 hours if test mode is enabled
@@ -142,8 +153,15 @@ exports.handler = async (event, context) => {
         console.log('🧪 TEST MODE ENABLED - Including all chats from last 48 hours');
       }
       
+      // Additional check: Skip if this is a test email address (unless in test mode)
+      const isTestEmail = userEmail && (userEmail.includes('@narrin.ai') || userEmail.includes('sharklasers.com'));
+      if (!testMode && isTestEmail) {
+        console.log(`⏭️ Skipping test email: ${userEmail}`);
+        continue;
+      }
+      
       if (hoursSinceLastMessage >= minHours && hoursSinceLastMessage < maxHours && !recentCheckin && lastMessageWasUser) {
-        console.log(`✅ Adding to inactive list: ${conv.character_name}`);
+        console.log(`✅ Adding to inactive list: ${conv.character_name} (${userEmail})`);
         inactiveChats.push(conv);
       }
     }
