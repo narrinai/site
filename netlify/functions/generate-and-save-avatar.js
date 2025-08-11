@@ -165,7 +165,7 @@ exports.handler = async (event, context) => {
         if (recordId && recordId.startsWith('rec')) {
           const updateUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${recordId}`;
           
-          // Use Replicate URL directly since we can't save files persistently
+          // Initially save the Replicate URL, the download script will replace it with local path
           const avatarUrl = replicateUrl;
           
           const updateResponse = await fetch(updateUrl, {
@@ -191,19 +191,11 @@ exports.handler = async (event, context) => {
       }
     }
 
-    // Generate the local filename for future use (but don't use it yet)
-    const timestamp = Date.now();
-    const slug = characterSlug || characterName.toLowerCase().replace(/[^a-z0-9]/g, '-');
-    const futureFilename = `${slug}-${timestamp}.webp`;
-    const futureLocalUrl = `/avatars/${futureFilename}`;
+    // The download script will handle downloading the image later
+    // For now, return the Replicate URL which works immediately
     
-    // Since we can't save files persistently in Netlify Functions,
-    // use the Replicate URL directly until a proper storage solution is configured
-    const finalAvatarUrl = localAvatarPath || replicateUrl;
-    
-    console.log('📁 Avatar filename would be:', futureFilename);
-    console.log('🔗 Using avatar URL:', finalAvatarUrl);
-    console.log('⚠️ Replicate URL:', replicateUrl);
+    console.log('📁 Avatar generated with Replicate URL:', replicateUrl);
+    console.log('⏰ The daily download script will save this locally within 24 hours');
     
     return {
       statusCode: 200,
@@ -213,12 +205,11 @@ exports.handler = async (event, context) => {
       },
       body: JSON.stringify({ 
         success: true,
-        avatarUrl: finalAvatarUrl,     // Return the Replicate URL for now
-        imageUrl: finalAvatarUrl,       // Support both field names
-        localPath: localAvatarPath || null,
-        replicateUrl: replicateUrl,     // Keep for reference
-        filename: futureFilename,
-        downloadInstructions: `curl -L "${replicateUrl}" -o "avatars/${futureFilename}"`
+        avatarUrl: replicateUrl,        // Return Replicate URL for immediate use
+        imageUrl: replicateUrl,          // Support both field names
+        localPath: null,
+        replicateUrl: replicateUrl,      // Keep for reference
+        message: 'Avatar generated successfully. It will be downloaded locally by the scheduled script.'
       })
     };
 
