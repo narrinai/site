@@ -4946,16 +4946,15 @@ function handleLoginSuccess(user, eventType = 'unknown') {
           document.documentElement.classList.remove(className);
         });
         
-        // Remove ANY style tags that contain problematic CSS
+        // Only remove style tags that are specifically for Netlify Identity overlays
         const styleTags = document.querySelectorAll('style');
         styleTags.forEach(tag => {
           const content = tag.innerHTML.toLowerCase();
-          if (content.includes('netlify') || 
-              content.includes('backdrop-filter') || 
-              content.includes('blur') ||
-              content.includes('overlay') ||
-              content.includes('modal')) {
-            console.log('🗑️ Removing problematic style tag');
+          // Only remove if it's specifically overlay/modal CSS, not general styling
+          if ((content.includes('netlify') && content.includes('overlay')) || 
+              (content.includes('backdrop-filter') && content.includes('modal')) ||
+              (content.includes('blur') && content.includes('overlay'))) {
+            console.log('🗑️ Removing Netlify overlay style tag');
             tag.remove();
           }
         });
@@ -4963,38 +4962,44 @@ function handleLoginSuccess(user, eventType = 'unknown') {
         console.log('✅ Overlay cleanup completed');
       };
       
-      // Add CSS override to force no blur effects
+      // Add targeted CSS override for Netlify Identity only
       const forceNoBlurCSS = document.createElement('style');
-      forceNoBlurCSS.id = 'force-no-blur';
+      forceNoBlurCSS.id = 'force-no-netlify-blur';
       forceNoBlurCSS.innerHTML = `
-        body, html, * {
-          filter: none !important;
-          backdrop-filter: none !important;
-          -webkit-backdrop-filter: none !important;
-          opacity: 1 !important;
-        }
+        /* Only target Netlify Identity specific elements */
         .netlify-identity-widget,
         .netlify-identity-widget-overlay,
         .netlify-identity-modal,
         .netlify-identity-backdrop,
-        [class*="overlay"],
-        [class*="backdrop"],
-        [class*="modal"] {
+        .netlify-identity-widget-container {
           display: none !important;
           visibility: hidden !important;
           opacity: 0 !important;
+          filter: none !important;
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+        }
+        
+        /* Reset any blur effects on body when Netlify is open */
+        body.netlify-identity-open,
+        html.netlify-identity-open {
+          filter: none !important;
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
         }
       `;
       document.head.appendChild(forceNoBlurCSS);
       
-      // Clean up immediately and repeatedly
-      cleanupOverlays();
-      setTimeout(cleanupOverlays, 50);
-      setTimeout(cleanupOverlays, 100);
-      setTimeout(cleanupOverlays, 250);
-      setTimeout(cleanupOverlays, 500);
-      setTimeout(cleanupOverlays, 1000);
-      setTimeout(cleanupOverlays, 2000);
+      // TEMPORARILY DISABLE cleanup to test if it's causing styling issues
+      // cleanupOverlays();
+      // setTimeout(cleanupOverlays, 50);
+      // setTimeout(cleanupOverlays, 100);
+      // setTimeout(cleanupOverlays, 250);
+      // setTimeout(cleanupOverlays, 500);
+      // setTimeout(cleanupOverlays, 1000);
+      // setTimeout(cleanupOverlays, 2000);
+      
+      console.log('🚫 Cleanup temporarily disabled for testing');
       
       // Check if user just confirmed their email
       if (sessionStorage.getItem('email_just_confirmed') === 'true') {
