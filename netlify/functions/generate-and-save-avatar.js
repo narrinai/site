@@ -165,8 +165,8 @@ exports.handler = async (event, context) => {
         if (recordId && recordId.startsWith('rec')) {
           const updateUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${recordId}`;
           
-          // Use local path if available, otherwise use Replicate URL
-          const avatarUrl = localAvatarPath ? `https://narrin.ai${localAvatarPath}` : replicateUrl;
+          // Use Replicate URL directly since we can't save files persistently
+          const avatarUrl = replicateUrl;
           
           const updateResponse = await fetch(updateUrl, {
             method: 'PATCH',
@@ -191,19 +191,19 @@ exports.handler = async (event, context) => {
       }
     }
 
-    // Generate the local filename for future use
+    // Generate the local filename for future use (but don't use it yet)
     const timestamp = Date.now();
     const slug = characterSlug || characterName.toLowerCase().replace(/[^a-z0-9]/g, '-');
     const futureFilename = `${slug}-${timestamp}.webp`;
     const futureLocalUrl = `/avatars/${futureFilename}`;
     
-    // For now, return the future local URL that will be used after manual download
-    // This ensures the database stores the correct permanent URL from the start
-    const finalAvatarUrl = futureLocalUrl;
+    // Since we can't save files persistently in Netlify Functions,
+    // use the Replicate URL directly until a proper storage solution is configured
+    const finalAvatarUrl = localAvatarPath || replicateUrl;
     
-    console.log('📁 Avatar will be saved as:', futureFilename);
-    console.log('🔗 Using permanent URL:', finalAvatarUrl);
-    console.log('⚠️ Replicate URL (for manual download):', replicateUrl);
+    console.log('📁 Avatar filename would be:', futureFilename);
+    console.log('🔗 Using avatar URL:', finalAvatarUrl);
+    console.log('⚠️ Replicate URL:', replicateUrl);
     
     return {
       statusCode: 200,
@@ -213,9 +213,9 @@ exports.handler = async (event, context) => {
       },
       body: JSON.stringify({ 
         success: true,
-        avatarUrl: finalAvatarUrl,     // Return the permanent local URL
+        avatarUrl: finalAvatarUrl,     // Return the Replicate URL for now
         imageUrl: finalAvatarUrl,       // Support both field names
-        localPath: futureLocalUrl,
+        localPath: localAvatarPath || null,
         replicateUrl: replicateUrl,     // Keep for reference
         filename: futureFilename,
         downloadInstructions: `curl -L "${replicateUrl}" -o "avatars/${futureFilename}"`
