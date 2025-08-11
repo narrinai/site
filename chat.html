@@ -7265,7 +7265,6 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     console.log('🔍 Character title field:', currentCharacter.title || 'not found');
     console.log('🔍 Character Title field:', currentCharacter.Title || 'not found');
     console.log('🔍 Character Character_Title field:', currentCharacter.Character_Title || 'not found');
-    console.log('🔍 needs_ai_avatar field:', currentCharacter.needs_ai_avatar);
     console.log('🔍 avatar_url field:', currentCharacter.avatar_url);
     console.log('🔍 Character ID fields:', {
       id: currentCharacter.id,
@@ -7387,7 +7386,6 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     }, 500);
     
     // Check if AI avatar needs to be generated
-    console.log('🔍 Checking needs_ai_avatar:', currentCharacter.needs_ai_avatar);
     console.log('🔍 Current avatar_url:', currentCharacter.avatar_url);
     console.log('🔍 Character ID:', currentCharacter.id || currentCharacter.record_id);
     console.log('🔍 Character slug:', characterSlug);
@@ -7396,6 +7394,9 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     const avatarGenerationKey = `avatar_generated_${characterSlug}`;
     const avatarGeneratedTime = sessionStorage.getItem(avatarGenerationKey);
     const recentlyGenerated = avatarGeneratedTime && (Date.now() - parseInt(avatarGeneratedTime)) < 3600000; // 1 hour
+    
+    // Check if avatar URL is empty or just whitespace
+    const hasNoAvatar = !currentCharacter.avatar_url || currentCharacter.avatar_url.trim() === '';
     
     // Check if avatar is an emoji SVG (needs AI generation)
     const isEmojiAvatar = currentCharacter.avatar_url && 
@@ -7406,13 +7407,19 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     const hasReplicateAvatar = currentCharacter.avatar_url && 
                                currentCharacter.avatar_url.includes('replicate.delivery');
     
-    const needsAIAvatar = !recentlyGenerated && !hasReplicateAvatar && (
-                         currentCharacter.needs_ai_avatar === true || 
-                         currentCharacter.needs_ai_avatar === 'true' || 
-                         isEmojiAvatar);
+    // Check if it's a valid HTTP/HTTPS URL
+    const hasValidUrl = currentCharacter.avatar_url && 
+                       (currentCharacter.avatar_url.startsWith('http://') || 
+                        currentCharacter.avatar_url.startsWith('https://'));
     
+    // Need AI avatar if: no avatar, emoji avatar, or not a valid URL (and not recently generated)
+    const needsAIAvatar = !recentlyGenerated && !hasReplicateAvatar && !hasValidUrl && 
+                         (hasNoAvatar || isEmojiAvatar);
+    
+    console.log('🔍 Has no avatar:', hasNoAvatar);
     console.log('🔍 Is emoji avatar:', isEmojiAvatar);
     console.log('🔍 Has Replicate avatar:', hasReplicateAvatar);
+    console.log('🔍 Has valid URL:', hasValidUrl);
     console.log('🔍 Recently generated:', recentlyGenerated);
     console.log('🔍 Needs AI avatar:', needsAIAvatar);
     
@@ -7503,7 +7510,6 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
         
         // Update the character's avatar URL
         currentCharacter.avatar_url = result.avatarUrl;
-        currentCharacter.needs_ai_avatar = false;
         
         // Update all avatar displays with the new avatar
         window.avatarGenerationInProgress = false;
@@ -7576,8 +7582,9 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       document.getElementById('characterTitle').textContent = currentCharacter.title || currentCharacter.Title || currentCharacter.Character_Title || currentCharacter.character_title || '';
 
       const avatarElement = document.getElementById('characterAvatar');
-      const needsAIAvatar = currentCharacter.needs_ai_avatar || 
-                           (currentCharacter.avatar_url && currentCharacter.avatar_url.includes('data:image/svg+xml'));
+      const hasNoAvatar = !currentCharacter.avatar_url || currentCharacter.avatar_url.trim() === '';
+      const isEmojiAvatar = currentCharacter.avatar_url && currentCharacter.avatar_url.includes('data:image/svg+xml');
+      const needsAIAvatar = hasNoAvatar || isEmojiAvatar;
       
       if (needsAIAvatar) {
         // Show loading state for avatar
@@ -8053,7 +8060,7 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       
       // Check if avatar is being generated or needs to be generated
       if (window.avatarGenerationInProgress || 
-          (currentCharacter?.needs_ai_avatar && (!avatarUrl || avatarUrl.trim() === ''))) {
+          (!avatarUrl || avatarUrl.trim() === '')) {
         return '<span class="message-avatar avatar-loading" title="Generating avatar...">⏳</span>';
       }
       
@@ -8134,8 +8141,7 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
         const result = await response.json();
         console.log('✅ Avatar updated in database:', result);
         
-        // Update the needs_ai_avatar flag locally
-        currentCharacter.needs_ai_avatar = false;
+        // Avatar has been updated in database
         
       } catch (error) {
         console.error('❌ Error updating avatar in database:', error);
@@ -9947,8 +9953,7 @@ function initializeCustomizationForm() {
       tags: originalTags || 'character', // Keep original tags with fallback
       visibility: 'private', // Custom characters are private by default
       character_url: `https://narrin.ai/chat.html?char=${customSlug}`,
-      voice_type: selectedVoice ? 'custom' : 'none',
-      needs_ai_avatar: false
+      voice_type: selectedVoice ? 'custom' : 'none'
     };
     
     // Only add optional fields if they have values
