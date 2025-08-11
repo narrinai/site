@@ -77,18 +77,26 @@ exports.handler = async (event, context) => {
 
   try {
     const body = JSON.parse(event.body || '{}');
-    const { message, context } = body;
+    // Accept multiple parameter names for the message
+    const message = body.message || body.text || body.user_message || '';
+    const context = body.context || body.memory_context || '';
     
     console.log('📋 Received:', {
       message: message ? message.substring(0, 50) + '...' : 'null',
-      hasContext: !!context
+      hasContext: !!context,
+      bodyKeys: Object.keys(body).join(', ')
     });
     
     if (!message) {
+      console.error('❌ Missing message. Received body:', JSON.stringify(body).substring(0, 200));
       return {
         statusCode: 400,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'Missing message' })
+        body: JSON.stringify({ 
+          error: 'Missing message',
+          receivedKeys: Object.keys(body),
+          hint: 'Expected one of: message, text, or user_message'
+        })
       };
     }
     
