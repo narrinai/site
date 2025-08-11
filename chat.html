@@ -6083,12 +6083,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (msg.role === 'user') {
               p.innerHTML = `<strong>You:</strong> ${safeMessage}`;
             } else {
+              // Format AI responses for better readability
+              const formattedMessage = formatAIResponse(cleanMessage);
               const avatarHtml = getAvatarHtml();
               if (currentCharacter.voice_id) {
-                const escapedMessage = safeMessage.replace(/'/g, "\\'").replace(/"/g, "&quot;");
-                p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${safeMessage}<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice('${escapedMessage}', '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
+                const escapedMessage = cleanMessage.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${formattedMessage}<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice('${escapedMessage}', '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
               } else {
-                p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${safeMessage}`;
+                p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${formattedMessage}`;
               }
             }
             
@@ -7706,6 +7708,60 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       // Return escaped text with line breaks preserved
       return withLineBreaks;
     }
+    
+    // Function to format AI responses for better readability
+    function formatAIResponse(text) {
+      // Add strategic emojis based on context (sparingly)
+      let formatted = text;
+      
+      // Add welcome emoji at the start of greetings
+      if (formatted.match(/^(Hello|Hi|Hey|Welcome|Greetings)/i)) {
+        formatted = '👋 ' + formatted;
+      }
+      
+      // Add sparkle emoji for tips or insights
+      formatted = formatted.replace(/\b(Tip:|Pro tip:|Insight:|Fun fact:|Did you know)/gi, '✨ $1');
+      
+      // Add thinking emoji for questions
+      formatted = formatted.replace(/\b(What if|Have you considered|Perhaps|Maybe)\b/gi, '🤔 $1');
+      
+      // Add lightbulb for ideas
+      formatted = formatted.replace(/\b(Idea:|Here's an idea|Try this:|Consider this:)/gi, '💡 $1');
+      
+      // Add checkmark for action items
+      formatted = formatted.replace(/^(\d+\.)\s*(Do |Try |Start |Make |Create |Practice )/gm, '$1 ✅ $2');
+      
+      // Format for better readability with line breaks
+      // Add double line breaks before numbered lists
+      formatted = formatted.replace(/([.!?])\s+(\d+\.)/g, '$1<br><br>$2');
+      
+      // Add line break after introductory statements with colons
+      formatted = formatted.replace(/:\s*$/gm, ':<br><br>');
+      formatted = formatted.replace(/:\s+(\w)/g, ':<br><br>$1');
+      
+      // Add line breaks between major sections (sentences ending with period followed by capital letter)
+      formatted = formatted.replace(/([.!?])\s+([A-Z])/g, function(match, p1, p2) {
+        // Only add break if it's a new topic/paragraph (not abbreviations)
+        if (match.length > 3) {
+          return p1 + '<br><br>' + p2;
+        }
+        return match;
+      });
+      
+      // Add line break before "P.S." or similar postscripts
+      formatted = formatted.replace(/\s*(P\.S\.|Note:|Tip:|Remember:|Important:)/g, '<br><br>$1');
+      
+      // Handle bullet points with line breaks
+      formatted = formatted.replace(/([•\-*])\s+/g, '<br>$1 ');
+      
+      // Clean up excessive line breaks
+      formatted = formatted.replace(/(<br>){3,}/g, '<br><br>');
+      
+      // Trim any leading/trailing breaks
+      formatted = formatted.replace(/^(<br>)+|(<br>)+$/g, '');
+      
+      return formatted;
+    }
 
     // ===== CHAT FUNCTIONALITY =====
     async function handleSendClick(event) {
@@ -8018,6 +8074,8 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       if (role === "user") {
         p.innerHTML = `<strong>You:</strong> ${safeMessage}`;
       } else {
+        // Format AI responses for better readability
+        const formattedMessage = formatAIResponse(message);
         const avatarHtml = getAvatarHtml();
         
         if (currentCharacter && currentCharacter.voice_id) {
@@ -8027,14 +8085,14 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
             // Only show play button if we have a valid voice ID
             // Escape message for onclick attribute differently
             const escapedForOnclick = message.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/'/g, "\\'").replace(/"/g, '\\"');
-            p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${safeMessage}<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice('${escapedForOnclick}', '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
+            p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${formattedMessage}<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice('${escapedForOnclick}', '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
           } else {
             // Don't show play button for invalid voice IDs
-            p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${safeMessage}`;
+            p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${formattedMessage}`;
             console.warn(`⚠️ Voice chat disabled for ${currentCharacter?.name} - invalid voice ID: ${currentCharacter.voice_id}`);
           }
         } else {
-          p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${safeMessage}`;
+          p.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${formattedMessage}`;
         }
       }
       chatlog.appendChild(p);
@@ -11928,6 +11986,14 @@ hideTypingIndicator();
     } else {
       typewriterEffect(typingSpan, cleanReply);
     }
+    
+    // After typewriter completes, apply formatting for better readability
+    const typewriterDuration = cleanReply.length * 20 + 100;
+    setTimeout(() => {
+      // Apply the formatting function to make text more readable
+      const formattedReply = formatAIResponse(cleanReply);
+      typingSpan.innerHTML = formattedReply;
+    }, typewriterDuration);
     
     // Add click handler to voice button after it's created
     const voiceBtn = divBot.querySelector('.voice-play-btn');
