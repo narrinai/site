@@ -141,9 +141,13 @@ exports.handler = async (event, context) => {
       User: [userRecordId],
       Summary: summary,
       Sentiment_Score: sentiment_score,
-      Key_Insights: key_insights,
       Conversation_Date: conversation_date
     };
+    
+    // Only add key insights if provided and non-empty
+    if (key_insights && key_insights.trim()) {
+      recordData.KeyInsights = key_insights;
+    }
     
     // Topics field exists but might have different name - skip for now
     console.log('⚠️ Skipping topics field - getting UNKNOWN_FIELD_NAME error for Topics_Discussed');

@@ -133,13 +133,13 @@ exports.handler = async (event, context) => {
         characterName: conv.character_name
       });
       
-      // For testing: also check messages from last 12 hours if test mode is enabled
+      // For testing: also check messages from last 48 hours if test mode is enabled
       const testMode = event.queryStringParameters?.test === 'true';
-      const minHours = testMode ? 0.1 : 24; // 6 minutes for testing, 24 hours for production
-      const maxHours = testMode ? 999 : 48; // No upper limit for testing
+      const minHours = testMode ? 0 : 24; // 0 hours for testing (all messages), 24 hours for production
+      const maxHours = testMode ? 48 : 48; // 48 hours for both test and production
       
       if (testMode) {
-        console.log('🧪 TEST MODE ENABLED - Using reduced time window');
+        console.log('🧪 TEST MODE ENABLED - Including all chats from last 48 hours');
       }
       
       if (hoursSinceLastMessage >= minHours && hoursSinceLastMessage < maxHours && !recentCheckin && lastMessageWasUser) {
