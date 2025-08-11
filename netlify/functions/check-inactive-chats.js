@@ -34,13 +34,11 @@ exports.handler = async (event, context) => {
     const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     
-    // Fetch all recent chat messages - ensure we get all needed fields
+    // Fetch all recent chat messages
     const chatsResponse = await fetch(
       `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?` + 
       `filterByFormula=${encodeURIComponent(`IS_AFTER({CreatedTime}, '${fortyEightHoursAgo}')`)}` +
-      `&sort[0][field]=CreatedTime&sort[0][direction]=desc` +
-      `&fields[]=User&fields[]=Character&fields[]=CharacterName&fields[]=Message&fields[]=Role` +
-      `&fields[]=CreatedTime&fields[]=is_checkin&fields[]=NetlifyUID&fields[]=Slug`,
+      `&sort[0][field]=CreatedTime&sort[0][direction]=desc`,
       {
         headers: {
           'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
