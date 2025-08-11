@@ -1,7 +1,7 @@
 const sgMail = require('@sendgrid/mail');
 
 exports.handler = async (event, context) => {
-  console.log('🔄 Checking for inactive chats...');
+  console.log('🔄 Checking for inactive chats... v2');
   console.log('📅 Current time:', new Date().toISOString());
   
   const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
