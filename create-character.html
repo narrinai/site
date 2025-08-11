@@ -4694,6 +4694,16 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
       console.log('🔍 Available fields in result:', Object.keys(result));
       console.log('🔍 Character object:', result.character);
       
+      // Check if character was actually created (has character data)
+      if (!result.character && !result.slug) {
+        // Success response but no character data - probably hit the limit
+        showError('Character limit reached. Please upgrade to Pro for unlimited characters or delete an existing character.', 'Upgrade Required');
+        isSubmitting = false;
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+        return;
+      }
+      
       // Stop form submission warning
       isFormSubmitting = true;
       formHasUnsavedChanges = false;
