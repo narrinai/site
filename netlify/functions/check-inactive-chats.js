@@ -371,16 +371,29 @@ exports.handler = async (event, context) => {
       }
     }
 
+    // In test mode, return more details
+    const testMode = event.queryStringParameters?.test === 'true';
+    const responseBody = {
+      success: true, 
+      processed: inactiveChats.length,
+      message: `Processed ${inactiveChats.length} check-ins`
+    };
+    
+    if (testMode) {
+      responseBody.details = inactiveChats.map(chat => ({
+        email: chat.user_email || 'unknown',
+        character: chat.character_name,
+        lastMessage: chat.last_message_time ? new Date(chat.last_message_time).toISOString() : 'unknown',
+        hoursSince: chat.last_message_time ? ((new Date() - chat.last_message_time) / (1000 * 60 * 60)).toFixed(1) : 'unknown'
+      }));
+    }
+    
     return {
       statusCode: 200,
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ 
-        success: true, 
-        processed: inactiveChats.length,
-        message: `Processed ${inactiveChats.length} check-ins`
-      })
+      body: JSON.stringify(responseBody)
     };
 
   } catch (error) {
