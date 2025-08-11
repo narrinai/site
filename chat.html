@@ -11045,22 +11045,30 @@ async function sendMessage(event) {
   const input = userInput.value.trim();
   if (!input) return;
 
-  const email = window.currentUser.email;
-  const token = window.currentUser.token;
-  let uid = window.currentUser.uid;
-  const user_id = localStorage.getItem("user_id");
-  const user_uid = localStorage.getItem("user_uid");
+  // Get auth data with fallback to localStorage
   const user_email = localStorage.getItem("user_email");
+  const user_token = localStorage.getItem("user_token");
+  const user_uid = localStorage.getItem("user_uid");
+  const user_id = localStorage.getItem("user_id");
   
-  // Fallback: if uid is undefined, try to get it from localStorage
+  const email = window.currentUser?.email || user_email || "";
+  const token = window.currentUser?.token || user_token || "";
+  let uid = window.currentUser?.uid || user_uid || "";
+  
+  // Validate we have required data
   if (!uid || uid === 'undefined') {
-    uid = user_uid;
-    if (!uid) {
-      console.error('❌ No valid UID found! This should not happen with Netlify Identity');
-      // Use a placeholder to prevent crashes, but this indicates a serious issue
-      uid = 'error_no_uid_' + Date.now();
-    }
+    console.error('❌ No valid UID found! This should not happen with Netlify Identity');
+    // Use a placeholder to prevent crashes, but this indicates a serious issue
+    uid = 'error_no_uid_' + Date.now();
     console.log('⚠️ UID was undefined, using fallback:', uid);
+  }
+  
+  if (!email || email === 'undefined' || email === 'empty') {
+    console.error('❌ No valid email found! Auth state:', {
+      windowCurrentUser: window.currentUser,
+      localStorageEmail: user_email,
+      localStorageUid: user_uid
+    });
   }
   
   // Use fallback if user_id is not available - use email as last resort
@@ -11549,9 +11557,9 @@ showTypingIndicator();
       relationship_phase: relationshipContext?.phase || 'new',
       total_messages: relationshipContext?.totalMessages || 0,
       slug: characterSlug,  // Match Airtable field name
-      netlify_uid: uid,  // PRIMARY identifier - NetlifyUID
-      user_token: token,  // For authentication
-      user_email: email,  // Voor display/notifications
+      netlify_uid: uid || "",  // PRIMARY identifier - NetlifyUID
+      user_token: token || "",  // For authentication
+      user_email: (email && email !== "empty" && email !== "undefined") ? email : "",  // Voor display/notifications
       // Include custom prompt if character has been customized
       custom_prompt: currentCharacter?.customPrompt || null,
       is_customized: currentCharacter?.isCustomized || false,
