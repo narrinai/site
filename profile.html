@@ -27,7 +27,7 @@
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <script>
   // Configureer widget styling
-  if (window.netlifyIdentity) {
+  if (window.netlifyIdentity && document.body) {
     window.netlifyIdentity.init({
       theme: 'custom',
       colors: {
@@ -4101,7 +4101,6 @@ function handleLoginSuccess(user, eventType = 'unknown') {
     console.log('🔄 EXISTING LOGIN: Loading profile without webhook call');
     showProfileUI();
     loadProfile();
-    initializeInviteForm();
     // TEMPORARY: Log redirect check
     console.log('🔍 Checking for post-login redirect...');
     handlePostLoginRedirect();
@@ -4109,7 +4108,6 @@ function handleLoginSuccess(user, eventType = 'unknown') {
     console.log('🤔 UNKNOWN EVENT TYPE: Defaulting to profile load');
     showProfileUI();
     loadProfile();
-    initializeInviteForm();
   }
   
   updateLoginButton();
@@ -4928,8 +4926,12 @@ function handleLoginSuccess(user, eventType = 'unknown') {
         });
       };
       
-      // Clean up immediately
+      // Clean up immediately on page load
       cleanupOverlays();
+      
+      // Also clean up after a short delay to catch any late-loading overlays
+      setTimeout(cleanupOverlays, 100);
+      setTimeout(cleanupOverlays, 500);
       
       // Check if user just confirmed their email
       if (sessionStorage.getItem('email_just_confirmed') === 'true') {
@@ -5012,9 +5014,13 @@ function handleLoginSuccess(user, eventType = 'unknown') {
           }
         }
         
-        window.netlifyIdentity.init({
-          namePlaceholder: 'Nickname'
-        });
+        // Only init if DOM is ready and not already initialized
+        if (document.body && !window.netlifyIdentity._initialized) {
+          window.netlifyIdentity.init({
+            namePlaceholder: 'Nickname'
+          });
+          window.netlifyIdentity._initialized = true;
+        }
         
         // Check if user is already logged in (might be null right after signup)
         netlifyUser = window.netlifyIdentity.currentUser();
@@ -6210,6 +6216,12 @@ function updateUsageCountdown(plan, usage, quota) {
 // ===== ENHANCED FORCE NETLIFY MODAL STYLING =====
 function applyNetlifyModalStyling() {
   console.log('🎨 Attempting to apply modal styling...');
+  
+  // Check if document body exists
+  if (!document.body) {
+    console.log('⚠️ Document body not ready, skipping modal styling');
+    return;
+  }
   
   // Wacht tot modal volledig geladen is
   setTimeout(() => {
