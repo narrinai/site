@@ -4890,48 +4890,111 @@ function handleLoginSuccess(user, eventType = 'unknown') {
     document.addEventListener('DOMContentLoaded', () => {
       console.log('🚀 Page loaded, initializing...');
       
-      // Clean up any lingering Netlify Identity overlays FIRST
+      // AGGRESSIVE cleanup of ALL overlay and blur effects
       const cleanupOverlays = () => {
-        const overlays = document.querySelectorAll(
-          '.netlify-identity-widget, ' +
-          '.netlify-identity-widget-overlay, ' +
-          '.netlify-identity-modal, ' +
-          '.netlify-identity-backdrop, ' +
-          '[class*="overlay"], ' +
-          '[class*="backdrop"], ' +
-          '[class*="modal"], ' +
-          'iframe[src*="netlify"], ' +
-          'div[style*="position: fixed"][style*="background"], ' +
-          'div[style*="z-index: 99"]'
-        );
+        console.log('🧹 Running aggressive overlay cleanup...');
         
-        overlays.forEach(overlay => {
-          overlay.remove();
+        // Remove ALL potential overlay elements
+        const overlaySelectors = [
+          '.netlify-identity-widget',
+          '.netlify-identity-widget-overlay', 
+          '.netlify-identity-modal',
+          '.netlify-identity-backdrop',
+          '.netlify-identity-widget-container',
+          '[class*="overlay"]',
+          '[class*="backdrop"]', 
+          '[class*="modal"]',
+          'iframe[src*="netlify"]',
+          'div[style*="position: fixed"]',
+          'div[style*="z-index"]',
+          '[style*="backdrop-filter"]',
+          '[style*="filter: blur"]'
+        ];
+        
+        overlaySelectors.forEach(selector => {
+          try {
+            const elements = document.querySelectorAll(selector);
+            elements.forEach(element => {
+              element.remove();
+            });
+          } catch (e) {
+            // Ignore selector errors
+          }
         });
         
-        // Reset body styles
-        document.body.style.overflow = '';
-        document.body.style.position = '';
-        document.body.style.filter = '';
-        document.body.style.backdropFilter = '';
-        document.body.style.webkitBackdropFilter = '';
-        document.body.classList.remove('blur', 'modal-open', 'has-overlay');
+        // FORCE reset ALL body and html styles
+        const resetStyles = {
+          overflow: '',
+          position: '',
+          filter: '',
+          backdropFilter: '',
+          webkitBackdropFilter: '',
+          background: '',
+          opacity: '',
+          pointerEvents: '',
+          transform: '',
+          zIndex: ''
+        };
         
-        // Remove any style tags that might cause blur
+        Object.assign(document.body.style, resetStyles);
+        Object.assign(document.documentElement.style, resetStyles);
+        
+        // Remove ALL classes that might cause issues
+        const problematicClasses = ['blur', 'modal-open', 'has-overlay', 'netlify-identity-open', 'no-scroll'];
+        problematicClasses.forEach(className => {
+          document.body.classList.remove(className);
+          document.documentElement.classList.remove(className);
+        });
+        
+        // Remove ANY style tags that contain problematic CSS
         const styleTags = document.querySelectorAll('style');
         styleTags.forEach(tag => {
-          if (tag.innerHTML.includes('netlify') || tag.innerHTML.includes('backdrop-filter') || tag.innerHTML.includes('blur')) {
+          const content = tag.innerHTML.toLowerCase();
+          if (content.includes('netlify') || 
+              content.includes('backdrop-filter') || 
+              content.includes('blur') ||
+              content.includes('overlay') ||
+              content.includes('modal')) {
+            console.log('🗑️ Removing problematic style tag');
             tag.remove();
           }
         });
+        
+        console.log('✅ Overlay cleanup completed');
       };
       
-      // Clean up immediately on page load
-      cleanupOverlays();
+      // Add CSS override to force no blur effects
+      const forceNoBlurCSS = document.createElement('style');
+      forceNoBlurCSS.id = 'force-no-blur';
+      forceNoBlurCSS.innerHTML = `
+        body, html, * {
+          filter: none !important;
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+          opacity: 1 !important;
+        }
+        .netlify-identity-widget,
+        .netlify-identity-widget-overlay,
+        .netlify-identity-modal,
+        .netlify-identity-backdrop,
+        [class*="overlay"],
+        [class*="backdrop"],
+        [class*="modal"] {
+          display: none !important;
+          visibility: hidden !important;
+          opacity: 0 !important;
+        }
+      `;
+      document.head.appendChild(forceNoBlurCSS);
       
-      // Also clean up after a short delay to catch any late-loading overlays
+      // Clean up immediately and repeatedly
+      cleanupOverlays();
+      setTimeout(cleanupOverlays, 50);
       setTimeout(cleanupOverlays, 100);
+      setTimeout(cleanupOverlays, 250);
       setTimeout(cleanupOverlays, 500);
+      setTimeout(cleanupOverlays, 1000);
+      setTimeout(cleanupOverlays, 2000);
       
       // Check if user just confirmed their email
       if (sessionStorage.getItem('email_just_confirmed') === 'true') {
