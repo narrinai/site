@@ -280,17 +280,14 @@ exports.handler = async (event, context) => {
         character.Personality || ''
       );
 
-      // Save check-in message to chat history
+      // Save check-in message to chat history - use same fields as save-chat-message.js
       const checkInRecord = {
         fields: {
           Role: 'ai assistant',
           Message: checkInMessage,
           User: [chat.user_record_id],
           Character: [chat.character_record_id],
-          CharacterName: character.Name,
-          is_checkin: true,
-          NetlifyUID: userNetlifyUID,
-          Slug: characterSlug
+          is_checkin: true
         }
       };
 
