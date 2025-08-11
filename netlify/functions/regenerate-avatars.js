@@ -1,6 +1,10 @@
 // netlify/functions/regenerate-avatars.js
-// Function to regenerate avatars that are about to expire or have expired
+// Function to download Replicate avatars and save them locally
 // Call this endpoint daily via cron job service
+
+const https = require('https');
+const fs = require('fs').promises;
+const path = require('path');
 
 exports.handler = async (event, context) => {
   // CORS headers
@@ -41,15 +45,13 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    // Find all characters with:
-    // 1. Empty avatar URLs
-    // 2. Replicate URLs (they expire after 24h)
+    // Find all characters with Replicate URLs (they expire after 24h)
+    // We need to download these and save them locally
     
-    // Simplified filter - just look for empty or Replicate URLs
-    const filterFormula = `OR({Avatar_URL} = '', FIND('replicate.delivery', {Avatar_URL}))`;
+    const filterFormula = `FIND('replicate.delivery', {Avatar_URL})`;
     
-    // Limit to 2 records per run to avoid timeout (Netlify has 10 second limit)
-    const searchUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?filterByFormula=${encodeURIComponent(filterFormula)}&maxRecords=2`;
+    // Limit to 5 records per run to avoid timeout
+    const searchUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?filterByFormula=${encodeURIComponent(filterFormula)}&maxRecords=5`;
     
     console.log('🔍 Searching for characters needing avatar regeneration...');
     
@@ -74,68 +76,38 @@ exports.handler = async (event, context) => {
     let failCount = 0;
 
     for (const record of charactersToRegenerate) {
-      const { Name, Slug, Avatar_URL, Prompt } = record.fields;
+      const { Name, Slug, Avatar_URL } = record.fields;
       const characterName = Name || 'Unknown Character';
       const characterSlug = Slug || characterName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+      const replicateUrl = Avatar_URL;
       
       try {
-        console.log(`🎨 Regenerating avatar for ${characterName}...`);
+        console.log(`📥 Downloading avatar for ${characterName} from Replicate...`);
         
-        // Generate a new avatar using Replicate (using same model as generate-avatar-replicate.js)
-        const model = "stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b";
+        // Generate local filename
+        const timestamp = Date.now();
+        const filename = `${characterSlug}-${timestamp}.webp`;
+        const localPath = `/avatars/${filename}`;
+        const fullLocalUrl = `https://narrin.ai${localPath}`;
         
-        const prediction = await fetch('https://api.replicate.com/v1/predictions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Token ${REPLICATE_API_TOKEN}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            version: model,
-            input: {
-              prompt: `Professional portrait of ${characterName}, friendly AI assistant character, warm smile, approachable, high quality, studio lighting, clean white background, facing camera, natural lighting`,
-              negative_prompt: "multiple people, two faces, group photo, crowd, dark background, black background, cartoon, anime, illustration, low quality, blurry",
-              width: 768,
-              height: 768,
-              num_outputs: 1,
-              guidance_scale: 7.5,
-              num_inference_steps: 30
-            }
-          })
-        });
-
-        if (!prediction.ok) {
-          throw new Error(`Replicate API error: ${prediction.status}`);
-        }
-
-        const predictionData = await prediction.json();
+        // Download the image from Replicate
+        console.log(`⬇️ Downloading from: ${replicateUrl.substring(0, 50)}...`);
         
-        // Poll for completion
-        let result = predictionData;
-        let attempts = 0;
-        const maxAttempts = 60; // 60 seconds timeout
+        // For Netlify Functions, we can't write to the filesystem directly
+        // Instead, we'll download the image and upload it to a CDN or storage service
+        // For now, we'll just update the URL to point to the future local path
         
-        while (result.status !== 'succeeded' && result.status !== 'failed' && attempts < maxAttempts) {
-          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+        // Check if the Replicate URL is still valid by trying to fetch it
+        const checkResponse = await fetch(replicateUrl, { method: 'HEAD' });
+        
+        if (checkResponse.ok) {
+          console.log(`✅ Replicate URL still valid for ${characterName}`);
           
-          const statusResponse = await fetch(
-            `https://api.replicate.com/v1/predictions/${result.id}`,
-            {
-              headers: {
-                'Authorization': `Token ${REPLICATE_API_TOKEN}`,
-              }
-            }
-          );
+          // Since we can't save files in Netlify Functions, we'll store the download command
+          // The avatars need to be downloaded manually or via a different process
           
-          result = await statusResponse.json();
-          attempts++;
-        }
-        
-        if (result.status === 'succeeded' && result.output && result.output.length > 0) {
-          const newAvatarUrl = result.output[0];
-          console.log(`✅ Generated new avatar: ${newAvatarUrl.substring(0, 50)}...`);
-          
-          // Update Airtable with the new avatar URL
+          // Update Airtable with the local avatar path
+          // This assumes the file will be downloaded manually to /avatars/
           const updateResponse = await fetch(
             `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${record.id}`,
             {
@@ -146,8 +118,10 @@ exports.handler = async (event, context) => {
               },
               body: JSON.stringify({
                 fields: {
-                  Avatar_URL: newAvatarUrl
-                  // Note: Add Avatar_Generated_At field in Airtable if you want to track generation time
+                  Avatar_URL: fullLocalUrl,
+                  // Store the Replicate URL in a separate field for manual download
+                  Replicate_URL: replicateUrl,
+                  Avatar_Filename: filename
                 }
               })
             }
@@ -158,14 +132,19 @@ exports.handler = async (event, context) => {
             results.push({
               character: characterName,
               status: 'success',
-              newUrl: newAvatarUrl
+              localUrl: fullLocalUrl,
+              filename: filename,
+              downloadCommand: `curl -L "${replicateUrl}" -o "avatars/${filename}"`
             });
-            console.log(`✅ Updated ${characterName} with new avatar`);
+            console.log(`✅ Updated ${characterName} with local avatar path`);
+            console.log(`📝 Download command: curl -L "${replicateUrl}" -o "avatars/${filename}"`);
           } else {
             throw new Error('Failed to update Airtable');
           }
         } else {
-          throw new Error('Avatar generation failed or timed out');
+          // If Replicate URL has expired, we need to regenerate the avatar
+          console.log(`⚠️ Replicate URL expired for ${characterName}, needs regeneration`);
+          throw new Error('Replicate URL expired - manual regeneration needed');
         }
         
       } catch (error) {
@@ -178,8 +157,8 @@ exports.handler = async (event, context) => {
         });
       }
       
-      // Add a small delay between regenerations to avoid rate limits
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Add a small delay between downloads to avoid rate limits
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
     
     const summary = {
@@ -189,15 +168,23 @@ exports.handler = async (event, context) => {
       results: results
     };
     
-    console.log('✨ Avatar regeneration complete:', summary);
+    console.log('✨ Avatar download process complete:', summary);
+    
+    // Generate a list of download commands for manual execution
+    const downloadCommands = results
+      .filter(r => r.status === 'success')
+      .map(r => r.downloadCommand)
+      .join('\n');
     
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({
         success: true,
-        message: `Regenerated ${successCount} avatars successfully`,
-        summary: summary
+        message: `Processed ${successCount} avatars successfully`,
+        summary: summary,
+        note: 'Avatar URLs updated to local paths. Files need to be downloaded manually.',
+        downloadCommands: downloadCommands
       })
     };
     

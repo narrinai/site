@@ -307,7 +307,12 @@ exports.handler = async (event, context) => {
       );
 
       if (!saveResponse.ok) {
-        console.error(`Failed to save check-in message for ${userName}`);
+        const errorText = await saveResponse.text();
+        console.error(`Failed to save check-in message for ${userName}:`, {
+          status: saveResponse.status,
+          error: errorText,
+          record: checkInRecord
+        });
         continue;
       }
 
