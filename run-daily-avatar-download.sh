@@ -14,6 +14,10 @@ echo "🔍 Checking for Replicate avatars..."
 RESPONSE=$(curl -s "https://narrin.ai/.netlify/functions/regenerate-avatars?secret=$CRON_SECRET")
 COUNT=$(echo $RESPONSE | grep -o '"count":[0-9]*' | cut -d':' -f2)
 
+# Debug output
+echo "🔍 API Response: $RESPONSE"
+echo "🔢 Extracted count: '$COUNT'"
+
 if [ "$COUNT" = "0" ]; then
     echo "✅ No Replicate avatars found. All avatars are already local!"
     exit 0
