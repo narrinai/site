@@ -206,6 +206,8 @@ exports.handler = async (event, context) => {
         console.log(`⏭️ Skipping test email in production: ${userEmail}`);
         continue;
       }
+      
+      console.log(`📧 Processing check-in for: ${userEmail} (${userName})`);  // Add logging
 
       // Get character details using filterByFormula with record ID
       const characterResponse = await fetch(
