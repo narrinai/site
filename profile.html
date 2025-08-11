@@ -2694,19 +2694,26 @@
   
   <!-- Configure Netlify Identity after loading -->
   <script>
-    // Configureer widget styling
-    if (window.netlifyIdentity) {
-      window.netlifyIdentity.init({
-        theme: 'custom',
-        colors: {
-          primary: '#14b8a6',
-          secondary: '#f97316'
-        },
-        logo: false,
-        locale: 'en',
-        namePlaceholder: false
-      });
-    }
+    // Wacht tot DOM geladen is voordat Netlify Identity wordt geïnitialiseerd
+    document.addEventListener('DOMContentLoaded', function() {
+      try {
+        if (window.netlifyIdentity) {
+          window.netlifyIdentity.init({
+            theme: 'custom',
+            colors: {
+              primary: '#14b8a6',
+              secondary: '#f97316'
+            },
+            logo: false,
+            locale: 'en',
+            namePlaceholder: false
+          });
+        }
+      } catch (error) {
+        console.error('Error initializing Netlify Identity:', error);
+        // Continue loading page even if Netlify Identity fails
+      }
+    });
   </script>
 
   <!-- Google Analytics -->
@@ -5084,13 +5091,7 @@ function handleLoginSuccess(user, eventType = 'unknown') {
           }
         }
         
-        // Only init if DOM is ready and not already initialized
-        if (document.body && !window.netlifyIdentity._initialized) {
-          window.netlifyIdentity.init({
-            namePlaceholder: 'Nickname'
-          });
-          window.netlifyIdentity._initialized = true;
-        }
+        // Skip duplicate init - already done in head
         
         // Check if user is already logged in (might be null right after signup)
         netlifyUser = window.netlifyIdentity.currentUser();
