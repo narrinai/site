@@ -104,8 +104,7 @@ exports.handler = async (event, context) => {
     
     const updateData = {
       fields: {
-        Avatar_URL: avatarUrl,
-        needs_ai_avatar: false
+        Avatar_URL: avatarUrl
       }
     };
 
