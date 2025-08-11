@@ -43,7 +43,9 @@ exports.handler = async (event, context) => {
 
     let permanentUrl = replicateUrl;
 
-    // If Cloudinary is configured, upload there
+    // Cloudinary disabled - would need npm package installed
+    // To enable: run `npm install cloudinary` and uncomment code below
+    /*
     if (CLOUDINARY_API_KEY && CLOUDINARY_API_SECRET) {
       const cloudinary = require('cloudinary').v2;
       
@@ -72,11 +74,10 @@ exports.handler = async (event, context) => {
         console.log('✅ Uploaded to Cloudinary:', permanentUrl);
       } catch (cloudinaryError) {
         console.error('⚠️ Cloudinary upload failed:', cloudinaryError);
-        // Continue with Replicate URL as fallback
       }
-    } else {
-      console.log('ℹ️ Cloudinary not configured, using Replicate URL');
     }
+    */
+    console.log('ℹ️ Cloudinary not configured, using Replicate URL');
 
     // Update Airtable with the permanent URL
     const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
