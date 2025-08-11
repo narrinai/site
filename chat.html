@@ -7145,6 +7145,31 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       initializeChat();
     }
 
+    async function checkAirtableForAvatar(slug) {
+      try {
+        // Call the characters Netlify function to get character data from Airtable
+        const response = await fetch(`/.netlify/functions/characters?slug=${slug}&limit=1`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.characters && data.characters.length > 0) {
+            const character = data.characters[0];
+            
+            // Check if Airtable has an avatar URL
+            if (character.Avatar_URL && character.Avatar_URL.trim() !== '') {
+              console.log('✅ Found avatar in Airtable:', character.Avatar_URL);
+              currentCharacter.avatar_url = character.Avatar_URL;
+              currentCharacter.Avatar_URL = character.Avatar_URL;
+              return true;
+            }
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error checking Airtable for avatar:', error);
+      }
+      return false;
+    }
+
     async function loadCharacter(slug) {
   try {
     console.log("Loading character:", slug);
@@ -7266,6 +7291,12 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     console.log('🔍 Character Title field:', currentCharacter.Title || 'not found');
     console.log('🔍 Character Character_Title field:', currentCharacter.Character_Title || 'not found');
     console.log('🔍 avatar_url field:', currentCharacter.avatar_url);
+    
+    // If avatar_url is empty, try to fetch it from Airtable directly
+    if (!currentCharacter.avatar_url || currentCharacter.avatar_url.trim() === '') {
+      console.log('🔍 Avatar URL is empty, checking Airtable for existing avatar...');
+      await checkAirtableForAvatar(slug);
+    }
     console.log('🔍 Character ID fields:', {
       id: currentCharacter.id,
       record_id: currentCharacter.record_id,

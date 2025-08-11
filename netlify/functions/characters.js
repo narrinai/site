@@ -46,9 +46,9 @@ exports.handler = async (event, context) => {
     }
 
     // Get query parameters
-    const { category, tag, limit = 3000 } = event.queryStringParameters || {};
+    const { category, tag, slug, limit = 3000 } = event.queryStringParameters || {};
     
-    console.log('Request params:', { category, tag, limit });
+    console.log('Request params:', { category, tag, slug, limit });
 
     // Fetch all records using pagination if needed
     let allRecords = [];
@@ -67,8 +67,13 @@ exports.handler = async (event, context) => {
       // Build filter formula
       let filterParts = [];
       
-      // Always filter to show only public characters
-      filterParts.push(`OR({Visibility} = "public", {Visibility} = "", NOT({Visibility}))`);
+      // If slug is specified, only get that specific character
+      if (slug) {
+        filterParts.push(`{Slug} = "${slug}"`);
+      } else {
+        // Always filter to show only public characters (unless searching by slug)
+        filterParts.push(`OR({Visibility} = "public", {Visibility} = "", NOT({Visibility}))`);
+      }
       
       // Add category filter if specified (case-insensitive)
       if (category) {
