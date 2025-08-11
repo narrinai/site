@@ -3,12 +3,15 @@
 # Daily Avatar Download Script
 # This script should be run daily to download any Replicate avatars and save them locally
 
+# Load environment variables
+source .env 2>/dev/null || export CRON_SECRET="avatarurls12345"
+
 echo "🔄 Starting daily avatar download process..."
 cd "/Users/sebastiaansmits/Documents/Narrin AI"
 
 # Check if there are any Replicate URLs to download
 echo "🔍 Checking for Replicate avatars..."
-RESPONSE=$(curl -s "https://narrin.ai/.netlify/functions/regenerate-avatars?secret=avatarurls12345")
+RESPONSE=$(curl -s "https://narrin.ai/.netlify/functions/regenerate-avatars?secret=$CRON_SECRET")
 COUNT=$(echo $RESPONSE | grep -o '"count":[0-9]*' | cut -d':' -f2)
 
 if [ "$COUNT" = "0" ]; then
