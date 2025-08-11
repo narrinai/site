@@ -48,7 +48,8 @@ exports.handler = async (event, context) => {
     // Simplified filter - just look for empty or Replicate URLs
     const filterFormula = `OR({Avatar_URL} = '', FIND('replicate.delivery', {Avatar_URL}))`;
     
-    const searchUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?filterByFormula=${encodeURIComponent(filterFormula)}&maxRecords=50`;
+    // Limit to 2 records per run to avoid timeout (Netlify has 10 second limit)
+    const searchUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?filterByFormula=${encodeURIComponent(filterFormula)}&maxRecords=2`;
     
     console.log('🔍 Searching for characters needing avatar regeneration...');
     
