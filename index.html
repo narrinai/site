@@ -2685,6 +2685,17 @@ if (window.netlifyIdentity) {
     });
   });
   
+  // Check for email confirmation token and redirect to profile
+  if (window.location.hash && window.location.hash.includes('confirmation_token')) {
+    console.log('📧 Email confirmation detected, redirecting to profile...');
+    // Store flag that user just confirmed email
+    sessionStorage.setItem('email_just_confirmed', 'true');
+    // Let Netlify Identity handle the token, then redirect
+    setTimeout(() => {
+      window.location.href = '/profile.html';
+    }, 1500);
+  }
+  
   window.netlifyIdentity.on('login', (user) => {
     handleLoginSuccess(user, 'login');
     window.netlifyIdentity.close();

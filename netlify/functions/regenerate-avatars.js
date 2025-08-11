@@ -80,7 +80,9 @@ exports.handler = async (event, context) => {
       try {
         console.log(`🎨 Regenerating avatar for ${characterName}...`);
         
-        // Generate a new avatar using Replicate
+        // Generate a new avatar using Replicate (using same model as generate-avatar-replicate.js)
+        const model = "stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b";
+        
         const prediction = await fetch('https://api.replicate.com/v1/predictions', {
           method: 'POST',
           headers: {
@@ -88,12 +90,15 @@ exports.handler = async (event, context) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            version: "cddd134824d24db060a757596ea30c1211b12e75c36f641cf1e20728ebef0fcd",
+            version: model,
             input: {
-              prompt: `Professional portrait of ${characterName}, friendly AI assistant character, warm smile, approachable, high quality, studio lighting, clean background`,
-              width: 512,
-              height: 512,
-              num_outputs: 1
+              prompt: `Professional portrait of ${characterName}, friendly AI assistant character, warm smile, approachable, high quality, studio lighting, clean white background, facing camera, natural lighting`,
+              negative_prompt: "multiple people, two faces, group photo, crowd, dark background, black background, cartoon, anime, illustration, low quality, blurry",
+              width: 768,
+              height: 768,
+              num_outputs: 1,
+              guidance_scale: 7.5,
+              num_inference_steps: 30
             }
           })
         });

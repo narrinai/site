@@ -2675,6 +2675,29 @@
         height: 16px;
       }
     }
+    
+    /* Email confirmation welcome message animations */
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-100%);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    }
+    
+    @keyframes slideUp {
+      from {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+      to {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-100%);
+      }
+    }
 
   </style>
 
@@ -4868,6 +4891,39 @@ function handleLoginSuccess(user, eventType = 'unknown') {
     // Initialize Netlify Identity and check login status
     document.addEventListener('DOMContentLoaded', () => {
       console.log('🚀 Page loaded, initializing...');
+      
+      // Check if user just confirmed their email
+      if (sessionStorage.getItem('email_just_confirmed') === 'true') {
+        console.log('🎉 User just confirmed email!');
+        sessionStorage.removeItem('email_just_confirmed');
+        
+        // Show welcome message
+        setTimeout(() => {
+          const welcomeMessage = document.createElement('div');
+          welcomeMessage.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            z-index: 10000;
+            font-weight: 600;
+            animation: slideDown 0.5s ease;
+          `;
+          welcomeMessage.innerHTML = '🎉 Email verified successfully! Welcome to Narrin AI!';
+          document.body.appendChild(welcomeMessage);
+          
+          // Remove message after 5 seconds
+          setTimeout(() => {
+            welcomeMessage.style.animation = 'slideUp 0.5s ease';
+            setTimeout(() => welcomeMessage.remove(), 500);
+          }, 5000);
+        }, 500);
+      }
       
       // Debug localStorage state
       console.log('📦 LocalStorage state:', {
