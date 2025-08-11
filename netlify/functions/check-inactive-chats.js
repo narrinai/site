@@ -169,8 +169,20 @@ exports.handler = async (event, context) => {
     }
 
     console.log(`📧 Found ${inactiveChats.length} inactive chats to follow up`);
+    
+    // Debug: Show which chats will be processed
+    if (inactiveChats.length > 0) {
+      console.log('📋 Chats to process:', inactiveChats.map(c => ({
+        user_id: c.user_record_id,
+        char_id: c.character_record_id,
+        char_name: c.character_name
+      })));
+    }
 
     // Process each inactive chat
+    let processedCount = 0;
+    let skippedCount = 0;
+    
     for (const chat of inactiveChats) {
       // Get user details using filterByFormula with record ID
       const userResponse = await fetch(
@@ -204,10 +216,12 @@ exports.handler = async (event, context) => {
       
       if (!testMode && isTestEmail) {
         console.log(`⏭️ Skipping test email in production: ${userEmail}`);
+        skippedCount++;
         continue;
       }
       
       console.log(`📧 Processing check-in for: ${userEmail} (${userName})`);  // Add logging
+      processedCount++;
 
       // Get character details using filterByFormula with record ID
       const characterResponse = await fetch(
@@ -392,8 +406,8 @@ exports.handler = async (event, context) => {
     const testMode = event.queryStringParameters?.test === 'true';
     const responseBody = {
       success: true, 
-      processed: inactiveChats.length,
-      message: `Processed ${inactiveChats.length} check-ins`
+      processed: processedCount,
+      message: `Processed ${processedCount} check-ins (${inactiveChats.length} found, ${skippedCount} skipped)`
     };
     
     if (testMode) {
