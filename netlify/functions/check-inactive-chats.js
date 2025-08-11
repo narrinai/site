@@ -34,11 +34,13 @@ exports.handler = async (event, context) => {
     const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     
-    // Fetch all recent chat messages
+    // Fetch all recent chat messages - ensure we get all needed fields
     const chatsResponse = await fetch(
       `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?` + 
       `filterByFormula=${encodeURIComponent(`IS_AFTER({CreatedTime}, '${fortyEightHoursAgo}')`)}` +
-      `&sort[0][field]=CreatedTime&sort[0][direction]=desc`,
+      `&sort[0][field]=CreatedTime&sort[0][direction]=desc` +
+      `&fields[]=User&fields[]=Character&fields[]=CharacterName&fields[]=Message&fields[]=Role` +
+      `&fields[]=CreatedTime&fields[]=is_checkin&fields[]=NetlifyUID&fields[]=Slug`,
       {
         headers: {
           'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -75,11 +77,12 @@ exports.handler = async (event, context) => {
         conversations[key] = {
           user_record_id: userId,
           character_record_id: characterId,
-          character_name: record.fields.CharacterName || '',
-          user_email: record.fields.UserEmail || '',
+          character_name: record.fields.CharacterName || record.fields.Slug || '',
+          user_netlify_uid: record.fields.NetlifyUID || '',
           messages: [],
           last_message_time: null,
-          last_user_message: null
+          last_user_message: null,
+          needs_user_lookup: true  // Flag to indicate we need to look up user details
         };
       }
       
@@ -132,8 +135,8 @@ exports.handler = async (event, context) => {
       
       const lastMessageWasUser = conv.messages.length > 0 && conv.messages[0]?.is_user === true;
       
-      // Get user email for debugging
-      const userEmail = conv.user_email || 'unknown';
+      // For debugging - we'll get the actual email later when processing
+      const userEmail = 'pending-lookup';
       
       console.log(`📝 Conversation ${key.substring(0, 10)}...`, {
         userEmail,
@@ -381,8 +384,10 @@ exports.handler = async (event, context) => {
     
     if (testMode) {
       responseBody.details = inactiveChats.map(chat => ({
-        email: chat.user_email || 'unknown',
-        character: chat.character_name,
+        user_record_id: chat.user_record_id,
+        character_record_id: chat.character_record_id,
+        character: chat.character_name || 'unknown',
+        netlify_uid: chat.user_netlify_uid || 'unknown',
         lastMessage: chat.last_message_time ? new Date(chat.last_message_time).toISOString() : 'unknown',
         hoursSince: chat.last_message_time ? ((new Date() - chat.last_message_time) / (1000 * 60 * 60)).toFixed(1) : 'unknown'
       }));
