@@ -3,7 +3,7 @@
 
 class CharacterLimitChecker {
   constructor() {
-    this.FREE_TIER_LIMIT = 2;
+    this.FREE_TIER_LIMIT = 5; // Free users can create 5 custom companions
     this.activeCharacterCount = 0;
     this.userTier = 'free'; // 'free' or 'pro'
     this.initialized = false;
@@ -32,20 +32,17 @@ class CharacterLimitChecker {
   // Update the active character count
   async updateActiveCharacterCount() {
     try {
-      // Try to get from localStorage first (faster)
-      const cached = localStorage.getItem('activeCharacterCount');
-      const cacheTime = localStorage.getItem('activeCharacterCountTime');
+      // Count custom characters from localStorage
+      const customizedCharacters = JSON.parse(localStorage.getItem('customizedCharacters') || '{}');
+      const customCharacterCount = Object.keys(customizedCharacters).length;
       
-      // Use cached value if it's less than 5 minutes old
-      if (cached && cacheTime && (Date.now() - parseInt(cacheTime)) < 5 * 60 * 1000) {
-        this.activeCharacterCount = parseInt(cached);
-        return;
-      }
-
-      // Otherwise, fetch from API (you'll need to implement this endpoint)
-      // For now, we'll estimate based on profile data
-      const profileData = JSON.parse(localStorage.getItem('userProfileData') || '{}');
-      this.activeCharacterCount = profileData.activeCharacters?.length || 0;
+      // Also check for characters created in this session
+      const sessionCreated = parseInt(sessionStorage.getItem('charactersCreatedThisSession') || '0');
+      
+      // Use the maximum of the two to be safe
+      this.activeCharacterCount = Math.max(customCharacterCount, sessionCreated);
+      
+      console.log(`📊 Character count: ${this.activeCharacterCount} custom companions`);
       
       // Cache the result
       localStorage.setItem('activeCharacterCount', this.activeCharacterCount.toString());
@@ -114,24 +111,24 @@ class CharacterLimitChecker {
     modal.innerHTML = `
       <div class="character-limit-modal-content">
         <div class="character-limit-header">
-          <h3>🚫 Character Limit Reached</h3>
+          <h3>🎭 Companion Limit Reached</h3>
           <button class="character-limit-close" onclick="characterLimitChecker.closeLimitModal(this.closest('.character-limit-modal'))">&times;</button>
         </div>
         <div class="character-limit-body">
-          <p>You've reached your limit of <strong>${this.FREE_TIER_LIMIT} active characters</strong> on the free tier.</p>
-          <p>To create new companions, you can:</p>
+          <p>You've reached your limit of <strong>${this.FREE_TIER_LIMIT} custom companions</strong> on the free plan.</p>
+          <p>You can still chat with all 1000+ existing companions! To create more custom ones:</p>
           
           <div class="character-limit-options">
             <div class="limit-option">
-              <h4>📱 Manage Your Characters</h4>
-              <p>Deactivate characters you're not currently using to make room for new ones.</p>
-              <a href="profile.html#companions" class="btn-secondary">Go to My Companions</a>
+              <h4>📱 Manage Your Companions</h4>
+              <p>Delete custom companions you're not using to make room for new ones.</p>
+              <a href="profile.html#companions" class="btn-secondary">Manage Companions</a>
             </div>
             
             <div class="limit-option upgrade-option">
               <h4>⭐ Upgrade to Pro</h4>
-              <p>Get unlimited characters, priority support, and advanced features.</p>
-              <a href="profile.html#plans" class="btn-primary">Upgrade Now</a>
+              <p>Create unlimited custom companions with unique personalities and avatars.</p>
+              <a href="profile.html#plans" class="btn-primary">View Pro Benefits</a>
             </div>
           </div>
         </div>

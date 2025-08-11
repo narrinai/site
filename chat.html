@@ -7212,10 +7212,7 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
             // Show upgrade modal
             showUpgradeModal('companions', maxActive);
             
-            // Stop loading and redirect back
-            setTimeout(() => {
-              window.location.href = 'index.html';
-            }, 3000);
+            // Stop loading without redirect
             return;
           }
         }
@@ -9990,6 +9987,26 @@ function initializeCustomizationForm() {
       console.log('⚠️ Form already being submitted, ignoring...');
       return;
     }
+    
+    // Check if this is a "Save As New" action (creating a new character)
+    const submitButton = document.getElementById('customizationSubmitBtn');
+    const isNewCharacter = submitButton && submitButton.textContent.includes('Save As New');
+    
+    // Check character limit for new characters
+    if (isNewCharacter && window.characterLimitChecker) {
+      // Initialize if not already done
+      if (!window.characterLimitChecker.initialized) {
+        await window.characterLimitChecker.initialize();
+      }
+      
+      // Check if user can create new character
+      if (!window.characterLimitChecker.canCreateCharacter()) {
+        console.log('🚫 Character limit reached - showing modal');
+        window.characterLimitChecker.showLimitReachedModal(submitButton);
+        return; // Stop form submission
+      }
+    }
+    
     isCustomizationSubmitting = true;
     
     const characterId = characterSlug; // Use slug as unique identifier
@@ -10334,18 +10351,17 @@ function initializeCustomizationForm() {
         showNotification('success', isUpdate ? 'Character Updated!' : 'Character Created!', 
           isUpdate 
             ? `${customName} has been updated.`
-            : `${customName} created!${transferMessage}`);
+            : `${customName} created! You can now chat with your new companion.`);
         
-        // For new characters, automatically redirect without prompt
-        // Only show this for truly new characters, not when editing existing ones
-        if (!isUpdate && !existingCustom) {
-          // Wait a bit longer if transfer is happening to ensure it completes
-          const redirectDelay = shouldTransferHistory ? 3000 : 1500;
-          setTimeout(() => {
-            // Add parameter to indicate history was transferred if applicable
-            const transferParam = shouldTransferHistory ? '&transferred=true' : '';
-            window.location.href = `/chat.html?char=${customSlug}${transferParam}`;
-          }, redirectDelay);
+        // Close the customization modal after successful creation/update
+        setTimeout(() => {
+          closeCustomizationModal();
+        }, 2000);
+        
+        // Update the character limit checker count if a new character was created
+        if (!isUpdate && !existingCustom && window.characterLimitChecker) {
+          window.characterLimitChecker.activeCharacterCount++;
+          console.log(`📊 Updated character count: ${window.characterLimitChecker.activeCharacterCount}`);
         }
       } else {
         throw new Error(result.error || 'Failed to create character');
@@ -14152,5 +14168,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   </script>
+  
+  <!-- Character Limit Check Script -->
+  <script src="js/character-limit-check.js"></script>
 </body>
 </html>
