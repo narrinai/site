@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>My Profile | Manage AI Companions & Subscription - Narrin AI</title>
-  <!-- Version: 2.1 - Force cache refresh -->
   <meta name="description" content="Manage your AI companions, track conversations, and upgrade your subscription. Access unlimited AI companions with personalized coaching and support.">
   
   <!-- Open Graph / Facebook -->
@@ -23,8 +22,6 @@
   
 <!-- Netlify Identity Widget met configuratie -->
 <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-  <!-- Character Limit Checker -->
-  <script src="js/character-limit-check.js"></script>
 
 <!-- EmailJS SDK -->
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
@@ -4993,10 +4990,16 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       `;
       document.head.appendChild(forceNoBlurCSS);
       
-      // Re-enable targeted cleanup (much less aggressive now)
-      cleanupOverlays();
-      setTimeout(cleanupOverlays, 500);
-      setTimeout(cleanupOverlays, 2000);
+      // TEMPORARILY DISABLE cleanup to test if it's causing styling issues
+      // cleanupOverlays();
+      // setTimeout(cleanupOverlays, 50);
+      // setTimeout(cleanupOverlays, 100);
+      // setTimeout(cleanupOverlays, 250);
+      // setTimeout(cleanupOverlays, 500);
+      // setTimeout(cleanupOverlays, 1000);
+      // setTimeout(cleanupOverlays, 2000);
+      
+      console.log('🚫 Cleanup temporarily disabled for testing');
       
       // Check if user just confirmed their email
       if (sessionStorage.getItem('email_just_confirmed') === 'true') {
@@ -6328,7 +6331,7 @@ function applyNetlifyModalStyling() {
             border: 2px solid #14b8a6 !important;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1) !important;
           }
-        </style>
+        <\/style>
       `;
       
       if (!document.getElementById('netlify-custom-styling')) {
