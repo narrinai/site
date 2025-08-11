@@ -24,6 +24,9 @@ async function downloadReplicateAvatars() {
     const filterFormula = `FIND('replicate.delivery', {Avatar_URL})`;
     const searchUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?filterByFormula=${encodeURIComponent(filterFormula)}`;
     
+    console.log('📋 Filter formula:', filterFormula);
+    console.log('🔗 Search URL:', searchUrl);
+    
     const response = await fetch(searchUrl, {
       headers: {
         'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
