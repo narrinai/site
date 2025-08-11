@@ -21,6 +21,31 @@
   <meta property="twitter:description" content="Manage your Narrin AI profile, view chat history, upgrade to Pro for unlimited AI character conversations. Personalize your AI chat experience today.">
   <meta property="twitter:image" content="https://narrin.ai/og-image.jpg">
   
+<!-- Netlify Identity Widget met configuratie -->
+<script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <!-- Character Limit Checker -->
+  <script src="js/character-limit-check.js"></script>
+
+<!-- EmailJS SDK -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script>
+  // Configureer widget styling
+  if (window.netlifyIdentity && document.body) {
+    window.netlifyIdentity.init({
+      theme: 'custom',
+      colors: {
+        primary: '#14b8a6',
+        secondary: '#f97316'
+      },
+      logo: false, // Verberg Netlify logo
+      locale: 'en',
+      namePlaceholder: false // Verberg name veld in signup
+    });
+  }
+</script>  
+  <!-- Stripe.js -->
+  <script src="https://js.stripe.com/v3/"></script>
+  
   <!-- Favicon -->
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -31,22 +56,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  
-  <!-- External Stylesheet - More Reliable -->
-  <link rel="stylesheet" href="css/profile-styles.css">
-  
-  <!-- Inline Critical Styles as Backup -->
+
   <style>
-    /* Critical styles only - rest in external file */
-    body { 
-      background: #fafafa !important; 
-      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif !important;
-      color: #1e293b !important;
-    }
-    .header {
-      background: white !important;
-      border-bottom: 1px solid #f5f5f5 !important;
-    }
     /* Smooth scrolling */
     html {
       scroll-behavior: smooth;
@@ -2692,58 +2703,6 @@
     }
 
   </style>
-  
-  <!-- Additional inline styles for immediate rendering -->
-  <style>
-    /* Ensure immediate visual feedback */
-    .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-    h1, h2, h3 { font-family: 'Outfit', sans-serif; color: #1e293b; }
-    .btn-primary { 
-      background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%); 
-      color: white;
-      padding: 12px 24px;
-      border-radius: 12px;
-      text-decoration: none;
-      display: inline-block;
-    }
-  </style>
-
-  <!-- Scripts komen NA de CSS -->
-  <!-- Netlify Identity Widget -->
-  <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-  
-  <!-- Character Limit Checker -->
-  <script src="js/character-limit-check.js"></script>
-  
-  <!-- EmailJS SDK -->
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-  
-  <!-- Stripe.js -->
-  <script src="https://js.stripe.com/v3/"></script>
-  
-  <!-- Configure Netlify Identity after loading -->
-  <script>
-    // Wacht tot DOM geladen is voordat Netlify Identity wordt geïnitialiseerd
-    document.addEventListener('DOMContentLoaded', function() {
-      try {
-        if (window.netlifyIdentity) {
-          window.netlifyIdentity.init({
-            theme: 'custom',
-            colors: {
-              primary: '#14b8a6',
-              secondary: '#f97316'
-            },
-            logo: false,
-            locale: 'en',
-            namePlaceholder: false
-          });
-        }
-      } catch (error) {
-        console.error('Error initializing Netlify Identity:', error);
-        // Continue loading page even if Netlify Identity fails
-      }
-    });
-  </script>
 
   <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-D6T01M6XTJ"></script>
@@ -5120,7 +5079,13 @@ function handleLoginSuccess(user, eventType = 'unknown') {
           }
         }
         
-        // Skip duplicate init - already done in head
+        // Only init if DOM is ready and not already initialized
+        if (document.body && !window.netlifyIdentity._initialized) {
+          window.netlifyIdentity.init({
+            namePlaceholder: 'Nickname'
+          });
+          window.netlifyIdentity._initialized = true;
+        }
         
         // Check if user is already logged in (might be null right after signup)
         netlifyUser = window.netlifyIdentity.currentUser();
@@ -6363,7 +6328,7 @@ function applyNetlifyModalStyling() {
             border: 2px solid #14b8a6 !important;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1) !important;
           }
-        <\/style>
+        </style>
       `;
       
       if (!document.getElementById('netlify-custom-styling')) {
