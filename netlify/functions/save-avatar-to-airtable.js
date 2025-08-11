@@ -88,21 +88,19 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Update the record with attachment
-    // Airtable accepts attachments as an array of objects with URL
+    // For now, just save the Replicate URL
+    // In production, you'd want to:
+    // 1. Download the image
+    // 2. Upload to a CDN or cloud storage
+    // 3. Save the permanent URL
     const updateData = {
       fields: {
         Avatar_URL: replicateUrl,
-        Avatar_Attachment: [
-          {
-            url: replicateUrl,
-            filename: `${characterSlug}-avatar.png`
-          }
-        ]
+        Avatar_Generated_At: new Date().toISOString()
       }
     };
 
-    console.log('📤 Updating Airtable with avatar attachment...');
+    console.log('📤 Updating Airtable with avatar URL...');
 
     const updateResponse = await fetch(
       `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${recordId}`,
@@ -119,65 +117,21 @@ exports.handler = async (event, context) => {
     if (!updateResponse.ok) {
       const errorText = await updateResponse.text();
       console.error('❌ Airtable update failed:', errorText);
-      
-      // If attachment fails, at least keep the Replicate URL
-      const fallbackUpdate = {
-        fields: {
-          Avatar_URL: replicateUrl
-        }
-      };
-      
-      const fallbackResponse = await fetch(
-        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${recordId}`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(fallbackUpdate)
-        }
-      );
-      
-      if (fallbackResponse.ok) {
-        console.log('⚠️ Saved Replicate URL as fallback');
-      }
+      throw new Error('Failed to update Airtable');
     }
 
     const result = await updateResponse.json();
-    
-    // Get the permanent Airtable attachment URL if it was created
-    let permanentUrl = replicateUrl;
-    if (result.fields && result.fields.Avatar_Attachment && result.fields.Avatar_Attachment.length > 0) {
-      permanentUrl = result.fields.Avatar_Attachment[0].url;
-      console.log('✅ Avatar saved as Airtable attachment:', permanentUrl.substring(0, 50) + '...');
-      
-      // Update Avatar_URL with the permanent attachment URL
-      await fetch(
-        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${recordId}`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            fields: {
-              Avatar_URL: permanentUrl
-            }
-          })
-        }
-      );
-    }
+    console.log('✅ Avatar URL saved to Airtable');
 
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({
         success: true,
-        message: 'Avatar processed successfully',
-        avatarUrl: permanentUrl,
-        recordId: recordId
+        message: 'Avatar URL saved to Airtable',
+        avatarUrl: replicateUrl,
+        recordId: recordId,
+        note: 'Replicate URLs expire after 24 hours. Consider implementing CDN storage for permanent avatars.'
       })
     };
 

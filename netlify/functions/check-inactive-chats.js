@@ -159,12 +159,8 @@ exports.handler = async (event, context) => {
         console.log('🧪 TEST MODE ENABLED - Including all chats from last 48 hours');
       }
       
-      // Additional check: Skip if this is a test email address (unless in test mode)
-      const isTestEmail = userEmail && (userEmail.includes('@narrin.ai') || userEmail.includes('sharklasers.com'));
-      if (!testMode && isTestEmail) {
-        console.log(`⏭️ Skipping test email: ${userEmail}`);
-        continue;
-      }
+      // Skip test conversations in production (we'll check email during processing)
+      // For now, just flag them for later checking
       
       if (hoursSinceLastMessage >= minHours && hoursSinceLastMessage < maxHours && !recentCheckin && lastMessageWasUser) {
         console.log(`✅ Adding to inactive list: ${conv.character_name} (${userEmail})`);
@@ -197,6 +193,19 @@ exports.handler = async (event, context) => {
       const userEmail = user.Email || user.email;
       const userName = user.Name || user.name || 'there';
       const userNetlifyUID = user.NetlifyUID;
+      
+      // Skip test emails in production mode
+      const testMode = event.queryStringParameters?.test === 'true';
+      const isTestEmail = userEmail && (
+        userEmail.includes('@narrin.ai') || 
+        userEmail.includes('sharklasers.com') ||
+        userEmail.includes('info@narrin.ai')
+      );
+      
+      if (!testMode && isTestEmail) {
+        console.log(`⏭️ Skipping test email in production: ${userEmail}`);
+        continue;
+      }
 
       // Get character details using filterByFormula with record ID
       const characterResponse = await fetch(
