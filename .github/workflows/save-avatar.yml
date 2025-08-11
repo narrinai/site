@@ -1,0 +1,35 @@
+name: Save Avatar Locally
+
+on:
+  workflow_dispatch:
+    inputs:
+      replicate_url:
+        description: 'Replicate URL of the avatar'
+        required: true
+      character_slug:
+        description: 'Character slug'
+        required: true
+
+jobs:
+  save-avatar:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      
+    - name: Download avatar
+      run: |
+        TIMESTAMP=$(date +%s)
+        FILENAME="${{ github.event.inputs.character_slug }}-${TIMESTAMP}.webp"
+        curl -L "${{ github.event.inputs.replicate_url }}" -o "avatars/${FILENAME}"
+        echo "Avatar saved as: avatars/${FILENAME}"
+        echo "FILENAME=${FILENAME}" >> $GITHUB_ENV
+        
+    - name: Commit and push
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add avatars/${{ env.FILENAME }}
+        git commit -m "Add avatar for ${{ github.event.inputs.character_slug }}"
+        git push

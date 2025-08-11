@@ -191,8 +191,19 @@ exports.handler = async (event, context) => {
       }
     }
 
-    // Return the generated avatar URL (prefer local if available)
-    const finalAvatarUrl = localAvatarPath ? `https://narrin.ai${localAvatarPath}` : replicateUrl;
+    // Generate the local filename for future use
+    const timestamp = Date.now();
+    const slug = characterSlug || characterName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    const futureFilename = `${slug}-${timestamp}.webp`;
+    const futureLocalUrl = `/avatars/${futureFilename}`;
+    
+    // For now, return the future local URL that will be used after manual download
+    // This ensures the database stores the correct permanent URL from the start
+    const finalAvatarUrl = futureLocalUrl;
+    
+    console.log('📁 Avatar will be saved as:', futureFilename);
+    console.log('🔗 Using permanent URL:', finalAvatarUrl);
+    console.log('⚠️ Replicate URL (for manual download):', replicateUrl);
     
     return {
       statusCode: 200,
@@ -202,10 +213,12 @@ exports.handler = async (event, context) => {
       },
       body: JSON.stringify({ 
         success: true,
-        avatarUrl: finalAvatarUrl,
-        imageUrl: finalAvatarUrl, // Support both field names
-        localPath: localAvatarPath,
-        replicateUrl: replicateUrl
+        avatarUrl: finalAvatarUrl,     // Return the permanent local URL
+        imageUrl: finalAvatarUrl,       // Support both field names
+        localPath: futureLocalUrl,
+        replicateUrl: replicateUrl,     // Keep for reference
+        filename: futureFilename,
+        downloadInstructions: `curl -L "${replicateUrl}" -o "avatars/${futureFilename}"`
       })
     };
 
