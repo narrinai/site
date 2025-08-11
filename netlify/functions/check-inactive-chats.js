@@ -2,13 +2,25 @@ const sgMail = require('@sendgrid/mail');
 
 exports.handler = async (event, context) => {
   console.log('🔄 Checking for inactive chats...');
+  console.log('📅 Current time:', new Date().toISOString());
   
   const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
   const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN || process.env.AIRTABLE_API_KEY;
   const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
   
+  console.log('🔧 Configuration check:', {
+    hasAirtableBase: !!AIRTABLE_BASE_ID,
+    hasAirtableToken: !!AIRTABLE_TOKEN,
+    hasSendGrid: !!SENDGRID_API_KEY,
+    sendGridLength: SENDGRID_API_KEY ? SENDGRID_API_KEY.length : 0
+  });
+  
   if (!AIRTABLE_BASE_ID || !AIRTABLE_TOKEN || !SENDGRID_API_KEY) {
-    console.error('❌ Missing configuration');
+    console.error('❌ Missing configuration:', {
+      AIRTABLE_BASE_ID: !!AIRTABLE_BASE_ID,
+      AIRTABLE_TOKEN: !!AIRTABLE_TOKEN,
+      SENDGRID_API_KEY: !!SENDGRID_API_KEY
+    });
     return {
       statusCode: 500,
       body: JSON.stringify({ error: 'Missing configuration' })
@@ -40,6 +52,7 @@ exports.handler = async (event, context) => {
     }
 
     const chatsData = await chatsResponse.json();
+    console.log(`📊 Found ${chatsData.records.length} chat records in last 48 hours`);
     
     // Group messages by user-character combination
     const conversations = {};
@@ -95,6 +108,8 @@ exports.handler = async (event, context) => {
     const inactiveChats = [];
     const now = new Date();
     
+    console.log(`🔍 Analyzing ${Object.keys(conversations).length} unique conversations`);
+    
     for (const [key, conv] of Object.entries(conversations)) {
       if (!conv.last_message_time) continue;
       
@@ -111,7 +126,24 @@ exports.handler = async (event, context) => {
       
       const lastMessageWasUser = conv.messages.length > 0 && conv.messages[0]?.is_user === true;
       
-      if (hoursSinceLastMessage >= 24 && hoursSinceLastMessage < 48 && !recentCheckin && lastMessageWasUser) {
+      console.log(`📝 Conversation ${key.substring(0, 10)}...`, {
+        hoursSinceLastMessage: hoursSinceLastMessage.toFixed(1),
+        hasRecentCheckin: !!recentCheckin,
+        lastMessageWasUser,
+        characterName: conv.character_name
+      });
+      
+      // For testing: also check messages from last 12 hours if test mode is enabled
+      const testMode = event.queryStringParameters?.test === 'true';
+      const minHours = testMode ? 0.1 : 24; // 6 minutes for testing, 24 hours for production
+      const maxHours = testMode ? 999 : 48; // No upper limit for testing
+      
+      if (testMode) {
+        console.log('🧪 TEST MODE ENABLED - Using reduced time window');
+      }
+      
+      if (hoursSinceLastMessage >= minHours && hoursSinceLastMessage < maxHours && !recentCheckin && lastMessageWasUser) {
+        console.log(`✅ Adding to inactive list: ${conv.character_name}`);
         inactiveChats.push(conv);
       }
     }
