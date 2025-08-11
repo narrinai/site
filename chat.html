@@ -11659,8 +11659,19 @@ showTypingIndicator();
         
         if (contextMessage && (contextMessage.includes('Here are') || contextMessage.includes('1.'))) {
           console.log('✅ Building onboarding context from message');
-          // Extract the suggestions for reference
-          const suggestionLines = contextMessage.split('\n').filter(line => line.match(/^[1-6]\./));
+          // Extract the suggestions for reference - handle lines with or without emojis
+          const allLines = contextMessage.split('\n');
+          const suggestionLines = [];
+          
+          // Look for numbered items (1. through 6.) including those with emojis
+          allLines.forEach(line => {
+            const trimmedLine = line.trim();
+            // Match lines that start with a number and period, possibly with emojis after
+            if (trimmedLine.match(/^[1-6]\.\s/)) {
+              suggestionLines.push(trimmedLine);
+            }
+          });
+          
           console.log('📋 Found suggestion lines:', suggestionLines);
           
           // Store suggestions for persistent reference
@@ -11747,10 +11758,13 @@ showTypingIndicator();
             if (numberMatches.length === 1) {
               const optionNumber = parseInt(numberMatches[0]);
               const selectedSuggestion = suggestionLines[optionNumber - 1] || '';
-              onboardingSummaryContext += 'They are selecting option ' + optionNumber + ': ' + selectedSuggestion + '\n';
-              onboardingSummaryContext += 'PROVIDE SPECIFIC HELP FOR THIS OPTION.\n';
+              onboardingSummaryContext += '\n**THE USER SELECTED OPTION ' + optionNumber + ':**\n';
+              onboardingSummaryContext += selectedSuggestion + '\n\n';
+              onboardingSummaryContext += 'CRITICAL: Provide specific, actionable advice for THIS EXACT TOPIC.\n';
+              onboardingSummaryContext += 'DO NOT interpret the number differently.\n';
+              onboardingSummaryContext += 'The full text of option ' + optionNumber + ' is shown above.\n';
             } else {
-              onboardingSummaryContext += 'They are selecting multiple options: ' + numberMatches.join(' and ') + '\n';
+              onboardingSummaryContext += '\n**THE USER SELECTED MULTIPLE OPTIONS: ' + numberMatches.join(' and ') + '**\n\n';
               numberMatches.forEach(num => {
                 const optionNumber = parseInt(num);
                 const suggestion = suggestionLines[optionNumber - 1] || '';
@@ -11758,7 +11772,7 @@ showTypingIndicator();
                   onboardingSummaryContext += 'Option ' + num + ': ' + suggestion + '\n';
                 }
               });
-              onboardingSummaryContext += 'PROVIDE SPECIFIC HELP FOR THESE OPTIONS.\n';
+              onboardingSummaryContext += '\nProvide specific advice for THESE EXACT TOPICS listed above.\n';
             }
             
             onboardingSummaryContext += 'DO NOT ask for clarification - you know they are referring to YOUR suggestions above.\n';
@@ -11782,8 +11796,31 @@ showTypingIndicator();
     if (window.additionalContext && window.additionalContext.onboarding) {
       // Check if this message contains numbers referring to suggestions
       const hasNumbers = /\b[1-6]\b/.test(input);
-      if (hasNumbers) {
-        priorityContext = `[IMMEDIATE ACTION: The user is referring to the numbered suggestions YOU JUST GAVE THEM. They said "${input}". DO NOT ask for clarification. Provide specific advice for those options. You are their coach. Skip greetings.]\n\n`;
+      if (hasNumbers && window.additionalContext.suggestions) {
+        // Extract which numbers were mentioned
+        const numberMatches = input.match(/\b[1-6]\b/g);
+        let selectedSuggestions = '';
+        
+        if (numberMatches) {
+          numberMatches.forEach(num => {
+            const optionNumber = parseInt(num);
+            const suggestion = window.additionalContext.suggestions[optionNumber - 1];
+            if (suggestion) {
+              selectedSuggestions += `\nOption ${num}: ${suggestion}`;
+            }
+          });
+        }
+        
+        priorityContext = `[IMMEDIATE ACTION: The user selected specific numbered options from YOUR list. 
+User said: "${input}"
+${selectedSuggestions}
+
+INSTRUCTIONS:
+- These are the EXACT options the user wants help with
+- DO NOT interpret the numbers as different topics
+- Provide specific, actionable advice for these exact items
+- Skip all greetings and get straight to helping
+- You are their coach providing guidance]\n\n`;
       } else {
         priorityContext = `[ONGOING CONVERSATION: You are the career coach. The user needs YOUR help. No greetings - continue helping them. Never prefix your response with your character name.]\n\n`;
       }
