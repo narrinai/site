@@ -1063,6 +1063,7 @@
       font-weight: 500;
     }
 
+    .btn-memory,
     .btn-customize {
       padding: 4px 6px;
       background: var(--gradient-primary);
@@ -1079,6 +1080,7 @@
       min-width: fit-content;
     }
 
+    .btn-memory:hover,
     .btn-customize:hover {
       transform: translateY(-2px);
       box-shadow: var(--shadow-lg);
@@ -4120,6 +4122,9 @@
             <h2 id="characterName">Connecting...</h2>
             <p id="characterTitle"></p>
           </div>
+          <button class="btn-memory" onclick="openMemoryHub()" id="memoryBtn" style="display: none;" title="View memories">
+            🧠 <span style="font-size: var(--font-size-xs);">Memory</span>
+          </button>
           <button class="btn-customize" onclick="openCustomizationModal()" id="customizeBtn" style="display: none;" title="Customize character">
             ✨ <span style="font-size: var(--font-size-xs);">Customize</span>
           </button>
@@ -7380,11 +7385,13 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     // Check for customizations
     checkForCustomization();
     
-    // Show customize button if user is logged in
+    // Show customize and memory buttons if user is logged in
     const userToken = localStorage.getItem('user_token');
     const customizeBtn = document.getElementById('customizeBtn');
-    if (userToken && customizeBtn) {
-      customizeBtn.style.display = 'inline-block';
+    const memoryBtn = document.getElementById('memoryBtn');
+    if (userToken) {
+      if (customizeBtn) customizeBtn.style.display = 'inline-block';
+      if (memoryBtn) memoryBtn.style.display = 'inline-block';
     }
     
     // Generate conversation topics after character is loaded
@@ -14264,6 +14271,782 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   </script>
   
+  <!-- Memory Hub Modal -->
+  <div id="memoryHubModal" class="modal-backdrop" style="display: none;">
+    <div class="modal-content memory-hub-modal">
+      <button class="modal-close" onclick="closeMemoryHub()">✕</button>
+      <h2 class="modal-title">Memory Hub</h2>
+      
+      <!-- Tabs -->
+      <div class="memory-tabs">
+        <button class="memory-tab active" onclick="switchMemoryTab('about')" data-tab="about">About Me</button>
+        <button class="memory-tab" onclick="switchMemoryTab('topics')" data-tab="topics">Topics</button>
+        <button class="memory-tab" onclick="switchMemoryTab('memories')" data-tab="memories">Memories</button>
+      </div>
+      
+      <!-- Tab Content -->
+      <div class="memory-tab-content">
+        <!-- About Me Tab -->
+        <div id="aboutTab" class="memory-panel active">
+          <div class="panel-header">
+            <h3>Your Profile & Preferences</h3>
+            <p class="panel-description">Information you've shared about yourself</p>
+          </div>
+          <div id="aboutContent" class="panel-content">
+            <div class="loading-spinner">Loading...</div>
+          </div>
+        </div>
+        
+        <!-- Topics Tab -->
+        <div id="topicsTab" class="memory-panel" style="display: none;">
+          <div class="panel-header">
+            <h3>Conversation Topics</h3>
+            <p class="panel-description">Things we've discussed together</p>
+          </div>
+          <div class="topic-search">
+            <input type="text" id="topicSearch" placeholder="Search topics..." onkeyup="searchTopics()">
+          </div>
+          <div id="topicsContent" class="panel-content">
+            <div class="loading-spinner">Loading...</div>
+          </div>
+        </div>
+        
+        <!-- Memories Tab -->
+        <div id="memoriesTab" class="memory-panel" style="display: none;">
+          <div class="panel-header">
+            <h3>Important Memories</h3>
+            <p class="panel-description">Key moments and information</p>
+          </div>
+          <div id="memoriesContent" class="panel-content">
+            <div class="loading-spinner">Loading...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Memory Hub Styles -->
+  <style>
+    .memory-hub-modal {
+      max-width: 800px;
+      width: 90%;
+      max-height: 80vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .memory-tabs {
+      display: flex;
+      gap: var(--spacing-xs);
+      border-bottom: 2px solid var(--color-light-gray);
+      margin: var(--spacing-lg) 0 var(--spacing-md) 0;
+    }
+    
+    .memory-tab {
+      padding: var(--spacing-sm) var(--spacing-md);
+      background: none;
+      border: none;
+      color: var(--color-gray);
+      font-weight: 600;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+    
+    .memory-tab:hover {
+      color: var(--color-navy);
+    }
+    
+    .memory-tab.active {
+      color: var(--color-primary);
+    }
+    
+    .memory-tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--color-primary);
+    }
+    
+    .memory-tab-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--spacing-md);
+    }
+    
+    .memory-panel {
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .panel-header {
+      margin-bottom: var(--spacing-lg);
+    }
+    
+    .panel-header h3 {
+      margin: 0 0 var(--spacing-xs) 0;
+      color: var(--color-navy);
+      font-size: var(--font-size-lg);
+    }
+    
+    .panel-description {
+      margin: 0;
+      color: var(--color-gray);
+      font-size: var(--font-size-sm);
+    }
+    
+    .panel-content {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+    }
+    
+    /* About Me specific styles */
+    .onboarding-item {
+      background: var(--color-white);
+      border: 1px solid var(--color-light-gray);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-md);
+    }
+    
+    .onboarding-question {
+      font-weight: 600;
+      color: var(--color-navy);
+      margin-bottom: var(--spacing-xs);
+      font-size: var(--font-size-sm);
+    }
+    
+    .onboarding-answer {
+      color: var(--color-text);
+      line-height: 1.6;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: var(--spacing-sm);
+    }
+    
+    .onboarding-answer-text {
+      flex: 1;
+    }
+    
+    .edit-answer-btn {
+      padding: 4px 8px;
+      background: var(--color-light-gray);
+      border: none;
+      border-radius: var(--radius-sm);
+      color: var(--color-gray);
+      font-size: var(--font-size-xs);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .edit-answer-btn:hover {
+      background: var(--color-primary);
+      color: white;
+    }
+    
+    /* Topics specific styles */
+    .topic-search {
+      margin-bottom: var(--spacing-md);
+    }
+    
+    .topic-search input {
+      width: 100%;
+      padding: var(--spacing-sm) var(--spacing-md);
+      border: 1px solid var(--color-light-gray);
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-md);
+    }
+    
+    .topic-item {
+      background: var(--color-white);
+      border: 1px solid var(--color-light-gray);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-md);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .topic-item:hover {
+      border-color: var(--color-primary);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .topic-title {
+      font-weight: 600;
+      color: var(--color-navy);
+      margin-bottom: var(--spacing-xs);
+    }
+    
+    .topic-context {
+      color: var(--color-gray);
+      font-size: var(--font-size-sm);
+      line-height: 1.5;
+    }
+    
+    .topic-meta {
+      display: flex;
+      gap: var(--spacing-md);
+      margin-top: var(--spacing-sm);
+      font-size: var(--font-size-xs);
+      color: var(--color-gray);
+    }
+    
+    .continue-topic-btn {
+      margin-top: var(--spacing-sm);
+      padding: 6px 12px;
+      background: var(--gradient-primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .continue-topic-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    /* Memories specific styles */
+    .memory-item {
+      background: var(--color-white);
+      border-left: 3px solid var(--color-primary);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-md);
+      box-shadow: var(--shadow-xs);
+    }
+    
+    .memory-content {
+      color: var(--color-text);
+      line-height: 1.6;
+      margin-bottom: var(--spacing-sm);
+    }
+    
+    .memory-metadata {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: var(--font-size-xs);
+      color: var(--color-gray);
+    }
+    
+    .memory-date {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+    }
+    
+    .memory-actions {
+      display: flex;
+      gap: var(--spacing-xs);
+    }
+    
+    .memory-action-btn {
+      padding: 2px 6px;
+      background: none;
+      border: 1px solid var(--color-light-gray);
+      border-radius: var(--radius-sm);
+      color: var(--color-gray);
+      font-size: var(--font-size-xs);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .memory-action-btn:hover {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
+    
+    .loading-spinner {
+      text-align: center;
+      color: var(--color-gray);
+      padding: var(--spacing-xl);
+    }
+    
+    .empty-state {
+      text-align: center;
+      color: var(--color-gray);
+      padding: var(--spacing-xl);
+    }
+    
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: var(--spacing-md);
+      opacity: 0.5;
+    }
+    
+    /* Edit mode styles */
+    .edit-mode {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-sm);
+    }
+    
+    .edit-textarea {
+      width: 100%;
+      min-height: 80px;
+      padding: var(--spacing-sm);
+      border: 1px solid var(--color-primary);
+      border-radius: var(--radius-md);
+      font-family: inherit;
+      font-size: var(--font-size-md);
+      resize: vertical;
+    }
+    
+    .edit-actions {
+      display: flex;
+      gap: var(--spacing-sm);
+      justify-content: flex-end;
+    }
+    
+    .edit-save-btn,
+    .edit-cancel-btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .edit-save-btn {
+      background: var(--gradient-primary);
+      color: white;
+    }
+    
+    .edit-cancel-btn {
+      background: var(--color-light-gray);
+      color: var(--color-gray);
+    }
+    
+    @media (max-width: 768px) {
+      .memory-hub-modal {
+        width: 95%;
+        max-height: 90vh;
+      }
+      
+      .memory-tabs {
+        font-size: var(--font-size-sm);
+      }
+      
+      .memory-tab {
+        padding: var(--spacing-xs) var(--spacing-sm);
+      }
+    }
+  </style>
+
+  <!-- Memory Hub JavaScript -->
+  <script>
+    let memoryHubData = {
+      onboarding: null,
+      topics: [],
+      memories: [],
+      relationships: null
+    };
+    
+    let currentMemoryTab = 'about';
+    
+    function openMemoryHub() {
+      const modal = document.getElementById('memoryHubModal');
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+      
+      // Load data for all tabs
+      loadMemoryHubData();
+    }
+    
+    function closeMemoryHub() {
+      const modal = document.getElementById('memoryHubModal');
+      modal.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+    
+    function switchMemoryTab(tab) {
+      currentMemoryTab = tab;
+      
+      // Update tab buttons
+      document.querySelectorAll('.memory-tab').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.tab === tab) {
+          btn.classList.add('active');
+        }
+      });
+      
+      // Update tab panels
+      document.querySelectorAll('.memory-panel').forEach(panel => {
+        panel.style.display = 'none';
+      });
+      
+      if (tab === 'about') {
+        document.getElementById('aboutTab').style.display = 'block';
+      } else if (tab === 'topics') {
+        document.getElementById('topicsTab').style.display = 'block';
+      } else if (tab === 'memories') {
+        document.getElementById('memoriesTab').style.display = 'block';
+      }
+    }
+    
+    async function loadMemoryHubData() {
+      const userEmail = localStorage.getItem('user_email');
+      const userUid = localStorage.getItem('user_uid');
+      const userToken = localStorage.getItem('user_token');
+      
+      if (!userEmail || !userUid || !characterSlug) {
+        console.log('⚠️ Missing auth data for Memory Hub');
+        return;
+      }
+      
+      // Load onboarding data
+      loadOnboardingData();
+      
+      // Load memories
+      loadMemoriesData();
+      
+      // Load topics from chat history
+      loadTopicsData();
+    }
+    
+    async function loadOnboardingData() {
+      const aboutContent = document.getElementById('aboutContent');
+      
+      // Check localStorage for onboarding data
+      const storageKey = `onboarding_${localStorage.getItem('user_uid')}_${characterSlug}`;
+      const onboardingData = localStorage.getItem(storageKey);
+      
+      if (onboardingData) {
+        try {
+          const data = JSON.parse(onboardingData);
+          displayOnboardingData(data);
+        } catch (e) {
+          console.error('Error parsing onboarding data:', e);
+          aboutContent.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📝</div><p>No profile information available yet</p></div>';
+        }
+      } else {
+        // Try to fetch from memory/relationship data
+        aboutContent.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📝</div><p>No profile information available yet</p></div>';
+      }
+    }
+    
+    function displayOnboardingData(data) {
+      const aboutContent = document.getElementById('aboutContent');
+      
+      if (!data || !data.answers || Object.keys(data.answers).length === 0) {
+        aboutContent.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📝</div><p>No profile information available yet</p></div>';
+        return;
+      }
+      
+      let html = '';
+      
+      // Display each question and answer
+      for (const [questionId, answer] of Object.entries(data.answers)) {
+        // Get the question text from the configuration
+        const questionText = getQuestionText(questionId, data.category);
+        
+        html += `
+          <div class="onboarding-item">
+            <div class="onboarding-question">${questionText}</div>
+            <div class="onboarding-answer">
+              <div class="onboarding-answer-text" id="answer-${questionId}">${answer}</div>
+              <button class="edit-answer-btn" onclick="editOnboardingAnswer('${questionId}')">Edit</button>
+            </div>
+          </div>
+        `;
+      }
+      
+      aboutContent.innerHTML = html;
+    }
+    
+    function getQuestionText(questionId, category) {
+      // Map question IDs to readable questions
+      const questionMap = {
+        'experience': 'Experience Level',
+        'goals': 'Goals & Objectives',
+        'obstacles': 'Current Challenges',
+        'time': 'Time Commitment',
+        'preferences': 'Learning Preferences',
+        'background': 'Background',
+        'interests': 'Interests',
+        'style': 'Communication Style'
+      };
+      
+      return questionMap[questionId] || questionId;
+    }
+    
+    async function loadMemoriesData() {
+      const memoriesContent = document.getElementById('memoriesContent');
+      
+      try {
+        // Get memories from the memory function
+        const memories = await getMemories(
+          localStorage.getItem('user_uid'),
+          characterSlug
+        );
+        
+        if (memories && memories.memories && memories.memories.length > 0) {
+          displayMemories(memories.memories);
+        } else {
+          memoriesContent.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💭</div><p>No memories recorded yet. Start chatting to create memories!</p></div>';
+        }
+      } catch (error) {
+        console.error('Error loading memories:', error);
+        memoriesContent.innerHTML = '<div class="empty-state"><div class="empty-state-icon">❌</div><p>Could not load memories</p></div>';
+      }
+    }
+    
+    function displayMemories(memories) {
+      const memoriesContent = document.getElementById('memoriesContent');
+      
+      // Sort memories by importance (highest first) and then by date
+      const sortedMemories = memories.sort((a, b) => {
+        if (b.importance !== a.importance) {
+          return b.importance - a.importance;
+        }
+        return new Date(b.created_at) - new Date(a.created_at);
+      });
+      
+      let html = '';
+      
+      sortedMemories.forEach(memory => {
+        const date = new Date(memory.created_at || memory.timestamp);
+        const dateStr = date.toLocaleDateString('en-US', { 
+          month: 'short', 
+          day: 'numeric', 
+          year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined 
+        });
+        
+        html += `
+          <div class="memory-item" data-memory-id="${memory.id}">
+            <div class="memory-content">${memory.content || memory.memory_text}</div>
+            <div class="memory-metadata">
+              <div class="memory-date">📅 ${dateStr}</div>
+              <div class="memory-actions">
+                <button class="memory-action-btn" onclick="editMemory('${memory.id}')">Edit</button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      
+      memoriesContent.innerHTML = html;
+    }
+    
+    async function loadTopicsData() {
+      const topicsContent = document.getElementById('topicsContent');
+      
+      try {
+        // Extract topics from chat history
+        const chatHistory = await getChatHistory();
+        
+        if (chatHistory && chatHistory.length > 0) {
+          const topics = extractTopics(chatHistory);
+          displayTopics(topics);
+        } else {
+          topicsContent.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💬</div><p>No conversation topics yet. Start chatting to explore topics!</p></div>';
+        }
+      } catch (error) {
+        console.error('Error loading topics:', error);
+        topicsContent.innerHTML = '<div class="empty-state"><div class="empty-state-icon">❌</div><p>Could not load topics</p></div>';
+      }
+    }
+    
+    function extractTopics(chatHistory) {
+      // Extract unique topics from chat history
+      const topicsMap = new Map();
+      
+      chatHistory.forEach(message => {
+        // Simple topic extraction based on message content
+        // This could be enhanced with better NLP in the future
+        if (message.message && message.message.length > 20) {
+          // Extract potential topics (simplified version)
+          const words = message.message.toLowerCase().split(/\s+/);
+          const keywords = words.filter(word => word.length > 4);
+          
+          if (keywords.length > 0) {
+            const topicKey = keywords.slice(0, 3).join(' ');
+            
+            if (!topicsMap.has(topicKey)) {
+              topicsMap.set(topicKey, {
+                title: keywords.slice(0, 3).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+                context: message.message.substring(0, 150) + '...',
+                lastDiscussed: message.timestamp,
+                frequency: 1
+              });
+            } else {
+              const topic = topicsMap.get(topicKey);
+              topic.frequency++;
+              topic.lastDiscussed = message.timestamp;
+            }
+          }
+        }
+      });
+      
+      return Array.from(topicsMap.values()).sort((a, b) => b.frequency - a.frequency);
+    }
+    
+    function displayTopics(topics) {
+      const topicsContent = document.getElementById('topicsContent');
+      
+      let html = '';
+      
+      topics.slice(0, 20).forEach(topic => {
+        const date = new Date(topic.lastDiscussed);
+        const dateStr = date.toLocaleDateString('en-US', { 
+          month: 'short', 
+          day: 'numeric' 
+        });
+        
+        html += `
+          <div class="topic-item" onclick="continueTopic('${topic.title}')">
+            <div class="topic-title">${topic.title}</div>
+            <div class="topic-context">${topic.context}</div>
+            <div class="topic-meta">
+              <span>Last discussed: ${dateStr}</span>
+              <span>Mentioned ${topic.frequency} times</span>
+            </div>
+            <button class="continue-topic-btn" onclick="continueTopic('${topic.title}'); event.stopPropagation();">
+              Continue this topic
+            </button>
+          </div>
+        `;
+      });
+      
+      topicsContent.innerHTML = html;
+    }
+    
+    function searchTopics() {
+      const searchTerm = document.getElementById('topicSearch').value.toLowerCase();
+      const topicItems = document.querySelectorAll('.topic-item');
+      
+      topicItems.forEach(item => {
+        const title = item.querySelector('.topic-title').textContent.toLowerCase();
+        const context = item.querySelector('.topic-context').textContent.toLowerCase();
+        
+        if (title.includes(searchTerm) || context.includes(searchTerm)) {
+          item.style.display = 'block';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    }
+    
+    function continueTopic(topic) {
+      // Close the Memory Hub
+      closeMemoryHub();
+      
+      // Add topic to the input field
+      const userInput = document.getElementById('userInput');
+      userInput.value = `Let's continue our discussion about ${topic}. `;
+      userInput.focus();
+    }
+    
+    function editOnboardingAnswer(questionId) {
+      const answerElement = document.getElementById(`answer-${questionId}`);
+      const currentAnswer = answerElement.textContent;
+      
+      // Switch to edit mode
+      answerElement.innerHTML = `
+        <div class="edit-mode">
+          <textarea class="edit-textarea" id="edit-${questionId}">${currentAnswer}</textarea>
+          <div class="edit-actions">
+            <button class="edit-cancel-btn" onclick="cancelEdit('${questionId}')">Cancel</button>
+            <button class="edit-save-btn" onclick="saveOnboardingEdit('${questionId}')">Save</button>
+          </div>
+        </div>
+      `;
+    }
+    
+    function cancelEdit(questionId) {
+      // Reload the onboarding data to cancel edit
+      loadOnboardingData();
+    }
+    
+    async function saveOnboardingEdit(questionId) {
+      const newAnswer = document.getElementById(`edit-${questionId}`).value;
+      
+      // Update localStorage
+      const storageKey = `onboarding_${localStorage.getItem('user_uid')}_${characterSlug}`;
+      const onboardingData = JSON.parse(localStorage.getItem(storageKey) || '{}');
+      
+      if (onboardingData.answers) {
+        onboardingData.answers[questionId] = newAnswer;
+        localStorage.setItem(storageKey, JSON.stringify(onboardingData));
+      }
+      
+      // TODO: Also update in Airtable via API
+      
+      // Refresh the display
+      loadOnboardingData();
+    }
+    
+    function editMemory(memoryId) {
+      const memoryItem = document.querySelector(`[data-memory-id="${memoryId}"]`);
+      const contentElement = memoryItem.querySelector('.memory-content');
+      const currentContent = contentElement.textContent;
+      
+      // Switch to edit mode
+      contentElement.innerHTML = `
+        <div class="edit-mode">
+          <textarea class="edit-textarea" id="edit-memory-${memoryId}">${currentContent}</textarea>
+          <div class="edit-actions">
+            <button class="edit-cancel-btn" onclick="loadMemoriesData()">Cancel</button>
+            <button class="edit-save-btn" onclick="saveMemoryEdit('${memoryId}')">Save</button>
+          </div>
+        </div>
+      `;
+    }
+    
+    async function saveMemoryEdit(memoryId) {
+      const newContent = document.getElementById(`edit-memory-${memoryId}`).value;
+      
+      // TODO: Update memory via API
+      console.log('Updating memory:', memoryId, 'with:', newContent);
+      
+      // For now, just refresh the display
+      loadMemoriesData();
+    }
+    
+    // Helper function to get chat history
+    async function getChatHistory() {
+      try {
+        const userEmail = localStorage.getItem('user_email');
+        const userUid = localStorage.getItem('user_uid');
+        const userToken = localStorage.getItem('user_token');
+        
+        if (!userEmail || !userUid || !characterSlug) {
+          return [];
+        }
+        
+        const response = await fetch('/.netlify/functions/get-chat-history', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_email: userEmail,
+            user_uid: userUid,
+            user_token: userToken,
+            char: characterSlug
+          })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          return data.history || [];
+        }
+        
+        return [];
+      } catch (error) {
+        console.error('Error fetching chat history for Memory Hub:', error);
+        return [];
+      }
+    }
+  </script>
+
   <!-- Character Limit Check Script -->
   <script src="js/character-limit-check.js"></script>
 </body>
