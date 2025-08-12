@@ -2049,19 +2049,23 @@ function generateExtraTagButtons() {
       const firstHalf = validCategories.slice(0, Math.ceil(validCategories.length / 2));
       const secondHalf = validCategories.slice(Math.ceil(validCategories.length / 2));
       
-      // Generate first half of categories
+      // Generate first half of categories (skip purpose and motivation)
       firstHalf.forEach(category => {
-        const section = createCategorySection(category);
-        sectionsContainer.appendChild(section);
+        if (category.id !== 'purpose' && category.id !== 'motivation') {
+          const section = createCategorySection(category);
+          sectionsContainer.appendChild(section);
+        }
       });
       
       // Clear mid-page CTA
       midPageCTA.innerHTML = '';
       
-      // Generate second half of categories
+      // Generate second half of categories (skip purpose and motivation)
       secondHalf.forEach(category => {
-        const section = createCategorySection(category);
-        midPageCTA.appendChild(section);
+        if (category.id !== 'purpose' && category.id !== 'motivation') {
+          const section = createCategorySection(category);
+          midPageCTA.appendChild(section);
+        }
       });
 
       // Store valid categories globally for other functions to use
