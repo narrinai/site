@@ -1677,28 +1677,35 @@
     }
 
     .customization-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: var(--spacing-xl);
-      border-bottom: 1px solid var(--color-light-gray);
+      text-align: center;
+      padding: var(--spacing-lg);
+      border-bottom: 2px solid var(--color-light-gray);
+      background: linear-gradient(135deg, rgba(20, 184, 166, 0.05) 0%, rgba(249, 115, 22, 0.05) 100%);
+      position: relative;
     }
 
     .customization-header h2 {
-      margin: 0;
-      font-size: var(--font-size-xl);
-      color: var(--color-dark-gray);
+      margin: 0 0 var(--spacing-xs) 0;
+      font-size: var(--font-size-2xl);
+      font-weight: 800;
+      color: var(--color-navy);
       font-family: var(--font-secondary);
+    }
+    
+    .customization-subtitle {
+      font-size: var(--font-size-sm);
+      color: var(--color-gray);
+      margin: 0;
     }
 
     .close-modal {
-      background: none;
+      position: absolute;
+      top: var(--spacing-md);
+      right: var(--spacing-md);
+      background: transparent;
       border: none;
-      font-size: var(--font-size-2xl);
-      color: var(--color-gray);
-      cursor: pointer;
-      width: 40px;
-      height: 40px;
+      width: 32px;
+      height: 32px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -4261,15 +4268,12 @@
   <div class="customization-modal" id="customizationModal" style="display: none;">
     <div class="customization-modal-content">
       <div class="customization-header">
-        <h2>Customize Character</h2>
-        <button class="close-modal" onclick="closeCustomizationModal()">×</button>
+        <button class="close-modal" onclick="closeCustomizationModal()">✕</button>
+        <h2>⚙️ Customize Character</h2>
+        <p class="customization-subtitle">Make this character your own! Your customized version will be saved privately for you.</p>
       </div>
       
       <div class="customization-body">
-        <p class="customization-intro">
-          Make this character your own! Your customized version will be saved privately for you,
-          while the original character remains unchanged for others.
-        </p>
         
         <form id="customizationForm">
           <!-- Basic Information -->
@@ -6287,8 +6291,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       
-      // Check if chat history has already been loaded
-      if (window.chatHistoryLoaded) {
+      // Check if chat history has already been loaded with actual messages
+      const chatlog = document.getElementById("chatlog");
+      if (window.chatHistoryLoaded || (chatlog && chatlog.children.length > 0)) {
         console.log('⚠️ Chat history already loaded, skipping conversation starter');
         return;
       }
@@ -8908,16 +8913,16 @@ function analyzeRecentConversation() {
 }
 
 function getTopicsForCharacter(character) {
-  // Dynamic base topics that adapt to conversation flow
+  // Dynamic base topics that adapt to conversation flow with emojis
   const baseTopics = [
-    "Tell me more about that",
-    "What's your unique perspective?",
-    "Share something unexpected",
-    "Let's explore deeper",
-    "Change the subject",
-    "Surprise me with something",
-    "What's really on your mind?",
-    "Take this in a new direction"
+    "💭 Tell me more about that",
+    "🎯 What's your unique perspective?",
+    "✨ Share something unexpected",
+    "🔍 Let's explore deeper",
+    "🔄 Change the subject",
+    "🎲 Surprise me with something",
+    "💡 What's really on your mind?",
+    "🚀 Take this in a new direction"
   ];
   
   // Much more extensive and diverse category-specific topics
@@ -12335,6 +12340,12 @@ hideTypingIndicator();
       // Apply the formatting function to make text more readable
       const formattedReply = formatAIResponse(cleanReply);
       typingSpan.innerHTML = formattedReply;
+      
+      // Add TTS button if character has voice (but not for onboarding welcome messages)
+      if (currentCharacter.voice_id && !window.processingOnboardingWelcome) {
+        const voiceButtonHtml = `<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice('${cleanReply.replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
+        divBot.innerHTML += voiceButtonHtml;
+      }
     }, typewriterDuration);
     
     // Add click handler to voice button after it's created
@@ -14470,16 +14481,22 @@ document.addEventListener('DOMContentLoaded', () => {
         // Get the typing span for typewriter effect
         const messageSpan = divBot.querySelector('.typing-text');
         
+        // Set flag to indicate we're processing onboarding welcome
+        window.processingOnboardingWelcome = true;
+        
         // Start typewriter effect
         typewriterWithVoice(messageSpan, welcomeMessage, currentCharacter?.voice_id, 20);
         
         // After typewriter completes, format the message properly (but no voice button for long messages)
         setTimeout(() => {
           // Convert line breaks to HTML for proper formatting
-          const formattedMessage = welcomeMessage.replace(/\n/g, '<br>');
+          const formattedMessage = processMarkdown(welcomeMessage);
           
-          // Update the message with proper formatting (no voice button for onboarding summary >1000 chars)
+          // Update the message with proper formatting (no voice button for onboarding summary)
           divBot.innerHTML = `${avatarHtml}<strong>${currentCharacter?.name || 'Character'}:</strong> ${formattedMessage}`;
+          
+          // Clear the flag
+          window.processingOnboardingWelcome = false;
         }, (welcomeMessage.length * 20) + 100); // Wait for typewriter to complete
         
         // Save this as the first message in the conversation
@@ -15450,6 +15467,38 @@ document.addEventListener('DOMContentLoaded', () => {
           
           if (response.ok) {
             const data = await response.json();
+            
+            // Show recent conversation excerpts
+            if (data.success && data.history && data.history.length > 0) {
+              let html = '<div class="topics-intro">💬 Recent conversation highlights:</div>';
+              
+              // Get last few user messages
+              const recentMessages = data.history
+                .filter(m => m.role === 'user' && m.message && m.message.length > 20)
+                .slice(0, 5)
+                .map(m => ({
+                  title: m.message.length > 60 ? m.message.substring(0, 60) + '...' : m.message,
+                  description: new Date(m.timestamp || m.createdTime).toLocaleDateString(),
+                  prompt: `Let's continue talking about: ${m.message.substring(0, 100)}`
+                }));
+              
+              if (recentMessages.length > 0) {
+                recentMessages.forEach(topic => {
+                  html += `
+                    <div class="topic-item" onclick="continueTopic('${topic.prompt.replace(/'/g, "\\'")}')">
+                      <div class="topic-title">${topic.title}</div>
+                      <div class="topic-description">${topic.description}</div>
+                      <button class="continue-topic-btn" onclick="continueTopic('${topic.prompt.replace(/'/g, "\\'")}'); closeMemoryHub(); event.stopPropagation();">Continue conversation</button>
+                    </div>
+                  `;
+                });
+                
+                topicsContent.innerHTML = html;
+                return;
+              }
+            }
+            
+            // If no history, try to extract topics
             const extractedTopics = extractTopicsFromHistory(data.history || []);
             
             if (extractedTopics.length > 0) {
