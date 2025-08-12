@@ -13540,10 +13540,17 @@ document.addEventListener('DOMContentLoaded', () => {
           markOnboardingComplete(userId, characterId, parsedData.answers);
         }
         
-        // Save to Airtable and show welcome
-        saveOnboardingToAirtable(parsedData.answers).then(() => {
-          generatePersonalizedWelcome(parsedData.answers);
-        });
+        // Check if we already have chat history - if yes, don't generate a new welcome
+        if (chatHistory.length > 0) {
+          console.log('📖 User has existing chat history, not generating new welcome after processing temp onboarding');
+          // Just save to Airtable without generating welcome
+          saveOnboardingToAirtable(parsedData.answers);
+        } else {
+          // Only generate welcome if this is truly a new conversation
+          saveOnboardingToAirtable(parsedData.answers).then(() => {
+            generatePersonalizedWelcome(parsedData.answers);
+          });
+        }
         
         return false; // Don't show onboarding again
       }
@@ -13592,6 +13599,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       console.log('⏭️ No onboarding needed');
+      
+      // IMPORTANT: If onboarding was already completed and we have chat history,
+      // don't generate a new welcome message on page refresh
+      const hasExistingHistory = window.messages && window.messages.length > 0;
+      if (hasExistingHistory) {
+        console.log('📖 User has existing chat history, not generating new welcome');
+      }
+      
       return false;
     }
     
@@ -15215,7 +15230,9 @@ document.addEventListener('DOMContentLoaded', () => {
           'early': 'Early in my career (0-3 years)',
           'mid': 'Mid-career professional (4-10 years)',
           'senior': 'Senior level (10+ years)',
-          'transition': 'In career transition'
+          'transition': 'In career transition',
+          'student': 'Student',
+          'looking': 'Looking for first job'
         },
         career_goal: {
           'promotion': 'Get promoted to the next level',
@@ -15224,12 +15241,31 @@ document.addEventListener('DOMContentLoaded', () => {
           'skills': 'Develop new skills',
           'same_industry': 'Find a better role in the same industry'
         },
+        biggest_challenge: {
+          'confidence': 'Lack of confidence or imposter syndrome',
+          'direction': 'Not sure what direction to take',
+          'skills': 'Need to develop new skills',
+          'networking': 'Networking and building connections',
+          'balance': 'Work-life balance',
+          'communication': 'Communication with others',
+          'time': 'Time management',
+          'stress': 'Managing stress and pressure'
+        },
+        motivation: {
+          'impact': 'Making a meaningful impact',
+          'growth': 'Personal and professional growth',
+          'recognition': 'Recognition and advancement',
+          'financial': 'Financial security and rewards',
+          'passion': 'Following my passion',
+          'flexibility': 'Work-life flexibility'
+        },
         support_type: {
           'strategy': 'Strategic planning and guidance',
           'confidence': 'Building confidence',
           'skills': 'Skill development',
           'network': 'Networking strategies',
-          'interview': 'Interview preparation'
+          'interview': 'Interview preparation',
+          'motivation': 'Motivation and accountability'
         },
         relationship_status: {
           'single': 'Single and looking',
@@ -15244,6 +15280,35 @@ document.addEventListener('DOMContentLoaded', () => {
           'heal_past': 'Heal from past relationships',
           'self_love': 'Focus on self-love',
           'understand_patterns': 'Understand relationship patterns'
+        },
+        // Friendship mappings
+        friendship_situation: {
+          'expanding': 'Looking to expand my social circle',
+          'deepening': 'Want deeper connections with current friends',
+          'rebuilding': 'Rebuilding after life changes',
+          'changing': 'Friendships are changing',
+          'isolated': 'Feeling isolated and disconnected'
+        },
+        friendship_goal: {
+          'new_friends': 'Make new meaningful friendships',
+          'deeper': 'Deepen existing friendships',
+          'boundaries': 'Set healthier boundaries',
+          'conflict': 'Resolve conflicts',
+          'quality': 'Focus on quality over quantity'
+        },
+        friendship_style: {
+          'initiator': 'The one who always reaches out',
+          'listener': 'The supportive listener',
+          'organizer': 'The social organizer',
+          'helper': 'The helpful friend',
+          'deep': 'The deep conversation friend'
+        },
+        ideal_friendship: {
+          'fun': 'Fun and adventure',
+          'support': 'Mutual support and understanding',
+          'growth': 'Growth and learning together',
+          'authentic': 'Authentic and genuine connection',
+          'trust': 'Deep trust and loyalty'
         }
       };
       
@@ -15257,8 +15322,28 @@ document.addEventListener('DOMContentLoaded', () => {
         return answer;
       }
       
-      // For short answers, try to make them more readable
-      return answer.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      // For short answers that don't have a mapping, make them more readable
+      // But keep the original value if it's a single word that might be meaningful
+      if (answer && answer.length <= 20) {
+        // Common single-word answers that should be expanded
+        const commonAnswers = {
+          'yes': 'Yes',
+          'no': 'No',
+          'maybe': 'Maybe',
+          'sometimes': 'Sometimes',
+          'always': 'Always',
+          'never': 'Never'
+        };
+        
+        if (commonAnswers[answer.toLowerCase()]) {
+          return commonAnswers[answer.toLowerCase()];
+        }
+        
+        // Otherwise, capitalize and clean up underscores
+        return answer.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      }
+      
+      return answer;
     }
     
     function getQuestionText(questionId, category) {
@@ -15478,13 +15563,20 @@ document.addEventListener('DOMContentLoaded', () => {
           if (response.ok) {
             const data = await response.json();
             
-            // Show recent conversation excerpts
-            if (data.success && data.history && data.history.length > 0) {
-              let html = '<div class="topics-intro">💬 Recent conversation highlights:</div>';
+            // Check if there's actual conversation history (filter out welcome and onboarding messages)
+            const realConversationHistory = data.history ? data.history.filter(m => 
+              m.role === 'user' && 
+              m.message && 
+              m.message.length > 20 &&
+              !m.message.startsWith('[') // Filter out system messages
+            ) : [];
+            
+            // Show recent conversation excerpts if they exist
+            if (data.success && realConversationHistory.length > 0) {
+              let html = '<div class="topics-intro">💬 Your conversation memories with ' + (currentCharacter?.name || 'your companion') + ':</div>';
               
               // Get last few user messages
-              const recentMessages = data.history
-                .filter(m => m.role === 'user' && m.message && m.message.length > 20)
+              const recentMessages = realConversationHistory
                 .slice(0, 5)
                 .map(m => ({
                   title: m.message.length > 60 ? m.message.substring(0, 60) + '...' : m.message,
@@ -15492,23 +15584,44 @@ document.addEventListener('DOMContentLoaded', () => {
                   prompt: `Let's continue talking about: ${m.message.substring(0, 100)}`
                 }));
               
-              if (recentMessages.length > 0) {
-                recentMessages.forEach(topic => {
-                  html += `
-                    <div class="topic-item" onclick="continueTopic('${topic.prompt.replace(/'/g, "\\'")}')">
-                      <div class="topic-title">${topic.title}</div>
-                      <div class="topic-description">${topic.description}</div>
-                      <button class="continue-topic-btn" onclick="continueTopic('${topic.prompt.replace(/'/g, "\\'")}'); closeMemoryHub(); event.stopPropagation();">Continue conversation</button>
-                    </div>
-                  `;
-                });
-                
-                topicsContent.innerHTML = html;
-                return;
-              }
+              recentMessages.forEach(topic => {
+                html += `
+                  <div class="topic-item" onclick="continueTopic('${topic.prompt.replace(/'/g, "\\'")}')">
+                    <div class="topic-title">${topic.title}</div>
+                    <div class="topic-description">${topic.description}</div>
+                    <button class="continue-topic-btn" onclick="continueTopic('${topic.prompt.replace(/'/g, "\\'")}'); closeMemoryHub(); event.stopPropagation();">Continue conversation</button>
+                  </div>
+                `;
+              });
+              
+              topicsContent.innerHTML = html;
+              return;
             }
             
-            // If no history, try to extract topics
+            // Check if there's ANY history at all (including AI messages)
+            const hasAnyHistory = data.history && data.history.length > 0;
+            
+            if (!hasAnyHistory || realConversationHistory.length === 0) {
+              // No real conversation history yet - show explanation
+              topicsContent.innerHTML = `
+                <div class="empty-state" style="text-align: center; padding: 40px 20px;">
+                  <div class="empty-state-icon" style="font-size: 48px; margin-bottom: 16px;">💭</div>
+                  <h3 style="margin: 0 0 12px 0; color: var(--color-dark-gray);">No memories yet</h3>
+                  <p style="color: var(--color-medium-gray); line-height: 1.6; max-width: 400px; margin: 0 auto;">
+                    As you chat with ${currentCharacter?.name || 'your companion'}, your conversation topics and memories will appear here. 
+                    This helps you continue conversations where you left off.
+                  </p>
+                  <div style="margin-top: 24px;">
+                    <button class="continue-topic-btn" style="display: inline-block;" onclick="closeMemoryHub()">
+                      Start chatting
+                    </button>
+                  </div>
+                </div>
+              `;
+              return;
+            }
+            
+            // If we have some history but couldn't extract meaningful topics
             const extractedTopics = extractTopicsFromHistory(data.history || []);
             
             if (extractedTopics.length > 0) {
@@ -15530,23 +15643,16 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
         
-        // Fallback to suggested topics if no history
-        const category = currentCharacter?.Category || currentCharacter?.category || 'general';
-        const suggestedTopics = getSuggestedTopics(category);
-        
-        let html = '<div class="topics-intro">💡 Continue the conversation - click any topic to resume:</div>';
-        
-        suggestedTopics.forEach(topic => {
-          html += `
-            <div class="topic-item" onclick="continueTopic('${topic.prompt}')">
-              <div class="topic-title">${topic.title}</div>
-              <div class="topic-description">${topic.description}</div>
-              <button class="continue-topic-btn" onclick="continueTopic('${topic.prompt}'); closeMemoryHub(); event.stopPropagation();">Continue conversation</button>
-            </div>
-          `;
-        });
-        
-        topicsContent.innerHTML = html;
+        // No authentication or couldn't fetch history - show informative message
+        topicsContent.innerHTML = `
+          <div class="empty-state" style="text-align: center; padding: 40px 20px;">
+            <div class="empty-state-icon" style="font-size: 48px; margin-bottom: 16px;">🔒</div>
+            <h3 style="margin: 0 0 12px 0; color: var(--color-dark-gray);">Sign in to access memories</h3>
+            <p style="color: var(--color-medium-gray); line-height: 1.6; max-width: 400px; margin: 0 auto;">
+              Your conversation memories are saved to your account. Sign in to view and continue previous conversations.
+            </p>
+          </div>
+        `;
       } catch (error) {
         console.error('Error loading topics:', error);
         topicsContent.innerHTML = '<div class="empty-state"><div class="empty-state-icon">❌</div><p>Could not load topics</p></div>';
