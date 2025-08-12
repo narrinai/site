@@ -13506,23 +13506,38 @@ document.addEventListener('DOMContentLoaded', () => {
     function checkAndShowOnboarding() {
       console.log('🚀 checkAndShowOnboarding called');
       console.log('📦 currentCharacter:', currentCharacter);
+      console.log('📱 User Agent:', navigator.userAgent);
+      console.log('📱 Is Mobile:', /Mobile|Android|iPhone/i.test(navigator.userAgent));
       
       if (!currentCharacter) {
         console.log('❌ No currentCharacter available');
         return false;
       }
       
-      // IMPORTANT: Use character slug as the primary identifier for onboarding tracking
-      // This ensures consistency across different navigation paths (direct URL vs chat-overview)
-      const characterId = currentCharacter.slug || currentCharacter.character_id || currentCharacter.id || currentCharacter.Character_ID || '';
+      // IMPORTANT: Always use URL slug as the primary identifier for onboarding tracking
+      // This ensures consistency across ALL navigation paths and devices
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlSlug = urlParams.get('char');
+      
+      // Fallback to character data if URL slug not available (should not happen)
+      const characterId = urlSlug || currentCharacter.slug || currentCharacter.character_id || currentCharacter.id || currentCharacter.Character_ID || '';
       
       console.log('🔑 Using identifier for onboarding:', characterId);
-      console.log('🔑 Available identifiers:', {
+      console.log('🔑 URL slug parameter:', urlSlug);
+      console.log('🔑 Character slug from data:', currentCharacter.slug);
+      console.log('🔑 All available identifiers:', {
+        urlSlug: urlSlug,
         slug: currentCharacter.slug,
         character_id: currentCharacter.character_id,
         id: currentCharacter.id,
-        Character_ID: currentCharacter.Character_ID
+        Character_ID: currentCharacter.Character_ID,
+        final: characterId
       });
+      
+      // Log all localStorage keys that might be relevant
+      const allKeys = Object.keys(localStorage);
+      const onboardingKeys = allKeys.filter(key => key.includes('onboarding'));
+      console.log('📦 All onboarding keys in localStorage:', onboardingKeys);
       
       // Check if user has existing chat history with this character
       const chatHistory = window.messages || [];
@@ -13532,8 +13547,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       // Check for temporary onboarding data (from before login)
-      // Use slug for consistency
-      const tempOnboardingKey = `temp_onboarding_${currentCharacter.slug || characterId}`;
+      // Always use the same identifier we're using for tracking (characterId from URL)
+      const tempOnboardingKey = `temp_onboarding_${characterId}`;
       const tempData = localStorage.getItem(tempOnboardingKey);
       
       if (tempData) {
@@ -13546,10 +13561,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Process the saved onboarding
         const userId = localStorage.getItem('user_id') || localStorage.getItem('user_uid') || 'anonymous';
         
-        // Mark as complete using slug
-        const onboardingSlug = currentCharacter.slug || characterId;
+        // Mark as complete using the same consistent identifier (URL slug)
         if (typeof markOnboardingComplete === 'function') {
-          markOnboardingComplete(userId, onboardingSlug, parsedData.answers);
+          markOnboardingComplete(userId, characterId, parsedData.answers);
         }
         
         // Check if we already have chat history - if yes, don't generate a new welcome
@@ -13584,13 +13598,10 @@ document.addEventListener('DOMContentLoaded', () => {
       
       const userId = localStorage.getItem('user_id') || localStorage.getItem('user_uid') || 'anonymous';
       
-      // CRITICAL: Also use slug here for consistency with the characterId above
-      const onboardingCharacterId = currentCharacter.slug || characterId;
-      
       console.log('🎯 Checking onboarding for:', { 
         category, 
         userId, 
-        characterId: onboardingCharacterId,
+        characterId: characterId,  // This is already the URL slug
         allCategoryFields: {
           Category: currentCharacter.Category,
           category: currentCharacter.category
@@ -13602,7 +13613,8 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('📚 onboardingQuestions object:', typeof onboardingQuestions, onboardingQuestions);
       
       // Check if onboarding is needed using the function from onboarding-questions.js
-      if (typeof needsOnboarding === 'function' && needsOnboarding(category, userId, onboardingCharacterId)) {
+      // Use the consistent characterId (URL slug) for checking
+      if (typeof needsOnboarding === 'function' && needsOnboarding(category, userId, characterId)) {
         console.log('✅ Onboarding needed for category:', category);
         
         // Get questions for this category
@@ -13946,8 +13958,12 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // User is logged in, proceed normally
       // Mark onboarding as complete (use processed answers)
-      // IMPORTANT: Use slug for consistency
-      const onboardingId = currentCharacter?.slug || characterId;
+      // IMPORTANT: Get the URL slug for consistency
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlSlug = urlParams.get('char');
+      const onboardingId = urlSlug || currentCharacter?.slug || characterId;
+      
+      console.log('💾 Marking onboarding complete with ID:', onboardingId);
       if (typeof markOnboardingComplete === 'function') {
         markOnboardingComplete(userId, onboardingId, processedAnswers);
       }
