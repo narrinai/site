@@ -14702,8 +14702,17 @@ document.addEventListener('DOMContentLoaded', () => {
     
     let currentMemoryTab = 'about';
     
-    function openMemoryHub() {
+    // Make function globally accessible
+    window.openMemoryHub = function() {
+      console.log('🧠 Opening Memory Hub...');
       const modal = document.getElementById('memoryHubModal');
+      
+      if (!modal) {
+        console.error('❌ Memory Hub modal not found!');
+        return;
+      }
+      
+      console.log('✅ Modal found, displaying...');
       modal.style.display = 'flex';
       document.body.style.overflow = 'hidden';
       
@@ -14711,13 +14720,13 @@ document.addEventListener('DOMContentLoaded', () => {
       loadMemoryHubData();
     }
     
-    function closeMemoryHub() {
+    window.closeMemoryHub = function() {
       const modal = document.getElementById('memoryHubModal');
       modal.style.display = 'none';
       document.body.style.overflow = '';
     }
     
-    function switchMemoryTab(tab) {
+    window.switchMemoryTab = function(tab) {
       currentMemoryTab = tab;
       
       // Update tab buttons

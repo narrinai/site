@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Memory Button</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            padding: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .test-results {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 5px;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Memory Button Test</h1>
+    
+    <button onclick="testMemoryButton()">Test Memory Button Click</button>
+    <button onclick="testModalExistence()">Test Modal Existence</button>
+    <button onclick="checkFunctionScope()">Check Function Scope</button>
+    
+    <div class="test-results" id="results">
+        <h3>Test Results:</h3>
+        <div id="output"></div>
+    </div>
+    
+    <script>
+        function addResult(message, isSuccess = true) {
+            const output = document.getElementById('output');
+            const div = document.createElement('div');
+            div.className = isSuccess ? 'success' : 'error';
+            div.textContent = (isSuccess ? '✅ ' : '❌ ') + message;
+            output.appendChild(div);
+        }
+        
+        function testMemoryButton() {
+            const output = document.getElementById('output');
+            output.innerHTML = '';
+            
+            // Test 1: Check if openMemoryHub function exists
+            if (typeof window.openMemoryHub === 'function') {
+                addResult('openMemoryHub function exists in global scope');
+            } else {
+                addResult('openMemoryHub function NOT found in global scope', false);
+                
+                // Check if it might be in parent window
+                if (window.parent && typeof window.parent.openMemoryHub === 'function') {
+                    addResult('openMemoryHub found in parent window');
+                }
+            }
+            
+            // Test 2: Try to call the function
+            try {
+                if (typeof window.openMemoryHub === 'function') {
+                    // Don't actually call it, just verify it's callable
+                    addResult('openMemoryHub is callable');
+                }
+            } catch (e) {
+                addResult('Error checking openMemoryHub: ' + e.message, false);
+            }
+            
+            // Test 3: Check for jQuery conflicts
+            if (typeof $ !== 'undefined') {
+                addResult('jQuery is loaded (version: ' + $.fn.jquery + ')');
+            } else {
+                addResult('jQuery is not loaded (this is fine)');
+            }
+            
+            // Test 4: Check Memory button
+            const memoryBtn = document.getElementById('memoryBtn');
+            if (memoryBtn) {
+                addResult('Memory button found in DOM');
+                const onclick = memoryBtn.getAttribute('onclick');
+                addResult('Memory button onclick: ' + onclick);
+            } else {
+                addResult('Memory button NOT found in DOM', false);
+            }
+        }
+        
+        function testModalExistence() {
+            const output = document.getElementById('output');
+            output.innerHTML = '';
+            
+            const modal = document.getElementById('memoryHubModal');
+            if (modal) {
+                addResult('Memory Hub modal found in DOM');
+                addResult('Modal display style: ' + modal.style.display);
+                
+                // Check modal children
+                const closeBtn = modal.querySelector('.modal-close');
+                if (closeBtn) {
+                    addResult('Close button found');
+                } else {
+                    addResult('Close button NOT found', false);
+                }
+                
+                const tabs = modal.querySelectorAll('.memory-tab');
+                addResult('Number of tabs found: ' + tabs.length);
+                
+                const panels = modal.querySelectorAll('.memory-panel');
+                addResult('Number of panels found: ' + panels.length);
+            } else {
+                addResult('Memory Hub modal NOT found in DOM', false);
+            }
+        }
+        
+        function checkFunctionScope() {
+            const output = document.getElementById('output');
+            output.innerHTML = '';
+            
+            // Open chat.html in an iframe to test
+            addResult('To test the actual chat.html page:');
+            addResult('1. Open chat.html in your browser');
+            addResult('2. Open browser console (F12)');
+            addResult('3. Type: typeof openMemoryHub');
+            addResult('4. It should return "function"');
+            addResult('5. Type: openMemoryHub()');
+            addResult('6. Check for any errors');
+        }
+    </script>
+</body>
+</html>
