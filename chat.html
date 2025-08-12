@@ -1095,16 +1095,16 @@
       box-shadow: var(--shadow-lg);
     }
     
-    /* Mobile-specific button styles - compact pills */
+    /* Mobile-specific button styles - smaller compact pills */
     @media (max-width: 768px) {
       .btn-memory,
       .btn-customize {
-        padding: 8px 14px;
-        border-radius: 20px;
-        margin-left: 6px;
-        font-size: 13px;
+        padding: 4px 10px;
+        border-radius: 16px;
+        margin-left: 4px;
+        font-size: 11px;
         min-width: unset;
-        line-height: 1;
+        line-height: 1.2;
         font-weight: 600;
       }
       
@@ -2146,12 +2146,12 @@
 
       .btn-memory,
       .btn-customize {
-        padding: 6px 12px;
-        border-radius: 18px;
-        margin-left: 6px;
-        font-size: 12px;
+        padding: 3px 8px;
+        border-radius: 14px;
+        margin-left: 3px;
+        font-size: 10px;
         min-width: unset;
-        line-height: 1;
+        line-height: 1.2;
         font-weight: 600;
       }
 
@@ -6137,14 +6137,24 @@ document.addEventListener('DOMContentLoaded', () => {
             }
           });
           
-          // If we found AI messages with onboarding suggestions, store them
+          // Only store welcome message if this is the first load in this session
           if (lastAIMessage && lastAIMessage.includes('Here are') && lastAIMessage.includes('1.')) {
-            console.log('🎯 Found onboarding welcome message in chat history');
-            if (!window.additionalContext) {
-              window.additionalContext = {};
+            const sessionKey = `welcome_stored_${characterSlug}`;
+            if (!sessionStorage.getItem(sessionKey)) {
+              console.log('🎯 Found onboarding welcome message in chat history (first load)');
+              if (!window.additionalContext) {
+                window.additionalContext = {};
+              }
+              window.additionalContext.welcomeMessage = lastAIMessage;
+              sessionStorage.setItem(sessionKey, 'true');
+              console.log('✅ Stored welcome message from chat history for context');
+            } else {
+              console.log('⏭️ Skipping welcome message storage (already loaded in session)');
+              // Clear any stored welcome message to prevent re-display
+              if (window.additionalContext) {
+                delete window.additionalContext.welcomeMessage;
+              }
             }
-            window.additionalContext.welcomeMessage = lastAIMessage;
-            console.log('✅ Stored welcome message from chat history for context');
           }
           
           chatlog.scrollTop = chatlog.scrollHeight;
@@ -14356,6 +14366,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   <!-- Memory Hub Styles -->
   <style>
+    /* Modal backdrop styles */
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      backdrop-filter: blur(5px);
+    }
+    
     .memory-hub-modal {
       max-width: 800px;
       width: 90%;
