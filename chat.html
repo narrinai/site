@@ -11869,7 +11869,8 @@ showTypingIndicator();
           onboardingSummaryContext += '- User = Person needing career help\n';
           onboardingSummaryContext += '- Your job = Give them advice, not talk about yourself\n';
           onboardingSummaryContext += '- This is message #2+ in the conversation (no more greetings)\n';
-          onboardingSummaryContext += '- If they type a number, they want help with that specific suggestion\n\n';
+          onboardingSummaryContext += '- If they type a number, they want help with that specific suggestion\n';
+          onboardingSummaryContext += '- The numbered suggestions are listed above - use ONLY those\n\n';
           
           onboardingSummaryContext += 'Current user message: "' + input + '"\n\n';
           
@@ -11883,10 +11884,12 @@ showTypingIndicator();
               const optionNumber = parseInt(numberMatches[0]);
               const selectedSuggestion = suggestionLines[optionNumber - 1] || '';
               onboardingSummaryContext += '\n**THE USER SELECTED OPTION ' + optionNumber + ':**\n';
-              onboardingSummaryContext += selectedSuggestion + '\n\n';
-              onboardingSummaryContext += 'CRITICAL: Provide specific, actionable advice for THIS EXACT TOPIC.\n';
-              onboardingSummaryContext += 'DO NOT interpret the number differently.\n';
-              onboardingSummaryContext += 'The full text of option ' + optionNumber + ' is shown above.\n';
+              onboardingSummaryContext += '"' + selectedSuggestion + '"\n\n';
+              onboardingSummaryContext += 'CRITICAL INSTRUCTIONS:\n';
+              onboardingSummaryContext += '1. The user wants help with THIS EXACT TOPIC shown in quotes above\n';
+              onboardingSummaryContext += '2. DO NOT interpret "' + optionNumber + '" as anything else\n';
+              onboardingSummaryContext += '3. DO NOT give advice about a different topic\n';
+              onboardingSummaryContext += '4. Provide specific, actionable advice for: "' + selectedSuggestion + '"\n';
             } else {
               onboardingSummaryContext += '\n**THE USER SELECTED MULTIPLE OPTIONS: ' + numberMatches.join(' and ') + '**\n\n';
               numberMatches.forEach(num => {
