@@ -6081,9 +6081,27 @@ document.addEventListener('DOMContentLoaded', () => {
           // Track the last AI message for onboarding context
           let lastAIMessage = '';
           
+          // Check if we've already shown the welcome message in a previous load
+          const welcomeAlreadyShown = sessionStorage.getItem(`welcome_shown_${characterSlug}`);
+          let foundFirstWelcome = false;
+          
           // Display all messages from history
           data.history.forEach((msg, index) => {
             console.log(`📝 Displaying message ${index + 1}:`, msg.role, msg.message.substring(0, 50) + '...');
+            
+            // Check if this is the onboarding welcome message and we should skip displaying it
+            if (!foundFirstWelcome && welcomeAlreadyShown && msg.role === 'assistant' && 
+                msg.message && (msg.message.includes('Thank you for sharing') || 
+                msg.message.includes('Here are some areas') || 
+                msg.message.includes('Here are some ways'))) {
+              console.log('⏭️ Skipping welcome message display (already shown before)');
+              foundFirstWelcome = true;
+              // Still store it for AI context
+              lastAIMessage = msg.message;
+              // Mark that we've seen it
+              sessionStorage.setItem(`welcome_shown_${characterSlug}`, 'true');
+              return; // Skip displaying this message
+            }
             
             // Filter out messages that are system instructions, onboarding data, or empty placeholders
             // Only filter if the ENTIRE message is a system instruction, not if it contains these words in normal conversation
@@ -6134,26 +6152,35 @@ document.addEventListener('DOMContentLoaded', () => {
               incrementMessageCount();
               // Store the last AI message for onboarding context
               lastAIMessage = msg.message;
+              
+              // Mark if this was the welcome message being shown for the first time
+              if (!foundFirstWelcome && !welcomeAlreadyShown && 
+                  msg.message && (msg.message.includes('Thank you for sharing') || 
+                  msg.message.includes('Here are some areas') || 
+                  msg.message.includes('Here are some ways'))) {
+                sessionStorage.setItem(`welcome_shown_${characterSlug}`, 'true');
+                console.log('✅ Marked welcome message as shown');
+              }
             }
           });
           
-          // Only store welcome message if this is the first load in this session
+          // Always store welcome message for AI context, but track if we've already displayed it
           if (lastAIMessage && lastAIMessage.includes('Here are') && lastAIMessage.includes('1.')) {
-            const sessionKey = `welcome_stored_${characterSlug}`;
-            if (!sessionStorage.getItem(sessionKey)) {
-              console.log('🎯 Found onboarding welcome message in chat history (first load)');
-              if (!window.additionalContext) {
-                window.additionalContext = {};
-              }
-              window.additionalContext.welcomeMessage = lastAIMessage;
-              sessionStorage.setItem(sessionKey, 'true');
-              console.log('✅ Stored welcome message from chat history for context');
+            console.log('🎯 Found onboarding welcome message in chat history');
+            if (!window.additionalContext) {
+              window.additionalContext = {};
+            }
+            // Always store for AI memory/context
+            window.additionalContext.welcomeMessage = lastAIMessage;
+            
+            // Track if we've already shown this in the current session
+            const displayKey = `welcome_displayed_${characterSlug}`;
+            if (sessionStorage.getItem(displayKey)) {
+              window.additionalContext.welcomeMessageAlreadyDisplayed = true;
+              console.log('✅ Stored welcome message for AI context (but won\'t display again)');
             } else {
-              console.log('⏭️ Skipping welcome message storage (already loaded in session)');
-              // Clear any stored welcome message to prevent re-display
-              if (window.additionalContext) {
-                delete window.additionalContext.welcomeMessage;
-              }
+              sessionStorage.setItem(displayKey, 'true');
+              console.log('✅ Stored welcome message for AI context (first display)');
             }
           }
           
