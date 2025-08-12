@@ -6867,6 +6867,20 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    // Function to process basic markdown formatting
+    function processMarkdown(text) {
+      // Process bold text **text** -> <strong>text</strong>
+      text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      
+      // Process italic text *text* -> <em>text</em>
+      text = text.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+      
+      // Process line breaks
+      text = text.replace(/\n/g, '<br>');
+      
+      return text;
+    }
+    
     // Fade-in effect voor berichten met typewriter effect
     function typewriterWithVoice(element, text, voiceId = null, speed = 20) {
       console.log('🎬 Starting typewriter with voice effect');
@@ -6875,6 +6889,9 @@ document.addEventListener('DOMContentLoaded', () => {
       element.innerHTML = '';
       element.style.opacity = '1';
       let index = 0;
+      
+      // Store the original text for later formatting
+      const originalText = text;
       
       function addNextChar() {
         if (index < text.length) {
@@ -6886,7 +6903,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const br = document.createElement('br');
             element.appendChild(br);
           } else {
-            // Use text node for regular characters
+            // Use text node for regular characters (don't process markdown during typing)
             const textNode = document.createTextNode(char);
             element.appendChild(textNode);
           }
@@ -6901,6 +6918,12 @@ document.addEventListener('DOMContentLoaded', () => {
           setTimeout(addNextChar, speed);
         } else {
           console.log('✅ Typewriter with voice completed. Total chars typed:', index);
+          
+          // After typewriter completes, apply markdown formatting
+          setTimeout(() => {
+            element.innerHTML = processMarkdown(originalText);
+          }, 100);
+          
           // Final scroll to ensure everything is visible
           const chatlog = document.getElementById("chatlog");
           if (chatlog) {
