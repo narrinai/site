@@ -1162,7 +1162,7 @@
       border-radius: var(--radius-lg);
       max-width: 900px;
       margin: 0 auto;
-      margin-top: var(--spacing-lg);
+      margin-top: var(--spacing-sm);
       box-shadow: var(--shadow-sm);
       border: 2px solid var(--color-light-gray);
       transition: all 300ms ease-out;
@@ -6303,6 +6303,17 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       
+      // Check if character has onboarding flow - skip conversation starter for these
+      const category = currentCharacter?.Category || currentCharacter?.category || '';
+      const hasOnboarding = ['Career', 'Life', 'Love'].includes(category);
+      
+      if (hasOnboarding) {
+        console.log('🎯 Character has onboarding flow, skipping conversation starter');
+        // Still mark as shown to prevent duplicate attempts
+        window.conversationStarterShown = true;
+        return;
+      }
+      
       const starter = generateConversationStarter();
       console.log('🎯 Generated starter:', starter);
       if (!starter) {
@@ -7523,11 +7534,31 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       // No need to wait or retry - the history should already be there if transfer completed
     }
     
-    // Final scroll to ensure chat is at bottom after everything loads
+    // Only scroll to bottom on initial load, not if user has scrolled
     setTimeout(() => {
-      scrollChatToBottom();
-      console.log('📜 Final scroll after all content loaded');
+      const chatlog = document.getElementById("chatlog");
+      if (chatlog) {
+        // Check if user has scrolled up (not at bottom)
+        const isAtBottom = Math.abs(chatlog.scrollHeight - chatlog.scrollTop - chatlog.clientHeight) < 50;
+        
+        // Only auto-scroll if we're already at the bottom or it's the initial load
+        if (isAtBottom || !window.userHasScrolled) {
+          scrollChatToBottom();
+          console.log('📜 Final scroll after all content loaded');
+        } else {
+          console.log('📜 User has scrolled, preserving scroll position');
+        }
+      }
     }, 500);
+    
+    // Track if user has manually scrolled
+    const chatlog = document.getElementById("chatlog");
+    if (chatlog && !window.scrollListenerAdded) {
+      window.scrollListenerAdded = true;
+      chatlog.addEventListener('scroll', () => {
+        window.userHasScrolled = true;
+      });
+    }
     
     // Check if AI avatar needs to be generated
     console.log('🔍 Current avatar_url:', currentCharacter.avatar_url);
@@ -14424,7 +14455,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <span class="tab-icon">👤</span> About Me
         </button>
         <button class="memory-tab" onclick="switchMemoryTab('topics')" data-tab="topics">
-          <span class="tab-icon">🚀</span> Start Topic
+          <span class="tab-icon">🚀</span> Continue Topic
         </button>
         <button class="memory-tab" onclick="switchMemoryTab('memories')" data-tab="memories">
           <span class="tab-icon">📝</span> My Info
@@ -14447,8 +14478,8 @@ document.addEventListener('DOMContentLoaded', () => {
         <!-- Topics Tab -->
         <div id="topicsTab" class="memory-panel" style="display: none;">
           <div class="panel-header">
-            <h3>Quick Topics</h3>
-            <p class="panel-description">Click to start a conversation about these topics</p>
+            <h3>Continue Topics</h3>
+            <p class="panel-description">Pick up where you left off on these conversation topics</p>
           </div>
           <div class="topic-search">
             <input type="text" id="topicSearch" placeholder="Search topics..." onkeyup="searchTopics()">
@@ -14522,6 +14553,33 @@ document.addEventListener('DOMContentLoaded', () => {
       border-radius: var(--radius-xl);
       box-shadow: var(--shadow-xl);
       border: 2px solid var(--color-light-gray);
+      position: relative;
+    }
+    
+    .modal-close {
+      position: absolute;
+      top: var(--spacing-md);
+      right: var(--spacing-md);
+      background: var(--color-white);
+      border: 2px solid var(--color-light-gray);
+      border-radius: var(--radius-full);
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 200ms ease-out;
+      font-size: var(--font-size-lg);
+      color: var(--color-gray);
+      z-index: 10;
+    }
+    
+    .modal-close:hover {
+      background: var(--color-light-gray);
+      border-color: var(--color-teal);
+      color: var(--color-teal);
+      transform: scale(1.1);
     }
     
     .memory-hub-header {
@@ -14738,18 +14796,63 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     /* Memories specific styles */
+    .memories-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-lg);
+    }
+    
+    .memory-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-sm);
+    }
+    
+    .memory-group-title {
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: var(--color-gray);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin: 0 0 var(--spacing-xs) 0;
+      padding-bottom: var(--spacing-xs);
+      border-bottom: 1px solid var(--color-light-gray);
+    }
+    
     .memory-item {
       background: var(--color-white);
-      border-left: 3px solid var(--color-primary);
       border-radius: var(--radius-md);
       padding: var(--spacing-md);
-      box-shadow: var(--shadow-xs);
+      transition: all 200ms ease-out;
+      position: relative;
+      border: 1px solid var(--color-light-gray);
+    }
+    
+    .memory-item:hover {
+      transform: translateX(4px);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .memory-high {
+      border-left: 4px solid var(--color-coral);
+    }
+    
+    .memory-medium {
+      border-left: 4px solid var(--color-teal);
+    }
+    
+    .memory-low {
+      border-left: 4px solid var(--color-gray-light);
     }
     
     .memory-content {
-      color: var(--color-text);
+      color: var(--color-navy);
       line-height: 1.6;
-      margin-bottom: var(--spacing-sm);
+      font-size: var(--font-size-sm);
+    }
+    
+    .memory-high .memory-content {
+      font-weight: 500;
     }
     
     .memory-metadata {
@@ -15206,43 +15309,65 @@ document.addEventListener('DOMContentLoaded', () => {
         return new Date(b.created_at) - new Date(a.created_at);
       });
       
-      let html = '';
+      let html = '<div class="memories-list">';
       
-      sortedMemories.forEach(memory => {
-        // Get the actual memory content - check all possible field names
-        const memoryText = memory.content || memory.memory_text || memory.message || memory.Memory || memory.summary || '';
-        
-        // Skip if no valid content or showing 'undefined'
-        if (!memoryText || memoryText === 'undefined' || memoryText === 'null') {
-          console.log('Skipping memory with no content:', memory);
-          return;
-        }
-        
-        const date = new Date(memory.created_at || memory.timestamp || memory.Created || new Date());
-        const dateStr = date.toLocaleDateString('en-US', { 
-          month: 'short', 
-          day: 'numeric', 
-          year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined 
-        });
-        
-        // Get importance level
-        const importance = memory.importance || memory.Importance || 5;
-        const importanceStars = '⭐'.repeat(Math.min(Math.floor(importance / 2), 5));
-        
-        html += `
-          <div class="memory-item" data-memory-id="${memory.id || memory.record_id || memory.ID}">
-            <div class="memory-content">${memoryText}</div>
-            <div class="memory-metadata">
-              <span class="memory-importance">${importanceStars}</span>
-              <span class="memory-date">📅 ${dateStr}</span>
-              <div class="memory-actions">
-                <button class="memory-action-btn" onclick="editMemory('${memory.id || memory.record_id || memory.ID}')">Edit</button>
-              </div>
-            </div>
-          </div>
-        `;
+      // Group memories by importance level
+      const highImportance = sortedMemories.filter(m => (m.importance || 5) >= 7);
+      const mediumImportance = sortedMemories.filter(m => {
+        const imp = m.importance || 5;
+        return imp >= 4 && imp < 7;
       });
+      const lowImportance = sortedMemories.filter(m => (m.importance || 5) < 4);
       
+      // Display high importance memories first
+      if (highImportance.length > 0) {
+        html += '<div class="memory-group"><h4 class="memory-group-title">Important Information</h4>';
+        highImportance.forEach(memory => {
+          const memoryText = memory.content || memory.memory_text || memory.message || memory.Memory || memory.summary || '';
+          if (!memoryText || memoryText === 'undefined' || memoryText === 'null') return;
+          
+          html += `
+            <div class="memory-item memory-high" data-memory-id="${memory.id || memory.record_id || memory.ID}">
+              <div class="memory-content">${memoryText}</div>
+            </div>
+          `;
+        });
+        html += '</div>';
+      }
+      
+      // Display medium importance memories
+      if (mediumImportance.length > 0) {
+        html += '<div class="memory-group"><h4 class="memory-group-title">General Information</h4>';
+        mediumImportance.forEach(memory => {
+          const memoryText = memory.content || memory.memory_text || memory.message || memory.Memory || memory.summary || '';
+          if (!memoryText || memoryText === 'undefined' || memoryText === 'null') return;
+          
+          html += `
+            <div class="memory-item memory-medium" data-memory-id="${memory.id || memory.record_id || memory.ID}">
+              <div class="memory-content">${memoryText}</div>
+            </div>
+          `;
+        });
+        html += '</div>';
+      }
+      
+      // Display low importance memories
+      if (lowImportance.length > 0) {
+        html += '<div class="memory-group"><h4 class="memory-group-title">Additional Notes</h4>';
+        lowImportance.forEach(memory => {
+          const memoryText = memory.content || memory.memory_text || memory.message || memory.Memory || memory.summary || '';
+          if (!memoryText || memoryText === 'undefined' || memoryText === 'null') return;
+          
+          html += `
+            <div class="memory-item memory-low" data-memory-id="${memory.id || memory.record_id || memory.ID}">
+              <div class="memory-content">${memoryText}</div>
+            </div>
+          `;
+        });
+        html += '</div>';
+      }
+      
+      html += '</div>';
       memoriesContent.innerHTML = html;
     }
     
@@ -15250,11 +15375,43 @@ document.addEventListener('DOMContentLoaded', () => {
       const topicsContent = document.getElementById('topicsContent');
       
       try {
-        // For now, show suggested topics based on the character category
+        // Try to get topics from chat history first
+        const userEmail = localStorage.getItem('user_email');
+        const userUid = localStorage.getItem('user_uid');
+        const userToken = localStorage.getItem('user_token');
+        
+        if (userEmail && userUid && characterSlug) {
+          // Fetch chat history to extract conversation topics
+          const response = await fetch(`/.netlify/functions/get-chat-history?email=${encodeURIComponent(userEmail)}&uid=${encodeURIComponent(userUid)}&token=${encodeURIComponent(userToken)}&character=${encodeURIComponent(characterSlug)}&limit=20`);
+          
+          if (response.ok) {
+            const data = await response.json();
+            const extractedTopics = extractTopicsFromHistory(data.history || []);
+            
+            if (extractedTopics.length > 0) {
+              let html = '<div class="topics-intro">💡 Continue where you left off - click any topic to resume:</div>';
+              
+              extractedTopics.forEach(topic => {
+                html += `
+                  <div class="topic-item" onclick="continueTopic('${topic.prompt}')">
+                    <div class="topic-title">${topic.title}</div>
+                    <div class="topic-description">${topic.description}</div>
+                    <button class="continue-topic-btn" onclick="continueTopic('${topic.prompt}'); closeMemoryHub(); event.stopPropagation();">Continue this topic</button>
+                  </div>
+                `;
+              });
+              
+              topicsContent.innerHTML = html;
+              return;
+            }
+          }
+        }
+        
+        // Fallback to suggested topics if no history
         const category = currentCharacter?.Category || currentCharacter?.category || 'general';
         const suggestedTopics = getSuggestedTopics(category);
         
-        let html = '<div class="topics-intro">💡 Quick conversation starters - click any topic to add it to your message:</div>';
+        let html = '<div class="topics-intro">💡 Start a new conversation - click any topic to begin:</div>';
         
         suggestedTopics.forEach(topic => {
           html += `
@@ -15293,6 +15450,70 @@ document.addEventListener('DOMContentLoaded', () => {
       };
       
       return topicsByCategory[category.toLowerCase()] || topicsByCategory['default'];
+    }
+    
+    function extractTopicsFromHistory(chatHistory) {
+      // Extract conversation topics from chat history
+      const topics = [];
+      const seenTopics = new Set();
+      
+      // Analyze recent user messages to find topics
+      chatHistory.forEach((message, index) => {
+        if (message.role === 'user' && message.message && message.message.length > 20) {
+          // Extract key phrases from user messages
+          const lowerMessage = message.message.toLowerCase();
+          
+          // Common topic indicators
+          const topicIndicators = [
+            { regex: /i want to (?:talk|discuss|chat) about (.+)/i, group: 1 },
+            { regex: /let's (?:talk|discuss|chat) about (.+)/i, group: 1 },
+            { regex: /can we (?:talk|discuss|chat) about (.+)/i, group: 1 },
+            { regex: /i'm (?:worried|concerned|thinking) about (.+)/i, group: 1 },
+            { regex: /i need (?:help|advice|guidance) with (.+)/i, group: 1 },
+            { regex: /tell me (?:about|more about) (.+)/i, group: 1 },
+            { regex: /what do you think about (.+)/i, group: 1 }
+          ];
+          
+          for (const indicator of topicIndicators) {
+            const match = message.message.match(indicator.regex);
+            if (match) {
+              const topicText = match[indicator.group].trim().replace(/[.?!]$/, '');
+              if (topicText.length > 5 && topicText.length < 100 && !seenTopics.has(topicText.toLowerCase())) {
+                seenTopics.add(topicText.toLowerCase());
+                topics.push({
+                  title: topicText.charAt(0).toUpperCase() + topicText.slice(1),
+                  description: `Continue discussing: "${topicText}"`,
+                  prompt: `Let's continue talking about ${topicText}`
+                });
+                
+                if (topics.length >= 5) return topics; // Limit to 5 topics
+              }
+            }
+          }
+        }
+      });
+      
+      // If no specific topics found, extract from general conversation
+      if (topics.length === 0 && chatHistory.length > 0) {
+        // Find the last few substantial user messages
+        const userMessages = chatHistory.filter(m => m.role === 'user' && m.message && m.message.length > 30);
+        const recentMessages = userMessages.slice(-3);
+        
+        recentMessages.forEach(message => {
+          // Extract first sentence or key phrase
+          const firstSentence = message.message.split(/[.!?]/)[0].trim();
+          if (firstSentence.length > 10 && firstSentence.length < 100) {
+            const title = firstSentence.length > 50 ? firstSentence.substring(0, 50) + '...' : firstSentence;
+            topics.push({
+              title: title,
+              description: 'Continue this conversation',
+              prompt: `I want to continue our conversation about: ${firstSentence}`
+            });
+          }
+        });
+      }
+      
+      return topics.slice(0, 5); // Return max 5 topics
     }
     
     function extractTopics(chatHistory) {
@@ -15401,17 +15622,20 @@ document.addEventListener('DOMContentLoaded', () => {
       const storageKey = `onboarding_${localStorage.getItem('user_uid')}_${characterSlug}`;
       localStorage.removeItem(storageKey);
       
-      // Redirect to onboarding page with the current character
-      const currentUrl = window.location.href;
-      const baseUrl = currentUrl.split('/chat.html')[0];
-      const onboardingUrl = `${baseUrl}/onboarding.html?character=${characterSlug}`;
+      // Clear chat history
+      const chatlog = document.getElementById('chatlog');
+      if (chatlog) {
+        chatlog.innerHTML = '';
+      }
       
-      // Save return URL so we can come back after onboarding
-      sessionStorage.setItem('return_to_chat', 'true');
-      sessionStorage.setItem('return_character', characterSlug);
+      // Reset conversation memory
+      conversationMemory = [];
       
-      // Redirect to onboarding
-      window.location.href = onboardingUrl;
+      // Restart onboarding flow in the same page
+      sessionStorage.setItem('restart_onboarding', 'true');
+      
+      // Reload the page to trigger onboarding
+      window.location.reload();
     }
     
     function editOnboardingAnswer(questionId) {
