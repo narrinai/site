@@ -1170,8 +1170,9 @@
     
     @media (max-width: 768px) {
       .conversation-topics {
-        margin-top: 0 !important;
-        padding: var(--spacing-md) var(--spacing-sm);
+        margin-top: -10px !important;
+        padding: var(--spacing-sm) var(--spacing-xs);
+        border-radius: var(--radius-md);
       }
     }
 
@@ -1707,26 +1708,30 @@
 
     .close-modal {
       position: absolute;
-      top: var(--spacing-md);
-      right: var(--spacing-md);
-      background: transparent;
-      border: none;
-      width: 32px;
-      height: 32px;
+      top: var(--spacing-lg);
+      right: var(--spacing-lg);
+      background: var(--color-white);
+      border: 2px solid var(--color-dark-gray);
+      width: 40px;
+      height: 40px;
       display: flex;
       align-items: center;
       justify-content: center;
       border-radius: var(--radius-full);
       transition: all var(--transition-base);
-      color: var(--color-white);
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      color: var(--color-dark-gray);
       font-size: 24px;
       cursor: pointer;
+      z-index: 100;
+      box-shadow: var(--shadow-md);
+      font-weight: 600;
     }
 
     .close-modal:hover {
       transform: scale(1.1);
+      background: var(--color-dark-gray);
       color: var(--color-white);
+      box-shadow: var(--shadow-lg);
     }
 
     .customization-body {
@@ -2268,7 +2273,8 @@
 
       /* Ensure chat section has proper bottom padding for input */
       .chat-section {
-        padding-bottom: var(--spacing-md);
+        padding-bottom: var(--spacing-xs);
+        margin-bottom: 0;
       }
     }
 
@@ -2276,6 +2282,8 @@
     @media (max-width: 480px) {
       .chat-section {
         padding: var(--spacing-sm) var(--spacing-sm);
+        padding-bottom: var(--spacing-xs);
+        margin-bottom: 0;
       }
 
       #chatlog {
@@ -15208,8 +15216,21 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadOnboardingData() {
       const aboutContent = document.getElementById('aboutContent');
       
+      // Use URL slug for consistency (same as onboarding check)
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlSlug = urlParams.get('char');
+      const charId = urlSlug || characterSlug;
+      
       // Check localStorage for onboarding data
-      const storageKey = `onboarding_${localStorage.getItem('user_uid')}_${characterSlug}`;
+      const uid = localStorage.getItem('user_uid');
+      const storageKey = `onboarding_${uid}_${charId}`;
+      
+      console.log('📱 Loading onboarding data for About Me:');
+      console.log('- URL slug:', urlSlug);
+      console.log('- Character slug:', characterSlug);
+      console.log('- Using ID:', charId);
+      console.log('- Storage key:', storageKey);
+      
       const onboardingData = localStorage.getItem(storageKey);
       
       if (onboardingData) {
@@ -15644,22 +15665,38 @@ document.addEventListener('DOMContentLoaded', () => {
             const hasAnyHistory = data.history && data.history.length > 0;
             
             if (!hasAnyHistory || realConversationHistory.length === 0) {
-              // No real conversation history yet - show explanation
-              topicsContent.innerHTML = `
-                <div class="empty-state" style="text-align: center; padding: 40px 20px;">
-                  <div class="empty-state-icon" style="font-size: 48px; margin-bottom: 16px;">💭</div>
-                  <h3 style="margin: 0 0 12px 0; color: var(--color-dark-gray);">No memories yet</h3>
-                  <p style="color: var(--color-medium-gray); line-height: 1.6; max-width: 400px; margin: 0 auto;">
-                    As you chat with ${currentCharacter?.name || 'your companion'}, your conversation topics and memories will appear here. 
-                    This helps you continue conversations where you left off.
-                  </p>
-                  <div style="margin-top: 24px;">
-                    <button class="continue-topic-btn" style="display: inline-block;" onclick="closeMemoryHub()">
-                      Start chatting
-                    </button>
+              // Check if user is logged in
+              const isLoggedIn = userEmail && userUid;
+              
+              if (isLoggedIn) {
+                // User is logged in but no memories yet
+                topicsContent.innerHTML = `
+                  <div class="empty-state" style="text-align: center; padding: 40px 20px;">
+                    <div class="empty-state-icon" style="font-size: 48px; margin-bottom: 16px;">✨</div>
+                    <h3 style="margin: 0 0 12px 0; color: var(--color-dark-gray);">Your memories will appear here</h3>
+                    <p style="color: var(--color-medium-gray); line-height: 1.6; max-width: 400px; margin: 0 auto;">
+                      Memories will appear once you generate them with ${currentCharacter?.name || 'your AI companion'}. 
+                      Start chatting to build your personal conversation history.
+                    </p>
+                    <div style="margin-top: 24px;">
+                      <button class="continue-topic-btn" style="display: inline-block;" onclick="closeMemoryHub()">
+                        Start chatting
+                      </button>
+                    </div>
                   </div>
-                </div>
-              `;
+                `;
+              } else {
+                // Not logged in
+                topicsContent.innerHTML = `
+                  <div class="empty-state" style="text-align: center; padding: 40px 20px;">
+                    <div class="empty-state-icon" style="font-size: 48px; margin-bottom: 16px;">🔒</div>
+                    <h3 style="margin: 0 0 12px 0; color: var(--color-dark-gray);">Sign in to access memories</h3>
+                    <p style="color: var(--color-medium-gray); line-height: 1.6; max-width: 400px; margin: 0 auto;">
+                      Your conversation memories are saved to your account. Sign in to view and continue previous conversations.
+                    </p>
+                  </div>
+                `;
+              }
               return;
             }
             
