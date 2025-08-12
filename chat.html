@@ -1095,16 +1095,16 @@
       box-shadow: var(--shadow-lg);
     }
     
-    /* Mobile-specific button styles - smaller compact pills */
+    /* Mobile-specific button styles - much smaller compact pills */
     @media (max-width: 768px) {
       .btn-memory,
       .btn-customize {
-        padding: 4px 10px;
-        border-radius: 16px;
-        margin-left: 4px;
-        font-size: 11px;
+        padding: 3px 8px;
+        border-radius: 12px;
+        margin-left: 3px;
+        font-size: 9px;
         min-width: unset;
-        line-height: 1.2;
+        line-height: 1;
         font-weight: 600;
       }
       
@@ -2146,12 +2146,12 @@
 
       .btn-memory,
       .btn-customize {
-        padding: 3px 8px;
-        border-radius: 14px;
-        margin-left: 3px;
-        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 10px;
+        margin-left: 2px;
+        font-size: 8px;
         min-width: unset;
-        line-height: 1.2;
+        line-height: 1;
         font-weight: 600;
       }
 
@@ -12852,13 +12852,16 @@ document.addEventListener('DOMContentLoaded', () => {
     let conversationMessages = [];
     let lastSummaryTime = Date.now();
     let messageCountForSummary = 0;
-    let sessionSummaryCreated = false; // Track if we already created a summary this session
     
     async function generateConversationSummary(email, uid, token, characterSlug, forceCreate = false) {
       try {
-        // Skip if we already created a summary this session (unless forced)
-        if (sessionSummaryCreated && !forceCreate) {
-          console.log('📝 Summary already created for this session, skipping...');
+        // Use sessionStorage to track if summary was created for this character today
+        const summaryKey = `summary_created_${characterSlug}_${new Date().toDateString()}`;
+        const summaryCreated = sessionStorage.getItem(summaryKey);
+        
+        // Skip if we already created a summary today for this character (unless forced)
+        if (summaryCreated && !forceCreate) {
+          console.log('📝 Summary already created today for this character, skipping...');
           return;
         }
         
@@ -12922,7 +12925,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (response.ok && responseData.success) {
           console.log('✅ Conversation summary saved successfully');
-          sessionSummaryCreated = true; // Mark that we created a summary this session
+          // Mark that we created a summary today for this character
+          const summaryKey = `summary_created_${characterSlug}_${new Date().toDateString()}`;
+          sessionStorage.setItem(summaryKey, 'true');
           lastSummaryTime = Date.now();
           // Don't reset counter - we want to track total messages in session
         } else {
@@ -13064,7 +13069,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const email = localStorage.getItem("user_email");
       const token = localStorage.getItem("user_token");
       
-      if (hasMessages && uid && characterSlug && !sessionSummaryCreated) {
+      // Check if summary was already created today for this character
+      const summaryKey = `summary_created_${characterSlug}_${new Date().toDateString()}`;
+      const summaryCreated = sessionStorage.getItem(summaryKey);
+      
+      if (hasMessages && uid && characterSlug && !summaryCreated) {
         console.log('🔄 Attempting to save session summary...');
         try {
           await generateConversationSummary(email, uid, token, characterSlug);
@@ -13080,24 +13089,25 @@ document.addEventListener('DOMContentLoaded', () => {
       const hasMessages = document.querySelectorAll('#chatlog p:not([data-starter="true"])').length > 0;
       const uid = localStorage.getItem("user_uid");
       
-      if (hasMessages && uid && characterSlug && !sessionSummaryCreated) {
+      const summaryKey2 = `summary_created_${characterSlug}_${new Date().toDateString()}`;
+      if (hasMessages && uid && characterSlug && !sessionStorage.getItem(summaryKey2)) {
         // Try async first (might work in some browsers)
         triggerSessionSummary();
       }
     });
     
     // Also save when tab becomes hidden (more reliable than beforeunload)
-    document.addEventListener('visibilitychange', async () => {
-      if (document.hidden) {
-        await triggerSessionSummary();
-      }
-    });
+    // DISABLED: This creates too many summaries
+    // document.addEventListener('visibilitychange', async () => {
+    //   if (document.hidden) {
+    //     await triggerSessionSummary();
+    //   }
+    // });
     
     // Save when user switches to a different character
     window.addEventListener('character-switch', async () => {
       await triggerSessionSummary();
-      // Reset for new character
-      sessionSummaryCreated = false;
+      // Reset message count for new character
       messageCountForSummary = 0;
     });
     
@@ -14341,13 +14351,22 @@ document.addEventListener('DOMContentLoaded', () => {
   <div id="memoryHubModal" class="modal-backdrop" style="display: none;">
     <div class="modal-content memory-hub-modal">
       <button class="modal-close" onclick="closeMemoryHub()">✕</button>
-      <h2 class="modal-title">Memory Hub</h2>
+      <div class="memory-hub-header">
+        <h2 class="modal-title">🧠 Memory Hub</h2>
+        <p class="modal-subtitle">View and manage your personal information and conversation history</p>
+      </div>
       
       <!-- Tabs -->
       <div class="memory-tabs">
-        <button class="memory-tab active" onclick="switchMemoryTab('about')" data-tab="about">About Me</button>
-        <button class="memory-tab" onclick="switchMemoryTab('topics')" data-tab="topics">Topics</button>
-        <button class="memory-tab" onclick="switchMemoryTab('memories')" data-tab="memories">Memories</button>
+        <button class="memory-tab active" onclick="switchMemoryTab('about')" data-tab="about">
+          <span class="tab-icon">👤</span> About Me
+        </button>
+        <button class="memory-tab" onclick="switchMemoryTab('topics')" data-tab="topics">
+          <span class="tab-icon">💬</span> Topics
+        </button>
+        <button class="memory-tab" onclick="switchMemoryTab('memories')" data-tab="memories">
+          <span class="tab-icon">💭</span> Memories
+        </button>
       </div>
       
       <!-- Tab Content -->
@@ -14356,7 +14375,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div id="aboutTab" class="memory-panel active">
           <div class="panel-header">
             <h3>Your Profile & Preferences</h3>
-            <p class="panel-description">Information you've shared about yourself</p>
+            <p class="panel-description">The information you shared during onboarding helps personalize your conversations</p>
           </div>
           <div id="aboutContent" class="panel-content">
             <div class="loading-spinner">Loading...</div>
@@ -14366,8 +14385,8 @@ document.addEventListener('DOMContentLoaded', () => {
         <!-- Topics Tab -->
         <div id="topicsTab" class="memory-panel" style="display: none;">
           <div class="panel-header">
-            <h3>Conversation Topics</h3>
-            <p class="panel-description">Things we've discussed together</p>
+            <h3>Recent Conversation Topics</h3>
+            <p class="panel-description">Click any topic to continue where you left off</p>
           </div>
           <div class="topic-search">
             <input type="text" id="topicSearch" placeholder="Search topics..." onkeyup="searchTopics()">
@@ -14380,8 +14399,8 @@ document.addEventListener('DOMContentLoaded', () => {
         <!-- Memories Tab -->
         <div id="memoriesTab" class="memory-panel" style="display: none;">
           <div class="panel-header">
-            <h3>Important Memories</h3>
-            <p class="panel-description">Key moments and information</p>
+            <h3>Saved Memories</h3>
+            <p class="panel-description">Important information the AI remembers from your conversations</p>
           </div>
           <div id="memoriesContent" class="panel-content">
             <div class="loading-spinner">Loading...</div>
@@ -14415,6 +14434,26 @@ document.addEventListener('DOMContentLoaded', () => {
       overflow: hidden;
       display: flex;
       flex-direction: column;
+      background: var(--color-white);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-xl);
+      border: 2px solid var(--color-light-gray);
+    }
+    
+    .memory-hub-header {
+      text-align: center;
+      padding: var(--spacing-lg);
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+      margin: -1px -1px 0 -1px;
+    }
+    
+    .modal-subtitle {
+      margin-top: var(--spacing-sm);
+      font-size: var(--font-size-sm);
+      opacity: 0.95;
+      font-weight: 400;
     }
     
     .memory-tabs {
@@ -14832,18 +14871,19 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       
-      let html = '';
+      let html = '<div class="onboarding-intro">This information helps personalize your conversations:</div>';
       
       // Display each question and answer
       for (const [questionId, answer] of Object.entries(data.answers)) {
         // Get the question text from the configuration
         const questionText = getQuestionText(questionId, data.category);
+        const readableAnswer = getReadableAnswer(questionId, answer, data.category);
         
         html += `
           <div class="onboarding-item">
             <div class="onboarding-question">${questionText}</div>
             <div class="onboarding-answer">
-              <div class="onboarding-answer-text" id="answer-${questionId}">${answer}</div>
+              <div class="onboarding-answer-text" id="answer-${questionId}">${readableAnswer}</div>
               <button class="edit-answer-btn" onclick="editOnboardingAnswer('${questionId}')">Edit</button>
             </div>
           </div>
@@ -14853,20 +14893,141 @@ document.addEventListener('DOMContentLoaded', () => {
       aboutContent.innerHTML = html;
     }
     
-    function getQuestionText(questionId, category) {
-      // Map question IDs to readable questions
-      const questionMap = {
-        'experience': 'Experience Level',
-        'goals': 'Goals & Objectives',
-        'obstacles': 'Current Challenges',
-        'time': 'Time Commitment',
-        'preferences': 'Learning Preferences',
-        'background': 'Background',
-        'interests': 'Interests',
-        'style': 'Communication Style'
+    function getReadableAnswer(questionId, answer, category) {
+      // Maps for converting answer values to readable text
+      const answerMaps = {
+        career_stage: {
+          'early': 'Early in my career (0-3 years)',
+          'mid': 'Mid-career professional (4-10 years)',
+          'senior': 'Senior level (10+ years)',
+          'transition': 'In career transition'
+        },
+        career_goal: {
+          'promotion': 'Get promoted to the next level',
+          'different_industry': 'Switch to a different industry',
+          'entrepreneur': 'Start my own business',
+          'skills': 'Develop new skills',
+          'same_industry': 'Find a better role in the same industry'
+        },
+        support_type: {
+          'strategy': 'Strategic planning and guidance',
+          'confidence': 'Building confidence',
+          'skills': 'Skill development',
+          'network': 'Networking strategies',
+          'interview': 'Interview preparation'
+        },
+        relationship_status: {
+          'single': 'Single and looking',
+          'dating': 'Dating someone',
+          'relationship': 'In a relationship',
+          'complicated': 'It\'s complicated',
+          'healing': 'Healing from past relationship'
+        },
+        relationship_goal: {
+          'find_partner': 'Find the right partner',
+          'improve_current': 'Improve current relationship',
+          'heal_past': 'Heal from past relationships',
+          'self_love': 'Focus on self-love',
+          'understand_patterns': 'Understand relationship patterns'
+        }
       };
       
-      return questionMap[questionId] || questionId;
+      // Check if we have a mapping for this answer
+      if (answerMaps[questionId] && answerMaps[questionId][answer]) {
+        return answerMaps[questionId][answer];
+      }
+      
+      // For text answers, return as-is if it's already readable
+      if (answer && answer.length > 20) {
+        return answer;
+      }
+      
+      // For short answers, try to make them more readable
+      return answer.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    }
+    
+    function getQuestionText(questionId, category) {
+      // Map question IDs to readable questions based on category
+      const careerMap = {
+        'career_stage': '🎯 Career Stage',
+        'career_goal': '🚀 Career Goal', 
+        'biggest_challenge': '💪 Biggest Challenge',
+        'motivation': '✨ Key Motivation',
+        'support_type': '🤝 Support Needed',
+        'additional_context': '📝 Additional Context'
+      };
+      
+      const loveMap = {
+        'relationship_status': '💝 Relationship Status',
+        'relationship_goal': '🎯 Relationship Goal',
+        'biggest_challenge': '💪 Biggest Challenge',
+        'support_needed': '🤝 Support Needed',
+        'additional_context': '📝 Additional Context'
+      };
+      
+      const lifeMap = {
+        'life_area': '🌟 Life Area Focus',
+        'current_feeling': '😊 Current Feeling',
+        'biggest_challenge': '💪 Biggest Challenge',
+        'desired_outcome': '🎯 Desired Outcome',
+        'additional_context': '📝 Additional Context'
+      };
+      
+      const mindfulnessMap = {
+        'mindfulness_experience': '🧘 Experience Level',
+        'mindfulness_goal': '🎯 Mindfulness Goal',
+        'biggest_obstacle': '💪 Biggest Obstacle',
+        'time_commitment': '⏰ Time Available',
+        'additional_context': '📝 Additional Context'
+      };
+      
+      const friendshipMap = {
+        'friendship_situation': '👥 Current Situation',
+        'friendship_goal': '🎯 Friendship Goal',
+        'biggest_challenge': '💪 Biggest Challenge',
+        'support_type': '🤝 Support Needed',
+        'additional_context': '📝 Additional Context'
+      };
+      
+      const businessMap = {
+        'business_stage': '📈 Business Stage',
+        'business_goal': '🎯 Business Goal',
+        'biggest_challenge': '💪 Biggest Challenge',
+        'support_needed': '🤝 Support Needed',
+        'additional_context': '📝 Additional Context'
+      };
+      
+      const selfImprovementMap = {
+        'improvement_area': '🎯 Improvement Area',
+        'current_state': '📍 Current State',
+        'desired_state': '🌟 Desired State',
+        'biggest_obstacle': '💪 Biggest Obstacle',
+        'additional_context': '📝 Additional Context'
+      };
+      
+      // Generic map for any unmapped fields
+      const genericMap = {
+        'experience': '📊 Experience Level',
+        'goals': '🎯 Goals & Objectives',
+        'obstacles': '💪 Current Challenges',
+        'time': '⏰ Time Commitment',
+        'preferences': '⭐ Learning Preferences',
+        'background': '📚 Background',
+        'interests': '🌟 Interests',
+        'style': '💬 Communication Style'
+      };
+      
+      // Select the appropriate map based on category
+      let questionMap = genericMap;
+      if (category === 'Career') questionMap = { ...careerMap, ...genericMap };
+      else if (category === 'Love' || category === 'Romance') questionMap = { ...loveMap, ...genericMap };
+      else if (category === 'Life') questionMap = { ...lifeMap, ...genericMap };
+      else if (category === 'Mindfulness') questionMap = { ...mindfulnessMap, ...genericMap };
+      else if (category === 'Friendship') questionMap = { ...friendshipMap, ...genericMap };
+      else if (category === 'Business') questionMap = { ...businessMap, ...genericMap };
+      else if (category === 'Self-improvement') questionMap = { ...selfImprovementMap, ...genericMap };
+      
+      return questionMap[questionId] || questionId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     }
     
     async function loadMemoriesData() {
