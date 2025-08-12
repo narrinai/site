@@ -1065,53 +1065,75 @@
 
     .btn-memory,
     .btn-customize {
-      padding: 6px 12px;
-      background: var(--gradient-primary);
-      color: var(--color-white);
-      border: none;
+      padding: 8px 16px;
+      background: transparent;
+      color: var(--color-teal);
+      border: 2px solid var(--color-teal);
       border-radius: var(--radius-md);
       font-size: var(--font-size-sm);
       font-weight: 600;
       cursor: pointer;
       transition: all var(--transition-base);
-      box-shadow: var(--shadow-colored);
       white-space: nowrap;
       margin-left: var(--spacing-xs);
       min-width: fit-content;
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 4px;
     }
     
-    /* Desktop button styles - keep full size */
-    .btn-memory,
-    .btn-customize {
-      font-size: var(--font-size-sm);
+    /* Button text visibility */
+    .desktop-text {
+      display: inline;
+    }
+    
+    .mobile-icon {
+      display: none;
+    }
+    
+    @media (max-width: 768px) {
+      .desktop-text {
+        display: none;
+      }
+      
+      .mobile-icon {
+        display: inline;
+        font-size: 18px;
+      }
     }
 
     .btn-memory:hover,
     .btn-customize:hover {
+      background: var(--color-teal);
+      color: var(--color-white);
       transform: translateY(-2px);
-      box-shadow: var(--shadow-lg);
     }
     
-    /* Mobile-specific button styles - extra small compact pills */
+    /* Mobile-specific button styles - icon only, no background */
     @media (max-width: 768px) {
       .btn-memory,
       .btn-customize {
-        padding: 2px 6px;
-        border-radius: 10px;
-        margin-left: 2px;
-        font-size: 8px;
-        min-width: unset;
-        line-height: 1;
-        font-weight: 500;
-        height: 24px;
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        border-radius: 50%;
+        margin-left: 4px;
+        background: transparent;
+        border: 2px solid var(--color-light-gray);
+        color: var(--color-gray);
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
       
       .btn-memory:hover,
       .btn-customize:hover {
-        transform: scale(1.1);
+        border-color: var(--color-teal);
+        background: rgba(38, 166, 154, 0.1);
+        color: var(--color-teal);
+        transform: scale(1.05);
       }
     }
 
@@ -2145,20 +2167,22 @@
         font-size: var(--font-size-xs);
       }
 
+      /* Smaller mobile screens */
       .btn-memory,
       .btn-customize {
-        padding: 1px 4px;
-        border-radius: 8px;
-        margin-left: 2px;
-        font-size: 7px;
-        min-width: unset;
-        line-height: 1;
-        font-weight: 500;
-        height: 20px;
+        width: 32px;
+        height: 32px;
+      }
+      
+      /* Make chat screen taller on mobile */
+      .chat-section {
+        min-height: calc(100vh - 150px);
       }
 
       #chatlog {
-        height: 350px;
+        height: calc(70vh - 200px);
+        min-height: 400px;
+        max-height: 600px;
         padding: var(--spacing-md);
         font-size: var(--font-size-sm);
       }
@@ -2226,7 +2250,9 @@
       }
 
       #chatlog {
-        height: 300px;
+        height: calc(65vh - 150px);
+        min-height: 350px;
+        max-height: 500px;
         font-size: var(--font-size-xs);
       }
 
@@ -2998,18 +3024,26 @@
     /* Mobile Styles for Customization Modal */
     @media (max-width: 768px) {
       .customization-modal {
-        padding: 0;
-        align-items: flex-start;
+        padding: 10px;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        overflow: hidden;
       }
       
       .customization-modal-content {
-        width: 100%;
-        max-width: 100%;
-        height: 100vh;
-        max-height: 100vh;
-        border-radius: 0;
+        width: 95%;
+        max-width: 95%;
+        height: 90vh;
+        max-height: 90vh;
+        border-radius: var(--radius-lg);
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
+        position: relative;
       }
       
       .modal-header {
@@ -4156,8 +4190,14 @@
             <h2 id="characterName">Connecting...</h2>
             <p id="characterTitle"></p>
           </div>
-          <button class="btn-memory" onclick="openMemoryHub()" id="memoryBtn" style="display: none;" title="View memories">Memory</button>
-          <button class="btn-customize" onclick="openCustomizationModal()" id="customizeBtn" style="display: none;" title="Customize character">Customize</button>
+          <button class="btn-memory" onclick="openMemoryHub()" id="memoryBtn" style="display: none;" title="View memories">
+            <span class="desktop-text">Memory</span>
+            <span class="mobile-icon">💭</span>
+          </button>
+          <button class="btn-customize" onclick="openCustomizationModal()" id="customizeBtn" style="display: none;" title="Customize character">
+            <span class="desktop-text">Customize</span>
+            <span class="mobile-icon">⚙️</span>
+          </button>
         </div>
       </div>
 
@@ -13336,6 +13376,13 @@ document.addEventListener('DOMContentLoaded', () => {
       
       const characterId = currentCharacter.character_id || currentCharacter.id || currentCharacter.Character_ID || '';
       
+      // Check if user has existing chat history with this character
+      const chatHistory = messages || [];
+      if (chatHistory.length > 0) {
+        console.log('📖 User has existing chat history, skipping onboarding');
+        return false;
+      }
+      
       // Check for temporary onboarding data (from before login)
       const tempOnboardingKey = `temp_onboarding_${characterId}`;
       const tempData = localStorage.getItem(tempOnboardingKey);
@@ -14364,10 +14411,10 @@ document.addEventListener('DOMContentLoaded', () => {
           <span class="tab-icon">👤</span> About Me
         </button>
         <button class="memory-tab" onclick="switchMemoryTab('topics')" data-tab="topics">
-          <span class="tab-icon">💬</span> Topics
+          <span class="tab-icon">🚀</span> Start Topic
         </button>
         <button class="memory-tab" onclick="switchMemoryTab('memories')" data-tab="memories">
-          <span class="tab-icon">💭</span> Memories
+          <span class="tab-icon">📝</span> My Info
         </button>
       </div>
       
@@ -14387,8 +14434,8 @@ document.addEventListener('DOMContentLoaded', () => {
         <!-- Topics Tab -->
         <div id="topicsTab" class="memory-panel" style="display: none;">
           <div class="panel-header">
-            <h3>Conversation Topics</h3>
-            <p class="panel-description">Recent things you've discussed with this character</p>
+            <h3>Quick Topics</h3>
+            <p class="panel-description">Click to start a conversation about these topics</p>
           </div>
           <div class="topic-search">
             <input type="text" id="topicSearch" placeholder="Search topics..." onkeyup="searchTopics()">
@@ -14401,9 +14448,28 @@ document.addEventListener('DOMContentLoaded', () => {
         <!-- Memories Tab -->
         <div id="memoriesTab" class="memory-panel" style="display: none;">
           <div class="panel-header">
-            <h3>Important Memories</h3>
-            <p class="panel-description">Key facts and information the AI remembers about you</p>
+            <h3>Character Memory</h3>
+            <p class="panel-description">What this character remembers about you from past conversations</p>
           </div>
+          
+          <!-- Add new memory section -->
+          <div class="add-memory-section">
+            <div class="add-memory-header">
+              <h4>💡 Add New Information</h4>
+              <p>Tell the AI something important to remember about you:</p>
+            </div>
+            <div class="add-memory-input-group">
+              <textarea 
+                id="newMemoryInput" 
+                class="new-memory-input" 
+                placeholder="Example: I prefer morning meetings, I'm allergic to peanuts, I have a dog named Max..."
+                rows="3"></textarea>
+              <button class="add-memory-btn" onclick="addNewMemory()">
+                <span>➕ Save Memory</span>
+              </button>
+            </div>
+          </div>
+          
           <div id="memoriesContent" class="panel-content">
             <div class="loading-spinner">Loading...</div>
           </div>
@@ -14419,6 +14485,8 @@ document.addEventListener('DOMContentLoaded', () => {
       position: fixed;
       top: 0;
       left: 0;
+      right: 0;
+      bottom: 0;
       width: 100%;
       height: 100%;
       background: rgba(0, 0, 0, 0.5);
@@ -14427,6 +14495,7 @@ document.addEventListener('DOMContentLoaded', () => {
       justify-content: center;
       z-index: 9999;
       backdrop-filter: blur(5px);
+      overflow: hidden;
     }
     
     .memory-hub-modal {
@@ -14554,20 +14623,40 @@ document.addEventListener('DOMContentLoaded', () => {
       flex: 1;
     }
     
-    .edit-answer-btn {
-      padding: 4px 8px;
-      background: var(--color-light-gray);
-      border: none;
-      border-radius: var(--radius-sm);
-      color: var(--color-gray);
-      font-size: var(--font-size-xs);
-      cursor: pointer;
-      transition: all 0.2s ease;
+    .onboarding-actions {
+      margin-top: var(--spacing-xl);
+      padding-top: var(--spacing-lg);
+      border-top: 2px solid var(--color-light-gray);
+      text-align: center;
     }
     
-    .edit-answer-btn:hover {
-      background: var(--color-primary);
-      color: white;
+    .restart-onboarding-btn {
+      padding: var(--spacing-sm) var(--spacing-xl);
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      border: none;
+      border-radius: var(--radius-full);
+      font-size: var(--font-size-md);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      box-shadow: var(--shadow-colored);
+      display: inline-flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      margin: 0 auto;
+    }
+    
+    .restart-onboarding-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .onboarding-note {
+      margin-top: var(--spacing-sm);
+      color: var(--color-gray);
+      font-size: var(--font-size-sm);
+      font-style: italic;
     }
     
     /* Topics specific styles */
@@ -14749,9 +14838,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     @media (max-width: 768px) {
+      .modal-backdrop {
+        padding: 10px;
+      }
+      
       .memory-hub-modal {
-        width: 95%;
+        width: 100%;
+        max-width: 100%;
+        height: 90vh;
         max-height: 90vh;
+        position: relative;
+        overflow: hidden;
       }
       
       .memory-tabs {
@@ -14885,12 +14982,21 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="onboarding-item">
             <div class="onboarding-question">${questionText}</div>
             <div class="onboarding-answer">
-              <div class="onboarding-answer-text" id="answer-${questionId}">${readableAnswer}</div>
-              <button class="edit-answer-btn" onclick="editOnboardingAnswer('${questionId}')">Edit</button>
+              <div class="onboarding-answer-text">${readableAnswer}</div>
             </div>
           </div>
         `;
       }
+      
+      // Add button to restart onboarding
+      html += `
+        <div class="onboarding-actions">
+          <button class="restart-onboarding-btn" onclick="restartOnboarding()">
+            🔄 Update My Information
+          </button>
+          <p class="onboarding-note">Click to redo the onboarding questions and update your profile</p>
+        </div>
+      `;
       
       aboutContent.innerHTML = html;
     }
@@ -15091,10 +15197,10 @@ document.addEventListener('DOMContentLoaded', () => {
       
       sortedMemories.forEach(memory => {
         // Get the actual memory content - check all possible field names
-        const memoryText = memory.content || memory.memory_text || memory.message || memory.Memory || '';
+        const memoryText = memory.content || memory.memory_text || memory.message || memory.Memory || memory.summary || '';
         
-        // Skip if no valid content
-        if (!memoryText || memoryText === 'undefined') {
+        // Skip if no valid content or showing 'undefined'
+        if (!memoryText || memoryText === 'undefined' || memoryText === 'null') {
           console.log('Skipping memory with no content:', memory);
           return;
         }
@@ -15135,14 +15241,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const category = currentCharacter?.Category || currentCharacter?.category || 'general';
         const suggestedTopics = getSuggestedTopics(category);
         
-        let html = '<div class="topics-intro">Start a conversation about:</div>';
+        let html = '<div class="topics-intro">💡 Quick conversation starters - click any topic to add it to your message:</div>';
         
         suggestedTopics.forEach(topic => {
           html += `
             <div class="topic-item" onclick="continueTopic('${topic.prompt}')">
               <div class="topic-title">${topic.title}</div>
               <div class="topic-description">${topic.description}</div>
-              <button class="continue-topic-btn">Start this topic</button>
+              <button class="continue-topic-btn" onclick="continueTopic('${topic.prompt}'); closeMemoryHub(); event.stopPropagation();">Start this topic</button>
             </div>
           `;
         });
@@ -15256,14 +15362,43 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
     
-    function continueTopic(topic) {
+    window.continueTopic = function(topic) {
       // Close the Memory Hub
-      closeMemoryHub();
+      if (window.closeMemoryHub) {
+        window.closeMemoryHub();
+      }
       
       // Add topic to the input field
       const userInput = document.getElementById('userInput');
-      userInput.value = `Let's continue our discussion about ${topic}. `;
-      userInput.focus();
+      if (userInput) {
+        userInput.value = topic;
+        userInput.focus();
+        // Scroll to input
+        userInput.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }
+    }
+    
+    window.restartOnboarding = function() {
+      // Close Memory Hub
+      if (window.closeMemoryHub) {
+        window.closeMemoryHub();
+      }
+      
+      // Clear stored onboarding data
+      const storageKey = `onboarding_${localStorage.getItem('user_uid')}_${characterSlug}`;
+      localStorage.removeItem(storageKey);
+      
+      // Redirect to onboarding page with the current character
+      const currentUrl = window.location.href;
+      const baseUrl = currentUrl.split('/chat.html')[0];
+      const onboardingUrl = `${baseUrl}/onboarding.html?character=${characterSlug}`;
+      
+      // Save return URL so we can come back after onboarding
+      sessionStorage.setItem('return_to_chat', 'true');
+      sessionStorage.setItem('return_character', characterSlug);
+      
+      // Redirect to onboarding
+      window.location.href = onboardingUrl;
     }
     
     function editOnboardingAnswer(questionId) {
@@ -15330,6 +15465,74 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // For now, just refresh the display
       loadMemoriesData();
+    }
+    
+    // Add new memory function
+    window.addNewMemory = async function() {
+      const input = document.getElementById('newMemoryInput');
+      const memoryText = input.value.trim();
+      
+      if (!memoryText) {
+        alert('Please enter something to remember');
+        return;
+      }
+      
+      const userUid = localStorage.getItem('user_uid');
+      const userEmail = localStorage.getItem('user_email');
+      const userToken = localStorage.getItem('user_token');
+      
+      if (!userUid || !userEmail) {
+        alert('Please log in to save memories');
+        return;
+      }
+      
+      try {
+        // Save as a chat message with high importance
+        const response = await fetch('/.netlify/functions/save-chat-message', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_email: userEmail,
+            user_uid: userUid,
+            user_token: userToken,
+            char: characterSlug,
+            user_message: `[MANUAL MEMORY] ${memoryText}`,
+            ai_response: 'Memory saved successfully'
+          })
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          
+          // Update memory importance for manual memories
+          if (result.user_record_id) {
+            await fetch('/.netlify/functions/update-memory', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                record_id: result.user_record_id,
+                message: memoryText,
+                context: 'Manual memory added by user',
+                user_id: userUid,
+                character_id: characterSlug,
+                netlify_uid: userUid,
+                user_email: userEmail
+              })
+            });
+          }
+          
+          // Clear input and reload memories
+          input.value = '';
+          alert('Memory saved successfully!');
+          loadMemoriesData();
+        } else {
+          console.error('Failed to save memory:', await response.text());
+          alert('Failed to save memory. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error saving memory:', error);
+        alert('An error occurred. Please try again.');
+      }
     }
     
     // Helper function to get chat history
