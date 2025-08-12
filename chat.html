@@ -13512,7 +13512,17 @@ document.addEventListener('DOMContentLoaded', () => {
         return false;
       }
       
-      const characterId = currentCharacter.character_id || currentCharacter.id || currentCharacter.Character_ID || '';
+      // IMPORTANT: Use character slug as the primary identifier for onboarding tracking
+      // This ensures consistency across different navigation paths (direct URL vs chat-overview)
+      const characterId = currentCharacter.slug || currentCharacter.character_id || currentCharacter.id || currentCharacter.Character_ID || '';
+      
+      console.log('🔑 Using identifier for onboarding:', characterId);
+      console.log('🔑 Available identifiers:', {
+        slug: currentCharacter.slug,
+        character_id: currentCharacter.character_id,
+        id: currentCharacter.id,
+        Character_ID: currentCharacter.Character_ID
+      });
       
       // Check if user has existing chat history with this character
       const chatHistory = window.messages || [];
@@ -13522,7 +13532,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       // Check for temporary onboarding data (from before login)
-      const tempOnboardingKey = `temp_onboarding_${characterId}`;
+      // Use slug for consistency
+      const tempOnboardingKey = `temp_onboarding_${currentCharacter.slug || characterId}`;
       const tempData = localStorage.getItem(tempOnboardingKey);
       
       if (tempData) {
@@ -13535,9 +13546,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Process the saved onboarding
         const userId = localStorage.getItem('user_id') || localStorage.getItem('user_uid') || 'anonymous';
         
-        // Mark as complete
+        // Mark as complete using slug
+        const onboardingSlug = currentCharacter.slug || characterId;
         if (typeof markOnboardingComplete === 'function') {
-          markOnboardingComplete(userId, characterId, parsedData.answers);
+          markOnboardingComplete(userId, onboardingSlug, parsedData.answers);
         }
         
         // Check if we already have chat history - if yes, don't generate a new welcome
@@ -13572,10 +13584,13 @@ document.addEventListener('DOMContentLoaded', () => {
       
       const userId = localStorage.getItem('user_id') || localStorage.getItem('user_uid') || 'anonymous';
       
+      // CRITICAL: Also use slug here for consistency with the characterId above
+      const onboardingCharacterId = currentCharacter.slug || characterId;
+      
       console.log('🎯 Checking onboarding for:', { 
         category, 
         userId, 
-        characterId,
+        characterId: onboardingCharacterId,
         allCategoryFields: {
           Category: currentCharacter.Category,
           category: currentCharacter.category
@@ -13587,7 +13602,7 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('📚 onboardingQuestions object:', typeof onboardingQuestions, onboardingQuestions);
       
       // Check if onboarding is needed using the function from onboarding-questions.js
-      if (typeof needsOnboarding === 'function' && needsOnboarding(category, userId, characterId)) {
+      if (typeof needsOnboarding === 'function' && needsOnboarding(category, userId, onboardingCharacterId)) {
         console.log('✅ Onboarding needed for category:', category);
         
         // Get questions for this category
@@ -13931,8 +13946,10 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // User is logged in, proceed normally
       // Mark onboarding as complete (use processed answers)
+      // IMPORTANT: Use slug for consistency
+      const onboardingId = currentCharacter?.slug || characterId;
       if (typeof markOnboardingComplete === 'function') {
-        markOnboardingComplete(userId, characterId, processedAnswers);
+        markOnboardingComplete(userId, onboardingId, processedAnswers);
       }
       
       // Save to Airtable (use processed answers)

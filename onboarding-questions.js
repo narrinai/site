@@ -1165,8 +1165,8 @@ Which of these would you like to explore first? Or is there something else you'd
 };
 
 // Function to check if onboarding is needed
-function needsOnboarding(category, userId, characterId) {
-  console.log('🔍 needsOnboarding called with:', { category, userId, characterId });
+function needsOnboarding(category, userId, characterSlug) {
+  console.log('🔍 needsOnboarding called with:', { category, userId, characterSlug });
   
   // Normalize category to match our config
   // Handle different category formats: "business", "Business", "life", "Life", etc.
@@ -1202,7 +1202,8 @@ function needsOnboarding(category, userId, characterId) {
   console.log(`✅ Onboarding config found and enabled for category: ${category}`);
   
   // Check localStorage for completed onboarding
-  const onboardingKey = `onboarding_${userId}_${characterId}`;
+  // IMPORTANT: Always use character slug for consistency across navigation paths
+  const onboardingKey = `onboarding_${userId}_${characterSlug}`;
   const completed = localStorage.getItem(onboardingKey);
   
   console.log(`🔍 Checking localStorage key: ${onboardingKey}`);
@@ -1212,18 +1213,21 @@ function needsOnboarding(category, userId, characterId) {
 }
 
 // Function to save onboarding completion
-function markOnboardingComplete(userId, characterId, answers) {
-  const onboardingKey = `onboarding_${userId}_${characterId}`;
+function markOnboardingComplete(userId, characterSlug, answers) {
+  // IMPORTANT: Always use character slug for consistency across navigation paths
+  const onboardingKey = `onboarding_${userId}_${characterSlug}`;
   localStorage.setItem(onboardingKey, JSON.stringify({
     completed: true,
     timestamp: new Date().toISOString(),
     answers: answers
   }));
+  console.log(`✅ Onboarding marked complete with key: ${onboardingKey}`);
 }
 
 // Function to get onboarding data
-function getOnboardingData(userId, characterId) {
-  const onboardingKey = `onboarding_${userId}_${characterId}`;
+function getOnboardingData(userId, characterSlug) {
+  // IMPORTANT: Always use character slug for consistency across navigation paths
+  const onboardingKey = `onboarding_${userId}_${characterSlug}`;
   const data = localStorage.getItem(onboardingKey);
   return data ? JSON.parse(data) : null;
 }
