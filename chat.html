@@ -6143,6 +6143,10 @@ document.addEventListener('DOMContentLoaded', () => {
           console.log('📜 First few messages:', data.history.slice(0, 3));
           console.log('📜 All messages:', data.history.map((m, i) => `${i}: ${m.role} - ${m.message?.substring(0, 50)}...`));
           
+          // CRITICAL: Store messages globally so onboarding check can see them
+          window.messages = data.history;
+          console.log('💾 Stored messages in window.messages for onboarding check');
+          
           const chatlog = document.getElementById("chatlog");
           chatlog.innerHTML = ''; // Clear existing messages
           
@@ -6263,6 +6267,10 @@ document.addEventListener('DOMContentLoaded', () => {
           });
         } else {
           console.log('📭 No chat history found');
+          
+          // CRITICAL: Set empty messages array so onboarding check knows there's no history
+          window.messages = [];
+          console.log('💾 Set window.messages to empty array (no history)');
           
           // Only show conversation starter if history was NOT transferred
           if (!window.historyWasTransferred) {
@@ -7604,12 +7612,13 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     console.log('Character voice_type:', currentCharacter.voice_type);
     console.log('Character avatar_url:', currentCharacter.avatar_url);
     console.log('Full character data:', JSON.stringify(currentCharacter, null, 2));
-    setupCharacterInterface();
     
-    // Load chat history after character is loaded
-    console.log('🔄 Loading chat history after character load...');
-    // Load chat history - always load first to preserve any existing messages
+    // CRITICAL: Load chat history BEFORE setting up interface (which checks onboarding)
+    console.log('🔄 Loading chat history FIRST before interface setup...');
     await loadChatHistory();
+    
+    // NOW setup interface after history is loaded
+    setupCharacterInterface();
     
     // If history was transferred, give user feedback
     if (window.historyWasTransferred) {
