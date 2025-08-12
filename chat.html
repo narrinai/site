@@ -10113,10 +10113,11 @@ function initializeCustomizationForm() {
       return;
     }
     
-    // Check if this is a "Save As New" action (creating a new character)
+    // Check if this is a "Save As New" action (creating a new character from system character)
     const submitButton = document.getElementById('customizationSubmitBtn');
+    const isUserCreated = currentCharacter.Created_by || currentCharacter.created_by || currentCharacter.Created_By;
     const isNewCharacter = submitButton && submitButton.textContent.includes('Save As New');
-    const isUserCreatedUpdate = submitButton && submitButton.textContent === 'Save' && !existingCustom;
+    const isUserCreatedUpdate = isUserCreated; // User-created characters always update, never create new
     
     // Check character limit for new characters (but not for updates to user-created characters)
     if (isNewCharacter && window.characterLimitChecker) {
@@ -10242,15 +10243,16 @@ function initializeCustomizationForm() {
     const userUid = localStorage.getItem('user_uid') || localStorage.getItem('netlify_uid');
     console.log('🔑 User UID for request:', userUid);
     
-    // Determine the action based on the button text and character type
+    // Determine the action based on the character type
     let action;
-    if (existingCustom && existingCustom.airtable_id) {
+    if (isUserCreatedUpdate) {
+      // User-created characters ALWAYS update, never create new
       action = 'update_character';
-    } else if (isUserCreatedUpdate) {
-      // User-created character being updated (Save button, not Save As New)
+    } else if (existingCustom && existingCustom.airtable_id) {
+      // Existing customization being updated
       action = 'update_character';
     } else {
-      // Platform character being saved as new (Save As New button)
+      // System character being saved as new (Save As New button)
       action = 'create_character';
     }
     
@@ -10287,8 +10289,16 @@ function initializeCustomizationForm() {
     }
     
     // Add Airtable ID for updates if available
-    if (isUserCreatedUpdate && currentCharacter._id) {
-      requestData.airtable_id = currentCharacter._id;
+    if (isUserCreatedUpdate) {
+      // For user-created characters, find the Airtable ID from various possible fields
+      const airtableId = currentCharacter.id || 
+                         currentCharacter.record_id || 
+                         currentCharacter.airtable_id || 
+                         currentCharacter.ID ||
+                         currentCharacter._id;
+      if (airtableId) {
+        requestData.airtable_id = airtableId;
+      }
     } else if (existingCustom && existingCustom.airtable_id) {
       requestData.airtable_id = existingCustom.airtable_id;
     }
