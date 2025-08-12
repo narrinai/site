@@ -1095,17 +1095,18 @@
       box-shadow: var(--shadow-lg);
     }
     
-    /* Mobile-specific button styles - much smaller compact pills */
+    /* Mobile-specific button styles - extra small compact pills */
     @media (max-width: 768px) {
       .btn-memory,
       .btn-customize {
-        padding: 3px 8px;
-        border-radius: 12px;
-        margin-left: 3px;
-        font-size: 9px;
+        padding: 2px 6px;
+        border-radius: 10px;
+        margin-left: 2px;
+        font-size: 8px;
         min-width: unset;
         line-height: 1;
-        font-weight: 600;
+        font-weight: 500;
+        height: 24px;
       }
       
       .btn-memory:hover,
@@ -2146,13 +2147,14 @@
 
       .btn-memory,
       .btn-customize {
-        padding: 2px 6px;
-        border-radius: 10px;
+        padding: 1px 4px;
+        border-radius: 8px;
         margin-left: 2px;
-        font-size: 8px;
+        font-size: 7px;
         min-width: unset;
         line-height: 1;
-        font-weight: 600;
+        font-weight: 500;
+        height: 20px;
       }
 
       #chatlog {
@@ -14385,8 +14387,8 @@ document.addEventListener('DOMContentLoaded', () => {
         <!-- Topics Tab -->
         <div id="topicsTab" class="memory-panel" style="display: none;">
           <div class="panel-header">
-            <h3>Recent Conversation Topics</h3>
-            <p class="panel-description">Click any topic to continue where you left off</p>
+            <h3>Conversation Topics</h3>
+            <p class="panel-description">Recent things you've discussed with this character</p>
           </div>
           <div class="topic-search">
             <input type="text" id="topicSearch" placeholder="Search topics..." onkeyup="searchTopics()">
@@ -14399,8 +14401,8 @@ document.addEventListener('DOMContentLoaded', () => {
         <!-- Memories Tab -->
         <div id="memoriesTab" class="memory-panel" style="display: none;">
           <div class="panel-header">
-            <h3>Saved Memories</h3>
-            <p class="panel-description">Important information the AI remembers from your conversations</p>
+            <h3>Important Memories</h3>
+            <p class="panel-description">Key facts and information the AI remembers about you</p>
           </div>
           <div id="memoriesContent" class="panel-content">
             <div class="loading-spinner">Loading...</div>
@@ -15088,20 +15090,34 @@ document.addEventListener('DOMContentLoaded', () => {
       let html = '';
       
       sortedMemories.forEach(memory => {
-        const date = new Date(memory.created_at || memory.timestamp);
+        // Get the actual memory content - check all possible field names
+        const memoryText = memory.content || memory.memory_text || memory.message || memory.Memory || '';
+        
+        // Skip if no valid content
+        if (!memoryText || memoryText === 'undefined') {
+          console.log('Skipping memory with no content:', memory);
+          return;
+        }
+        
+        const date = new Date(memory.created_at || memory.timestamp || memory.Created || new Date());
         const dateStr = date.toLocaleDateString('en-US', { 
           month: 'short', 
           day: 'numeric', 
           year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined 
         });
         
+        // Get importance level
+        const importance = memory.importance || memory.Importance || 5;
+        const importanceStars = '⭐'.repeat(Math.min(Math.floor(importance / 2), 5));
+        
         html += `
-          <div class="memory-item" data-memory-id="${memory.id}">
-            <div class="memory-content">${memory.content || memory.memory_text}</div>
+          <div class="memory-item" data-memory-id="${memory.id || memory.record_id || memory.ID}">
+            <div class="memory-content">${memoryText}</div>
             <div class="memory-metadata">
-              <div class="memory-date">📅 ${dateStr}</div>
+              <span class="memory-importance">${importanceStars}</span>
+              <span class="memory-date">📅 ${dateStr}</span>
               <div class="memory-actions">
-                <button class="memory-action-btn" onclick="editMemory('${memory.id}')">Edit</button>
+                <button class="memory-action-btn" onclick="editMemory('${memory.id || memory.record_id || memory.ID}')">Edit</button>
               </div>
             </div>
           </div>
@@ -15115,19 +15131,49 @@ document.addEventListener('DOMContentLoaded', () => {
       const topicsContent = document.getElementById('topicsContent');
       
       try {
-        // Extract topics from chat history
-        const chatHistory = await getChatHistory();
+        // For now, show suggested topics based on the character category
+        const category = currentCharacter?.Category || currentCharacter?.category || 'general';
+        const suggestedTopics = getSuggestedTopics(category);
         
-        if (chatHistory && chatHistory.length > 0) {
-          const topics = extractTopics(chatHistory);
-          displayTopics(topics);
-        } else {
-          topicsContent.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💬</div><p>No conversation topics yet. Start chatting to explore topics!</p></div>';
-        }
+        let html = '<div class="topics-intro">Start a conversation about:</div>';
+        
+        suggestedTopics.forEach(topic => {
+          html += `
+            <div class="topic-item" onclick="continueTopic('${topic.prompt}')">
+              <div class="topic-title">${topic.title}</div>
+              <div class="topic-description">${topic.description}</div>
+              <button class="continue-topic-btn">Start this topic</button>
+            </div>
+          `;
+        });
+        
+        topicsContent.innerHTML = html;
       } catch (error) {
         console.error('Error loading topics:', error);
         topicsContent.innerHTML = '<div class="empty-state"><div class="empty-state-icon">❌</div><p>Could not load topics</p></div>';
       }
+    }
+    
+    function getSuggestedTopics(category) {
+      const topicsByCategory = {
+        'career': [
+          { title: '📈 Career Growth', description: 'Discuss your career goals and next steps', prompt: 'I want to talk about my career growth' },
+          { title: '💼 Job Search', description: 'Get help with your job search strategy', prompt: 'I need help with my job search' },
+          { title: '🎯 Skills Development', description: 'Identify skills to develop', prompt: 'What skills should I develop?' }
+        ],
+        'love': [
+          { title: '💝 Relationship Goals', description: 'Explore what you want in relationships', prompt: 'Let\'s talk about my relationship goals' },
+          { title: '💬 Communication', description: 'Improve relationship communication', prompt: 'How can I communicate better?' },
+          { title: '❤️ Self-Love', description: 'Build a better relationship with yourself', prompt: 'I want to work on self-love' }
+        ],
+        'default': [
+          { title: '🎯 Today\'s Focus', description: 'What\'s on your mind today?', prompt: 'I want to talk about what\'s on my mind' },
+          { title: '💭 Recent Thoughts', description: 'Share what you\'ve been thinking about', prompt: 'I\'ve been thinking about...' },
+          { title: '🌟 New Ideas', description: 'Explore something new together', prompt: 'I have an idea I want to explore' }
+        ]
+      };
+      
+      return topicsByCategory[category.toLowerCase()] || topicsByCategory['default'];
     }
     
     function extractTopics(chatHistory) {
