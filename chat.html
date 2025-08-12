@@ -7303,6 +7303,28 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     const uid = localStorage.getItem("user_uid");
     const email = localStorage.getItem("user_email");
     
+    // Load onboarding data from localStorage if available
+    if (uid && slug) {
+      const storageKey = `onboarding_${uid}_${slug}`;
+      const storedOnboarding = localStorage.getItem(storageKey);
+      
+      if (storedOnboarding) {
+        try {
+          const onboardingData = JSON.parse(storedOnboarding);
+          if (onboardingData && onboardingData.answers) {
+            // Restore onboarding context for AI to remember
+            if (!window.additionalContext) {
+              window.additionalContext = {};
+            }
+            window.additionalContext.onboarding = onboardingData.answers;
+            console.log('✅ Onboarding data restored from localStorage:', onboardingData.answers);
+          }
+        } catch (e) {
+          console.error('Error parsing stored onboarding data:', e);
+        }
+      }
+    }
+    
     // Check if this is a new chat (not in user's chat history)
     const userPlan = localStorage.getItem('user_plan') || 'Free';
     const pausedChats = JSON.parse(localStorage.getItem('pausedChats') || '[]');
@@ -12232,6 +12254,10 @@ hideTypingIndicator();
     // Update conversation topics after AI response
     setTimeout(() => {
       generateConversationTopics();
+      // Also refresh Memory Hub if it's open
+      if (document.getElementById('memoryHubModal').style.display !== 'none') {
+        loadTopicsData(); // Refresh the memories/topics in the Memory Hub
+      }
     }, 2000); // Wait 2 seconds after response
 
     const typingSpan = divBot.querySelector('.typing-text');
@@ -14455,10 +14481,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <span class="tab-icon">👤</span> About Me
         </button>
         <button class="memory-tab" onclick="switchMemoryTab('topics')" data-tab="topics">
-          <span class="tab-icon">🚀</span> Continue Topic
-        </button>
-        <button class="memory-tab" onclick="switchMemoryTab('memories')" data-tab="memories">
-          <span class="tab-icon">📝</span> My Info
+          <span class="tab-icon">💭</span> Memories
         </button>
       </div>
       
@@ -14478,46 +14501,14 @@ document.addEventListener('DOMContentLoaded', () => {
         <!-- Topics Tab -->
         <div id="topicsTab" class="memory-panel" style="display: none;">
           <div class="panel-header">
-            <h3>Continue Topics</h3>
-            <p class="panel-description">Pick up where you left off on these conversation topics</p>
-          </div>
-          <div class="topic-search">
-            <input type="text" id="topicSearch" placeholder="Search topics..." onkeyup="searchTopics()">
+            <h3>Memories</h3>
+            <p class="panel-description">Topics and memories from your conversations</p>
           </div>
           <div id="topicsContent" class="panel-content">
             <div class="loading-spinner">Loading...</div>
           </div>
         </div>
         
-        <!-- Memories Tab -->
-        <div id="memoriesTab" class="memory-panel" style="display: none;">
-          <div class="panel-header">
-            <h3>Character Memory</h3>
-            <p class="panel-description">What this character remembers about you from past conversations</p>
-          </div>
-          
-          <!-- Add new memory section -->
-          <div class="add-memory-section">
-            <div class="add-memory-header">
-              <h4>💡 Add New Information</h4>
-              <p>Tell the AI something important to remember about you:</p>
-            </div>
-            <div class="add-memory-input-group">
-              <textarea 
-                id="newMemoryInput" 
-                class="new-memory-input" 
-                placeholder="Example: I prefer morning meetings, I'm allergic to peanuts, I have a dog named Max..."
-                rows="3"></textarea>
-              <button class="add-memory-btn" onclick="addNewMemory()">
-                <span>➕ Save Memory</span>
-              </button>
-            </div>
-          </div>
-          
-          <div id="memoriesContent" class="panel-content">
-            <div class="loading-spinner">Loading...</div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -15032,8 +15023,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('aboutTab').style.display = 'block';
       } else if (tab === 'topics') {
         document.getElementById('topicsTab').style.display = 'block';
-      } else if (tab === 'memories') {
-        document.getElementById('memoriesTab').style.display = 'block';
       }
     }
     
@@ -15049,9 +15038,6 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Load onboarding data
       loadOnboardingData();
-      
-      // Load memories
-      loadMemoriesData();
       
       // Load topics from chat history
       loadTopicsData();
@@ -15396,7 +15382,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   <div class="topic-item" onclick="continueTopic('${topic.prompt}')">
                     <div class="topic-title">${topic.title}</div>
                     <div class="topic-description">${topic.description}</div>
-                    <button class="continue-topic-btn" onclick="continueTopic('${topic.prompt}'); closeMemoryHub(); event.stopPropagation();">Continue this topic</button>
+                    <button class="continue-topic-btn" onclick="continueTopic('${topic.prompt}'); closeMemoryHub(); event.stopPropagation();">Continue conversation</button>
                   </div>
                 `;
               });
@@ -15418,7 +15404,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="topic-item" onclick="continueTopic('${topic.prompt}')">
               <div class="topic-title">${topic.title}</div>
               <div class="topic-description">${topic.description}</div>
-              <button class="continue-topic-btn" onclick="continueTopic('${topic.prompt}'); closeMemoryHub(); event.stopPropagation();">Start this topic</button>
+              <button class="continue-topic-btn" onclick="continueTopic('${topic.prompt}'); closeMemoryHub(); event.stopPropagation();">Start conversation</button>
             </div>
           `;
         });
