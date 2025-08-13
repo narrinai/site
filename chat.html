@@ -1120,12 +1120,11 @@
         width: 36px;
         height: 36px;
         padding: 0;
-        border-radius: 50%;
         margin-left: 4px;
         background: transparent;
-        border: 2px solid var(--color-light-gray);
+        border: none;
         color: var(--color-gray);
-        font-size: 16px;
+        font-size: 24px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -1133,10 +1132,8 @@
       
       .btn-memory:hover,
       .btn-customize:hover {
-        border-color: var(--color-teal);
-        background: rgba(38, 166, 154, 0.1);
         color: var(--color-teal);
-        transform: scale(1.05);
+        transform: scale(1.2);
       }
     }
 
@@ -4678,6 +4675,197 @@
 
   <!-- Navigation and Chat Scripts -->
   <script>
+    // ===== ONBOARDING QUESTIONS CONFIGURATION =====
+    const onboardingQuestions = {
+      Career: {
+        enabled: true,
+        questions: [
+          {
+            id: 'career_stage',
+            question: 'Where are you in your career journey?',
+            options: ['Just starting out', 'Mid-career professional', 'Senior/Executive level', 'Career changer', 'Recently unemployed']
+          },
+          {
+            id: 'career_goal', 
+            question: 'What\'s your main career goal right now?',
+            options: ['Get promoted', 'Find a new job in the same industry', 'Transition to a different industry', 'Start my own business', 'Improve my skills']
+          },
+          {
+            id: 'biggest_challenge',
+            question: 'What\'s your biggest career challenge?',
+            options: ['Lack of confidence or imposter syndrome', 'Not sure what direction to take', 'Need to develop new skills', 'Networking and building connections', 'Work-life balance']
+          },
+          {
+            id: 'timeline',
+            question: 'When do you want to achieve your goal?',
+            options: ['As soon as possible', 'Within 3 months', 'Within 6 months', 'Within a year', 'Just exploring options']
+          },
+          {
+            id: 'support_type',
+            question: 'What kind of support do you need most?',
+            options: ['Strategic planning and goal setting', 'Accountability and motivation', 'Skill development and learning', 'Building confidence', 'Networking strategies']
+          }
+        ],
+        contextMappings: {
+          career_stage: {
+            'Just starting out': 'just starting your career',
+            'Mid-career professional': 'a mid-career professional',
+            'Senior/Executive level': 'at a senior/executive level',
+            'Career changer': 'looking to change careers',
+            'Recently unemployed': 'recently unemployed and seeking new opportunities'
+          },
+          career_goal: {
+            'Get promoted': 'get promoted',
+            'Find a new job in the same industry': 'find a new job in your industry',
+            'Transition to a different industry': 'transition to a different industry',
+            'Start my own business': 'start your own business',
+            'Improve my skills': 'improve your skills'
+          },
+          biggest_challenge: {
+            'Lack of confidence or imposter syndrome': 'lack of confidence or imposter syndrome',
+            'Not sure what direction to take': 'uncertainty about your career direction',
+            'Need to develop new skills': 'needing to develop new skills',
+            'Networking and building connections': 'networking and building connections',
+            'Work-life balance': 'maintaining work-life balance'
+          },
+          timeline: {
+            'As soon as possible': 'as soon as possible',
+            'Within 3 months': 'within 3 months',
+            'Within 6 months': 'within 6 months',
+            'Within a year': 'within a year',
+            'Just exploring options': 'just exploring options'
+          },
+          support_type: {
+            'Strategic planning and goal setting': 'strategic planning and goal setting',
+            'Accountability and motivation': 'accountability and motivation',
+            'Skill development and learning': 'skill development and learning',
+            'Building confidence': 'building confidence',
+            'Networking strategies': 'networking strategies'
+          }
+        }
+      },
+      Business: {
+        enabled: true,
+        questions: [
+          {
+            id: 'business_stage',
+            question: 'What stage is your business in?',
+            options: ['Just an idea', 'Building MVP/prototype', 'Early stage (0-1 year)', 'Growth stage (1-3 years)', 'Established (3+ years)']
+          },
+          {
+            id: 'main_focus',
+            question: 'What\'s your main focus right now?',
+            options: ['Product development', 'Finding customers', 'Raising funding', 'Team building', 'Scaling operations']
+          },
+          {
+            id: 'biggest_challenge',
+            question: 'What\'s your biggest business challenge?',
+            options: ['Limited resources/budget', 'Marketing and visibility', 'Time management', 'Competition', 'Technical challenges']
+          },
+          {
+            id: 'business_model',
+            question: 'What\'s your business model?',
+            options: ['B2B (Business to Business)', 'B2C (Business to Consumer)', 'SaaS (Software as a Service)', 'E-commerce/Retail', 'Service/Consulting']
+          },
+          {
+            id: 'support_needed',
+            question: 'What support would help you most?',
+            options: ['Strategic planning', 'Marketing strategies', 'Financial planning', 'Operations optimization', 'Leadership coaching']
+          }
+        ],
+        contextMappings: {
+          business_stage: {
+            'Just an idea': 'at the idea stage',
+            'Building MVP/prototype': 'building your MVP',
+            'Early stage (0-1 year)': 'in the early stage',
+            'Growth stage (1-3 years)': 'in the growth stage',
+            'Established (3+ years)': 'running an established business'
+          },
+          main_focus: {
+            'Product development': 'product development',
+            'Finding customers': 'finding customers',
+            'Raising funding': 'raising funding',
+            'Team building': 'team building',
+            'Scaling operations': 'scaling operations'
+          },
+          biggest_challenge: {
+            'Limited resources/budget': 'limited resources',
+            'Marketing and visibility': 'marketing and visibility',
+            'Time management': 'time management',
+            'Competition': 'competition',
+            'Technical challenges': 'technical challenges'
+          },
+          support_needed: {
+            'Strategic planning': 'strategic planning',
+            'Marketing strategies': 'marketing strategies',
+            'Financial planning': 'financial planning',
+            'Operations optimization': 'operations optimization',
+            'Leadership coaching': 'leadership coaching'
+          }
+        }
+      },
+      'Life Coach': {
+        enabled: true,
+        questions: [
+          {
+            id: 'current_focus',
+            question: 'What area of life do you want to focus on?',
+            options: ['Personal growth', 'Relationships', 'Health and wellness', 'Work-life balance', 'Finding purpose']
+          },
+          {
+            id: 'main_goal',
+            question: 'What\'s your main goal?',
+            options: ['Build better habits', 'Improve relationships', 'Reduce stress/anxiety', 'Find more fulfillment', 'Make a major life change']
+          },
+          {
+            id: 'biggest_obstacle',
+            question: 'What\'s holding you back?',
+            options: ['Lack of motivation', 'Fear of change', 'Time management', 'Self-doubt', 'External circumstances']
+          },
+          {
+            id: 'preferred_pace',
+            question: 'How do you prefer to make changes?',
+            options: ['Small steps over time', 'Big bold moves', 'With accountability', 'Through self-reflection', 'With practical tools']
+          },
+          {
+            id: 'support_style',
+            question: 'What support style works best for you?',
+            options: ['Gentle encouragement', 'Direct and honest feedback', 'Structured planning', 'Emotional support', 'Problem-solving together']
+          }
+        ],
+        contextMappings: {
+          current_focus: {
+            'Personal growth': 'personal growth',
+            'Relationships': 'improving relationships',
+            'Health and wellness': 'health and wellness',
+            'Work-life balance': 'work-life balance',
+            'Finding purpose': 'finding your purpose'
+          },
+          main_goal: {
+            'Build better habits': 'build better habits',
+            'Improve relationships': 'improve relationships',
+            'Reduce stress/anxiety': 'reduce stress and anxiety',
+            'Find more fulfillment': 'find more fulfillment',
+            'Make a major life change': 'make a major life change'
+          },
+          biggest_obstacle: {
+            'Lack of motivation': 'lack of motivation',
+            'Fear of change': 'fear of change',
+            'Time management': 'time management',
+            'Self-doubt': 'self-doubt',
+            'External circumstances': 'external circumstances'
+          },
+          support_style: {
+            'Gentle encouragement': 'gentle encouragement',
+            'Direct and honest feedback': 'direct and honest feedback',
+            'Structured planning': 'structured planning',
+            'Emotional support': 'emotional support',
+            'Problem-solving together': 'problem-solving together'
+          }
+        }
+      }
+    };
+    
     // ===== CUSTOM NOTIFICATION SYSTEM =====
     function showNotification(type, title, message, buttons = null) {
       const overlay = document.getElementById('notificationOverlay');
@@ -14729,129 +14917,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const currentContent = contentElement.textContent;
       
       // Switch to edit mode
-      contentElement.innerHTML = `
-        <div class="edit-mode">
-          <textarea class="edit-textarea" id="edit-memory-${memoryId}">${currentContent}</textarea>
-          <div class="edit-actions">
-            <button class="edit-cancel-btn" onclick="loadMemoriesData()">Cancel</button>
-            <button class="edit-save-btn" onclick="saveMemoryEdit('${memoryId}')">Save</button>
-          </div>
-        </div>
-      `;
-    }
-    
-    async function saveMemoryEdit(memoryId) {
-      const newContent = document.getElementById(`edit-memory-${memoryId}`).value;
-      
-      // TODO: Update memory via API
-      console.log('Updating memory:', memoryId, 'with:', newContent);
-      
-      // For now, just refresh the display
-      loadMemoriesData();
-    }
-    
-    // Add new memory function
-    window.addNewMemory = async function() {
-      const input = document.getElementById('newMemoryInput');
-      const memoryText = input.value.trim();
-      
-      if (!memoryText) {
-        alert('Please enter something to remember');
-        return;
-      }
-      
-      const userUid = localStorage.getItem('user_uid');
-      const userEmail = localStorage.getItem('user_email');
-      const userToken = localStorage.getItem('user_token');
-      
-      if (!userUid || !userEmail) {
-        alert('Please log in to save memories');
-        return;
-      }
-      
-      try {
-        // Save as a chat message with high importance
-        const response = await fetch('/.netlify/functions/save-chat-message', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            user_email: userEmail,
-            user_uid: userUid,
-            user_token: userToken,
-            char: characterSlug,
-            user_message: `[MANUAL MEMORY] ${memoryText}`,
-            ai_response: 'Memory saved successfully'
-          })
-        });
-        
-        if (response.ok) {
-          const result = await response.json();
-          
-          // Update memory importance for manual memories
-          if (result.user_record_id) {
-            await fetch('/.netlify/functions/update-memory', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                record_id: result.user_record_id,
-                message: memoryText,
-                context: 'Manual memory added by user',
-                user_id: userUid,
-                character_id: characterSlug,
-                netlify_uid: userUid,
-                user_email: userEmail
-              })
-            });
-          }
-          
-          // Clear input and reload memories
-          input.value = '';
-          alert('Memory saved successfully!');
-          loadMemoriesData();
-        } else {
-          console.error('Failed to save memory:', await response.text());
-          alert('Failed to save memory. Please try again.');
-        }
-      } catch (error) {
-        console.error('Error saving memory:', error);
-        alert('An error occurred. Please try again.');
-      }
-    }
-    
-    // Helper function to get chat history
-    async function getChatHistory() {
-      try {
-        const userEmail = localStorage.getItem('user_email');
-        const userUid = localStorage.getItem('user_uid');
-        const userToken = localStorage.getItem('user_token');
-        
-        if (!userEmail || !userUid || !characterSlug) {
-          return [];
-        }
-        
-        const response = await fetch('/.netlify/functions/get-chat-history', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            user_email: userEmail,
-            user_uid: userUid,
-            user_token: userToken,
-            char: characterSlug
-          })
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          return data.history || [];
-        }
-        
-        return [];
-      } catch (error) {
-        console.error('Error fetching chat history for Memory Hub:', error);
-        return [];
-      }
-    }
-  </script>
 
   <!-- Character Limit Check Script -->
   <script src="js/character-limit-check.js"></script>
