@@ -15659,19 +15659,25 @@ document.addEventListener('DOMContentLoaded', () => {
       // Display high importance memories first
       if (highImportance.length > 0) {
         html += '<div class="memory-group" style="margin-bottom: 30px;">';
-        html += '<h4 class="memory-group-title" style="color: #4ECDC4; font-weight: 600; margin-bottom: 15px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Important Information</h4>';
+        html += '<h4 class="memory-group-title" style="color: #14b8a6; font-weight: 600; margin-bottom: 15px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Important Information</h4>';
         highImportance.forEach(memory => {
           let displayText = formatMemoryText(memory);
           if (!displayText) return;
+          let title = generateMemoryTitle(memory);
+          let date = formatMemoryDate(memory.created_at || memory.date || memory.CreatedTime);
           
           html += `
-            <div class="memory-item" style="background: #FFF5F5; border-left: 4px solid #FF6B6B; padding: 15px; margin-bottom: 12px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" data-memory-id="${memory.id || memory.record_id || memory.ID}">
-              <div class="memory-content" style="color: #2C3E50; line-height: 1.6; font-size: 14px; margin-bottom: 10px;">${displayText}</div>
+            <div class="memory-item" style="background: rgba(249, 115, 22, 0.05); border-left: 4px solid #f97316; padding: 15px; margin-bottom: 12px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" data-memory-id="${memory.id || memory.record_id || memory.ID}">
+              <div style="margin-bottom: 8px;">
+                <h5 style="margin: 0 0 4px 0; color: #1e293b; font-size: 15px; font-weight: 600;">${title}</h5>
+                <span style="color: #94a3b8; font-size: 11px;">${date}</span>
+              </div>
+              <div class="memory-content" style="color: #475569; line-height: 1.6; font-size: 13px; margin-bottom: 10px;">${displayText}</div>
               <div class="memory-actions" style="display: flex; gap: 10px; margin-top: 12px; align-items: center;">
-                <button onclick="useMemoryInChat('${escapeQuotes(displayText)}')" style="background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%); color: white; border: none; padding: 8px 16px; border-radius: 20px; font-size: 12px; cursor: pointer; font-weight: 500; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)'">
+                <button onclick="useMemoryInChat('${escapeQuotes(displayText)}')" style="background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%); color: white; border: none; padding: 8px 16px; border-radius: 20px; font-size: 12px; cursor: pointer; font-weight: 500; transition: all 0.2s; box-shadow: 0 2px 4px rgba(20, 184, 166, 0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(20, 184, 166, 0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(20, 184, 166, 0.2)'">
                   💬 Bring this up again
                 </button>
-                <span style="color: #999; font-size: 11px;">Importance: ${memory.importance}/10</span>
+                <span style="color: #94a3b8; font-size: 11px;">Importance: ${memory.importance}/10</span>
               </div>
             </div>
           `;
@@ -15682,19 +15688,25 @@ document.addEventListener('DOMContentLoaded', () => {
       // Display medium importance memories
       if (mediumImportance.length > 0) {
         html += '<div class="memory-group" style="margin-bottom: 30px;">';
-        html += '<h4 class="memory-group-title" style="color: #4ECDC4; font-weight: 600; margin-bottom: 15px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Conversation Context</h4>';
+        html += '<h4 class="memory-group-title" style="color: #14b8a6; font-weight: 600; margin-bottom: 15px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Conversation Context</h4>';
         mediumImportance.forEach(memory => {
           let displayText = formatMemoryText(memory);
           if (!displayText) return;
+          let title = generateMemoryTitle(memory);
+          let date = formatMemoryDate(memory.created_at || memory.date || memory.CreatedTime);
           
           html += `
-            <div class="memory-item" style="background: #F0F9FF; border-left: 4px solid #3B82F6; padding: 15px; margin-bottom: 12px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" data-memory-id="${memory.id || memory.record_id || memory.ID}">
-              <div class="memory-content" style="color: #2C3E50; line-height: 1.6; font-size: 14px; margin-bottom: 10px;">${displayText}</div>
+            <div class="memory-item" style="background: rgba(20, 184, 166, 0.05); border-left: 4px solid #14b8a6; padding: 15px; margin-bottom: 12px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" data-memory-id="${memory.id || memory.record_id || memory.ID}">
+              <div style="margin-bottom: 8px;">
+                <h5 style="margin: 0 0 4px 0; color: #1e293b; font-size: 15px; font-weight: 600;">${title}</h5>
+                <span style="color: #94a3b8; font-size: 11px;">${date}</span>
+              </div>
+              <div class="memory-content" style="color: #475569; line-height: 1.6; font-size: 13px; margin-bottom: 10px;">${displayText}</div>
               <div class="memory-actions" style="display: flex; gap: 10px; margin-top: 12px; align-items: center;">
-                <button onclick="useMemoryInChat('${escapeQuotes(displayText)}')" style="background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%); color: white; border: none; padding: 8px 16px; border-radius: 20px; font-size: 12px; cursor: pointer; font-weight: 500; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)'">
+                <button onclick="useMemoryInChat('${escapeQuotes(displayText)}')" style="background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%); color: white; border: none; padding: 8px 16px; border-radius: 20px; font-size: 12px; cursor: pointer; font-weight: 500; transition: all 0.2s; box-shadow: 0 2px 4px rgba(20, 184, 166, 0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(20, 184, 166, 0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(20, 184, 166, 0.2)'">
                   💬 Continue this topic
                 </button>
-                <span style="color: #999; font-size: 11px;">Importance: ${memory.importance}/10</span>
+                <span style="color: #94a3b8; font-size: 11px;">Importance: ${memory.importance}/10</span>
               </div>
             </div>
           `;
@@ -15705,19 +15717,25 @@ document.addEventListener('DOMContentLoaded', () => {
       // Display low importance memories
       if (lowImportance.length > 0) {
         html += '<div class="memory-group" style="margin-bottom: 30px;">';
-        html += '<h4 class="memory-group-title" style="color: #4ECDC4; font-weight: 600; margin-bottom: 15px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Other Notes</h4>';
+        html += '<h4 class="memory-group-title" style="color: #14b8a6; font-weight: 600; margin-bottom: 15px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Other Notes</h4>';
         lowImportance.forEach(memory => {
           let displayText = formatMemoryText(memory);
           if (!displayText) return;
+          let title = generateMemoryTitle(memory);
+          let date = formatMemoryDate(memory.created_at || memory.date || memory.CreatedTime);
           
           html += `
-            <div class="memory-item" style="background: #F5F5F5; border-left: 4px solid #9CA3AF; padding: 15px; margin-bottom: 12px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" data-memory-id="${memory.id || memory.record_id || memory.ID}">
-              <div class="memory-content" style="color: #2C3E50; line-height: 1.6; font-size: 14px; margin-bottom: 10px;">${displayText}</div>
+            <div class="memory-item" style="background: #f8fafc; border-left: 4px solid #94a3b8; padding: 15px; margin-bottom: 12px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" data-memory-id="${memory.id || memory.record_id || memory.ID}">
+              <div style="margin-bottom: 8px;">
+                <h5 style="margin: 0 0 4px 0; color: #1e293b; font-size: 15px; font-weight: 600;">${title}</h5>
+                <span style="color: #94a3b8; font-size: 11px;">${date}</span>
+              </div>
+              <div class="memory-content" style="color: #475569; line-height: 1.6; font-size: 13px; margin-bottom: 10px;">${displayText}</div>
               <div class="memory-actions" style="display: flex; gap: 10px; margin-top: 12px; align-items: center;">
-                <button onclick="useMemoryInChat('${escapeQuotes(displayText)}')" style="background: #E5E7EB; color: #374151; border: none; padding: 8px 16px; border-radius: 20px; font-size: 12px; cursor: pointer; font-weight: 500; transition: all 0.2s;" onmouseover="this.style.background='#D1D5DB'" onmouseout="this.style.background='#E5E7EB'">
+                <button onclick="useMemoryInChat('${escapeQuotes(displayText)}')" style="background: #e2e8f0; color: #475569; border: none; padding: 8px 16px; border-radius: 20px; font-size: 12px; cursor: pointer; font-weight: 500; transition: all 0.2s;" onmouseover="this.style.background='#cbd5e1'" onmouseout="this.style.background='#e2e8f0'">
                   💬 Mention this
                 </button>
-                <span style="color: #999; font-size: 11px;">Importance: ${memory.importance}/10</span>
+                <span style="color: #94a3b8; font-size: 11px;">Importance: ${memory.importance}/10</span>
               </div>
             </div>
           `;
@@ -15810,6 +15828,75 @@ document.addEventListener('DOMContentLoaded', () => {
     // Helper function to escape quotes
     function escapeQuotes(text) {
       return text.replace(/'/g, "\\'").replace(/"/g, '\\"');
+    }
+    
+    // Helper function to generate memory title
+    function generateMemoryTitle(memory) {
+      const text = memory.content || memory.memory_text || memory.message || memory.summary || '';
+      
+      // Check for specific patterns
+      if (text.toLowerCase().includes('my name is') || text.toLowerCase().includes('i am called')) {
+        return 'Personal Introduction';
+      }
+      if (text.toLowerCase().includes('goal') || text.toLowerCase().includes('want to achieve')) {
+        return 'Goals & Aspirations';
+      }
+      if (text.toLowerCase().includes('challenge') || text.toLowerCase().includes('struggle')) {
+        return 'Challenges & Obstacles';
+      }
+      if (text.toLowerCase().includes('feel') || text.toLowerCase().includes('emotion')) {
+        return 'Emotional State';
+      }
+      if (text.toLowerCase().includes('work') || text.toLowerCase().includes('job') || text.toLowerCase().includes('career')) {
+        return 'Career & Work';
+      }
+      if (text.toLowerCase().includes('friend') || text.toLowerCase().includes('relationship')) {
+        return 'Relationships';
+      }
+      if (text.toLowerCase().includes('business')) {
+        return 'Business Matters';
+      }
+      if (text.includes('[') && text.includes('Profile]')) {
+        const match = text.match(/\[([^\]]+) Profile\]/);
+        return match ? `${match[1]} Profile` : 'Profile Information';
+      }
+      
+      // Generate based on emotional state if available
+      if (memory.emotional_state && memory.emotional_state !== 'neutral') {
+        const emotionMap = {
+          'happy': 'Positive Moment',
+          'sad': 'Difficult Time',
+          'excited': 'Exciting News',
+          'angry': 'Frustration',
+          'anxious': 'Concern'
+        };
+        return emotionMap[memory.emotional_state] || 'Conversation Memory';
+      }
+      
+      // Default based on importance
+      if (memory.importance >= 8) return 'Key Information';
+      if (memory.importance >= 5) return 'Important Context';
+      return 'Conversation Note';
+    }
+    
+    // Helper function to format date
+    function formatMemoryDate(dateString) {
+      if (!dateString) return 'Recently';
+      
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffTime = Math.abs(now - date);
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+      const diffMinutes = Math.floor(diffTime / (1000 * 60));
+      
+      if (diffMinutes < 60) return 'Just now';
+      if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+      if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+      if (diffDays < 30) return `${Math.floor(diffDays / 7)} week${Math.floor(diffDays / 7) > 1 ? 's' : ''} ago`;
+      
+      // Format as date if older
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined });
     }
     
     // Function to use memory in chat
@@ -16136,14 +16223,39 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     window.restartOnboarding = function() {
+      console.log('🔄 Restarting onboarding process...');
+      
       // Close Memory Hub
       if (window.closeMemoryHub) {
         window.closeMemoryHub();
       }
       
-      // Clear stored onboarding data
-      const storageKey = `onboarding_${localStorage.getItem('user_uid')}_${characterSlug}`;
-      localStorage.removeItem(storageKey);
+      // Clear all possible onboarding data keys
+      const uid = localStorage.getItem('user_uid');
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlSlug = urlParams.get('char');
+      
+      // Clear multiple possible storage keys
+      const keysToRemove = [
+        `onboarding_${uid}_${characterSlug}`,
+        `onboarding_${uid}_${urlSlug}`,
+        `onboarding_${uid}_${currentCharacter?.slug}`,
+        `onboarding_${uid}_${currentCharacter?.name}`
+      ];
+      
+      keysToRemove.forEach(key => {
+        if (key && key !== 'onboarding_null_null' && key !== 'onboarding_null_undefined') {
+          console.log('🗑️ Removing storage key:', key);
+          localStorage.removeItem(key);
+        }
+      });
+      
+      // Clear window.additionalContext
+      if (window.additionalContext) {
+        delete window.additionalContext.onboarding;
+        delete window.additionalContext.welcomeMessage;
+        delete window.additionalContext.suggestions;
+      }
       
       // Clear chat history
       const chatlog = document.getElementById('chatlog');
@@ -16152,13 +16264,20 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       // Reset conversation memory
-      conversationMemory = [];
+      if (typeof conversationMemory !== 'undefined') {
+        conversationMemory = [];
+      }
+      if (window.conversationMemory) {
+        window.conversationMemory = [];
+      }
       
       // Restart onboarding flow in the same page
       sessionStorage.setItem('restart_onboarding', 'true');
       
       // Reload the page to trigger onboarding
-      window.location.reload();
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
     }
     
     function editOnboardingAnswer(questionId) {
