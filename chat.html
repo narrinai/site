@@ -15191,8 +15191,10 @@ document.addEventListener('DOMContentLoaded', () => {
       
       if (tab === 'about') {
         document.getElementById('aboutTab').style.display = 'block';
+        loadOnboardingData();
       } else if (tab === 'topics') {
         document.getElementById('topicsTab').style.display = 'block';
+        loadMemoriesData(); // Load actual memories, not topics
       }
     }
     
@@ -15206,11 +15208,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       
-      // Load onboarding data
+      // Load onboarding data for About tab
       loadOnboardingData();
       
-      // Load topics from chat history
-      loadTopicsData();
+      // Load memories for Memories tab
+      loadMemoriesData();
     }
     
     async function loadOnboardingData() {
@@ -15494,18 +15496,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     async function loadMemoriesData() {
-      const memoriesContent = document.getElementById('memoriesContent');
+      // Use topicsContent since that's the element in the topicsTab (memories tab)
+      const memoriesContent = document.getElementById('topicsContent');
       
       try {
-        // Get memories using the existing memory fetching logic
+        // Check if user is logged in
         const userUid = localStorage.getItem('user_uid');
+        const userEmail = localStorage.getItem('user_email');
+        
+        if (!userUid || !userEmail) {
+          memoriesContent.innerHTML = `
+            <div class="empty-state" style="text-align: center; padding: 40px 20px;">
+              <div class="empty-state-icon" style="font-size: 48px; margin-bottom: 16px;">🔒</div>
+              <h3 style="margin: 0 0 12px 0; color: var(--color-dark-gray);">Sign in to access memories</h3>
+              <p style="color: var(--color-medium-gray); line-height: 1.6; max-width: 400px; margin: 0 auto;">
+                Your memories are saved to your account. Sign in to view your conversation memories.
+              </p>
+            </div>
+          `;
+          return;
+        }
+        
+        // Get memories using the existing memory fetching logic
         const requestData = {
             action: 'get_memories',
             user_uid: userUid,
-            slug: characterSlug,
+            character_slug: characterSlug,
             min_importance: 1,
             max_results: 50
         };
+        
+        console.log('🧠 Fetching memories with:', requestData);
         
         const response = await fetch('/.netlify/functions/memory', {
             method: 'POST',
@@ -15529,16 +15550,31 @@ document.addEventListener('DOMContentLoaded', () => {
         if (memories && memories.memories && memories.memories.length > 0) {
           displayMemories(memories.memories);
         } else {
-          memoriesContent.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💭</div><p>No memories recorded yet. Start chatting to create memories!</p></div>';
+          // User is logged in but no memories yet
+          memoriesContent.innerHTML = `
+            <div class="empty-state" style="text-align: center; padding: 40px 20px;">
+              <div class="empty-state-icon" style="font-size: 48px; margin-bottom: 16px;">✨</div>
+              <h3 style="margin: 0 0 12px 0; color: var(--color-dark-gray);">Hier verschijnen automatisch je memories</h3>
+              <p style="color: var(--color-medium-gray); line-height: 1.6; max-width: 400px; margin: 0 auto;">
+                Memories worden automatisch aangemaakt tijdens je gesprekken met ${currentCharacter?.name || 'je AI companion'}. 
+                Begin met chatten om je persoonlijke gespreksgeschiedenis op te bouwen.
+              </p>
+              <div style="margin-top: 24px;">
+                <button class="continue-topic-btn" style="display: inline-block;" onclick="closeMemoryHub()">
+                  Start met chatten
+                </button>
+              </div>
+            </div>
+          `;
         }
       } catch (error) {
         console.error('Error loading memories:', error);
-        memoriesContent.innerHTML = '<div class="empty-state"><div class="empty-state-icon">❌</div><p>Could not load memories</p></div>';
+        memoriesContent.innerHTML = '<div class="empty-state"><div class="empty-state-icon">❌</div><p>Kon memories niet laden</p></div>';
       }
     }
     
     function displayMemories(memories) {
-      const memoriesContent = document.getElementById('memoriesContent');
+      const memoriesContent = document.getElementById('topicsContent');
       
       // Sort memories by importance (highest first) and then by date
       const sortedMemories = memories.sort((a, b) => {
