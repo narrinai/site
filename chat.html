@@ -4676,9 +4676,8 @@
   <!-- Navigation and Chat Scripts -->
   <script>
     // ===== ONBOARDING QUESTIONS CONFIGURATION =====
-    // Check if already defined to avoid redeclaration error
-    if (typeof onboardingQuestions === 'undefined') {
-      var onboardingQuestions = {
+    // Use window object to avoid redeclaration error
+    window.onboardingQuestions = window.onboardingQuestions || {
       Career: {
         enabled: true,
         questions: [
@@ -4867,7 +4866,6 @@
         }
       }
     };
-    }
     
     // ===== CUSTOM NOTIFICATION SYSTEM =====
     function showNotification(type, title, message, buttons = null) {
@@ -12100,7 +12098,7 @@ showTypingIndicator();
     if (window.additionalContext && window.additionalContext.onboarding) {
       const answers = window.additionalContext.onboarding;
       const category = currentCharacter.Category || currentCharacter.category || '';
-      const config = onboardingQuestions && onboardingQuestions[category];
+      const config = window.onboardingQuestions && window.onboardingQuestions[category];
       
       if (config && config.contextMappings) {
         onboardingContext = '\n\n[User Onboarding Information]\n';
@@ -13830,7 +13828,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       console.log('📚 typeof needsOnboarding:', typeof needsOnboarding);
       console.log('📚 typeof window.needsOnboarding:', typeof window.needsOnboarding);
-      console.log('📚 onboardingQuestions object:', typeof onboardingQuestions, onboardingQuestions);
+      console.log('📚 onboardingQuestions object:', typeof window.onboardingQuestions, window.onboardingQuestions);
       
       // Check if onboarding is needed using the function from onboarding-questions.js
       // Use the consistent characterId (URL slug) for checking
@@ -13838,8 +13836,8 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('✅ Onboarding needed for category:', category);
         
         // Get questions for this category
-        if (onboardingQuestions[category] && onboardingQuestions[category].enabled) {
-          currentQuestions = onboardingQuestions[category].questions;
+        if (window.onboardingQuestions[category] && window.onboardingQuestions[category].enabled) {
+          currentQuestions = window.onboardingQuestions[category].questions;
           showOnboardingOverlay();
           return true;
         }
@@ -14350,11 +14348,11 @@ document.addEventListener('DOMContentLoaded', () => {
       let category = currentCharacter.Category || currentCharacter.category || '';
       
       console.log('🎯 generatePersonalizedWelcome - Raw category:', category);
-      console.log('🎯 Available onboarding categories:', Object.keys(onboardingQuestions));
+      console.log('🎯 Available onboarding categories:', Object.keys(window.onboardingQuestions));
       
       // Normalize category to match onboardingQuestions keys (case-insensitive match)
       if (category) {
-        const categoryKeys = Object.keys(onboardingQuestions);
+        const categoryKeys = Object.keys(window.onboardingQuestions);
         const exactMatch = categoryKeys.find(key => key.toLowerCase() === category.toLowerCase());
         
         if (exactMatch) {
@@ -14369,7 +14367,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       console.log('🎯 Final normalized category:', category);
       
-      const config = onboardingQuestions[category];
+      const config = window.onboardingQuestions[category];
       console.log('🎯 Config found:', !!config);
       console.log('🎯 Config has contextMappings:', !!(config && config.contextMappings));
       
