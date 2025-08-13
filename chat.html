@@ -1066,7 +1066,7 @@
     .btn-memory,
     .btn-customize {
       padding: 10px 20px;
-      background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+      background: var(--gradient-primary);
       color: var(--color-white);
       border: none;
       border-radius: 25px;
@@ -1108,7 +1108,7 @@
 
     .btn-memory:hover,
     .btn-customize:hover {
-      background: linear-gradient(135deg, #764BA2 0%, #667EEA 100%);
+      background: var(--gradient-primary);
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
     }
@@ -1173,7 +1173,7 @@
     
     @media (max-width: 768px) {
       .conversation-topics {
-        margin-top: -20px !important;
+        margin-top: -30px !important;
         padding: 12px 10px;
         border-radius: var(--radius-md);
         margin-bottom: 10px;
@@ -15304,7 +15304,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <p style="color: var(--color-medium-gray); line-height: 1.6; max-width: 400px; margin: 0 auto 24px;">
             Complete the onboarding process to personalize your conversations with ${currentCharacter?.name || 'your AI companion'}.
           </p>
-          <button class="restart-onboarding-btn" onclick="restartOnboarding()" style="background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%); color: white; border: none; padding: 12px 24px; border-radius: 25px; font-size: 14px; cursor: pointer; font-weight: 500; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <button class="restart-onboarding-btn" onclick="restartOnboarding()" style="background: var(--gradient-primary); color: white; border: none; padding: 12px 24px; border-radius: 25px; font-size: 14px; cursor: pointer; font-weight: 500; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
             🚀 Start Onboarding
           </button>
         </div>
@@ -15833,6 +15833,55 @@ document.addEventListener('DOMContentLoaded', () => {
     // Helper function to generate memory title
     function generateMemoryTitle(memory) {
       const text = memory.content || memory.memory_text || memory.message || memory.summary || '';
+      if (!text) return 'Memory Entry';
+      
+      // Create descriptive titles based on content patterns
+      const lowerText = text.toLowerCase();
+      
+      // Personal information patterns
+      if (lowerText.includes('name is') || lowerText.includes('i am') || lowerText.includes('call me')) {
+        return 'Personal Introduction';
+      }
+      if (lowerText.includes('live in') || lowerText.includes('from') || lowerText.includes('location')) {
+        return 'Location Information';
+      }
+      if (lowerText.includes('work') || lowerText.includes('job') || lowerText.includes('career')) {
+        return 'Professional Background';
+      }
+      if (lowerText.includes('family') || lowerText.includes('married') || lowerText.includes('children')) {
+        return 'Family Details';
+      }
+      if (lowerText.includes('hobby') || lowerText.includes('enjoy') || lowerText.includes('like to')) {
+        return 'Interests & Hobbies';
+      }
+      if (lowerText.includes('goal') || lowerText.includes('want to') || lowerText.includes('planning')) {
+        return 'Goals & Plans';
+      }
+      if (lowerText.includes('problem') || lowerText.includes('challenge') || lowerText.includes('difficulty')) {
+        return 'Challenge Discussion';
+      }
+      if (lowerText.includes('feel') || lowerText.includes('emotion') || lowerText.includes('happy') || lowerText.includes('sad')) {
+        return 'Emotional Context';
+      }
+      if (lowerText.includes('prefer') || lowerText.includes('like') || lowerText.includes('dislike')) {
+        return 'Preferences & Opinions';
+      }
+      if (lowerText.includes('learn') || lowerText.includes('study') || lowerText.includes('education')) {
+        return 'Learning & Education';
+      }
+      if (lowerText.includes('health') || lowerText.includes('medical') || lowerText.includes('doctor')) {
+        return 'Health Information';
+      }
+      
+      // Fallback: use first few words as title
+      const words = text.trim().split(/\s+/);
+      if (words.length >= 3) {
+        const firstThree = words.slice(0, 3).join(' ');
+        return firstThree.length > 30 ? firstThree.substring(0, 30) + '...' : firstThree;
+      }
+      
+      return text.length > 30 ? text.substring(0, 30) + '...' : text;
+    }
       
       // Check for specific patterns
       if (text.toLowerCase().includes('my name is') || text.toLowerCase().includes('i am called')) {
