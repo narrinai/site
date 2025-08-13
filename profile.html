@@ -22,14 +22,12 @@
   
 <!-- Netlify Identity Widget met configuratie -->
 <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-  <!-- Character Limit Checker -->
-  <script src="js/character-limit-check.js"></script>
 
 <!-- EmailJS SDK -->
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <script>
   // Configureer widget styling
-  if (window.netlifyIdentity && document.body) {
+  if (window.netlifyIdentity) {
     window.netlifyIdentity.init({
       theme: 'custom',
       colors: {
@@ -2677,29 +2675,6 @@
         height: 16px;
       }
     }
-    
-    /* Email confirmation welcome message animations */
-    @keyframes slideDown {
-      from {
-        opacity: 0;
-        transform: translateX(-50%) translateY(-100%);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0);
-      }
-    }
-    
-    @keyframes slideUp {
-      from {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0);
-      }
-      to {
-        opacity: 0;
-        transform: translateX(-50%) translateY(-100%);
-      }
-    }
 
   </style>
 
@@ -2834,7 +2809,7 @@
         </a>
         <a href="chat-overview.html" class="mobile-menu-link">
           <span class="mobile-menu-link-icon">💬</span>
-          My Companions
+          Active Chats
         </a>
         <a href="profile.html" class="mobile-menu-link" id="mobileLoginBtn">
           <span class="mobile-menu-link-icon">👤</span>
@@ -4103,6 +4078,7 @@ function handleLoginSuccess(user, eventType = 'unknown') {
     console.log('🔄 EXISTING LOGIN: Loading profile without webhook call');
     showProfileUI();
     loadProfile();
+    initializeInviteForm();
     // TEMPORARY: Log redirect check
     console.log('🔍 Checking for post-login redirect...');
     handlePostLoginRedirect();
@@ -4110,6 +4086,7 @@ function handleLoginSuccess(user, eventType = 'unknown') {
     console.log('🤔 UNKNOWN EVENT TYPE: Defaulting to profile load');
     showProfileUI();
     loadProfile();
+    initializeInviteForm();
   }
   
   updateLoginButton();
@@ -4892,149 +4869,6 @@ function handleLoginSuccess(user, eventType = 'unknown') {
     document.addEventListener('DOMContentLoaded', () => {
       console.log('🚀 Page loaded, initializing...');
       
-      // AGGRESSIVE cleanup of ALL overlay and blur effects
-      const cleanupOverlays = () => {
-        console.log('🧹 Running aggressive overlay cleanup...');
-        
-        // Remove ALL potential overlay elements
-        const overlaySelectors = [
-          '.netlify-identity-widget',
-          '.netlify-identity-widget-overlay', 
-          '.netlify-identity-modal',
-          '.netlify-identity-backdrop',
-          '.netlify-identity-widget-container',
-          '[class*="overlay"]',
-          '[class*="backdrop"]', 
-          '[class*="modal"]',
-          'iframe[src*="netlify"]',
-          'div[style*="position: fixed"]',
-          'div[style*="z-index"]',
-          '[style*="backdrop-filter"]',
-          '[style*="filter: blur"]'
-        ];
-        
-        overlaySelectors.forEach(selector => {
-          try {
-            const elements = document.querySelectorAll(selector);
-            elements.forEach(element => {
-              element.remove();
-            });
-          } catch (e) {
-            // Ignore selector errors
-          }
-        });
-        
-        // FORCE reset ALL body and html styles
-        const resetStyles = {
-          overflow: '',
-          position: '',
-          filter: '',
-          backdropFilter: '',
-          webkitBackdropFilter: '',
-          background: '',
-          opacity: '',
-          pointerEvents: '',
-          transform: '',
-          zIndex: ''
-        };
-        
-        Object.assign(document.body.style, resetStyles);
-        Object.assign(document.documentElement.style, resetStyles);
-        
-        // Remove ALL classes that might cause issues
-        const problematicClasses = ['blur', 'modal-open', 'has-overlay', 'netlify-identity-open', 'no-scroll'];
-        problematicClasses.forEach(className => {
-          document.body.classList.remove(className);
-          document.documentElement.classList.remove(className);
-        });
-        
-        // Only remove style tags that are specifically for Netlify Identity overlays
-        const styleTags = document.querySelectorAll('style');
-        styleTags.forEach(tag => {
-          const content = tag.innerHTML.toLowerCase();
-          // Only remove if it's specifically overlay/modal CSS, not general styling
-          if ((content.includes('netlify') && content.includes('overlay')) || 
-              (content.includes('backdrop-filter') && content.includes('modal')) ||
-              (content.includes('blur') && content.includes('overlay'))) {
-            console.log('🗑️ Removing Netlify overlay style tag');
-            tag.remove();
-          }
-        });
-        
-        console.log('✅ Overlay cleanup completed');
-      };
-      
-      // Add targeted CSS override for Netlify Identity only
-      const forceNoBlurCSS = document.createElement('style');
-      forceNoBlurCSS.id = 'force-no-netlify-blur';
-      forceNoBlurCSS.innerHTML = `
-        /* Only target Netlify Identity specific elements */
-        .netlify-identity-widget,
-        .netlify-identity-widget-overlay,
-        .netlify-identity-modal,
-        .netlify-identity-backdrop,
-        .netlify-identity-widget-container {
-          display: none !important;
-          visibility: hidden !important;
-          opacity: 0 !important;
-          filter: none !important;
-          backdrop-filter: none !important;
-          -webkit-backdrop-filter: none !important;
-        }
-        
-        /* Reset any blur effects on body when Netlify is open */
-        body.netlify-identity-open,
-        html.netlify-identity-open {
-          filter: none !important;
-          backdrop-filter: none !important;
-          -webkit-backdrop-filter: none !important;
-        }
-      `;
-      document.head.appendChild(forceNoBlurCSS);
-      
-      // Re-enable targeted cleanup (much less aggressive now)
-      cleanupOverlays();
-      setTimeout(cleanupOverlays, 500);
-      setTimeout(cleanupOverlays, 2000);
-      
-      // Check if user just confirmed their email
-      if (sessionStorage.getItem('email_just_confirmed') === 'true') {
-        console.log('🎉 User just confirmed email!');
-        sessionStorage.removeItem('email_just_confirmed');
-        
-        // Clean up again after a delay to catch any late-loading overlays
-        setTimeout(cleanupOverlays, 100);
-        setTimeout(cleanupOverlays, 500);
-        setTimeout(cleanupOverlays, 1000);
-        
-        // Show welcome message
-        setTimeout(() => {
-          const welcomeMessage = document.createElement('div');
-          welcomeMessage.style.cssText = `
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%);
-            color: white;
-            padding: 20px 30px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            z-index: 10000;
-            font-weight: 600;
-            animation: slideDown 0.5s ease;
-          `;
-          welcomeMessage.innerHTML = '🎉 Email verified successfully! Welcome to Narrin AI!';
-          document.body.appendChild(welcomeMessage);
-          
-          // Remove message after 5 seconds
-          setTimeout(() => {
-            welcomeMessage.style.animation = 'slideUp 0.5s ease';
-            setTimeout(() => welcomeMessage.remove(), 500);
-          }, 5000);
-        }, 500);
-      }
-      
       // Debug localStorage state
       console.log('📦 LocalStorage state:', {
         email: localStorage.getItem('user_email'),
@@ -5078,13 +4912,9 @@ function handleLoginSuccess(user, eventType = 'unknown') {
           }
         }
         
-        // Only init if DOM is ready and not already initialized
-        if (document.body && !window.netlifyIdentity._initialized) {
-          window.netlifyIdentity.init({
-            namePlaceholder: 'Nickname'
-          });
-          window.netlifyIdentity._initialized = true;
-        }
+        window.netlifyIdentity.init({
+          namePlaceholder: 'Nickname'
+        });
         
         // Check if user is already logged in (might be null right after signup)
         netlifyUser = window.netlifyIdentity.currentUser();
@@ -6280,12 +6110,6 @@ function updateUsageCountdown(plan, usage, quota) {
 // ===== ENHANCED FORCE NETLIFY MODAL STYLING =====
 function applyNetlifyModalStyling() {
   console.log('🎨 Attempting to apply modal styling...');
-  
-  // Check if document body exists
-  if (!document.body) {
-    console.log('⚠️ Document body not ready, skipping modal styling');
-    return;
-  }
   
   // Wacht tot modal volledig geladen is
   setTimeout(() => {
