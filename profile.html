@@ -4495,12 +4495,21 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       window.netlifyIdentity.on('signup', async user => {
         console.log('🎉 SIGNUP event fired for:', user.email);
         
-        // IMPORTANT: Clear any stored redirect URL immediately to prevent redirects
-        localStorage.removeItem('login_redirect_url');
-        console.log('🚫 Cleared redirect URL to prevent signup redirect');
+        // Add timeout protection for signup process
+        let signupTimeout = setTimeout(() => {
+          console.log('⏱️ Signup timeout - forcing completion');
+          resetAuthState();
+          window.netlifyIdentity.close();
+          showError('Signup took too long. Please refresh and try again.');
+        }, 15000); // 15 second timeout
         
-        // CRITICAL: Manually ensure localStorage is set immediately
-        if (user) {
+        try {
+          // IMPORTANT: Clear any stored redirect URL immediately to prevent redirects
+          localStorage.removeItem('login_redirect_url');
+          console.log('🚫 Cleared redirect URL to prevent signup redirect');
+          
+          // CRITICAL: Manually ensure localStorage is set immediately
+          if (user) {
           // Extract email
           let email = user.email || 
                       user.user_metadata?.email || 
@@ -4547,22 +4556,31 @@ function handleLoginSuccess(user, eventType = 'unknown') {
           localStorage.setItem('user_auth_timestamp', Date.now().toString());
         }
         
-        // Only call handleAuthEvent - it will call handleLoginSuccess internally
-        handleAuthEvent(user, 'signup');
-        
-        showSuccess('Welcome! Your account has been created successfully.');
-        
-        // Update the UI to show logged-in state
-        showProfileUI();
-        
-        // Wait a bit for all data to be saved, then load profile
-        setTimeout(() => {
-          console.log('📊 Loading profile after signup...');
-          loadProfile(); // Use correct function name
-        }, 1500);
-        
-        // Prevent default redirect behavior
-        return false;
+          // Only call handleAuthEvent - it will call handleLoginSuccess internally
+          handleAuthEvent(user, 'signup');
+          
+          showSuccess('Welcome! Your account has been created successfully.');
+          
+          // Update the UI to show logged-in state
+          showProfileUI();
+          
+          // Wait a bit for all data to be saved, then load profile
+          setTimeout(() => {
+            console.log('📊 Loading profile after signup...');
+            loadProfile(); // Use correct function name
+          }, 1500);
+          
+          // Clear the timeout since signup succeeded
+          clearTimeout(signupTimeout);
+          
+          // Prevent default redirect behavior
+          return false;
+        } catch (error) {
+          console.error('❌ Error during signup:', error);
+          clearTimeout(signupTimeout);
+          resetAuthState();
+          showError('An error occurred during signup. Please try again.');
+        }
       });
 
       window.netlifyIdentity.on('logout', () => {
@@ -4920,54 +4938,93 @@ function handleLoginSuccess(user, eventType = 'unknown') {
     document.addEventListener('DOMContentLoaded', () => {
       console.log('🚀 Page loaded, initializing...');
       
-      // AGGRESSIVE cleanup of ALL overlay and blur effects
+      // CRITICAL: Handle Netlify Identity redirect fragments FIRST
+      // These fragments can break CSS loading
+      if (window.location.hash) {
+        const hash = window.location.hash;
+        if (hash.includes('confirmation_token') || 
+            hash.includes('recovery_token') || 
+            hash.includes('invite_token') ||
+            hash.includes('email_change_token')) {
+          console.log('🔍 Detected Netlify Identity fragment in URL:', hash);
+          
+          // Store that we're coming from email confirmation
+          if (hash.includes('confirmation_token')) {
+            sessionStorage.setItem('email_just_confirmed', 'true');
+          }
+          
+          // Clean the URL immediately to prevent CSS issues
+          const cleanUrl = window.location.pathname + window.location.search;
+          window.history.replaceState(null, '', cleanUrl);
+          console.log('✅ Cleaned URL fragment immediately');
+          
+          // Check if styles are loaded
+          setTimeout(() => {
+            const hasStyles = document.querySelector('style') || 
+                            document.querySelector('link[rel="stylesheet"]') ||
+                            getComputedStyle(document.body).fontFamily.includes('Jakarta');
+            
+            if (!hasStyles) {
+              console.log('⚠️ Styles appear to be missing, forcing reload...');
+              window.location.reload();
+            }
+          }, 100);
+        }
+      }
+      
+      // TARGETED cleanup of ONLY Netlify Identity overlay and blur effects
       const cleanupOverlays = () => {
-        console.log('🧹 Running aggressive overlay cleanup...');
+        console.log('🧹 Running targeted Netlify overlay cleanup...');
         
-        // Remove ALL potential overlay elements
-        const overlaySelectors = [
+        // Remove ONLY Netlify Identity specific elements
+        const netlifySelectors = [
           '.netlify-identity-widget',
           '.netlify-identity-widget-overlay', 
           '.netlify-identity-modal',
           '.netlify-identity-backdrop',
           '.netlify-identity-widget-container',
-          '[class*="overlay"]',
-          '[class*="backdrop"]', 
-          '[class*="modal"]',
-          'iframe[src*="netlify"]',
-          'div[style*="position: fixed"]',
-          'div[style*="z-index"]',
-          '[style*="backdrop-filter"]',
-          '[style*="filter: blur"]'
+          'iframe[src*="identity.netlify.com"]',
+          'iframe[src*="netlify-identity"]',
+          'div[data-netlify-identity]'
         ];
         
-        overlaySelectors.forEach(selector => {
+        netlifySelectors.forEach(selector => {
           try {
             const elements = document.querySelectorAll(selector);
             elements.forEach(element => {
-              element.remove();
+              // Only remove if it's a Netlify element
+              const isNetlifyElement = element.className?.includes('netlify') || 
+                                      element.src?.includes('netlify') ||
+                                      element.hasAttribute('data-netlify-identity');
+              if (isNetlifyElement) {
+                console.log('🗑️ Removing Netlify element:', element.className || element.tagName);
+                element.remove();
+              }
             });
           } catch (e) {
             // Ignore selector errors
           }
         });
         
-        // FORCE reset ALL body and html styles
-        const resetStyles = {
-          overflow: '',
-          position: '',
-          filter: '',
-          backdropFilter: '',
-          webkitBackdropFilter: '',
-          background: '',
-          opacity: '',
-          pointerEvents: '',
-          transform: '',
-          zIndex: ''
-        };
+        // Only reset styles that Netlify Identity might have added
+        if (document.body.classList.contains('netlify-identity-open') || 
+            document.documentElement.classList.contains('netlify-identity-open')) {
+          
+          // Reset only necessary styles
+          document.body.style.filter = '';
+          document.body.style.backdropFilter = '';
+          document.body.style.webkitBackdropFilter = '';
+          document.documentElement.style.filter = '';
+          document.documentElement.style.backdropFilter = '';
+          document.documentElement.style.webkitBackdropFilter = '';
+        }
         
-        Object.assign(document.body.style, resetStyles);
-        Object.assign(document.documentElement.style, resetStyles);
+        // Remove overflow hidden only if Netlify added it
+        if (document.body.style.overflow === 'hidden' && 
+            !document.querySelector('.mobile-menu-overlay.active')) {
+          document.body.style.overflow = '';
+          document.documentElement.style.overflow = '';
+        }
         
         // Remove ALL classes that might cause issues
         const problematicClasses = ['blur', 'modal-open', 'has-overlay', 'netlify-identity-open', 'no-scroll'];
@@ -5020,26 +5077,56 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       `;
       document.head.appendChild(forceNoBlurCSS);
       
-      // TEMPORARILY DISABLE cleanup to test if it's causing styling issues
-      // cleanupOverlays();
-      // setTimeout(cleanupOverlays, 50);
-      // setTimeout(cleanupOverlays, 100);
-      // setTimeout(cleanupOverlays, 250);
-      // setTimeout(cleanupOverlays, 500);
-      // setTimeout(cleanupOverlays, 1000);
-      // setTimeout(cleanupOverlays, 2000);
+      // Run cleanup at strategic intervals to catch late-loading Netlify elements
+      cleanupOverlays();
+      setTimeout(cleanupOverlays, 100);
+      setTimeout(cleanupOverlays, 500);
+      setTimeout(cleanupOverlays, 1000);
+      setTimeout(cleanupOverlays, 2000);
       
-      console.log('🚫 Cleanup temporarily disabled for testing');
+      // Check if user just confirmed their email OR if URL contains confirmation fragment
+      const urlHasConfirmation = window.location.hash && (
+        window.location.hash.includes('confirmation_token') || 
+        window.location.hash.includes('email_confirmed') ||
+        window.location.hash.includes('invite_token')
+      );
       
-      // Check if user just confirmed their email
-      if (sessionStorage.getItem('email_just_confirmed') === 'true') {
+      if (sessionStorage.getItem('email_just_confirmed') === 'true' || urlHasConfirmation) {
         console.log('🎉 User just confirmed email!');
         sessionStorage.removeItem('email_just_confirmed');
+        
+        // CRITICAL: Clean the URL to prevent styling issues
+        if (urlHasConfirmation) {
+          // Remove the hash fragment that might be breaking styles
+          const cleanUrl = window.location.pathname + window.location.search;
+          window.history.replaceState(null, '', cleanUrl);
+          console.log('🧹 Cleaned URL hash fragment');
+        }
+        
+        // Force a style recalculation without hiding the body
+        // This was causing the container to disappear
+        document.body.style.opacity = '0.99';
+        document.body.offsetHeight; // Force reflow
+        document.body.style.opacity = '';
         
         // Clean up again after a delay to catch any late-loading overlays
         setTimeout(cleanupOverlays, 100);
         setTimeout(cleanupOverlays, 500);
         setTimeout(cleanupOverlays, 1000);
+        
+        // Ensure container is visible after cleanup
+        setTimeout(() => {
+          const container = document.querySelector('.container');
+          if (container) {
+            container.style.display = '';
+            container.style.visibility = '';
+            container.style.opacity = '';
+          }
+          // Also ensure body has no unwanted styles
+          document.body.style.display = '';
+          document.body.style.visibility = '';
+          document.body.style.opacity = '';
+        }, 200);
         
         // Show welcome message
         setTimeout(() => {
