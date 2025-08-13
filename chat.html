@@ -1065,22 +1065,25 @@
 
     .btn-memory,
     .btn-customize {
-      padding: 8px 16px;
-      background: transparent;
-      color: var(--color-teal);
-      border: 2px solid var(--color-teal);
-      border-radius: var(--radius-md);
-      font-size: var(--font-size-sm);
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+      color: var(--color-white);
+      border: none;
+      border-radius: 25px;
+      font-size: 14px;
       font-weight: 600;
       cursor: pointer;
       transition: all var(--transition-base);
       white-space: nowrap;
-      margin-left: var(--spacing-xs);
+      margin-left: 12px;
       min-width: fit-content;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 4px;
+      gap: 6px;
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+      text-transform: none;
+      letter-spacing: 0.3px;
     }
     
     /* Button text visibility */
@@ -1105,9 +1108,9 @@
 
     .btn-memory:hover,
     .btn-customize:hover {
-      background: var(--color-teal);
-      color: var(--color-white);
+      background: linear-gradient(135deg, #764BA2 0%, #667EEA 100%);
       transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
     }
     
     /* Mobile-specific button styles - icon only, no background */
@@ -1170,9 +1173,28 @@
     
     @media (max-width: 768px) {
       .conversation-topics {
-        margin-top: -10px !important;
-        padding: var(--spacing-sm) var(--spacing-xs);
+        margin-top: -20px !important;
+        padding: 12px 10px;
         border-radius: var(--radius-md);
+        margin-bottom: 10px;
+      }
+      
+      .chat-header {
+        padding: 10px 15px !important;
+        margin-bottom: 5px !important;
+      }
+      
+      .character-header {
+        padding: 8px 12px !important;
+        gap: 8px;
+      }
+      
+      .character-info h2 {
+        margin-bottom: 2px !important;
+      }
+      
+      .character-info p {
+        margin-bottom: 0 !important;
       }
     }
 
@@ -15225,15 +15247,40 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Check localStorage for onboarding data
       const uid = localStorage.getItem('user_uid');
-      const storageKey = `onboarding_${uid}_${charId}`;
+      
+      // Try multiple storage key patterns (to handle any inconsistencies)
+      const possibleKeys = [
+        `onboarding_${uid}_${charId}`,
+        `onboarding_${uid}_${characterSlug}`,
+        `onboarding_${uid}_${urlSlug}`,
+      ];
       
       console.log('📱 Loading onboarding data for About Me:');
-      console.log('- URL slug:', urlSlug);
-      console.log('- Character slug:', characterSlug);
-      console.log('- Using ID:', charId);
-      console.log('- Storage key:', storageKey);
+      console.log('- Checking storage keys:', possibleKeys);
       
-      const onboardingData = localStorage.getItem(storageKey);
+      let onboardingData = null;
+      let foundKey = null;
+      
+      // Try each possible key
+      for (const key of possibleKeys) {
+        const data = localStorage.getItem(key);
+        if (data) {
+          onboardingData = data;
+          foundKey = key;
+          console.log('✅ Found onboarding data with key:', key);
+          break;
+        }
+      }
+      
+      // Also check if we have onboarding data in window.additionalContext
+      if (!onboardingData && window.additionalContext && window.additionalContext.onboarding) {
+        console.log('📱 Using onboarding data from window.additionalContext');
+        displayOnboardingData({
+          answers: window.additionalContext.onboarding,
+          category: currentCharacter?.category || 'General'
+        });
+        return;
+      }
       
       if (onboardingData) {
         try {
@@ -15241,12 +15288,27 @@ document.addEventListener('DOMContentLoaded', () => {
           displayOnboardingData(data);
         } catch (e) {
           console.error('Error parsing onboarding data:', e);
-          aboutContent.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📝</div><p>No profile information available yet</p></div>';
+          showNoProfileMessage(aboutContent);
         }
       } else {
-        // Try to fetch from memory/relationship data
-        aboutContent.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📝</div><p>No profile information available yet</p></div>';
+        console.log('⚠️ No onboarding data found in localStorage');
+        showNoProfileMessage(aboutContent);
       }
+    }
+    
+    function showNoProfileMessage(container) {
+      container.innerHTML = `
+        <div class="empty-state" style="text-align: center; padding: 40px 20px;">
+          <div class="empty-state-icon" style="font-size: 48px; margin-bottom: 16px;">📝</div>
+          <h3 style="margin: 0 0 12px 0; color: var(--color-dark-gray);">No profile information available yet</h3>
+          <p style="color: var(--color-medium-gray); line-height: 1.6; max-width: 400px; margin: 0 auto 24px;">
+            Complete the onboarding process to personalize your conversations with ${currentCharacter?.name || 'your AI companion'}.
+          </p>
+          <button class="restart-onboarding-btn" onclick="restartOnboarding()" style="background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%); color: white; border: none; padding: 12px 24px; border-radius: 25px; font-size: 14px; cursor: pointer; font-weight: 500; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            🚀 Start Onboarding
+          </button>
+        </div>
+      `;
     }
     
     function displayOnboardingData(data) {
@@ -15581,10 +15643,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (b.importance !== a.importance) {
           return b.importance - a.importance;
         }
-        return new Date(b.created_at) - new Date(a.created_at);
+        return new Date(b.created_at || b.date) - new Date(a.created_at || a.date);
       });
       
-      let html = '<div class="memories-list">';
+      let html = '<div class="memories-list" style="padding: 20px;">';
       
       // Group memories by importance level
       const highImportance = sortedMemories.filter(m => (m.importance || 5) >= 7);
@@ -15596,14 +15658,21 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Display high importance memories first
       if (highImportance.length > 0) {
-        html += '<div class="memory-group"><h4 class="memory-group-title">Important Information</h4>';
+        html += '<div class="memory-group" style="margin-bottom: 30px;">';
+        html += '<h4 class="memory-group-title" style="color: #4ECDC4; font-weight: 600; margin-bottom: 15px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Important Information</h4>';
         highImportance.forEach(memory => {
-          const memoryText = memory.content || memory.memory_text || memory.message || memory.Memory || memory.summary || '';
-          if (!memoryText || memoryText === 'undefined' || memoryText === 'null') return;
+          let displayText = formatMemoryText(memory);
+          if (!displayText) return;
           
           html += `
-            <div class="memory-item memory-high" data-memory-id="${memory.id || memory.record_id || memory.ID}">
-              <div class="memory-content">${memoryText}</div>
+            <div class="memory-item" style="background: #FFF5F5; border-left: 4px solid #FF6B6B; padding: 15px; margin-bottom: 12px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" data-memory-id="${memory.id || memory.record_id || memory.ID}">
+              <div class="memory-content" style="color: #2C3E50; line-height: 1.6; font-size: 14px; margin-bottom: 10px;">${displayText}</div>
+              <div class="memory-actions" style="display: flex; gap: 10px; margin-top: 12px; align-items: center;">
+                <button onclick="useMemoryInChat('${escapeQuotes(displayText)}')" style="background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%); color: white; border: none; padding: 8px 16px; border-radius: 20px; font-size: 12px; cursor: pointer; font-weight: 500; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)'">
+                  💬 Bring this up again
+                </button>
+                <span style="color: #999; font-size: 11px;">Importance: ${memory.importance}/10</span>
+              </div>
             </div>
           `;
         });
@@ -15612,14 +15681,21 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Display medium importance memories
       if (mediumImportance.length > 0) {
-        html += '<div class="memory-group"><h4 class="memory-group-title">General Information</h4>';
+        html += '<div class="memory-group" style="margin-bottom: 30px;">';
+        html += '<h4 class="memory-group-title" style="color: #4ECDC4; font-weight: 600; margin-bottom: 15px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Conversation Context</h4>';
         mediumImportance.forEach(memory => {
-          const memoryText = memory.content || memory.memory_text || memory.message || memory.Memory || memory.summary || '';
-          if (!memoryText || memoryText === 'undefined' || memoryText === 'null') return;
+          let displayText = formatMemoryText(memory);
+          if (!displayText) return;
           
           html += `
-            <div class="memory-item memory-medium" data-memory-id="${memory.id || memory.record_id || memory.ID}">
-              <div class="memory-content">${memoryText}</div>
+            <div class="memory-item" style="background: #F0F9FF; border-left: 4px solid #3B82F6; padding: 15px; margin-bottom: 12px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" data-memory-id="${memory.id || memory.record_id || memory.ID}">
+              <div class="memory-content" style="color: #2C3E50; line-height: 1.6; font-size: 14px; margin-bottom: 10px;">${displayText}</div>
+              <div class="memory-actions" style="display: flex; gap: 10px; margin-top: 12px; align-items: center;">
+                <button onclick="useMemoryInChat('${escapeQuotes(displayText)}')" style="background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%); color: white; border: none; padding: 8px 16px; border-radius: 20px; font-size: 12px; cursor: pointer; font-weight: 500; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)'">
+                  💬 Continue this topic
+                </button>
+                <span style="color: #999; font-size: 11px;">Importance: ${memory.importance}/10</span>
+              </div>
             </div>
           `;
         });
@@ -15628,14 +15704,21 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Display low importance memories
       if (lowImportance.length > 0) {
-        html += '<div class="memory-group"><h4 class="memory-group-title">Additional Notes</h4>';
+        html += '<div class="memory-group" style="margin-bottom: 30px;">';
+        html += '<h4 class="memory-group-title" style="color: #4ECDC4; font-weight: 600; margin-bottom: 15px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Other Notes</h4>';
         lowImportance.forEach(memory => {
-          const memoryText = memory.content || memory.memory_text || memory.message || memory.Memory || memory.summary || '';
-          if (!memoryText || memoryText === 'undefined' || memoryText === 'null') return;
+          let displayText = formatMemoryText(memory);
+          if (!displayText) return;
           
           html += `
-            <div class="memory-item memory-low" data-memory-id="${memory.id || memory.record_id || memory.ID}">
-              <div class="memory-content">${memoryText}</div>
+            <div class="memory-item" style="background: #F5F5F5; border-left: 4px solid #9CA3AF; padding: 15px; margin-bottom: 12px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" data-memory-id="${memory.id || memory.record_id || memory.ID}">
+              <div class="memory-content" style="color: #2C3E50; line-height: 1.6; font-size: 14px; margin-bottom: 10px;">${displayText}</div>
+              <div class="memory-actions" style="display: flex; gap: 10px; margin-top: 12px; align-items: center;">
+                <button onclick="useMemoryInChat('${escapeQuotes(displayText)}')" style="background: #E5E7EB; color: #374151; border: none; padding: 8px 16px; border-radius: 20px; font-size: 12px; cursor: pointer; font-weight: 500; transition: all 0.2s;" onmouseover="this.style.background='#D1D5DB'" onmouseout="this.style.background='#E5E7EB'">
+                  💬 Mention this
+                </button>
+                <span style="color: #999; font-size: 11px;">Importance: ${memory.importance}/10</span>
+              </div>
             </div>
           `;
         });
@@ -15644,6 +15727,102 @@ document.addEventListener('DOMContentLoaded', () => {
       
       html += '</div>';
       memoriesContent.innerHTML = html;
+    }
+    
+    // Helper function to format memory text
+    function formatMemoryText(memory) {
+      let displayText = memory.content || memory.memory_text || memory.message || memory.Memory || memory.summary || '';
+      
+      if (!displayText || displayText === 'undefined' || displayText === 'null') return null;
+      
+      // Check if this is an onboarding memory with metadata
+      if (memory.type === 'onboarding' && memory.metadata && memory.metadata.answers) {
+        return formatOnboardingMemory(memory.metadata.answers, memory.metadata.category || 'General');
+      }
+      
+      // Clean up JSON-like formatting
+      if (displayText.includes('[Onboarding Information')) {
+        // Parse onboarding information
+        const matches = displayText.match(/\[Onboarding Information - ([^\]]+)\](.+)/s);
+        if (matches) {
+          const category = matches[1];
+          const content = matches[2];
+          // Format the onboarding data nicely
+          const parts = content.split(/(?=[A-Z][a-z]+\s*:)/).filter(p => p.trim());
+          const formatted = parts.map(p => {
+            const [key, ...valueParts] = p.split(':');
+            const value = valueParts.join(':').trim();
+            return `${key.trim()}: ${value}`;
+          }).join(' • ');
+          return `[${category} Profile] ${formatted}`;
+        }
+      }
+      
+      // Remove any remaining JSON artifacts
+      displayText = displayText
+        .replace(/[\{\}\[\]"]/g, '')
+        .replace(/,\s*/g, ', ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      
+      return displayText;
+    }
+    
+    // Helper function to format onboarding memory
+    function formatOnboardingMemory(answers, category) {
+      const questionMappings = {
+        'Friendship': {
+          'friendship_situation': 'Current Situation',
+          'friendship_goal': 'Goal',
+          'biggest_challenge': 'Biggest Challenge',
+          'friendship_style': 'Ideal Friendship',
+          'additional_context': 'Additional Context'
+        },
+        'Business': {
+          'business_stage': 'Business Stage',
+          'business_industry': 'Industry',
+          'biggest_challenge': 'Biggest Challenge',
+          'business_goal': 'Main Goal',
+          'support_needed': 'Support Needed',
+          'additional_context': 'Additional Context'
+        },
+        'Career': {
+          'career_status': 'Current Status',
+          'career_goal': 'Career Goal',
+          'biggest_challenge': 'Biggest Challenge',
+          'timeline': 'Timeline',
+          'support_needed': 'Support Needed',
+          'additional_context': 'Additional Context'
+        }
+      };
+      
+      const mapping = questionMappings[category] || {};
+      const parts = [];
+      
+      for (const [key, value] of Object.entries(answers)) {
+        const label = mapping[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        parts.push(`${label}: ${value}`);
+      }
+      
+      return `[${category} Profile] ${parts.join(' • ')}`;
+    }
+    
+    // Helper function to escape quotes
+    function escapeQuotes(text) {
+      return text.replace(/'/g, "\\'").replace(/"/g, '\\"');
+    }
+    
+    // Function to use memory in chat
+    window.useMemoryInChat = function(memoryText) {
+      // Close the memory hub
+      closeMemoryHub();
+      
+      // Put the memory text in the input field
+      const userInput = document.getElementById('userInput');
+      if (userInput) {
+        userInput.value = `I want to talk about: ${memoryText}`;
+        userInput.focus();
+      }
     }
     
     async function loadTopicsData() {
