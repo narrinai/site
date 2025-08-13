@@ -4972,11 +4972,11 @@ function handleLoginSuccess(user, eventType = 'unknown') {
         }
       }
       
-      // TARGETED cleanup of ONLY Netlify Identity overlay and blur effects
+      // AGGRESSIVE cleanup of Netlify Identity and any injected overlay elements
       const cleanupOverlays = () => {
-        console.log('🧹 Running targeted Netlify overlay cleanup...');
+        console.log('🧹 Running aggressive overlay cleanup...');
         
-        // Remove ONLY Netlify Identity specific elements
+        // Remove ONLY Netlify Identity specific elements and suspicious overlays
         const netlifySelectors = [
           '.netlify-identity-widget',
           '.netlify-identity-widget-overlay', 
@@ -4985,19 +4985,28 @@ function handleLoginSuccess(user, eventType = 'unknown') {
           '.netlify-identity-widget-container',
           'iframe[src*="identity.netlify.com"]',
           'iframe[src*="netlify-identity"]',
-          'div[data-netlify-identity]'
+          'div[data-netlify-identity]',
+          // Add more aggressive selectors for any injected overlays
+          'div[style*="position: fixed"][style*="inset: 0"]',
+          'div[style*="position: fixed"][style*="top: 0"][style*="left: 0"][style*="right: 0"][style*="bottom: 0"]'
         ];
         
         netlifySelectors.forEach(selector => {
           try {
             const elements = document.querySelectorAll(selector);
             elements.forEach(element => {
-              // Only remove if it's a Netlify element
+              // Check if it's a Netlify element or a suspicious overlay
               const isNetlifyElement = element.className?.includes('netlify') || 
                                       element.src?.includes('netlify') ||
                                       element.hasAttribute('data-netlify-identity');
-              if (isNetlifyElement) {
-                console.log('🗑️ Removing Netlify element:', element.className || element.tagName);
+              
+              // Also check for large SVG elements that might be overlays
+              const isSuspiciousOverlay = element.querySelector('svg[viewBox*="0 0"]') && 
+                                         element.style.position === 'fixed' &&
+                                         element.style.zIndex > 1000;
+              
+              if (isNetlifyElement || isSuspiciousOverlay) {
+                console.log('🗑️ Removing element:', element.className || element.tagName);
                 element.remove();
               }
             });
@@ -5006,25 +5015,55 @@ function handleLoginSuccess(user, eventType = 'unknown') {
           }
         });
         
-        // Only reset styles that Netlify Identity might have added
-        if (document.body.classList.contains('netlify-identity-open') || 
-            document.documentElement.classList.contains('netlify-identity-open')) {
+        // Remove any large SVG elements that look like overlays (purple chat bubble)
+        document.querySelectorAll('svg').forEach(svg => {
+          const rect = svg.getBoundingClientRect();
+          const viewBox = svg.getAttribute('viewBox');
           
-          // Reset only necessary styles
-          document.body.style.filter = '';
-          document.body.style.backdropFilter = '';
-          document.body.style.webkitBackdropFilter = '';
-          document.documentElement.style.filter = '';
-          document.documentElement.style.backdropFilter = '';
-          document.documentElement.style.webkitBackdropFilter = '';
-        }
+          // Check multiple conditions for overlay SVGs
+          const isLargeOverlay = rect.width > 200 && rect.height > 200;
+          const hasPathElement = svg.querySelector('path[d*="M"]'); // Chat bubble often has path with M command
+          const isPurpleOrSimilar = svg.getAttribute('fill')?.includes('663399') || 
+                                    svg.style.fill?.includes('663399') ||
+                                    svg.getAttribute('fill')?.includes('purple');
+          
+          if (isLargeOverlay || isPurpleOrSimilar) {
+            const parent = svg.parentElement;
+            const grandParent = parent?.parentElement;
+            
+            // Check if parent or grandparent is positioned
+            if (parent && (parent.style.position === 'fixed' || 
+                          parent.style.position === 'absolute' ||
+                          grandParent?.style.position === 'fixed' ||
+                          grandParent?.style.position === 'absolute')) {
+              console.log('🗑️ Removing large overlay SVG (likely chat bubble)');
+              // Remove the highest positioned parent
+              if (grandParent?.style.position === 'fixed' || grandParent?.style.position === 'absolute') {
+                grandParent.remove();
+              } else {
+                parent.remove();
+              }
+            } else if (isLargeOverlay && svg.parentElement === document.body) {
+              // If SVG is direct child of body, definitely remove it
+              console.log('🗑️ Removing body-level SVG overlay');
+              svg.remove();
+            }
+          }
+        });
         
-        // Remove overflow hidden only if Netlify added it
-        if (document.body.style.overflow === 'hidden' && 
-            !document.querySelector('.mobile-menu-overlay.active')) {
-          document.body.style.overflow = '';
-          document.documentElement.style.overflow = '';
-        }
+        // Reset styles that might have been added
+        document.body.style.filter = '';
+        document.body.style.backdropFilter = '';
+        document.body.style.webkitBackdropFilter = '';
+        document.body.style.overflow = '';
+        document.documentElement.style.filter = '';
+        document.documentElement.style.backdropFilter = '';
+        document.documentElement.style.webkitBackdropFilter = '';
+        document.documentElement.style.overflow = '';
+        
+        // Remove Netlify-related classes
+        document.body.classList.remove('netlify-identity-open', 'modal-open');
+        document.documentElement.classList.remove('netlify-identity-open');
         
         // Remove ALL classes that might cause issues
         const problematicClasses = ['blur', 'modal-open', 'has-overlay', 'netlify-identity-open', 'no-scroll'];
@@ -5084,6 +5123,42 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       setTimeout(cleanupOverlays, 1000);
       setTimeout(cleanupOverlays, 2000);
       
+      // Nuclear option: if page still looks broken after 3 seconds, force reload
+      setTimeout(() => {
+        const container = document.querySelector('.container');
+        const hasContent = container && container.offsetHeight > 100;
+        const hasSuspiciousElements = document.querySelectorAll('body > svg, div[style*="position: fixed"]').length > 2;
+        
+        if (!hasContent || hasSuspiciousElements) {
+          console.log('⚠️ Page appears broken, applying nuclear cleanup...');
+          
+          // Remove ALL non-essential fixed/absolute positioned elements
+          document.querySelectorAll('div').forEach(div => {
+            const style = window.getComputedStyle(div);
+            if ((style.position === 'fixed' || style.position === 'absolute') &&
+                !div.classList.contains('header') &&
+                !div.classList.contains('notification-overlay') &&
+                !div.classList.contains('mobile-menu-overlay') &&
+                !div.classList.contains('mobile-search-overlay')) {
+              console.log('💣 Nuclear removal of:', div.className || 'unnamed div');
+              div.remove();
+            }
+          });
+          
+          // Remove ALL SVGs that are direct children of body
+          document.querySelectorAll('body > svg').forEach(svg => {
+            svg.remove();
+          });
+          
+          // Force show the container
+          if (container) {
+            container.style.display = 'block !important';
+            container.style.visibility = 'visible !important';
+            container.style.opacity = '1 !important';
+          }
+        }
+      }, 3000);
+      
       // Check if user just confirmed their email OR if URL contains confirmation fragment
       const urlHasConfirmation = window.location.hash && (
         window.location.hash.includes('confirmation_token') || 
@@ -5103,16 +5178,51 @@ function handleLoginSuccess(user, eventType = 'unknown') {
           console.log('🧹 Cleaned URL hash fragment');
         }
         
-        // Force a style recalculation without hiding the body
-        // This was causing the container to disappear
-        document.body.style.opacity = '0.99';
-        document.body.offsetHeight; // Force reflow
-        document.body.style.opacity = '';
+        // IMMEDIATE aggressive cleanup to prevent purple overlay
+        cleanupOverlays();
         
-        // Clean up again after a delay to catch any late-loading overlays
+        // Force remove any element with a large purple SVG chat bubble
+        const removeProblematicElements = () => {
+          // Look for any divs that might contain the purple chat bubble
+          document.querySelectorAll('div').forEach(div => {
+            const computedStyle = window.getComputedStyle(div);
+            // Check if div is positioned to cover the screen
+            if ((computedStyle.position === 'fixed' || computedStyle.position === 'absolute') &&
+                (computedStyle.zIndex > 100 || computedStyle.zIndex === 'auto')) {
+              // Check if it contains an SVG
+              const svg = div.querySelector('svg');
+              if (svg) {
+                const viewBox = svg.getAttribute('viewBox');
+                // Remove if it looks like an overlay element
+                if (!div.classList.contains('header') && 
+                    !div.classList.contains('container') &&
+                    !div.classList.contains('notification-overlay')) {
+                  console.log('🗑️ Removing suspicious overlay div with SVG');
+                  div.remove();
+                }
+              }
+            }
+          });
+          
+          // Also remove any orphaned SVG elements that are too large
+          document.querySelectorAll('body > svg').forEach(svg => {
+            console.log('🗑️ Removing orphaned SVG from body');
+            svg.remove();
+          });
+        };
+        
+        // Run cleanup multiple times to catch dynamically added elements
+        removeProblematicElements();
+        setTimeout(removeProblematicElements, 50);
+        setTimeout(removeProblematicElements, 100);
+        setTimeout(removeProblematicElements, 250);
+        setTimeout(removeProblematicElements, 500);
+        
+        // Continue with regular cleanup
         setTimeout(cleanupOverlays, 100);
         setTimeout(cleanupOverlays, 500);
         setTimeout(cleanupOverlays, 1000);
+        setTimeout(cleanupOverlays, 2000);
         
         // Ensure container is visible after cleanup
         setTimeout(() => {
