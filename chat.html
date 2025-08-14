@@ -3048,7 +3048,8 @@
 
 @media (min-width: 769px) {
   .upgrade-modal {
-    max-height: 85vh;
+    max-height: 95vh;
+    min-height: 600px;
     padding: var(--spacing-3xl);
   }
 }
@@ -4084,10 +4085,10 @@
       .onboarding-modal {
         max-width: 900px !important;
         width: 90vw !important;
-        padding: 30px 45px !important;
-        max-height: 90vh !important;
-        height: 90vh !important;
-        min-height: unset !important;
+        padding: 30px 45px 40px 45px !important;
+        max-height: 95vh !important;
+        height: auto !important;
+        min-height: 600px !important;
         overflow: hidden !important;
         display: flex !important;
         flex-direction: column !important;
@@ -4115,7 +4116,7 @@
       
       .onboarding-content {
         padding: 15px 20px;
-        max-height: calc(90vh - 240px) !important;
+        max-height: calc(95vh - 280px) !important;
         overflow-y: auto !important;
         min-height: unset !important;
         flex: 1;
@@ -5895,6 +5896,62 @@
       }
     }
 
+    // Check companion limits before allowing navigation
+    async function checkCompanionLimitBeforeNavigation(e) {
+      e.preventDefault();
+      
+      const email = localStorage.getItem('user_email');
+      const uid = localStorage.getItem('user_uid');
+      
+      if (!email || !uid) {
+        // Not logged in, allow navigation
+        window.location.href = 'create-character.html';
+        return;
+      }
+      
+      try {
+        // Get user's chat history to check active companions
+        const chatHistoryResponse = await fetch(`/.netlify/functions/get-chat-history?user_id=${uid}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('user_token')}`,
+            'X-User-Email': email,
+            'X-User-UID': uid
+          }
+        });
+        
+        if (chatHistoryResponse.ok) {
+          const chatData = await chatHistoryResponse.json();
+          if (chatData.success && chatData.chats) {
+            // Get paused chats from localStorage
+            const pausedChats = JSON.parse(localStorage.getItem('pausedChats') || '[]');
+            
+            // Count active companions
+            const activeChats = chatData.chats.filter(chat => !pausedChats.includes(chat.character_slug));
+            
+            // Get user plan
+            const userPlan = localStorage.getItem('user_plan') || 'Free';
+            const maxActive = userPlan === 'Free' ? 2 : userPlan === 'Engage' ? 5 : Infinity;
+            
+            if (activeChats.length >= maxActive) {
+              console.log(`⚠️ Active companion limit reached: ${activeChats.length}/${maxActive}`);
+              
+              // Show upgrade modal
+              showUpgradePrompt(activeChats.length, maxActive, 'companions');
+              return;
+            }
+          }
+        }
+        
+        // Allow navigation if under limit or if check fails
+        window.location.href = 'create-character.html';
+        
+      } catch (error) {
+        console.error('Error checking companion limits:', error);
+        // Allow navigation on error
+        window.location.href = 'create-character.html';
+      }
+    }
+
     // Initialize login button on page load
 document.addEventListener('DOMContentLoaded', () => {
   // Check upgrade status
@@ -5902,6 +5959,12 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Update immediately on page load
   updateLoginButton();
+  
+  // Add companion limit check to Create Companion buttons
+  const createCompanionLinks = document.querySelectorAll('a[href="create-character.html"]');
+  createCompanionLinks.forEach(link => {
+    link.addEventListener('click', checkCompanionLimitBeforeNavigation);
+  });
       
       // Set up click handlers
       setupNavigationClickHandlers();
