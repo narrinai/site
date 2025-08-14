@@ -1113,8 +1113,29 @@
       box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
     }
     
-    /* Desktop button styles - like conversation topics */
+    /* Desktop button styles - positioned in header */
     @media (min-width: 769px) {
+      .character-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+      }
+      
+      .character-header-left {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+        flex: 1;
+      }
+      
+      .character-header-buttons {
+        display: flex;
+        gap: 12px;
+        margin-left: auto;
+        padding-right: 20px;
+      }
+      
       .btn-memory,
       .btn-customize {
         padding: 10px 16px;
@@ -1129,24 +1150,41 @@
         gap: 6px;
         cursor: pointer;
         transition: all 0.3s ease;
-        margin-left: 8px;
+        box-shadow: 0 2px 8px rgba(20, 184, 166, 0.2);
       }
       
       .btn-memory:hover,
       .btn-customize:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+        background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
       }
     }
     
     /* Mobile-specific button styles - icon only, no background, no border */
     @media (max-width: 768px) {
+      .character-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      
+      .character-header-left {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+      }
+      
+      .character-header-buttons {
+        display: flex;
+        gap: 8px;
+      }
+      
       .btn-memory,
       .btn-customize {
         width: 36px;
         height: 36px;
         padding: 0;
-        margin-left: 8px;
         background: transparent;
         border: none;
         box-shadow: none;
@@ -3527,19 +3565,9 @@
       font-size: 18px;
     }
 
-    /* Hide desktop buttons on mobile */
-    @media (max-width: 768px) {
-      .desktop-action-buttons {
-        display: none !important;
-      }
-    }
-
-    /* Hide mobile buttons on desktop */
-    @media (min-width: 769px) {
-      .btn-memory,
-      .btn-customize {
-        display: none !important;
-      }
+    /* Hide desktop buttons section on all screens - we'll use header buttons instead */
+    .desktop-action-buttons {
+      display: none !important;
     }
 
     /* ===== MEMORY HUB MODAL STYLES ===== */
@@ -4609,19 +4637,23 @@
         <div class="chat-main-content">
       <div class="character-section">
         <div class="character-header" id="characterHeader">
-          <div class="character-avatar" id="characterAvatar">👤</div>
-          <div class="character-info">
-            <h2 id="characterName">Connecting...</h2>
-            <p id="characterTitle"></p>
+          <div class="character-header-left">
+            <div class="character-avatar" id="characterAvatar">👤</div>
+            <div class="character-info">
+              <h2 id="characterName">Connecting...</h2>
+              <p id="characterTitle"></p>
+            </div>
           </div>
-          <button class="btn-memory" onclick="openMemoryHub()" id="memoryBtn" style="display: none;" title="View memories">
-            <span class="desktop-text">🧠 Memory</span>
-            <span class="mobile-icon">🧠</span>
-          </button>
-          <button class="btn-customize" onclick="openCustomizationModal()" id="customizeBtn" style="display: none;" title="Customize companion">
-            <span class="desktop-text">⚙️ Customize</span>
-            <span class="mobile-icon">⚙️</span>
-          </button>
+          <div class="character-header-buttons">
+            <button class="btn-memory" onclick="openMemoryHub()" id="memoryBtn" style="display: none;" title="View memories">
+              <span class="desktop-text">🧠 Memory</span>
+              <span class="mobile-icon">🧠</span>
+            </button>
+            <button class="btn-customize" onclick="openCustomizationModal()" id="customizeBtn" style="display: none;" title="Customize companion">
+              <span class="desktop-text">⚙️ Customize</span>
+              <span class="mobile-icon">⚙️</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -15509,51 +15541,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 100);
     }
     
-    function editOnboardingAnswer(questionId) {
-      const answerElement = document.getElementById(`answer-${questionId}`);
-      const currentAnswer = answerElement.textContent;
-      
-      // Switch to edit mode
-      answerElement.innerHTML = `
-        <div class="edit-mode">
-          <textarea class="edit-textarea" id="edit-${questionId}">${currentAnswer}</textarea>
-          <div class="edit-actions">
-            <button class="edit-cancel-btn" onclick="cancelEdit('${questionId}')">Cancel</button>
-            <button class="edit-save-btn" onclick="saveOnboardingEdit('${questionId}')">Save</button>
-          </div>
-        </div>
-      `;
-    }
-    
-    function cancelEdit(questionId) {
-      // Reload the onboarding data to cancel edit
-      loadOnboardingData();
-    }
-    
-    async function saveOnboardingEdit(questionId) {
-      const newAnswer = document.getElementById(`edit-${questionId}`).value;
-      
-      // Update localStorage
-      const storageKey = `onboarding_${localStorage.getItem('user_uid')}_${characterSlug}`;
-      const onboardingData = JSON.parse(localStorage.getItem(storageKey) || '{}');
-      
-      if (onboardingData.answers) {
-        onboardingData.answers[questionId] = newAnswer;
-        localStorage.setItem(storageKey, JSON.stringify(onboardingData));
-      }
-      
-      // TODO: Also update in Airtable via API
-      
-      // Refresh the display
-      loadOnboardingData();
-    }
-    
-    function editMemory(memoryId) {
-      const memoryItem = document.querySelector(`[data-memory-id="${memoryId}"]`);
-      const contentElement = memoryItem.querySelector('.memory-content');
-      const currentContent = contentElement.textContent;
-      
-      // Switch to edit mode
+  </script>
 
   <!-- Character Limit Check Script -->
   <script src="js/character-limit-check.js"></script>
