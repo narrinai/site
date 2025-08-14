@@ -60,7 +60,7 @@ exports.handler = async (event, context) => {
         message: record.fields.Message,
         is_user: record.fields.Role === 'user',
         created_time: new Date(record.fields.CreatedTime),
-        is_checkin: record.fields.is_checkin || false
+        is_checkin: record.fields.message_type === 'check-in' || false
       });
       
       const msgTime = new Date(record.fields.CreatedTime);

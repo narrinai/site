@@ -94,7 +94,7 @@ exports.handler = async (event, context) => {
         message: record.fields.Message,
         is_user: record.fields.Role === 'user',
         created_time: new Date(record.fields.CreatedTime),
-        is_checkin: record.fields.is_checkin || false
+        is_checkin: record.fields.message_type === 'check-in' || false
       });
       
       // Track last user message
@@ -302,7 +302,7 @@ exports.handler = async (event, context) => {
           Message: checkInMessage,
           User: [chat.user_record_id],
           Character: [chat.character_record_id],
-          is_checkin: true
+          message_type: 'check-in'  // Use message_type instead of is_checkin
         }
       };
 
