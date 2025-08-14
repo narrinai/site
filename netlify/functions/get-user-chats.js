@@ -314,7 +314,10 @@ console.log('📋 Will search for ANY of these user record IDs:', allUserRecordI
         }
         
         characterChats[characterId].messages.push(record);
-        characterChats[characterId].messageCount++;
+        // Only count user messages, not AI assistant messages
+        if (record.fields.Role === 'user' || record.fields.Role === 'User') {
+          characterChats[characterId].messageCount++;
+        }
         
         if (!characterChats[characterId].lastMessage) {
           characterChats[characterId].lastMessage = record.fields.Message || '';
