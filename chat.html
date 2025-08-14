@@ -15530,9 +15530,26 @@ document.addEventListener('DOMContentLoaded', () => {
         category: category
       }));
       
-      // Check if user is logged in
-      if (!userToken || userId === 'anonymous') {
-        console.log('🔐 User not logged in, redirecting to login/register');
+      // Check if user is logged in (check multiple auth methods)
+      const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+      const userEmail = localStorage.getItem('user_email');
+      const userUid = localStorage.getItem('user_uid');
+      
+      const isLoggedIn = !!(
+        (userToken && userId !== 'anonymous') || 
+        netlifyUser || 
+        (userEmail && userUid && userUid !== 'anonymous')
+      );
+      
+      if (!isLoggedIn) {
+        console.log('🔐 User not logged in, showing auth prompt');
+        console.log('Auth check details:', {
+          hasToken: !!userToken,
+          userId: userId,
+          hasNetlifyUser: !!netlifyUser,
+          hasEmail: !!userEmail,
+          hasUid: !!userUid
+        });
         
         // Store current URL to return after login
         localStorage.setItem('post_login_redirect', window.location.href);
@@ -15546,6 +15563,8 @@ document.addEventListener('DOMContentLoaded', () => {
         showAuthPrompt();
         return;
       }
+      
+      console.log('✅ User is logged in, proceeding with onboarding submission');
       
       // User is logged in, proceed normally
       // Mark onboarding as complete (use processed answers)
