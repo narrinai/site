@@ -8262,11 +8262,27 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     const desktopActionButtons = document.getElementById('desktopActionButtons');
     
     if (userToken) {
-      // Show mobile buttons
+      // Always show customize button
       if (customizeBtn) customizeBtn.style.display = 'inline-block';
-      if (memoryBtn) memoryBtn.style.display = 'inline-block';
-      // Show desktop buttons
-      if (desktopActionButtons) desktopActionButtons.style.display = 'flex';
+      
+      // Only show memory button for categories with onboarding
+      const category = getNormalizedCategory(currentCharacter);
+      const hasOnboarding = window.onboardingQuestions && 
+                           window.onboardingQuestions[category] && 
+                           window.onboardingQuestions[category].enabled;
+      
+      if (hasOnboarding) {
+        if (memoryBtn) memoryBtn.style.display = 'inline-block';
+        console.log('✅ Memory Hub enabled for category:', category);
+      } else {
+        if (memoryBtn) memoryBtn.style.display = 'none';
+        console.log('⏭️ Memory Hub hidden - no onboarding for category:', category);
+      }
+      
+      // Show desktop buttons container if any button is visible
+      if (desktopActionButtons && userToken) {
+        desktopActionButtons.style.display = 'flex';
+      }
     }
     
     // Generate conversation topics after character is loaded
@@ -10483,6 +10499,35 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize customization form
   initializeCustomizationForm();
 });
+
+// ===== HELPER FUNCTIONS =====
+function getNormalizedCategory(character) {
+  if (!character) return '';
+  
+  let category = character.Category || character.category || '';
+  
+  // Normalize category to match onboardingQuestions keys
+  if (category && window.onboardingQuestions) {
+    const categoryKeys = Object.keys(window.onboardingQuestions);
+    const exactMatch = categoryKeys.find(key => key.toLowerCase() === category.toLowerCase());
+    
+    if (exactMatch) {
+      return exactMatch;
+    }
+    
+    // Check for partial matches
+    const partialMatch = categoryKeys.find(key => 
+      category.toLowerCase().includes(key.toLowerCase()) || 
+      key.toLowerCase().includes(category.toLowerCase())
+    );
+    
+    if (partialMatch) {
+      return partialMatch;
+    }
+  }
+  
+  return category;
+}
 
 // ===== MEMORY HUB SYSTEM =====
 async function openMemoryHub() {
