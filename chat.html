@@ -3949,6 +3949,61 @@
       overflow-y: auto;
     }
     
+    /* More compact on desktop */
+    @media (min-width: 769px) {
+      .onboarding-modal {
+        max-width: 600px;
+        padding: 30px;
+      }
+      
+      .onboarding-header {
+        padding: 0 0 20px 0;
+      }
+      
+      .onboarding-header h2 {
+        font-size: 24px;
+        margin-bottom: 8px;
+      }
+      
+      .onboarding-header p {
+        font-size: 14px;
+      }
+      
+      .character-avatar {
+        width: 60px;
+        height: 60px;
+        margin-bottom: 15px;
+      }
+      
+      .onboarding-content {
+        padding: 20px 0;
+        max-height: 45vh;
+      }
+      
+      .question-title {
+        font-size: 18px;
+        margin-bottom: 20px;
+      }
+      
+      .option-button {
+        padding: 12px 16px;
+        margin-bottom: 10px;
+      }
+      
+      .onboarding-footer {
+        padding: 20px 0 0 0;
+      }
+      
+      .progress-bar {
+        height: 6px;
+        margin-bottom: 8px;
+      }
+      
+      .progress-text {
+        font-size: 13px;
+      }
+    }
+    
     .question-container {
       animation: fadeIn 0.3s ease;
     }
@@ -10623,8 +10678,13 @@ async function openMemoryHub() {
 
 function displayMemoryHubContent(answers) {
   const content = document.getElementById('memoryHubContent');
-  const category = currentCharacter?.Category || currentCharacter?.category || '';
+  // Use the normalized category helper
+  const category = getNormalizedCategory(currentCharacter);
   const config = window.onboardingQuestions && window.onboardingQuestions[category];
+  
+  console.log('📊 Display Memory Hub - Category:', category);
+  console.log('📊 Config found:', !!config);
+  console.log('📊 Answers to display:', answers);
   
   if (!config || !config.questions) {
     content.innerHTML = `
@@ -10680,8 +10740,8 @@ function discussMemory(questionId, answer) {
   // Close the Memory Hub modal
   closeMemoryHub();
   
-  // Get the question text
-  const category = currentCharacter?.Category || currentCharacter?.category || '';
+  // Get the question text using normalized category
+  const category = getNormalizedCategory(currentCharacter);
   const config = window.onboardingQuestions && window.onboardingQuestions[category];
   const question = config?.questions?.find(q => q.id === questionId);
   
