@@ -3743,8 +3743,9 @@
 
     .discuss-btn {
       background: var(--color-white);
-      color: var(--color-teal);
-      border: 2px solid var(--color-teal);
+      background-image: none;
+      color: #14B8A6;
+      border: 2px solid #14B8A6;
       padding: var(--spacing-xs) var(--spacing-md);
       border-radius: var(--radius-md);
       font-size: var(--font-size-sm);
@@ -3759,7 +3760,8 @@
     }
 
     .discuss-btn:hover {
-      background: var(--color-teal);
+      background: linear-gradient(135deg, #14B8A6 0%, #22C55E 100%);
+      border-color: transparent;
       color: var(--color-white);
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
@@ -15249,8 +15251,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function selectOption(questionId, value, buttonElement) {
-      // Store answer
-      onboardingAnswers[questionId] = value;
+      // Get the full label text from the button
+      const labelText = buttonElement.textContent.trim();
+      
+      // Store the full label instead of just the value
+      // But keep the value for 'other' option
+      if (value === 'other') {
+        onboardingAnswers[questionId] = value;
+      } else {
+        onboardingAnswers[questionId] = labelText;
+      }
       
       // Update UI
       const buttons = buttonElement.parentElement.querySelectorAll('.option-button');
@@ -15369,10 +15379,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     async function submitOnboarding() {
-      // Process answers to merge "other" text with "other" selection AND store full labels
+      // Process answers to merge "other" text with "other" selection
       const processedAnswers = {};
-      const category = getNormalizedCategory(currentCharacter);
-      const config = window.onboardingQuestions && window.onboardingQuestions[category];
       
       for (const [key, value] of Object.entries(onboardingAnswers)) {
         if (!key.endsWith('_other')) {
@@ -15380,23 +15388,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Replace "other" with the actual text entered
             processedAnswers[key] = onboardingAnswers[key + '_other'];
           } else {
-            // Find the full label for option values
-            if (config && config.questions) {
-              const question = config.questions.find(q => q.id === key);
-              if (question && question.type === 'options' && question.options) {
-                const option = question.options.find(opt => opt.value === value);
-                if (option) {
-                  // Store the full label text instead of just the value
-                  processedAnswers[key] = option.label;
-                } else {
-                  processedAnswers[key] = value;
-                }
-              } else {
-                processedAnswers[key] = value;
-              }
-            } else {
-              processedAnswers[key] = value;
-            }
+            // The value is already the full label (set in selectOption)
+            processedAnswers[key] = value;
           }
         }
       }
