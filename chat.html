@@ -13552,6 +13552,12 @@ hideTypingIndicator();
     // Clean up any strange formatting symbols in the reply
     const cleanReply = reply.replace(/≡/g, '\n').replace(/\n\n+/g, '\n\n').trim();
     
+    // Check if this is the first message after onboarding (typically long)
+    const isFirstMessageAfterOnboarding = window.justCompletedOnboarding || false;
+    if (isFirstMessageAfterOnboarding) {
+      window.justCompletedOnboarding = false; // Reset flag
+    }
+    
     // Store the reply in a data attribute to avoid escaping issues
     divBot.setAttribute('data-reply', cleanReply);
     
@@ -13569,8 +13575,9 @@ hideTypingIndicator();
       const formattedReply = formatAIResponse(cleanReply);
       typingSpan.innerHTML = formattedReply;
       
-      // Add TTS button if character has voice (but not for onboarding welcome messages)
-      if (currentCharacter.voice_id && !window.processingOnboardingWelcome) {
+      // Add TTS button if character has voice 
+      // Skip for onboarding welcome messages and first message after onboarding (too long)
+      if (currentCharacter.voice_id && !window.processingOnboardingWelcome && !isFirstMessageAfterOnboarding) {
         const voiceButtonHtml = `<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice('${cleanReply.replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
         divBot.innerHTML += voiceButtonHtml;
       }
@@ -15207,6 +15214,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const overlay = document.getElementById('onboardingOverlay');
       overlay.style.display = 'none';
       document.body.style.overflow = '';
+      
+      // Set flag that onboarding just completed (for skipping TTS on first long message)
+      window.justCompletedOnboarding = true;
       
       // Generate personalized first message (use processed answers)
       generatePersonalizedWelcome(processedAnswers);
