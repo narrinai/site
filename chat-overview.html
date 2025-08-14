@@ -21,6 +21,7 @@
   <meta property="twitter:image" content="https://narrin.ai/og-image.jpg">
   
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <script src="js/companion-limit-check.js"></script>
 
   <!-- Favicon -->
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
@@ -2993,6 +2994,7 @@ function extractAvatarUrl(chat) {
   const card = document.createElement('a');
   card.className = chat.isPaused ? 'chat-card paused' : 'chat-card';
   card.href = `chat.html?char=${chat.character_slug}`;
+  card.onclick = (e) => checkCompanionLimitForChat(e, chat.character_slug);
   
   // Extract avatar URL using helper function
   const avatarUrl = extractAvatarUrl(chat);
