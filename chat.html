@@ -4389,7 +4389,7 @@
         
         <div class="memory-hub-footer">
           <button class="update-answers-btn" onclick="restartOnboarding()">
-            <span>🔄</span> Update Answers
+            <span>🔄</span> Update Information
           </button>
         </div>
       </div>
@@ -10720,34 +10720,27 @@ function restartOnboarding() {
     delete window.additionalContext.suggestions;
   }
   
-  // Reset current question index
-  currentQuestionIndex = 0;
-  
-  // Directly show the onboarding overlay
-  const onboardingOverlay = document.getElementById('onboardingOverlay');
-  if (onboardingOverlay) {
-    // Hide chat interface
-    const chatInterface = document.getElementById('chatInterface');
-    if (chatInterface) {
-      chatInterface.style.display = 'none';
-    }
-    
-    // Show onboarding overlay
-    onboardingOverlay.style.display = 'flex';
-    
-    // Initialize onboarding questions
-    if (typeof initializeOnboarding === 'function') {
-      initializeOnboarding();
-    } else {
-      // Fallback: reload page to trigger onboarding
-      sessionStorage.setItem('restart_onboarding', 'true');
-      window.location.reload();
-    }
-  } else {
-    // If overlay not found, reload page
-    sessionStorage.setItem('restart_onboarding', 'true');
-    window.location.reload();
+  // Reset conversation memory
+  if (typeof conversationMemory !== 'undefined') {
+    conversationMemory = [];
   }
+  if (window.conversationMemory) {
+    window.conversationMemory = [];
+  }
+  
+  // Clear chat history
+  const chatlog = document.getElementById('chatlog');
+  if (chatlog) {
+    chatlog.innerHTML = '';
+  }
+  
+  // Set flag to trigger onboarding on reload
+  sessionStorage.setItem('restart_onboarding', 'true');
+  
+  // Reload the page to trigger fresh onboarding
+  setTimeout(() => {
+    window.location.reload();
+  }, 100);
 }
 
 // ===== CHARACTER CUSTOMIZATION SYSTEM =====
@@ -14445,6 +14438,13 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('📱 User Agent:', navigator.userAgent);
       console.log('📱 Is Mobile:', /Mobile|Android|iPhone/i.test(navigator.userAgent));
       
+      // Check if we should restart onboarding
+      const shouldRestart = sessionStorage.getItem('restart_onboarding') === 'true';
+      if (shouldRestart) {
+        console.log('🔄 Restart onboarding flag detected');
+        sessionStorage.removeItem('restart_onboarding');
+      }
+      
       if (!currentCharacter) {
         console.log('❌ No currentCharacter available');
         return false;
@@ -14550,8 +14550,9 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Check if onboarding is needed using the function from onboarding-questions.js
       // Use the consistent characterId (URL slug) for checking
-      if (typeof needsOnboarding === 'function' && needsOnboarding(category, userId, characterId)) {
-        console.log('✅ Onboarding needed for category:', category);
+      // Force onboarding if shouldRestart is true
+      if (shouldRestart || (typeof needsOnboarding === 'function' && needsOnboarding(category, userId, characterId))) {
+        console.log('✅ Onboarding needed for category:', category, shouldRestart ? '(restart requested)' : '');
         
         // Get questions for this category
         if (window.onboardingQuestions[category] && window.onboardingQuestions[category].enabled) {
@@ -15555,42 +15556,6 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('❌ Error saving welcome message:', error);
       }
     }
-  </script>
-  
-
-
-      });
-      
-      // Clear window.additionalContext
-      if (window.additionalContext) {
-        delete window.additionalContext.onboarding;
-        delete window.additionalContext.welcomeMessage;
-        delete window.additionalContext.suggestions;
-      }
-      
-      // Clear chat history
-      const chatlog = document.getElementById('chatlog');
-      if (chatlog) {
-        chatlog.innerHTML = '';
-      }
-      
-      // Reset conversation memory
-      if (typeof conversationMemory !== 'undefined') {
-        conversationMemory = [];
-      }
-      if (window.conversationMemory) {
-        window.conversationMemory = [];
-      }
-      
-      // Restart onboarding flow in the same page
-      sessionStorage.setItem('restart_onboarding', 'true');
-      
-      // Reload the page to trigger onboarding
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
-    }
-    
   </script>
 
   <!-- Character Limit Check Script -->
