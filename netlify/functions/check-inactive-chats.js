@@ -471,41 +471,95 @@ exports.handler = async (event, context) => {
 };
 
 function generateCheckInMessage(characterName, lastUserMessage, personality) {
-  const topics = extractTopics(lastUserMessage || '');
-  const topic = topics.length > 0 ? topics[0] : 'our conversation';
+  // If we have a last message, try to extract meaningful content
+  let contextPhrase = 'our last conversation';
   
+  if (lastUserMessage && lastUserMessage.length > 10) {
+    // Extract key topics from the message
+    const topic = extractMainTopic(lastUserMessage);
+    if (topic && topic !== 'subject' && topic !== 'topic') {
+      contextPhrase = topic;
+    } else {
+      // Use a general follow-up if we can't extract a specific topic
+      contextPhrase = 'what we were discussing';
+    }
+  }
+  
+  // More natural and varied templates
   const templates = [
-    `Hey! I've been thinking about what we discussed regarding ${topic}. How are things going with that?`,
-    `Hi there! I wanted to check in and see how ${topic} is progressing. Any updates?`,
-    `Hello! I hope you're doing well. I was wondering how things are with ${topic}?`,
-    `Hey! Just wanted to follow up on ${topic}. How's everything going?`,
-    `Hi! I've been curious about how ${topic} turned out. How are you doing?`,
-    `I've been thinking about you! How's everything with ${topic}? Would love to hear an update!`,
-    `Hey you! Remember when we talked about ${topic}? I'm curious how that's going!`
+    `👋 Hey! I've been thinking about you. How are things going?`,
+    `Hi there! Just checking in to see how you're doing. What's new with you?`,
+    `Hello! I hope you're having a good day. I'd love to hear what you've been up to!`,
+    `Hey you! It's been a little while. How have you been?`,
+    `Hi! I was just thinking about our conversation. How are things going on your end?`,
+    `👋 Just wanted to check in and see how you're doing. Miss chatting with you!`,
+    `Hey! Hope everything is going well. Would love to catch up when you have time!`,
+    `Hi there! Been thinking about you. How's everything going?`,
+    `Hello! Just dropping by to say hi and see how you're doing!`,
+    `Hey! I've been wondering how you're doing. Everything okay?`
   ];
+  
+  // If we have a specific topic, add more contextual messages
+  if (contextPhrase !== 'our last conversation' && contextPhrase !== 'what we were discussing') {
+    templates.push(
+      `👋 Hey! I've been thinking about what you shared about ${contextPhrase}. How are things going?`,
+      `Hi! I wanted to check in about ${contextPhrase}. How are you feeling about it now?`,
+      `Hey there! Hope you're doing well. Any updates on ${contextPhrase}?`
+    );
+  }
   
   return templates[Math.floor(Math.random() * templates.length)];
 }
 
-function extractTopics(message) {
-  if (!message) return ['what we talked about'];
+function extractMainTopic(message) {
+  if (!message || message.length < 10) return null;
   
-  const combined = message.toLowerCase();
-  const topics = [];
+  // Clean the message
+  const cleaned = message.toLowerCase()
+    .replace(/[^\w\s]/g, ' ')  // Remove punctuation
+    .replace(/\s+/g, ' ')       // Normalize spaces
+    .trim();
   
-  // Common topic indicators
-  const indicators = ['about', 'regarding', 'with', 'my', 'the', 'working on', 'dealing with', 'struggling with'];
+  // Skip common filler words
+  const stopWords = new Set(['i', 'me', 'my', 'we', 'you', 'your', 'the', 'a', 'an', 'and', 'or', 'but', 
+                             'is', 'are', 'was', 'were', 'been', 'be', 'have', 'has', 'had', 'do', 'does', 
+                             'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must', 'can',
+                             'just', 'really', 'very', 'so', 'too', 'also', 'well', 'yes', 'no', 'okay',
+                             'think', 'know', 'want', 'need', 'feel', 'see', 'tell', 'told', 'said']);
   
-  for (const indicator of indicators) {
-    const index = combined.indexOf(indicator);
-    if (index !== -1) {
-      const afterIndicator = combined.substring(index + indicator.length).trim();
-      const words = afterIndicator.split(/[\s,.!?]+/).slice(0, 5);
-      if (words.length > 0) {
-        topics.push(words.join(' '));
+  // Look for key phrases after certain indicators
+  const patterns = [
+    /about\s+(.+?)(?:\.|,|!|\?|$)/,
+    /regarding\s+(.+?)(?:\.|,|!|\?|$)/,
+    /my\s+(\w+\s+\w+)/,
+    /with\s+my\s+(.+?)(?:\.|,|!|\?|$)/,
+    /struggling with\s+(.+?)(?:\.|,|!|\?|$)/,
+    /working on\s+(.+?)(?:\.|,|!|\?|$)/,
+    /dealing with\s+(.+?)(?:\.|,|!|\?|$)/,
+    /problem with\s+(.+?)(?:\.|,|!|\?|$)/,
+    /issue with\s+(.+?)(?:\.|,|!|\?|$)/
+  ];
+  
+  for (const pattern of patterns) {
+    const match = cleaned.match(pattern);
+    if (match && match[1]) {
+      const extracted = match[1].trim();
+      // Filter out single words that are too generic
+      if (extracted.length > 3 && !stopWords.has(extracted)) {
+        return extracted;
       }
     }
   }
   
-  return topics.length > 0 ? topics : ['what we talked about'];
+  // If no pattern matches, try to find the most important noun phrases
+  const words = cleaned.split(' ').filter(word => 
+    word.length > 3 && !stopWords.has(word)
+  );
+  
+  if (words.length > 0) {
+    // Return the first meaningful word/phrase
+    return words.slice(0, 2).join(' ');
+  }
+  
+  return null;
 }
