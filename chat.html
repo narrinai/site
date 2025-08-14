@@ -7629,34 +7629,70 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Fade-in effect voor berichten met typewriter effect
     function typewriterWithVoice(element, text, voiceId = null, speed = 20) {
-      console.log('🎬 Starting typewriter with voice effect');
+      console.log('🎬 Starting typewriter with voice effect and fade-in');
       console.log('📝 Text to type:', text);
       console.log('📏 Text length:', text.length);
+      
+      // Clear element and prepare for fade effect
       element.innerHTML = '';
       element.style.opacity = '1';
-      let index = 0;
       
-      // Store the original text for later formatting
+      // Add CSS for fade-in effect if not already present
+      if (!document.querySelector('#typewriter-fade-styles')) {
+        const style = document.createElement('style');
+        style.id = 'typewriter-fade-styles';
+        style.textContent = `
+          .char-fade {
+            opacity: 0;
+            animation: fadeInChar 0.3s ease-out forwards;
+          }
+          @keyframes fadeInChar {
+            0% {
+              opacity: 0;
+              filter: blur(2px);
+            }
+            100% {
+              opacity: 1;
+              filter: blur(0);
+            }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+      
+      let index = 0;
       const originalText = text;
+      const chars = [];
+      
+      // Split text while preserving newlines
+      for (let i = 0; i < text.length; i++) {
+        if (text[i] === '\n') {
+          chars.push('\n');
+        } else {
+          chars.push(text[i]);
+        }
+      }
       
       function addNextChar() {
-        if (index < text.length) {
-          const char = text[index];
+        if (index < chars.length) {
+          const char = chars[index];
           
-          // Check if we're at a newline character
+          // Handle newlines
           if (char === '\n') {
-            // Add a line break element
             const br = document.createElement('br');
             element.appendChild(br);
           } else {
-            // Use text node for regular characters (don't process markdown during typing)
-            const textNode = document.createTextNode(char);
-            element.appendChild(textNode);
+            // Create span for each character with fade-in effect
+            const span = document.createElement('span');
+            span.textContent = char;
+            span.className = 'char-fade';
+            span.style.animationDelay = '0ms';
+            element.appendChild(span);
           }
           
           // Auto-scroll to keep new text visible
           const chatlog = document.getElementById("chatlog");
-          if (chatlog) {
+          if (chatlog && index % 10 === 0) {
             chatlog.scrollTop = chatlog.scrollHeight;
           }
           
@@ -9438,29 +9474,64 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
 
     // Improved typewriter effect with fade-in animation that preserves line breaks
 function typewriterEffect(element, text, speed = 20) {
-  console.log('🎬 Starting typewriter effect');
+  console.log('🎬 Starting typewriter effect with fade-in');
   console.log('📝 Text to type:', text);
   console.log('📏 Text length:', text.length);
+  
+  // Clear element and prepare for fade effect
   element.innerHTML = '';
   element.style.opacity = '1';
-  let index = 0;
   
-  // Convert newlines to HTML line breaks for proper display
-  const htmlText = text.replace(/\n/g, '<br>');
-  const tempDiv = document.createElement('div');
-  tempDiv.innerHTML = htmlText;
-  const textContent = tempDiv.innerHTML;
+  // Add CSS for fade-in effect if not already present
+  if (!document.querySelector('#typewriter-fade-styles')) {
+    const style = document.createElement('style');
+    style.id = 'typewriter-fade-styles';
+    style.textContent = `
+      .char-fade {
+        opacity: 0;
+        animation: fadeInChar 0.3s ease-out forwards;
+      }
+      @keyframes fadeInChar {
+        0% {
+          opacity: 0;
+          filter: blur(2px);
+        }
+        100% {
+          opacity: 1;
+          filter: blur(0);
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  
+  let index = 0;
+  const chars = [];
+  
+  // Split text while preserving newlines
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] === '\n') {
+      chars.push('\n');
+    } else {
+      chars.push(text[i]);
+    }
+  }
   
   function addNextChar() {
-    if (index < textContent.length) {
-      // Check if we're at the start of a <br> tag
-      if (textContent.substr(index, 4) === '<br>') {
-        element.innerHTML += '<br>';
-        index += 4;
+    if (index < chars.length) {
+      const char = chars[index];
+      
+      // Handle newlines
+      if (char === '\n') {
+        const br = document.createElement('br');
+        element.appendChild(br);
       } else {
-        // Add regular character
-        element.innerHTML += textContent[index];
-        index++;
+        // Create span for each character with fade-in effect
+        const span = document.createElement('span');
+        span.textContent = char;
+        span.className = 'char-fade';
+        span.style.animationDelay = '0ms';
+        element.appendChild(span);
       }
       
       // Auto-scroll to keep text visible
@@ -9469,6 +9540,7 @@ function typewriterEffect(element, text, speed = 20) {
         chatlog.scrollTop = chatlog.scrollHeight;
       }
       
+      index++;
       setTimeout(addNextChar, speed);
     } else {
       console.log('✅ Typewriter completed. Total chars typed:', index);
