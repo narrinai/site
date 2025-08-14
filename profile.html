@@ -4967,6 +4967,9 @@ function handleLoginSuccess(user, eventType = 'unknown') {
                                    fragment.includes('recovery_token=') ||
                                    fragment.includes('invite_token=');
       
+      // Also check if we just came from a verification (URL was cleaned but we're on profile.html)
+      const justVerified = sessionStorage.getItem('just_verified') === 'true';
+      
       if (hasConfirmationToken) {
         console.log('📧 Email verification/recovery token detected in URL');
         console.log('🔑 Token fragment:', fragment);
@@ -5054,24 +5057,71 @@ function handleLoginSuccess(user, eventType = 'unknown') {
               // Clean URL since token was processed
               window.history.replaceState({}, document.title, window.location.pathname);
               
-              // Show success message and login prompt
-              showSuccess('✅ Email verified successfully! Please log in to continue.');
+              // Mark that we just verified
+              sessionStorage.setItem('just_verified', 'true');
               
               // Clear verification flag
               sessionStorage.removeItem('email_verification_in_progress');
               
-              // Show login UI with a delay
+              // Show login UI immediately with message
+              showLoginUI();
+              
+              // Show prominent success message
+              const loginSection = document.querySelector('.login-section');
+              if (loginSection) {
+                const successBanner = document.createElement('div');
+                successBanner.className = 'verification-success-banner';
+                successBanner.innerHTML = `
+                  <div style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 20px; border-radius: 12px; margin-bottom: 24px; text-align: center;">
+                    <h3 style="margin: 0 0 8px 0; font-size: 20px;">✅ Email Verified Successfully!</h3>
+                    <p style="margin: 0; opacity: 0.95;">Your email has been confirmed. Please log in to access your account.</p>
+                  </div>
+                `;
+                loginSection.insertBefore(successBanner, loginSection.firstChild);
+              }
+              
+              // Auto-open login modal after a short delay
               setTimeout(() => {
-                showLoginUI();
-                // Auto-open login modal
                 if (window.netlifyIdentity) {
                   window.netlifyIdentity.open('login');
                 }
-              }, 2000);
+              }, 1000);
             }
           }, 1000);
         }
         return; // Exit early to let Netlify handle the token
+      }
+      
+      // Check if we just verified and show message
+      if (justVerified && !hasConfirmationToken) {
+        console.log('📧 User just verified email, showing login prompt');
+        sessionStorage.removeItem('just_verified');
+        
+        // Show login UI
+        showLoginUI();
+        
+        // Add success banner after a short delay to ensure DOM is ready
+        setTimeout(() => {
+          const loginSection = document.querySelector('.login-section');
+          if (loginSection && !document.querySelector('.verification-success-banner')) {
+            const successBanner = document.createElement('div');
+            successBanner.className = 'verification-success-banner';
+            successBanner.innerHTML = `
+              <div style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 20px; border-radius: 12px; margin-bottom: 24px; text-align: center;">
+                <h3 style="margin: 0 0 8px 0; font-size: 20px;">✅ Email Verified Successfully!</h3>
+                <p style="margin: 0; opacity: 0.95;">Your email has been confirmed. Please log in to access your account.</p>
+              </div>
+            `;
+            loginSection.insertBefore(successBanner, loginSection.firstChild);
+          }
+          
+          // Auto-open login modal
+          if (window.netlifyIdentity) {
+            window.netlifyIdentity.open('login');
+          }
+        }, 500);
+        
+        return;
       }
       
       // Debug localStorage state
