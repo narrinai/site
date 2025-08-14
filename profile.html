@@ -26,19 +26,25 @@
 <!-- EmailJS SDK -->
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <script>
-  // Configureer widget styling
-  if (window.netlifyIdentity) {
-    window.netlifyIdentity.init({
-      theme: 'custom',
-      colors: {
-        primary: '#14b8a6',
-        secondary: '#f97316'
-      },
-      logo: false, // Verberg Netlify logo
-      locale: 'en',
-      namePlaceholder: false // Verberg name veld in signup
-    });
-  }
+  // Configureer widget styling - wait for DOM to be ready
+  document.addEventListener('DOMContentLoaded', () => {
+    if (window.netlifyIdentity) {
+      try {
+        window.netlifyIdentity.init({
+          theme: 'custom',
+          colors: {
+            primary: '#14b8a6',
+            secondary: '#f97316'
+          },
+          logo: false, // Verberg Netlify logo
+          locale: 'en',
+          namePlaceholder: false // Verberg name veld in signup
+        });
+      } catch (e) {
+        console.error('Error initializing Netlify Identity:', e);
+      }
+    }
+  });
 </script>  
   <!-- Stripe.js -->
   <script src="https://js.stripe.com/v3/"></script>
@@ -4292,6 +4298,25 @@ function handleLoginSuccess(user, eventType = 'unknown') {
         console.log('🔄 Netlify Identity initialized, user:', user?.email || 'none');
         updateLoginButton();
         
+        // Check if this is from an email confirmation
+        const fragment = window.location.hash;
+        if (fragment.includes('confirmation_token=') && user) {
+          console.log('📧 Processing email confirmation for:', user.email);
+          // Store auth data
+          localStorage.setItem('user_email', user.email);
+          localStorage.setItem('user_uid', user.id);
+          localStorage.setItem('user_token', user.token?.access_token || '');
+          localStorage.setItem('user_auth_timestamp', Date.now().toString());
+          
+          // Clean URL
+          window.history.replaceState({}, document.title, window.location.pathname);
+          
+          // Show profile
+          showProfileUI();
+          setTimeout(() => loadProfile(), 500);
+          return;
+        }
+        
         if (user && !netlifyUser && !isProcessingAuth) {
           console.log('🔄 Auto-login for existing user');
           netlifyUser = user;
@@ -4555,8 +4580,32 @@ function handleLoginSuccess(user, eventType = 'unknown') {
 
       window.netlifyIdentity.on('error', err => {
         console.error('❌ Netlify Identity error:', err);
-        resetAuthState();
-        showError('Authentication error: ' + err.message);
+        
+        // Prevent null reference error
+        if (!err) {
+          console.log('⚠️ Error object is null, skipping error handling');
+          resetAuthState();
+          return;
+        }
+        
+        const errorMessage = err?.message || err?.toString() || 'Unknown error';
+        
+        // Only show error if it's not a null error
+        if (errorMessage && errorMessage !== 'null') {
+          resetAuthState();
+          
+          // Custom error messages for common issues
+          if (errorMessage.includes('invalid_grant')) {
+            showError('Invalid email or password. Please try again.');
+          } else if (errorMessage.includes('No user found')) {
+            showError('No account found with that email. Please sign up first.');
+          } else {
+            showError('Authentication error: ' + errorMessage);
+          }
+        } else {
+          // Silent reset for null errors
+          resetAuthState();
+        }
       });
     }
 
@@ -4897,6 +4946,42 @@ function handleLoginSuccess(user, eventType = 'unknown') {
     // Initialize Netlify Identity and check login status
     document.addEventListener('DOMContentLoaded', () => {
       console.log('🚀 Page loaded, initializing...');
+      
+      // Check for email verification token in URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const fragment = window.location.hash;
+      const hasConfirmationToken = fragment.includes('confirmation_token=') || 
+                                   fragment.includes('recovery_token=') ||
+                                   fragment.includes('invite_token=');
+      
+      if (hasConfirmationToken) {
+        console.log('📧 Email verification/recovery token detected in URL');
+        // Let Netlify Identity handle the token first
+        if (window.netlifyIdentity) {
+          window.netlifyIdentity.init();
+          
+          // Wait for Netlify to process the token
+          setTimeout(() => {
+            const user = window.netlifyIdentity.currentUser();
+            if (user) {
+              console.log('✅ User verified and logged in:', user.email);
+              // Store auth data
+              localStorage.setItem('user_email', user.email);
+              localStorage.setItem('user_uid', user.id);
+              localStorage.setItem('user_token', user.token?.access_token || '');
+              localStorage.setItem('user_auth_timestamp', Date.now().toString());
+              
+              // Clean URL
+              window.history.replaceState({}, document.title, window.location.pathname);
+              
+              // Show profile
+              showProfileUI();
+              loadProfile();
+            }
+          }, 2000);
+        }
+        return; // Exit early to let Netlify handle the token
+      }
       
       // Debug localStorage state
       console.log('📦 LocalStorage state:', {
