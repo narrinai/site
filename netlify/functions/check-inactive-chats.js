@@ -215,6 +215,14 @@ exports.handler = async (event, context) => {
       const userName = user.Name || user.name || 'there';
       const userNetlifyUID = user.NetlifyUID;
       
+      // Check if we have a valid email address
+      if (!userEmail) {
+        console.log(`⏭️ Skipping user ${userName} - no email address`);
+        errors.push(`User ${userName} has no email address`);
+        skippedCount++;
+        continue;
+      }
+      
       // Skip test emails in production mode
       const testMode = event.queryStringParameters?.test === 'true';
       const isTestEmail = userEmail && (
