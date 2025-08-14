@@ -13997,6 +13997,13 @@ async function checkUsageLimit() {
   const uid = localStorage.getItem("user_uid");
   const email = localStorage.getItem("user_email");
   
+  // Check if user has a cached subscription status
+  const cachedSubscription = localStorage.getItem("subscription_status");
+  if (cachedSubscription === 'active' || cachedSubscription === 'trialing') {
+    console.log('✅ Cached subscription status:', cachedSubscription);
+    return true; // Allow unlimited for paid users
+  }
+  
   if (!token || !uid || !email) {
     return false;
   }
@@ -14035,12 +14042,38 @@ async function checkUsageLimit() {
     const plan = data.plan || 'Free';
     const usage = parseInt(data.usage) || 0;
     const quota = parseInt(data.quota) || 10;
+    const subscriptionStatus = data.subscription_status || data.subscriptionStatus || '';
+    const stripeStatus = data.stripe_status || data.stripeStatus || '';
 
-    console.log('📊 Usage check:', { plan, usage, quota });
+    console.log('📊 Usage check:', { 
+      plan, 
+      usage, 
+      quota, 
+      subscriptionStatus,
+      stripeStatus,
+      fullData: data 
+    });
 
-    // Check user plan for message limits
-    if (plan.toLowerCase() === 'immerse' || plan.toLowerCase() === 'engage' || plan.toLowerCase() === 'premium' || plan.toLowerCase() === 'pro' || plan.toLowerCase() === 'paid') {
+    // Check user plan for message limits - include all possible paid plan indicators
+    const isPaidPlan = 
+      plan.toLowerCase() === 'immerse' || 
+      plan.toLowerCase() === 'engage' || 
+      plan.toLowerCase() === 'premium' || 
+      plan.toLowerCase() === 'pro' || 
+      plan.toLowerCase() === 'paid' ||
+      subscriptionStatus === 'active' ||
+      subscriptionStatus === 'trialing' ||
+      stripeStatus === 'active' ||
+      stripeStatus === 'trialing';
+      
+    if (isPaidPlan) {
       console.log('✅ Paid user - unlimited messages');
+      // Cache the subscription status for future checks
+      if (subscriptionStatus) {
+        localStorage.setItem('subscription_status', subscriptionStatus);
+      } else if (stripeStatus) {
+        localStorage.setItem('subscription_status', stripeStatus);
+      }
       return true;
     }
 
