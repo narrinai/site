@@ -12,7 +12,8 @@ exports.handler = async (event, context) => {
     hasAirtableBase: !!AIRTABLE_BASE_ID,
     hasAirtableToken: !!AIRTABLE_TOKEN,
     hasSendGrid: !!SENDGRID_API_KEY,
-    sendGridLength: SENDGRID_API_KEY ? SENDGRID_API_KEY.length : 0
+    sendGridLength: SENDGRID_API_KEY ? SENDGRID_API_KEY.length : 0,
+    sendGridPrefix: SENDGRID_API_KEY ? SENDGRID_API_KEY.substring(0, 7) : 'missing'
   });
   
   if (!AIRTABLE_BASE_ID || !AIRTABLE_TOKEN || !SENDGRID_API_KEY) {
@@ -402,7 +403,16 @@ exports.handler = async (event, context) => {
         await sgMail.send(msg);
         console.log(`✅ Check-in email sent to ${userName} from ${character.Name}`);
       } catch (error) {
-        console.error(`❌ Failed to send email to ${userName}:`, error);
+        console.error(`❌ Failed to send email to ${userName}:`, {
+          message: error.message,
+          code: error.code,
+          response: error.response?.body,
+          fullError: error
+        });
+        // Log the actual SendGrid error details
+        if (error.response) {
+          console.error('SendGrid response error:', error.response.body);
+        }
       }
     }
 
