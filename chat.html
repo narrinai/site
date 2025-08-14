@@ -1065,9 +1065,11 @@
 
     .btn-memory,
     .btn-customize {
-      width: 45px;
-      height: 45px;
-      padding: 0;
+      width: 45px !important;
+      height: 45px !important;
+      min-width: 45px !important;
+      max-width: 45px !important;
+      padding: 0 !important;
       background: var(--gradient-primary);
       color: var(--color-white);
       border: none;
@@ -1076,18 +1078,15 @@
       font-weight: 600;
       cursor: pointer;
       transition: all var(--transition-base);
-      display: flex;
+      display: flex !important;
       align-items: center;
       justify-content: center;
-      margin-left: 12px;
-      min-width: fit-content;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
+      margin-left: 8px;
+      gap: 0 !important;
       box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
       text-transform: none;
-      letter-spacing: 0.3px;
+      letter-spacing: 0;
+      flex-shrink: 0;
     }
     
     /* Button text visibility */
@@ -1278,10 +1277,13 @@
     
     @media (max-width: 768px) {
       .conversation-topics {
-        margin-top: 10px;
+        margin-top: 15px;
         padding: 12px 10px;
         border-radius: var(--radius-md);
         margin-bottom: 10px;
+        background: transparent;
+        border: none;
+        box-shadow: none;
       }
       
       .chat-header {
@@ -1514,6 +1516,8 @@
       box-shadow: var(--shadow-xl);
       border: 2px solid var(--color-light-gray);
       position: relative;
+      touch-action: none; /* Prevent swipe gestures */
+      -webkit-overflow-scrolling: auto; /* Disable momentum scrolling */
     }
     
     .customization-body {
@@ -13673,14 +13677,58 @@ hideTypingIndicator();
       window.justCompletedOnboarding = false; // Reset flag
     }
     
-    // Store the reply in a data attribute to avoid escaping issues
-    divBot.setAttribute('data-reply', cleanReply);
+    // Split the reply into natural message chunks
+    const messageChunks = splitIntoNaturalMessages(cleanReply);
     
-    // Use voice-enabled typewriter if character has voice
-    if (currentCharacter.voice_id) {
-      typewriterWithVoice(typingSpan, cleanReply, currentCharacter.voice_id);
+    // If we have multiple chunks, remove the current divBot and create separate messages
+    if (messageChunks.length > 1) {
+      chatlog.removeChild(divBot);
+      
+      // Create separate message for each chunk with a delay
+      messageChunks.forEach((chunk, index) => {
+        setTimeout(() => {
+          const msgDiv = document.createElement("p");
+          const msgAvatarHtml = getAvatarHtml();
+          
+          msgDiv.innerHTML = `<strong>${msgAvatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text-${index}"></span>`;
+          chatlog.appendChild(msgDiv);
+          
+          const msgTypingSpan = msgDiv.querySelector(`.typing-text-${index}`);
+          
+          // Use typewriter effect for each message
+          if (currentCharacter.voice_id && index === 0) { // Only add voice to first message
+            typewriterWithVoice(msgTypingSpan, chunk, currentCharacter.voice_id);
+          } else {
+            typewriterEffect(msgTypingSpan, chunk);
+          }
+          
+          // After typewriter completes, format the message
+          const typewriterDuration = chunk.length * 20 + 100;
+          setTimeout(() => {
+            const formattedChunk = formatAIResponse(chunk);
+            msgTypingSpan.innerHTML = formattedChunk;
+            
+            // Add TTS button only to first message if character has voice
+            if (index === 0 && currentCharacter.voice_id && !window.processingOnboardingWelcome && !isFirstMessageAfterOnboarding && !msgDiv.querySelector('.voice-play-btn')) {
+              const voiceButtonHtml = `<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice('${cleanReply.replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
+              msgDiv.innerHTML += voiceButtonHtml;
+            }
+          }, typewriterDuration);
+          
+          // Scroll to bottom
+          chatlog.scrollTop = chatlog.scrollHeight;
+        }, index * 500); // Delay each message by 500ms
+      });
     } else {
-      typewriterEffect(typingSpan, cleanReply);
+      // Single message - use existing logic
+      divBot.setAttribute('data-reply', cleanReply);
+      
+      // Use voice-enabled typewriter if character has voice
+      if (currentCharacter.voice_id) {
+        typewriterWithVoice(typingSpan, cleanReply, currentCharacter.voice_id);
+      } else {
+        typewriterEffect(typingSpan, cleanReply);
+      }
     }
     
     // After typewriter completes, apply formatting for better readability
@@ -15265,15 +15313,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     async function submitOnboarding() {
-      // Process answers to merge "other" text with "other" selection
+      // Process answers to merge "other" text with "other" selection AND store full labels
       const processedAnswers = {};
+      const category = getNormalizedCategory(currentCharacter);
+      const config = window.onboardingQuestions && window.onboardingQuestions[category];
+      
       for (const [key, value] of Object.entries(onboardingAnswers)) {
         if (!key.endsWith('_other')) {
           if (value === 'other' && onboardingAnswers[key + '_other']) {
             // Replace "other" with the actual text entered
             processedAnswers[key] = onboardingAnswers[key + '_other'];
           } else {
-            processedAnswers[key] = value;
+            // Find the full label for option values
+            if (config && config.questions) {
+              const question = config.questions.find(q => q.id === key);
+              if (question && question.type === 'options' && question.options) {
+                const option = question.options.find(opt => opt.value === value);
+                if (option) {
+                  // Store the full label text instead of just the value
+                  processedAnswers[key] = option.label;
+                } else {
+                  processedAnswers[key] = value;
+                }
+              } else {
+                processedAnswers[key] = value;
+              }
+            } else {
+              processedAnswers[key] = value;
+            }
           }
         }
       }
