@@ -1113,27 +1113,69 @@
       box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
     }
     
-    /* Mobile-specific button styles - icon only, no background */
+    /* Desktop button styles - like conversation topics */
+    @media (min-width: 769px) {
+      .btn-memory,
+      .btn-customize {
+        padding: 10px 16px;
+        background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-left: 8px;
+      }
+      
+      .btn-memory:hover,
+      .btn-customize:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+      }
+    }
+    
+    /* Mobile-specific button styles - icon only, no background, no border */
     @media (max-width: 768px) {
       .btn-memory,
       .btn-customize {
         width: 36px;
         height: 36px;
         padding: 0;
-        margin-left: 4px;
+        margin-left: 8px;
         background: transparent;
         border: none;
+        box-shadow: none;
         color: var(--color-gray);
         font-size: 24px;
         display: flex;
         align-items: center;
         justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border-radius: 0;
       }
       
       .btn-memory:hover,
       .btn-customize:hover {
         color: var(--color-teal);
         transform: scale(1.2);
+        background: transparent;
+        box-shadow: none;
+      }
+      
+      .btn-memory .desktop-text,
+      .btn-customize .desktop-text {
+        display: none;
+      }
+      
+      .btn-memory .mobile-icon,
+      .btn-customize .mobile-icon {
+        display: block;
       }
     }
 
@@ -2225,6 +2267,8 @@
       .btn-customize {
         width: 32px;
         height: 32px;
+        border: none;
+        box-shadow: none;
       }
       
       /* Make chat screen taller on mobile */
@@ -3435,6 +3479,307 @@
       }
     }
     
+    /* ===== DESKTOP ACTION BUTTONS ===== */
+    .desktop-action-buttons {
+      background: var(--color-white);
+      padding: var(--spacing-lg) var(--spacing-xl);
+      border-radius: var(--radius-lg);
+      max-width: 900px;
+      margin: 0 auto;
+      margin-top: var(--spacing-md);
+      margin-bottom: var(--spacing-md);
+      box-shadow: var(--shadow-sm);
+      border: 2px solid var(--color-light-gray);
+      display: flex;
+      gap: var(--spacing-md);
+      justify-content: center;
+      transition: all 300ms ease-out;
+    }
+
+    .desktop-action-buttons:hover {
+      border-color: var(--color-teal);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-xl);
+    }
+
+    .action-btn {
+      background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+      color: white;
+      border: none;
+      border-radius: var(--radius-md);
+      padding: 10px 20px;
+      font-size: var(--font-size-base);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .action-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+      background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
+    }
+
+    .action-btn span {
+      font-size: 18px;
+    }
+
+    /* Hide desktop buttons on mobile */
+    @media (max-width: 768px) {
+      .desktop-action-buttons {
+        display: none !important;
+      }
+    }
+
+    /* Hide mobile buttons on desktop */
+    @media (min-width: 769px) {
+      .btn-memory,
+      .btn-customize {
+        display: none !important;
+      }
+    }
+
+    /* ===== MEMORY HUB MODAL STYLES ===== */
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      z-index: var(--z-modal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .memory-hub-modal {
+      background: var(--color-white);
+      border-radius: var(--radius-xl);
+      max-width: 700px;
+      width: 100%;
+      max-height: 80vh;
+      overflow: hidden;
+      box-shadow: var(--shadow-xl);
+      display: flex;
+      flex-direction: column;
+      animation: slideUp 0.3s ease-out;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: transparent;
+      border: none;
+      font-size: 24px;
+      color: var(--color-gray);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      z-index: 10;
+    }
+
+    .modal-close:hover {
+      color: var(--color-navy);
+      transform: scale(1.1);
+    }
+
+    .memory-hub-header {
+      padding: 30px 30px 20px;
+      border-bottom: 1px solid var(--color-light-gray);
+      text-align: center;
+    }
+
+    .modal-title {
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-2xl);
+      font-weight: 700;
+      color: var(--color-navy);
+      margin: 0 0 8px 0;
+    }
+
+    .modal-subtitle {
+      color: var(--color-gray);
+      font-size: var(--font-size-base);
+      margin: 0;
+    }
+
+    .memory-hub-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #memoryHubContent {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 30px;
+    }
+
+    .memory-item {
+      background: var(--color-off-white);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 16px;
+      border: 1px solid var(--color-light-gray);
+      transition: all 0.3s ease;
+    }
+
+    .memory-item:hover {
+      border-color: var(--color-teal);
+      box-shadow: var(--shadow-md);
+    }
+
+    .memory-question {
+      font-weight: 600;
+      color: var(--color-navy);
+      font-size: var(--font-size-base);
+      margin-bottom: 10px;
+    }
+
+    .memory-answer {
+      color: var(--color-gray-dark);
+      font-size: var(--font-size-base);
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+
+    .discuss-btn {
+      background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+      color: white;
+      border: none;
+      border-radius: var(--radius-md);
+      padding: 8px 16px;
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .discuss-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+    }
+
+    .memory-hub-footer {
+      padding: 20px 30px;
+      border-top: 1px solid var(--color-light-gray);
+      display: flex;
+      justify-content: center;
+    }
+
+    .update-answers-btn {
+      background: var(--gradient-primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius-lg);
+      padding: 12px 24px;
+      font-size: var(--font-size-base);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .update-answers-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(20, 184, 166, 0.3);
+    }
+
+    .loading-spinner {
+      text-align: center;
+      color: var(--color-gray);
+      padding: 40px;
+      font-size: var(--font-size-base);
+    }
+
+    .no-memories {
+      text-align: center;
+      color: var(--color-gray);
+      padding: 40px;
+    }
+
+    .no-memories-title {
+      font-size: var(--font-size-lg);
+      font-weight: 600;
+      color: var(--color-navy);
+      margin-bottom: 10px;
+    }
+
+    .no-memories-text {
+      font-size: var(--font-size-base);
+      color: var(--color-gray);
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(20px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .memory-hub-modal {
+        max-height: 90vh;
+        border-radius: var(--radius-lg);
+      }
+
+      .memory-hub-header {
+        padding: 20px 20px 15px;
+      }
+
+      .modal-title {
+        font-size: var(--font-size-xl);
+      }
+
+      .modal-subtitle {
+        font-size: var(--font-size-sm);
+      }
+
+      #memoryHubContent {
+        padding: 15px 20px;
+      }
+
+      .memory-item {
+        padding: 15px;
+      }
+
+      .memory-hub-footer {
+        padding: 15px 20px;
+      }
+
+      .modal-close {
+        top: 15px;
+        right: 15px;
+      }
+    }
+
     /* ===== ONBOARDING OVERLAY STYLES ===== */
     .onboarding-overlay {
       position: fixed;
@@ -3978,6 +4323,29 @@
 </head>
 
 <body>
+  <!-- Memory Hub Modal -->
+  <div id="memoryHubModal" class="modal-backdrop" style="display: none;">
+    <div class="memory-hub-modal">
+      <button class="modal-close" onclick="closeMemoryHub()">✕</button>
+      <div class="memory-hub-header">
+        <h2 class="modal-title">🧠 Memory Hub</h2>
+        <p class="modal-subtitle">Your onboarding answers and preferences</p>
+      </div>
+      
+      <div class="memory-hub-body">
+        <div id="memoryHubContent">
+          <div class="loading-spinner">Loading your memories...</div>
+        </div>
+        
+        <div class="memory-hub-footer">
+          <button class="update-answers-btn" onclick="restartOnboarding()">
+            <span>🔄</span> Update Answers
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Custom Notification System -->
   <div class="notification-overlay" id="notificationOverlay">
     <div class="notification-modal">
@@ -4246,8 +4614,12 @@
             <h2 id="characterName">Connecting...</h2>
             <p id="characterTitle"></p>
           </div>
-          <button class="btn-customize" onclick="openCustomizationModal()" id="customizeBtn" style="display: none;" title="Customize character">
-            <span class="desktop-text">Customize</span>
+          <button class="btn-memory" onclick="openMemoryHub()" id="memoryBtn" style="display: none;" title="View memories">
+            <span class="desktop-text">🧠 Memory</span>
+            <span class="mobile-icon">🧠</span>
+          </button>
+          <button class="btn-customize" onclick="openCustomizationModal()" id="customizeBtn" style="display: none;" title="Customize companion">
+            <span class="desktop-text">⚙️ Customize</span>
             <span class="mobile-icon">⚙️</span>
           </button>
         </div>
@@ -4284,6 +4656,16 @@
             Read our <a href="privacy-policy.html" class="disclaimer-link">privacy policy</a> and <a href="terms-and-conditions.html" class="disclaimer-link">terms and conditions</a> for full details.
           </div>
         </div>
+      </div>
+      
+      <!-- Desktop Action Buttons (below chat, only visible on desktop) -->
+      <div class="desktop-action-buttons" id="desktopActionButtons" style="display: none;">
+        <button class="action-btn memory-btn" onclick="openMemoryHub()">
+          <span>🧠</span> Memory
+        </button>
+        <button class="action-btn customize-btn" onclick="openCustomizationModal()">
+          <span>⚙️</span> Customize
+        </button>
       </div>
       
       <!-- Conversation Topics Section (below chat) -->
@@ -7813,8 +8195,15 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     // Show customize and memory buttons if user is logged in
     const userToken = localStorage.getItem('user_token');
     const customizeBtn = document.getElementById('customizeBtn');
+    const memoryBtn = document.getElementById('memoryBtn');
+    const desktopActionButtons = document.getElementById('desktopActionButtons');
+    
     if (userToken) {
+      // Show mobile buttons
       if (customizeBtn) customizeBtn.style.display = 'inline-block';
+      if (memoryBtn) memoryBtn.style.display = 'inline-block';
+      // Show desktop buttons
+      if (desktopActionButtons) desktopActionButtons.style.display = 'flex';
     }
     
     // Generate conversation topics after character is loaded
@@ -10031,6 +10420,253 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize customization form
   initializeCustomizationForm();
 });
+
+// ===== MEMORY HUB SYSTEM =====
+async function openMemoryHub() {
+  console.log('🧠 Opening Memory Hub');
+  const modal = document.getElementById('memoryHubModal');
+  const content = document.getElementById('memoryHubContent');
+  
+  if (!modal || !content) {
+    console.error('Memory Hub modal elements not found');
+    return;
+  }
+  
+  modal.style.display = 'flex';
+  content.innerHTML = '<div class="loading-spinner">Loading your memories...</div>';
+  
+  try {
+    // Get user data
+    const uid = localStorage.getItem('user_uid');
+    const slug = characterSlug;
+    
+    if (!uid || !slug) {
+      content.innerHTML = `
+        <div class="no-memories">
+          <div class="no-memories-title">No Memories Yet</div>
+          <div class="no-memories-text">Complete the onboarding to save your preferences</div>
+        </div>
+      `;
+      return;
+    }
+    
+    // First try to get from localStorage
+    const storageKey = `onboarding_${uid}_${slug}`;
+    const storedOnboarding = localStorage.getItem(storageKey);
+    let onboardingData = null;
+    
+    if (storedOnboarding) {
+      try {
+        onboardingData = JSON.parse(storedOnboarding);
+        console.log('✅ Loaded onboarding from localStorage:', onboardingData);
+      } catch (e) {
+        console.error('Error parsing stored onboarding:', e);
+      }
+    }
+    
+    // If not in localStorage or we want fresher data, try to get from Airtable
+    if (!onboardingData || !onboardingData.answers) {
+      console.log('📊 Fetching from Airtable...');
+      const response = await fetch('/.netlify/functions/get-chat-history', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: uid,
+          character_id: slug
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('📊 Airtable response:', data);
+        
+        // Look for onboarding data in metadata field
+        if (data.metadata && data.metadata.onboarding) {
+          onboardingData = { answers: data.metadata.onboarding };
+          // Store in localStorage for next time
+          localStorage.setItem(storageKey, JSON.stringify(onboardingData));
+          console.log('✅ Found onboarding in Airtable metadata');
+        }
+      }
+    }
+    
+    // Display the onboarding data
+    if (onboardingData && onboardingData.answers) {
+      displayMemoryHubContent(onboardingData.answers);
+    } else {
+      content.innerHTML = `
+        <div class="no-memories">
+          <div class="no-memories-title">No Memories Yet</div>
+          <div class="no-memories-text">Start a conversation to begin building memories with ${currentCharacter?.Name || 'your companion'}</div>
+        </div>
+      `;
+    }
+    
+  } catch (error) {
+    console.error('❌ Error loading Memory Hub:', error);
+    content.innerHTML = `
+      <div class="no-memories">
+        <div class="no-memories-title">Unable to Load Memories</div>
+        <div class="no-memories-text">Please try again later</div>
+      </div>
+    `;
+  }
+}
+
+function displayMemoryHubContent(answers) {
+  const content = document.getElementById('memoryHubContent');
+  const category = currentCharacter?.Category || currentCharacter?.category || '';
+  const config = window.onboardingQuestions && window.onboardingQuestions[category];
+  
+  if (!config || !config.questions) {
+    content.innerHTML = `
+      <div class="no-memories">
+        <div class="no-memories-title">Configuration Error</div>
+        <div class="no-memories-text">Unable to load question configuration</div>
+      </div>
+    `;
+    return;
+  }
+  
+  let html = '';
+  
+  for (const [questionId, answer] of Object.entries(answers)) {
+    const question = config.questions.find(q => q.id === questionId);
+    if (question) {
+      // Get the display text for the answer
+      let displayAnswer = answer;
+      if (question.type === 'options' && question.options) {
+        const option = question.options.find(opt => opt.value === answer);
+        if (option) {
+          displayAnswer = option.label;
+        }
+      }
+      
+      html += `
+        <div class="memory-item">
+          <div class="memory-question">${question.question}</div>
+          <div class="memory-answer">${displayAnswer}</div>
+          <button class="discuss-btn" onclick="discussMemory('${questionId}', '${answer.replace(/'/g, "\\'")}')">
+            💬 Let's discuss
+          </button>
+        </div>
+      `;
+    }
+  }
+  
+  if (html) {
+    content.innerHTML = html;
+  } else {
+    content.innerHTML = `
+      <div class="no-memories">
+        <div class="no-memories-title">No Memories Found</div>
+        <div class="no-memories-text">Your onboarding answers will appear here</div>
+      </div>
+    `;
+  }
+}
+
+function discussMemory(questionId, answer) {
+  console.log('💬 Discussing memory:', questionId, answer);
+  
+  // Close the Memory Hub modal
+  closeMemoryHub();
+  
+  // Get the question text
+  const category = currentCharacter?.Category || currentCharacter?.category || '';
+  const config = window.onboardingQuestions && window.onboardingQuestions[category];
+  const question = config?.questions?.find(q => q.id === questionId);
+  
+  if (!question) {
+    console.error('Question not found:', questionId);
+    return;
+  }
+  
+  // Create a conversational message about this answer
+  let message = '';
+  
+  // Create contextual discussion starters based on the question
+  switch(questionId) {
+    case 'career_stage':
+      message = `I'd like to discuss my career situation. ${answer === 'transition' ? "I'm currently in a career transition" : answer === 'established' ? "I'm established in my career" : "I'm just starting my career journey"}.`;
+      break;
+    case 'main_challenge':
+      message = `Let's talk about my main challenge: ${answer}. Can you help me with this?`;
+      break;
+    case 'support_type':
+      message = `I'm looking for ${answer} support. What advice do you have for me?`;
+      break;
+    case 'communication_style':
+      message = `Since I prefer ${answer} communication, can we explore this topic in that style?`;
+      break;
+    case 'goal_timeline':
+      message = `My goal timeline is ${answer}. How should I approach this?`;
+      break;
+    case 'relationship_status':
+      message = `Let's talk about my relationship status. I'm ${answer}.`;
+      break;
+    case 'relationship_goal':
+      message = `My relationship goal is ${answer}. Can we discuss this?`;
+      break;
+    case 'love_challenge':
+      message = `I'm dealing with ${answer} in my love life. What's your perspective?`;
+      break;
+    case 'life_area':
+      message = `I want to focus on ${answer}. Can you help me with this area?`;
+      break;
+    case 'current_feeling':
+      message = `I've been feeling ${answer} lately. Can we talk about this?`;
+      break;
+    default:
+      // Generic fallback
+      message = `I mentioned that "${answer}" when asked about "${question.question}". Can we explore this further?`;
+  }
+  
+  // Set the message in the input field
+  const userInput = document.getElementById('userInput');
+  if (userInput) {
+    userInput.value = message;
+    // Optionally auto-send the message
+    // sendMessage();
+  }
+}
+
+function closeMemoryHub() {
+  const modal = document.getElementById('memoryHubModal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+}
+
+function restartOnboarding() {
+  console.log('🔄 Restarting onboarding');
+  
+  // Close Memory Hub
+  closeMemoryHub();
+  
+  // Clear the stored onboarding flag to force it to show again
+  const uid = localStorage.getItem('user_uid');
+  const slug = characterSlug;
+  
+  if (uid && slug) {
+    const storageKey = `onboarding_shown_${uid}_${slug}`;
+    localStorage.removeItem(storageKey);
+    
+    // Also clear the onboarding data so it starts fresh
+    const dataKey = `onboarding_${uid}_${slug}`;
+    localStorage.removeItem(dataKey);
+  }
+  
+  // Reset current question index
+  currentQuestionIndex = 0;
+  
+  // Show the onboarding overlay
+  const onboardingOverlay = document.getElementById('onboardingOverlay');
+  if (onboardingOverlay) {
+    // Force show the onboarding
+    checkAndShowOnboarding();
+  }
+}
 
 // ===== CHARACTER CUSTOMIZATION SYSTEM =====
 let customizedCharacters = JSON.parse(localStorage.getItem('customizedCharacters') || '{}');
