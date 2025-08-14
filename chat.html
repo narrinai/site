@@ -1141,17 +1141,22 @@
         background: var(--gradient-primary);
         color: var(--color-white);
         border: none;
-        padding: var(--spacing-xs) var(--spacing-md);
-        border-radius: var(--radius-md);
-        font-size: var(--font-size-sm);
+        padding: 8px 14px;
+        border-radius: 25px;
+        font-size: 13px;
         font-weight: 400;
         cursor: pointer;
         transition: all var(--transition-base);
         display: inline-flex;
         align-items: center;
-        gap: 6px;
+        gap: 4px;
         line-height: 1.4;
         box-shadow: none;
+      }
+      
+      .btn-memory .desktop-text,
+      .btn-customize .desktop-text {
+        font-size: 13px;
       }
       
       .btn-memory:hover,
@@ -1249,7 +1254,7 @@
       border-radius: var(--radius-lg);
       max-width: 900px;
       margin: 0 auto;
-      margin-top: 0;
+      margin-top: var(--spacing-md);
       box-shadow: var(--shadow-sm);
       border: 2px solid var(--color-light-gray);
       transition: all 300ms ease-out;
@@ -3213,8 +3218,12 @@
         width: 36px;
         height: 36px;
         font-size: var(--font-size-lg);
-        top: var(--spacing-sm);
-        right: var(--spacing-sm);
+        top: 10px;
+        right: 10px;
+      }
+      
+      .customization-header {
+        padding-top: 60px;
       }
       
       .modal-body {
@@ -3608,36 +3617,33 @@
       animation: slideUp 0.3s ease-out;
     }
 
-    .modal-close {
+    .memory-hub-modal .modal-close {
       position: absolute;
-      top: 15px;
-      right: 15px;
-      background: var(--color-light-gray);
+      top: 30px;
+      right: 30px;
+      background: transparent;
       border: none;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      font-size: 20px;
+      width: auto;
+      height: auto;
+      font-size: 28px;
       color: var(--color-gray-dark);
       cursor: pointer;
       transition: all 0.2s ease;
       z-index: 10;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      padding: 0;
       line-height: 1;
     }
 
-    .modal-close:hover {
-      background: var(--color-gray-light);
+    .memory-hub-modal .modal-close:hover {
       color: var(--color-navy);
-      transform: scale(1.05);
+      transform: scale(1.1);
     }
 
     .memory-hub-header {
       padding: 30px 30px 20px;
       border-bottom: 1px solid var(--color-light-gray);
       text-align: center;
+      position: relative;
     }
 
     .modal-title {
@@ -3794,7 +3800,7 @@
       }
 
       .memory-hub-header {
-        padding: 20px 20px 15px;
+        padding: 50px 20px 15px;
       }
 
       .modal-title {
@@ -3817,9 +3823,10 @@
         padding: 15px 20px;
       }
 
-      .modal-close {
+      .memory-hub-modal .modal-close {
         top: 15px;
         right: 15px;
+        font-size: 24px;
       }
     }
 
@@ -4369,8 +4376,8 @@
   <!-- Memory Hub Modal -->
   <div id="memoryHubModal" class="modal-backdrop" style="display: none;">
     <div class="memory-hub-modal">
-      <button class="modal-close" onclick="closeMemoryHub()">✕</button>
       <div class="memory-hub-header">
+        <button class="modal-close" onclick="closeMemoryHub()">✕</button>
         <h2 class="modal-title">🧠 Memory Hub</h2>
         <p class="modal-subtitle">Your onboarding answers and preferences</p>
       </div>
@@ -4732,8 +4739,8 @@
     <div class="customization-modal-content">
       <div class="customization-header">
         <button class="close-modal" onclick="closeCustomizationModal()">✕</button>
-        <h2>⚙️ Customize Character</h2>
-        <p class="customization-subtitle">Make this character your own! Your customized version will be saved privately for you.</p>
+        <h2>⚙️ Customize Companion</h2>
+        <p class="customization-subtitle">Make this companion your own! Your customized version will be saved privately for you.</p>
       </div>
       
       <div class="customization-body">
@@ -4744,20 +4751,20 @@
             <h2>Basic Information</h2>
             
             <div class="form-group">
-              <label for="customName">Character Name</label>
-              <input type="text" id="customName" placeholder="Give your character a name" maxlength="50">
+              <label for="customName">Companion Name</label>
+              <input type="text" id="customName" placeholder="Give your companion a name" maxlength="50">
               <div class="char-counter"><span id="nameCounter">0</span>/50</div>
             </div>
             
             <div class="form-group">
-              <label for="customTitle">Character Title</label>
+              <label for="customTitle">Companion Title</label>
               <input type="text" id="customTitle" placeholder="Brief description (e.g., Your Personal Life Coach)" maxlength="100">
               <div class="char-counter"><span id="titleCounter">0</span>/100</div>
             </div>
             
             <div class="form-group">
               <label for="customCharacterType">Companion Type</label>
-              <select id="customCharacterType" name="customCharacterType">
+              <select id="customCharacterType" name="customCharacterType" class="voice-select">
                 <option value="">Select companion type...</option>
                 <option value="friendship">🤝 Friendship - A supportive friend and companion</option>
                 <option value="mentor">🎓 Mentor - A guide and teacher</option>
@@ -10696,22 +10703,50 @@ function restartOnboarding() {
   const slug = characterSlug;
   
   if (uid && slug) {
-    const storageKey = `onboarding_shown_${uid}_${slug}`;
-    localStorage.removeItem(storageKey);
+    // Clear all onboarding-related localStorage entries
+    const completionKey = `onboarding_${uid}_${slug}`;
+    const shownKey = `onboarding_shown_${uid}_${slug}`;
     
-    // Also clear the onboarding data so it starts fresh
-    const dataKey = `onboarding_${uid}_${slug}`;
-    localStorage.removeItem(dataKey);
+    localStorage.removeItem(completionKey);
+    localStorage.removeItem(shownKey);
+    
+    console.log('✅ Cleared onboarding data for restart');
+  }
+  
+  // Clear any existing onboarding context
+  if (window.additionalContext) {
+    delete window.additionalContext.onboarding;
+    delete window.additionalContext.welcomeMessage;
+    delete window.additionalContext.suggestions;
   }
   
   // Reset current question index
   currentQuestionIndex = 0;
   
-  // Show the onboarding overlay
+  // Directly show the onboarding overlay
   const onboardingOverlay = document.getElementById('onboardingOverlay');
   if (onboardingOverlay) {
-    // Force show the onboarding
-    checkAndShowOnboarding();
+    // Hide chat interface
+    const chatInterface = document.getElementById('chatInterface');
+    if (chatInterface) {
+      chatInterface.style.display = 'none';
+    }
+    
+    // Show onboarding overlay
+    onboardingOverlay.style.display = 'flex';
+    
+    // Initialize onboarding questions
+    if (typeof initializeOnboarding === 'function') {
+      initializeOnboarding();
+    } else {
+      // Fallback: reload page to trigger onboarding
+      sessionStorage.setItem('restart_onboarding', 'true');
+      window.location.reload();
+    }
+  } else {
+    // If overlay not found, reload page
+    sessionStorage.setItem('restart_onboarding', 'true');
+    window.location.reload();
   }
 }
 
