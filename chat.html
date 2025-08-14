@@ -8764,11 +8764,18 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       document.getElementById('loadingState').style.display = 'none';
       
       // Check if onboarding is needed before showing chat
-      if (!checkAndShowOnboarding()) {
-        // No onboarding needed, show chat directly
-        document.getElementById('chatInterface').style.display = 'block';
+      // Make sure function exists before calling it
+      if (typeof checkAndShowOnboarding === 'function') {
+        if (!checkAndShowOnboarding()) {
+          // No onboarding needed, show chat directly
+          document.getElementById('chatInterface').style.display = 'block';
+        } else {
+          // Onboarding is shown, chat will be displayed after completion
+          document.getElementById('chatInterface').style.display = 'block';
+        }
       } else {
-        // Onboarding is shown, chat will be displayed after completion
+        console.warn('⚠️ checkAndShowOnboarding function not yet loaded');
+        // Show chat interface anyway
         document.getElementById('chatInterface').style.display = 'block';
       }
 
@@ -15350,7 +15357,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const userId = localStorage.getItem('user_id') || localStorage.getItem('user_uid') || 'anonymous';
       const userToken = localStorage.getItem('user_token');
       const characterId = currentCharacter.character_id || currentCharacter.id || currentCharacter.Character_ID || '';
-      const category = currentCharacter.Category || currentCharacter.category || '';
+      // category is already declared above, so we just use it here
       
       // Store onboarding answers temporarily (use processed answers)
       const tempOnboardingKey = `temp_onboarding_${characterId}`;
