@@ -185,8 +185,12 @@ exports.handler = async (event, context) => {
     // Process each inactive chat
     let processedCount = 0;
     let skippedCount = 0;
+    let emailsSentCount = 0;
+    let errors = [];
     
     for (const chat of inactiveChats) {
+      console.log(`\n🔍 Processing chat for user ${chat.user_record_id}`);
+      
       // Get user details using filterByFormula with record ID
       const userResponse = await fetch(
         `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=${encodeURIComponent(`RECORD_ID()='${chat.user_record_id}'`)}`,
@@ -200,7 +204,9 @@ exports.handler = async (event, context) => {
 
       const userData = await userResponse.json();
       if (!userData.records || userData.records.length === 0) {
-        console.log(`User record ${chat.user_record_id} not found`);
+        console.log(`❌ User record ${chat.user_record_id} not found in Airtable`);
+        errors.push(`User ${chat.user_record_id} not found`);
+        skippedCount++;
         continue;
       }
       
@@ -401,9 +407,10 @@ exports.handler = async (event, context) => {
 
       try {
         await sgMail.send(msg);
-        console.log(`✅ Check-in email sent to ${userName} from ${character.Name}`);
+        console.log(`✅ Check-in email sent to ${userName} (${userEmail}) from ${character.Name}`);
+        emailsSentCount++;
       } catch (error) {
-        console.error(`❌ Failed to send email to ${userName}:`, {
+        console.error(`❌ Failed to send email to ${userName} (${userEmail}):`, {
           message: error.message,
           code: error.code,
           response: error.response?.body,
@@ -413,6 +420,7 @@ exports.handler = async (event, context) => {
         if (error.response) {
           console.error('SendGrid response error:', error.response.body);
         }
+        errors.push(`Email to ${userEmail} failed: ${error.message}`);
       }
     }
 
@@ -421,7 +429,9 @@ exports.handler = async (event, context) => {
     const responseBody = {
       success: true, 
       processed: processedCount,
-      message: `Processed ${processedCount} check-ins (${inactiveChats.length} found, ${skippedCount} skipped)`
+      emailsSent: emailsSentCount,
+      message: `Processed ${processedCount} check-ins, sent ${emailsSentCount} emails (${inactiveChats.length} found, ${skippedCount} skipped)`,
+      errors: errors.length > 0 ? errors : undefined
     };
     
     if (testMode) {
