@@ -1190,6 +1190,15 @@
         align-items: center;
         gap: 6px;
         line-height: 1;
+        position: relative;
+        top: -1px;
+      }
+      
+      .btn-memory .desktop-text span,
+      .btn-customize .desktop-text span {
+        display: inline-flex;
+        align-items: center;
+        line-height: 1;
       }
       
       .btn-memory:hover,
@@ -8921,12 +8930,34 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     
     // Function to split AI response into natural message chunks
     function splitIntoNaturalMessages(text) {
+      // Don't split messages that are already reasonably sized
+      if (text.length < 500) {
+        return [text];
+      }
+      
       const messages = [];
       
       // Split by double newlines first (natural paragraph breaks)
       const paragraphs = text.split(/\n\n+/);
       
-      for (let para of paragraphs) {
+      // Combine very short paragraphs (like lone emojis) with previous paragraph
+      const combinedParagraphs = [];
+      for (let i = 0; i < paragraphs.length; i++) {
+        const para = paragraphs[i].trim();
+        
+        // Skip empty paragraphs
+        if (!para) continue;
+        
+        // If this is a very short paragraph (< 20 chars, likely just emoji or fragment)
+        // and there's a previous paragraph, combine them
+        if (para.length < 20 && combinedParagraphs.length > 0) {
+          combinedParagraphs[combinedParagraphs.length - 1] += '\n\n' + para;
+        } else {
+          combinedParagraphs.push(para);
+        }
+      }
+      
+      for (let para of combinedParagraphs) {
         // If paragraph has a numbered list, keep it as one message
         if (para.match(/^\d+[\)\.]\s/m) || para.match(/\n\d+[\)\.]\s/)) {
           messages.push(para);
@@ -8935,11 +8966,11 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
         else if (para.match(/^[-•*]\s/m) || para.match(/\n[-•*]\s/)) {
           messages.push(para);
         }
-        // If paragraph is short (under 150 chars), keep as one message
-        else if (para.length < 150) {
+        // If paragraph is reasonably sized (under 400 chars), keep as one message
+        else if (para.length < 400) {
           messages.push(para);
         }
-        // For longer paragraphs, try to split at sentence boundaries
+        // For very long paragraphs, try to split at sentence boundaries
         else {
           // Split by sentences (. ! ?)
           const sentences = para.match(/[^.!?]+[.!?]+/g) || [para];
@@ -8947,7 +8978,7 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
           
           for (let sentence of sentences) {
             // If adding this sentence would make message too long, start new message
-            if (currentMessage && (currentMessage.length + sentence.length > 200)) {
+            if (currentMessage && (currentMessage.length + sentence.length > 400)) {
               messages.push(currentMessage.trim());
               currentMessage = sentence;
             } else {
@@ -8955,14 +8986,14 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
             }
           }
           
-          if (currentMessage) {
+          if (currentMessage && currentMessage.trim().length > 20) {
             messages.push(currentMessage.trim());
           }
         }
       }
       
-      // Filter out empty messages
-      return messages.filter(msg => msg.trim().length > 0);
+      // Filter out empty or too-short messages
+      return messages.filter(msg => msg.trim().length > 20);
     }
     
     // Function to format AI responses for better readability
@@ -11081,13 +11112,20 @@ function displayMemoryHubContent(answers) {
       }
       
       // Store the original answer value for the discuss function
-      const discussValue = typeof answer === 'string' ? answer.replace(/'/g, "\\'") : answer;
+      // Properly escape for use in onclick attribute
+      const discussValue = typeof answer === 'string' 
+        ? answer.replace(/\\/g, '\\\\')
+                .replace(/'/g, "\\'")
+                .replace(/"/g, '&quot;')
+                .replace(/\n/g, '\\n')
+                .replace(/\r/g, '\\r')
+        : String(answer);
       
       html += `
         <div class="memory-item">
           <div class="memory-question">${question.question}</div>
           <div class="memory-answer">${displayAnswer}</div>
-          <button class="discuss-btn" onclick="discussMemory('${questionId}', '${discussValue}')">
+          <button class="discuss-btn" onclick="window.discussMemory('${questionId}', '${discussValue}')">
             💬 Discuss
           </button>
         </div>
@@ -13996,7 +14034,7 @@ async function checkUsageLimit() {
 
     const plan = data.plan || 'Free';
     const usage = parseInt(data.usage) || 0;
-    const quota = parseInt(data.quota) || 50;
+    const quota = parseInt(data.quota) || 10;
 
     console.log('📊 Usage check:', { plan, usage, quota });
 
