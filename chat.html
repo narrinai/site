@@ -8111,6 +8111,82 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       return false;
     }
 
+    // Auto-assign voice based on character properties
+    function assignVoiceBasedOnCharacter(character) {
+      // Check character name and properties for gender indicators
+      const name = (character.name || character.Name || '').toLowerCase();
+      const title = (character.character_title || '').toLowerCase();
+      const description = (character.character_description || '').toLowerCase();
+      const prompt = character.prompt ? atob(character.prompt).toLowerCase() : '';
+      
+      // Combine all text for analysis
+      const allText = `${name} ${title} ${description} ${prompt}`;
+      
+      // Female indicators
+      const femaleIndicators = ['woman', 'girl', 'female', 'lady', 'mother', 'sister', 'daughter', 'she', 'her', 'feminine', 'queen', 'princess', 'goddess'];
+      // Male indicators  
+      const maleIndicators = ['man', 'boy', 'male', 'gentleman', 'father', 'brother', 'son', 'he', 'him', 'masculine', 'king', 'prince', 'god'];
+      
+      // Count indicators
+      let femaleScore = 0;
+      let maleScore = 0;
+      
+      femaleIndicators.forEach(indicator => {
+        if (allText.includes(indicator)) femaleScore++;
+      });
+      
+      maleIndicators.forEach(indicator => {
+        if (allText.includes(indicator)) maleScore++;
+      });
+      
+      // Common female names
+      const femaleNames = ['anna', 'emma', 'olivia', 'sophia', 'isabella', 'charlotte', 'amelia', 'mia', 'harper', 'evelyn', 'ramona', 'lucy', 'lily', 'chloe', 'grace', 'zoey', 'emily', 'sarah', 'jessica', 'ashley', 'samantha'];
+      // Common male names
+      const maleNames = ['james', 'john', 'robert', 'michael', 'william', 'david', 'richard', 'joseph', 'thomas', 'charles', 'chris', 'daniel', 'matthew', 'anthony', 'mark', 'donald', 'steven', 'paul', 'andrew', 'joshua'];
+      
+      // Check if name matches common names
+      if (femaleNames.includes(name)) femaleScore += 2;
+      if (maleNames.includes(name)) maleScore += 2;
+      
+      // Select voice based on scores
+      // Using ElevenLabs voice IDs
+      const femaleVoices = [
+        'EXAVITQu4vr4xnSDxMaL', // Sarah
+        'MF3mGyEYCl7XYWbV9V6O', // Elli
+        'XrExE9yKIg1WjnnlVkGX', // Lily
+        'pFZP5JQG7iQjIQuC4Bku' // Lily (British)
+      ];
+      
+      const maleVoices = [
+        'N2lVS1w4EtoT3dr4eOWO', // Callum
+        'CwhRBWXzGAHq8TQ4Fs17', // Roger
+        'IKne3meq5aSn9XLyUdCD', // Charlie
+        'UFPpZ8PcNQd7KWIhYLjl' // Eric
+      ];
+      
+      // Default/neutral voices
+      const neutralVoices = [
+        'FGY2WhTYpPnrIDTdsKH5', // Laura
+        'XB0fDUnXU5powFXDhCwa', // Charlotte
+        '21m00Tcm4TlvDq8ikWAM', // Rachel
+        'AZnzlk1XvdvUeBnXmlld' // Domi
+      ];
+      
+      // Choose voice based on analysis
+      let selectedVoice;
+      if (femaleScore > maleScore) {
+        selectedVoice = femaleVoices[Math.floor(Math.random() * femaleVoices.length)];
+      } else if (maleScore > femaleScore) {
+        selectedVoice = maleVoices[Math.floor(Math.random() * maleVoices.length)];
+      } else {
+        // Neutral or unclear - use neutral voices
+        selectedVoice = neutralVoices[Math.floor(Math.random() * neutralVoices.length)];
+      }
+      
+      console.log(`Voice assignment - Female score: ${femaleScore}, Male score: ${maleScore}, Selected: ${selectedVoice}`);
+      return selectedVoice;
+    }
+
     async function loadCharacter(slug) {
   try {
     console.log("Loading character:", slug);
@@ -8248,10 +8324,23 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       data.character.prompt = atob(data.character.prompt);
     }
 
-    // Auto-assign voice_id if not present
-    if (!data.character.voice_id && data.character.voice_type !== 'none') {
-      console.log('No voice_id found, auto-assigning based on character properties');
-      data.character.voice_id = assignVoiceBasedOnCharacter(data.character);
+    // Check if voice_id and voice_type are present from Airtable
+    if (!data.character.voice_id || !data.character.voice_type || data.character.voice_type === '') {
+      console.warn('⚠️ Missing voice configuration in Airtable for character:', data.character.name);
+      console.warn('  - voice_id:', data.character.voice_id || 'missing');
+      console.warn('  - voice_type:', data.character.voice_type || 'missing');
+      
+      // Auto-assign voice configuration if missing
+      if (!data.character.voice_id) {
+        console.log('Auto-assigning voice_id based on character properties');
+        data.character.voice_id = assignVoiceBasedOnCharacter(data.character);
+      }
+      
+      // Set voice_type to 'elevenlabs' if voice_id exists but voice_type is missing
+      if (data.character.voice_id && (!data.character.voice_type || data.character.voice_type === '')) {
+        console.log('Setting voice_type to elevenlabs since voice_id exists');
+        data.character.voice_type = 'elevenlabs';
+      }
     }
 
     currentCharacter = data.character;

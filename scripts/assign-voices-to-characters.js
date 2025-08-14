@@ -1,327 +1,217 @@
-const fetch = require('node-fetch');
+#!/usr/bin/env node
+
 require('dotenv').config();
+const Airtable = require('airtable');
 
-// Voice Library - same as in create-character.html
-const voiceLibrary = {
-  // Male voices
-  'male_professional': 'iP95p4HMsOdaJ6J8s72v',
-  'male_friendly': 'TxGEqnHWrfWFTfGW9XjX',
-  'male_wise': 'VR6AewLTigWG4xSOukaG',
-  'male_energetic': 'pqHfZKP75CvOlQylNhV4',
-  'male_calm': 'yoZ06aMxZJJ28mfd3POQ',
+// Configure Airtable
+const base = new Airtable({
+  apiKey: process.env.AIRTABLE_TOKEN || process.env.AIRTABLE_API_KEY
+}).base(process.env.AIRTABLE_BASE_ID);
+
+// Voice assignment function
+function assignVoiceBasedOnCharacter(character) {
+  // Get character properties
+  const name = (character.Name || '').toLowerCase();
+  const title = (character.Character_Title || '').toLowerCase();
+  const description = (character.Description || '').toLowerCase();
+  const prompt = character.Prompt ? Buffer.from(character.Prompt, 'base64').toString('utf-8').toLowerCase() : '';
   
-  // Female voices
-  'female_professional': 'EXAVITQu4vr4xnSDxMaL',
-  'female_friendly': 'XrExE9yKIg1WjnnlVkGX',
-  'female_wise': 'oWAxZDx7w5VEj9dCyTzz',
-  'female_energetic': 'pFZP5JQG7iQjIQuC4Bku',
-  'female_nurturing': 'XB0fDUnXU5powFXDhCwa',
+  // Combine all text for analysis
+  const allText = `${name} ${title} ${description} ${prompt}`;
   
-  // Character-specific voices
-  'royal_authority': 'fvcBHKa2lxguQE5lB4uV',
-  'wise_mentor': 'p3yi6sku4VQJg3uH6i6D',
-  'caring_therapist': 'W8ouBcjTunaMJLYU2BvB',
-  'romantic_partner': 'SyTRiCoyqTeFEk9z5HVW',
-  'best_friend': 'wdGYtWKVlLmwTxGswfYd',
-  'mysterious_stranger': 'SAhaRsW91OuPlKeINYop',
-  'cheerful_comedian': 'by3rQdWs4XjziQwJ2sTL',
-  'wise_elder': 'qEN0DupmmmaueYJ8Eaz8',
-  'creative_dreamer': 'xrnmhZSWIj7bbiePgGvN',
-  'anime_hero': 'bPTYXR1t7VO7OqE0XKTC',
-  'business_coach': 'G5GoD2FgQe3Hzaz0vt43',
-  'fitness_trainer': '51yNzCRVCZm7Y1tnCXkv',
-  'storyteller': '0lQiUnjkvRkmBWp91f0M',
-  'rebel_spirit': 'LQE5CZhudCF69ZH1OqB4',
-  'mystical_guide': 'nhcRWQJQwy0CaUoH3L6C',
+  // Female indicators
+  const femaleIndicators = ['woman', 'girl', 'female', 'lady', 'mother', 'sister', 'daughter', 'she', 'her', 'feminine', 'queen', 'princess', 'goddess', 'wife', 'girlfriend', 'mistress', 'maiden', 'duchess'];
+  // Male indicators  
+  const maleIndicators = ['man', 'boy', 'male', 'gentleman', 'father', 'brother', 'son', 'he', 'him', 'masculine', 'king', 'prince', 'god', 'husband', 'boyfriend', 'lord', 'duke', 'sir'];
   
-  'default': 'iP95p4HMsOdaJ6J8s72v'
-};
-
-// Female name detection
-const femaleNames = [
-  'maria', 'anna', 'sarah', 'emma', 'sophie', 'alice', 'diana', 'elena', 
-  'grace', 'lily', 'charlotte', 'maya', 'luna', 'julia', 'catherine', 
-  'elizabeth', 'victoria', 'isabella', 'sophia', 'olivia', 'emily', 
-  'jessica', 'jennifer', 'amanda', 'ashley', 'michelle', 'kimberly',
-  'lisa', 'nancy', 'betty', 'helen', 'sandra', 'donna', 'carol',
-  'ruth', 'sharon', 'laura', 'sarah', 'deborah', 'jessica', 'shirley',
-  'cynthia', 'angela', 'melissa', 'brenda', 'amy', 'dorothy', 'marie',
-  'janet', 'catherine', 'frances', 'christine', 'samantha', 'debra',
-  'rachel', 'carolyn', 'martha', 'virginia', 'susan', 'margaret',
-  'cleopatra', 'joan', 'athena', 'aphrodite', 'hera', 'artemis', 'demeter',
-  'persephone', 'freya', 'brigid', 'kali', 'lakshmi', 'saraswati', 'parvati',
-  'amaterasu', 'isis', 'nefertiti', 'boudicca', 'zenobia', 'hatshepsut',
-  'frida', 'kahlo', 'indira', 'gandhi', 'greta', 'marie', 'curie', 'dorothy',
-  'hodgkin', 'patricia', 'lillian', 'xena', 'jade', 'natasha', 'hana', 'kimura',
-  'jean', 'grey', 'diana', 'amara', 'moon', 'lumina', 'morgana', 'julia', 'carol',
-  'ophelia', 'felicia', 'ruby', 'wendy', 'lise', 'meitner', 'zara', 'hildegard'
-];
-
-// Special character mappings
-const specialCharacterVoices = {
-  'einstein': 'wise_elder',
-  'albert-einstein': 'wise_elder',
-  'socrates': 'wise_mentor',
-  'plato': 'wise_mentor',
-  'aristotle': 'wise_mentor',
-  'marcus-aurelius': 'wise_mentor',
-  'napoleon': 'royal_authority',
-  'julius-caesar': 'royal_authority',
-  'alexander-the-great': 'royal_authority',
-  'cleopatra': 'royal_authority',
-  'winston-churchill': 'male_professional',
-  'abraham-lincoln': 'male_wise',
-  'george-washington': 'male_professional',
-  'martin-luther-king': 'male_wise',
-  'gandhi': 'wise_elder',
-  'buddha': 'mystical_guide',
-  'jesus': 'caring_therapist',
-  'muhammad': 'wise_mentor',
-  'confucius': 'wise_elder',
-  'shakespeare': 'storyteller',
-  'tolkien': 'storyteller',
-  'freud': 'male_professional',
-  'jung': 'mystical_guide',
-  'tesla': 'creative_dreamer',
-  'da-vinci': 'creative_dreamer',
-  'galileo': 'male_professional',
-  'newton': 'male_professional',
-  'darwin': 'male_professional',
-  'marie-curie': 'female_professional',
-  'florence-nightingale': 'female_nurturing',
-  'mother-teresa': 'female_nurturing',
-  'joan-of-arc': 'female_energetic',
-  'amelia-earhart': 'female_energetic',
-  'frida-kahlo': 'female_wise',
-  'virginia-woolf': 'female_wise',
-  'jane-austen': 'female_friendly',
-  'maya-angelou': 'female_wise',
-  'oprah': 'female_nurturing',
-  'ellen': 'cheerful_comedian',
-  'marilyn-monroe': 'romantic_partner',
-  'indira-gandhi': 'female_professional',
-  'frida-kahlo': 'female_wise',
-  'marie-curie': 'female_professional',
-  'jean-grey': 'female_energetic',
-  'morgana-shadowweaver': 'female_wise',
-  'persephone': 'female_wise',
-  'spider-grandmother': 'female_wise'
-};
-
-// Category to voice type mapping
-const categoryVoiceMap = {
-  'career': ['business_coach', 'professional'],
-  'business': ['business_coach', 'professional'],
-  'relationship': ['romantic_partner', 'caring_therapist', 'friendly'],
-  'love': ['romantic_partner', 'caring_therapist'],
-  'historical': ['wise_elder', 'wise_mentor', 'royal_authority'],
-  'anime-manga': ['anime_hero', 'energetic'],
-  'spiritual': ['mystical_guide', 'caring_therapist'],
-  'mindfulness': ['mystical_guide', 'caring_therapist', 'calm'],
-  'support': ['caring_therapist', 'best_friend', 'nurturing'],
-  'motivation': ['fitness_trainer', 'business_coach', 'energetic'],
-  'life': ['wise_mentor', 'best_friend'],
-  'self-improvement': ['business_coach', 'fitness_trainer'],
-  'parenting': ['nurturing', 'friendly'],
-  'fictional': ['storyteller', 'mysterious_stranger'],
-  'gaming': ['anime_hero', 'energetic'],
-  'fantasy': ['mysterious_stranger', 'mystical_guide'],
-  'mythology': ['royal_authority', 'mystical_guide'],
-  'purpose': ['wise_mentor', 'business_coach']
-};
-
-// Detect gender from name and description
-function detectGender(name, description = '') {
-  const nameLower = name.toLowerCase();
-  const descLower = description.toLowerCase();
+  // Count indicators
+  let femaleScore = 0;
+  let maleScore = 0;
   
-  // Check if name contains female indicators
-  if (femaleNames.some(fname => nameLower.includes(fname))) {
-    return 'female';
+  femaleIndicators.forEach(indicator => {
+    const regex = new RegExp(`\\b${indicator}\\b`, 'gi');
+    const matches = allText.match(regex);
+    if (matches) femaleScore += matches.length;
+  });
+  
+  maleIndicators.forEach(indicator => {
+    const regex = new RegExp(`\\b${indicator}\\b`, 'gi');
+    const matches = allText.match(regex);
+    if (matches) maleScore += matches.length;
+  });
+  
+  // Common female names
+  const femaleNames = ['anna', 'emma', 'olivia', 'sophia', 'isabella', 'charlotte', 'amelia', 'mia', 'harper', 'evelyn', 
+    'ramona', 'lucy', 'lily', 'chloe', 'grace', 'zoey', 'emily', 'sarah', 'jessica', 'ashley', 'samantha', 'luna', 
+    'aria', 'scarlett', 'victoria', 'madison', 'elizabeth', 'abigail', 'sofia', 'avery', 'ella', 'camila', 'penelope',
+    'layla', 'riley', 'nora', 'zoe', 'mila', 'aubrey', 'hannah', 'lillian', 'addison', 'eleanor', 'natalie', 'maya',
+    'leah', 'audrey', 'julian', 'savannah', 'brooklyn', 'bella', 'claire', 'skylar', 'lucy', 'paisley', 'everly',
+    'anna', 'caroline', 'nova', 'genesis', 'emilia', 'kennedy', 'valentina', 'ruby', 'sophie', 'alice', 'gabriella'];
+  
+  // Common male names
+  const maleNames = ['james', 'john', 'robert', 'michael', 'william', 'david', 'richard', 'joseph', 'thomas', 'charles', 
+    'chris', 'daniel', 'matthew', 'anthony', 'mark', 'donald', 'steven', 'paul', 'andrew', 'joshua', 'noah', 'liam',
+    'mason', 'jacob', 'ethan', 'alexander', 'henry', 'jackson', 'sebastian', 'aiden', 'owen', 'samuel', 'luke',
+    'jack', 'benjamin', 'logan', 'ryan', 'nathan', 'isaac', 'hunter', 'christian', 'connor', 'elijah', 'dylan',
+    'landon', 'jayden', 'tyler', 'aaron', 'nicholas', 'austin', 'jose', 'kevin', 'brandon', 'zachary', 'jordan',
+    'gabriel', 'caleb', 'jason', 'adam', 'carlos', 'juan', 'luis', 'adrian', 'diego', 'jesus', 'antonio', 'leonardo'];
+  
+  // Check if name matches common names
+  if (femaleNames.includes(name)) femaleScore += 3;
+  if (maleNames.includes(name)) maleScore += 3;
+  
+  // Check for specific title patterns
+  if (title.includes('mrs') || title.includes('ms') || title.includes('miss')) femaleScore += 2;
+  if (title.includes('mr') || title.includes('sir')) maleScore += 2;
+  
+  // Select voice based on scores
+  // Using ElevenLabs voice IDs
+  const femaleVoices = [
+    { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah' },
+    { id: 'MF3mGyEYCl7XYWbV9V6O', name: 'Elli' },
+    { id: 'XrExE9yKIg1WjnnlVkGX', name: 'Lily' },
+    { id: 'pFZP5JQG7iQjIQuC4Bku', name: 'Lily British' },
+    { id: 'z9fAnlkpzviPz146aGWa', name: 'Glinda' },
+    { id: 'oWAxZDx7w5VEj9dCyTzz', name: 'Grace' }
+  ];
+  
+  const maleVoices = [
+    { id: 'N2lVS1w4EtoT3dr4eOWO', name: 'Callum' },
+    { id: 'CwhRBWXzGAHq8TQ4Fs17', name: 'Roger' },
+    { id: 'IKne3meq5aSn9XLyUdCD', name: 'Charlie' },
+    { id: 'UFPpZ8PcNQd7KWIhYLjl', name: 'Eric' },
+    { id: 'ErXwobaYiN019PkySvjV', name: 'Antoni' },
+    { id: 'VR6AewLTigWG4xSOukaG', name: 'Arnold' }
+  ];
+  
+  // Default/neutral voices
+  const neutralVoices = [
+    { id: 'FGY2WhTYpPnrIDTdsKH5', name: 'Laura' },
+    { id: 'XB0fDUnXU5powFXDhCwa', name: 'Charlotte' },
+    { id: '21m00Tcm4TlvDq8ikWAM', name: 'Rachel' },
+    { id: 'AZnzlk1XvdvUeBnXmlld', name: 'Domi' },
+    { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah' },
+    { id: 'ThT5KcBeYPX3keUQqHPh', name: 'Dorothy' }
+  ];
+  
+  // Choose voice based on analysis
+  let selectedVoice;
+  let voiceSet;
+  
+  if (femaleScore > maleScore) {
+    voiceSet = femaleVoices;
+    // Use character name hash to consistently select the same voice for the same character
+    const index = Math.abs(hashCode(name)) % femaleVoices.length;
+    selectedVoice = femaleVoices[index];
+  } else if (maleScore > femaleScore) {
+    voiceSet = maleVoices;
+    const index = Math.abs(hashCode(name)) % maleVoices.length;
+    selectedVoice = maleVoices[index];
+  } else {
+    // Neutral or unclear - use neutral voices
+    voiceSet = neutralVoices;
+    const index = Math.abs(hashCode(name)) % neutralVoices.length;
+    selectedVoice = neutralVoices[index];
   }
   
-  // Check description for gender indicators
-  if (descLower.includes('she') || descLower.includes('her') || 
-      descLower.includes('woman') || descLower.includes('lady') ||
-      descLower.includes('queen') || descLower.includes('goddess') ||
-      descLower.includes('mother') || descLower.includes('daughter') ||
-      descLower.includes('grandmother') || descLower.includes('sister')) {
-    return 'female';
-  }
+  console.log(`  📊 ${name}: Female score: ${femaleScore}, Male score: ${maleScore}`);
+  console.log(`  🎤 Selected voice: ${selectedVoice.name} (${selectedVoice.id})`);
   
-  // Default to male
-  return 'male';
+  return selectedVoice.id;
 }
 
-// Get voice for character
-function getVoiceForCharacter(character) {
-  const { Name, Slug, Category, Description, Title } = character;
-  const slug = Slug ? Slug.toLowerCase() : '';
-  const name = Name ? Name.toLowerCase() : '';
-  
-  // Check special characters first
-  if (specialCharacterVoices[slug] || specialCharacterVoices[name]) {
-    return voiceLibrary[specialCharacterVoices[slug] || specialCharacterVoices[name]];
+// Simple hash function for consistent voice selection
+function hashCode(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
   }
-  
-  // Determine gender
-  const gender = detectGender(Name, Description || Title || '');
-  
-  // Get voice types for category
-  const category = Category ? Category.toLowerCase() : '';
-  const voiceTypes = categoryVoiceMap[category] || ['friendly'];
-  
-  // Try to find a matching voice
-  for (const voiceType of voiceTypes) {
-    const voiceKey = `${gender}_${voiceType}`;
-    if (voiceLibrary[voiceKey]) {
-      return voiceLibrary[voiceKey];
-    }
-    // Try without gender prefix for special voices
-    if (voiceLibrary[voiceType]) {
-      return voiceLibrary[voiceType];
-    }
-  }
-  
-  // Default fallback
-  return voiceLibrary[`${gender}_friendly`] || voiceLibrary.default;
+  return hash;
 }
 
-// Fetch characters from Airtable with pagination
-async function fetchCharactersWithoutVoice() {
-  const baseId = process.env.AIRTABLE_BASE_ID;
-  const token = process.env.AIRTABLE_TOKEN || process.env.AIRTABLE_API_KEY;
-  const tableName = 'Characters';
+async function updateCharactersWithVoices() {
+  console.log('🔍 Fetching characters from Airtable...\n');
   
-  // Filter for characters without voice_id AND without created_by (platform characters only)
-  const filterFormula = encodeURIComponent('AND(OR(voice_id = "", NOT(voice_id)), OR(created_by = "", NOT(created_by)))');
-  
-  let allRecords = [];
-  let offset = null;
+  const charactersToUpdate = [];
   
   try {
-    do {
-      let url = `https://api.airtable.com/v0/${baseId}/${tableName}?filterByFormula=${filterFormula}&pageSize=100`;
-      if (offset) {
-        url += `&offset=${offset}`;
-      }
-      
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+    // Fetch all characters
+    await base('Characters').select({
+      view: 'Grid view',
+      fields: ['Name', 'Character_Title', 'Character_Description', 'Prompt', 'voice_id', 'voice_type', 'Created_By']
+    }).eachPage(function page(records, fetchNextPage) {
+      records.forEach(record => {
+        const hasCreatedBy = record.get('Created_By');
+        const hasVoiceId = record.get('voice_id');
+        const hasVoiceType = record.get('voice_type');
+        
+        // Only process characters without created_by and missing voice configuration
+        if (!hasCreatedBy && (!hasVoiceId || !hasVoiceType)) {
+          charactersToUpdate.push({
+            id: record.id,
+            name: record.get('Name'),
+            data: {
+              Name: record.get('Name'),
+              Character_Title: record.get('Character_Title'),
+              Description: record.get('Character_Description'),
+              Prompt: record.get('Prompt')
+            },
+            currentVoiceId: hasVoiceId,
+            currentVoiceType: hasVoiceType
+          });
         }
       });
       
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${await response.text()}`);
-      }
-      
-      const data = await response.json();
-      allRecords = allRecords.concat(data.records);
-      offset = data.offset; // Will be undefined when no more pages
-      
-      if (offset) {
-        console.log(`📄 Fetched ${allRecords.length} records so far, continuing...`);
-      }
-      
-    } while (offset);
-    
-    return allRecords;
-  } catch (error) {
-    console.error('❌ Error fetching characters:', error);
-    throw error;
-  }
-}
-
-// Update character with voice_id
-async function updateCharacterVoice(recordId, voiceId) {
-  const baseId = process.env.AIRTABLE_BASE_ID;
-  const token = process.env.AIRTABLE_TOKEN || process.env.AIRTABLE_API_KEY;
-  const tableName = 'Characters';
-  
-  const url = `https://api.airtable.com/v0/${baseId}/${tableName}/${recordId}`;
-  
-  try {
-    const response = await fetch(url, {
-      method: 'PATCH',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        fields: {
-          voice_id: voiceId
-        }
-      })
+      fetchNextPage();
     });
     
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${await response.text()}`);
-    }
-    
-    return await response.json();
-  } catch (error) {
-    console.error(`❌ Error updating character ${recordId}:`, error);
-    throw error;
-  }
-}
-
-// Main function
-async function assignVoicesToCharacters() {
-  console.log('🎙️ Starting voice assignment for characters...\n');
-  
-  try {
-    // Fetch characters without voice
-    console.log('📥 Fetching characters without voice_id...');
-    const characters = await fetchCharactersWithoutVoice();
-    console.log(`✅ Found ${characters.length} characters without voice\n`);
-    
-    if (characters.length === 0) {
-      console.log('🎉 All characters already have voices assigned!');
-      return;
-    }
+    console.log(`\n📋 Found ${charactersToUpdate.length} characters to update\n`);
+    console.log('━'.repeat(50));
     
     // Process each character
-    let updated = 0;
-    let failed = 0;
-    
-    for (const record of characters) {
-      const character = record.fields;
-      const recordId = record.id;
+    for (const character of charactersToUpdate) {
+      console.log(`\n🔄 Processing: ${character.name}`);
       
-      try {
-        // Get appropriate voice
-        const voiceId = getVoiceForCharacter(character);
-        const voiceKey = Object.keys(voiceLibrary).find(key => voiceLibrary[key] === voiceId);
-        
-        console.log(`🎤 ${character.Name} (${character.Category || 'no category'}) → ${voiceKey}`);
-        
-        // Update in Airtable
-        await updateCharacterVoice(recordId, voiceId);
-        updated++;
-        
-        // Small delay to avoid rate limits
-        await new Promise(resolve => setTimeout(resolve, 200));
-        
-      } catch (error) {
-        console.error(`❌ Failed to update ${character.Name}:`, error.message);
-        failed++;
+      // Assign voice based on character properties
+      const voiceId = assignVoiceBasedOnCharacter(character.data);
+      
+      // Prepare update data
+      const updateData = {};
+      
+      if (!character.currentVoiceId) {
+        updateData.voice_id = voiceId;
+      }
+      
+      if (!character.currentVoiceType) {
+        updateData.voice_type = 'custom';
+      }
+      
+      // Update the record
+      if (Object.keys(updateData).length > 0) {
+        try {
+          await base('Characters').update(character.id, updateData);
+          console.log(`  ✅ Updated with:`, updateData);
+        } catch (error) {
+          console.error(`  ❌ Failed to update: ${error.message}`);
+        }
+      } else {
+        console.log(`  ⏭️  Skipped - already has voice configuration`);
       }
     }
     
-    console.log('\n📊 Summary:');
-    console.log(`✅ Successfully updated: ${updated} characters`);
-    console.log(`❌ Failed: ${failed} characters`);
-    console.log(`📝 Total processed: ${characters.length} characters`);
+    console.log('\n━'.repeat(50));
+    console.log(`\n✨ Voice assignment complete!`);
+    console.log(`   Updated ${charactersToUpdate.length} characters`);
     
   } catch (error) {
-    console.error('❌ Fatal error:', error);
+    console.error('❌ Error:', error);
     process.exit(1);
   }
 }
 
 // Run the script
-if (require.main === module) {
-  assignVoicesToCharacters();
-}
+console.log('🎤 Character Voice Assignment Script');
+console.log('━'.repeat(50));
+updateCharactersWithVoices();
