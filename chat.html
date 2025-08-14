@@ -4067,53 +4067,54 @@
     /* More spacious on desktop */
     @media (min-width: 769px) {
       .onboarding-modal {
-        max-width: 750px !important;
-        padding: 50px !important;
-        max-height: 95vh !important;
+        max-width: 850px !important;
+        padding: 35px 40px !important;
+        max-height: 92vh !important;
         height: auto !important;
-        min-height: 750px !important;
+        min-height: auto !important;
+        overflow: visible !important;
       }
       
       .onboarding-header {
-        padding: 0 0 35px 0;
+        padding: 0 0 25px 0;
       }
       
       .onboarding-header h2 {
-        font-size: 30px;
-        margin-bottom: 15px;
+        font-size: 28px;
+        margin-bottom: 10px;
       }
       
       .onboarding-header p {
-        font-size: 17px;
+        font-size: 16px;
       }
       
       .character-avatar {
-        width: 75px;
-        height: 75px;
-        margin-bottom: 25px;
+        width: 65px;
+        height: 65px;
+        margin-bottom: 15px;
       }
       
       .onboarding-content {
-        padding: 30px 0;
+        padding: 20px 0;
         max-height: none !important;
         overflow-y: visible !important;
         min-height: 450px !important;
       }
       
       .question-title {
-        font-size: 20px;
-        margin-bottom: 30px;
+        font-size: 19px;
+        margin-bottom: 18px;
       }
       
       .option-button {
-        padding: 18px 24px !important;
-        margin-bottom: 16px !important;
-        font-size: 16px !important;
-        min-height: 60px !important;
+        padding: 12px 18px !important;
+        margin-bottom: 10px !important;
+        font-size: 15px !important;
+        min-height: 48px !important;
       }
       
       .onboarding-footer {
-        padding: 35px 0 0 0;
+        padding: 20px 0 0 0;
         margin-top: auto !important;
       }
       
@@ -8255,11 +8256,26 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
 
     // Auto-assign voice based on character properties
     function assignVoiceBasedOnCharacter(character) {
+      // Skip voice assignment for user-created characters (they have created_by field)
+      if (character.created_by) {
+        console.log('Skipping voice assignment for user-created character');
+        return null;
+      }
+      
       // Check character name and properties for gender indicators
       const name = (character.name || character.Name || '').toLowerCase();
       const title = (character.character_title || '').toLowerCase();
       const description = (character.character_description || '').toLowerCase();
-      const prompt = character.prompt ? atob(character.prompt).toLowerCase() : '';
+      // Safely decode prompt - handle empty/undefined prompts
+      let prompt = '';
+      if (character.prompt) {
+        try {
+          prompt = atob(character.prompt).toLowerCase();
+        } catch (e) {
+          console.log('Could not decode prompt, using empty string');
+          prompt = '';
+        }
+      }
       
       // Combine all text for analysis
       const allText = `${name} ${title} ${description} ${prompt}`;
@@ -8473,13 +8489,18 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       console.warn('  - voice_type:', data.character.voice_type || 'missing');
       
       // Auto-assign voice configuration if missing
-      if (!data.character.voice_id) {
+      // Only auto-assign voice for non-user-created characters
+      if (!data.character.created_by && !data.character.voice_id) {
         console.log('Auto-assigning voice_id based on character properties');
-        data.character.voice_id = assignVoiceBasedOnCharacter(data.character);
+        const assignedVoice = assignVoiceBasedOnCharacter(data.character);
+        if (assignedVoice) {
+          data.character.voice_id = assignedVoice;
+        }
       }
       
       // Set voice_type to 'elevenlabs' if voice_id exists but voice_type is missing
-      if (data.character.voice_id && (!data.character.voice_type || data.character.voice_type === '')) {
+      // Skip for user-created characters
+      if (!data.character.created_by && data.character.voice_id && (!data.character.voice_type || data.character.voice_type === '')) {
         console.log('Setting voice_type to elevenlabs since voice_id exists');
         data.character.voice_type = 'elevenlabs';
       }
