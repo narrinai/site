@@ -3711,23 +3711,31 @@
     }
 
     .discuss-btn {
-      background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
-      color: white;
+      background: var(--gradient-primary);
+      color: var(--color-white);
       border: none;
-      border-radius: var(--radius-md);
-      padding: 8px 16px;
+      padding: var(--spacing-xs) var(--spacing-md);
+      border-radius: 25px;
       font-size: var(--font-size-sm);
-      font-weight: 600;
+      font-weight: 400;
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: all var(--transition-base);
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      line-height: 1.4;
+      box-shadow: none;
     }
 
     .discuss-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-xl);
+    }
+    
+    .discuss-btn:active {
+      transform: translateY(0);
     }
 
     .memory-hub-footer {
@@ -8680,55 +8688,140 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       return withLineBreaks;
     }
     
+    // Function to split AI response into natural message chunks
+    function splitIntoNaturalMessages(text) {
+      const messages = [];
+      
+      // Split by double newlines first (natural paragraph breaks)
+      const paragraphs = text.split(/\n\n+/);
+      
+      for (let para of paragraphs) {
+        // If paragraph has a numbered list, keep it as one message
+        if (para.match(/^\d+[\)\.]\s/m) || para.match(/\n\d+[\)\.]\s/)) {
+          messages.push(para);
+        }
+        // If paragraph has bullet points, keep as one message
+        else if (para.match(/^[-•*]\s/m) || para.match(/\n[-•*]\s/)) {
+          messages.push(para);
+        }
+        // If paragraph is short (under 150 chars), keep as one message
+        else if (para.length < 150) {
+          messages.push(para);
+        }
+        // For longer paragraphs, try to split at sentence boundaries
+        else {
+          // Split by sentences (. ! ?)
+          const sentences = para.match(/[^.!?]+[.!?]+/g) || [para];
+          let currentMessage = '';
+          
+          for (let sentence of sentences) {
+            // If adding this sentence would make message too long, start new message
+            if (currentMessage && (currentMessage.length + sentence.length > 200)) {
+              messages.push(currentMessage.trim());
+              currentMessage = sentence;
+            } else {
+              currentMessage += (currentMessage ? ' ' : '') + sentence;
+            }
+          }
+          
+          if (currentMessage) {
+            messages.push(currentMessage.trim());
+          }
+        }
+      }
+      
+      // Filter out empty messages
+      return messages.filter(msg => msg.trim().length > 0);
+    }
+    
     // Function to format AI responses for better readability
     function formatAIResponse(text) {
-      // Add strategic emojis based on context (sparingly)
       let formatted = text;
       
-      // Add welcome emoji at the start of greetings
+      // Split message into paragraphs for better structure
+      const paragraphs = formatted.split(/\n\n+/);
+      const formattedParagraphs = [];
+      
+      for (let para of paragraphs) {
+        // Check if this paragraph contains a numbered list
+        if (para.match(/^\d+[\)\.]\s/m) || para.match(/\n\d+[\)\.]\s/)) {
+          // Format as a proper HTML list
+          const lines = para.split('\n');
+          let listHtml = '<ol style="margin: 10px 0; padding-left: 20px;">';
+          let inList = false;
+          let beforeList = '';
+          
+          for (let line of lines) {
+            const listMatch = line.match(/^(\d+)[\)\.]\s*(.*)/);
+            if (listMatch) {
+              inList = true;
+              listHtml += `<li style="margin: 5px 0;">${listMatch[2]}</li>`;
+            } else if (!inList && line.trim()) {
+              beforeList += line + '<br>';
+            }
+          }
+          
+          listHtml += '</ol>';
+          
+          if (beforeList) {
+            formattedParagraphs.push(beforeList);
+          }
+          if (inList) {
+            formattedParagraphs.push(listHtml);
+          }
+        } 
+        // Check if this paragraph contains bullet points
+        else if (para.match(/^[-•*]\s/m) || para.match(/\n[-•*]\s/)) {
+          const lines = para.split('\n');
+          let listHtml = '<ul style="margin: 10px 0; padding-left: 20px;">';
+          let inList = false;
+          let beforeList = '';
+          
+          for (let line of lines) {
+            const bulletMatch = line.match(/^[-•*]\s*(.*)/);
+            if (bulletMatch) {
+              inList = true;
+              listHtml += `<li style="margin: 5px 0;">${bulletMatch[1]}</li>`;
+            } else if (!inList && line.trim()) {
+              beforeList += line + '<br>';
+            }
+          }
+          
+          listHtml += '</ul>';
+          
+          if (beforeList) {
+            formattedParagraphs.push(beforeList);
+          }
+          if (inList) {
+            formattedParagraphs.push(listHtml);
+          }
+        }
+        // Regular paragraph
+        else if (para.trim()) {
+          // Add line breaks within paragraphs for better readability
+          let formattedPara = para;
+          
+          // Add line break after colons that introduce lists or explanations
+          formattedPara = formattedPara.replace(/:\s*$/gm, ':<br>');
+          formattedPara = formattedPara.replace(/:\s+([A-Z])/g, ':<br><br>$1');
+          
+          // Handle inline lists (e.g., "1) item one 2) item two")
+          formattedPara = formattedPara.replace(/(\d+[\)\.]\s+[^0-9]+?)(?=\d+[\)\.]\s|$)/g, '<br>$1');
+          
+          formattedParagraphs.push(formattedPara);
+        }
+      }
+      
+      // Join paragraphs with proper spacing
+      formatted = formattedParagraphs.join('<br><br>');
+      
+      // Add strategic emojis (sparingly)
       if (formatted.match(/^(Hello|Hi|Hey|Welcome|Greetings)/i)) {
         formatted = '👋 ' + formatted;
       }
       
-      // Add sparkle emoji for tips or insights
-      formatted = formatted.replace(/\b(Tip:|Pro tip:|Insight:|Fun fact:|Did you know)/gi, '✨ $1');
-      
-      // Add thinking emoji for questions
-      formatted = formatted.replace(/\b(What if|Have you considered|Perhaps|Maybe)\b/gi, '🤔 $1');
-      
-      // Add lightbulb for ideas
-      formatted = formatted.replace(/\b(Idea:|Here's an idea|Try this:|Consider this:)/gi, '💡 $1');
-      
-      // Add checkmark for action items
-      formatted = formatted.replace(/^(\d+\.)\s*(Do |Try |Start |Make |Create |Practice )/gm, '$1 ✅ $2');
-      
-      // Format for better readability with line breaks
-      // Add double line breaks before numbered lists
-      formatted = formatted.replace(/([.!?])\s+(\d+\.)/g, '$1<br><br>$2');
-      
-      // Add line break after introductory statements with colons
-      formatted = formatted.replace(/:\s*$/gm, ':<br><br>');
-      formatted = formatted.replace(/:\s+(\w)/g, ':<br><br>$1');
-      
-      // Add line breaks between major sections (sentences ending with period followed by capital letter)
-      formatted = formatted.replace(/([.!?])\s+([A-Z])/g, function(match, p1, p2) {
-        // Only add break if it's a new topic/paragraph (not abbreviations)
-        if (match.length > 3) {
-          return p1 + '<br><br>' + p2;
-        }
-        return match;
-      });
-      
-      // Add line break before "P.S." or similar postscripts
-      formatted = formatted.replace(/\s*(P\.S\.|Note:|Tip:|Remember:|Important:)/g, '<br><br>$1');
-      
-      // Handle bullet points with line breaks
-      formatted = formatted.replace(/([•\-*])\s+/g, '<br>$1 ');
-      
       // Clean up excessive line breaks
       formatted = formatted.replace(/(<br>){3,}/g, '<br><br>');
-      
-      // Trim any leading/trailing breaks
       formatted = formatted.replace(/^(<br>)+|(<br>)+$/g, '');
       
       return formatted;
@@ -10703,18 +10796,28 @@ function displayMemoryHubContent(answers) {
     if (question) {
       // Get the display text for the answer
       let displayAnswer = answer;
+      
+      // For options type, find the label from the options array
       if (question.type === 'options' && question.options) {
         const option = question.options.find(opt => opt.value === answer);
         if (option) {
-          displayAnswer = option.label;
+          // Remove emoji and show full label text
+          displayAnswer = option.label.replace(/^[^\s]+\s/, ''); // Remove emoji if present
         }
       }
+      // For text input, show the full text
+      else if (question.type === 'text') {
+        displayAnswer = answer;
+      }
+      
+      // Store the original answer value for the discuss function
+      const discussValue = typeof answer === 'string' ? answer.replace(/'/g, "\\'") : answer;
       
       html += `
         <div class="memory-item">
           <div class="memory-question">${question.question}</div>
           <div class="memory-answer">${displayAnswer}</div>
-          <button class="discuss-btn" onclick="discussMemory('${questionId}', '${answer.replace(/'/g, "\\'")}')">
+          <button class="discuss-btn" onclick="discussMemory('${questionId}', '${discussValue}')">
             💬 Let's discuss
           </button>
         </div>
