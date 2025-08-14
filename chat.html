@@ -1208,6 +1208,18 @@
         cursor: pointer;
         transition: all 0.2s ease;
         border-radius: 12px;
+        line-height: 1;
+        text-align: center;
+      }
+      
+      .btn-memory .mobile-icon,
+      .btn-customize .mobile-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        line-height: 1;
       }
       
       .btn-memory:hover,
@@ -1225,11 +1237,6 @@
       .btn-customize .desktop-text {
         display: none;
       }
-      
-      .btn-memory .mobile-icon,
-      .btn-customize .mobile-icon {
-        display: block;
-      }
     }
 
     .chat-section {
@@ -1238,7 +1245,7 @@
       border-radius: var(--radius-lg);
       max-width: 900px;
       margin: 0 auto;
-      margin-bottom: var(--spacing-xs);
+      margin-bottom: var(--spacing-md);
       box-shadow: var(--shadow-sm);
       border: 2px solid var(--color-light-gray);
       transition: all 300ms ease-out;
@@ -14478,10 +14485,16 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('📦 All onboarding keys in localStorage:', onboardingKeys);
       
       // Check if user has existing chat history with this character
+      // BUT skip this check if restart is requested
       const chatHistory = window.messages || [];
-      if (chatHistory.length > 0) {
+      if (!shouldRestart && chatHistory.length > 0) {
         console.log('📖 User has existing chat history, skipping onboarding');
         return false;
+      }
+      
+      // If restart is requested, proceed with onboarding regardless of chat history
+      if (shouldRestart) {
+        console.log('🔄 Forcing onboarding restart despite chat history');
       }
       
       // Check for temporary onboarding data (from before login)
