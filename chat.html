@@ -1063,30 +1063,43 @@
       font-weight: 500;
     }
 
+    /* Default desktop styles */
     .btn-memory,
     .btn-customize {
-      width: 45px !important;
-      height: 45px !important;
-      min-width: 45px !important;
-      max-width: 45px !important;
-      padding: 0 !important;
+      padding: 8px 16px;
       background: var(--gradient-primary);
       color: var(--color-white);
       border: none;
       border-radius: var(--radius-md);
-      font-size: 20px;
+      font-size: 14px;
       font-weight: 600;
       cursor: pointer;
       transition: all var(--transition-base);
-      display: flex !important;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
       margin-left: 8px;
-      gap: 0 !important;
+      gap: 6px;
       box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
       text-transform: none;
       letter-spacing: 0;
-      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    
+    /* Mobile override - square buttons */
+    @media (max-width: 768px) {
+      .btn-memory,
+      .btn-customize {
+        width: 45px !important;
+        height: 45px !important;
+        min-width: 45px !important;
+        max-width: 45px !important;
+        padding: 0 !important;
+        font-size: 22px;
+        gap: 0 !important;
+        line-height: 1 !important;
+        text-align: center !important;
+      }
     }
     
     /* Button text visibility */
@@ -1277,7 +1290,7 @@
     
     @media (max-width: 768px) {
       .conversation-topics {
-        margin-top: 15px;
+        margin-top: 0;
         padding: 12px 10px;
         border-radius: var(--radius-md);
         margin-bottom: 10px;
@@ -3721,13 +3734,13 @@
     }
 
     .discuss-btn {
-      background: var(--gradient-primary);
-      color: var(--color-white);
-      border: none;
+      background: var(--color-white);
+      color: var(--color-teal);
+      border: 2px solid var(--color-teal);
       padding: var(--spacing-xs) var(--spacing-md);
       border-radius: var(--radius-md);
       font-size: var(--font-size-sm);
-      font-weight: 400;
+      font-weight: 500;
       cursor: pointer;
       transition: all var(--transition-base);
       display: inline-flex;
@@ -3738,10 +3751,10 @@
     }
 
     .discuss-btn:hover {
-      background: var(--gradient-primary);
+      background: var(--color-teal);
       color: var(--color-white);
-      transform: translateY(-4px);
-      box-shadow: var(--shadow-xl);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
     }
     
     .discuss-btn:active {
@@ -4754,8 +4767,8 @@
               <span class="mobile-icon">🧠</span>
             </button>
             <button class="btn-customize" onclick="openCustomizationModal()" id="customizeBtn" style="display: none;" title="Customize companion">
-              <span class="desktop-text">⚙️ Customize</span>
-              <span class="mobile-icon">⚙️</span>
+              <span class="desktop-text">🤖 Customize</span>
+              <span class="mobile-icon">🤖</span>
             </button>
           </div>
         </div>
@@ -4800,7 +4813,7 @@
           <span>🧠</span> Memory
         </button>
         <button class="action-btn customize-btn" onclick="openCustomizationModal()">
-          <span>⚙️</span> Customize
+          <span>🤖</span> Customize
         </button>
       </div>
       
@@ -4821,7 +4834,7 @@
     <div class="customization-modal-content">
       <div class="customization-header">
         <button class="close-modal" onclick="closeCustomizationModal()">✕</button>
-        <h2>⚙️ Customize Companion</h2>
+        <h2>🤖 Customize Companion</h2>
         <p class="customization-subtitle">Make this companion your own! Your customized version will be saved privately for you.</p>
       </div>
       
@@ -11099,7 +11112,7 @@ function restartOnboarding() {
   
   // Clear the stored onboarding flag to force it to show again
   const uid = localStorage.getItem('user_uid');
-  const slug = characterSlug;
+  const slug = characterSlug || currentCharacter?.slug || currentCharacter?.character_id;
   
   if (uid && slug) {
     // Clear all onboarding-related localStorage entries
@@ -11110,6 +11123,16 @@ function restartOnboarding() {
     localStorage.removeItem(shownKey);
     
     console.log('✅ Cleared onboarding data for restart');
+  }
+  
+  // Set restart flag
+  sessionStorage.setItem('restart_onboarding', 'true');
+  
+  // Call checkAndShowOnboarding to restart
+  if (typeof checkAndShowOnboarding === 'function') {
+    checkAndShowOnboarding();
+  } else {
+    console.error('❌ checkAndShowOnboarding function not available');
   }
   
   // Clear any existing onboarding context
