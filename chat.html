@@ -3715,7 +3715,7 @@
       color: var(--color-white);
       border: none;
       padding: var(--spacing-xs) var(--spacing-md);
-      border-radius: 25px;
+      border-radius: var(--radius-md);
       font-size: var(--font-size-sm);
       font-weight: 400;
       cursor: pointer;
@@ -8248,9 +8248,10 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       data.character.prompt = atob(data.character.prompt);
     }
 
-    // Ensure voice_id is available
+    // Auto-assign voice_id if not present
     if (!data.character.voice_id && data.character.voice_type !== 'none') {
-      console.log('No voice_id found, character will be text-only');
+      console.log('No voice_id found, auto-assigning based on character properties');
+      data.character.voice_id = assignVoiceBasedOnCharacter(data.character);
     }
 
     currentCharacter = data.character;
@@ -10873,8 +10874,11 @@ function displayMemoryHubContent(answers) {
       if (question.type === 'options' && question.options) {
         const option = question.options.find(opt => opt.value === answer);
         if (option) {
-          // Remove emoji and show full label text
-          displayAnswer = option.label.replace(/^[^\s]+\s/, ''); // Remove emoji if present
+          // Show full label text (keep emoji if present)
+          displayAnswer = option.label;
+        } else {
+          // If option not found, show the raw answer
+          displayAnswer = answer;
         }
       }
       // For text input, show the full text
