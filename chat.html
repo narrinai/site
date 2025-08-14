@@ -11198,14 +11198,21 @@ window.discussMemory = function(questionId, answer) {
       message = `I've been feeling ${answer} lately. Can we talk about this?`;
       break;
     default:
-      // Generic fallback
-      message = `I mentioned that "${answer}" when asked about "${question.question}". Can we explore this further?`;
+      // Generic fallback - remove quotes to avoid JSON parsing issues
+      message = `I mentioned ${answer} when asked about: ${question.question}. Can we explore this further?`;
   }
   
   // Set the message in the input field
   const userInput = document.getElementById('userInput');
   if (userInput) {
     userInput.value = message;
+    
+    // Close the memory hub modal
+    window.closeMemoryHub();
+    
+    // Focus on the input field
+    userInput.focus();
+    
     // Optionally auto-send the message
     // sendMessage();
   }
