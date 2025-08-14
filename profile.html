@@ -4298,20 +4298,33 @@ function handleLoginSuccess(user, eventType = 'unknown') {
         console.log('🔄 Netlify Identity initialized, user:', user?.email || 'none');
         updateLoginButton();
         
-        // Check if this is from an email confirmation
+        // Check if this is from an email confirmation or if we have a verified user
         const fragment = window.location.hash;
-        if (fragment.includes('confirmation_token=') && user) {
-          console.log('📧 Processing email confirmation for:', user.email);
+        if (user && (fragment.includes('confirmation_token=') || fragment.includes('recovery_token='))) {
+          console.log('📧 Processing email confirmation/recovery for:', user.email);
           // Store auth data
           localStorage.setItem('user_email', user.email);
           localStorage.setItem('user_uid', user.id);
-          localStorage.setItem('user_token', user.token?.access_token || '');
+          localStorage.setItem('user_token', user.token?.access_token || user.id);
           localStorage.setItem('user_auth_timestamp', Date.now().toString());
           
           // Clean URL
           window.history.replaceState({}, document.title, window.location.pathname);
           
           // Show profile
+          showProfileUI();
+          setTimeout(() => loadProfile(), 500);
+          return;
+        }
+        
+        // Also handle case where user is logged in after confirmation (no token in URL anymore)
+        if (user && !localStorage.getItem('user_email')) {
+          console.log('🔄 User logged in but no localStorage, storing data:', user.email);
+          localStorage.setItem('user_email', user.email);
+          localStorage.setItem('user_uid', user.id);
+          localStorage.setItem('user_token', user.token?.access_token || user.id);
+          localStorage.setItem('user_auth_timestamp', Date.now().toString());
+          
           showProfileUI();
           setTimeout(() => loadProfile(), 500);
           return;
@@ -4956,19 +4969,47 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       
       if (hasConfirmationToken) {
         console.log('📧 Email verification/recovery token detected in URL');
+        console.log('🔑 Token fragment:', fragment);
+        
         // Let Netlify Identity handle the token first
         if (window.netlifyIdentity) {
+          // Initialize Netlify Identity
           window.netlifyIdentity.init();
           
-          // Wait for Netlify to process the token
-          setTimeout(() => {
+          // Set up a one-time listener for when user is confirmed
+          window.netlifyIdentity.on('login', (user) => {
+            console.log('✅ User confirmed and logged in via token:', user.email);
+            
+            // Store auth data
+            localStorage.setItem('user_email', user.email);
+            localStorage.setItem('user_uid', user.id);
+            localStorage.setItem('user_token', user.token?.access_token || user.id);
+            localStorage.setItem('user_auth_timestamp', Date.now().toString());
+            
+            // Clean URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+            
+            // Show profile
+            showProfileUI();
+            setTimeout(() => loadProfile(), 500);
+          });
+          
+          // Also check after a delay in case the event doesn't fire
+          let checkAttempts = 0;
+          const checkInterval = setInterval(() => {
+            checkAttempts++;
             const user = window.netlifyIdentity.currentUser();
+            
+            console.log(`🔍 Checking for user (attempt ${checkAttempts}/10):`, user?.email || 'none');
+            
             if (user) {
-              console.log('✅ User verified and logged in:', user.email);
+              console.log('✅ User found after verification:', user.email);
+              clearInterval(checkInterval);
+              
               // Store auth data
               localStorage.setItem('user_email', user.email);
               localStorage.setItem('user_uid', user.id);
-              localStorage.setItem('user_token', user.token?.access_token || '');
+              localStorage.setItem('user_token', user.token?.access_token || user.id);
               localStorage.setItem('user_auth_timestamp', Date.now().toString());
               
               // Clean URL
@@ -4977,8 +5018,20 @@ function handleLoginSuccess(user, eventType = 'unknown') {
               // Show profile
               showProfileUI();
               loadProfile();
+            } else if (checkAttempts >= 10) {
+              console.log('⚠️ User not found after 10 attempts, continuing normal flow');
+              clearInterval(checkInterval);
+              
+              // Continue with normal initialization
+              const isAuthenticated = initializeAuthenticationCheck();
+              setupRedirectHandling();
+              checkUpgradeStatus();
+              
+              if (!isAuthenticated) {
+                checkLocalStorage();
+              }
             }
-          }, 2000);
+          }, 1000);
         }
         return; // Exit early to let Netlify handle the token
       }
