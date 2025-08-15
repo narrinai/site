@@ -14407,10 +14407,25 @@ if (data && data.success) {
     console.error("❌ sendMessage Error:", err);
     hideTypingIndicator();
     
+    // Show user's message that they typed (even if there was an error)
+    const userDiv = document.createElement("p");
+    userDiv.innerHTML = `<strong>You:</strong> ${escapeHtmlButKeepEmojis(input)}`;
+    chatlog.appendChild(userDiv);
+    
+    // Show error message from AI
     const divErr = document.createElement("p");
-    divErr.innerHTML = `<strong>${currentCharacter?.name || 'Character'}:</strong> ⚠️ Something went wrong while sending.`;
+    divErr.innerHTML = `<strong>${currentCharacter?.name || 'Character'}:</strong> ⚠️ I'm having trouble connecting right now. Your message was received, but I couldn't respond. Please try sending another message.`;
     chatlog.appendChild(divErr);
     chatlog.scrollTop = chatlog.scrollHeight;
+    
+    // Clear the input field even on error
+    userInput.value = "";
+    
+    // Try to reload chat history to see if the message was actually saved
+    console.log("🔄 Error occurred, reloading chat history to check if message was saved...");
+    setTimeout(() => {
+      loadChatHistory();
+    }, 2000);
   } finally {
     sendButton.disabled = false;
     sendButton.textContent = "Send";
