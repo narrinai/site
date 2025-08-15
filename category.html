@@ -2004,9 +2004,17 @@
       }
 
       // Filter for current category
-      const categoryCharacters = characters.filter(char => 
-        !char.Category || char.Category.toLowerCase() === currentCategory.toLowerCase()
-      );
+      let categoryCharacters;
+      if (currentCategory === 'made-by-you') {
+        // For Made By You, show ALL user-created characters regardless of category
+        categoryCharacters = characters;
+        console.log('🎨 Made By You: showing all user-created characters');
+      } else {
+        // For other categories, filter by category
+        categoryCharacters = characters.filter(char => 
+          !char.Category || char.Category.toLowerCase() === currentCategory.toLowerCase()
+        );
+      }
 
       // Process the characters
       allCharacters = categoryCharacters.map(character => ({
