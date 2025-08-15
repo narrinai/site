@@ -9137,41 +9137,10 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
         
         // Check if text contains numbered lists - if so, preserve them
         if (text.match(/^\d+[\)\.]\s/m) || text.match(/\n\d+[\)\.]\s/)) {
-          // Split by double newlines to preserve list structure
-          const paragraphs = text.split(/\n\n+/);
-          
-          for (let para of paragraphs) {
-            para = para.trim();
-            if (!para) continue;
-            
-            // If paragraph has numbered list, keep it as one message
-            if (para.match(/^\d+[\)\.]\s/m) || para.match(/\n\d+[\)\.]\s/)) {
-              messages.push(para);
-            }
-            // Split non-list paragraphs normally
-            else if (para.length > 200) {
-              const sentences = para.match(/[^.!?]+[.!?]+/g) || [para];
-              let currentMessage = '';
-              
-              for (let sentence of sentences) {
-                sentence = sentence.trim();
-                if (currentMessage.length > 150 && currentMessage) {
-                  messages.push(currentMessage.trim());
-                  currentMessage = sentence;
-                } else {
-                  currentMessage += (currentMessage ? ' ' : '') + sentence;
-                }
-              }
-              
-              if (currentMessage) {
-                messages.push(currentMessage.trim());
-              }
-            } else {
-              messages.push(para);
-            }
-          }
-          
-          return messages.length > 0 ? messages : [text];
+          // For non-roleplay with numbered lists, keep the entire response as one message
+          // This prevents numbered lists from being split across multiple chat bubbles
+          console.log('🔢 Detected numbered list in non-roleplay category, keeping as single message');
+          return [text];
         }
         
         // For non-list content, split by sentences for natural conversation flow
