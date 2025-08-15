@@ -1064,9 +1064,21 @@
       justify-content: center;
       font-size: var(--font-size-xl);
       border: 2px solid var(--color-light-gray);
-      overflow: hidden;
+      overflow: visible;
       transition: all var(--transition-base);
       position: relative;
+    }
+    
+    .character-avatar::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      z-index: 0;
     }
 
     .character-card:hover .character-avatar {
@@ -1081,6 +1093,8 @@
       position: absolute;
       top: 0;
       left: 0;
+      z-index: 1;
+      border-radius: var(--radius-full);
     }
 
     .character-avatar .avatar-fallback {
@@ -1117,8 +1131,8 @@
     /* Creator nickname badge overlay on avatar - Made By You category */
     .creator-badge {
       position: absolute;
-      top: -6px;
-      right: -6px;
+      top: -4px;
+      right: -4px;
       background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
       color: white;
       padding: 3px 8px;
@@ -1126,11 +1140,11 @@
       font-size: 10px;
       font-weight: 600;
       box-shadow: 0 2px 6px rgba(59, 130, 246, 0.4);
-      z-index: 3;
+      z-index: 10;
       display: flex;
       align-items: center;
       gap: 3px;
-      max-width: 90%;
+      max-width: 85%;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -2422,17 +2436,6 @@ function processNetlifyData(characters, category, gridId, limit) {
       const avatarContainer = document.createElement('div');
       avatarContainer.className = 'character-avatar';
       
-      // Add creator badge if there's a Created_by field (for Made By You category)
-      // Only show on avatar, not as character name
-      if (createdBy && category === 'made-by-you') {
-        const creatorBadge = document.createElement('div');
-        creatorBadge.className = 'creator-badge';
-        // Extract nickname/username from email or use full string if not email
-        const creatorName = createdBy.includes('@') ? createdBy.split('@')[0] : createdBy;
-        creatorBadge.textContent = creatorName;
-        avatarContainer.appendChild(creatorBadge);
-      }
-      
       // Create card HTML structure first
       const nameDiv = document.createElement('div');
       nameDiv.className = 'character-name';
@@ -2465,6 +2468,17 @@ function processNetlifyData(characters, category, gridId, limit) {
         // No valid avatar URL - use fallback icon
         avatarContainer.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 4rem; color: #94a3b8;">👤</div>';
         console.log(`⚠️ No valid Airtable avatar URL found for ${name}, using fallback icon`);
+      }
+      
+      // Add creator badge AFTER avatar image (for Made By You category)
+      // This ensures badge appears on top of the avatar
+      if (createdBy && category === 'made-by-you') {
+        const creatorBadge = document.createElement('div');
+        creatorBadge.className = 'creator-badge';
+        // Extract nickname/username from email or use full string if not email
+        const creatorName = createdBy.includes('@') ? createdBy.split('@')[0] : createdBy;
+        creatorBadge.textContent = creatorName;
+        avatarContainer.appendChild(creatorBadge);
       }
       
       // Remove duplicate user-created badge - already shown as creator-badge on avatar
