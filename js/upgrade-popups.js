@@ -361,11 +361,18 @@ async function checkCompanionLimitBeforeNavigation(e) {
 document.addEventListener('DOMContentLoaded', function() {
   addUpgradePopupCSS();
   
-  // Add companion limit check to ALL Create Companion buttons
-  const createCompanionLinks = document.querySelectorAll('a[href="create-character.html"], a[href="/create-character.html"]');
-  console.log(`🔗 Found ${createCompanionLinks.length} Create Companion links, adding limit checks...`);
+  // Add companion limit check to ALL Create Character/Companion buttons
+  const createCharacterLinks = document.querySelectorAll(`
+    a[href="create-character.html"], 
+    a[href="/create-character.html"],
+    a[href*="create-character"],
+    .create-companion-special,
+    .welcome-cta,
+    .btn[href*="create-character"]
+  `);
+  console.log(`🔗 Found ${createCharacterLinks.length} Create Character/Companion links, adding limit checks...`);
   
-  createCompanionLinks.forEach(link => {
+  createCharacterLinks.forEach(link => {
     // Remove existing href to prevent default navigation
     link.removeAttribute('href');
     link.style.cursor = 'pointer';
