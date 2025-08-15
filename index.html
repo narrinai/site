@@ -2948,12 +2948,78 @@ if (window.netlifyIdentity) {
       }
     }
 
+    // Check companion limits before allowing navigation
+    async function checkCompanionLimitBeforeNavigation(e) {
+      e.preventDefault();
+      
+      const email = localStorage.getItem('user_email');
+      const uid = localStorage.getItem('user_uid');
+      
+      if (!email || !uid) {
+        // Not logged in, allow navigation
+        window.location.href = 'create-character.html';
+        return;
+      }
+      
+      try {
+        // Get user's chat history to check active companions
+        const chatHistoryResponse = await fetch(`/.netlify/functions/get-chat-history?user_id=${uid}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('user_token')}`,
+            'X-User-Email': email,
+            'X-User-UID': uid
+          }
+        });
+        
+        if (chatHistoryResponse.ok) {
+          const chatData = await chatHistoryResponse.json();
+          if (chatData.success && chatData.chats) {
+            // Get paused chats from localStorage
+            const pausedChats = JSON.parse(localStorage.getItem('pausedChats') || '[]');
+            
+            // Count active companions
+            const activeChats = chatData.chats.filter(chat => !pausedChats.includes(chat.character_slug));
+            
+            // Get user plan
+            const userPlan = localStorage.getItem('user_plan') || 'Free';
+            const maxActive = userPlan === 'Free' ? 2 : userPlan === 'Engage' ? 5 : Infinity;
+            
+            if (activeChats.length >= maxActive) {
+              console.log(`⚠️ Active companion limit reached: ${activeChats.length}/${maxActive}`);
+              
+              // Show upgrade modal (assuming function exists globally)
+              if (typeof showUpgradePrompt === 'function') {
+                showUpgradePrompt(activeChats.length, maxActive, 'companions');
+              } else {
+                alert(`You have reached your companion limit (${activeChats.length}/${maxActive}). Please upgrade your plan to create more companions.`);
+              }
+              return;
+            }
+          }
+        }
+        
+        // Allow navigation if under limit or if check fails
+        window.location.href = 'create-character.html';
+        
+      } catch (error) {
+        console.error('Error checking companion limits:', error);
+        // Allow navigation on error
+        window.location.href = 'create-character.html';
+      }
+    }
+
     // ===== INITIALIZATION =====
     document.addEventListener('DOMContentLoaded', async () => {
       console.log(`🚀 Initializing Narrin AI (fast loading - 6 top categories)...`);
       
       // Initialize authentication check first
       initializeAuthenticationCheck();
+      
+      // Add companion limit check to Create Companion buttons
+      const createCompanionLinks = document.querySelectorAll('a[href="create-character.html"]');
+      createCompanionLinks.forEach(link => {
+        link.addEventListener('click', checkCompanionLimitBeforeNavigation);
+      });
       
       // FAST LOADING: Show buttons immediately without character count checking
       generateCategoryButtons();
