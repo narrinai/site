@@ -1114,32 +1114,42 @@
       min-height: 2.4em;
     }
     
-    /* Creator nickname badge overlay on avatar */
+    /* Creator nickname badge overlay on avatar - Made By You category */
     .creator-badge {
       position: absolute;
-      top: -8px;
-      right: -8px;
+      top: -6px;
+      right: -6px;
       background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
       color: white;
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 10px;
+      font-size: 10px;
       font-weight: 600;
-      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+      box-shadow: 0 2px 6px rgba(59, 130, 246, 0.4);
       z-index: 3;
       display: flex;
       align-items: center;
-      gap: 4px;
-      max-width: calc(100% + 16px);
+      gap: 3px;
+      max-width: 90%;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      border: 1.5px solid white;
     }
     
     .creator-badge::before {
       content: '👤';
-      font-size: 10px;
+      font-size: 9px;
       flex-shrink: 0;
+    }
+    
+    /* Special styling for Made By You category cards */
+    #made-by-you-grid .character-card {
+      position: relative;
+    }
+    
+    #made-by-you-grid .character-avatar {
+      position: relative;
     }
     
     /* User-created badge */
@@ -2413,7 +2423,8 @@ function processNetlifyData(characters, category, gridId, limit) {
       avatarContainer.className = 'character-avatar';
       
       // Add creator badge if there's a Created_by field (for Made By You category)
-      if (createdBy) {
+      // Only show on avatar, not as character name
+      if (createdBy && category === 'made-by-you') {
         const creatorBadge = document.createElement('div');
         creatorBadge.className = 'creator-badge';
         // Extract nickname/username from email or use full string if not email
@@ -2456,14 +2467,7 @@ function processNetlifyData(characters, category, gridId, limit) {
         console.log(`⚠️ No valid Airtable avatar URL found for ${name}, using fallback icon`);
       }
       
-      // Add user-created badge if Created_by field is not empty
-      if (createdBy) {
-        const userBadge = document.createElement('div');
-        userBadge.className = 'user-created-badge';
-        userBadge.innerHTML = `<span class="badge-icon">👤</span> ${createdBy}`;
-        userBadge.title = `Created by ${createdBy}`;
-        card.appendChild(userBadge);
-      }
+      // Remove duplicate user-created badge - already shown as creator-badge on avatar
       
       // Append elements to card
       card.appendChild(avatarContainer);
