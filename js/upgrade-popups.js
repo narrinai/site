@@ -301,7 +301,74 @@ function getUpgradeContent(usage, quota, type) {
   `;
 }
 
+// Check companion limits before allowing navigation
+async function checkCompanionLimitBeforeNavigation(e) {
+  e.preventDefault();
+  
+  const email = localStorage.getItem('user_email');
+  const uid = localStorage.getItem('user_uid');
+  
+  if (!email || !uid) {
+    // Not logged in, allow navigation
+    window.location.href = 'create-character.html';
+    return;
+  }
+  
+  try {
+    // Get user's chat history to check active companions
+    const chatHistoryResponse = await fetch(`/.netlify/functions/get-chat-history?user_id=${uid}`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('user_token')}`,
+        'X-User-Email': email,
+        'X-User-UID': uid
+      }
+    });
+    
+    if (chatHistoryResponse.ok) {
+      const chatData = await chatHistoryResponse.json();
+      if (chatData.success && chatData.chats) {
+        // Get paused chats from localStorage
+        const pausedChats = JSON.parse(localStorage.getItem('pausedChats') || '[]');
+        
+        // Count active companions
+        const activeChats = chatData.chats.filter(chat => !pausedChats.includes(chat.character_slug));
+        
+        // Get user plan
+        const userPlan = localStorage.getItem('user_plan') || 'Free';
+        const maxActive = userPlan === 'Free' ? 2 : userPlan === 'Engage' ? 5 : Infinity;
+        
+        if (activeChats.length >= maxActive) {
+          console.log(`⚠️ Active companion limit reached: ${activeChats.length}/${maxActive}`);
+          
+          // Show upgrade modal using global function
+          window.showUpgradePrompt(activeChats.length, maxActive, 'companions');
+          return;
+        }
+      }
+    }
+    
+    // Allow navigation if under limit or if check fails
+    window.location.href = 'create-character.html';
+    
+  } catch (error) {
+    console.error('Error checking companion limits:', error);
+    // Allow navigation on error
+    window.location.href = 'create-character.html';
+  }
+}
+
 // Auto-initialize on DOM ready
 document.addEventListener('DOMContentLoaded', function() {
   addUpgradePopupCSS();
+  
+  // Add companion limit check to ALL Create Companion buttons
+  const createCompanionLinks = document.querySelectorAll('a[href="create-character.html"], a[href="/create-character.html"]');
+  console.log(`🔗 Found ${createCompanionLinks.length} Create Companion links, adding limit checks...`);
+  
+  createCompanionLinks.forEach(link => {
+    // Remove existing href to prevent default navigation
+    link.removeAttribute('href');
+    link.style.cursor = 'pointer';
+    link.addEventListener('click', checkCompanionLimitBeforeNavigation);
+  });
 });
