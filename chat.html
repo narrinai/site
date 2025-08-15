@@ -14235,12 +14235,15 @@ hideTypingIndicator();
       const baseDelay = isRoleplayCategory ? 500 : 1000; // Base delay between messages
       const typingIndicatorDuration = isRoleplayCategory ? 0 : 600; // Show typing for non-roleplay
       
+      console.log(`🔀 Processing ${messageChunks.length} message chunks for character with voice_id: ${currentCharacter.voice_id}`);
+      
       messageChunks.forEach((chunk, index) => {
         // Calculate cumulative delay for each message
         const delayPerMessage = baseDelay + Math.min(chunk.length * 3, 800);
         const totalDelay = index * delayPerMessage; // Cumulative delay
         
-        console.log(`⏰ Message ${index}: will show after ${totalDelay}ms (baseDelay: ${baseDelay}, chunkLength: ${chunk.length})`);
+        console.log(`⏰ Message ${index}/${messageChunks.length - 1}: will show after ${totalDelay}ms (baseDelay: ${baseDelay}, chunkLength: ${chunk.length})`);
+        console.log(`🎵 Will add TTS to last chunk? ${index === messageChunks.length - 1 ? 'YES' : 'NO'}`);
         
         setTimeout(() => {
           try {
@@ -14297,12 +14300,16 @@ hideTypingIndicator();
                     msgTypingSpan.innerHTML = formattedChunk;
                     
                     // Add TTS button only to last message if character has voice
+                    console.log(`🎵 TTS Check for chunk ${index}: isLast=${index === messageChunks.length - 1}, hasVoice=${!!currentCharacter.voice_id}, onboarding=${!!window.processingOnboardingWelcome}, firstAfter=${!!isFirstMessageAfterOnboarding}, hasButton=${!!msgDiv.querySelector('.voice-play-btn')}`);
+                    
                     if (index === messageChunks.length - 1 && currentCharacter.voice_id && !window.processingOnboardingWelcome && !isFirstMessageAfterOnboarding && !msgDiv.querySelector('.voice-play-btn')) {
                       // Use the full cleanReply for TTS (all chunks combined)
                       const escapedReply = cleanReply.replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, ' ').replace(/\r/g, ' ');
                       const voiceButtonHtml = `<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice('${escapedReply}', '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
                       msgDiv.innerHTML += voiceButtonHtml;
-                      console.log(`✅ Added TTS button to last chunk (${index}/${messageChunks.length - 1})`);
+                      console.log(`✅ Successfully added TTS button to last chunk (${index}/${messageChunks.length - 1})`);
+                    } else {
+                      console.log(`❌ TTS button NOT added to chunk ${index} - conditions not met`);
                     }
                   } catch (formatError) {
                     console.error(`❌ Error formatting chunk ${index}:`, formatError);
@@ -14310,11 +14317,15 @@ hideTypingIndicator();
                     msgTypingSpan.innerHTML = escapeHtmlButKeepEmojis(chunk);
                     
                     // Still add TTS button to last message even if formatting failed
+                    console.log(`🎵 TTS Fallback Check for chunk ${index}: isLast=${index === messageChunks.length - 1}, hasVoice=${!!currentCharacter.voice_id}`);
+                    
                     if (index === messageChunks.length - 1 && currentCharacter.voice_id && !window.processingOnboardingWelcome && !isFirstMessageAfterOnboarding && !msgDiv.querySelector('.voice-play-btn')) {
                       const escapedReply = cleanReply.replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, ' ').replace(/\r/g, ' ');
                       const voiceButtonHtml = `<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice('${escapedReply}', '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
                       msgDiv.innerHTML += voiceButtonHtml;
                       console.log(`✅ Added TTS button to last chunk (${index}) after formatting error`);
+                    } else {
+                      console.log(`❌ TTS fallback button NOT added to chunk ${index} - conditions not met`);
                     }
                   }
                 }, typewriterDuration);
