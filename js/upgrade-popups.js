@@ -285,23 +285,9 @@ function getUpgradeContent(usage, quota, type) {
       
       ${benefitsContent}
       
-      <div class="upgrade-benefits-box">
-        <div class="upgrade-benefits-title">✨ Immerse Plan Benefits:</div>
-        <div class="upgrade-benefits-list">
-          <div>∞ Unlimited active companions</div>
-          <div>💬 Unlimited messages per day</div>
-          <div>🎙️ Voice chat (text-to-speech & speech-to-text)</div>
-          <div>🧠 Advanced memory & deeper personalization</div>
-          <div>⚡ Priority response speed</div>
-          <div>🎨 Custom avatars & character creation</div>
-          <div>🔒 Private companions & enhanced privacy</div>
-          <div>🎁 Early access to new features</div>
-        </div>
-      </div>
-      
       <div class="upgrade-actions">
         <button class="upgrade-btn secondary" onclick="closeUpgradePrompt()">Maybe Later</button>
-        <a href="/profile.html" class="upgrade-btn primary">Upgrade to Immerse</a>
+        <a href="profile.html" class="upgrade-btn primary">View Plans</a>
       </div>
     </div>
   `;
@@ -309,11 +295,14 @@ function getUpgradeContent(usage, quota, type) {
 
 // Check companion limits before allowing navigation - Make it globally accessible
 window.checkCompanionLimitBeforeNavigation = async function checkCompanionLimitBeforeNavigation(e) {
+  console.log('🔒 Companion limit check triggered:', e.target);
   e.preventDefault();
   
   const email = localStorage.getItem('user_email');
   const uid = localStorage.getItem('user_uid');
   const targetUrl = e.target.getAttribute('data-original-href') || e.target.href || e.target.getAttribute('href') || 'create-character.html';
+  
+  console.log('🔒 User email:', email, 'UID:', uid, 'Target URL:', targetUrl);
   
   if (!email || !uid) {
     // Not logged in, allow navigation
@@ -386,14 +375,15 @@ document.addEventListener('DOMContentLoaded', function() {
   `);
   console.log(`🔗 Found ${companionLinks.length} character/companion links, adding limit checks...`);
   
-  companionLinks.forEach(link => {
+  companionLinks.forEach((link, index) => {
     // Store original href before removing it
     const originalHref = link.href || link.getAttribute('href');
     if (originalHref) {
+      console.log(`🔗 Processing link ${index + 1}:`, link, 'href:', originalHref);
       link.setAttribute('data-original-href', originalHref);
       link.removeAttribute('href');
       link.style.cursor = 'pointer';
-      link.addEventListener('click', checkCompanionLimitBeforeNavigation);
+      link.addEventListener('click', window.checkCompanionLimitBeforeNavigation);
     }
   });
 });
