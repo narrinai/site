@@ -9371,10 +9371,14 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
   }
 
   // Check usage limit before sending message
+  console.log('🔍 Checking usage limit before sending message...');
   const canSend = await checkUsageLimit();
+  console.log(`📊 Usage limit check result: canSend = ${canSend}`);
   if (!canSend) {
+    console.log('🚫 Message blocked due to usage limit');
     return; // Usage limit reached, upgrade prompt already shown
   }
+  console.log('✅ Usage limit check passed, proceeding with message');
   
   // Add visual feedback to send button
   const userInput = document.getElementById('userInput');
@@ -14621,12 +14625,13 @@ async function checkUsageLimit() {
 
     // If usage >= quota, show upgrade prompt
     if (usage >= quota) {
-      console.log('🚫 Usage limit reached');
+      console.log('🚫 Usage limit reached - blocking message');
+      console.log(`📊 Detailed check: usage=${usage}, quota=${quota}, usage >= quota = ${usage >= quota}`);
       showUpgradePrompt(usage, quota);
       return false;
     }
 
-    console.log('✅ Usage within limit');
+    console.log(`✅ Usage within limit: ${usage}/${quota}`);
     return true;
 
   } catch (error) {
