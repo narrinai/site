@@ -6271,7 +6271,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const voiceCache = new Map();
     
     // Voice usage limit constants
-    const VOICE_LIMIT_FREE = 3;
+    const VOICE_LIMIT_FREE = 2;
     const VOICE_STORAGE_KEY = 'voice_usage_count';
     const VOICE_RESET_KEY = 'voice_usage_reset_date';
     
@@ -7409,7 +7409,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const monthlyUsage = voiceUsage.filter(date => date.startsWith(currentMonth)).length;
         
         if (monthlyUsage >= 25) {
-          showEngageVoiceUpgradeModal();
+          window.showUpgradePrompt(monthlyUsage, 25, 'tts');
           return false;
         }
         console.log(`🗣️ Engage user - ${monthlyUsage}/25 voice conversations used`);
@@ -7443,6 +7443,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       if (currentCount >= VOICE_LIMIT_FREE) {
         console.log('🚫 Voice usage limit reached for Free plan');
+        window.showUpgradePrompt(currentCount, VOICE_LIMIT_FREE, 'tts');
         return false;
       }
       
@@ -8577,8 +8578,8 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
           if (activeChats.length >= maxActive) {
             console.log(`⚠️ Active companion limit reached: ${activeChats.length}/${maxActive}`);
             
-            // Show upgrade modal
-            showUpgradeModal('companions', maxActive);
+            // Show upgrade modal using global function
+            window.showUpgradePrompt(activeChats.length, maxActive, 'companions');
             
             // Stop loading without redirect
             return;
@@ -14721,14 +14722,14 @@ async function checkVoiceLimit(type) {
       return true;
     }
     
-    // Free users have 15 TTS and 15 STT per day
+    // Free users have 2 TTS and 2 STT per day
     const usage = getVoiceUsage();
-    const limit = 15;
+    const limit = 2;
     const currentUsage = usage[type] || 0;
     
     if (currentUsage >= limit) {
       console.log(`🚫 ${type.toUpperCase()} limit reached: ${currentUsage}/${limit}`);
-      showUpgradePrompt(currentUsage, limit, type);
+      window.showUpgradePrompt(currentUsage, limit, type);
       return false;
     }
     
