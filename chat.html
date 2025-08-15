@@ -1317,7 +1317,7 @@
     
     @media (max-width: 768px) {
       .conversation-topics {
-        margin-top: 16px; /* Add space between input and topics */
+        margin-top: 8px; /* Reduce space between input and topics */
         padding: 12px 10px;
         border-radius: var(--radius-md);
         margin-bottom: 10px;
@@ -2461,6 +2461,8 @@
       .disclaimer {
         font-size: calc(var(--font-size-xs) * 0.9);
         padding: var(--spacing-xs) var(--spacing-sm);
+        margin-top: 6px; /* Reduce mobile disclaimer margin */
+        margin-bottom: 0;
       }
 
       /* Ensure chat section has proper bottom padding for input */
@@ -9359,27 +9361,6 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     return;
   }
   
-  const token = localStorage.getItem("user_token");
-  const uid = localStorage.getItem("user_uid");
-  const email = localStorage.getItem("user_email");
-  const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
-  
-  if (!((token && uid && email) || netlifyUser)) {
-    localStorage.setItem('login_redirect_url', window.location.href);
-    window.location.href = 'profile.html';
-    return;
-  }
-
-  // Check usage limit before sending message
-  console.log('🔍 Checking usage limit before sending message...');
-  const canSend = await checkUsageLimit();
-  console.log(`📊 Usage limit check result: canSend = ${canSend}`);
-  if (!canSend) {
-    console.log('🚫 Message blocked due to usage limit');
-    return; // Usage limit reached, upgrade prompt already shown
-  }
-  console.log('✅ Usage limit check passed, proceeding with message');
-  
   // Add visual feedback to send button
   const userInput = document.getElementById('userInput');
   
@@ -13291,6 +13272,16 @@ function showGentleCheckIn() {
 
 async function sendMessage(event) {
   event?.preventDefault();
+  
+  // Check usage limit before sending message
+  console.log('🔍 Checking usage limit before sending message...');
+  const canSend = await checkUsageLimit();
+  console.log(`📊 Usage limit check result: canSend = ${canSend}`);
+  if (!canSend) {
+    console.log('🚫 Message blocked due to usage limit');
+    return; // Usage limit reached, upgrade prompt already shown
+  }
+  console.log('✅ Usage limit check passed, proceeding with message');
   
   // Authentication check
   if (!window.isAuthenticated || !window.currentUser) {

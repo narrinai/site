@@ -307,10 +307,11 @@ async function checkCompanionLimitBeforeNavigation(e) {
   
   const email = localStorage.getItem('user_email');
   const uid = localStorage.getItem('user_uid');
+  const targetUrl = e.target.getAttribute('data-original-href') || e.target.href || e.target.getAttribute('href') || 'create-character.html';
   
   if (!email || !uid) {
     // Not logged in, allow navigation
-    window.location.href = 'create-character.html';
+    window.location.href = targetUrl;
     return;
   }
   
@@ -337,7 +338,11 @@ async function checkCompanionLimitBeforeNavigation(e) {
         const userPlan = localStorage.getItem('user_plan') || 'Free';
         const maxActive = userPlan === 'Free' ? 2 : userPlan === 'Engage' ? 5 : Infinity;
         
-        if (activeChats.length >= maxActive) {
+        // Check if this is a new character/chat that would exceed the limit
+        const isNewCharacter = targetUrl.includes('create-character') || 
+                              (targetUrl.includes('chat.html') && !activeChats.some(chat => targetUrl.includes(chat.character_slug)));
+        
+        if (isNewCharacter && activeChats.length >= maxActive) {
           console.log(`⚠️ Active companion limit reached: ${activeChats.length}/${maxActive}`);
           
           // Show upgrade modal using global function
@@ -348,12 +353,12 @@ async function checkCompanionLimitBeforeNavigation(e) {
     }
     
     // Allow navigation if under limit or if check fails
-    window.location.href = 'create-character.html';
+    window.location.href = targetUrl;
     
   } catch (error) {
     console.error('Error checking companion limits:', error);
     // Allow navigation on error
-    window.location.href = 'create-character.html';
+    window.location.href = targetUrl;
   }
 }
 
@@ -361,21 +366,28 @@ async function checkCompanionLimitBeforeNavigation(e) {
 document.addEventListener('DOMContentLoaded', function() {
   addUpgradePopupCSS();
   
-  // Add companion limit check to ALL Create Character/Companion buttons
-  const createCharacterLinks = document.querySelectorAll(`
+  // Add companion limit check to ALL Create Character/Companion buttons AND character cards
+  const companionLinks = document.querySelectorAll(`
     a[href="create-character.html"], 
     a[href="/create-character.html"],
     a[href*="create-character"],
     .create-companion-special,
     .welcome-cta,
-    .btn[href*="create-character"]
+    .btn[href*="create-character"],
+    .character-card,
+    a[href*="chat.html?char="],
+    a[href*="chat.html?character="]
   `);
-  console.log(`🔗 Found ${createCharacterLinks.length} Create Character/Companion links, adding limit checks...`);
+  console.log(`🔗 Found ${companionLinks.length} character/companion links, adding limit checks...`);
   
-  createCharacterLinks.forEach(link => {
-    // Remove existing href to prevent default navigation
-    link.removeAttribute('href');
-    link.style.cursor = 'pointer';
-    link.addEventListener('click', checkCompanionLimitBeforeNavigation);
+  companionLinks.forEach(link => {
+    // Store original href before removing it
+    const originalHref = link.href || link.getAttribute('href');
+    if (originalHref) {
+      link.setAttribute('data-original-href', originalHref);
+      link.removeAttribute('href');
+      link.style.cursor = 'pointer';
+      link.addEventListener('click', checkCompanionLimitBeforeNavigation);
+    }
   });
 });
