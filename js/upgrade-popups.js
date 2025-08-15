@@ -240,22 +240,8 @@ function getUpgradeContent(usage, quota, type) {
     stt: `<strong>Speech-to-Text is a premium feature.</strong><br><br>You tried to use voice input, but this feature is only available on the Immerse plan. Upgrade now to talk naturally with your companions!`
   };
   
-  const benefitsContent = type === 'companions' ? `
-    <div class="upgrade-benefits">
-      <div class="benefit-item">
-        <span class="benefit-icon">✨</span>
-        <span class="benefit-text">Free: 2 active companions</span>
-      </div>
-      <div class="benefit-item">
-        <span class="benefit-icon">🎯</span>
-        <span class="benefit-text">Engage: 5 active companions</span>
-      </div>
-      <div class="benefit-item">
-        <span class="benefit-icon">🚀</span>
-        <span class="benefit-text">Immerse: Unlimited active companions</span>
-      </div>
-    </div>
-  ` : `
+  // Always use the same 4 benefits for consistent design
+  const benefitsContent = `
     <div class="upgrade-benefits">
       <div class="benefit-item">
         <span class="benefit-icon">💬</span>

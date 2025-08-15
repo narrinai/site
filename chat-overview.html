@@ -3289,8 +3289,8 @@ function extractAvatarUrl(chat) {
           let maxActive = userPlan === 'Free' ? 2 : userPlan === 'Engage' ? 5 : Infinity;
           
           if (activeCount >= maxActive) {
-            // Show upgrade modal
-            showPauseLimitModal(userPlan, maxActive);
+            // Show upgrade modal using global function
+            window.showUpgradePrompt(activeCount, maxActive, 'companions');
             return;
           }
           
@@ -3344,8 +3344,8 @@ function extractAvatarUrl(chat) {
       }
     }
     
-    function showPauseLimitModal(userPlan, maxActive) {
-      // Create modal for limit reached
+    // DEPRECATED: This function is no longer used - replaced by global showUpgradePrompt
+    function showPauseLimitModal_DEPRECATED(userPlan, maxActive) {
       let modal = document.getElementById('pauseLimitModal');
       if (!modal) {
         modal = document.createElement('div');
