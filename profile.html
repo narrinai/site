@@ -3024,9 +3024,6 @@
         <p>Discover AI companions that remember your stories and grow with every conversation. Experience genuine connections with <strong>2 free companions</strong> and <strong>10 messages</strong>, including <strong>voice chat</strong> and <strong>voice notes</strong> powered by premium text-to-speech and speech-to-text technology.</p>
         
         <a href="create-character.html" class="welcome-cta">Create Companion</a>
-        <div style="text-align: center; margin-top: var(--spacing-md);">
-          <a href="index.html" style="color: var(--color-primary); text-decoration: underline;">Browse Companions</a>
-        </div>
       </div>
 
       <!-- Pricing Plans Section -->
@@ -4272,24 +4269,54 @@ function handleLoginSuccess(user, eventType = 'unknown') {
 
     // New function to handle post-login redirect
     function handlePostLoginRedirect() {
-      const redirectUrl = localStorage.getItem('login_redirect_url');
+      // Check sessionStorage first for new redirect flow
+      const returnTo = sessionStorage.getItem('return_to');
+      const returnCharacter = sessionStorage.getItem('return_character');
+      const pendingOnboarding = sessionStorage.getItem('pending_onboarding');
+      const pendingCharacter = sessionStorage.getItem('pending_character');
+      
       console.log('🔍 Post-login redirect check:', {
-        redirectUrl: redirectUrl,
-        currentUrl: window.location.href,
-        willRedirect: redirectUrl && redirectUrl !== window.location.href
+        returnTo: returnTo,
+        returnCharacter: returnCharacter,
+        hasPendingOnboarding: !!pendingOnboarding,
+        pendingCharacter: pendingCharacter
       });
       
-      if (redirectUrl && redirectUrl !== window.location.href) {
-        localStorage.removeItem('login_redirect_url');
-        showSuccess('Login successful! Redirecting back...');
+      // Handle redirect based on where user came from
+      if (returnTo === 'chat' && returnCharacter) {
+        // User was trying to access chat
+        sessionStorage.removeItem('return_to');
+        sessionStorage.removeItem('return_character');
+        // Keep pending_onboarding if it exists - chat.html will handle it
         
+        showSuccess('Login successful! Redirecting to chat...');
         setTimeout(() => {
-          console.log('🔄 Redirecting to:', redirectUrl);
-          window.location.href = redirectUrl;
-        }, 100); // Very short delay to ensure login is fully processed
+          window.location.href = `/chat.html?char=${returnCharacter}`;
+        }, 100);
+      } else if (returnTo === 'create-character') {
+        // User was trying to create a character
+        sessionStorage.removeItem('return_to');
+        
+        showSuccess('Login successful! Redirecting to create character...');
+        setTimeout(() => {
+          window.location.href = '/create-character.html';
+        }, 100);
       } else {
-        // No specific redirect, stay on profile page but show success
-        showSuccess('Welcome to your profile!');
+        // Check legacy localStorage redirect
+        const redirectUrl = localStorage.getItem('login_redirect_url');
+        
+        if (redirectUrl && redirectUrl !== window.location.href) {
+          localStorage.removeItem('login_redirect_url');
+          showSuccess('Login successful! Redirecting back...');
+          
+          setTimeout(() => {
+            console.log('🔄 Redirecting to:', redirectUrl);
+            window.location.href = redirectUrl;
+          }, 100);
+        } else {
+          // No specific redirect, stay on profile page but show success
+          showSuccess('Welcome to your profile!');
+        }
       }
     }
 
