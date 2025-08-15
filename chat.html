@@ -9119,8 +9119,14 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     function splitIntoNaturalMessages(text) {
       // Check if this is a roleplaying category
       const category = (currentCharacter?.category || currentCharacter?.Category || '').toLowerCase();
+      
+      // Special handling for user-created characters (Made By You)
+      // Default them to conversational style unless explicitly marked as roleplay
+      const isUserCreated = currentCharacter?.Created_by || currentCharacter?.created_by;
+      
       // Use helper function to check if this is a roleplay category
-      const isRoleplayCategory = isRoleplayCategoryHelper(category);
+      // User-created characters default to conversational (non-roleplay)
+      const isRoleplayCategory = isUserCreated ? false : isRoleplayCategoryHelper(category);
       
       // Non-roleplay categories get more aggressive message splitting for natural conversation
       if (!isRoleplayCategory) {
@@ -11192,22 +11198,19 @@ function isRoleplayCategoryHelper(category) {
   
   const cat = category.toLowerCase();
   
-  // Roleplay categories based on Airtable data (sorted by frequency)
+  // Roleplay categories based on active website categories
+  // These categories allow roleplay actions like *smiles* or *leans forward*
   const roleplayCategories = [
-    'anime-manga', 'anime', 'manga',
-    'historical', 
-    'fantasy',
-    'romance',
-    'mythology',
+    'historical',
+    'anime', 'anime-manga',
     'fictional',
-    'original',
-    'games', 'gaming',
-    'movie & tv', 'movie', 'tv',
-    'sci-fi', 'science fiction',
-    'nsfw'
+    'original'
   ];
   
-  return roleplayCategories.some(rpCat => cat.includes(rpCat));
+  // Check exact match or contains
+  return roleplayCategories.some(rpCat => 
+    cat === rpCat || cat.includes(rpCat)
+  );
 }
 
 // Helper function to determine if a category should use human-like conversation style
@@ -11216,16 +11219,35 @@ function isConversationalCategory(category) {
   
   const cat = category.toLowerCase();
   
-  // Non-roleplay categories that should be conversational (from Airtable)
+  // Non-roleplay categories from active website (should be conversational)
+  // These use natural, human-like texting style without roleplay actions
   const conversationalCategories = [
-    'career', 'business', 'life', 'life coach',
-    'love', 'relationship', 'spiritual', 'mindfulness',
-    'self-improvement', 'purpose', 'motivation',
-    'educational', 'friendship', 'wellness', 'health',
-    'therapy', 'therapist', 'coach', 'mentor'
+    'friendship',
+    'life', 'life coach',
+    'love',
+    'romance',  // Note: Romance is NON-roleplay per user specification
+    'career',
+    'mindfulness',
+    'purpose',
+    'self-improvement',
+    'motivation',
+    'made by you',  // User-created characters default to conversational
+    'business',
+    'relationship',
+    'spiritual',
+    'educational',
+    'wellness',
+    'health',
+    'therapy',
+    'therapist',
+    'coach',
+    'mentor'
   ];
   
-  return conversationalCategories.some(convCat => cat.includes(convCat));
+  // Check exact match or contains
+  return conversationalCategories.some(convCat => 
+    cat === convCat || cat.includes(convCat)
+  );
 }
 
 function getNormalizedCategory(character) {
@@ -14176,7 +14198,8 @@ hideTypingIndicator();
       // Create separate message for each chunk with a delay
       // Add typing indicator between messages for more natural feel
       const category = (currentCharacter?.category || currentCharacter?.Category || '').toLowerCase();
-      const isRoleplayCategory = ['anime', 'games', 'movie & tv', 'fictional', 'fantasy', 'sci-fi', 'historical', 'mythology', 'nsfw'].some(cat => category.includes(cat));
+      const isUserCreated = currentCharacter?.Created_by || currentCharacter?.created_by;
+      const isRoleplayCategory = isUserCreated ? false : isRoleplayCategoryHelper(category);
       
       // Adjust delays based on category - more natural timing for non-roleplay
       const baseDelay = isRoleplayCategory ? 500 : 1000; // Base delay between messages
