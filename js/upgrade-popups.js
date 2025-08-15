@@ -30,12 +30,12 @@ function addUpgradePopupCSS() {
     .upgrade-modal {
       background: #ffffff;
       border-radius: 16px;
-      padding: 2rem;
+      padding: 1.5rem;
       box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
       max-width: 90vw;
       width: 100%;
-      max-width: 480px;
-      max-height: 90vh;
+      max-width: 520px;
+      max-height: 85vh;
       overflow-y: auto;
       transform: scale(0.9) translateY(20px);
       transition: all 0.3s ease;
@@ -56,17 +56,17 @@ function addUpgradePopupCSS() {
       border-radius: 16px 16px 0 0;
     }
     .upgrade-header {
-      margin-bottom: 1.5rem;
+      margin-bottom: 1rem;
     }
     .upgrade-icon {
-      font-size: 3rem;
-      margin-bottom: 1rem;
+      font-size: 2.5rem;
+      margin-bottom: 0.75rem;
       display: block;
       filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
     }
     .upgrade-title {
       font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-      font-size: 1.5rem;
+      font-size: 1.4rem;
       font-weight: 700;
       color: #1e293b;
       margin: 0 0 0.5rem 0;
@@ -74,24 +74,24 @@ function addUpgradePopupCSS() {
     }
     .upgrade-subtitle {
       color: #64748b;
-      font-size: 1rem;
-      line-height: 1.6;
-      margin: 0 0 1.5rem 0;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin: 0 0 1rem 0;
     }
     .upgrade-benefits {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-      margin: 1.5rem 0;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.75rem;
+      margin: 1rem 0;
     }
     .benefit-item {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
-      padding: 0.75rem;
+      gap: 0.5rem;
+      padding: 0.5rem 0.75rem;
       background: #fafafa;
-      border-radius: 8px;
-      font-size: 0.875rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
       font-weight: 500;
     }
     .benefit-icon {
@@ -100,20 +100,20 @@ function addUpgradePopupCSS() {
     }
     .upgrade-actions {
       display: flex;
-      gap: 1rem;
+      gap: 0.75rem;
       justify-content: center;
-      margin-top: 1.5rem;
+      margin-top: 1rem;
     }
     .upgrade-btn {
       flex: 1;
-      padding: 1rem 1.5rem;
+      padding: 0.75rem 1.25rem;
       border-radius: 8px;
       font-weight: 600;
       text-decoration: none;
       transition: all 0.3s ease;
       cursor: pointer;
       border: none;
-      font-size: 1rem;
+      font-size: 0.9rem;
       display: inline-block;
       text-align: center;
     }
@@ -138,19 +138,21 @@ function addUpgradePopupCSS() {
     .upgrade-benefits-box {
       background: #fafafa;
       border-radius: 8px;
-      padding: 1.5rem;
-      margin: 1.5rem 0;
+      padding: 1rem;
+      margin: 1rem 0;
       text-align: left;
     }
     .upgrade-benefits-title {
       font-weight: 600;
       color: #1e293b;
-      margin-bottom: 0.75rem;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
     }
     .upgrade-benefits-list {
       display: grid;
-      gap: 0.5rem;
-      font-size: 0.875rem;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.3rem;
+      font-size: 0.8rem;
     }
     
     @media (max-width: 768px) {
@@ -167,6 +169,10 @@ function addUpgradePopupCSS() {
       
       .upgrade-actions {
         flex-direction: column;
+      }
+      
+      .upgrade-benefits-list {
+        grid-template-columns: 1fr;
       }
     }
   `;
