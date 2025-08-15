@@ -2414,6 +2414,11 @@ function processNetlifyData(characters, category, gridId, limit) {
       }
       card.href = characterUrl;
       
+      // Add companion limit protection for character cards
+      card.setAttribute('data-original-href', characterUrl);
+      card.removeAttribute('href');
+      card.style.cursor = 'pointer';
+      
       // Get basic data
       const name = character.name || character.Name || 'Unknown';
       const title = character.title || character.Character_Title || character.description || character.Description || '';
@@ -2505,6 +2510,18 @@ function processNetlifyData(characters, category, gridId, limit) {
       }
       card.appendChild(nameDiv);
       card.appendChild(titleDiv);
+      
+      // Add click event listener for companion limit protection
+      card.addEventListener('click', function(e) {
+        // Use the global checkCompanionLimitBeforeNavigation function
+        if (window.checkCompanionLimitBeforeNavigation) {
+          window.checkCompanionLimitBeforeNavigation(e);
+        } else {
+          // Fallback if function not loaded yet
+          console.warn('⚠️ Companion limit check function not loaded, allowing navigation');
+          window.location.href = characterUrl;
+        }
+      });
       
       return card;
     }
