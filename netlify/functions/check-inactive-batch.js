@@ -1,5 +1,5 @@
 // One-time function to check inactive chats from 3 weeks ago to yesterday
-// Based on check-inactive-chats.js but with extended date range
+// Processes ALL inactive chats, not limited to 50
 
 const sgMail = require('@sendgrid/mail');
 
@@ -28,30 +28,39 @@ exports.handler = async (event, context) => {
     
     console.log(`📅 Searching for chats between ${threeWeeksAgo} and ${yesterday}`);
     
-    // Fetch chat messages in this range
-    const chatsResponse = await fetch(
-      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?` + 
-      `filterByFormula=${encodeURIComponent(`AND(IS_AFTER({CreatedTime}, '${threeWeeksAgo}'), IS_BEFORE({CreatedTime}, '${yesterday}'))`)}` +
-      `&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=1000`,
-      {
+    // Fetch ALL chat messages in this range using pagination
+    let allRecords = [];
+    let offset = null;
+    
+    do {
+      const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?` + 
+        `filterByFormula=${encodeURIComponent(`AND(IS_AFTER({CreatedTime}, '${threeWeeksAgo}'), IS_BEFORE({CreatedTime}, '${yesterday}'))`)}` +
+        `&sort[0][field]=CreatedTime&sort[0][direction]=desc` +
+        (offset ? `&offset=${offset}` : '');
+        
+      const chatsResponse = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
           'Content-Type': 'application/json'
         }
+      });
+
+      if (!chatsResponse.ok) {
+        throw new Error(`Airtable error: ${chatsResponse.status}`);
       }
-    );
 
-    if (!chatsResponse.ok) {
-      throw new Error(`Airtable error: ${chatsResponse.status}`);
-    }
-
-    const chatsData = await chatsResponse.json();
-    console.log(`📊 Found ${chatsData.records.length} chat records in date range`);
+      const chatsData = await chatsResponse.json();
+      allRecords = allRecords.concat(chatsData.records);
+      offset = chatsData.offset;
+      console.log(`📊 Fetched ${chatsData.records.length} records, total so far: ${allRecords.length}`);
+    } while (offset);
+    
+    console.log(`📊 Total chat records found: ${allRecords.length}`);
     
     // Group messages by user-character combination
     const conversations = {};
     
-    for (const record of chatsData.records) {
+    for (const record of allRecords) {
       const userIds = record.fields.User || [];
       const characterIds = record.fields.Character || [];
       
@@ -124,19 +133,14 @@ exports.handler = async (event, context) => {
 
     console.log(`📧 Found ${inactiveChats.length} inactive chats to follow up`);
     
-    // Limit to 50 to avoid timeout
-    const chatsToProcess = inactiveChats.slice(0, 50);
-    if (inactiveChats.length > 50) {
-      console.log(`⚠️ Limiting to first 50 chats (${inactiveChats.length - 50} will be skipped)`);
-    }
-    
-    // Process each inactive chat
+    // Process ALL inactive chats
     let processedCount = 0;
     let skippedCount = 0;
     let emailsSentCount = 0;
     let errors = [];
     
-    for (const chat of chatsToProcess) {
+    // Process one by one to avoid overwhelming the system
+    for (const chat of inactiveChats) {
       try {
         // Get user details
         const userResponse = await fetch(
@@ -177,8 +181,6 @@ exports.handler = async (event, context) => {
           continue;
         }
         
-        processedCount++;
-
         // Get character details
         const characterResponse = await fetch(
           `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula=${encodeURIComponent(`RECORD_ID()='${chat.character_record_id}'`)}`,
@@ -191,7 +193,10 @@ exports.handler = async (event, context) => {
         );
 
         const characterData = await characterResponse.json();
-        if (!characterData.records || characterData.records.length === 0) continue;
+        if (!characterData.records || characterData.records.length === 0) {
+          skippedCount++;
+          continue;
+        }
         
         const character = characterData.records[0].fields;
         const characterSlug = character.Slug || character.slug;
@@ -258,7 +263,11 @@ exports.handler = async (event, context) => {
           }
         );
 
-        if (!saveResponse.ok) continue;
+        if (!saveResponse.ok) {
+          console.error(`Failed to save check-in for ${userEmail}`);
+          skippedCount++;
+          continue;
+        }
 
         // Send email
         const chatUrl = `https://narrin.ai/chat.html?char=${characterSlug}`;
@@ -269,34 +278,50 @@ exports.handler = async (event, context) => {
           <head>
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
           </head>
-          <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background-color: #fafafa;">
-            <div style="width: 100%; background-color: #fafafa; padding: 40px 20px;">
-              <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);">
+          <body style="margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background-color: #fafafa; -webkit-font-smoothing: antialiased;">
+            <div style="width: 100%; background-color: #fafafa; padding: 40px 20px; min-height: 100vh;">
+              <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); border: 2px solid #f5f5f5;">
                 
-                <div style="background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%); padding: 50px 30px; text-align: center;">
-                  <h1 style="font-size: 36px; font-weight: 800; color: #ffffff; margin: 0;">
+                <!-- Header with gradient -->
+                <div style="background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%); padding: 50px 30px; text-align: center; position: relative; overflow: hidden;">
+                  <h1 style="font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 36px; font-weight: 800; color: #ffffff; margin: 0; letter-spacing: -0.02em; position: relative; z-index: 2; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
                     Narrin AI
                   </h1>
                 </div>
                 
+                <!-- Main content -->
                 <div style="padding: 50px 40px; text-align: center;">
-                  <h2 style="font-size: 28px; font-weight: 700; color: #1e293b; margin-bottom: 20px;">
+                  <h2 style="font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 28px; font-weight: 700; color: #1e293b; margin-bottom: 20px; letter-spacing: -0.01em;">
                     ${character.Name} Sent You a Message
                   </h2>
                   
-                  <p style="font-size: 18px; color: #64748b; margin-bottom: 30px;">
+                  <p style="font-size: 18px; color: #64748b; margin-bottom: 30px; line-height: 1.6;">
                     You have an unread message waiting for you!
                   </p>
                   
-                  <a href="${chatUrl}" style="display: inline-block; background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%); color: #ffffff; text-decoration: none; padding: 18px 40px; border-radius: 16px; font-size: 18px; font-weight: 700;">
+                  <!-- CTA Button -->
+                  <a href="${chatUrl}" 
+                     style="display: inline-block; background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%); color: #ffffff !important; text-decoration: none !important; padding: 18px 40px; border-radius: 16px; font-size: 18px; font-weight: 700; font-family: 'Plus Jakarta Sans', sans-serif; margin: 30px 0; box-shadow: 0 10px 25px -5px rgba(20, 184, 166, 0.2); transition: all 0.3s ease; position: relative; overflow: hidden; letter-spacing: -0.01em; white-space: nowrap;">
                     Read Message
                   </a>
                 </div>
                 
+                <!-- Footer -->
                 <div style="background: #f8fafc; padding: 30px 40px; text-align: center; border-top: 1px solid #e2e8f0;">
-                  <p style="font-size: 14px; color: #64748b;">
+                  <p style="font-size: 14px; color: #64748b; margin-bottom: 10px;">
                     This email was sent from Narrin AI
+                  </p>
+                  
+                  <div style="display: flex; justify-content: center; gap: 20px; margin-bottom: 20px; flex-wrap: wrap;">
+                    <a href="https://narrin.ai" style="color: #14b8a6; text-decoration: none; font-size: 14px; font-weight: 500;">Visit Website</a>
+                    <a href="https://narrin.ai/profile.html#notifications" style="color: #14b8a6; text-decoration: none; font-size: 14px; font-weight: 500;">Unsubscribe</a>
+                    <a href="https://narrin.ai/contact.html" style="color: #14b8a6; text-decoration: none; font-size: 14px; font-weight: 500;">Contact Support</a>
+                  </div>
+                  
+                  <p style="font-size: 12px; color: #94a3b8; margin: 0;">
+                    © 2025 Narrin AI. All rights reserved.
                   </p>
                 </div>
               </div>
@@ -313,16 +338,37 @@ exports.handler = async (event, context) => {
           },
           subject: `${character.Name} sent you a message 💌`,
           html: emailHtml,
-          text: `Continue your conversation at: ${chatUrl}`
+          text: `Continue your conversation. Jump back in anytime!\n\n${chatUrl}`,
+          mailSettings: {
+            sandboxMode: {
+              enable: false
+            }
+          },
+          trackingSettings: {
+            clickTracking: {
+              enable: true
+            },
+            openTracking: {
+              enable: true
+            }
+          }
         };
 
         await sgMail.send(msg);
-        console.log(`✅ Email sent to ${userEmail}`);
+        console.log(`✅ Email sent to ${userEmail} from ${character.Name}`);
         emailsSentCount++;
+        processedCount++;
+        
+        // Add a small delay to avoid rate limiting
+        if (processedCount % 20 === 0) {
+          console.log(`⏸️ Processed ${processedCount}/${inactiveChats.length}, pausing briefly...`);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
         
       } catch (error) {
         console.error(`Error processing chat:`, error.message);
         errors.push(error.message);
+        skippedCount++;
       }
     }
 
@@ -337,8 +383,8 @@ exports.handler = async (event, context) => {
         emailsSent: emailsSentCount,
         skipped: skippedCount,
         totalFound: inactiveChats.length,
-        message: `Batch complete: ${emailsSentCount} emails sent, ${processedCount} processed, ${skippedCount} skipped`,
-        errors: errors.length > 0 ? errors : undefined
+        message: `Batch complete: ${emailsSentCount} emails sent, ${processedCount} processed, ${skippedCount} skipped out of ${inactiveChats.length} total`,
+        errors: errors.length > 0 ? errors.slice(0, 10) : undefined // Limit errors to first 10
       })
     };
 
