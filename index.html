@@ -1746,6 +1746,7 @@ body.has-referral-banner {
     { id: 'life', name: '🌟 Life', title: 'Life' },
     { id: 'career', name: '💼 Career', title: 'Career' },
     { id: 'love', name: '💖 Love', title: 'Love' },
+    { id: 'made-by-you', name: '👥 Made By You', title: 'Made By You' },
     { id: 'romance', name: '💕 Romance', title: 'Romance' },
     { id: 'mindfulness', name: '🧘 Mindfulness', title: 'Mindfulness' },
     { id: 'purpose', name: '🎯 Purpose', title: 'Purpose' },
@@ -2043,6 +2044,7 @@ function generateExtraTagButtons() {
         { id: 'life', name: 'Life', title: 'Life' },
         { id: 'career', name: 'Career', title: 'Career' },
         { id: 'love', name: 'Love', title: 'Love' },
+        { id: 'made-by-you', name: 'Made By You', title: 'Made By You' },
         { id: 'romance', name: 'Romance', title: 'Romance' },
         { id: 'mindfulness', name: 'Mindfulness', title: 'Mindfulness' },
         { id: 'purpose', name: 'Purpose', title: 'Purpose' },
@@ -2217,9 +2219,15 @@ async function loadCharactersFromNetlify(category, gridId, limit = CONFIG.MAX_CH
 
   // Build API URL - fetch more to account for filtered characters
   const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
-  url.searchParams.set('category', category);
-  // Fetch extra characters to account for user-created ones being filtered out
-  url.searchParams.set('limit', (limit * 2).toString());
+  
+  // For "Made By You", fetch all characters without category filter
+  if (category === 'made-by-you') {
+    url.searchParams.set('limit', '100'); // Fetch more to find user-created ones
+  } else {
+    url.searchParams.set('category', category);
+    // Fetch extra characters to account for user-created ones being filtered out
+    url.searchParams.set('limit', (limit * 2).toString());
+  }
   
   console.log(`📡 Fetching from Netlify Function:`, url.toString());
   
@@ -2264,11 +2272,21 @@ function processNetlifyData(characters, category, gridId, limit) {
   grid.innerHTML = '';
   
   if (characters && characters.length > 0) {
-    // Filter for this category first, excluding user-created characters
-    const categoryCharacters = characters.filter(char => 
-      char.Category && char.Category.toLowerCase() === category.toLowerCase() &&
-      !char.Created_by // Exclude user-created characters
-    );
+    // Special handling for "Made By You" category
+    let categoryCharacters;
+    if (category === 'made-by-you') {
+      // For "Made By You", only show user-created public characters
+      categoryCharacters = characters.filter(char => 
+        char.Created_by && // Only user-created characters
+        char.Visibility === 'public' // Only public characters
+      );
+    } else {
+      // For other categories, exclude user-created characters
+      categoryCharacters = characters.filter(char => 
+        char.Category && char.Category.toLowerCase() === category.toLowerCase() &&
+        !char.Created_by // Exclude user-created characters
+      );
+    }
     
     // Sort characters - those with avatars first, then others
     const sortedCharacters = categoryCharacters.sort((a, b) => {
