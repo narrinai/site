@@ -307,8 +307,8 @@ function getUpgradeContent(usage, quota, type) {
   `;
 }
 
-// Check companion limits before allowing navigation
-async function checkCompanionLimitBeforeNavigation(e) {
+// Check companion limits before allowing navigation - Make it globally accessible
+window.checkCompanionLimitBeforeNavigation = async function checkCompanionLimitBeforeNavigation(e) {
   e.preventDefault();
   
   const email = localStorage.getItem('user_email');
@@ -366,7 +366,7 @@ async function checkCompanionLimitBeforeNavigation(e) {
     // Allow navigation on error
     window.location.href = targetUrl;
   }
-}
+};
 
 // Auto-initialize on DOM ready
 document.addEventListener('DOMContentLoaded', function() {

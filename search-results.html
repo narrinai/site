@@ -1018,8 +1018,7 @@
    })(window, document, "clarity", "script", "svaxez2fed");
  </script>
  
-  <script src="js/companion-limit-check.js"></script>
-  <!-- Google Analytics -->
+   <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-D6T01M6XTJ"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -1386,6 +1385,11 @@
      
      card.href = processedCharacter.characterUrl;
      
+     // Add companion limit protection for character cards
+     card.setAttribute('data-original-href', processedCharacter.characterUrl);
+     card.removeAttribute('href');
+     card.style.cursor = 'pointer';
+     
      // Add user-created badge if Created_by field is not empty
      let userBadgeHTML = '';
      if (processedCharacter.createdBy) {
@@ -1419,6 +1423,18 @@
        `;
        console.log(`⚠️ No valid avatar URL found for ${processedCharacter.name}, using fallback icon`);
      }
+     
+     // Add click event listener for companion limit protection
+     card.addEventListener('click', function(e) {
+       // Use the global checkCompanionLimitBeforeNavigation function
+       if (window.checkCompanionLimitBeforeNavigation) {
+         window.checkCompanionLimitBeforeNavigation(e);
+       } else {
+         // Fallback if function not loaded yet
+         console.warn('⚠️ Companion limit check function not loaded, allowing navigation');
+         window.location.href = processedCharacter.characterUrl;
+       }
+     });
      
      return card;
    }
