@@ -1317,9 +1317,9 @@
     
     @media (max-width: 768px) {
       .conversation-topics {
-        margin-top: 4px !important; /* Minimal space between input and topics */
+        margin-top: 2px !important; /* Ultra minimal space between input and topics */
         margin-bottom: 10px;
-        padding: 12px 10px;
+        padding: 8px 10px; /* Reduced top/bottom padding */
         border-radius: var(--radius-md);
         background: transparent;
         border: none;
@@ -2469,8 +2469,15 @@
       .disclaimer {
         font-size: calc(var(--font-size-xs) * 0.9);
         padding: var(--spacing-xs) var(--spacing-sm);
-        margin-top: 6px; /* Reduce mobile disclaimer margin */
-        margin-bottom: 0;
+        margin-top: 4px !important; /* Minimal mobile disclaimer margin */
+        margin-bottom: 0 !important;
+      }
+      
+      /* Aggressive mobile spacing fix */
+      .chat-section + .desktop-action-buttons + .conversation-topics,
+      .chat-section + .conversation-topics,
+      .desktop-action-buttons + .conversation-topics {
+        margin-top: 2px !important;
       }
 
       /* Ensure chat section has proper bottom padding for input */
@@ -14597,6 +14604,13 @@ async function checkUsageLimit() {
       subscriptionStatus,
       stripeStatus,
       fullData: data 
+    });
+    console.log('🔍 Detailed usage analysis:', {
+      usageNumber: usage,
+      quotaNumber: quota,
+      usageType: typeof usage,
+      quotaType: typeof quota,
+      usageGreaterThanQuota: usage >= quota
     });
 
     // Check user plan for message limits - only Engage and Immerse are paid plans
