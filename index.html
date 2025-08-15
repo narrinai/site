@@ -2220,9 +2220,11 @@ async function loadCharactersFromNetlify(category, gridId, limit = CONFIG.MAX_CH
   // Build API URL - fetch more to account for filtered characters
   const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
   
-  // For "Made By You", fetch all characters without category filter
+  // For "Made By You", fetch user-created public characters
   if (category === 'made-by-you') {
-    url.searchParams.set('limit', '100'); // Fetch more to find user-created ones
+    url.searchParams.set('user_created', 'true'); // Special parameter for user-created
+    url.searchParams.set('visibility', 'public'); // Only public characters
+    url.searchParams.set('limit', '50'); // Fetch enough user-created ones
   } else {
     url.searchParams.set('category', category);
     // Fetch extra characters to account for user-created ones being filtered out
@@ -2275,11 +2277,10 @@ function processNetlifyData(characters, category, gridId, limit) {
     // Special handling for "Made By You" category
     let categoryCharacters;
     if (category === 'made-by-you') {
-      // For "Made By You", only show user-created public characters
-      categoryCharacters = characters.filter(char => 
-        char.Created_by && // Only user-created characters
-        char.Visibility === 'public' // Only public characters
-      );
+      // For "Made By You", the API already returns only user-created public characters
+      // Just use them directly
+      categoryCharacters = characters;
+      console.log(`🎨 Found ${categoryCharacters.length} user-created public characters`);
     } else {
       // For other categories, exclude user-created characters
       categoryCharacters = characters.filter(char => 

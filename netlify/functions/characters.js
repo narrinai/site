@@ -46,9 +46,9 @@ exports.handler = async (event, context) => {
     }
 
     // Get query parameters
-    const { category, tag, slug, limit = 3000 } = event.queryStringParameters || {};
+    const { category, tag, slug, user_created, visibility, limit = 3000 } = event.queryStringParameters || {};
     
-    console.log('Request params:', { category, tag, slug, limit });
+    console.log('Request params:', { category, tag, slug, user_created, visibility, limit });
 
     // Fetch all records using pagination if needed
     let allRecords = [];
@@ -70,13 +70,16 @@ exports.handler = async (event, context) => {
       // If slug is specified, only get that specific character
       if (slug) {
         filterParts.push(`{Slug} = "${slug}"`);
+      } else if (user_created === 'true') {
+        // For user-created characters, get all with visibility = public and Created_by field
+        filterParts.push(`AND({Visibility} = "public", {Created_by} != "")`);
       } else {
         // Always filter to show only public characters (unless searching by slug)
         filterParts.push(`OR({Visibility} = "public", {Visibility} = "", NOT({Visibility}))`);
       }
       
-      // Add category filter if specified (case-insensitive)
-      if (category) {
+      // Add category filter if specified (case-insensitive) - but not for user_created
+      if (category && user_created !== 'true') {
         // Use LOWER() for case-insensitive comparison
         filterParts.push(`LOWER({Category}) = "${category.toLowerCase()}"`);
       }
