@@ -8000,7 +8000,7 @@ async function getRelevantMemories(userId, characterId, currentMessage) {
             user_uid: userUid || userId,  // Use NetlifyUID from localStorage
             slug: characterId,
             current_message: currentMessage,
-            min_importance: 1,
+            min_importance: 3,  // Verhoogd van 1 naar 3 voor betere filtering
             max_results: 5
         };
         
@@ -10198,7 +10198,7 @@ async function getMemoryBasedTopics() {
           user_uid: uid,
           slug: characterSlug || currentCharacter.Slug || currentCharacter.slug,
           current_message: '',
-          min_importance: 1,
+          min_importance: 3,  // Verhoogd van 1 naar 3 voor betere filtering
           max_results: 5
         })
       });
@@ -13905,11 +13905,28 @@ INSTRUCTIONS:
       console.log('🎯 Priority context for onboarding continuation:', priorityContext);
     }
     
+    // Collect recent conversation history from DOM (last 25 messages)
+    const chatHistory = [];
+    const chatElements = document.querySelectorAll('#chatlog p:not([data-starter="true"])');
+    const recentChatElements = Array.from(chatElements).slice(-25); // Get last 25 messages
+    
+    recentChatElements.forEach(elem => {
+      const text = elem.textContent;
+      if (text.includes('You:')) {
+        chatHistory.push({ role: 'user', content: text.replace('You:', '').trim() });
+      } else if (text.includes(currentCharacter?.name || 'Character')) {
+        chatHistory.push({ role: 'assistant', content: text.replace(`${currentCharacter?.name || 'Character'}:`, '').trim() });
+      }
+    });
+    
+    console.log(`📚 Including ${chatHistory.length} messages in conversation history`);
+    
     const requestPayload = {
       action: "send_message",
       text: input, // Clean user input only
       user_message: input, // Voor database opslag
       memory_context: priorityContext + onboardingSummaryContext + memoryContext + onboardingContext, // Priority context first
+      conversation_history: chatHistory, // Add last 25 messages for better context
       // Model selection happens in Make.com, not here
       emotional_complexity: emotionalComplexity, // Emotional complexity score for analytics only
       relationship_phase: relationshipContext?.phase || 'new',
