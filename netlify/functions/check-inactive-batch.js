@@ -1,0 +1,352 @@
+// One-time function to check inactive chats from 3 weeks ago to yesterday
+// Based on check-inactive-chats.js but with extended date range
+
+const sgMail = require('@sendgrid/mail');
+
+exports.handler = async (event, context) => {
+  console.log('🔄 Batch checking for inactive chats (3 weeks range)...');
+  console.log('📅 Current time:', new Date().toISOString());
+  
+  const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
+  const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN || process.env.AIRTABLE_API_KEY;
+  const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+  
+  if (!AIRTABLE_BASE_ID || !AIRTABLE_TOKEN || !SENDGRID_API_KEY) {
+    console.error('❌ Missing configuration');
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: 'Missing configuration' })
+    };
+  }
+
+  sgMail.setApiKey(SENDGRID_API_KEY);
+
+  try {
+    // Get chats from 3 weeks ago to yesterday
+    const threeWeeksAgo = new Date(Date.now() - 21 * 24 * 60 * 60 * 1000).toISOString();
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    
+    console.log(`📅 Searching for chats between ${threeWeeksAgo} and ${yesterday}`);
+    
+    // Fetch chat messages in this range
+    const chatsResponse = await fetch(
+      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?` + 
+      `filterByFormula=${encodeURIComponent(`AND(IS_AFTER({CreatedTime}, '${threeWeeksAgo}'), IS_BEFORE({CreatedTime}, '${yesterday}'))`)}` +
+      `&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=1000`,
+      {
+        headers: {
+          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    if (!chatsResponse.ok) {
+      throw new Error(`Airtable error: ${chatsResponse.status}`);
+    }
+
+    const chatsData = await chatsResponse.json();
+    console.log(`📊 Found ${chatsData.records.length} chat records in date range`);
+    
+    // Group messages by user-character combination
+    const conversations = {};
+    
+    for (const record of chatsData.records) {
+      const userIds = record.fields.User || [];
+      const characterIds = record.fields.Character || [];
+      
+      if (userIds.length === 0 || characterIds.length === 0) continue;
+      
+      const userId = userIds[0];
+      const characterId = characterIds[0];
+      const key = `${userId}_${characterId}`;
+      
+      if (!conversations[key]) {
+        conversations[key] = {
+          user_record_id: userId,
+          character_record_id: characterId,
+          character_name: record.fields.CharacterName || record.fields.character_name || record.fields.Slug || '',
+          user_netlify_uid: record.fields.NetlifyUID || record.fields.netlify_uid || '',
+          character_slug: record.fields.Slug || record.fields.slug || '',
+          messages: [],
+          last_message_time: null,
+          last_user_message: null
+        };
+      }
+      
+      conversations[key].messages.push({
+        message: record.fields.Message,
+        is_user: record.fields.Role === 'user',
+        created_time: new Date(record.fields.CreatedTime),
+        is_checkin: record.fields.message_type === 'check-in' || false
+      });
+      
+      if (record.fields.Role === 'user' && record.fields.Message) {
+        conversations[key].last_user_message = record.fields.Message;
+      }
+      
+      const msgTime = new Date(record.fields.CreatedTime);
+      if (!conversations[key].last_message_time || msgTime > conversations[key].last_message_time) {
+        conversations[key].last_message_time = msgTime;
+      }
+    }
+
+    // Find inactive conversations
+    const inactiveChats = [];
+    const now = new Date();
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    
+    console.log(`🔍 Analyzing ${Object.keys(conversations).length} unique conversations`);
+    
+    for (const [key, conv] of Object.entries(conversations)) {
+      if (!conv.last_message_time) continue;
+      
+      // Only process if last message was before yesterday
+      if (conv.last_message_time > oneDayAgo) continue;
+      
+      // Check if already has a recent check-in (within 7 days)
+      const recentCheckin = conv.messages.find(m => {
+        const isCheckin = m.is_checkin === true || m.is_checkin === 'true';
+        const checkinAge = (now - m.created_time) / (1000 * 60 * 60 * 24);
+        return isCheckin && checkinAge < 7;
+      });
+      
+      if (recentCheckin) continue;
+      
+      // Check if last message was from AI
+      const sortedMessages = conv.messages.sort((a, b) => b.created_time - a.created_time);
+      const lastMessageWasAI = sortedMessages.length > 0 && !sortedMessages[0].is_user;
+      
+      if (lastMessageWasAI) {
+        inactiveChats.push(conv);
+      }
+    }
+
+    console.log(`📧 Found ${inactiveChats.length} inactive chats to follow up`);
+    
+    // Limit to 50 to avoid timeout
+    const chatsToProcess = inactiveChats.slice(0, 50);
+    if (inactiveChats.length > 50) {
+      console.log(`⚠️ Limiting to first 50 chats (${inactiveChats.length - 50} will be skipped)`);
+    }
+    
+    // Process each inactive chat
+    let processedCount = 0;
+    let skippedCount = 0;
+    let emailsSentCount = 0;
+    let errors = [];
+    
+    for (const chat of chatsToProcess) {
+      try {
+        // Get user details
+        const userResponse = await fetch(
+          `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=${encodeURIComponent(`RECORD_ID()='${chat.user_record_id}'`)}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+
+        const userData = await userResponse.json();
+        if (!userData.records || userData.records.length === 0) {
+          skippedCount++;
+          continue;
+        }
+        
+        const user = userData.records[0].fields;
+        const userEmail = user.Email || user.email;
+        const userName = user.Name || user.name || 'there';
+        const userNetlifyUID = user.NetlifyUID;
+        
+        if (!userEmail) {
+          skippedCount++;
+          continue;
+        }
+        
+        // Skip test emails
+        const isTestEmail = userEmail && (
+          userEmail.includes('@narrin.ai') || 
+          userEmail.includes('sharklasers.com') ||
+          userEmail.includes('info@narrin.ai')
+        );
+        
+        if (isTestEmail) {
+          skippedCount++;
+          continue;
+        }
+        
+        processedCount++;
+
+        // Get character details
+        const characterResponse = await fetch(
+          `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Characters?filterByFormula=${encodeURIComponent(`RECORD_ID()='${chat.character_record_id}'`)}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+
+        const characterData = await characterResponse.json();
+        if (!characterData.records || characterData.records.length === 0) continue;
+        
+        const character = characterData.records[0].fields;
+        const characterSlug = character.Slug || character.slug;
+        
+        // Check onboarding for Career category
+        const category = character.Category || character.category || '';
+        if (category === 'Career') {
+          const onboardingCheckResponse = await fetch(
+            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?` +
+            `filterByFormula=${encodeURIComponent(`AND({NetlifyUID}='${userNetlifyUID}',{Slug}='${characterSlug}',{message_type}='onboarding')`)}`,
+            {
+              headers: {
+                'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+                'Content-Type': 'application/json'
+              }
+            }
+          );
+          
+          if (onboardingCheckResponse.ok) {
+            const onboardingData = await onboardingCheckResponse.json();
+            if (!onboardingData.records || onboardingData.records.length === 0) {
+              skippedCount++;
+              continue;
+            }
+          }
+        }
+
+        // Generate check-in message
+        const templates = [
+          `👋 Hey! I've been thinking about you. How are things going?`,
+          `Hi there! Just checking in to see how you're doing. What's new with you?`,
+          `Hello! I hope you're having a good day. I'd love to hear what you've been up to!`,
+          `Hey you! It's been a little while. How have you been?`,
+          `Hi! I was just thinking about our conversation. How are things going on your end?`,
+          `👋 Just wanted to check in and see how you're doing. Miss chatting with you!`,
+          `Hey! Hope everything is going well. Would love to catch up when you have time!`,
+          `Hi there! Been thinking about you. How's everything going?`,
+          `Hello! Just dropping by to say hi and see how you're doing!`,
+          `Hey! I've been wondering how you're doing. Everything okay?`
+        ];
+        
+        const checkInMessage = templates[Math.floor(Math.random() * templates.length)];
+
+        // Save check-in message
+        const checkInRecord = {
+          fields: {
+            Role: 'ai assistant',
+            Message: checkInMessage,
+            User: [chat.user_record_id],
+            Character: [chat.character_record_id],
+            message_type: 'check-in'
+          }
+        };
+
+        const saveResponse = await fetch(
+          `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(checkInRecord)
+          }
+        );
+
+        if (!saveResponse.ok) continue;
+
+        // Send email
+        const chatUrl = `https://narrin.ai/chat.html?char=${characterSlug}`;
+        
+        const emailHtml = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          </head>
+          <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background-color: #fafafa;">
+            <div style="width: 100%; background-color: #fafafa; padding: 40px 20px;">
+              <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);">
+                
+                <div style="background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%); padding: 50px 30px; text-align: center;">
+                  <h1 style="font-size: 36px; font-weight: 800; color: #ffffff; margin: 0;">
+                    Narrin AI
+                  </h1>
+                </div>
+                
+                <div style="padding: 50px 40px; text-align: center;">
+                  <h2 style="font-size: 28px; font-weight: 700; color: #1e293b; margin-bottom: 20px;">
+                    ${character.Name} Sent You a Message
+                  </h2>
+                  
+                  <p style="font-size: 18px; color: #64748b; margin-bottom: 30px;">
+                    You have an unread message waiting for you!
+                  </p>
+                  
+                  <a href="${chatUrl}" style="display: inline-block; background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%); color: #ffffff; text-decoration: none; padding: 18px 40px; border-radius: 16px; font-size: 18px; font-weight: 700;">
+                    Read Message
+                  </a>
+                </div>
+                
+                <div style="background: #f8fafc; padding: 30px 40px; text-align: center; border-top: 1px solid #e2e8f0;">
+                  <p style="font-size: 14px; color: #64748b;">
+                    This email was sent from Narrin AI
+                  </p>
+                </div>
+              </div>
+            </div>
+          </body>
+          </html>
+        `;
+
+        const msg = {
+          to: userEmail,
+          from: {
+            email: 'notifications@narrin.ai',
+            name: 'Narrin AI'
+          },
+          subject: `${character.Name} sent you a message 💌`,
+          html: emailHtml,
+          text: `Continue your conversation at: ${chatUrl}`
+        };
+
+        await sgMail.send(msg);
+        console.log(`✅ Email sent to ${userEmail}`);
+        emailsSentCount++;
+        
+      } catch (error) {
+        console.error(`Error processing chat:`, error.message);
+        errors.push(error.message);
+      }
+    }
+
+    return {
+      statusCode: 200,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        success: true,
+        processed: processedCount,
+        emailsSent: emailsSentCount,
+        skipped: skippedCount,
+        totalFound: inactiveChats.length,
+        message: `Batch complete: ${emailsSentCount} emails sent, ${processedCount} processed, ${skippedCount} skipped`,
+        errors: errors.length > 0 ? errors : undefined
+      })
+    };
+
+  } catch (error) {
+    console.error('❌ Batch function error:', error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: error.message })
+    };
+  }
+};
