@@ -1101,6 +1101,45 @@
       color: var(--color-gray);
       line-height: 1.3;
       margin-top: 4px;
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    /* Special styling for Made By You category - allow 2 lines */
+    #made-by-you-grid .character-title {
+      -webkit-line-clamp: 2;
+      min-height: 2.4em;
+    }
+    
+    /* Creator nickname badge overlay on avatar */
+    .creator-badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+      color: white;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+      z-index: 3;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      max-width: calc(100% + 16px);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .creator-badge::before {
+      content: '👤';
+      font-size: 10px;
+      flex-shrink: 0;
     }
     
     /* User-created badge */
@@ -2372,6 +2411,16 @@ function processNetlifyData(characters, category, gridId, limit) {
       // Create avatar container
       const avatarContainer = document.createElement('div');
       avatarContainer.className = 'character-avatar';
+      
+      // Add creator badge if there's a Created_by field (for Made By You category)
+      if (createdBy) {
+        const creatorBadge = document.createElement('div');
+        creatorBadge.className = 'creator-badge';
+        // Extract nickname/username from email or use full string if not email
+        const creatorName = createdBy.includes('@') ? createdBy.split('@')[0] : createdBy;
+        creatorBadge.textContent = creatorName;
+        avatarContainer.appendChild(creatorBadge);
+      }
       
       // Create card HTML structure first
       const nameDiv = document.createElement('div');
