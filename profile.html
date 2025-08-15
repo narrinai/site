@@ -20,13 +20,30 @@
   <meta property="twitter:description" content="Manage your Narrin AI profile, view chat history, upgrade to Pro for unlimited AI character conversations. Personalize your AI chat experience today.">
   <meta property="twitter:image" content="https://narrin.ai/og-image.jpg">
   
+  <!-- CRITICAL: Hide page IMMEDIATELY if verification token present -->
+  <style id="verification-hide-style">
+    /* This style is applied before anything else loads */
+  </style>
+  <script>
+    // This runs BEFORE any other scripts, styles, or content loads
+    (function() {
+      if (window.location.hash.includes('confirmation_token=') || 
+          window.location.hash.includes('recovery_token=') || 
+          window.location.hash.includes('invite_token=')) {
+        // Inject CSS to hide everything immediately
+        document.getElementById('verification-hide-style').textContent = 
+          'html, body { display: none !important; visibility: hidden !important; }';
+      }
+    })();
+  </script>
+  
 <!-- Netlify Identity Widget met configuratie -->
 <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 
 <!-- EmailJS SDK -->
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <script>
-  // Check for email verification token IMMEDIATELY before page renders
+  // Process email verification token (page already hidden by earlier script)
   (function() {
     const fragment = window.location.hash;
     if (fragment.includes('confirmation_token=') || 
@@ -38,31 +55,102 @@
       // Mark that we're processing verification
       sessionStorage.setItem('email_verification_processing', 'true');
       
-      // Hide the page initially to prevent flash
-      document.documentElement.style.visibility = 'hidden';
-      
-      // Process after Netlify Identity loads
-      window.addEventListener('load', function() {
+      // Wait for DOM ready before processing
+      window.addEventListener('DOMContentLoaded', function() {
         if (window.netlifyIdentity) {
+          console.log('🔄 Initializing Netlify Identity for token processing...');
+          
+          // Initialize Netlify Identity
           window.netlifyIdentity.init();
           
-          // Give Netlify time to process the token
-          setTimeout(() => {
-            // Clean the URL
-            window.history.replaceState({}, document.title, window.location.pathname);
+          // Listen for successful authentication
+          window.netlifyIdentity.on('login', function(user) {
+            console.log('✅ User authenticated via token:', user.email);
+            
+            // Store auth data immediately
+            localStorage.setItem('user_email', user.email);
+            localStorage.setItem('user_uid', user.id);
+            localStorage.setItem('user_token', user.token?.access_token || user.id);
+            localStorage.setItem('user_auth_timestamp', Date.now().toString());
             
             // Mark verification complete
             sessionStorage.setItem('email_verified', 'true');
+            sessionStorage.setItem('just_verified', 'true');
             sessionStorage.removeItem('email_verification_processing');
             
-            // Show the page
-            document.documentElement.style.visibility = 'visible';
+            // Clean the URL
+            window.history.replaceState({}, document.title, window.location.pathname);
             
-            // Reload to show proper state
-            window.location.reload();
-          }, 2000);
+            // Remove hide styles
+            const hideStyle = document.getElementById('verification-hide-style');
+            if (hideStyle) hideStyle.textContent = '';
+            document.documentElement.style.display = '';
+            document.documentElement.style.visibility = '';
+            document.body.style.display = '';
+            document.body.style.visibility = '';
+            
+            // Reload to show authenticated state
+            setTimeout(() => {
+              window.location.reload();
+            }, 100);
+          });
+          
+          // Fallback: check after delay
+          setTimeout(() => {
+            const user = window.netlifyIdentity.currentUser();
+            if (user) {
+              console.log('✅ User found after token processing:', user.email);
+              
+              // Store auth data
+              localStorage.setItem('user_email', user.email);
+              localStorage.setItem('user_uid', user.id);
+              localStorage.setItem('user_token', user.token?.access_token || user.id);
+              localStorage.setItem('user_auth_timestamp', Date.now().toString());
+              
+              // Clean URL and reload
+              window.history.replaceState({}, document.title, window.location.pathname);
+              sessionStorage.setItem('just_verified', 'true');
+              sessionStorage.removeItem('email_verification_processing');
+              
+              // Remove hide styles
+              const hideStyle = document.getElementById('verification-hide-style');
+              if (hideStyle) hideStyle.textContent = '';
+              document.documentElement.style.display = '';
+              document.documentElement.style.visibility = '';
+              document.body.style.display = '';
+              document.body.style.visibility = '';
+              
+              window.location.reload();
+            } else {
+              console.log('⚠️ No user found after token processing');
+              
+              // Remove processing flag and show page
+              sessionStorage.removeItem('email_verification_processing');
+              const hideStyle = document.getElementById('verification-hide-style');
+              if (hideStyle) hideStyle.textContent = '';
+              document.documentElement.style.display = '';
+              document.documentElement.style.visibility = '';
+              document.body.style.display = '';
+              document.body.style.visibility = '';
+            }
+          }, 3000);
         }
       });
+      
+      // Ultimate fallback: show page after 5 seconds
+      setTimeout(() => {
+        const stillProcessing = sessionStorage.getItem('email_verification_processing');
+        if (stillProcessing) {
+          console.log('⚠️ Verification timeout, showing page...');
+          sessionStorage.removeItem('email_verification_processing');
+          const hideStyle = document.getElementById('verification-hide-style');
+          if (hideStyle) hideStyle.textContent = '';
+          document.documentElement.style.display = '';
+          document.documentElement.style.visibility = '';
+          document.body.style.display = '';
+          document.body.style.visibility = '';
+        }
+      }, 5000);
     }
   })();
   
