@@ -1317,13 +1317,21 @@
     
     @media (max-width: 768px) {
       .conversation-topics {
-        margin-top: 8px; /* Reduce space between input and topics */
+        margin-top: 4px !important; /* Minimal space between input and topics */
+        margin-bottom: 10px;
         padding: 12px 10px;
         border-radius: var(--radius-md);
-        margin-bottom: 10px;
         background: transparent;
         border: none;
         box-shadow: none;
+      }
+      
+      /* Ensure no spacing from desktop action buttons */
+      .desktop-action-buttons {
+        display: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        height: 0 !important;
       }
       
       .chat-header {
@@ -3677,6 +3685,8 @@
     /* Hide desktop buttons section on all screens - we'll use header buttons instead */
     .desktop-action-buttons {
       display: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
     }
 
     /* ===== MEMORY HUB MODAL STYLES ===== */
@@ -13275,6 +13285,8 @@ async function sendMessage(event) {
   
   // Check usage limit before sending message
   console.log('🔍 Checking usage limit before sending message...');
+  const cachedSub = localStorage.getItem("subscription_status");
+  console.log('🔍 Current cached subscription:', cachedSub);
   const canSend = await checkUsageLimit();
   console.log(`📊 Usage limit check result: canSend = ${canSend}`);
   if (!canSend) {
