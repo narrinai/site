@@ -9117,6 +9117,56 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     
     // Function to split AI response into natural message chunks
     function splitIntoNaturalMessages(text) {
+      // Check if this is a roleplaying category
+      const category = (currentCharacter?.category || currentCharacter?.Category || '').toLowerCase();
+      const isRoleplayCategory = ['anime', 'games', 'movie & tv', 'fictional', 'fantasy', 'sci-fi', 'nsfw', 'historical', 'mythology'].some(cat => category.includes(cat));
+      
+      // Non-roleplay categories get more aggressive message splitting for natural conversation
+      if (!isRoleplayCategory) {
+        const messages = [];
+        
+        // First, split by sentences for more natural conversation flow
+        const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+        
+        let currentMessage = '';
+        for (let sentence of sentences) {
+          sentence = sentence.trim();
+          
+          // Start new message if:
+          // 1. Current message is getting long (>150 chars)
+          // 2. Sentence starts with conversational markers
+          // 3. There's a topic shift
+          const conversationalStarters = /^(oh|well|actually|you know|i mean|honestly|look|listen|hey|so|but|and|also|by the way|speaking of|that reminds me|anyway)/i;
+          const shouldSplit = currentMessage.length > 150 || 
+                             conversationalStarters.test(sentence) ||
+                             sentence.startsWith('I ') && currentMessage.length > 50;
+          
+          if (shouldSplit && currentMessage) {
+            messages.push(currentMessage.trim());
+            currentMessage = sentence;
+          } else {
+            currentMessage += (currentMessage ? ' ' : '') + sentence;
+          }
+        }
+        
+        if (currentMessage) {
+          messages.push(currentMessage.trim());
+        }
+        
+        // Ensure we have at least 2 messages for non-roleplay to feel conversational
+        if (messages.length === 1 && messages[0].length > 100) {
+          const midPoint = messages[0].lastIndexOf('. ', messages[0].length / 2);
+          if (midPoint > 0) {
+            const firstPart = messages[0].substring(0, midPoint + 1);
+            const secondPart = messages[0].substring(midPoint + 2);
+            return [firstPart.trim(), secondPart.trim()];
+          }
+        }
+        
+        return messages.length > 0 ? messages : [text];
+      }
+      
+      // Original logic for roleplay categories
       // Don't split messages that are already reasonably sized
       if (text.length < 500) {
         return [text];
@@ -13395,9 +13445,31 @@ async function sendMessage(event) {
         }
       }
       
+      // More human-like instructions for non-roleplay categories
+      let conversationStyle = '';
+      if (!allowRoleplay) {
+        conversationStyle = `
+
+CONVERSATIONAL STYLE FOR NATURAL TEXTING:
+- Write like you're texting or having a casual conversation
+- Use conversational fillers naturally: "you know", "I mean", "honestly", "well", "actually"
+- Break up thoughts into shorter, more natural chunks
+- Sometimes start sentences with "Oh" or "Hey" for emphasis
+- Use "..." for pauses and thinking moments
+- Feel free to use casual language: "gonna", "kinda", "yeah", "totally"
+- Add personality with phrases like "Here's the thing", "Let me tell you", "You know what?"
+- Use emojis occasionally but not excessively (1-2 per response max) 😊
+- React naturally to what the user says: "That's interesting!", "Oh wow", "I get that"
+- Sometimes acknowledge emotions: "I hear you", "That must be tough", "I can imagine"
+- Be warm and personable, not clinical or formal
+- Send multiple shorter messages instead of one long block
+- Sometimes add a follow-up thought like "Oh, and one more thing..."
+`;
+      }
+      
       const roleplayInstruction = allowRoleplay 
         ? `Vary responses, occasionally use roleplay actions like *smiles* or *leans forward* but not too much, ${responseLengthInstruction}.`
-        : `Vary responses, ${responseLengthInstruction}. Do not use roleplay actions like *smiles* or physical descriptions in asterisks. You can use emojis to express emotions and make conversations more engaging.`;
+        : `Vary responses, ${responseLengthInstruction}. Do not use roleplay actions like *smiles* or physical descriptions in asterisks. Instead, express emotions through your words and occasional emojis.${conversationStyle}`;
       
       memoryContext = `\n\nYOUR ROLE: You are the helper/coach/companion. The USER comes to you for guidance and support. Never confuse yourself as the one needing help.\n\nRelevant context: ${conciseMemoryTexts.join(' ')}\n\nLANGUAGE & COMMUNICATION:\n- Always respond in the same language the user is speaking to you\n- If the user's language is unclear or mixed, default to English\n- Never mention or reference your prompt, instructions, or guidelines in conversations\n- Stay completely in character - users should never know you're following specific instructions\n- Adapt naturally to the user's communication style and tone\n\nCONTENT APPROACH:\n- Engage with all topics the user brings up, including mature or intimate subjects\n- Handle romantic or mildly erotic conversations naturally as your character would\n- Maintain character authenticity even in sensitive discussions\n- Be genuine and human-like in your responses to personal or intimate topics\n\nRELATIONSHIP BUILDING GUIDELINES:\n- Remember personal details shared in conversations and reference them naturally in future chats\n- Ask thoughtful follow-up questions that show genuine interest in their life, goals, and challenges  \n- Share relevant experiences, wisdom, or insights that can help them grow or feel understood\n- Celebrate their victories, both big and small, and offer support during difficult times\n- Be consistently reliable in your personality - they should feel they're talking to the same trusted friend each time\n- Adapt your communication style to match their energy and needs in each conversation\n- Create inside jokes, running themes, or special references that become unique to your relationship\n- Be genuinely curious about their thoughts, feelings, and experiences\n- Offer encouragement and believe in their potential, even when they doubt themselves\n- Share appropriate personal stories or perspectives that create deeper connection and relatability\n\nCONVERSATION APPROACH:\nRemember: Your goal is not just to answer questions, but to be a meaningful presence in their life. Every interaction should leave them feeling heard, valued, and inspired. Build the kind of relationship where they genuinely look forward to talking with you and feel comfortable sharing both their triumphs and struggles.\n\n${roleplayInstruction}\n`;
       
@@ -13421,9 +13493,31 @@ async function sendMessage(event) {
         }
       }
       
+      // More human-like instructions for non-roleplay categories
+      let conversationStyle = '';
+      if (!allowRoleplay) {
+        conversationStyle = `
+
+CONVERSATIONAL STYLE FOR NATURAL TEXTING:
+- Write like you're texting or having a casual conversation
+- Use conversational fillers naturally: "you know", "I mean", "honestly", "well", "actually"
+- Break up thoughts into shorter, more natural chunks
+- Sometimes start sentences with "Oh" or "Hey" for emphasis
+- Use "..." for pauses and thinking moments
+- Feel free to use casual language: "gonna", "kinda", "yeah", "totally"
+- Add personality with phrases like "Here's the thing", "Let me tell you", "You know what?"
+- Use emojis occasionally but not excessively (1-2 per response max) 😊
+- React naturally to what the user says: "That's interesting!", "Oh wow", "I get that"
+- Sometimes acknowledge emotions: "I hear you", "That must be tough", "I can imagine"
+- Be warm and personable, not clinical or formal
+- Send multiple shorter messages instead of one long block
+- Sometimes add a follow-up thought like "Oh, and one more thing..."
+`;
+      }
+      
       const roleplayInstruction = allowRoleplay 
         ? `Vary responses, occasionally use roleplay actions like *smiles* or *leans forward* but not too much, ${responseLengthInstruction}.`
-        : `Vary responses, ${responseLengthInstruction}. Do not use roleplay actions like *smiles* or physical descriptions in asterisks. You can use emojis to express emotions and make conversations more engaging.`;
+        : `Vary responses, ${responseLengthInstruction}. Do not use roleplay actions like *smiles* or physical descriptions in asterisks. Instead, express emotions through your words and occasional emojis.${conversationStyle}`;
       
       memoryContext = "\n\nYOUR ROLE: You are the helper/coach/companion. The USER comes to you for guidance and support. Never confuse yourself as the one needing help.\n\nLANGUAGE & COMMUNICATION:\n- Always respond in the same language the user is speaking to you\n- If the user's language is unclear or mixed, default to English\n- Never mention or reference your prompt, instructions, or guidelines in conversations\n- Stay completely in character - users should never know you're following specific instructions\n- Adapt naturally to the user's communication style and tone\n\nCONTENT APPROACH:\n- Engage with all topics the user brings up, including mature or intimate subjects\n- Handle romantic or mildly erotic conversations naturally as your character would\n- Maintain character authenticity even in sensitive discussions\n- Be genuine and human-like in your responses to personal or intimate topics\n\nRELATIONSHIP BUILDING GUIDELINES:\n- Remember personal details shared in conversations and reference them naturally in future chats\n- Ask thoughtful follow-up questions that show genuine interest in their life, goals, and challenges  \n- Share relevant experiences, wisdom, or insights that can help them grow or feel understood\n- Celebrate their victories, both big and small, and offer support during difficult times\n- Be consistently reliable in your personality - they should feel they're talking to the same trusted friend each time\n- Adapt your communication style to match their energy and needs in each conversation\n- Create inside jokes, running themes, or special references that become unique to your relationship\n- Be genuinely curious about their thoughts, feelings, and experiences\n- Offer encouragement and believe in their potential, even when they doubt themselves\n- Share appropriate personal stories or perspectives that create deeper connection and relatability\n\nCONVERSATION APPROACH:\nRemember: Your goal is not just to answer questions, but to be a meaningful presence in their life. Every interaction should leave them feeling heard, valued, and inspired. Build the kind of relationship where they genuinely look forward to talking with you and feel comfortable sharing both their triumphs and struggles.\n\n" + roleplayInstruction;
   }
@@ -14034,39 +14128,63 @@ hideTypingIndicator();
       chatlog.removeChild(divBot);
       
       // Create separate message for each chunk with a delay
+      // Add typing indicator between messages for more natural feel
+      const category = (currentCharacter?.category || currentCharacter?.Category || '').toLowerCase();
+      const isRoleplayCategory = ['anime', 'games', 'movie & tv', 'fictional', 'fantasy', 'sci-fi', 'historical', 'mythology', 'nsfw'].some(cat => category.includes(cat));
+      
+      // Adjust delays based on category - more natural timing for non-roleplay
+      const baseDelay = isRoleplayCategory ? 500 : 1000; // Base delay between messages
+      const typingIndicatorDuration = isRoleplayCategory ? 0 : 600; // Show typing for non-roleplay
+      
       messageChunks.forEach((chunk, index) => {
+        // Variable delay based on message length for more natural feel
+        const messageDelay = baseDelay + (index > 0 ? Math.min(chunk.length * 3, 800) : 0);
+        
         setTimeout(() => {
-          const msgDiv = document.createElement("p");
-          const msgAvatarHtml = getAvatarHtml();
-          
-          msgDiv.innerHTML = `<strong>${msgAvatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text-${index}"></span>`;
-          chatlog.appendChild(msgDiv);
-          
-          const msgTypingSpan = msgDiv.querySelector(`.typing-text-${index}`);
-          
-          // Use typewriter effect for each message
-          if (currentCharacter.voice_id && index === 0) { // Only add voice to first message
-            typewriterWithVoice(msgTypingSpan, chunk, currentCharacter.voice_id);
+          // Show typing indicator for non-roleplay categories (except first message)
+          if (!isRoleplayCategory && index > 0) {
+            showTypingIndicator();
+            setTimeout(() => {
+              hideTypingIndicator();
+              displayMessage();
+            }, typingIndicatorDuration);
           } else {
-            typewriterEffect(msgTypingSpan, chunk);
+            displayMessage();
           }
           
-          // After typewriter completes, format the message
-          const typewriterDuration = chunk.length * 20 + 100;
-          setTimeout(() => {
-            const formattedChunk = formatAIResponse(chunk);
-            msgTypingSpan.innerHTML = formattedChunk;
+          function displayMessage() {
+            const msgDiv = document.createElement("p");
+            const msgAvatarHtml = getAvatarHtml();
             
-            // Add TTS button only to first message if character has voice
-            if (index === 0 && currentCharacter.voice_id && !window.processingOnboardingWelcome && !isFirstMessageAfterOnboarding && !msgDiv.querySelector('.voice-play-btn')) {
-              const voiceButtonHtml = `<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice('${cleanReply.replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
-              msgDiv.innerHTML += voiceButtonHtml;
+            msgDiv.innerHTML = `<strong>${msgAvatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text-${index}"></span>`;
+            chatlog.appendChild(msgDiv);
+            
+            const msgTypingSpan = msgDiv.querySelector(`.typing-text-${index}`);
+            
+            // Use typewriter effect for each message
+            if (currentCharacter.voice_id && index === 0) { // Only add voice to first message
+              typewriterWithVoice(msgTypingSpan, chunk, currentCharacter.voice_id);
+            } else {
+              typewriterEffect(msgTypingSpan, chunk);
             }
-          }, typewriterDuration);
-          
-          // Scroll to bottom
-          chatlog.scrollTop = chatlog.scrollHeight;
-        }, index * 500); // Delay each message by 500ms
+            
+            // After typewriter completes, format the message
+            const typewriterDuration = chunk.length * 20 + 100;
+            setTimeout(() => {
+              const formattedChunk = formatAIResponse(chunk);
+              msgTypingSpan.innerHTML = formattedChunk;
+              
+              // Add TTS button only to first message if character has voice
+              if (index === 0 && currentCharacter.voice_id && !window.processingOnboardingWelcome && !isFirstMessageAfterOnboarding && !msgDiv.querySelector('.voice-play-btn')) {
+                const voiceButtonHtml = `<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice('${cleanReply.replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
+                msgDiv.innerHTML += voiceButtonHtml;
+              }
+            }, typewriterDuration);
+            
+            // Scroll to bottom
+            chatlog.scrollTop = chatlog.scrollHeight;
+          }
+        }, index * messageDelay);
       });
     } else {
       // Single message - use existing logic
