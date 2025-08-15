@@ -7478,16 +7478,19 @@ document.addEventListener('DOMContentLoaded', () => {
           justify-content: center;
           align-items: center;
           z-index: 10000;
+          padding: 20px;
         }
         
         .voice-upgrade-content {
           background: white;
           border-radius: 16px;
-          max-width: 700px;
+          max-width: 500px;
           width: 90%;
-          max-height: 80vh;
+          max-height: 90vh;
           overflow-y: auto;
           box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+          display: flex;
+          flex-direction: column;
         }
         
         .voice-upgrade-header {
@@ -15771,16 +15774,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function selectOption(questionId, value, buttonElement) {
-      // Get the full label text from the button
-      const labelText = buttonElement.textContent.trim();
-      
-      // Store the full label instead of just the value
-      // But keep the value for 'other' option
-      if (value === 'other') {
-        onboardingAnswers[questionId] = value;
-      } else {
-        onboardingAnswers[questionId] = labelText;
-      }
+      // Store only the value, not the full label text
+      // The contextMappings will provide the readable text
+      onboardingAnswers[questionId] = value;
       
       // Update UI
       const buttons = buttonElement.parentElement.querySelectorAll('.option-button');
@@ -15908,7 +15904,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Replace "other" with the actual text entered
             processedAnswers[key] = onboardingAnswers[key + '_other'];
           } else {
-            // The value is already the full label (set in selectOption)
+            // Use the value directly (it's the key for contextMappings)
             processedAnswers[key] = value;
           }
         }
