@@ -14269,78 +14269,159 @@ hideTypingIndicator();
         const messageDelay = baseDelay + (index > 0 ? Math.min(chunk.length * 3, 800) : 0);
         
         setTimeout(() => {
-          // Show typing indicator for non-roleplay categories (except first message)
-          if (!isRoleplayCategory && index > 0) {
-            showTypingIndicator();
-            setTimeout(() => {
-              hideTypingIndicator();
-              displayMessage();
-            }, typingIndicatorDuration);
-          } else {
-            displayMessage();
-          }
-          
-          function displayMessage() {
-            const msgDiv = document.createElement("p");
-            const msgAvatarHtml = getAvatarHtml();
-            
-            msgDiv.innerHTML = `<strong>${msgAvatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text-${index}"></span>`;
-            chatlog.appendChild(msgDiv);
-            
-            const msgTypingSpan = msgDiv.querySelector(`.typing-text-${index}`);
-            
-            // Use typewriter effect for each message
-            if (currentCharacter.voice_id && index === 0) { // Only add voice to first message
-              typewriterWithVoice(msgTypingSpan, chunk, currentCharacter.voice_id);
+          try {
+            // Show typing indicator for non-roleplay categories (except first message)
+            if (!isRoleplayCategory && index > 0) {
+              showTypingIndicator();
+              setTimeout(() => {
+                try {
+                  hideTypingIndicator();
+                  displayMessage();
+                } catch (innerError) {
+                  console.error(`❌ Error in typing indicator timeout for chunk ${index}:`, innerError);
+                  displayMessage(); // Still try to display the message
+                }
+              }, typingIndicatorDuration);
             } else {
-              typewriterEffect(msgTypingSpan, chunk);
+              displayMessage();
             }
             
-            // After typewriter completes, format the message
-            const typewriterDuration = chunk.length * 20 + 100;
-            setTimeout(() => {
-              const formattedChunk = formatAIResponse(chunk);
-              msgTypingSpan.innerHTML = formattedChunk;
-              
-              // Add TTS button only to first message if character has voice
-              if (index === 0 && currentCharacter.voice_id && !window.processingOnboardingWelcome && !isFirstMessageAfterOnboarding && !msgDiv.querySelector('.voice-play-btn')) {
-                const voiceButtonHtml = `<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice('${cleanReply.replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
-                msgDiv.innerHTML += voiceButtonHtml;
+            function displayMessage() {
+              try {
+                const msgDiv = document.createElement("p");
+                const msgAvatarHtml = getAvatarHtml();
+                
+                msgDiv.innerHTML = `<strong>${msgAvatarHtml}${currentCharacter?.name || 'Character'}:</strong> <span class="typing-text-${index}"></span>`;
+                chatlog.appendChild(msgDiv);
+                
+                const msgTypingSpan = msgDiv.querySelector(`.typing-text-${index}`);
+                
+                if (!msgTypingSpan) {
+                  console.error(`❌ Could not find typing span for chunk ${index}`);
+                  // Fallback: show message directly
+                  const formattedChunk = formatAIResponse(chunk);
+                  msgDiv.innerHTML = `<strong>${msgAvatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${formattedChunk}`;
+                  chatlog.scrollTop = chatlog.scrollHeight;
+                  return;
+                }
+                
+                // Use typewriter effect for each message
+                if (currentCharacter.voice_id && index === 0) { // Only add voice to first message
+                  typewriterWithVoice(msgTypingSpan, chunk, currentCharacter.voice_id);
+                } else {
+                  typewriterEffect(msgTypingSpan, chunk);
+                }
+                
+                // After typewriter completes, format the message
+                const typewriterDuration = chunk.length * 20 + 100;
+                setTimeout(() => {
+                  try {
+                    const formattedChunk = formatAIResponse(chunk);
+                    msgTypingSpan.innerHTML = formattedChunk;
+                    
+                    // Add TTS button only to first message if character has voice
+                    if (index === 0 && currentCharacter.voice_id && !window.processingOnboardingWelcome && !isFirstMessageAfterOnboarding && !msgDiv.querySelector('.voice-play-btn')) {
+                      const voiceButtonHtml = `<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice('${cleanReply.replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
+                      msgDiv.innerHTML += voiceButtonHtml;
+                    }
+                  } catch (formatError) {
+                    console.error(`❌ Error formatting chunk ${index}:`, formatError);
+                    // Fallback: show unformatted text
+                    msgTypingSpan.innerHTML = escapeHtmlButKeepEmojis(chunk);
+                  }
+                }, typewriterDuration);
+                
+                // Scroll to bottom
+                chatlog.scrollTop = chatlog.scrollHeight;
+              } catch (displayError) {
+                console.error(`❌ Error displaying message chunk ${index}:`, displayError);
+                
+                // Fallback: try to add simple message without fancy effects
+                try {
+                  const fallbackDiv = document.createElement("p");
+                  const fallbackAvatarHtml = getAvatarHtml();
+                  const fallbackFormattedChunk = formatAIResponse(chunk);
+                  fallbackDiv.innerHTML = `<strong>${fallbackAvatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${fallbackFormattedChunk}`;
+                  chatlog.appendChild(fallbackDiv);
+                  chatlog.scrollTop = chatlog.scrollHeight;
+                } catch (fallbackError) {
+                  console.error(`❌ Even fallback display failed for chunk ${index}:`, fallbackError);
+                }
               }
-            }, typewriterDuration);
+            }
+          } catch (outerError) {
+            console.error(`❌ Error in setTimeout for chunk ${index}:`, outerError);
             
-            // Scroll to bottom
-            chatlog.scrollTop = chatlog.scrollHeight;
+            // Last resort fallback: display message directly without any effects
+            try {
+              const emergencyDiv = document.createElement("p");
+              const emergencyAvatarHtml = getAvatarHtml();
+              emergencyDiv.innerHTML = `<strong>${emergencyAvatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${escapeHtmlButKeepEmojis(chunk)}`;
+              chatlog.appendChild(emergencyDiv);
+              chatlog.scrollTop = chatlog.scrollHeight;
+            } catch (emergencyError) {
+              console.error(`❌ Emergency fallback failed for chunk ${index}:`, emergencyError);
+            }
           }
         }, index * messageDelay);
       });
     } else {
       // Single message - use existing logic
-      divBot.setAttribute('data-reply', cleanReply);
-      
-      // Use voice-enabled typewriter if character has voice
-      if (currentCharacter.voice_id) {
-        typewriterWithVoice(typingSpan, cleanReply, currentCharacter.voice_id);
-      } else {
-        typewriterEffect(typingSpan, cleanReply);
+      try {
+        divBot.setAttribute('data-reply', cleanReply);
+        
+        if (!typingSpan) {
+          console.error(`❌ Could not find typing span for single message`);
+          // Fallback: show message directly
+          const formattedReply = formatAIResponse(cleanReply);
+          divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${formattedReply}`;
+          chatlog.scrollTop = chatlog.scrollHeight;
+        } else {
+          // Use voice-enabled typewriter if character has voice
+          if (currentCharacter.voice_id) {
+            typewriterWithVoice(typingSpan, cleanReply, currentCharacter.voice_id);
+          } else {
+            typewriterEffect(typingSpan, cleanReply);
+          }
+        }
+      } catch (singleMessageError) {
+        console.error(`❌ Error setting up single message:`, singleMessageError);
+        // Fallback: show message directly without typewriter effect
+        try {
+          const fallbackFormattedReply = formatAIResponse(cleanReply);
+          divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${fallbackFormattedReply}`;
+          chatlog.scrollTop = chatlog.scrollHeight;
+        } catch (fallbackError) {
+          console.error(`❌ Single message fallback failed:`, fallbackError);
+          divBot.innerHTML = `<strong>${avatarHtml}${currentCharacter?.name || 'Character'}:</strong> ${escapeHtmlButKeepEmojis(cleanReply)}`;
+        }
       }
     }
     
-    // After typewriter completes, apply formatting for better readability
-    const typewriterDuration = cleanReply.length * 20 + 100;
-    setTimeout(() => {
-      // Apply the formatting function to make text more readable
-      const formattedReply = formatAIResponse(cleanReply);
-      typingSpan.innerHTML = formattedReply;
-      
-      // Add TTS button if character has voice 
-      // Skip for onboarding welcome messages and first message after onboarding (too long)
-      // Also check if button doesn't already exist to prevent duplicates
-      if (currentCharacter.voice_id && !window.processingOnboardingWelcome && !isFirstMessageAfterOnboarding && !divBot.querySelector('.voice-play-btn')) {
-        const voiceButtonHtml = `<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice('${cleanReply.replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
-        divBot.innerHTML += voiceButtonHtml;
-      }
-    }, typewriterDuration);
+    // After typewriter completes, apply formatting for better readability (only for single messages)
+    if (messageChunks.length === 1) {
+      const typewriterDuration = cleanReply.length * 20 + 100;
+      setTimeout(() => {
+        try {
+          // Apply the formatting function to make text more readable
+          const formattedReply = formatAIResponse(cleanReply);
+          if (typingSpan && typingSpan.parentNode) {
+            typingSpan.innerHTML = formattedReply;
+          }
+          
+          // Add TTS button if character has voice 
+          // Skip for onboarding welcome messages and first message after onboarding (too long)
+          // Also check if button doesn't already exist to prevent duplicates
+          if (currentCharacter.voice_id && !window.processingOnboardingWelcome && !isFirstMessageAfterOnboarding && !divBot.querySelector('.voice-play-btn')) {
+            const voiceButtonHtml = `<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice('${cleanReply.replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
+            divBot.innerHTML += voiceButtonHtml;
+          }
+        } catch (formatTimeoutError) {
+          console.error(`❌ Error in format timeout:`, formatTimeoutError);
+          // The message should already be visible, so this is not critical
+        }
+      }, typewriterDuration);
+    }
     
     // Add click handler to voice button after it's created
     const voiceBtn = divBot.querySelector('.voice-play-btn');
