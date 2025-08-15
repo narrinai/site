@@ -14234,12 +14234,15 @@ hideTypingIndicator();
       const typingIndicatorDuration = isRoleplayCategory ? 0 : 600; // Show typing for non-roleplay
       
       messageChunks.forEach((chunk, index) => {
-        // Variable delay based on message length for more natural feel
-        const messageDelay = baseDelay + (index > 0 ? Math.min(chunk.length * 3, 800) : 0);
+        // Calculate cumulative delay for each message
+        const delayPerMessage = baseDelay + Math.min(chunk.length * 3, 800);
+        const totalDelay = index * delayPerMessage; // Cumulative delay
+        
+        console.log(`⏰ Message ${index}: will show after ${totalDelay}ms (baseDelay: ${baseDelay}, chunkLength: ${chunk.length})`);
         
         setTimeout(() => {
           try {
-            console.log(`⏰ Displaying message chunk ${index} after ${index * messageDelay}ms delay`);
+            console.log(`⏰ Now displaying message chunk ${index} after ${totalDelay}ms delay`);
             
             // Show typing indicator for non-roleplay categories (except first message)
             if (!isRoleplayCategory && index > 0) {
@@ -14291,8 +14294,8 @@ hideTypingIndicator();
                     const formattedChunk = formatAIResponse(chunk);
                     msgTypingSpan.innerHTML = formattedChunk;
                     
-                    // Add TTS button only to first message if character has voice
-                    if (index === 0 && currentCharacter.voice_id && !window.processingOnboardingWelcome && !isFirstMessageAfterOnboarding && !msgDiv.querySelector('.voice-play-btn')) {
+                    // Add TTS button only to last message if character has voice
+                    if (index === messageChunks.length - 1 && currentCharacter.voice_id && !window.processingOnboardingWelcome && !isFirstMessageAfterOnboarding && !msgDiv.querySelector('.voice-play-btn')) {
                       const voiceButtonHtml = `<br><div style="margin-top: 8px; text-align: left;"><button class="voice-play-btn" onclick="window.playMessageVoice('${cleanReply.replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${currentCharacter.voice_id}', this)" title="Hear ${currentCharacter?.name || 'Character'} speak">▶️</button></div>`;
                       msgDiv.innerHTML += voiceButtonHtml;
                     }
@@ -14335,7 +14338,7 @@ hideTypingIndicator();
               console.error(`❌ Emergency fallback failed for chunk ${index}:`, emergencyError);
             }
           }
-        }, index * messageDelay);
+        }, totalDelay);
       });
     } else {
       // Single message - use existing logic
