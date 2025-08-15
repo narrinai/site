@@ -14546,13 +14546,6 @@ async function checkUsageLimit() {
   const uid = localStorage.getItem("user_uid");
   const email = localStorage.getItem("user_email");
   
-  // Check if user has a cached subscription status
-  const cachedSubscription = localStorage.getItem("subscription_status");
-  if (cachedSubscription === 'active' || cachedSubscription === 'trialing') {
-    console.log('✅ Cached subscription status:', cachedSubscription);
-    return true; // Allow unlimited for paid users
-  }
-  
   if (!token || !uid || !email) {
     return false;
   }
@@ -14621,6 +14614,13 @@ async function checkUsageLimit() {
         localStorage.setItem('subscription_status', stripeStatus);
       }
       return true;
+    } else {
+      // Clear any invalid cached subscription status
+      const cachedSubscription = localStorage.getItem("subscription_status");
+      if (cachedSubscription) {
+        console.log('🗑️ Clearing invalid cached subscription status:', cachedSubscription);
+        localStorage.removeItem('subscription_status');
+      }
     }
 
     // If usage >= quota, show upgrade prompt
