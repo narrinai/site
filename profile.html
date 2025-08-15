@@ -26,9 +26,49 @@
 <!-- EmailJS SDK -->
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <script>
-  // Configureer widget styling - wait for DOM to be ready
+  // Check for email verification token IMMEDIATELY before page renders
+  (function() {
+    const fragment = window.location.hash;
+    if (fragment.includes('confirmation_token=') || 
+        fragment.includes('recovery_token=') || 
+        fragment.includes('invite_token=')) {
+      
+      console.log('📧 Email verification token detected - processing...');
+      
+      // Mark that we're processing verification
+      sessionStorage.setItem('email_verification_processing', 'true');
+      
+      // Hide the page initially to prevent flash
+      document.documentElement.style.visibility = 'hidden';
+      
+      // Process after Netlify Identity loads
+      window.addEventListener('load', function() {
+        if (window.netlifyIdentity) {
+          window.netlifyIdentity.init();
+          
+          // Give Netlify time to process the token
+          setTimeout(() => {
+            // Clean the URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+            
+            // Mark verification complete
+            sessionStorage.setItem('email_verified', 'true');
+            sessionStorage.removeItem('email_verification_processing');
+            
+            // Show the page
+            document.documentElement.style.visibility = 'visible';
+            
+            // Reload to show proper state
+            window.location.reload();
+          }, 2000);
+        }
+      });
+    }
+  })();
+  
+  // Normal init for non-verification flows
   document.addEventListener('DOMContentLoaded', () => {
-    if (window.netlifyIdentity) {
+    if (window.netlifyIdentity && !sessionStorage.getItem('email_verification_processing')) {
       try {
         window.netlifyIdentity.init({
           theme: 'custom',
@@ -4960,15 +5000,51 @@ function handleLoginSuccess(user, eventType = 'unknown') {
     document.addEventListener('DOMContentLoaded', () => {
       console.log('🚀 Page loaded, initializing...');
       
-      // Check for email verification token in URL
+      // Check if we're processing verification (should skip if handled by early script)
+      if (sessionStorage.getItem('email_verification_processing') === 'true') {
+        console.log('⏳ Email verification in progress, waiting...');
+        return;
+      }
+      
+      // Check if email was just verified
+      const emailJustVerified = sessionStorage.getItem('email_verified') === 'true';
+      if (emailJustVerified) {
+        console.log('✅ Email was just verified, showing login prompt');
+        sessionStorage.removeItem('email_verified');
+        
+        // Show login UI
+        showLoginUI();
+        
+        // Add success banner
+        setTimeout(() => {
+          const loginSection = document.querySelector('.login-section');
+          if (loginSection) {
+            const successBanner = document.createElement('div');
+            successBanner.style.cssText = 'background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 20px; border-radius: 12px; margin: 0 auto 24px; max-width: 500px; text-align: center;';
+            successBanner.innerHTML = `
+              <h3 style="margin: 0 0 8px 0; font-size: 20px;">✅ Email Verified Successfully!</h3>
+              <p style="margin: 0; opacity: 0.95;">Your email has been confirmed. Please log in to access your account.</p>
+            `;
+            loginSection.insertBefore(successBanner, loginSection.firstChild);
+            
+            // Auto-open login modal
+            setTimeout(() => {
+              if (window.netlifyIdentity) {
+                window.netlifyIdentity.open('login');
+              }
+            }, 500);
+          }
+        }, 100);
+        
+        return;
+      }
+      
+      // Check for email verification token in URL (fallback if early script didn't catch it)
       const urlParams = new URLSearchParams(window.location.search);
       const fragment = window.location.hash;
       const hasConfirmationToken = fragment.includes('confirmation_token=') || 
                                    fragment.includes('recovery_token=') ||
                                    fragment.includes('invite_token=');
-      
-      // Also check if we just came from a verification (URL was cleaned but we're on profile.html)
-      const justVerified = sessionStorage.getItem('just_verified') === 'true';
       
       if (hasConfirmationToken) {
         console.log('📧 Email verification/recovery token detected in URL');
@@ -5092,37 +5168,6 @@ function handleLoginSuccess(user, eventType = 'unknown') {
         return; // Exit early to let Netlify handle the token
       }
       
-      // Check if we just verified and show message
-      if (justVerified && !hasConfirmationToken) {
-        console.log('📧 User just verified email, showing login prompt');
-        sessionStorage.removeItem('just_verified');
-        
-        // Show login UI
-        showLoginUI();
-        
-        // Add success banner after a short delay to ensure DOM is ready
-        setTimeout(() => {
-          const loginSection = document.querySelector('.login-section');
-          if (loginSection && !document.querySelector('.verification-success-banner')) {
-            const successBanner = document.createElement('div');
-            successBanner.className = 'verification-success-banner';
-            successBanner.innerHTML = `
-              <div style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 20px; border-radius: 12px; margin-bottom: 24px; text-align: center;">
-                <h3 style="margin: 0 0 8px 0; font-size: 20px;">✅ Email Verified Successfully!</h3>
-                <p style="margin: 0; opacity: 0.95;">Your email has been confirmed. Please log in to access your account.</p>
-              </div>
-            `;
-            loginSection.insertBefore(successBanner, loginSection.firstChild);
-          }
-          
-          // Auto-open login modal
-          if (window.netlifyIdentity) {
-            window.netlifyIdentity.open('login');
-          }
-        }, 500);
-        
-        return;
-      }
       
       // Debug localStorage state
       console.log('📦 LocalStorage state:', {
@@ -5131,6 +5176,13 @@ function handleLoginSuccess(user, eventType = 'unknown') {
         uid: localStorage.getItem('user_uid'),
         timestamp: localStorage.getItem('user_auth_timestamp')
       });
+      
+      // Check if we just completed email verification
+      const justVerified = sessionStorage.getItem('just_verified') === 'true';
+      if (justVerified) {
+        console.log('✨ Just completed email verification, showing success...');
+        sessionStorage.removeItem('just_verified');
+      }
       
       // FIRST: Run universal authentication check
       const isAuthenticated = initializeAuthenticationCheck();
@@ -5148,10 +5200,13 @@ function handleLoginSuccess(user, eventType = 'unknown') {
           console.log('✅ User authenticated via localStorage');
           showProfileUI();
           
+          // If just verified, give extra time for Netlify to sync
+          const delay = justVerified ? 2000 : 500;
+          
           // Give Netlify Identity time to init, then load profile
           setTimeout(() => {
             loadProfile();
-          }, 500);
+          }, delay);
         } else {
           // FALLBACK: Check if we just signed up (within last 10 seconds)
           const authTimestamp = localStorage.getItem('user_auth_timestamp');
@@ -5276,6 +5331,43 @@ function handleLoginSuccess(user, eventType = 'unknown') {
     function showProfileUI() {
       document.getElementById('not-logged-in').style.display = 'none';
       document.getElementById('profile').style.display = 'block';
+      
+      // Check if we just verified email and show success message
+      const justVerified = sessionStorage.getItem('just_verified') === 'true';
+      if (justVerified) {
+        sessionStorage.removeItem('just_verified');
+        
+        // Show success message
+        const profileContent = document.querySelector('.profile-content');
+        if (profileContent) {
+          const successBanner = document.createElement('div');
+          successBanner.style.cssText = 'background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 20px; border-radius: 12px; margin: 0 0 24px; text-align: center; animation: slideIn 0.5s ease-out;';
+          successBanner.innerHTML = `
+            <h3 style="margin: 0 0 8px 0; font-size: 20px;">✅ Email Verified Successfully!</h3>
+            <p style="margin: 0; opacity: 0.95;">Your account is now fully activated. Welcome to Narrin AI!</p>
+          `;
+          
+          // Add animation
+          const style = document.createElement('style');
+          style.textContent = `
+            @keyframes slideIn {
+              from { transform: translateY(-20px); opacity: 0; }
+              to { transform: translateY(0); opacity: 1; }
+            }
+          `;
+          document.head.appendChild(style);
+          
+          // Insert at the beginning of profile content
+          profileContent.insertBefore(successBanner, profileContent.firstChild);
+          
+          // Remove after 10 seconds
+          setTimeout(() => {
+            successBanner.style.transition = 'opacity 0.5s ease-out';
+            successBanner.style.opacity = '0';
+            setTimeout(() => successBanner.remove(), 500);
+          }, 10000);
+        }
+      }
       
       // Show edit buttons for editable fields only (exclude plan)
       document.querySelectorAll('.edit-btn').forEach(btn => {
