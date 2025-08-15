@@ -9119,7 +9119,8 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     function splitIntoNaturalMessages(text) {
       // Check if this is a roleplaying category
       const category = (currentCharacter?.category || currentCharacter?.Category || '').toLowerCase();
-      const isRoleplayCategory = ['anime', 'games', 'movie & tv', 'fictional', 'fantasy', 'sci-fi', 'nsfw', 'historical', 'mythology'].some(cat => category.includes(cat));
+      // Use helper function to check if this is a roleplay category
+      const isRoleplayCategory = isRoleplayCategoryHelper(category);
       
       // Non-roleplay categories get more aggressive message splitting for natural conversation
       if (!isRoleplayCategory) {
@@ -11184,6 +11185,49 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ===== HELPER FUNCTIONS =====
+
+// Helper function to determine if a category is roleplay-based
+function isRoleplayCategoryHelper(category) {
+  if (!category) return false;
+  
+  const cat = category.toLowerCase();
+  
+  // Roleplay categories based on Airtable data (sorted by frequency)
+  const roleplayCategories = [
+    'anime-manga', 'anime', 'manga',
+    'historical', 
+    'fantasy',
+    'romance',
+    'mythology',
+    'fictional',
+    'original',
+    'games', 'gaming',
+    'movie & tv', 'movie', 'tv',
+    'sci-fi', 'science fiction',
+    'nsfw'
+  ];
+  
+  return roleplayCategories.some(rpCat => cat.includes(rpCat));
+}
+
+// Helper function to determine if a category should use human-like conversation style
+function isConversationalCategory(category) {
+  if (!category) return true; // Default to conversational
+  
+  const cat = category.toLowerCase();
+  
+  // Non-roleplay categories that should be conversational (from Airtable)
+  const conversationalCategories = [
+    'career', 'business', 'life', 'life coach',
+    'love', 'relationship', 'spiritual', 'mindfulness',
+    'self-improvement', 'purpose', 'motivation',
+    'educational', 'friendship', 'wellness', 'health',
+    'therapy', 'therapist', 'coach', 'mentor'
+  ];
+  
+  return conversationalCategories.some(convCat => cat.includes(convCat));
+}
+
 function getNormalizedCategory(character) {
   if (!character) return '';
   
@@ -13431,7 +13475,8 @@ async function sendMessage(event) {
       
       // Check character category for roleplay actions
       const category = (currentCharacter?.category || currentCharacter?.Category || '').toLowerCase();
-      const allowRoleplay = ['historical', 'anime', 'fictional', 'original'].includes(category);
+      // Use helper function to check if this is a roleplay category
+      const allowRoleplay = isRoleplayCategoryHelper(category);
       
       // Check if there's a custom response length set in the customization
       let responseLengthInstruction = "use between 1-8 sentences in your responses but not more than 8";
@@ -13479,7 +13524,8 @@ CONVERSATIONAL STYLE FOR NATURAL TEXTING:
       // Still add variation and companion instructions even without memories
       // Check character category for roleplay actions
       const category = (currentCharacter?.category || currentCharacter?.Category || '').toLowerCase();
-      const allowRoleplay = ['historical', 'anime', 'fictional', 'original'].includes(category);
+      // Use helper function to check if this is a roleplay category
+      const allowRoleplay = isRoleplayCategoryHelper(category);
       
       // Check if there's a custom response length set in the customization
       let responseLengthInstruction = "use between 1-8 sentences in your responses but not more than 8";
