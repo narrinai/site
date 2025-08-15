@@ -1695,6 +1695,11 @@
           icon: '💖',
           description: 'Romance and relationship companions'
         },
+        'made-by-you': {
+          title: 'Made By You',
+          icon: '👥',
+          description: 'Community-created companions by our users'
+        },
         'romance': {
           title: 'Romance',
           icon: '💕',
@@ -1936,7 +1941,15 @@
         
         // Build API URL for Netlify Function
         const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
-        url.searchParams.set('category', currentCategory);
+        
+        // Special handling for "Made By You" category
+        if (currentCategory === 'made-by-you') {
+          url.searchParams.set('user_created', 'true'); // Get user-created characters
+          url.searchParams.set('visibility', 'public'); // Only public ones
+          // No category filter for Made By You
+        } else {
+          url.searchParams.set('category', currentCategory);
+        }
         // No limit - get all characters for category pages
         
         console.log(`📡 Fetching from Netlify Function:`, url.toString());
@@ -2053,19 +2066,43 @@
       card.className = 'character-card';
       card.href = character.characterUrl;
       
-      // Add user-created badge if Created_by field is not empty
-      let userBadgeHTML = '';
-      if (character.createdBy) {
-        userBadgeHTML = `
-          <div class="user-created-badge" title="Created by ${character.createdBy}">
-            <span class="badge-icon">👤</span> ${character.createdBy}
-          </div>
-        `;
+      // For Made By You category, add special styling
+      if (currentCategory === 'made-by-you') {
+        card.style.position = 'relative';
       }
       
       // Create card HTML with proper avatar handling
       const avatarDiv = document.createElement('div');
       avatarDiv.className = 'character-avatar';
+      
+      // Make avatar container relative positioned for badge
+      if (currentCategory === 'made-by-you') {
+        avatarDiv.style.position = 'relative';
+      }
+      
+      // Add creator badge for Made By You category
+      if (currentCategory === 'made-by-you' && character.createdBy) {
+        const creatorBadge = document.createElement('div');
+        creatorBadge.className = 'creator-badge';
+        // Extract nickname/username from email or use full string if not email
+        const creatorName = character.createdBy.includes('@') ? 
+          character.createdBy.split('@')[0] : character.createdBy;
+        creatorBadge.textContent = creatorName;
+        creatorBadge.style.cssText = `
+          position: absolute;
+          top: -8px;
+          right: -8px;
+          background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+          color: white;
+          padding: 4px 10px;
+          border-radius: 12px;
+          font-size: 11px;
+          font-weight: 600;
+          z-index: 10;
+          white-space: nowrap;
+        `;
+        avatarDiv.appendChild(creatorBadge);
+      }
       
       if (character.avatarUrl && (character.avatarUrl.startsWith('http') || character.avatarUrl.startsWith('data:'))) {
         const img = document.createElement('img');
@@ -2352,6 +2389,7 @@
         { id: 'life', name: '🌟 Life', title: 'Life' },
         { id: 'career', name: '💼 Career', title: 'Career' },
         { id: 'love', name: '💖 Love', title: 'Love' },
+        { id: 'made-by-you', name: '👥 Made By You', title: 'Made By You' },
         { id: 'romance', name: '💕 Romance', title: 'Romance' },
         { id: 'mindfulness', name: '🧘 Mindfulness', title: 'Mindfulness' },
         { id: 'purpose', name: '🎯 Purpose', title: 'Purpose' },
