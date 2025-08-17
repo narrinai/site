@@ -14582,7 +14582,12 @@ async function checkUsageLimit() {
 
     const plan = data.plan || 'Free';
     const usage = parseInt(data.usage) || 0;
-    const quota = parseInt(data.quota) || 10;
+    // Special handling for featured characters from homepage
+    const featuredCharacters = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
+    const currentCharSlug = new URLSearchParams(window.location.search).get('char') || new URLSearchParams(window.location.search).get('character');
+    const isFeaturedCharacter = featuredCharacters.includes(currentCharSlug);
+    
+    const quota = isFeaturedCharacter ? 5 : (parseInt(data.quota) || 10);
     const subscriptionStatus = data.subscription_status || data.subscriptionStatus || '';
     const stripeStatus = data.stripe_status || data.stripeStatus || '';
 
@@ -14725,6 +14730,10 @@ async function checkVoiceLimit(type) {
 
 // ===== UPGRADE PROMPT =====
 function showUpgradePrompt(usage, quota, type = 'messages') {
+  // Check if this is a featured character
+  const featuredCharacters = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
+  const currentCharSlug = new URLSearchParams(window.location.search).get('char') || new URLSearchParams(window.location.search).get('character');
+  const isFeaturedCharacter = featuredCharacters.includes(currentCharSlug);
   let upgradeOverlay = document.getElementById('upgradeOverlay');
   
   if (!upgradeOverlay) {
@@ -14747,7 +14756,9 @@ function showUpgradePrompt(usage, quota, type = 'messages') {
               ? `<strong>Speech-to-Text is a premium feature.</strong><br><br>You tried to use voice input, but this feature is only available on the Immerse plan. Upgrade now to talk naturally with your companions!`
               : type === 'companions'
               ? `<strong>You've reached your limit of ${quota} active companions.</strong><br><br>To activate more companions, you need to pause existing ones or upgrade to Immerse for unlimited active companions.`
-              : `<strong>You've used all ${quota} free messages.</strong><br><br>Upgrade to Engage or Immerse for unlimited messaging with all your companions!`
+              : isFeaturedCharacter 
+                ? `<strong>You've used all ${quota} free messages with this character.</strong><br><br>Create an account for 10 free messages per day, or upgrade to Engage for unlimited messaging!`
+                : `<strong>You've used all ${quota} free messages.</strong><br><br>Upgrade to Engage or Immerse for unlimited messaging with all your companions!`
           }</p>
         </div>
         
@@ -15738,10 +15749,14 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('📚 typeof window.needsOnboarding:', typeof window.needsOnboarding);
       console.log('📚 onboardingQuestions object:', typeof window.onboardingQuestions, window.onboardingQuestions);
       
+      // Disable onboarding for featured characters from homepage
+      const featuredCharacters = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
+      const isFeaturedCharacter = featuredCharacters.includes(characterId);
+      
       // Check if onboarding is needed using the function from onboarding-questions.js
       // Use the consistent characterId (URL slug) for checking
-      // Force onboarding if shouldRestart is true
-      if (shouldRestart || (typeof needsOnboarding === 'function' && needsOnboarding(category, userId, characterId))) {
+      // Force onboarding if shouldRestart is true, but skip for featured characters
+      if (!isFeaturedCharacter && (shouldRestart || (typeof needsOnboarding === 'function' && needsOnboarding(category, userId, characterId)))) {
         console.log('✅ Onboarding needed for category:', category, shouldRestart ? '(restart requested)' : '');
         
         // Get questions for this category
