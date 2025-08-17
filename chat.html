@@ -14837,9 +14837,16 @@ function showUpgradePrompt(usage, quota, type = 'messages') {
     document.getElementById('mainUpgradeBtn').onclick = function() {
       // For anonymous users, redirect to pricing page
       const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
-      if (isAnonymousUser) {
+      const userEmail = localStorage.getItem('user_email');
+      const isAnonymousEmail = userEmail === 'anonymous@narrin.ai';
+      
+      console.log('🔍 Upgrade button click:', { isAnonymousUser, userEmail, isAnonymousEmail });
+      
+      if (isAnonymousUser || isAnonymousEmail) {
+        console.log('✅ Redirecting anonymous user to pricing.html');
         window.location.href = 'pricing.html';
       } else {
+        console.log('✅ Redirecting authenticated user to profile.html');
         window.location.href = 'profile.html';
       }
     };
