@@ -14252,11 +14252,11 @@ hideTypingIndicator();
       window.justCompletedOnboarding = false; // Reset flag
     }
     
-    // Split the reply into natural message chunks
-    const messageChunks = splitIntoNaturalMessages(cleanReply);
+    // DISABLED: Message splitting - return as single message for now
+    const messageChunks = [cleanReply]; // splitIntoNaturalMessages(cleanReply);
     
     // If we have multiple chunks, remove the current divBot and create separate messages
-    if (messageChunks.length > 1) {
+    if (false && messageChunks.length > 1) {
       chatlog.removeChild(divBot);
       
       // Create separate message for each chunk with a delay
@@ -16787,8 +16787,9 @@ document.addEventListener('DOMContentLoaded', () => {
         userId: '285'
       });
       
-      // Set global auth state
-      window.isAuthenticated = true;
+      // Set global auth state but mark as anonymous (not truly authenticated)
+      window.isAuthenticated = false; // Keep false so UI shows Login/Register
+      window.isAnonymousUser = true;  // New flag for anonymous users
       window.currentUser = {
         uid: dummyUserId,
         email: dummyEmail,
