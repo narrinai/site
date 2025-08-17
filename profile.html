@@ -5159,6 +5159,16 @@ function handleLoginSuccess(user, eventType = 'unknown') {
     document.addEventListener('DOMContentLoaded', () => {
       console.log('🚀 Page loaded, initializing...');
       
+      // Check if this is an anonymous user and redirect to pricing
+      const userEmail = localStorage.getItem('user_email');
+      const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+      
+      if (isAnonymousUser || userEmail === 'anonymous@narrin.ai') {
+        console.log('💰 Anonymous user detected, redirecting to pricing page');
+        window.location.href = 'pricing.html';
+        return;
+      }
+      
       // Check if we're processing verification (should skip if handled by early script)
       if (sessionStorage.getItem('email_verification_processing') === 'true') {
         console.log('⏳ Email verification in progress, waiting...');
