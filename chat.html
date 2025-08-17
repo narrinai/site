@@ -14253,40 +14253,20 @@ hideTypingIndicator();
       const isUserCreated = currentCharacter?.Created_by || currentCharacter?.created_by;
       const isRoleplayCategory = isUserCreated ? false : isRoleplayCategoryHelper(category);
       
-      // Adjust delays based on category - more natural timing for non-roleplay
-      const baseDelay = isRoleplayCategory ? 500 : 1000; // Base delay between messages
-      const typingIndicatorDuration = isRoleplayCategory ? 0 : 600; // Show typing for non-roleplay
-      
+      // No delays - show messages immediately
       console.log(`🔀 Processing ${messageChunks.length} message chunks for character with voice_id: ${currentCharacter.voice_id}`);
       
       messageChunks.forEach((chunk, index) => {
-        // Calculate cumulative delay for each message
-        const delayPerMessage = baseDelay + Math.min(chunk.length * 3, 800);
-        const totalDelay = index * delayPerMessage; // Cumulative delay
-        
-        console.log(`⏰ Message ${index}/${messageChunks.length - 1}: will show after ${totalDelay}ms (baseDelay: ${baseDelay}, chunkLength: ${chunk.length})`);
+        console.log(`📝 Message ${index}/${messageChunks.length - 1}: showing immediately`);
         console.log(`🎵 Will add TTS to last chunk? ${index === messageChunks.length - 1 ? 'YES' : 'NO'}`);
         
-        setTimeout(() => {
+        // Show message immediately without delay
+        (() => {
           try {
-            console.log(`⏰ Now displaying message chunk ${index} after ${totalDelay}ms delay`);
+            console.log(`📝 Now displaying message chunk ${index} immediately`);
             
-            // Show typing indicator for non-roleplay categories (except first message)
-            if (!isRoleplayCategory && index > 0) {
-              console.log(`⌨️ Showing typing indicator for chunk ${index}`);
-              showTypingIndicator();
-              setTimeout(() => {
-                try {
-                  hideTypingIndicator();
-                  displayMessage();
-                } catch (innerError) {
-                  console.error(`❌ Error in typing indicator timeout for chunk ${index}:`, innerError);
-                  displayMessage(); // Still try to display the message
-                }
-              }, typingIndicatorDuration);
-            } else {
-              displayMessage();
-            }
+            // Show message immediately without typing indicator
+            displayMessage();
             
             function displayMessage() {
               try {
@@ -14384,7 +14364,7 @@ hideTypingIndicator();
               console.error(`❌ Emergency fallback failed for chunk ${index}:`, emergencyError);
             }
           }
-        }, totalDelay);
+        })();
       });
     } else {
       // Single message - use existing logic
