@@ -14831,7 +14831,13 @@ function showUpgradePrompt(usage, quota, type = 'messages') {
     
     // Add event handlers
     document.getElementById('mainUpgradeBtn').onclick = function() {
-      window.location.href = 'profile.html';
+      // For anonymous users, redirect to pricing page
+      const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+      if (isAnonymousUser) {
+        window.location.href = 'pricing.html';
+      } else {
+        window.location.href = 'profile.html';
+      }
     };
     document.getElementById('mainUpgradeClose').onclick = closeUpgradePrompt;
   }
