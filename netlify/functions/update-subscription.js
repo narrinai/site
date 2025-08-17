@@ -43,8 +43,8 @@ exports.handler = async (event, context) => {
 
     // Map plan names to Stripe price IDs
     const priceIds = {
-      'engage': 'price_1RkTozDU567HpUYxyXEuJOQi',
-      'immerse': 'price_1Rs1wFDU567HpUYxYphohLS9'
+      'engage': 'price_1Rx75wDU567HpUYxekUyZ62T',
+      'immerse': 'price_1Rx774DU567HpUYxf0mAZInC'
     };
 
     const newPriceId = priceIds[new_plan.toLowerCase()];
