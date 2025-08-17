@@ -5971,7 +5971,7 @@
               console.log(`⚠️ Active companion limit reached: ${activeChats.length}/${maxActive}`);
               
               // Show upgrade modal
-              showUpgradePrompt(activeChats.length, maxActive, 'companions');
+              //DISABLED: showUpgradePrompt(activeChats.length, maxActive, 'companions');
               return;
             }
           }
@@ -7409,7 +7409,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const monthlyUsage = voiceUsage.filter(date => date.startsWith(currentMonth)).length;
         
         if (monthlyUsage >= 25) {
-          window.showUpgradePrompt(monthlyUsage, 25, 'tts');
+          window.//DISABLED: showUpgradePrompt(monthlyUsage, 25, 'tts');
           return false;
         }
         console.log(`🗣️ Engage user - ${monthlyUsage}/25 voice conversations used`);
@@ -7443,7 +7443,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       if (currentCount >= VOICE_LIMIT_FREE) {
         console.log('🚫 Voice usage limit reached for Free plan');
-        window.showUpgradePrompt(currentCount, VOICE_LIMIT_FREE, 'tts');
+        window.//DISABLED: showUpgradePrompt(currentCount, VOICE_LIMIT_FREE, 'tts');
         return false;
       }
       
@@ -8579,7 +8579,7 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
             console.log(`⚠️ Active companion limit reached: ${activeChats.length}/${maxActive}`);
             
             // Show upgrade modal using global function
-            window.showUpgradePrompt(activeChats.length, maxActive, 'companions');
+            window.//DISABLED: showUpgradePrompt(activeChats.length, maxActive, 'companions');
             
             // Stop loading without redirect
             return;
@@ -13313,6 +13313,28 @@ async function sendMessage(event) {
   console.log('🔍 Checking usage limit before sending message...');
   const cachedSub = localStorage.getItem("subscription_status");
   console.log('🔍 Current cached subscription:', cachedSub);
+  
+  // For anonymous users, check browser-based limits first
+  const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+  if (isAnonymousUser) {
+    const featuredCharacters = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
+    const currentCharSlug = new URLSearchParams(window.location.search).get('char') || new URLSearchParams(window.location.search).get('character');
+    const isFeaturedCharacter = featuredCharacters.includes(currentCharSlug);
+    
+    if (isFeaturedCharacter) {
+      const usageKey = `anonymous_usage_${currentCharSlug}`;
+      const currentUsage = parseInt(localStorage.getItem(usageKey) || '0');
+      
+      console.log(`📊 Anonymous usage check for ${currentCharSlug}: ${currentUsage}/5`);
+      
+      if (currentUsage >= 5) {
+        console.log('🚫 Anonymous user has reached 5 message limit');
+        showUpgradePrompt(5, 5, 'messages');
+        return;
+      }
+    }
+  }
+  
   const canSend = await checkUsageLimit();
   console.log(`📊 Usage limit check result: canSend = ${canSend}`);
   if (!canSend) {
@@ -13972,8 +13994,27 @@ INSTRUCTIONS:
     
     console.log(`📚 Including ${chatHistory.length} messages in conversation history`);
     
-    // Check if this is an anonymous user
+    // Check if this is an anonymous user and track local usage
     const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+    
+    if (isAnonymousUser) {
+      // Track usage per character in this browser
+      const usageKey = `anonymous_usage_${characterSlug}`;
+      const currentUsage = parseInt(localStorage.getItem(usageKey) || '0');
+      
+      // Increment usage count for this message
+      localStorage.setItem(usageKey, (currentUsage + 1).toString());
+      console.log(`📊 Anonymous usage for ${characterSlug}: ${currentUsage + 1}/5`);
+      
+      // Check if this will exceed the limit (after this message)
+      if (currentUsage + 1 >= 5) {
+        console.log('🚫 Anonymous user reaching 5 message limit');
+        // This will be their last message, show upgrade after response
+        setTimeout(() => {
+          //DISABLED: showUpgradePrompt(5, 5, 'messages');
+        }, 3000); // Show after AI responds
+      }
+    }
     
     const requestPayload = {
       action: "send_message",
@@ -14663,7 +14704,7 @@ async function checkUsageLimit() {
     if (usage >= quota) {
       console.log('🚫 Usage limit reached - blocking message');
       console.log(`📊 Detailed check: usage=${usage}, quota=${quota}, usage >= quota = ${usage >= quota}`);
-      showUpgradePrompt(usage, quota);
+      //DISABLED: showUpgradePrompt(usage, quota);
       return false;
     }
 
@@ -14742,7 +14783,7 @@ async function checkVoiceLimit(type) {
     
     if (currentUsage >= limit) {
       console.log(`🚫 ${type.toUpperCase()} limit reached: ${currentUsage}/${limit}`);
-      window.showUpgradePrompt(currentUsage, limit, type);
+      window.//DISABLED: showUpgradePrompt(currentUsage, limit, type);
       return false;
     }
     
@@ -14756,7 +14797,7 @@ async function checkVoiceLimit(type) {
 }
 
 // ===== UPGRADE PROMPT =====
-function showUpgradePrompt(usage, quota, type = 'messages') {
+function //DISABLED: showUpgradePrompt(usage, quota, type = 'messages') {
   // Check if this is a featured character
   const featuredCharacters = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
   const currentCharSlug = new URLSearchParams(window.location.search).get('char') || new URLSearchParams(window.location.search).get('character');

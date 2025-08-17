@@ -183,8 +183,12 @@ function addUpgradePopupCSS() {
   document.head.appendChild(styleSheet);
 }
 
-// Global showUpgradePrompt function
+// DISABLED: Global showUpgradePrompt function - was blocking navigation
 window.showUpgradePrompt = function(usage, quota, type = 'messages') {
+  console.log('DISABLED: showUpgradePrompt called but disabled');
+  return;
+  
+  /*
   // Ensure CSS is loaded
   addUpgradePopupCSS();
   
@@ -211,6 +215,7 @@ window.showUpgradePrompt = function(usage, quota, type = 'messages') {
       closeUpgradePrompt();
     }
   });
+  */
 };
 
 // Global closeUpgradePrompt function
