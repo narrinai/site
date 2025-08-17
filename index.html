@@ -750,11 +750,33 @@
     .hero p {
       font-size: clamp(var(--font-size-base), 2vw, var(--font-size-lg));
       color: var(--color-gray);
-      margin-bottom: var(--spacing-xl);
+      margin-bottom: var(--spacing-md);
       max-width: 100%;
       margin-left: auto;
       margin-right: auto;
       white-space: nowrap;
+    }
+    
+    .hero-benefits {
+      display: flex;
+      justify-content: center;
+      gap: var(--spacing-lg);
+      margin-bottom: var(--spacing-lg);
+      flex-wrap: wrap;
+    }
+    
+    .benefit-item {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+      font-size: var(--font-size-sm);
+      color: var(--color-gray-dark);
+    }
+    
+    .checkmark {
+      color: var(--color-teal);
+      font-weight: bold;
+      font-size: var(--font-size-base);
     }
     
     .hero-cta {
@@ -790,21 +812,58 @@
     }
     
     @media (max-width: 768px) {
+      .hero {
+        padding: var(--spacing-xl) var(--spacing-md) var(--spacing-lg);
+      }
+      
+      .free-trial-banner {
+        padding: var(--spacing-xs) 0;
+        font-size: var(--font-size-xs);
+        max-width: 280px;
+        margin-bottom: var(--spacing-md);
+        padding-bottom: var(--spacing-sm);
+      }
+      
+      .trial-text {
+        white-space: normal;
+        text-align: center;
+      }
+      
       .hero p {
         white-space: normal;
         max-width: 600px;
+        margin-bottom: var(--spacing-sm);
+      }
+      
+      .hero-benefits {
+        flex-direction: column;
+        gap: var(--spacing-xs);
+        margin-bottom: var(--spacing-md);
+      }
+      
+      .benefit-item {
+        font-size: var(--font-size-xs);
+        justify-content: center;
       }
       
       .hero-cta {
         flex-direction: column;
         gap: var(--spacing-md);
+        align-items: center;
       }
       
-      .btn-hero,
-      .btn-secondary-hero {
+      .btn-hero {
         width: 100%;
         max-width: 280px;
         text-align: center;
+      }
+      
+      .or-start-chatting {
+        margin-top: var(--spacing-sm);
+      }
+      
+      .free-trial-banner {
+        margin-top: var(--spacing-sm);
       }
     }
 
@@ -1265,7 +1324,33 @@
     /* Featured Characters Section */
     .featured-characters {
       margin-bottom: var(--spacing-3xl);
-      padding: var(--spacing-xl) 0;
+      padding: 0;
+      margin-top: 0;
+    }
+    
+    .free-trial-banner {
+      color: var(--color-gray);
+      padding: 0;
+      text-align: center;
+      margin: 4px auto 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-xs);
+      max-width: 400px;
+      font-weight: 500;
+      font-size: var(--font-size-sm);
+      border-bottom: 1px solid var(--color-light-gray);
+      padding-bottom: 4px;
+    }
+    
+    .trial-icon {
+      font-size: var(--font-size-sm);
+      color: var(--color-teal);
+    }
+    
+    .trial-text {
+      white-space: nowrap;
     }
     
     .featured-grid {
@@ -1399,16 +1484,43 @@
     
     /* Value Propositions Section */
     .value-props {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: var(--spacing-xl);
       margin-bottom: var(--spacing-3xl);
       padding: var(--spacing-xl) 0;
+    }
+    
+    .value-props-header {
+      text-align: center;
+      margin-bottom: var(--spacing-2xl);
+    }
+    
+    .value-props-header h2 {
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-3xl);
+      font-weight: 700;
+      color: var(--color-navy);
+      margin-bottom: var(--spacing-md);
+    }
+    
+    .value-props-header p {
+      font-size: var(--font-size-lg);
+      color: var(--color-gray);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    .value-props-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: var(--spacing-lg);
     }
     
     .value-prop {
       text-align: center;
       padding: var(--spacing-xl);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 240px;
     }
     
     .value-icon {
@@ -1423,12 +1535,17 @@
       font-weight: 700;
       color: var(--color-navy);
       margin-bottom: var(--spacing-md);
+      margin-top: auto;
     }
     
     .value-prop p {
       color: var(--color-gray);
       line-height: 1.6;
       font-size: var(--font-size-base);
+      margin-top: auto;
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
     }
     
     /* How It Works Section */
@@ -1456,10 +1573,18 @@
     
     .step {
       text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
     
     .step-visual {
       margin-bottom: var(--spacing-lg);
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
     }
     
     .step-number {
@@ -1478,7 +1603,10 @@
     
     .step-icons {
       margin-top: var(--spacing-md);
-      margin-bottom: var(--spacing-lg);
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     
     /* Step 1: Path Selection */
@@ -1508,10 +1636,29 @@
       margin-bottom: var(--spacing-xs);
     }
     
-    .type-icons {
-      display: flex;
-      gap: var(--spacing-xs);
+    .choose-type-label {
+      font-size: var(--font-size-sm);
+      color: var(--color-gray-dark);
+      font-weight: 600;
       margin-bottom: var(--spacing-xs);
+      display: block;
+    }
+    
+    .type-options {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--spacing-sm);
+      max-width: 180px;
+    }
+    
+    .type-option {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--spacing-xs);
+      padding: var(--spacing-xs);
+      border-radius: var(--radius-md);
+      background: var(--color-light-gray);
     }
     
     .type-icon {
@@ -1522,7 +1669,13 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: var(--color-light-gray);
+    }
+    
+    .type-name {
+      font-size: var(--font-size-xs);
+      color: var(--color-gray-dark);
+      font-weight: 600;
+      text-align: center;
     }
     
     .type-icon.friendship { background: rgba(20, 184, 166, 0.2); }
@@ -1615,11 +1768,16 @@
       font-weight: 600;
       color: var(--color-navy);
       margin-bottom: var(--spacing-sm);
+      text-align: center;
+      margin-top: var(--spacing-md);
     }
     
     .step p {
       color: var(--color-gray);
       line-height: 1.5;
+      text-align: center;
+      max-width: 300px;
+      margin: 0 auto;
     }
     
     /* Testimonials Section */
@@ -1775,7 +1933,15 @@
         height: 100px;
       }
       
-      .value-props {
+      .value-props-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-md);
+      }
+      
+    }
+    
+    @media (max-width: 480px) {
+      .value-props-grid {
         grid-template-columns: 1fr;
         gap: var(--spacing-lg);
       }
@@ -1796,6 +1962,12 @@
       .step-icons {
         flex-direction: column;
         gap: var(--spacing-sm);
+      }
+      
+      .type-options {
+        grid-template-columns: 1fr;
+        max-width: 120px;
+        gap: var(--spacing-xs);
       }
       
       .growth-flow {
@@ -2257,10 +2429,24 @@ body.has-referral-banner {
       <div class="hero-content">
         <h1>AI Companions That Make You Better at Being Human</h1>
         <p>Build confidence and grow emotionally in a judgment-free environment.</p>
+        <div class="hero-benefits">
+          <div class="benefit-item">
+            <span class="checkmark">✓</span>
+            <span>Try free without signup</span>
+          </div>
+          <div class="benefit-item">
+            <span class="checkmark">✓</span>
+            <span>Starting at $6.99/month</span>
+          </div>
+          <div class="benefit-item">
+            <span class="checkmark">✓</span>
+            <span>Cancel anytime</span>
+          </div>
+        </div>
         <div class="hero-cta">
-          <a href="create-character.html" class="btn btn-primary btn-hero">✨ Create Your Companion</a>
+          <a href="create-character.html" class="btn btn-primary btn-hero">✨ Create Your Own Companion</a>
           <div class="or-start-chatting">
-            <span>Or Start Chatting</span>
+            <span>Or Chat & Customize</span>
             <div class="arrow-down">↓</div>
           </div>
         </div>
@@ -2271,6 +2457,10 @@ body.has-referral-banner {
     <div class="content">
       <!-- Featured Characters Section -->
       <section class="featured-characters" id="featured-characters">
+        <div class="free-trial-banner">
+          <span class="trial-icon">✨</span>
+          <span class="trial-text">Try 5 Free Messages - No Signup Required</span>
+        </div>
         <div class="featured-grid">
           <div class="featured-character-wrapper">
             <div class="featured-character" data-slug="galina">
@@ -2329,20 +2519,31 @@ body.has-referral-banner {
 
       <!-- Value Propositions Section -->
       <section class="value-props">
-        <div class="value-prop">
-          <div class="value-icon">🗣️</div>
-          <h3>Practice Without Pressure</h3>
-          <p>Build social confidence and communication skills in a judgment-free environment. Perfect for preparing for important conversations or overcoming social anxiety.</p>
+        <div class="value-props-header">
+          <h2>Your Personal Growth Partner</h2>
+          <p>Experience the support and understanding you've been looking for</p>
         </div>
-        <div class="value-prop">
-          <div class="value-icon">🌱</div>
-          <h3>Daily Emotional Support</h3>
-          <p>Get consistent, understanding companionship for your wellness journey. Track personal growth through meaningful conversations that help you process emotions and build resilience.</p>
-        </div>
-        <div class="value-prop">
-          <div class="value-icon">🔒</div>
-          <h3>Private & Secure</h3>
-          <p>Your conversations and personal data are completely private and encrypted. No sharing, no tracking, no judgment – just a safe space for authentic growth and self-discovery.</p>
+        <div class="value-props-grid">
+          <div class="value-prop">
+            <div class="value-icon">🗣️</div>
+            <h3>Practice Without Pressure</h3>
+            <p>Build social confidence and communication skills in a judgment-free environment. Perfect for preparing for important conversations or overcoming social anxiety.</p>
+          </div>
+          <div class="value-prop">
+            <div class="value-icon">🌱</div>
+            <h3>Daily Growth Coach</h3>
+            <p>Get consistent, understanding companionship for your wellness journey. Track personal growth through meaningful conversations that help you process emotions and build resilience.</p>
+          </div>
+          <div class="value-prop">
+            <div class="value-icon">🧠</div>
+            <h3>Remembers Everything</h3>
+            <p>Your AI companion remembers your conversations, preferences, and growth journey. Build deeper connections as your companion learns about your personality, goals, and experiences over time.</p>
+          </div>
+          <div class="value-prop">
+            <div class="value-icon">🔒</div>
+            <h3>Private & Secure</h3>
+            <p>Your conversations and personal data are completely private and encrypted. No sharing, no tracking, no judgment – just a safe space for authentic growth and self-discovery.</p>
+          </div>
         </div>
       </section>
 
@@ -2360,17 +2561,28 @@ body.has-referral-banner {
                 </div>
                 <div class="or-divider">or</div>
                 <div class="path-option">
-                  <div class="type-icons">
-                    <span class="type-icon friendship">🤝</span>
-                    <span class="type-icon romance">💕</span>
-                    <span class="type-icon mindfulness">🧘</span>
-                    <span class="type-icon mentorship">🎯</span>
+                  <div class="type-options">
+                    <div class="type-option">
+                      <span class="type-icon friendship">🤝</span>
+                      <span class="type-name">Friendship</span>
+                    </div>
+                    <div class="type-option">
+                      <span class="type-icon romance">💕</span>
+                      <span class="type-name">Romance</span>
+                    </div>
+                    <div class="type-option">
+                      <span class="type-icon mindfulness">🧘</span>
+                      <span class="type-name">Mindfulness</span>
+                    </div>
+                    <div class="type-option">
+                      <span class="type-icon mentorship">🎯</span>
+                      <span class="type-name">Mentorship</span>
+                    </div>
                   </div>
-                  <span class="option-text">Choose Type</span>
                 </div>
               </div>
             </div>
-            <h4>Choose Your Path</h4>
+            <h4>Choose Your Style</h4>
             <p>Create your own companion from scratch or select one of our 4 core types (Friendship, Romance, Mindfulness, Mentorship)</p>
           </div>
           <div class="step">
@@ -2430,7 +2642,7 @@ body.has-referral-banner {
 
       <!-- Testimonials Section -->
       <section class="testimonials">
-        <h2>What Our Users Say</h2>
+        <h2>Join Thousands of Users Improving Their Social Confidence With AI-Powered Practice</h2>
         <div class="testimonial-grid">
           <div class="testimonial">
             <p>"Practicing difficult conversations with my AI companion gave me the confidence I needed for job interviews. I finally landed my dream role!"</p>
