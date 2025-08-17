@@ -13317,11 +13317,16 @@ async function sendMessage(event) {
   }
   console.log('✅ Usage limit check passed, proceeding with message');
   
-  // Authentication check - dummy user should already exist for featured characters
-  if (!window.isAuthenticated || !window.currentUser) {
+  // Authentication check - allow anonymous users for featured characters
+  const featuredCharacters = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
+  const currentCharSlug = new URLSearchParams(window.location.search).get('char') || new URLSearchParams(window.location.search).get('character');
+  const isFeaturedCharacter = featuredCharacters.includes(currentCharSlug);
+  const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+  
+  if (!window.isAuthenticated && !isAnonymousUser) {
     console.log('❌ User not authenticated, checking localStorage...');
     
-    if (!initializeAuthenticationCheck()) {
+    if (!isFeaturedCharacter && !initializeAuthenticationCheck()) {
       console.log('❌ No valid auth found, redirecting to login');
       localStorage.setItem('login_redirect_url', window.location.href);
       window.location.href = 'profile.html';
