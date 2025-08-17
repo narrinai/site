@@ -372,17 +372,18 @@ class CharacterLimitChecker {
 // Create global instance
 const characterLimitChecker = new CharacterLimitChecker();
 
-// Auto-initialize when page loads
+// DISABLED: Auto-initialize when page loads - was blocking navigation
 document.addEventListener('DOMContentLoaded', async () => {
-  await characterLimitChecker.initialize();
-  characterLimitChecker.applyToAllButtons();
+  console.log('DISABLED: Character limit checker disabled');
+  // await characterLimitChecker.initialize();
+  // characterLimitChecker.applyToAllButtons();
 });
 
-// Also initialize after Netlify Identity loads
+// DISABLED: Also initialize after Netlify Identity loads
 if (typeof netlifyIdentity !== 'undefined') {
   netlifyIdentity.on('login', async () => {
-    await characterLimitChecker.initialize();
-    characterLimitChecker.applyToAllButtons();
+    // await characterLimitChecker.initialize();
+    // characterLimitChecker.applyToAllButtons();
   });
 }
 
