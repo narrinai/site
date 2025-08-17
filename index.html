@@ -3418,17 +3418,8 @@ function processNetlifyData(characters, category, gridId, limit) {
       card.appendChild(nameDiv);
       card.appendChild(titleDiv);
       
-      // Add click event listener for companion limit protection
-      card.addEventListener('click', function(e) {
-        // Use the global checkCompanionLimitBeforeNavigation function
-        if (window.checkCompanionLimitBeforeNavigation) {
-          window.checkCompanionLimitBeforeNavigation(e);
-        } else {
-          // Fallback if function not loaded yet
-          console.warn('⚠️ Companion limit check function not loaded, allowing navigation');
-          window.location.href = characterUrl;
-        }
-      });
+      // REMOVED: Click event listener - was interfering with navigation
+      // Direct navigation via href attribute will work now
       
       return card;
     }
@@ -3875,7 +3866,8 @@ if (window.netlifyIdentity) {
       }
     }
 
-    // Check companion limits before allowing navigation
+    // REMOVED: Companion limit check function - was blocking navigation
+    /*
     async function checkCompanionLimitBeforeNavigation(e) {
       // TEMPORARILY DISABLED - Just navigate directly
       window.location.href = '/create-character';
@@ -3938,6 +3930,7 @@ if (window.netlifyIdentity) {
         window.location.href = '/create-character';
       }
     }
+    */
 
     // ===== INITIALIZATION =====
     document.addEventListener('DOMContentLoaded', async () => {
@@ -3946,11 +3939,11 @@ if (window.netlifyIdentity) {
       // Initialize authentication check first
       initializeAuthenticationCheck();
       
-      // Add companion limit check to Create Companion buttons
-      const createCompanionLinks = document.querySelectorAll('a[href="/create-character"]');
-      createCompanionLinks.forEach(link => {
-        link.addEventListener('click', checkCompanionLimitBeforeNavigation);
-      });
+      // REMOVED: Companion limit check - was blocking navigation
+      // const createCompanionLinks = document.querySelectorAll('a[href="/create-character"]');
+      // createCompanionLinks.forEach(link => {
+      //   link.addEventListener('click', checkCompanionLimitBeforeNavigation);
+      // });
       
       // FAST LOADING: Show buttons immediately without character count checking
       generateCategoryButtons();
