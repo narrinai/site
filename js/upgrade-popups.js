@@ -374,6 +374,11 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Use event delegation to handle both existing and dynamically created elements
   document.addEventListener('click', function(e) {
+    // Skip if this is a chat card - they have their own click handler
+    if (e.target.closest('.chat-card')) {
+      return;
+    }
+    
     // Check if the clicked element or its parent matches our selectors
     const target = e.target.closest(`
       a[href="create-character.html"], 
