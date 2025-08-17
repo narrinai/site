@@ -40,14 +40,42 @@ exports.handler = async (event, context) => {
       ai_response 
     } = JSON.parse(event.body);
     
+    // Check if this is an anonymous user for featured characters
+    const isAnonymousUser = user_email && user_email.includes('@anonymous.narrin.ai');
+    const featuredCharacters = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
+    const isFeaturedCharacter = featuredCharacters.includes(char);
+    
     console.log('🔍 SaveChatMessage request:', { 
       user_email, 
       user_uid: !!user_uid, 
       user_token: !!user_token, 
       char,
+      isAnonymousUser,
+      isFeaturedCharacter,
       user_message: user_message ? user_message.substring(0, 50) + '...' : 'none',
       ai_response: ai_response ? ai_response.substring(0, 50) + '...' : 'none'
     });
+    
+    // For anonymous users with featured characters, use a shared anonymous user record
+    if (isAnonymousUser && isFeaturedCharacter) {
+      console.log('🔄 Anonymous chat with featured character - using shared anonymous user');
+      
+      // Override user details with shared anonymous user
+      const originalEmail = user_email;
+      const originalUid = user_uid;
+      
+      // Use shared anonymous user credentials
+      user_email = 'anonymous@narrin.ai';
+      user_uid = 'anonymous_user_shared';
+      
+      console.log('📝 Saving anonymous chat under shared user:', {
+        originalEmail,
+        originalUid,
+        sharedEmail: user_email,
+        sharedUid: user_uid,
+        character: char
+      });
+    }
 
     if (!user_email || !user_uid || !user_token || !char) {
       return {

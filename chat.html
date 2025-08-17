@@ -13311,15 +13311,25 @@ async function sendMessage(event) {
   }
   console.log('✅ Usage limit check passed, proceeding with message');
   
-  // Authentication check
+  // Authentication check - allow anonymous users for featured characters
+  const featuredCharacters = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
+  const currentCharSlug = new URLSearchParams(window.location.search).get('char') || new URLSearchParams(window.location.search).get('character');
+  const isFeaturedCharacter = featuredCharacters.includes(currentCharSlug);
+  
   if (!window.isAuthenticated || !window.currentUser) {
     console.log('❌ User not authenticated, checking localStorage...');
     
-    if (!initializeAuthenticationCheck()) {
+    if (!isFeaturedCharacter && !initializeAuthenticationCheck()) {
       console.log('❌ No valid auth found, redirecting to login');
       localStorage.setItem('login_redirect_url', window.location.href);
       window.location.href = 'profile.html';
       return;
+    }
+    
+    // For featured characters, create dummy user credentials
+    if (isFeaturedCharacter && !initializeAuthenticationCheck()) {
+      console.log('✅ Creating dummy user for featured character:', currentCharSlug);
+      createDummyUserForAnonymousChat(currentCharSlug);
     }
   }
   
@@ -13957,16 +13967,19 @@ INSTRUCTIONS:
     
     console.log(`📚 Including ${chatHistory.length} messages in conversation history`);
     
+    // Check if this is an anonymous user
+    const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+    
     const requestPayload = {
       action: "send_message",
       text: input, // Clean user input only
       user_message: input, // Voor database opslag
-      memory_context: priorityContext + onboardingSummaryContext + memoryContext + onboardingContext, // Priority context first
-      conversation_history: chatHistory, // Add last 25 messages for better context
+      memory_context: isAnonymousUser ? '' : (priorityContext + onboardingSummaryContext + memoryContext + onboardingContext), // No memory for anonymous
+      conversation_history: isAnonymousUser ? [] : chatHistory, // No history for anonymous
       // Model selection happens in Make.com, not here
       emotional_complexity: emotionalComplexity, // Emotional complexity score for analytics only
-      relationship_phase: relationshipContext?.phase || 'new',
-      total_messages: relationshipContext?.totalMessages || 0,
+      relationship_phase: isAnonymousUser ? 'anonymous' : (relationshipContext?.phase || 'new'),
+      total_messages: isAnonymousUser ? 0 : (relationshipContext?.totalMessages || 0),
       slug: characterSlug,  // Match Airtable field name
       netlify_uid: uid || "",  // PRIMARY identifier - NetlifyUID
       user_token: token || "",  // For authentication
@@ -13974,7 +13987,9 @@ INSTRUCTIONS:
       // Include custom prompt if character has been customized
       custom_prompt: currentCharacter?.customPrompt || null,
       is_customized: currentCharacter?.isCustomized || false,
-      has_onboarding: !!(window.additionalContext && window.additionalContext.onboarding)
+      has_onboarding: !!(window.additionalContext && window.additionalContext.onboarding),
+      is_anonymous: isAnonymousUser, // Flag for Make.com to handle differently
+      anonymous_session: isAnonymousUser ? localStorage.getItem('anonymous_character') : null
     };
     
     console.log("📤 sendMessage FULL payload:", requestPayload);
@@ -14544,19 +14559,26 @@ async function checkUsageLimit() {
   const token = localStorage.getItem("user_token");
   const uid = localStorage.getItem("user_uid");
   const email = localStorage.getItem("user_email");
+  const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
   
   if (!token || !uid || !email) {
     return false;
   }
+  
+  // For anonymous users, use shared anonymous user for usage tracking
+  const effectiveEmail = isAnonymousUser ? 'anonymous@narrin.ai' : email;
+  const effectiveUid = isAnonymousUser ? 'anonymous_user_shared' : uid;
+  const effectiveToken = isAnonymousUser ? 'anonymous_token' : token;
 
   try {
     console.log('🔍 Checking usage limit for:', email);
     
     const payload = {
-      user_email: email,
-      user_uid: uid,
-      user_token: token,
-      action: 'get_profile'
+      user_email: effectiveEmail,
+      user_uid: effectiveUid,
+      user_token: effectiveToken,
+      action: 'get_profile',
+      is_anonymous: isAnonymousUser
     };
 
     const resp = await fetch('https://hook.eu2.make.com/lya166veex7oo2wwo8mx4fuhlkssxlog', {
@@ -16745,6 +16767,35 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (error) {
         console.error('❌ Error saving welcome message:', error);
       }
+    }
+    
+    // Create dummy user credentials for anonymous chats with featured characters
+    function createDummyUserForAnonymousChat(characterSlug) {
+      const dummyUserId = `anonymous_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const dummyEmail = `${dummyUserId}@anonymous.narrin.ai`;
+      const dummyToken = `dummy_token_${Math.random().toString(36).substr(2, 16)}`;
+      
+      // Store dummy credentials in localStorage
+      localStorage.setItem('user_email', dummyEmail);
+      localStorage.setItem('user_uid', dummyUserId);
+      localStorage.setItem('user_token', dummyToken);
+      localStorage.setItem('user_id', dummyUserId);
+      localStorage.setItem('is_anonymous_user', 'true');
+      localStorage.setItem('anonymous_character', characterSlug);
+      
+      console.log('✅ Dummy user created for anonymous chat:', {
+        uid: dummyUserId,
+        email: dummyEmail,
+        character: characterSlug
+      });
+      
+      // Set global auth state
+      window.isAuthenticated = true;
+      window.currentUser = {
+        uid: dummyUserId,
+        email: dummyEmail,
+        user_metadata: { full_name: 'Anonymous User' }
+      };
     }
   </script>
 
