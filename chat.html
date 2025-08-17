@@ -4725,7 +4725,6 @@
 
         <!-- Desktop Navigation Links -->
         <nav class="nav-links" role="navigation" aria-label="Secondary navigation">
-          <a href="index.html" class="nav-link">Home</a>
           <a href="pricing.html" class="nav-link">Pricing</a>
           <a href="chat-overview.html" class="nav-link">My Companions</a>
           <a href="profile.html" class="nav-link" id="loginBtn">Login/Register</a>
@@ -4800,10 +4799,6 @@
         <div class="mobile-menu-subtitle">AI Companion Platform</div>
       </div>
       <nav class="mobile-menu-nav" role="navigation" aria-label="Mobile navigation">
-        <a href="index.html" class="mobile-menu-link">
-          <span class="mobile-menu-link-icon">🏠</span>
-          Home
-        </a>
         <a href="chat-overview.html" class="mobile-menu-link">
           <span class="mobile-menu-link-icon">💬</span>
           My Companions
@@ -9035,8 +9030,19 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     function setupCharacterInterface() {
       if (!currentCharacter) return;
 
+      // Check if this is a featured character and create dummy user if needed
+      const featuredCharacters = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
+      const currentCharSlug = new URLSearchParams(window.location.search).get('char') || new URLSearchParams(window.location.search).get('character');
+      const isFeaturedCharacter = featuredCharacters.includes(currentCharSlug);
+      
       // Initialize authentication check first
       initializeAuthenticationCheck();
+      
+      // For featured characters, create dummy user if not authenticated
+      if (isFeaturedCharacter && (!window.isAuthenticated || !window.currentUser)) {
+        console.log('✅ Creating dummy user for featured character:', currentCharSlug);
+        createDummyUserForAnonymousChat(currentCharSlug);
+      }
 
       // Debug character name issue
       console.log('🔍 setupCharacterInterface - Character name data:', {
@@ -13311,25 +13317,15 @@ async function sendMessage(event) {
   }
   console.log('✅ Usage limit check passed, proceeding with message');
   
-  // Authentication check - allow anonymous users for featured characters
-  const featuredCharacters = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
-  const currentCharSlug = new URLSearchParams(window.location.search).get('char') || new URLSearchParams(window.location.search).get('character');
-  const isFeaturedCharacter = featuredCharacters.includes(currentCharSlug);
-  
+  // Authentication check - dummy user should already exist for featured characters
   if (!window.isAuthenticated || !window.currentUser) {
     console.log('❌ User not authenticated, checking localStorage...');
     
-    if (!isFeaturedCharacter && !initializeAuthenticationCheck()) {
+    if (!initializeAuthenticationCheck()) {
       console.log('❌ No valid auth found, redirecting to login');
       localStorage.setItem('login_redirect_url', window.location.href);
       window.location.href = 'profile.html';
       return;
-    }
-    
-    // For featured characters, create dummy user credentials
-    if (isFeaturedCharacter && !initializeAuthenticationCheck()) {
-      console.log('✅ Creating dummy user for featured character:', currentCharSlug);
-      createDummyUserForAnonymousChat(currentCharSlug);
     }
   }
   
