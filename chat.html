@@ -13349,7 +13349,7 @@ async function sendMessage(event) {
   const featuredCharacters = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
   const currentCharSlug = new URLSearchParams(window.location.search).get('char') || new URLSearchParams(window.location.search).get('character');
   const isFeaturedCharacter = featuredCharacters.includes(currentCharSlug);
-  const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+  // isAnonymousUser already declared above
   
   if (!window.isAuthenticated && !isAnonymousUser) {
     console.log('❌ User not authenticated, checking localStorage...');
@@ -13997,7 +13997,7 @@ INSTRUCTIONS:
     console.log(`📚 Including ${chatHistory.length} messages in conversation history`);
     
     // Check if this is an anonymous user and track local usage
-    const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+    // isAnonymousUser already declared above
     
     if (isAnonymousUser) {
       // Track usage per character in this browser
@@ -14607,6 +14607,7 @@ async function checkUsageLimit() {
   const token = localStorage.getItem("user_token");
   const uid = localStorage.getItem("user_uid");
   const email = localStorage.getItem("user_email");
+  // Check if anonymous user
   const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
   
   if (!token || !uid || !email) {
