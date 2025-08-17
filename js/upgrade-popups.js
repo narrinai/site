@@ -286,7 +286,32 @@ window.checkCompanionLimitBeforeNavigation = async function checkCompanionLimitB
   
   const email = localStorage.getItem('user_email');
   const uid = localStorage.getItem('user_uid');
-  const targetUrl = e.target.getAttribute('data-original-href') || e.target.href || e.target.getAttribute('href') || 'create-character.html';
+  // Get the target URL - try multiple ways to preserve the original intent
+  let targetUrl = e.target.getAttribute('data-original-href') || e.target.href || e.target.getAttribute('href');
+  
+  // If target is inside a character card, try to get the card's URL
+  const characterCard = e.target.closest('.character-card') || (e.target.classList.contains('character-card') ? e.target : null);
+  if (characterCard && !targetUrl) {
+    targetUrl = characterCard.getAttribute('data-original-href') || characterCard.href || characterCard.getAttribute('href');
+  }
+  
+  // If target is inside a chat card, try to get the card's URL
+  const chatCard = e.target.closest('.chat-card') || (e.target.classList.contains('chat-card') ? e.target : null);
+  if (chatCard && !targetUrl) {
+    targetUrl = chatCard.getAttribute('data-original-href') || chatCard.href || chatCard.getAttribute('href');
+  }
+  
+  // If still no URL found, determine the appropriate default based on the element
+  if (!targetUrl) {
+    // For character cards and chat links, we should not redirect to create-character
+    if (characterCard || chatCard) {
+      console.error('❌ No target URL found for character/chat card, redirecting to home');
+      targetUrl = '/';
+    } else {
+      // For explicit create-character buttons, use the intended destination
+      targetUrl = 'create-character.html';
+    }
+  }
   
   console.log('🔒 User email:', email, 'UID:', uid, 'Target URL:', targetUrl);
   
@@ -347,29 +372,49 @@ window.checkCompanionLimitBeforeNavigation = async function checkCompanionLimitB
 document.addEventListener('DOMContentLoaded', function() {
   addUpgradePopupCSS();
   
-  // Add companion limit check to ALL Create Character/Companion buttons AND character cards
-  const companionLinks = document.querySelectorAll(`
+  // Use event delegation to handle both existing and dynamically created elements
+  document.addEventListener('click', function(e) {
+    // Check if the clicked element or its parent matches our selectors
+    const target = e.target.closest(`
+      a[href="create-character.html"], 
+      a[href="/create-character.html"],
+      a[href*="create-character"],
+      .create-companion-special,
+      .welcome-cta,
+      .btn[href*="create-character"],
+      .character-card,
+      a[href*="chat.html?char="],
+      a[href*="chat.html?character="]
+    `);
+    
+    if (target) {
+      // Store original href if not already stored
+      const originalHref = target.getAttribute('data-original-href') || target.href || target.getAttribute('href');
+      if (originalHref && !target.getAttribute('data-original-href')) {
+        target.setAttribute('data-original-href', originalHref);
+      }
+      
+      // Call our companion limit check function
+      window.checkCompanionLimitBeforeNavigation(e);
+    }
+  });
+  
+  // Also process existing elements at page load for immediate availability
+  const existingLinks = document.querySelectorAll(`
     a[href="create-character.html"], 
     a[href="/create-character.html"],
     a[href*="create-character"],
     .create-companion-special,
     .welcome-cta,
-    .btn[href*="create-character"],
-    .character-card,
-    a[href*="chat.html?char="],
-    a[href*="chat.html?character="]
+    .btn[href*="create-character"]
   `);
-  console.log(`🔗 Found ${companionLinks.length} character/companion links, adding limit checks...`);
   
-  companionLinks.forEach((link, index) => {
-    // Store original href before removing it
+  existingLinks.forEach((link) => {
     const originalHref = link.href || link.getAttribute('href');
     if (originalHref) {
-      console.log(`🔗 Processing link ${index + 1}:`, link, 'href:', originalHref);
       link.setAttribute('data-original-href', originalHref);
       link.removeAttribute('href');
       link.style.cursor = 'pointer';
-      link.addEventListener('click', window.checkCompanionLimitBeforeNavigation);
     }
   });
 });
