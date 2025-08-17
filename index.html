@@ -228,30 +228,7 @@
       position: relative;
     }
 
-    /* USPs Container - Desktop */
-    .nav-usps {
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-xl);
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-
-    .usp-item {
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-xs);
-      color: var(--color-gray-dark);
-      font-size: var(--font-size-xs);
-      font-weight: 500;
-      white-space: nowrap;
-    }
-
-    .usp-icon {
-      font-size: var(--font-size-lg);
-      color: var(--color-teal);
-    }
+    /* Remove USP styling - no longer needed */
 
     /* Search Bar - Desktop */
     .nav-search {
@@ -758,71 +735,7 @@
       margin: 0 auto;
     }
     
-    /* ===== USP BADGES STYLES ===== */
-    
-    /* Mobile USP Badges */
-    .usp-badges-mobile {
-      display: none;
-      justify-content: center;
-      gap: 6px;
-      margin-top: 16px;
-      padding: 0 4px;
-      flex-wrap: wrap;
-    }
-    
-    .usp-badge {
-      display: flex;
-      align-items: center;
-      gap: 3px;
-      background: linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, rgba(249, 115, 22, 0.1) 100%);
-      border: 1px solid rgba(20, 184, 166, 0.2);
-      border-radius: 20px;
-      padding: 5px 8px;
-      font-size: 10px;
-      flex: 0 0 auto;
-      white-space: nowrap;
-    }
-    
-    .usp-badge .usp-icon {
-      font-size: 13px;
-      flex-shrink: 0;
-    }
-    
-    .usp-badge .usp-text {
-      color: var(--color-navy);
-      font-weight: 600;
-      font-family: var(--font-primary);
-      letter-spacing: -0.02em;
-      font-size: 10px;
-    }
-    
-    /* Show badges on all screen sizes */
-    @media (min-width: 769px) {
-      .usp-badges-mobile {
-        display: flex;
-      }
-    }
-    
-    /* Extra small screens - make badges even smaller */
-    @media (max-width: 380px) {
-      .usp-badges-mobile {
-        gap: 4px;
-        padding: 0 2px;
-      }
-      
-      .usp-badge {
-        padding: 4px 6px;
-        font-size: 9px;
-      }
-      
-      .usp-badge .usp-icon {
-        font-size: 11px;
-      }
-      
-      .usp-badge .usp-text {
-        font-size: 9px;
-      }
-    }
+    /* USP badges removed */
 
     .hero h1 {
       font-family: var(--font-secondary);
@@ -837,11 +750,43 @@
     .hero p {
       font-size: clamp(var(--font-size-base), 2vw, var(--font-size-lg));
       color: var(--color-gray);
-      margin-bottom: 4px;
+      margin-bottom: var(--spacing-xl);
       max-width: 100%;
       margin-left: auto;
       margin-right: auto;
       white-space: nowrap;
+    }
+    
+    .hero-cta {
+      display: flex;
+      gap: var(--spacing-xl);
+      justify-content: center;
+      align-items: flex-start;
+      margin-top: var(--spacing-xl);
+    }
+    
+    .btn-hero {
+      padding: var(--spacing-md) var(--spacing-xl);
+      font-size: var(--font-size-base);
+      font-weight: 700;
+    }
+    
+    .btn-secondary-hero {
+      background: transparent;
+      color: var(--color-navy);
+      border: 2px solid var(--color-light-gray);
+      padding: var(--spacing-md) var(--spacing-xl);
+      font-size: var(--font-size-base);
+      font-weight: 600;
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      transition: all var(--transition-base);
+    }
+    
+    .btn-secondary-hero:hover {
+      border-color: var(--color-teal);
+      color: var(--color-teal);
+      transform: translateY(-2px);
     }
     
     @media (max-width: 768px) {
@@ -850,9 +795,16 @@
         max-width: 600px;
       }
       
-      /* Show mobile badges */
-      .usp-badges-mobile {
-        display: flex;
+      .hero-cta {
+        flex-direction: column;
+        gap: var(--spacing-md);
+      }
+      
+      .btn-hero,
+      .btn-secondary-hero {
+        width: 100%;
+        max-width: 280px;
+        text-align: center;
       }
     }
 
@@ -1308,6 +1260,611 @@
       transform: translateY(-2px);
     }
 
+    /* ===== NEW HOMEPAGE SECTIONS ===== */
+    
+    /* Featured Characters Section */
+    .featured-characters {
+      margin-bottom: var(--spacing-3xl);
+      padding: var(--spacing-xl) 0;
+    }
+    
+    .featured-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--spacing-lg);
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .featured-character-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--spacing-md);
+    }
+    
+    .featured-character {
+      background: var(--color-white);
+      border-radius: var(--radius-xl);
+      padding: var(--spacing-2xl);
+      text-align: center;
+      transition: all 0.3s ease;
+      border: 2px solid var(--color-light-gray);
+      box-shadow: var(--shadow-sm);
+      min-height: 380px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    
+    .featured-character:hover {
+      transform: translateY(-8px);
+      box-shadow: var(--shadow-xl);
+      border-color: var(--color-teal);
+    }
+    
+    .featured-avatar {
+      width: 140px;
+      height: 140px;
+      margin: 0 auto var(--spacing-lg);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      border: 3px solid var(--color-light-gray);
+      transition: all 0.3s ease;
+    }
+    
+    .featured-character:hover .featured-avatar {
+      border-color: var(--color-teal);
+      transform: scale(1.05);
+    }
+    
+    .featured-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .featured-info h3 {
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-xl);
+      font-weight: 700;
+      color: var(--color-navy);
+      margin-bottom: var(--spacing-xs);
+    }
+    
+    .featured-info .character-role {
+      color: var(--color-gray);
+      font-size: var(--font-size-sm);
+      margin-bottom: 0;
+    }
+    
+    .category-tag {
+      color: var(--color-gray-dark);
+      font-size: var(--font-size-lg);
+      font-weight: 700;
+      text-align: center;
+      font-family: var(--font-secondary);
+      margin-top: 0;
+      padding: var(--spacing-sm) 0;
+    }
+    
+    .btn-chat {
+      background: var(--gradient-primary);
+      color: white;
+      padding: var(--spacing-sm) var(--spacing-lg);
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: var(--font-size-sm);
+      transition: all var(--transition-base);
+      margin-top: var(--spacing-sm);
+      display: inline-block;
+    }
+    
+    .btn-chat:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .or-start-chatting {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--spacing-sm);
+      color: var(--color-gray);
+      font-size: var(--font-size-base);
+      font-weight: 500;
+      margin-top: var(--spacing-sm);
+    }
+    
+    .arrow-down {
+      font-size: var(--font-size-2xl);
+      color: var(--color-teal);
+      animation: bounce 2s infinite;
+      font-family: 'Arial', sans-serif;
+      text-shadow: 0 2px 4px rgba(20, 184, 166, 0.3);
+    }
+    
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+      }
+      40% {
+        transform: translateY(-10px);
+      }
+      60% {
+        transform: translateY(-5px);
+      }
+    }
+    
+    /* Value Propositions Section */
+    .value-props {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: var(--spacing-xl);
+      margin-bottom: var(--spacing-3xl);
+      padding: var(--spacing-xl) 0;
+    }
+    
+    .value-prop {
+      text-align: center;
+      padding: var(--spacing-xl);
+    }
+    
+    .value-icon {
+      font-size: 3rem;
+      margin-bottom: var(--spacing-lg);
+      display: block;
+    }
+    
+    .value-prop h3 {
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-xl);
+      font-weight: 700;
+      color: var(--color-navy);
+      margin-bottom: var(--spacing-md);
+    }
+    
+    .value-prop p {
+      color: var(--color-gray);
+      line-height: 1.6;
+      font-size: var(--font-size-base);
+    }
+    
+    /* How It Works Section */
+    .how-it-works {
+      background: var(--color-white);
+      border-radius: var(--radius-xl);
+      padding: var(--spacing-3xl);
+      margin-bottom: var(--spacing-3xl);
+      text-align: center;
+    }
+    
+    .how-it-works h2 {
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-3xl);
+      font-weight: 700;
+      color: var(--color-navy);
+      margin-bottom: var(--spacing-2xl);
+    }
+    
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: var(--spacing-xl);
+    }
+    
+    .step {
+      text-align: center;
+    }
+    
+    .step-visual {
+      margin-bottom: var(--spacing-lg);
+    }
+    
+    .step-number {
+      width: 60px;
+      height: 60px;
+      background: var(--gradient-primary);
+      color: white;
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--font-size-xl);
+      font-weight: 700;
+      margin: 0 auto var(--spacing-md);
+    }
+    
+    .step-icons {
+      margin-top: var(--spacing-md);
+      margin-bottom: var(--spacing-lg);
+    }
+    
+    /* Step 1: Path Selection */
+    .path-option {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--spacing-xs);
+      flex: 1;
+    }
+    
+    .step-icons .path-option:first-child {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .step-icons {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-lg);
+    }
+    
+    .option-icon {
+      font-size: var(--font-size-2xl);
+      margin-bottom: var(--spacing-xs);
+    }
+    
+    .type-icons {
+      display: flex;
+      gap: var(--spacing-xs);
+      margin-bottom: var(--spacing-xs);
+    }
+    
+    .type-icon {
+      font-size: var(--font-size-lg);
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--color-light-gray);
+    }
+    
+    .type-icon.friendship { background: rgba(20, 184, 166, 0.2); }
+    .type-icon.romance { background: rgba(249, 115, 22, 0.2); }
+    .type-icon.mindfulness { background: rgba(139, 92, 246, 0.2); }
+    .type-icon.mentorship { background: rgba(34, 197, 94, 0.2); }
+    
+    .option-text {
+      font-size: var(--font-size-sm);
+      color: var(--color-gray-dark);
+      font-weight: 600;
+    }
+    
+    .or-divider {
+      color: var(--color-gray);
+      font-size: var(--font-size-sm);
+      font-style: italic;
+      padding: 0 var(--spacing-sm);
+    }
+    
+    /* Step 2: Customization Grid */
+    .customize-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--spacing-md);
+      max-width: 200px;
+      margin: 0 auto;
+    }
+    
+    .customize-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--spacing-xs);
+      padding: var(--spacing-sm);
+      border-radius: var(--radius-md);
+      background: var(--color-light-gray);
+    }
+    
+    .customize-icon {
+      font-size: var(--font-size-xl);
+    }
+    
+    .customize-label {
+      font-size: var(--font-size-xs);
+      color: var(--color-gray-dark);
+      font-weight: 600;
+    }
+    
+    /* Step 3: Growth Flow */
+    .growth-flow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-md);
+      flex-wrap: wrap;
+    }
+    
+    .growth-stage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--spacing-xs);
+      padding: var(--spacing-sm);
+      border-radius: var(--radius-lg);
+      background: var(--color-light-gray);
+      min-width: 80px;
+    }
+    
+    .growth-icon {
+      font-size: var(--font-size-xl);
+    }
+    
+    .growth-label {
+      font-size: var(--font-size-xs);
+      color: var(--color-gray-dark);
+      font-weight: 600;
+      text-align: center;
+    }
+    
+    .arrow-right {
+      color: var(--color-teal);
+      font-size: var(--font-size-xl);
+      font-weight: bold;
+    }
+    
+    .step h4 {
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-lg);
+      font-weight: 600;
+      color: var(--color-navy);
+      margin-bottom: var(--spacing-sm);
+    }
+    
+    .step p {
+      color: var(--color-gray);
+      line-height: 1.5;
+    }
+    
+    /* Testimonials Section */
+    .testimonials {
+      margin-bottom: var(--spacing-3xl);
+      text-align: center;
+    }
+    
+    .testimonials h2 {
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-3xl);
+      font-weight: 700;
+      color: var(--color-navy);
+      margin-bottom: var(--spacing-2xl);
+    }
+    
+    .testimonial-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: var(--spacing-xl);
+    }
+    
+    .testimonial {
+      background: var(--color-white);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-xl);
+      box-shadow: var(--shadow-sm);
+      border: 2px solid var(--color-light-gray);
+    }
+    
+    .testimonial p {
+      font-style: italic;
+      color: var(--color-gray-dark);
+      line-height: 1.6;
+      margin-bottom: var(--spacing-md);
+      font-size: var(--font-size-base);
+    }
+    
+    .testimonial cite {
+      color: var(--color-teal);
+      font-weight: 600;
+      font-style: normal;
+      font-size: var(--font-size-sm);
+    }
+    
+    /* Final CTA Section */
+    .final-cta {
+      background: var(--gradient-primary);
+      border-radius: var(--radius-xl);
+      padding: var(--spacing-3xl);
+      text-align: center;
+      color: white;
+    }
+    
+    .final-cta h2 {
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-3xl);
+      font-weight: 700;
+      margin-bottom: var(--spacing-lg);
+    }
+    
+    .final-cta > p {
+      font-size: var(--font-size-lg);
+      margin-bottom: var(--spacing-2xl);
+      opacity: 0.9;
+    }
+    
+    .cta-buttons {
+      display: flex;
+      gap: var(--spacing-lg);
+      justify-content: center;
+      margin-bottom: var(--spacing-xl);
+      flex-wrap: wrap;
+    }
+    
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(10px);
+    }
+    
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.3);
+      border-color: rgba(255, 255, 255, 0.5);
+      transform: translateY(-2px);
+    }
+    
+    .ai-disclosure {
+      font-size: var(--font-size-sm);
+      opacity: 0.8;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      padding-top: var(--spacing-lg);
+      margin-top: var(--spacing-lg);
+      line-height: 1.5;
+    }
+    
+    /* Mobile Responsive Styles for New Sections */
+    @media (max-width: 1024px) {
+      .featured-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-lg);
+      }
+      
+      .featured-character-wrapper {
+        gap: var(--spacing-sm);
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .featured-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-md);
+      }
+      
+      .featured-character {
+        padding: var(--spacing-xl);
+        min-height: 320px;
+      }
+      
+      .featured-avatar {
+        width: 110px;
+        height: 110px;
+        margin-bottom: var(--spacing-lg);
+      }
+      
+      .featured-info h3 {
+        font-size: var(--font-size-lg);
+      }
+      
+      .featured-info .character-role {
+        font-size: var(--font-size-sm);
+      }
+      
+      .category-tag {
+        font-size: var(--font-size-base);
+        padding: var(--spacing-xs) 0;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .featured-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
+      }
+      
+      .featured-character {
+        padding: var(--spacing-lg);
+      }
+      
+      .featured-avatar {
+        width: 100px;
+        height: 100px;
+      }
+      
+      .value-props {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
+      }
+      
+      .value-prop {
+        padding: var(--spacing-lg);
+      }
+      
+      .how-it-works {
+        padding: var(--spacing-xl);
+      }
+      
+      .steps {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
+      }
+      
+      .step-icons {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+      }
+      
+      .growth-flow {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+      }
+      
+      .arrow-right {
+        transform: rotate(90deg);
+      }
+      
+      .customize-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-sm);
+        max-width: 160px;
+      }
+      
+      .testimonial-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
+      }
+      
+      .final-cta {
+        padding: var(--spacing-xl);
+      }
+      
+      .cta-buttons {
+        flex-direction: column;
+        gap: var(--spacing-md);
+      }
+      
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .featured-character {
+        padding: var(--spacing-md);
+        min-height: 240px;
+      }
+      
+      .featured-avatar {
+        width: 80px;
+        height: 80px;
+      }
+      
+      .value-prop {
+        padding: var(--spacing-md);
+      }
+      
+      .value-icon {
+        font-size: 2.5rem;
+      }
+      
+      .how-it-works {
+        padding: var(--spacing-lg);
+      }
+      
+      .testimonial {
+        padding: var(--spacing-lg);
+      }
+      
+      .final-cta {
+        padding: var(--spacing-lg);
+      }
+    }
+
    /* Mobile category navigation improvements */
 @media (max-width: 768px) {
   .hero {
@@ -1578,21 +2135,6 @@ body.has-referral-banner {
 
         <!-- Desktop Navigation Center -->
         <nav class="nav-center" role="navigation" aria-label="Main navigation">
-          <!-- USPs - Random Display -->
-          <div class="nav-usps" aria-label="Key features">
-            <div class="usp-item" data-usp="voice" style="display: none;">
-              <span class="usp-icon" aria-hidden="true">🗣️</span>
-              <span>Voice Chat</span>
-            </div>
-            <div class="usp-item" data-usp="memory" style="display: none;">
-              <span class="usp-icon" aria-hidden="true">🧠</span>
-              <span>Character Memory</span>
-            </div>
-            <div class="usp-item" data-usp="private" style="display: none;">
-              <span class="usp-icon" aria-hidden="true">🔐</span>
-              <span>Private Data</span>
-            </div>
-          </div>
 
           <!-- Search Bar - Always visible on desktop -->
           <form class="nav-search" role="search">
@@ -1713,26 +2255,13 @@ body.has-referral-banner {
     <!-- Hero Section -->
     <section class="hero">
       <div class="hero-content">
-        <h1>AI Companions Who Genuinely Care</h1>
-        <p>Always ready to listen. Always here for you.</p>
-        
-        <!-- USP Badges - Mobile Only -->
-        <div class="usp-badges-mobile">
-          <div class="usp-badge">
-            <span class="usp-icon">🧠</span>
-            <span class="usp-text">Memory</span>
-          </div>
-          <div class="usp-badge">
-            <span class="usp-icon">🎙️</span>
-            <span class="usp-text">Voice</span>
-          </div>
-          <div class="usp-badge">
-            <span class="usp-icon">✨</span>
-            <span class="usp-text">Personalize</span>
-          </div>
-          <div class="usp-badge">
-            <span class="usp-icon">🔒</span>
-            <span class="usp-text">Private</span>
+        <h1>AI Companions That Make You Better at Being Human</h1>
+        <p>Build confidence and grow emotionally in a judgment-free environment.</p>
+        <div class="hero-cta">
+          <a href="create-character.html" class="btn btn-primary btn-hero">✨ Create Your Companion</a>
+          <div class="or-start-chatting">
+            <span>Or Start Chatting</span>
+            <div class="arrow-down">↓</div>
           </div>
         </div>
       </div>
@@ -1740,42 +2269,193 @@ body.has-referral-banner {
 
     <!-- Content -->
     <div class="content">
-      <!-- Category Navigation - Dynamic Buttons -->
-      <nav class="category-nav" aria-label="Browse by category">
-        <div class="filters-container">
-          <div class="category-buttons" id="categoryButtons">
-            <!-- Dynamic category buttons will be inserted here -->
+      <!-- Featured Characters Section -->
+      <section class="featured-characters" id="featured-characters">
+        <div class="featured-grid">
+          <div class="featured-character-wrapper">
+            <div class="featured-character" data-slug="galina">
+              <div class="featured-avatar">
+                <img src="https://narrin.ai/avatars/galina-1754739995932.webp" alt="Galina" loading="lazy">
+              </div>
+              <div class="featured-info">
+                <h3>Galina</h3>
+                <p class="character-role">Best Friend</p>
+                <a href="chat.html?character=galina" class="btn btn-chat">Start Chatting</a>
+              </div>
+            </div>
+            <div class="category-tag">Friendship</div>
+          </div>
+          <div class="featured-character-wrapper">
+            <div class="featured-character" data-slug="blake-devoted-boyfriend">
+              <div class="featured-avatar">
+                <img src="https://narrin.ai/avatars/blake-heart-1754250872458.webp" alt="Blake" loading="lazy">
+              </div>
+              <div class="featured-info">
+                <h3>Blake</h3>
+                <p class="character-role">Devoted Boyfriend</p>
+                <a href="chat.html?character=blake-devoted-boyfriend" class="btn btn-chat">Start Chatting</a>
+              </div>
+            </div>
+            <div class="category-tag">Romance</div>
+          </div>
+          <div class="featured-character-wrapper">
+            <div class="featured-character" data-slug="emerald">
+              <div class="featured-avatar">
+                <img src="https://narrin.ai/avatars/emerald-1754253047878.webp" alt="Emerald" loading="lazy">
+              </div>
+              <div class="featured-info">
+                <h3>Emerald</h3>
+                <p class="character-role">Mindful Companion</p>
+                <a href="chat.html?character=emerald" class="btn btn-chat">Start Chatting</a>
+              </div>
+            </div>
+            <div class="category-tag">Mindfulness</div>
+          </div>
+          <div class="featured-character-wrapper">
+            <div class="featured-character" data-slug="sol">
+              <div class="featured-avatar">
+                <img src="https://narrin.ai/avatars/sol-1754289534624.webp" alt="Sol" loading="lazy">
+              </div>
+              <div class="featured-info">
+                <h3>Sol</h3>
+                <p class="character-role">Growth Coach</p>
+                <a href="chat.html?character=sol" class="btn btn-chat">Start Chatting</a>
+              </div>
+            </div>
+            <div class="category-tag">Mentorship</div>
           </div>
         </div>
-      </nav>
+      </section>
 
-      <!-- Character Sections - Will be dynamically populated -->
-      <div id="characterSections">
-        <!-- Dynamic character sections will be inserted here -->
-      </div>
-      
-      <!-- Mid-page Create Companion CTA -->
-      <div id="midPageCTA">
-        <!-- Will be inserted dynamically -->
-      </div>
+      <!-- Value Propositions Section -->
+      <section class="value-props">
+        <div class="value-prop">
+          <div class="value-icon">🗣️</div>
+          <h3>Practice Without Pressure</h3>
+          <p>Build social confidence and communication skills in a judgment-free environment. Perfect for preparing for important conversations or overcoming social anxiety.</p>
+        </div>
+        <div class="value-prop">
+          <div class="value-icon">🌱</div>
+          <h3>Daily Emotional Support</h3>
+          <p>Get consistent, understanding companionship for your wellness journey. Track personal growth through meaningful conversations that help you process emotions and build resilience.</p>
+        </div>
+        <div class="value-prop">
+          <div class="value-icon">🔒</div>
+          <h3>Private & Secure</h3>
+          <p>Your conversations and personal data are completely private and encrypted. No sharing, no tracking, no judgment – just a safe space for authentic growth and self-discovery.</p>
+        </div>
+      </section>
 
-<!-- Extra Category Navigation - Before CTA -->
-      <nav class="category-nav" aria-label="Explore more categories">
-        <div class="filters-container">
-          <div class="category-buttons" id="extraCategoryButtons">
-            <!-- Extra category buttons will be inserted here -->
+      <!-- How It Works Section -->
+      <section class="how-it-works">
+        <h2>How Narrin AI Works</h2>
+        <div class="steps">
+          <div class="step">
+            <div class="step-visual">
+              <div class="step-number">1</div>
+              <div class="step-icons">
+                <div class="path-option">
+                  <span class="option-icon">✨</span>
+                  <span class="option-text">Create New</span>
+                </div>
+                <div class="or-divider">or</div>
+                <div class="path-option">
+                  <div class="type-icons">
+                    <span class="type-icon friendship">🤝</span>
+                    <span class="type-icon romance">💕</span>
+                    <span class="type-icon mindfulness">🧘</span>
+                    <span class="type-icon mentorship">🎯</span>
+                  </div>
+                  <span class="option-text">Choose Type</span>
+                </div>
+              </div>
+            </div>
+            <h4>Choose Your Path</h4>
+            <p>Create your own companion from scratch or select one of our 4 core types (Friendship, Romance, Mindfulness, Mentorship)</p>
+          </div>
+          <div class="step">
+            <div class="step-visual">
+              <div class="step-number">2</div>
+              <div class="step-icons">
+                <div class="customize-grid">
+                  <div class="customize-item">
+                    <span class="customize-icon">🎭</span>
+                    <span class="customize-label">Personality</span>
+                  </div>
+                  <div class="customize-item">
+                    <span class="customize-icon">🗣️</span>
+                    <span class="customize-label">Voice</span>
+                  </div>
+                  <div class="customize-item">
+                    <span class="customize-icon">👤</span>
+                    <span class="customize-label">Appearance</span>
+                  </div>
+                  <div class="customize-item">
+                    <span class="customize-icon">💬</span>
+                    <span class="customize-label">Style</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <h4>Customize Everything</h4>
+            <p>Personalize voice, appearance, personality, and communication style to match your needs and preferences</p>
+          </div>
+          <div class="step">
+            <div class="step-visual">
+              <div class="step-number">3</div>
+              <div class="step-icons">
+                <div class="growth-flow">
+                  <div class="growth-stage">
+                    <span class="growth-icon">💭</span>
+                    <span class="growth-label">Practice</span>
+                  </div>
+                  <div class="arrow-right">→</div>
+                  <div class="growth-stage">
+                    <span class="growth-icon">📈</span>
+                    <span class="growth-label">Build Skills</span>
+                  </div>
+                  <div class="arrow-right">→</div>
+                  <div class="growth-stage">
+                    <span class="growth-icon">🤝</span>
+                    <span class="growth-label">Real Connections</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <h4>Grow Together</h4>
+            <p>Build confidence through conversations and apply new skills to strengthen your real-world relationships</p>
           </div>
         </div>
-      </nav>
+      </section>
 
-      <!-- Create Companion CTA -->
-      <section class="create-character-cta">
-        <div class="cta-content">
-          <div class="cta-icon">✨</div>
-          <h2>Create Your Own Companion</h2>
-          <p>Bring your imagination to life. Design unique AI personalities with custom traits, backgrounds, and conversation styles.</p>
-          <a href="create-character.html" class="btn btn-cta">Start Creating</a>
+      <!-- Testimonials Section -->
+      <section class="testimonials">
+        <h2>What Our Users Say</h2>
+        <div class="testimonial-grid">
+          <div class="testimonial">
+            <p>"Practicing difficult conversations with my AI companion gave me the confidence I needed for job interviews. I finally landed my dream role!"</p>
+            <cite>— Alex, 24, Marketing Coordinator</cite>
+          </div>
+          <div class="testimonial">
+            <p>"Having daily mindful check-ins helped me process my divorce and rebuild my emotional resilience. I can actually track my healing progress."</p>
+            <cite>— Maria, 38, Wellness Coach</cite>
+          </div>
+          <div class="testimonial">
+            <p>"As someone with social anxiety, being able to practice small talk and networking conversations in a judgment-free space was life-changing."</p>
+            <cite>— Jordan, 29, Software Developer</cite>
+          </div>
         </div>
+      </section>
+
+      <!-- Final CTA Section -->
+      <section class="final-cta">
+        <h2>Ready to Build Better Connections?</h2>
+        <p>Join thousands of users improving their social confidence with AI-powered practice.</p>
+        <div class="cta-buttons">
+          <a href="chat.html?character=galina" class="btn btn-primary">Start Your First Conversation</a>
+          <a href="create-character.html" class="btn btn-secondary">Create Your Companion</a>
+        </div>
+        <p class="ai-disclosure">💡 <strong>AI Disclosure:</strong> Narrin AI companions are artificial intelligence assistants designed to help you practice and improve your communication skills. They are not replacements for human relationships or professional therapy.</p>
       </section>
     </div>
   </main>
@@ -3294,20 +3974,15 @@ function updateRegistrationWithReferral(originalRegistrationFunction) {
   };
 }
 
+// Featured characters now use direct links - no click handlers needed
+
 // Initialiseer referral detection bij page load
 document.addEventListener('DOMContentLoaded', function() {
   checkReferralCode();
   
-  // Show random USP (excluding Lightning Fast)
-  const uspItems = document.querySelectorAll('.usp-item');
-  if (uspItems.length > 0) {
-    // Hide all USPs first
-    uspItems.forEach(item => item.style.display = 'none');
-    
-    // Show a random one
-    const randomIndex = Math.floor(Math.random() * uspItems.length);
-    uspItems[randomIndex].style.display = 'flex';
-  }
+  // Click handlers no longer needed - using direct links
+  
+  // USPs removed - no longer needed
 });
 
   </script>
