@@ -16767,22 +16767,24 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Create dummy user credentials for anonymous chats with featured characters
     function createDummyUserForAnonymousChat(characterSlug) {
-      const dummyUserId = `anonymous_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      const dummyEmail = `${dummyUserId}@anonymous.narrin.ai`;
-      const dummyToken = `dummy_token_${Math.random().toString(36).substr(2, 16)}`;
+      // Use the fixed anonymous user credentials that exist in database
+      const dummyEmail = 'anonymous@narrin.ai';
+      const dummyUserId = 'anonymous_user_shared';
+      const dummyToken = 'anonymous_token';
       
       // Store dummy credentials in localStorage
       localStorage.setItem('user_email', dummyEmail);
       localStorage.setItem('user_uid', dummyUserId);
       localStorage.setItem('user_token', dummyToken);
-      localStorage.setItem('user_id', dummyUserId);
+      localStorage.setItem('user_id', '285'); // The User_ID from Airtable
       localStorage.setItem('is_anonymous_user', 'true');
       localStorage.setItem('anonymous_character', characterSlug);
       
       console.log('✅ Dummy user created for anonymous chat:', {
         uid: dummyUserId,
         email: dummyEmail,
-        character: characterSlug
+        character: characterSlug,
+        userId: '285'
       });
       
       // Set global auth state
