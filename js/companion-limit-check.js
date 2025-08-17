@@ -1,5 +1,10 @@
-// Companion limit checking for all pages
+// DISABLED: Companion limit checking for all pages - was blocking navigation
 async function checkCompanionLimitBeforeNavigation(e, targetUrl = 'create-character.html') {
+  // DISABLED - just navigate directly
+  window.location.href = targetUrl.replace('.html', '');
+  return;
+  
+  /*
   e.preventDefault();
   
   const email = localStorage.getItem('user_email');
@@ -297,4 +302,5 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     document.head.appendChild(styles);
   }
+  */
 });
