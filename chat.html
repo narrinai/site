@@ -4456,6 +4456,26 @@
         menuOverlay: !!mobileMenuOverlay
       });
       
+      // Add event listeners after elements are initialized
+      if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+      }
+      if (mobileMenuOverlay) {
+        mobileMenuOverlay.addEventListener('click', (e) => {
+          if (e.target === mobileMenuOverlay) {
+            closeMobileMenu();
+          }
+        });
+      }
+      if (mobileSearchBtn) {
+        mobileSearchBtn.addEventListener('click', toggleMobileSearch);
+      }
+      
+      // Close menu when clicking on menu items
+      document.querySelectorAll('.mobile-menu-link').forEach(link => {
+        link.addEventListener('click', closeMobileMenu);
+      });
+      
       // Check voor referral parameter
       const urlParams = new URLSearchParams(window.location.search);
       const referralCode = urlParams.get('ref');
@@ -5656,7 +5676,7 @@
       }
     }
 
-    mobileSearchBtn?.addEventListener('click', toggleMobileSearch);
+    // Mobile search event listener added in DOMContentLoaded above
 
     // ===== MOBILE MENU FUNCTIONALITY =====
     function toggleMobileMenu() {
@@ -5693,19 +5713,7 @@
       document.body.style.overflow = '';
     }
 
-    mobileMenuBtn?.addEventListener('click', toggleMobileMenu);
-
-    // Close menu when clicking on overlay background
-    mobileMenuOverlay?.addEventListener('click', (e) => {
-      if (e.target === mobileMenuOverlay) {
-        closeMobileMenu();
-      }
-    });
-
-    // Close menu when clicking on a menu item
-    document.querySelectorAll('.mobile-menu-link').forEach(link => {
-      link.addEventListener('click', closeMobileMenu);
-    });
+    // Event listeners are added in DOMContentLoaded above - no duplicates needed here
 
     // Close search and menu on outside click
     document.addEventListener('click', (e) => {
