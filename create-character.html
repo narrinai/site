@@ -2502,65 +2502,11 @@
           <div class="selection-counter" id="speakingCounter">Select 0-3 speaking patterns that fit your character</div>
         </div>
 
-        <!-- Response Style Sliders -->
-        <div class="personality-section">
-<h3>Response Style 📝<br><span style="font-size: var(--font-size-xs); color: var(--color-gray); font-weight: normal;">(Optional)</span></h3>          <div class="slider-group">
-            <div class="slider-item">
-              <div class="slider-labels">
-                <span class="slider-label">Brief</span>
-                <span class="slider-label">Detailed</span>
-              </div>
-              <input type="range" min="0" max="100" value="50" class="personality-slider" id="briefDetailed" data-response="length">
-            </div>
-            
-            <div class="slider-item">
-              <div class="slider-labels">
-                <span class="slider-label">Direct</span>
-                <span class="slider-label">Storytelling</span>
-              </div>
-              <input type="range" min="0" max="100" value="50" class="personality-slider" id="directStorytelling" data-response="style">
-            </div>
-            
-            <div class="slider-item">
-              <div class="slider-labels">
-                <span class="slider-label">Facts</span>
-                <span class="slider-label">Personal experiences</span>
-              </div>
-              <input type="range" min="0" max="100" value="50" class="personality-slider" id="factsPersonal" data-response="content">
-            </div>
-          </div>
-        </div>
+        <!-- REMOVED: Response Style Sliders section -->
 
-        <!-- Personality Quirks -->
-        <div class="personality-section">
-<h3>Personality Quirks 🎭<br><span style="font-size: var(--font-size-xs); color: var(--color-gray); font-weight: normal;">(Optional)</span></h3>          <div class="button-group-personality" id="personalityQuirks">
-            <button type="button" class="personality-button" data-quirk="historical-references">Makes historical references</button>
-            <button type="button" class="personality-button" data-quirk="food-metaphors">Uses food metaphors</button>
-            <button type="button" class="personality-button" data-quirk="collects-facts">Collects interesting facts</button>
-            <button type="button" class="personality-button" data-quirk="tells-stories">Tells relevant stories</button>
-            <button type="button" class="personality-button" data-quirk="strong-opinions">Has strong opinions</button>
-            <button type="button" class="personality-button" data-quirk="gets-excited">Gets excited about expertise</button>
-            <button type="button" class="personality-button" data-quirk="remembers-details">Remembers small details</button>
-            <button type="button" class="personality-button" data-quirk="unusual-phrases">Uses unusual phrases</button>
-          </div>
-          
-          <!-- Custom Quirks Input -->
-          <div class="custom-quirks">
-            <label for="customQuirk">Add custom quirk:</label>
-            <div class="quirk-input-container">
-              <input type="text" id="customQuirk" class="quirk-input" placeholder="e.g. Always quotes Shakespeare, Loves space analogies, Speaks like a pirate..." maxlength="50">
-              <button type="button" id="addCustomQuirk" class="add-quirk-btn">Add</button>
-            </div>
-          </div>
-        </div>
+        <!-- REMOVED: Personality Quirks section -->
 
-        <div class="form-group" style="margin-top: var(--spacing-2xl);">
-          <label for="characterDescription">How would this character describe themselves? <span style="font-size: var(--font-size-xs); color: var(--color-gray); font-weight: normal;">(Optional)</span></label>
-          <textarea id="characterDescription" name="characterDescription" 
-                    placeholder="I am Dr. Maya Chen, a mindfulness coach who helps people find inner peace. I believe everyone has the capacity for growth and self-discovery. My approach combines ancient wisdom with modern psychology to guide you on your journey." 
-                    maxlength="1000"></textarea>
-          <div class="char-counter"><span id="descCounter">0</span>/1000</div>
-        </div>
+        <!-- REMOVED: Character description field -->
       </div>
 
       <!-- Generated Prompt -->
@@ -3364,7 +3310,7 @@
              // Store trial info in localStorage
              localStorage.setItem('user_plan', 'Engage');
              localStorage.setItem('subscription_status', 'trial');
-             localStorage.setItem('trial_end_date', trialData.trial_end_date);
+             localStorage.setItem('trial_end_date', trialData['Grade Period End']);
              
              showNotification('🎉 Welcome! You have 7 days of Engage plan access with unlimited messaging!');
            } else {
@@ -4536,7 +4482,7 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
   const tempFormData = {
     name: document.getElementById('characterName').value.trim(),
     title: document.getElementById('characterTitle').value.trim(), 
-    description: document.getElementById('characterDescription').value.trim(),
+    description: '' // REMOVED,
     prompt: document.getElementById('characterPrompt').value.trim(),
     category: document.getElementById('characterCategory').value,
     character_type: document.getElementById('characterType').value,
@@ -4600,7 +4546,7 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
   const formData = {
     name: document.getElementById('characterName').value.trim(),
     title: document.getElementById('characterTitle').value.trim(), 
-    description: document.getElementById('characterDescription').value.trim(),
+    description: '' // REMOVED,
     prompt: document.getElementById('characterPrompt').value.trim(),
     category: document.getElementById('characterCategory').value,
     character_type: document.getElementById('characterType').value,
@@ -4611,7 +4557,7 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
     character_data: {
       name: document.getElementById('characterName').value.trim(),
       title: document.getElementById('characterTitle').value.trim(),
-      description: document.getElementById('characterDescription').value.trim(), 
+      description: '' // REMOVED, 
       prompt: document.getElementById('characterPrompt').value.trim(),
       category: document.getElementById('characterCategory').value,
       character_type: document.getElementById('characterType').value,
@@ -5035,8 +4981,8 @@ async function checkTrialStatus(email, uid) {
         // Update localStorage with current trial info
         localStorage.setItem('user_plan', 'Engage');
         localStorage.setItem('subscription_status', 'trial');
-        if (data.trial_end_date) {
-          localStorage.setItem('trial_end_date', data.trial_end_date);
+        if (data['Grade Period End']) {
+          localStorage.setItem('trial_end_date', data['Grade Period End']);
         }
       }
     }
