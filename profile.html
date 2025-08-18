@@ -5160,12 +5160,13 @@ function handleLoginSuccess(user, eventType = 'unknown') {
     document.addEventListener('DOMContentLoaded', () => {
       console.log('🚀 Page loaded, initializing...');
       
-      // Check if this is an anonymous user and redirect to pricing
+      // Check if this is an active anonymous user (from featured character chat) and redirect to pricing
       const userEmail = localStorage.getItem('user_email');
       const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+      const hasAnonymousCredentials = userEmail === 'anonymous@narrin.ai';
       
-      if (isAnonymousUser || userEmail === 'anonymous@narrin.ai') {
-        console.log('💰 Anonymous user detected, redirecting to pricing page');
+      if (isAnonymousUser && hasAnonymousCredentials) {
+        console.log('💰 Active anonymous user detected, redirecting to pricing page');
         window.location.href = 'pricing.html';
         return;
       }
