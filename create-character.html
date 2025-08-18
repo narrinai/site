@@ -3809,6 +3809,11 @@ function handleRedirectAfterLogin() {
 
    function updatePromptPreview(prompt) {
      const preview = document.getElementById('promptPreview');
+     if (!preview) {
+       console.log('⚠️ promptPreview element not found');
+       return;
+     }
+     
      if (prompt.trim()) {
        // Truncate long prompts in preview
        const maxLength = 200;
@@ -4502,15 +4507,27 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
   const isLoggedIn = netlifyUser || (localEmail && localToken);
   
   if (!isLoggedIn) {
-  // First collect form data
+  // First collect form data with null checks
+  const nameEl = document.getElementById('characterName');
+  const titleEl = document.getElementById('characterTitle');
+  const promptEl = document.getElementById('characterPrompt');
+  const categoryEl = document.getElementById('characterCategory');
+  const typeEl = document.getElementById('characterType');
+  const visibilityEl = document.querySelector('input[name="visibility"]:checked');
+  
+  if (!nameEl || !titleEl || !promptEl || !categoryEl || !typeEl || !visibilityEl) {
+    console.error('❌ Required form elements not found');
+    return;
+  }
+  
   const tempFormData = {
-    name: document.getElementById('characterName').value.trim(),
-    title: document.getElementById('characterTitle').value.trim(), 
+    name: nameEl.value.trim(),
+    title: titleEl.value.trim(), 
     description: '', // REMOVED
-    prompt: document.getElementById('characterPrompt').value.trim(),
-    category: document.getElementById('characterCategory').value,
-    character_type: document.getElementById('characterType').value,
-    visibility: document.querySelector('input[name="visibility"]:checked').value,
+    prompt: promptEl.value.trim(),
+    category: categoryEl.value,
+    character_type: typeEl.value,
+    visibility: visibilityEl.value,
     avatarUrl: currentAvatarUrl
   };
   
