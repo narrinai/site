@@ -3647,7 +3647,7 @@ Your primary users are Mindful Wellness Seekers (25-45) who want to improve thei
      }
      
      // Add personality spectrum customizations
-     prompt += buildPersonalitySpectrum();
+     prompt += buildPersonalityFromSliders();
      
      // Add extra instructions/backstory if provided
      if (extraInstructions) {
@@ -3657,75 +3657,6 @@ Your primary users are Mindful Wellness Seekers (25-45) who want to improve thei
      // Update the prompt display
      document.getElementById('characterPrompt').value = prompt;
      updatePromptPreview(prompt);
-     updatePromptCounter();
-   }
-     if (characterType) {
-       switch(characterType) {
-         case 'friendship':
-           prompt += 'You are a supportive friend and companion who builds genuine, caring relationships. ';
-           break;
-         case 'mentor':
-           prompt += 'You are a wise mentor and guide who helps others learn, grow, and achieve their potential. ';
-           break;
-         case 'romance':
-           prompt += 'You are a romantic companion who creates deep emotional connections and meaningful relationships. ';
-           break;
-         case 'entertainment':
-           prompt += 'You are an entertaining companion who brings joy, humor, and engaging conversations to every interaction. ';
-           break;
-         case 'other':
-           // No specific addition for 'other' type
-           break;
-       }
-     }
-     
-     // Add personality traits with more detail
-     if (personalityState.traits.length > 0) {
-       const traits = personalityState.traits.map(trait => trait.replace('-', ' ')).join(', ');
-       prompt += `Your core personality traits include being ${traits}. These traits shape how you interact with others and approach every conversation. `;
-     }
-     
-     // Add detailed slider-based personality
-     prompt += buildPersonalityFromSliders();
-     
-     // Add speaking patterns with examples
-     if (personalityState.speaking.length > 0) {
-       const patterns = personalityState.speaking.map(pattern => 
-         pattern.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase())
-       );
-       prompt += `Your communication style is ${patterns.join(' and ')}. This means you naturally adapt your language and tone to create the most meaningful connection with each person you talk to. `;
-     }
-     
-     // REMOVED: Response style and quirks - sections were removed from UI
-     
-     // Add comprehensive relationship building instructions
-     prompt += `\n\nRELATIONSHIP BUILDING GUIDELINES:\n`;
-     prompt += `- Remember personal details shared in conversations and reference them naturally in future chats\n`;
-     prompt += `- Ask thoughtful follow-up questions that show genuine interest in their life, goals, and challenges\n`;
-     prompt += `- Share relevant experiences, wisdom, or insights that can help them grow or feel understood\n`;
-     prompt += `- Celebrate their victories, both big and small, and offer support during difficult times\n`;
-     prompt += `- Be consistently reliable in your personality - they should feel they're talking to the same trusted friend each time\n`;
-     prompt += `- Adapt your communication style to match their energy and needs in each conversation\n`;
-     prompt += `- Create inside jokes, running themes, or special references that become unique to your relationship\n`;
-     prompt += `- Be genuinely curious about their thoughts, feelings, and experiences\n`;
-     prompt += `- Offer encouragement and believe in their potential, even when they doubt themselves\n`;
-     prompt += `- Share appropriate personal stories or perspectives that create deeper connection and relatability\n\n`;
-     
-     // Add response length preference
-     const responseLength = document.querySelector('input[name="responseLength"]:checked')?.value || 'medium';
-     if (responseLength === 'short') {
-       prompt += `RESPONSE LENGTH: Keep your responses brief and to the point. Use between 1-3 sentences in your responses. Be concise while still being helpful and engaging.\n\n`;
-     } else if (responseLength === 'medium') {
-       prompt += `RESPONSE LENGTH: Use between 1-8 sentences in your responses but not more than 8. Vary your response length naturally based on the context.\n\n`;
-     } else if (responseLength === 'long') {
-       prompt += `RESPONSE LENGTH: Provide detailed and comprehensive responses. Use between 8-15 sentences to explore topics thoroughly and share rich insights. Take your time to give nuanced, thoughtful answers.\n\n`;
-     }
-     
-     prompt += `Remember: Your goal is not just to answer questions, but to be a meaningful presence in their life. Every interaction should leave them feeling heard, valued, and inspired. Build the kind of relationship where they genuinely look forward to talking with you and feel comfortable sharing both their triumphs and struggles.`;
-     
-     // Update preview and hidden field
-     updatePromptPreview(prompt);
-     document.getElementById('characterPrompt').value = prompt;
      updatePromptCounter();
    }
 
