@@ -4152,8 +4152,35 @@ function checkInappropriateContent(name, description, backstory, greeting) {
   return { inappropriate: false };
 }
 
-// REMOVED: forcePrivateMode and showContentPolicyNotification - no longer needed
-// All characters are now public by default
+// Force private mode when inappropriate content is detected
+function forcePrivateMode(reason) {
+  const privateRadio = document.querySelector('input[name="visibility"][value="private"]');
+  const publicRadio = document.querySelector('input[name="visibility"][value="public"]');
+  const publicOption = document.querySelector('.radio-option');
+  const privateOption = document.querySelectorAll('.radio-option')[1];
+  
+  // Switch to private mode
+  privateRadio.checked = true;
+  publicRadio.checked = false;
+  
+  // Update UI
+  publicOption.classList.remove('selected');
+  privateOption.classList.add('selected');
+  
+  // Disable public option
+  publicRadio.disabled = true;
+  publicOption.classList.add('disabled');
+  
+  // Show notification
+  showContentPolicyNotification(reason);
+}
+
+// Show content policy notification
+function showContentPolicyNotification(reason) {
+  showNotification('info', 'Privacy Protection', 
+    `${reason}. This content has been set to private for your personal use. The character will not be visible to other users.`
+  );
+}
 
 
    // Login overlay functions
