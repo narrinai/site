@@ -2838,8 +2838,7 @@ body.has-referral-banner {
         }
       }
       
-      // Regenerate category buttons for new screen size
-      generateCategoryButtons();
+      // Category buttons removed
     }
 
     window.addEventListener('load', () => {
@@ -2870,68 +2869,7 @@ body.has-referral-banner {
 
     // ===== DYNAMIC CONTENT GENERATION =====
 
-   // Generate category buttons - Show all categories in 2 rows
-function generateCategoryButtons() {
-  const categoryButtons = document.getElementById('categoryButtons');
-  const extraCategoryButtons = document.getElementById('extraCategoryButtons');
-  
-  // Add null checks to prevent errors
-  if (!categoryButtons) {
-    console.log('⚠️ categoryButtons element not found, skipping category generation');
-    return;
-  }
-  
-  categoryButtons.innerHTML = '';
-  if (extraCategoryButtons) extraCategoryButtons.innerHTML = '';
-
-  // Show all categories from CONFIG
-  const allCategories = CONFIG.CATEGORIES;
-
-  // Top navigation - Add Create Your Own Companion button first
-  const createButton = document.createElement('a');
-  createButton.href = 'create-character.html';
-  createButton.className = 'category-btn create-companion-special';
-  createButton.innerHTML = '✨ Create Companion';
-  categoryButtons.appendChild(createButton);
-  
-  // Then show all categories
-  allCategories.forEach((category, index) => {
-    const button = document.createElement('a');
-    button.href = `category.html?cat=${category.id}`;
-    button.className = 'category-btn';
-    button.textContent = category.name;
-    categoryButtons.appendChild(button);
-  });
-
-  // Bottom navigation - show same categories
-  if (extraCategoryButtons) {
-    // Add Create Your Own Companion button first
-    const createButtonBottom = document.createElement('a');
-    createButtonBottom.href = 'create-character.html';
-    createButtonBottom.className = 'category-btn create-companion-special';
-    createButtonBottom.innerHTML = '✨ Create Companion';
-    extraCategoryButtons.appendChild(createButtonBottom);
-    
-    // Then show all categories
-    allCategories.forEach((category, index) => {
-      const button = document.createElement('a');
-      button.href = `category.html?cat=${category.id}`;
-      button.className = 'category-btn';
-      button.textContent = category.name;
-      extraCategoryButtons.appendChild(button);
-    });
-  }
-}
-
-// Generate tag buttons - disabled as we only show categories
-function generateTagButtons() {
-  // Tags are not shown anymore
-}
-
-    // Generate extra tag buttons - disabled as we only show categories
-function generateExtraTagButtons() {
-  // Tags are not shown anymore
-}
+    // Category buttons removed from index page as requested
 
     // Check character count for a category
     async function getCategoryCharacterCount(category) {
@@ -3072,7 +3010,7 @@ function generateExtraTagButtons() {
     }
 
 // Display predefined characters
-function displayPredefinedCharacters(characters, category, gridId, limit) {
+    function displayPredefinedCharacters(characters, category, gridId, limit) {
   const grid = document.getElementById(gridId);
   grid.innerHTML = '';
   
@@ -3086,7 +3024,7 @@ function displayPredefinedCharacters(characters, category, gridId, limit) {
 }
 
 // Create character card for predefined characters
-function createPredefinedCharacterCard(character) {
+    function createPredefinedCharacterCard(character) {
   const card = document.createElement('a');
   card.className = 'character-card';
   card.href = `chat.html?char=${character.slug}`;
@@ -3147,7 +3085,7 @@ function createPredefinedCharacterCard(character) {
 }
 
 // NIEUWE: Load characters van Netlify Function
-async function loadCharactersFromNetlify(category, gridId, limit = CONFIG.MAX_CHARACTERS_PER_CATEGORY) {
+    async function loadCharactersFromNetlify(category, gridId, limit = CONFIG.MAX_CHARACTERS_PER_CATEGORY) {
   const grid = document.getElementById(gridId);
 
   // Build API URL - fetch more to account for filtered characters
@@ -3184,7 +3122,7 @@ async function loadCharactersFromNetlify(category, gridId, limit = CONFIG.MAX_CH
 }
 
 // Helper function to check if character has valid avatar
-function hasValidAvatar(char) {
+    function hasValidAvatar(char) {
   // Check for Airtable attachment field
   if (char.Avatar_URL && Array.isArray(char.Avatar_URL) && char.Avatar_URL.length > 0) {
     if (char.Avatar_URL[0] && char.Avatar_URL[0].url) {
@@ -3198,7 +3136,7 @@ function hasValidAvatar(char) {
   return false;
 }
 
-function processNetlifyData(characters, category, gridId, limit) {
+    function processNetlifyData(characters, category, gridId, limit) {
   const grid = document.getElementById(gridId);
   
   console.log(`📦 Processing ${characters.length} characters for ${category}`);
@@ -3956,7 +3894,7 @@ if (window.netlifyIdentity) {
 // ===== REFERRAL FLOW DETECTION =====
 
 // Detecteer referral parameter
-async function checkReferralCode() {
+    async function checkReferralCode() {
   const urlParams = new URLSearchParams(window.location.search);
   const referralCode = urlParams.get('ref');
   
@@ -4017,7 +3955,7 @@ async function checkReferralCode() {
 }
 
 // Toon referral banner
-function showReferralBanner() {
+    function showReferralBanner() {
   const banner = document.createElement('div');
   banner.className = 'referral-banner';
   banner.innerHTML = `
@@ -4040,7 +3978,7 @@ function showReferralBanner() {
 }
 
 // Sluit referral banner
-function closeReferralBanner() {
+    function closeReferralBanner() {
   const banner = document.querySelector('.referral-banner');
   if (banner) {
     banner.classList.remove('active');
@@ -4053,7 +3991,7 @@ function closeReferralBanner() {
 }
 
 // Show notification message
-function showNotification(message, duration = 5000) {
+    function showNotification(message, duration = 5000) {
   // Remove any existing notifications
   const existingNotification = document.querySelector('.notification-toast');
   if (existingNotification) {
@@ -4148,7 +4086,7 @@ function showNotification(message, duration = 5000) {
 }
 
 // Update registration functie om referral user ID mee te sturen
-function updateRegistrationWithReferral(originalRegistrationFunction) {
+    function updateRegistrationWithReferral(originalRegistrationFunction) {
   return function(user) {
     // Haal referral code op
     const referralCode = localStorage.getItem('referralCode');
@@ -4189,7 +4127,7 @@ function updateRegistrationWithReferral(originalRegistrationFunction) {
 }
 
 // Check trial status and handle expiration
-async function checkTrialStatus(email, uid) {
+    async function checkTrialStatus(email, uid) {
   try {
     const response = await fetch('/.netlify/functions/check-trial', {
       method: 'POST',
