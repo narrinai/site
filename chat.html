@@ -4441,6 +4441,62 @@
 <script src="onboarding-questions.js"></script>
 
   <script>
+    // Mobile navigation elements - will be initialized after DOM loads
+    let mobileSearchBtn, mobileSearchOverlay, mobileSearchInput;
+    let mobileMenuBtn, mobileMenuOverlay;
+
+    // ===== MOBILE SEARCH FUNCTIONALITY =====
+    function toggleMobileSearch() {
+      const isActive = mobileSearchOverlay.classList.contains('active');
+      
+      if (isActive) {
+        mobileSearchOverlay.classList.remove('active');
+        mobileSearchBtn.setAttribute('aria-expanded', 'false');
+      } else {
+        // Close mobile menu if open
+        closeMobileMenu();
+        
+        mobileSearchOverlay.classList.add('active');
+        mobileSearchBtn.setAttribute('aria-expanded', 'true');
+        mobileSearchInput.focus();
+      }
+    }
+
+    // ===== MOBILE MENU FUNCTIONALITY =====
+    function toggleMobileMenu() {
+      const isActive = mobileMenuOverlay.classList.contains('active');
+      
+      if (isActive) {
+        closeMobileMenu();
+      } else {
+        openMobileMenu();
+      }
+    }
+
+    function openMobileMenu() {
+      // Close search overlay if open
+      if (mobileSearchOverlay.classList.contains('active')) {
+        mobileSearchOverlay.classList.remove('active');
+        mobileSearchBtn.setAttribute('aria-expanded', 'false');
+      }
+      
+      mobileMenuOverlay.classList.add('active');
+      mobileMenuBtn.classList.add('active');
+      mobileMenuBtn.setAttribute('aria-expanded', 'true');
+      
+      // Prevent body scroll
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeMobileMenu() {
+      mobileMenuOverlay.classList.remove('active');
+      mobileMenuBtn.classList.remove('active');
+      mobileMenuBtn.setAttribute('aria-expanded', 'false');
+      
+      // Restore body scroll
+      document.body.style.overflow = '';
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
       // Initialize mobile navigation elements
       mobileSearchBtn = document.getElementById('mobileSearchBtn');
@@ -5650,70 +5706,14 @@
 
     // ===== NAVIGATION FUNCTIONALITY =====
     
-    // Mobile navigation elements - will be initialized after DOM loads
-    let mobileSearchBtn, mobileSearchOverlay, mobileSearchInput;
-    let mobileMenuBtn, mobileMenuOverlay;
+    // Mobile functions are defined above, before DOMContentLoaded
     
     // USP Carousel Elements
     const uspTrack = document.getElementById('uspTrack');
     let currentUspIndex = 0;
     let uspInterval;
 
-    // ===== MOBILE SEARCH FUNCTIONALITY =====
-    function toggleMobileSearch() {
-      const isActive = mobileSearchOverlay.classList.contains('active');
-      
-      if (isActive) {
-        mobileSearchOverlay.classList.remove('active');
-        mobileSearchBtn.setAttribute('aria-expanded', 'false');
-      } else {
-        // Close mobile menu if open
-        closeMobileMenu();
-        
-        mobileSearchOverlay.classList.add('active');
-        mobileSearchBtn.setAttribute('aria-expanded', 'true');
-        mobileSearchInput.focus();
-      }
-    }
-
-    // Mobile search event listener added in DOMContentLoaded above
-
-    // ===== MOBILE MENU FUNCTIONALITY =====
-    function toggleMobileMenu() {
-      const isActive = mobileMenuOverlay.classList.contains('active');
-      
-      if (isActive) {
-        closeMobileMenu();
-      } else {
-        openMobileMenu();
-      }
-    }
-
-    function openMobileMenu() {
-      // Close search overlay if open
-      if (mobileSearchOverlay.classList.contains('active')) {
-        mobileSearchOverlay.classList.remove('active');
-        mobileSearchBtn.setAttribute('aria-expanded', 'false');
-      }
-      
-      mobileMenuOverlay.classList.add('active');
-      mobileMenuBtn.classList.add('active');
-      mobileMenuBtn.setAttribute('aria-expanded', 'true');
-      
-      // Prevent body scroll
-      document.body.style.overflow = 'hidden';
-    }
-
-    function closeMobileMenu() {
-      mobileMenuOverlay.classList.remove('active');
-      mobileMenuBtn.classList.remove('active');
-      mobileMenuBtn.setAttribute('aria-expanded', 'false');
-      
-      // Restore body scroll
-      document.body.style.overflow = '';
-    }
-
-    // Event listeners are added in DOMContentLoaded above - no duplicates needed here
+    // Mobile functions moved above DOMContentLoaded
 
     // Close search and menu on outside click
     document.addEventListener('click', (e) => {
