@@ -2883,14 +2883,16 @@ body.has-referral-banner {
 
     // ===== DYNAMIC CONTENT GENERATION =====
 
-    // Category buttons removed from index page as requested
+    // Index page is a landing page - character functionality not needed
 
-    // Check character count for a category
-    async function getCategoryCharacterCount(category) {
-      try {
-        const url = new URL(CONFIG.CHARACTERS_API, window.location.origin);
-        url.searchParams.set('category', category);
-        url.searchParams.set('count_only', 'true'); // Add parameter to only get count
+    // ===== UNIVERSAL AUTHENTICATION CHECK =====
+    // UNIVERSELE Authentication Check - Voeg toe aan ELKE pagina
+    function initializeAuthenticationCheck() {
+      console.log('🔐 Initializing authentication check...');
+      
+      // Check localStorage first
+      const token = localStorage.getItem('user_token');
+      const email = localStorage.getItem('user_email');
         
         const response = await fetch(url.toString());
         if (!response.ok) return 0;
@@ -3878,16 +3880,7 @@ if (window.netlifyIdentity) {
       //   link.addEventListener('click', checkCompanionLimitBeforeNavigation);
       // });
       
-      // Category buttons removed from index page
-      
-      // Generate character sections (this will check character counts for content)
-      await generateCharacterSections();
-      
-      // Load character data
-      initializeCharacterGrids();
-      
-      // Debug what gets loaded
-      debugLoadProcess();
+      // Character loading removed from index page - not needed
       
       console.log('✅ Initialization complete');
       // Referral check is already done above, no need to repeat
