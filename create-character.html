@@ -3687,6 +3687,18 @@ Your primary users are Mindful Wellness Seekers (25-45) who want to improve thei
        prompt += `\n\nADDITIONAL CONTEXT:\n${extraInstructions}`;
      }
      
+     // Add response length preference
+     const responseLength = document.querySelector('input[name="responseLength"]:checked')?.value || 'medium';
+     const lengthInstructions = {
+       'short': 'Keep your responses concise and to the point, typically 1-3 sentences.',
+       'medium': 'Provide balanced responses with moderate detail, typically 2-5 sentences.',
+       'long': 'Give comprehensive, detailed responses with depth and nuance, typically 4+ sentences.'
+     };
+     
+     if (lengthInstructions[responseLength]) {
+       prompt += `\n\nRESPONSE STYLE:\n${lengthInstructions[responseLength]}`;
+     }
+     
      // Update the prompt display
      document.getElementById('characterPrompt').value = prompt;
      updatePromptPreview(prompt);
