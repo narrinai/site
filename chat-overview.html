@@ -1842,17 +1842,6 @@ line-clamp: 3;
             </svg>
           </a>
 
-          <button
-            class="mobile-search-btn"
-            id="mobileSearchBtn"
-            aria-label="Open search"
-            aria-expanded="false"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.35-4.35"></path>
-            </svg>
-          </button>
 
           <!-- Mobile Hamburger Menu -->
           <button
@@ -2159,10 +2148,7 @@ line-clamp: 3;
 
     // ===== NAVIGATION FUNCTIONALITY =====
     
-    // Mobile Search Elements
-    const mobileSearchBtn = document.getElementById('mobileSearchBtn');
-    const mobileSearchOverlay = document.getElementById('mobileSearchOverlay');
-    const mobileSearchInput = document.getElementById('mobileSearchInput');
+    // Mobile search removed
     
     // Mobile Menu Elements
     const mobileMenuBtn = document.getElementById('mobileMenuBtn');
@@ -2173,24 +2159,7 @@ line-clamp: 3;
     let currentUspIndex = 0;
     let uspInterval;
 
-    // ===== MOBILE SEARCH FUNCTIONALITY =====
-    function toggleMobileSearch() {
-      const isActive = mobileSearchOverlay.classList.contains('active');
-      
-      if (isActive) {
-        mobileSearchOverlay.classList.remove('active');
-        mobileSearchBtn.setAttribute('aria-expanded', 'false');
-      } else {
-        // Close mobile menu if open
-        closeMobileMenu();
-        
-        mobileSearchOverlay.classList.add('active');
-        mobileSearchBtn.setAttribute('aria-expanded', 'true');
-        mobileSearchInput.focus();
-      }
-    }
-
-    mobileSearchBtn?.addEventListener('click', toggleMobileSearch);
+    // Mobile search functionality removed
 
     // ===== MOBILE MENU FUNCTIONALITY =====
     function toggleMobileMenu() {
@@ -2206,13 +2175,7 @@ line-clamp: 3;
     }
 
     function openMobileMenu() {
-      // Close search overlay if open
-      if (mobileSearchOverlay && mobileSearchOverlay.classList.contains('active')) {
-        mobileSearchOverlay.classList.remove('active');
-        if (mobileSearchBtn) {
-          mobileSearchBtn.setAttribute('aria-expanded', 'false');
-        }
-      }
+      // Mobile search removed
       
       if (mobileMenuOverlay) {
         mobileMenuOverlay.classList.add('active');
@@ -2253,26 +2216,13 @@ line-clamp: 3;
       link.addEventListener('click', closeMobileMenu);
     });
 
-    // Close search and menu on outside click
-    document.addEventListener('click', (e) => {
-      // Close search overlay
-      if (!mobileSearchOverlay?.contains(e.target) &&
-          !mobileSearchBtn?.contains(e.target) &&
-          mobileSearchOverlay?.classList.contains('active')) {
-        mobileSearchOverlay.classList.remove('active');
-        mobileSearchBtn.setAttribute('aria-expanded', 'false');
-      }
-    });
+    // Mobile search removed - no outside click handling needed
 
     // Close menu on escape key
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         if (mobileMenuOverlay.classList.contains('active')) {
           closeMobileMenu();
-        }
-        if (mobileSearchOverlay.classList.contains('active')) {
-          mobileSearchOverlay.classList.remove('active');
-          mobileSearchBtn.setAttribute('aria-expanded', 'false');
         }
       }
     });
@@ -2300,10 +2250,6 @@ line-clamp: 3;
         stopUspCarousel();
         if (uspTrack) {
           uspTrack.style.transform = '';
-        }
-        if (mobileSearchOverlay?.classList.contains('active')) {
-          mobileSearchOverlay.classList.remove('active');
-          mobileSearchBtn?.setAttribute('aria-expanded', 'false');
         }
         if (mobileMenuOverlay?.classList.contains('active')) {
           closeMobileMenu();
