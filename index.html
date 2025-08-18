@@ -3542,6 +3542,9 @@ function processNetlifyData(characters, category, gridId, limit) {
         if (authAge < 24 * 60 * 60 * 1000) {
           console.log('✅ Valid authentication found in localStorage:', email);
           
+          // Check trial status for authenticated users
+          checkTrialStatus(email, uid);
+          
           // Set global auth state
           window.isAuthenticated = true;
           window.currentUser = { email, uid, token };
@@ -3829,6 +3832,35 @@ if (window.netlifyIdentity) {
     // Handle authentication data
     handleLoginSuccess(user, 'signup');
     updateLoginButton();
+    
+    // Setup 7-day Engage trial for new users
+    try {
+      console.log('🎁 Setting up 7-day Engage trial...');
+      const trialResponse = await fetch('/.netlify/functions/setup-trial', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_email: user.email,
+          user_uid: user.id
+        })
+      });
+      
+      if (trialResponse.ok) {
+        const trialData = await trialResponse.json();
+        console.log('✅ Trial setup successful:', trialData);
+        
+        // Store trial info in localStorage
+        localStorage.setItem('user_plan', 'Engage');
+        localStorage.setItem('subscription_status', 'trial');
+        localStorage.setItem('trial_end_date', trialData.trial_end_date);
+        
+        showNotification('🎉 Welcome! You have 7 days of Engage plan access with unlimited messaging!');
+      } else {
+        console.error('❌ Failed to setup trial');
+      }
+    } catch (error) {
+      console.error('❌ Error setting up trial:', error);
+    }
     
     // Process referral after signup
     const referralCode = localStorage.getItem('referralCode');
@@ -4229,6 +4261,40 @@ function updateRegistrationWithReferral(originalRegistrationFunction) {
       originalRegistrationFunction(user);
     }
   };
+}
+
+// Check trial status and handle expiration
+async function checkTrialStatus(email, uid) {
+  try {
+    const response = await fetch('/.netlify/functions/check-trial', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_email: email, user_uid: uid })
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      
+      if (data.trial_expired) {
+        console.log('⏰ Trial has expired, updating localStorage');
+        localStorage.setItem('user_plan', 'Free');
+        localStorage.setItem('subscription_status', 'expired_trial');
+        localStorage.removeItem('trial_end_date');
+        
+        // Show notification about trial expiration
+        showNotification('⏰ Your 7-day Engage trial has ended. Upgrade to continue with unlimited messaging!');
+      } else if (data.current_plan === 'Engage' && data.subscription_status === 'trial') {
+        // Update localStorage with current trial info
+        localStorage.setItem('user_plan', 'Engage');
+        localStorage.setItem('subscription_status', 'trial');
+        if (data.trial_end_date) {
+          localStorage.setItem('trial_end_date', data.trial_end_date);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('❌ Error checking trial status:', error);
+  }
 }
 
 // Featured characters now use direct links - no click handlers needed
