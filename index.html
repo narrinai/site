@@ -2784,6 +2784,8 @@ body.has-referral-banner {
 
     // ===== MOBILE MENU FUNCTIONALITY =====
     function toggleMobileMenu() {
+      if (!mobileMenuOverlay) return;
+      
       const isActive = mobileMenuOverlay.classList.contains('active');
       
       if (isActive) {
@@ -2794,16 +2796,24 @@ body.has-referral-banner {
     }
 
     function openMobileMenu() {
-      mobileMenuOverlay.classList.add('active');
-      mobileMenuBtn.classList.add('active');
-      mobileMenuBtn.setAttribute('aria-expanded', 'true');
+      if (mobileMenuOverlay) {
+        mobileMenuOverlay.classList.add('active');
+      }
+      if (mobileMenuBtn) {
+        mobileMenuBtn.classList.add('active');
+        mobileMenuBtn.setAttribute('aria-expanded', 'true');
+      }
       document.body.style.overflow = 'hidden';
     }
 
     function closeMobileMenu() {
-      mobileMenuOverlay.classList.remove('active');
-      mobileMenuBtn.classList.remove('active');
-      mobileMenuBtn.setAttribute('aria-expanded', 'false');
+      if (mobileMenuOverlay) {
+        mobileMenuOverlay.classList.remove('active');
+      }
+      if (mobileMenuBtn) {
+        mobileMenuBtn.classList.remove('active');
+        mobileMenuBtn.setAttribute('aria-expanded', 'false');
+      }
       document.body.style.overflow = '';
     }
 
@@ -3371,17 +3381,7 @@ body.has-referral-banner {
       window.location.href = `search-results.html?q=${encodeURIComponent(trimmedTerm)}`;
     }
 
-    // Desktop search
-      e.preventDefault();
-      const searchInput = e.target.querySelector('.nav-search-input');
-      handleSearch(searchInput.value);
-    });
-
-    // Mobile search
-      e.preventDefault();
-      const searchInput = e.target.querySelector('.mobile-search-input');
-      handleSearch(searchInput.value);
-    });
+    // Search functionality removed from index page
 
     // ===== UNIVERSAL AUTHENTICATION CHECK =====
     // UNIVERSELE Authentication Check - Voeg toe aan ELKE pagina
