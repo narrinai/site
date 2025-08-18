@@ -2893,21 +2893,16 @@ body.has-referral-banner {
       // Check localStorage first
       const token = localStorage.getItem('user_token');
       const email = localStorage.getItem('user_email');
-        
-        const response = await fetch(url.toString());
-        if (!response.ok) return 0;
-        
-        const data = await response.json();
-        if (!data.success) return 0;
-        
-        // Return character count for this category
-        return data.characters ? data.characters.filter(char => 
-          char.Category && char.Category.toLowerCase() === category.toLowerCase()
-        ).length : 0;
-      } catch (error) {
-        console.error(`❌ Error checking count for ${category}:`, error);
-        return 0;
+      const uid = localStorage.getItem('user_id');
+      
+      if (!token || !email || !uid) {
+        console.log('❌ No valid authentication found');
+        updateLoginButton();
+        return;
       }
+      
+      console.log('✅ User authenticated:', { email, uid });
+      updateLoginButton();
     }
 
     // Generate character sections with mid-page CTA (only for categories with 50+ characters)
