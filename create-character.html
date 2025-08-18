@@ -4277,6 +4277,18 @@ document.addEventListener('DOMContentLoaded', () => {
   console.log('🔧 Calling generatePrompt() on page load...');
   generatePrompt();
   
+  // Direct test of trait buttons (bypass setup function)
+  console.log('🔧 Testing direct button setup...');
+  const testButtons = document.querySelectorAll('#personalityTraits .personality-button');
+  console.log('🔍 Direct query found buttons:', testButtons.length);
+  testButtons.forEach((btn, index) => {
+    console.log(`Button ${index}: ${btn.textContent}`);
+    btn.addEventListener('click', function() {
+      console.log('🎯 DIRECT CLICK WORKED on:', btn.textContent);
+      btn.classList.toggle('selected');
+    });
+  });
+  
   // Handle redirect after login
   handleRedirectAfterLogin();
 
