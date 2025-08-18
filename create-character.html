@@ -3433,10 +3433,13 @@
    function setupPersonalityButtons() {
      // Personality traits (max 5)
      const traitButtons = document.querySelectorAll('#personalityTraits .personality-button');
+     console.log('🔍 Found trait buttons:', traitButtons.length);
      traitButtons.forEach(button => {
        button.addEventListener('click', (e) => {
          e.preventDefault();
+         console.log('🖱️ Trait button clicked:', button.textContent);
          const trait = button.getAttribute('data-trait');
+         console.log('🏷️ Trait value:', trait);
          toggleArraySelection(personalityState.traits, trait, 5, button, 'traitsCounter', 'traits');
        });
      });
@@ -4269,6 +4272,10 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Initialize preview
   updatePreview();
+  
+  // Initialize prompt generation
+  console.log('🔧 Calling generatePrompt() on page load...');
+  generatePrompt();
   
   // Handle redirect after login
   handleRedirectAfterLogin();
