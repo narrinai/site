@@ -58,7 +58,7 @@ exports.handler = async (event, context) => {
     const fields = userRecord.fields;
     
     const plan = fields.Plan || 'Free';
-    const trialEndDate = fields.Trial_End_Date;
+    const trialEndDate = fields.grace_period_end;
     const subscriptionStatus = fields.Subscription_Status || '';
     
     console.log('📊 User trial info:', { plan, trialEndDate, subscriptionStatus });
@@ -90,7 +90,7 @@ exports.handler = async (event, context) => {
               Plan: 'Free',
               Subscription_Status: 'expired_trial',
               Quota: 10, // Back to Free quota
-              Trial_End_Date: '' // Clear trial date
+              grace_period_end: null // Clear trial date
             }
           })
         });

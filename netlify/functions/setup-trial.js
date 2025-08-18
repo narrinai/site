@@ -74,7 +74,7 @@ exports.handler = async (event, context) => {
       body: JSON.stringify({
         fields: {
           Plan: 'Engage',
-          Trial_End_Date: trialEndDate.toISOString(),
+          grace_period_end: trialEndDate.toISOString(),
           Subscription_Status: 'trial',
           Usage: 0, // Reset usage for trial
           Quota: 999 // Unlimited for Engage trial
