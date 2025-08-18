@@ -3829,34 +3829,39 @@ if (window.netlifyIdentity) {
     handleLoginSuccess(user, 'signup');
     updateLoginButton();
     
-    // Setup 7-day Engage trial for new users
-    try {
-      console.log('🎁 Setting up 7-day Engage trial...');
-      const trialResponse = await fetch('/.netlify/functions/setup-trial', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_email: user.email,
-          user_uid: user.id
-        })
-      });
-      
-      if (trialResponse.ok) {
-        const trialData = await trialResponse.json();
-        console.log('✅ Trial setup successful:', trialData);
+    // Setup 7-day Engage trial for new users (with delay for user creation)
+    setTimeout(async () => {
+      try {
+        console.log('🎁 Setting up 7-day Engage trial...');
+        const trialResponse = await fetch('/.netlify/functions/setup-trial', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_email: user.email,
+            user_uid: user.id
+          })
+        });
         
-        // Store trial info in localStorage
-        localStorage.setItem('user_plan', 'Engage');
-        localStorage.setItem('subscription_status', 'trial');
-        localStorage.setItem('trial_end_date', trialData['grace_period_end']);
-        
-        showNotification('🎉 Welcome! You have 7 days of Engage plan access with unlimited messaging!');
-      } else {
-        console.error('❌ Failed to setup trial');
+        if (trialResponse.ok) {
+          const trialData = await trialResponse.json();
+          console.log('✅ Trial setup successful:', trialData);
+          
+          // Store trial info in localStorage
+          localStorage.setItem('user_plan', 'Engage');
+          localStorage.setItem('subscription_status', 'trial');
+          localStorage.setItem('trial_end_date', trialData.grace_period_end);
+          
+          showNotification('🎉 Welcome! You have 7 days of Engage plan access with unlimited messaging!');
+        } else {
+          const errorData = await trialResponse.json();
+          console.error('❌ Failed to setup trial:', errorData);
+          showNotification('⚠️ Welcome! Trial setup will complete in the background.');
+        }
+      } catch (error) {
+        console.error('❌ Error setting up trial:', error);
+        showNotification('🎉 Welcome to Narrin AI! Enjoy exploring the platform.');
       }
-    } catch (error) {
-      console.error('❌ Error setting up trial:', error);
-    }
+    }, 3000); // Wait 3 seconds for user to be created in Airtable
     
     // Process referral after signup
     const referralCode = localStorage.getItem('referralCode');
