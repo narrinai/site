@@ -8777,26 +8777,36 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     // Check for customizations
     checkForCustomization();
     
-    // Show customize and memory buttons if user is logged in
+    // Show customize and memory buttons if user is logged in OR for featured characters
     const userToken = localStorage.getItem('user_token');
+    const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+    const featuredCharacters = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
+    const currentCharSlug = new URLSearchParams(window.location.search).get('char') || new URLSearchParams(window.location.search).get('character');
+    const isFeaturedCharacter = featuredCharacters.includes(currentCharSlug);
+    
     const customizeBtn = document.getElementById('customizeBtn');
     const memoryBtn = document.getElementById('memoryBtn');
     const desktopActionButtons = document.getElementById('desktopActionButtons');
     
-    if (userToken) {
+    if (userToken || (isAnonymousUser && isFeaturedCharacter)) {
       // Always show customize button
       if (customizeBtn) customizeBtn.style.display = 'inline-block';
       
-      // Only show memory button for categories with onboarding
-      const category = getNormalizedCategory(currentCharacter);
-      const hasOnboarding = window.onboardingQuestions && 
-                           window.onboardingQuestions[category] && 
-                           window.onboardingQuestions[category].enabled;
-      
-      if (hasOnboarding) {
+      // For featured characters, always show memory button (even without onboarding)
+      if (isFeaturedCharacter) {
         if (memoryBtn) memoryBtn.style.display = 'inline-block';
-        console.log('✅ Memory Hub enabled for category:', category);
+        console.log('✅ Memory Hub enabled for featured character:', currentCharSlug);
       } else {
+        // Only show memory button for categories with onboarding
+        const category = getNormalizedCategory(currentCharacter);
+        const hasOnboarding = window.onboardingQuestions && 
+                             window.onboardingQuestions[category] && 
+                             window.onboardingQuestions[category].enabled;
+        
+        if (hasOnboarding) {
+          if (memoryBtn) memoryBtn.style.display = 'inline-block';
+          console.log('✅ Memory Hub enabled for category:', category);
+        } else {
         if (memoryBtn) memoryBtn.style.display = 'none';
         console.log('⏭️ Memory Hub hidden - no onboarding for category:', category);
       }
@@ -11342,12 +11352,30 @@ async function openMemoryHub() {
     // Get user data
     const uid = localStorage.getItem('user_uid');
     const slug = characterSlug;
+    const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+    const featuredCharacters = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
+    const isFeaturedCharacter = featuredCharacters.includes(slug);
     
     if (!uid || !slug) {
       content.innerHTML = `
         <div class="no-memories">
           <div class="no-memories-title">No Memories Yet</div>
           <div class="no-memories-text">Click the <strong>"Update Information"</strong> button below to answer a few quick questions and create your personalized memories</div>
+        </div>
+      `;
+      return;
+    }
+    
+    // For anonymous users with featured characters, show special message
+    if (isAnonymousUser && isFeaturedCharacter) {
+      content.innerHTML = `
+        <div class="no-memories">
+          <div class="no-memories-title">Memory Hub Available After Registration</div>
+          <div class="no-memories-text">This feature becomes available once you register for your free trial. Your companion will remember your conversations, preferences, and growth journey!</div>
+          <div class="memory-actions">
+            <button class="btn btn-primary" onclick="window.location.href='pricing.html'">Start Free Trial</button>
+            <button class="btn btn-secondary" onclick="closeMemoryHub()">Maybe Later</button>
+          </div>
         </div>
       `;
       return;
@@ -11700,6 +11728,48 @@ let personalityState = {
 
 function openCustomizationModal() {
   if (!currentCharacter) return;
+  
+  // Check if anonymous user with featured character
+  const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+  const featuredCharacters = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
+  const isFeaturedCharacter = featuredCharacters.includes(characterSlug);
+  
+  if (isAnonymousUser && isFeaturedCharacter) {
+    // Show upgrade prompt for anonymous users
+    const modal = document.getElementById('customizationModal');
+    const content = modal.querySelector('.customization-modal-content');
+    
+    content.innerHTML = `
+      <div class="customization-header">
+        <button class="close-modal" onclick="closeCustomizationModal()">✕</button>
+        <h2>✨ Customize Companion</h2>
+        <p class="customization-subtitle">Create an account to customize your companion with personality, voice, and appearance options!</p>
+      </div>
+      <div class="customization-body" style="text-align: center; padding: var(--spacing-xl);">
+        <div class="upgrade-benefits">
+          <div class="benefit-item">
+            <span class="benefit-icon">🎭</span>
+            <span class="benefit-text">Personality Customization</span>
+          </div>
+          <div class="benefit-item">
+            <span class="benefit-icon">🗣️</span>
+            <span class="benefit-text">Voice Selection</span>
+          </div>
+          <div class="benefit-item">
+            <span class="benefit-icon">👤</span>
+            <span class="benefit-text">Avatar Customization</span>
+          </div>
+        </div>
+        <div class="customization-actions">
+          <button class="btn btn-primary" onclick="window.location.href='profile.html'">Create Account</button>
+          <button class="btn btn-secondary" onclick="closeCustomizationModal()">Maybe Later</button>
+        </div>
+      </div>
+    `;
+    
+    modal.style.display = 'flex';
+    return;
+  }
   
   const modal = document.getElementById('customizationModal');
   const form = document.getElementById('customizationForm');
