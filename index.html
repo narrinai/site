@@ -2346,25 +2346,7 @@ body.has-referral-banner {
         <!-- Logo -->
         <a href="index.html" class="logo" aria-label="Narrin AI Home">Narrin AI</a>
 
-        <!-- Desktop Navigation Center -->
-        <nav class="nav-center" role="navigation" aria-label="Main navigation">
-
-          <!-- Search Bar - Always visible on desktop -->
-          <form class="nav-search" role="search">
-            <input 
-              type="search" 
-              class="nav-search-input" 
-              placeholder="Search companions..." 
-              aria-label="Search characters"
-            />
-            <button type="submit" class="search-submit" aria-label="Submit search">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"></circle>
-                <path d="m21 21-4.35-4.35"></path>
-              </svg>
-            </button>
-          </form>
-        </nav>
+        <!-- REMOVED: Desktop search bar -->
 
         <!-- Desktop Navigation Links -->
         <nav class="nav-links" role="navigation" aria-label="Secondary navigation">
@@ -2387,18 +2369,7 @@ body.has-referral-banner {
             </svg>
           </a>
 
-          <!-- Mobile Search Button -->
-          <button
-            class="mobile-search-btn"
-            id="mobileSearchBtn"
-            aria-label="Open search"
-            aria-expanded="false"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.35-4.35"></path>
-            </svg>
-          </button>
+          <!-- REMOVED: Mobile search button -->
 
           <!-- Mobile Hamburger Menu -->
           <button
@@ -2417,21 +2388,7 @@ body.has-referral-banner {
       </div>
     </div>
 
-    <!-- Mobile Search Overlay -->
-    <div class="mobile-search-overlay" id="mobileSearchOverlay">
-      <form class="mobile-search-form" role="search">
-        <input 
-          type="search" 
-          class="mobile-search-input" 
-          placeholder="Search companions..." 
-          aria-label="Search characters"
-          id="mobileSearchInput"
-        />
-        <button type="submit" class="btn btn-primary" aria-label="Submit search">
-          Search
-        </button>
-      </form>
-    </div>
+    <!-- REMOVED: Mobile search overlay -->
   </header>
 
   <!-- Mobile Menu Overlay -->
@@ -2806,10 +2763,7 @@ body.has-referral-banner {
 
     // ===== NAVIGATION FUNCTIONALITY =====
     
-    // Mobile Search Elements
-    const mobileSearchBtn = document.getElementById('mobileSearchBtn');
-    const mobileSearchOverlay = document.getElementById('mobileSearchOverlay');
-    const mobileSearchInput = document.getElementById('mobileSearchInput');
+    // REMOVED: Mobile Search Elements
     
     // Mobile Menu Elements
     const mobileMenuBtn = document.getElementById('mobileMenuBtn');
@@ -2818,21 +2772,13 @@ body.has-referral-banner {
     // Remove USP Carousel - No longer needed
 
     // ===== MOBILE SEARCH FUNCTIONALITY =====
-    function toggleMobileSearch() {
-      const isActive = mobileSearchOverlay.classList.contains('active');
       
       if (isActive) {
-        mobileSearchOverlay.classList.remove('active');
-        mobileSearchBtn.setAttribute('aria-expanded', 'false');
       } else {
         closeMobileMenu();
-        mobileSearchOverlay.classList.add('active');
-        mobileSearchBtn.setAttribute('aria-expanded', 'true');
-        mobileSearchInput.focus();
       }
     }
 
-    mobileSearchBtn?.addEventListener('click', toggleMobileSearch);
 
     // ===== MOBILE MENU FUNCTIONALITY =====
     function toggleMobileMenu() {
@@ -2846,9 +2792,6 @@ body.has-referral-banner {
     }
 
     function openMobileMenu() {
-      if (mobileSearchOverlay.classList.contains('active')) {
-        mobileSearchOverlay.classList.remove('active');
-        mobileSearchBtn.setAttribute('aria-expanded', 'false');
       }
       
       mobileMenuOverlay.classList.add('active');
@@ -2877,11 +2820,6 @@ body.has-referral-banner {
     });
 
     document.addEventListener('click', (e) => {
-      if (!mobileSearchOverlay?.contains(e.target) &&
-          !mobileSearchBtn?.contains(e.target) &&
-          mobileSearchOverlay?.classList.contains('active')) {
-        mobileSearchOverlay.classList.remove('active');
-        mobileSearchBtn.setAttribute('aria-expanded', 'false');
       }
     });
 
@@ -2890,9 +2828,6 @@ body.has-referral-banner {
         if (mobileMenuOverlay.classList.contains('active')) {
           closeMobileMenu();
         }
-        if (mobileSearchOverlay.classList.contains('active')) {
-          mobileSearchOverlay.classList.remove('active');
-          mobileSearchBtn.setAttribute('aria-expanded', 'false');
         }
       }
     });
@@ -2902,9 +2837,6 @@ body.has-referral-banner {
 
    function handleResize() {
   if (window.innerWidth > 768) {
-    if (mobileSearchOverlay?.classList.contains('active')) {
-      mobileSearchOverlay.classList.remove('active');
-      mobileSearchBtn?.setAttribute('aria-expanded', 'false');
     }
     if (mobileMenuOverlay?.classList.contains('active')) {
       closeMobileMenu();
@@ -3507,18 +3439,15 @@ function processNetlifyData(characters, category, gridId, limit) {
     }
 
     // Desktop search
-    document.querySelector('.nav-search')?.addEventListener('submit', (e) => {
       e.preventDefault();
       const searchInput = e.target.querySelector('.nav-search-input');
       handleSearch(searchInput.value);
     });
 
     // Mobile search
-    document.querySelector('.mobile-search-form')?.addEventListener('submit', (e) => {
       e.preventDefault();
       const searchInput = e.target.querySelector('.mobile-search-input');
       handleSearch(searchInput.value);
-      toggleMobileSearch();
     });
 
     // ===== UNIVERSAL AUTHENTICATION CHECK =====
