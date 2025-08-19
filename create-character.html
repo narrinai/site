@@ -2848,9 +2848,17 @@
        const voiceType = document.getElementById('voicePreset').value;
        return voiceLibrary[voiceType] || null;
      } else { // auto
+       const nameEl = document.getElementById('characterName');
+       const categoryEl = document.querySelector('input[name="characterCategory"]');
+       
+       if (!nameEl || !categoryEl) {
+         console.log('⚠️ Required elements for auto voice not found');
+         return null;
+       }
+       
        const formData = {
-         name: document.getElementById('characterName').value,
-         category: document.getElementById('characterCategory').value,
+         name: nameEl.value,
+         category: categoryEl.value,
          personalityState: personalityState
        };
        return getAutoVoice(formData);
