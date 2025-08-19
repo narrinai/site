@@ -1187,6 +1187,65 @@
       color: var(--color-white);
     }
 
+    .welcome-cta.secondary {
+      background: transparent;
+      color: var(--color-primary);
+      border: 2px solid var(--color-primary);
+      margin-left: var(--spacing-md);
+    }
+
+    .welcome-cta.secondary:hover {
+      background: var(--color-primary);
+      color: var(--color-white);
+    }
+
+    .welcome-actions {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: var(--spacing-md);
+      flex-wrap: wrap;
+    }
+
+    /* Trial Status Styling */
+    .trial-status {
+      background: linear-gradient(135deg, #e8f8f5 0%, #d1f2eb 100%);
+      border: 2px solid #52c41a;
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-lg);
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .trial-badge-large {
+      font-size: var(--font-size-lg);
+      font-weight: 700;
+      color: #389e0d;
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .trial-description {
+      font-size: var(--font-size-sm);
+      color: #389e0d;
+      margin-bottom: var(--spacing-md);
+      line-height: 1.5;
+    }
+
+    .trial-timer {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: var(--spacing-xs);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: #389e0d;
+    }
+
+    .timer-date {
+      background: rgba(56, 158, 13, 0.1);
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border-radius: var(--radius-sm);
+    }
+
     @media (max-width: 768px) {
       .welcome-story {
         padding: var(--spacing-xl);
@@ -3065,7 +3124,23 @@
       <!-- Welcome Message Section -->
       <div class="welcome-story" id="welcome-story">
         <h2>Welcome to Narrin.ai</h2>
-        <a href="/create-character" class="welcome-cta">Create Companion</a>
+        
+        <!-- Trial Status for new users -->
+        <div class="trial-status" id="trialStatus" style="display: none;">
+          <div class="trial-info">
+            <div class="trial-badge-large">🎉 7-Day Free Trial Activated</div>
+            <p class="trial-description">You now have full access to the Engage plan for <strong id="trialDaysRemaining">7 days</strong>. Enjoy unlimited messaging and premium features!</p>
+            <div class="trial-timer">
+              <span class="timer-label">Trial ends:</span>
+              <span class="timer-date" id="trialEndDate">-</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="welcome-actions">
+          <a href="/create-character" class="welcome-cta">Create Companion</a>
+          <a href="index.html" class="welcome-cta secondary">Start Chatting</a>
+        </div>
       </div>
 
       <!-- Pricing Plans Section -->
@@ -5860,14 +5935,45 @@ async function loadProfile() {
       currentURL: window.location.href
     });
     
-    // Hide welcome story for paid users (Engage or Immerse plans)
+    // Show welcome story and trial status for Free plan users
     const welcomeStory = document.getElementById('welcome-story');
+    const trialStatus = document.getElementById('trialStatus');
+    
     if (welcomeStory) {
       const planLower = userPlan.toLowerCase();
+      const subscriptionStatus = localStorage.getItem('subscription_status');
+      const trialEndDate = localStorage.getItem('trial_end_date');
+      
       if (planLower === 'engage' || planLower === 'immerse') {
         welcomeStory.style.display = 'none';
       } else {
         welcomeStory.style.display = 'block';
+        
+        // Show trial status if user is on trial
+        if (subscriptionStatus === 'trial' && trialEndDate && trialStatus) {
+          console.log('📅 Showing trial status in welcome section');
+          
+          // Calculate days remaining
+          const endDate = new Date(trialEndDate);
+          const now = new Date();
+          const daysRemaining = Math.max(0, Math.ceil((endDate - now) / (1000 * 60 * 60 * 24)));
+          
+          // Update trial information
+          const trialDaysEl = document.getElementById('trialDaysRemaining');
+          const trialEndEl = document.getElementById('trialEndDate');
+          
+          if (trialDaysEl) trialDaysEl.textContent = daysRemaining;
+          if (trialEndEl) {
+            const formattedDate = endDate.toLocaleDateString('en-US', {
+              month: 'long',
+              day: 'numeric',
+              year: 'numeric'
+            });
+            trialEndEl.textContent = formattedDate;
+          }
+          
+          trialStatus.style.display = 'block';
+        }
       }
     }
     
