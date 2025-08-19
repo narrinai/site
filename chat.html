@@ -11934,7 +11934,6 @@ function openCustomizationModal() {
   
   // Update character counters
   updateCharacterCounter('customName', 'nameCounter');
-  updateCharacterCounter('customTitle', 'titleCounter');
   
   // Update UI to reflect current state
   updateCommunicationStyleUI();
@@ -12625,17 +12624,7 @@ function deleteCustomization() {
 
 // Communication Style Functions
 function updateCommunicationStyleUI() {
-  // Update speaking pattern buttons
-  document.querySelectorAll('#speakingPattern .personality-button').forEach(button => {
-    const pattern = button.getAttribute('data-pattern');
-    if (personalityState.speaking.includes(pattern)) {
-      button.classList.add('selected');
-    } else {
-      button.classList.remove('selected');
-    }
-  });
-  
-  // Update personality trait buttons
+  // Update personality trait buttons (only section that still exists)
   document.querySelectorAll('#personalityTraits .personality-button').forEach(button => {
     const trait = button.getAttribute('data-trait');
     if (personalityState.traits.includes(trait)) {
@@ -12645,46 +12634,23 @@ function updateCommunicationStyleUI() {
     }
   });
   
-  // Update bonding approach buttons
-  document.querySelectorAll('#bondingApproach .personality-button').forEach(button => {
-    const bonding = button.getAttribute('data-bonding');
-    if (personalityState.bonding.includes(bonding)) {
-      button.classList.add('selected');
-    } else {
-      button.classList.remove('selected');
-    }
-  });
-  
-  // Update personality quirks buttons
-  document.querySelectorAll('#personalityQuirks .personality-button').forEach(button => {
-    const quirk = button.getAttribute('data-quirk');
-    if (personalityState.quirks.includes(quirk)) {
-      button.classList.add('selected');
-    } else {
-      button.classList.remove('selected');
-    }
-  });
-  
-  // Update all sliders
+  // Update personality spectrum sliders (only sliders that still exist)
   if (personalityState.sliders) {
-    // Response style sliders
-    document.getElementById('briefDetailed').value = personalityState.sliders.length || 50;
-    document.getElementById('directStorytelling').value = personalityState.sliders.style || 50;
-    document.getElementById('factsPersonal').value = personalityState.sliders.content || 50;
+    const introvertSlider = document.getElementById('introvertExtravert');
+    const logicalSlider = document.getElementById('logicalEmotional');
+    const seriousSlider = document.getElementById('seriousPlayful');
+    const formalSlider = document.getElementById('formalCasual');
+    const patientSlider = document.getElementById('patientImpulsive');
     
-    // Personality spectrum sliders
-    document.getElementById('introvertExtravert').value = personalityState.sliders.social || 50;
-    document.getElementById('logicalEmotional').value = personalityState.sliders.thinking || 50;
-    document.getElementById('seriousPlayful').value = personalityState.sliders.mood || 50;
-    document.getElementById('formalCasual').value = personalityState.sliders.formality || 50;
-    document.getElementById('patientImpulsive').value = personalityState.sliders.tempo || 50;
+    if (introvertSlider) introvertSlider.value = personalityState.sliders.social || 50;
+    if (logicalSlider) logicalSlider.value = personalityState.sliders.thinking || 50;
+    if (seriousSlider) seriousSlider.value = personalityState.sliders.mood || 50;
+    if (formalSlider) formalSlider.value = personalityState.sliders.formality || 50;
+    if (patientSlider) patientSlider.value = personalityState.sliders.tempo || 50;
   }
   
-  // Update all counters
-  updateSpeakingCounter();
+  // Update only existing counters
   updateTraitsCounter();
-  updateBondingCounter();
-  generatePrompt();
 }
 
 function toggleArraySelection(array, value, maxCount, button, counterId, type) {

@@ -5582,8 +5582,18 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       }
     }
 
+    let logoutInProgress = false;
+    
     function handleLogout() {
       console.log('🔍 handleLogout called');
+      
+      // Prevent double execution
+      if (logoutInProgress) {
+        console.log('⚠️ Logout already in progress, ignoring');
+        return;
+      }
+      
+      logoutInProgress = true;
       
       customConfirm('Are you sure you want to log out?', 'Confirm Logout', () => {
         console.log('🚪 Logout initiated...');
@@ -5609,6 +5619,9 @@ function handleLoginSuccess(user, eventType = 'unknown') {
           console.log('⚠️ Netlify Identity not available, clearing local storage');
           clearAllAuthData();
         }
+      }, () => {
+        // Reset flag on cancel
+        logoutInProgress = false;
       });
     }
     
