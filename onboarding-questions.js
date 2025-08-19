@@ -1237,6 +1237,40 @@ Which of these would you like to explore first? Or is there something else you'd
           { value: 'consistent_care', label: 'With consistent care and attention' }
         ],
         required: true
+      },
+      {
+        id: 'relationship_pace',
+        question: 'What pace feels right for building romantic connection?',
+        type: 'multiple_choice',
+        options: [
+          { value: 'slow_steady', label: 'Slow and steady emotional building' },
+          { value: 'natural_spontaneous', label: 'Natural and spontaneous development' },
+          { value: 'intense_passionate', label: 'Intense and passionate connection' },
+          { value: 'gentle_nurturing', label: 'Gentle and nurturing growth' },
+          { value: 'balanced_respectful', label: 'Balanced with respect for boundaries' }
+        ],
+        required: true
+      },
+      {
+        id: 'dating_experience',
+        question: 'How would you describe your dating experience?',
+        type: 'multiple_choice',
+        options: [
+          { value: 'new_to_dating', label: 'New to dating and relationships' },
+          { value: 'some_experience', label: 'Some experience but want to improve' },
+          { value: 'experienced_seeking', label: 'Experienced but seeking deeper connection' },
+          { value: 'healing_from_past', label: 'Healing from past relationship challenges' },
+          { value: 'confident_exploring', label: 'Confident and exploring new dynamics' }
+        ],
+        required: true
+      },
+      {
+        id: 'romantic_goals',
+        question: 'What are your hopes and dreams for romantic relationships? (Open question)',
+        type: 'text',
+        placeholder: 'Share what you\'re looking for in love, your relationship aspirations, or what would make you feel truly cherished in a romantic partnership...',
+        required: false,
+        maxLength: 500
       }
     ],
     contextMappings: {
@@ -1246,6 +1280,27 @@ Which of these would you like to explore first? Or is there something else you'd
         'deep_intimacy': 'deep emotional romance',
         'romantic_adventures': 'adventurous romance',
         'supportive_partnership': 'supportive romantic partnership'
+      },
+      communication_style: {
+        'thoughtful_words': 'thoughtful verbal affection',
+        'playful_teasing': 'playful romantic communication',
+        'emotional_sharing': 'deep emotional expression',
+        'special_moments': 'romantic gesture planning',
+        'consistent_care': 'consistent caring attention'
+      },
+      relationship_pace: {
+        'slow_steady': 'gradual emotional building',
+        'natural_spontaneous': 'natural relationship development',
+        'intense_passionate': 'passionate romantic intensity',
+        'gentle_nurturing': 'gentle nurturing approach',
+        'balanced_respectful': 'balanced and respectful pacing'
+      },
+      dating_experience: {
+        'new_to_dating': 'new to dating',
+        'some_experience': 'developing dating skills',
+        'experienced_seeking': 'seeking deeper romantic connection',
+        'healing_from_past': 'healing from past relationships',
+        'confident_exploring': 'confidently exploring romance'
       }
     }
   },
