@@ -2834,7 +2834,13 @@
    }
 
    function getSelectedVoiceId() {
-     const voiceSelection = document.querySelector('input[name="voiceSelection"]:checked').value;
+     const voiceSelectionEl = document.querySelector('input[name="voiceSelection"]:checked');
+     if (!voiceSelectionEl) {
+       console.log('⚠️ No voice selection found, defaulting to none');
+       return null;
+     }
+     
+     const voiceSelection = voiceSelectionEl.value;
      
      if (voiceSelection === 'none') {
        return null;
