@@ -15787,14 +15787,10 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('📚 typeof window.needsOnboarding:', typeof window.needsOnboarding);
       console.log('📚 onboardingQuestions object:', typeof window.onboardingQuestions, window.onboardingQuestions);
       
-      // Disable onboarding for featured characters from homepage
-      const featuredCharacters = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
-      const isFeaturedCharacter = featuredCharacters.includes(characterId);
-      
       // Check if onboarding is needed using the function from onboarding-questions.js
-      // Use the consistent characterId (URL slug) for checking
-      // Force onboarding if shouldRestart is true, but skip for featured characters
-      if (!isFeaturedCharacter && (shouldRestart || (typeof needsOnboarding === 'function' && needsOnboarding(category, userId, characterId)))) {
+      // Use the consistent characterId (URL slug) for checking  
+      // Force onboarding if shouldRestart is true
+      if (shouldRestart || (typeof needsOnboarding === 'function' && needsOnboarding(category, userId, characterId))) {
         console.log('✅ Onboarding needed for category:', category, shouldRestart ? '(restart requested)' : '');
         
         // Get questions for this category
