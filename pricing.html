@@ -348,7 +348,6 @@
     }
 
     .mobile-chat-btn,
-    .mobile-search-btn,
     .mobile-menu-btn {
       background: transparent;
       border: none;
@@ -361,14 +360,12 @@
       transition: all var(--transition-base);
     }
 
-    .mobile-chat-btn svg,
-    .mobile-search-btn svg {
+    .mobile-chat-btn svg {
       width: 24px;
       height: 24px;
     }
 
     .mobile-chat-btn:hover,
-    .mobile-search-btn:hover,
     .mobile-menu-btn:hover {
       color: var(--color-teal);
     }
@@ -401,47 +398,7 @@
       transform: rotate(-45deg) translate(7px, -6px);
     }
 
-    /* Mobile Search Overlay */
-    .mobile-search-overlay {
-      display: none;
-      position: fixed;
-      top: 72px;
-      left: 0;
-      right: 0;
-      background: rgba(255, 255, 255, 0.98);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-      padding: var(--spacing-lg);
-      z-index: var(--z-overlay);
-    }
-
-    .mobile-search-overlay.active {
-      display: block;
-    }
-
-    .mobile-search-form {
-      display: flex;
-      gap: var(--spacing-md);
-      max-width: 600px;
-      margin: 0 auto;
-    }
-
-    .mobile-search-input {
-      flex: 1;
-      padding: var(--spacing-md);
-      font-size: var(--font-size-base);
-      font-family: inherit;
-      border: 2px solid var(--color-light-gray);
-      border-radius: var(--radius-md);
-      background: var(--color-white);
-      color: var(--color-navy);
-    }
-
-    .mobile-search-input:focus {
-      border-color: var(--color-teal);
-      box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
-    }
+    /* Mobile Search - REMOVED */
 
     /* Mobile Menu Overlay */
     .mobile-menu-overlay {
@@ -772,7 +729,9 @@
     .card-action {
       margin-top: auto;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--spacing-sm);
     }
 
     .plan-button {
@@ -948,17 +907,6 @@
             </svg>
           </a>
 
-          <button 
-            class="mobile-search-btn" 
-            id="mobileSearchBtn"
-            aria-label="Open search"
-            aria-expanded="false"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.35-4.35"></path>
-            </svg>
-          </button>
 
           <!-- Mobile Hamburger Menu -->
           <button
@@ -1196,9 +1144,6 @@
     // Mobile Menu Toggle
     const mobileMenuBtn = document.getElementById('mobileMenuBtn');
     const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
-    const mobileSearchBtn = document.getElementById('mobileSearchBtn');
-    const mobileSearchOverlay = document.getElementById('mobileSearchOverlay');
-    const mobileSearchInput = document.getElementById('mobileSearchInput');
 
     // Toggle mobile menu
     mobileMenuBtn?.addEventListener('click', () => {
@@ -1217,32 +1162,9 @@
       }
     });
 
-    // Toggle mobile search
-    mobileSearchBtn?.addEventListener('click', () => {
-      const isExpanded = mobileSearchBtn.getAttribute('aria-expanded') === 'true';
-      mobileSearchBtn.setAttribute('aria-expanded', !isExpanded);
-      mobileSearchOverlay.classList.toggle('active');
-      
-      if (!isExpanded) {
-        setTimeout(() => {
-          mobileSearchInput?.focus();
-        }, 100);
-      }
-    });
+    // Mobile search functionality removed
 
-    // Handle search forms
-    document.querySelectorAll('.nav-search, .mobile-search-form').forEach(form => {
-      form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const input = form.querySelector('input[type="search"]');
-        const query = input.value.trim();
-        
-        if (query) {
-          // Redirect to search results page
-          window.location.href = `search-results.html?q=${encodeURIComponent(query)}`;
-        }
-      });
-    });
+    // Search forms removed
 
     // Check if user is logged in and update navigation
     document.addEventListener('DOMContentLoaded', () => {
