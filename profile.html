@@ -5595,8 +5595,8 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       
       logoutInProgress = true;
       
-      // Use native confirm for better mobile compatibility
-      if (confirm('Are you sure you want to log out?')) {
+      // Use custom styled confirm modal
+      showLogoutConfirm(() => {
         console.log('🚪 Logout confirmed...');
         
         // Try Netlify Identity logout first
@@ -5619,12 +5619,143 @@ function handleLoginSuccess(user, eventType = 'unknown') {
           console.log('⚠️ Netlify Identity not available, clearing local storage');
           clearAllAuthData();
         }
-      } else {
+      }, () => {
         logoutInProgress = false;
         console.log('❌ Logout cancelled');
-      }
+      });
     }
     
+    function showLogoutConfirm(onConfirm, onCancel) {
+      // Create modal overlay
+      const overlay = document.createElement('div');
+      overlay.className = 'logout-modal-overlay';
+      overlay.innerHTML = `
+        <div class="logout-modal">
+          <div class="logout-modal-header">
+            <h3>Confirm Logout</h3>
+          </div>
+          <div class="logout-modal-body">
+            <p>Are you sure you want to log out?</p>
+          </div>
+          <div class="logout-modal-actions">
+            <button class="logout-btn cancel">Cancel</button>
+            <button class="logout-btn confirm">Log Out</button>
+          </div>
+        </div>
+      `;
+      
+      // Add styling
+      const style = document.createElement('style');
+      style.textContent = `
+        .logout-modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(30, 41, 59, 0.95);
+          backdrop-filter: blur(20px);
+          z-index: 999999999;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          transition: all 0.3s ease;
+        }
+        .logout-modal-overlay.active {
+          opacity: 1;
+        }
+        .logout-modal {
+          background: var(--color-white);
+          border-radius: var(--radius-xl);
+          padding: var(--spacing-2xl);
+          box-shadow: var(--shadow-xl);
+          max-width: 400px;
+          width: 90%;
+          transform: scale(0.9);
+          transition: all 0.3s ease;
+        }
+        .logout-modal-overlay.active .logout-modal {
+          transform: scale(1);
+        }
+        .logout-modal-header h3 {
+          margin: 0 0 var(--spacing-md) 0;
+          color: var(--color-navy);
+          font-family: var(--font-secondary);
+          font-weight: 700;
+          text-align: center;
+        }
+        .logout-modal-body p {
+          margin: 0 0 var(--spacing-lg) 0;
+          color: var(--color-gray-dark);
+          text-align: center;
+          line-height: 1.6;
+        }
+        .logout-modal-actions {
+          display: flex;
+          gap: var(--spacing-md);
+          justify-content: center;
+        }
+        .logout-btn {
+          padding: var(--spacing-md) var(--spacing-xl);
+          border-radius: var(--radius-md);
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          border: none;
+          font-size: var(--font-size-sm);
+          min-width: 100px;
+        }
+        .logout-btn.cancel {
+          background: var(--color-light-gray);
+          color: var(--color-gray-dark);
+        }
+        .logout-btn.cancel:hover {
+          background: var(--color-gray-light);
+        }
+        .logout-btn.confirm {
+          background: var(--gradient-primary);
+          color: var(--color-white);
+        }
+        .logout-btn.confirm:hover {
+          transform: translateY(-2px);
+          box-shadow: var(--shadow-md);
+        }
+      `;
+      
+      document.head.appendChild(style);
+      document.body.appendChild(overlay);
+      
+      // Show modal
+      setTimeout(() => overlay.classList.add('active'), 10);
+      
+      // Event handlers
+      overlay.querySelector('.logout-btn.cancel').addEventListener('click', () => {
+        overlay.classList.remove('active');
+        setTimeout(() => {
+          document.body.removeChild(overlay);
+          document.head.removeChild(style);
+        }, 300);
+        if (onCancel) onCancel();
+      });
+      
+      overlay.querySelector('.logout-btn.confirm').addEventListener('click', () => {
+        overlay.classList.remove('active');
+        setTimeout(() => {
+          document.body.removeChild(overlay);
+          document.head.removeChild(style);
+        }, 300);
+        if (onConfirm) onConfirm();
+      });
+      
+      // Close on overlay click
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+          overlay.querySelector('.logout-btn.cancel').click();
+        }
+      });
+    }
+
     function clearAllAuthData() {
       console.log('🧹 Clearing all auth data...');
       
