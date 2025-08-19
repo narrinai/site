@@ -11344,11 +11344,22 @@ async function openMemoryHub() {
   
   modal.style.display = 'flex';
   
-  // Check if user is authenticated
+  // Check if user is authenticated (including anonymous users)
   const userToken = localStorage.getItem('user_token');
   const uid = localStorage.getItem('user_uid');
+  const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+  const userEmail = localStorage.getItem('user_email');
+  const isAnonymousEmail = userEmail === 'anonymous@narrin.ai';
   
-  if (!userToken || !uid) {
+  console.log('🔍 Memory Hub auth check:', { 
+    userToken: !!userToken, 
+    uid: !!uid, 
+    isAnonymousUser, 
+    userEmail,
+    isAnonymousEmail 
+  });
+  
+  if (!userToken || !uid || isAnonymousUser || isAnonymousEmail) {
     // Show upgrade prompt for unauthenticated users
     content.innerHTML = `
       <div class="no-memories">
