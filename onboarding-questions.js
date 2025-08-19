@@ -1161,6 +1161,173 @@ Which of these would you like to explore first? Or is there something else you'd
         contributing: "making a difference"
       }
     }
+  },
+  Friendship: {
+    enabled: true,
+    questions: [
+      {
+        id: 'friendship_style',
+        question: 'What kind of friend are you looking for?',
+        type: 'multiple_choice',
+        options: [
+          { value: 'everyday_chat', label: 'Someone to chat about everyday life' },
+          { value: 'deep_confidant', label: 'A close confidant for deep conversations' },
+          { value: 'fun_companion', label: 'A fun companion for adventures and humor' },
+          { value: 'supportive_friend', label: 'Someone supportive during tough times' },
+          { value: 'shared_interests', label: 'A friend to explore new interests with' }
+        ],
+        required: true
+      },
+      {
+        id: 'communication_preference',
+        question: 'How do you prefer to communicate with friends?',
+        type: 'multiple_choice',
+        options: [
+          { value: 'daily_checkins', label: 'Daily casual check-ins' },
+          { value: 'deep_conversations', label: 'Deep meaningful conversations' },
+          { value: 'humor_sharing', label: 'Sharing funny stories and memes' },
+          { value: 'problem_solving', label: 'Talking through problems together' },
+          { value: 'mutual_encouragement', label: 'Encouraging each other\'s goals' }
+        ],
+        required: true
+      }
+    ],
+    contextMappings: {
+      friendship_style: {
+        'everyday_chat': 'casual everyday companionship',
+        'deep_confidant': 'deep meaningful friendship',
+        'fun_companion': 'fun and adventurous friendship',
+        'supportive_friend': 'supportive friendship during challenges',
+        'shared_interests': 'friendship focused on shared exploration'
+      },
+      communication_preference: {
+        'daily_checkins': 'daily casual conversations',
+        'deep_conversations': 'deep meaningful discussions',
+        'humor_sharing': 'humor and light-hearted sharing',
+        'problem_solving': 'problem-solving conversations',
+        'mutual_encouragement': 'mutual encouragement and support'
+      }
+    }
+  },
+  Romance: {
+    enabled: true,
+    questions: [
+      {
+        id: 'connection_type',
+        question: 'What kind of romantic connection are you seeking?',
+        type: 'multiple_choice',
+        options: [
+          { value: 'sweet_tender', label: 'Sweet and tender moments' },
+          { value: 'playful_flirty', label: 'Playful and flirty interactions' },
+          { value: 'deep_intimacy', label: 'Deep emotional intimacy' },
+          { value: 'romantic_adventures', label: 'Romantic adventures and experiences' },
+          { value: 'supportive_partnership', label: 'Supportive partnership' }
+        ],
+        required: true
+      },
+      {
+        id: 'communication_style',
+        question: 'How do you like to express affection?',
+        type: 'multiple_choice',
+        options: [
+          { value: 'thoughtful_words', label: 'Through thoughtful words and compliments' },
+          { value: 'playful_teasing', label: 'With playful teasing and humor' },
+          { value: 'emotional_sharing', label: 'Through deep emotional sharing' },
+          { value: 'special_moments', label: 'By planning special moments together' },
+          { value: 'consistent_care', label: 'With consistent care and attention' }
+        ],
+        required: true
+      }
+    ],
+    contextMappings: {
+      connection_type: {
+        'sweet_tender': 'sweet tender connection',
+        'playful_flirty': 'playful romantic dynamic',
+        'deep_intimacy': 'deep emotional romance',
+        'romantic_adventures': 'adventurous romance',
+        'supportive_partnership': 'supportive romantic partnership'
+      }
+    }
+  },
+  Mindfulness: {
+    enabled: true,
+    questions: [
+      {
+        id: 'mindfulness_goal',
+        question: 'What draws you to mindfulness?',
+        type: 'multiple_choice',
+        options: [
+          { value: 'stress_reduction', label: 'Reducing stress and anxiety' },
+          { value: 'inner_peace', label: 'Finding inner peace and calm' },
+          { value: 'self_awareness', label: 'Developing self-awareness' },
+          { value: 'focus_clarity', label: 'Improving focus and clarity' },
+          { value: 'present_moment', label: 'Connecting with the present moment' }
+        ],
+        required: true
+      },
+      {
+        id: 'current_state',
+        question: 'How would you describe your current mental state?',
+        type: 'multiple_choice',
+        options: [
+          { value: 'stressed_overwhelmed', label: 'Often stressed or overwhelmed' },
+          { value: 'seeking_balance', label: 'Seeking more balance and harmony' },
+          { value: 'curious_understanding', label: 'Curious about deeper self-understanding' },
+          { value: 'wanting_presence', label: 'Wanting to be more present in life' },
+          { value: 'spiritual_growth', label: 'Looking for spiritual growth' }
+        ],
+        required: true
+      }
+    ],
+    contextMappings: {
+      mindfulness_goal: {
+        'stress_reduction': 'stress reduction through mindfulness',
+        'inner_peace': 'seeking inner peace',
+        'self_awareness': 'self-awareness development',
+        'focus_clarity': 'focus and mental clarity',
+        'present_moment': 'present moment connection'
+      }
+    }
+  },
+  Mentorship: {
+    enabled: true,
+    questions: [
+      {
+        id: 'growth_area',
+        question: 'What area do you want to grow in?',
+        type: 'multiple_choice',
+        options: [
+          { value: 'personal_development', label: 'Personal development and self-awareness' },
+          { value: 'professional_skills', label: 'Professional skills and career' },
+          { value: 'leadership', label: 'Leadership and decision-making' },
+          { value: 'creativity', label: 'Creativity and self-expression' },
+          { value: 'life_skills', label: 'Life skills and wisdom' }
+        ],
+        required: true
+      },
+      {
+        id: 'learning_style',
+        question: 'How do you learn best?',
+        type: 'multiple_choice',
+        options: [
+          { value: 'structured_guidance', label: 'Through guidance and step-by-step advice' },
+          { value: 'collaborative_exploration', label: 'By exploring ideas together' },
+          { value: 'challenging_questions', label: 'Through challenging questions that make me think' },
+          { value: 'practical_examples', label: 'With practical examples and stories' },
+          { value: 'encouragement_motivation', label: 'Through encouragement and motivation' }
+        ],
+        required: true
+      }
+    ],
+    contextMappings: {
+      growth_area: {
+        'personal_development': 'personal development',
+        'professional_skills': 'professional growth',
+        'leadership': 'leadership development',
+        'creativity': 'creative expression',
+        'life_skills': 'life wisdom and skills'
+      }
+    }
   }
 };
 
