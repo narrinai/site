@@ -20,6 +20,9 @@
   <meta property="twitter:description" content="Choose your perfect AI companion plan. Free trial available. Unlimited messaging and voice features.">
   <meta property="twitter:image" content="https://narrin.ai/og-image.jpg">
 
+  <!-- Netlify Identity Widget -->
+  <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+
   <!-- Microsoft Clarity Analytics -->
   <script type="text/javascript">
     (function(c,l,a,r,i,t,y){
@@ -1166,6 +1169,17 @@
 
     // Search forms removed
 
+    // Initialize Netlify Identity
+    if (window.netlifyIdentity) {
+      window.netlifyIdentity.on("init", user => {
+        if (!user) {
+          window.netlifyIdentity.on("login", user => {
+            document.location.href = "/profile.html";
+          });
+        }
+      });
+    }
+
     // Check if user is logged in and update navigation
     document.addEventListener('DOMContentLoaded', () => {
       const userEmail = localStorage.getItem('user_email');
@@ -1181,6 +1195,24 @@
         if (mobileLoginBtn) {
           mobileLoginBtn.innerHTML = '<span class="mobile-menu-link-icon">👤</span>My Profile';
           mobileLoginBtn.href = 'profile.html';
+        }
+      } else {
+        // User not logged in - make buttons open Netlify Identity modal
+        if (loginBtn) {
+          loginBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (window.netlifyIdentity) {
+              window.netlifyIdentity.open();
+            }
+          });
+        }
+        if (mobileLoginBtn) {
+          mobileLoginBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (window.netlifyIdentity) {
+              window.netlifyIdentity.open();
+            }
+          });
         }
       }
     });
