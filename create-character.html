@@ -4683,9 +4683,10 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
   const originalText = submitBtn.textContent;
   
   try {
-    // Show loading state
-    submitBtn.textContent = 'Creating Companion...';
+    // Show loading state with spinner
+    submitBtn.innerHTML = '⏳ Creating Companion...';
     submitBtn.disabled = true;
+    submitBtn.style.opacity = '0.8';
     
     // Disable entire form to prevent any changes during submission
     const formElements = e.target.querySelectorAll('input, textarea, select, button');
@@ -4716,8 +4717,9 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
         // Success response but no character data - probably hit the limit
         showError('Character limit reached. Please upgrade to Pro for unlimited characters or delete an existing character.', 'Upgrade Required');
         isSubmitting = false;
-        submitBtn.textContent = originalText;
+        submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
+        submitBtn.style.opacity = '';
         return;
       }
       
@@ -4762,8 +4764,9 @@ if (!characterSlug && formData.name) {
     
     // Reset form state on error so user can try again
     isSubmitting = false;
-    submitBtn.textContent = originalText;
+    submitBtn.innerHTML = originalText;
     submitBtn.disabled = false;
+    submitBtn.style.opacity = '';
     submitBtn.classList.remove('loading');
     
     // Re-enable form elements
