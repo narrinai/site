@@ -2053,7 +2053,7 @@ line-clamp: 3;
     <div id="notLoggedIn" class="not-logged-in" style="display: none;">
       <h3>🔒 Login Required</h3>
       <p>You need to be logged in to view your chat history.</p>
-      <button class="btn btn-primary" onclick="openNetlifyLogin()">👤 Log in</button>
+      <button class="btn btn-primary" id="notLoggedInBtn">👤 Login/Register</button>
     </div>
 
     <!-- Main Content -->
@@ -2595,6 +2595,17 @@ line-clamp: 3;
     document.addEventListener('DOMContentLoaded', () => {
       // Update immediately on page load
       updateLoginButton();
+      
+      // Add event listener for the not-logged-in login button
+      const notLoggedInBtn = document.getElementById('notLoggedInBtn');
+      if (notLoggedInBtn) {
+        notLoggedInBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          if (window.netlifyIdentity) {
+            window.netlifyIdentity.open();
+          }
+        });
+      }
       
       // REMOVED: Companion limit check - was blocking navigation
       // const createCompanionLinks = document.querySelectorAll('a[href="/create-character"]');
