@@ -11645,36 +11645,11 @@ function restartOnboarding() {
     checkAndShowOnboarding();
   } else {
     console.error('❌ checkAndShowOnboarding function not available');
+    // Fallback: reload page to trigger onboarding
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
   }
-  
-  // Clear any existing onboarding context
-  if (window.additionalContext) {
-    delete window.additionalContext.onboarding;
-    delete window.additionalContext.welcomeMessage;
-    delete window.additionalContext.suggestions;
-  }
-  
-  // Reset conversation memory
-  if (typeof conversationMemory !== 'undefined') {
-    conversationMemory = [];
-  }
-  if (window.conversationMemory) {
-    window.conversationMemory = [];
-  }
-  
-  // Clear chat history
-  const chatlog = document.getElementById('chatlog');
-  if (chatlog) {
-    chatlog.innerHTML = '';
-  }
-  
-  // Set flag to trigger onboarding on reload
-  sessionStorage.setItem('restart_onboarding', 'true');
-  
-  // Reload the page to trigger fresh onboarding
-  setTimeout(() => {
-    window.location.reload();
-  }, 100);
 }
 
 function startOnboardingFromHub() {
@@ -12165,7 +12140,7 @@ function initializeCustomizationForm() {
     
     // Prepare data for Airtable
     const customName = document.getElementById('customName').value.trim() || currentCharacter.name || currentCharacter.Name;
-    const customTitle = document.getElementById('customTitle').value.trim() || currentCharacter.title || currentCharacter.Title || currentCharacter.Character_Title;
+    const customTitle = currentCharacter.title || currentCharacter.Title || currentCharacter.Character_Title || 'AI Companion';
     const customAvatarUrl = document.getElementById('customAvatarUrl').value.trim();
     
     // Check if we're editing an existing custom character
@@ -12253,7 +12228,7 @@ function initializeCustomizationForm() {
       slug: isUserCreatedUpdate ? characterSlug : customSlug, // Keep original slug for updates
       character_id: isUserCreatedUpdate ? (currentCharacter.character_id || characterSlug) : customSlug,
       title: customTitle,
-      character_type: document.getElementById('customCharacterType').value || 'other',
+      character_type: currentCharacter.character_type || 'friendship',
       description: currentCharacter.description || currentCharacter.Description || customTitle,
       prompt: fullPrompt || `You are ${customName}, a unique AI character.`, // Ensure never null
       category: isUserCreatedUpdate ? (currentCharacter.category || currentCharacter.Category || 'custom') : 'custom', // Keep original category for updates
@@ -12413,7 +12388,7 @@ function initializeCustomizationForm() {
           name: customName,
           title: customTitle,
           Character_Title: customTitle, // Add this field for compatibility
-          character_type: document.getElementById('customCharacterType').value || 'other',
+          character_type: currentCharacter.character_type || 'friendship',
           slug: customSlug,
           prompt: fullPrompt,
           generated_prompt: generatedPrompt,
