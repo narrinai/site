@@ -5889,9 +5889,16 @@ async function loadProfile() {
       console.log('📅 Subscription status saved:', data.subscription_status);
     }
     
+    console.log('🔍 Looking for grace_period_end in data:', { 
+      grace_period_end: data?.grace_period_end,
+      all_fields: Object.keys(data || {})
+    });
+    
     if (data?.grace_period_end) {
       localStorage.setItem('trial_end_date', data.grace_period_end);
       console.log('📅 Trial end date saved:', data.grace_period_end);
+    } else {
+      console.log('⚠️ No grace_period_end found in Airtable data');
     }
     
     // Save stripe_customer_id to localStorage if available
