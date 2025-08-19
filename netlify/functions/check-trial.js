@@ -60,7 +60,20 @@ exports.handler = async (event, context) => {
       };
     }
 
-    const userRecord = searchData.records[0];
+    // If multiple records, try to find the one with trial data
+    let userRecord = searchData.records[0];
+    
+    if (searchData.records.length > 1) {
+      console.log('⚠️ Multiple records found, looking for one with trial data');
+      const recordWithTrial = searchData.records.find(record => 
+        record.fields.subscription_status === 'trial' || record.fields.grace_period_end
+      );
+      if (recordWithTrial) {
+        userRecord = recordWithTrial;
+        console.log('✅ Using record with trial data');
+      }
+    }
+    
     const fields = userRecord.fields;
     
     const plan = fields.Plan || 'Free';
