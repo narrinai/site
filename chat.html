@@ -1316,15 +1316,12 @@
     
     @media (max-width: 768px) {
       .conversation-topics {
-        margin-top: -10px !important; /* NEGATIVE margin to pull topics up */
-        margin-bottom: 10px;
-        padding: 8px 10px;
+        margin: 10px auto;
+        padding: var(--spacing-md);
         border-radius: var(--radius-md);
-        background: transparent;
-        border: none;
-        box-shadow: none;
-        position: relative;
-        z-index: 1;
+        background: var(--color-white);
+        border: 2px solid var(--color-light-gray);
+        box-shadow: var(--shadow-sm);
       }
       
       /* Ensure no spacing from desktop action buttons */
@@ -8986,22 +8983,14 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     if (memoryBtn) memoryBtn.style.display = 'inline-block';
     console.log('✅ Memory Hub button visible for all users');
     
-    if (userToken) {
-      // Show customize button only for authenticated users
-      if (customizeBtn) customizeBtn.style.display = 'inline-block';
-      
-      // Show desktop customize button for authenticated users
-      const desktopCustomizeBtn = document.querySelector('.desktop-action-buttons .customize-btn');
-      if (desktopCustomizeBtn) desktopCustomizeBtn.style.display = 'block';
-      
-      console.log('✅ Customize button enabled for authenticated user');
-    } else {
-      // Hide customize buttons for non-authenticated users
-      if (customizeBtn) customizeBtn.style.display = 'none';
-      
-      const desktopCustomizeBtn = document.querySelector('.desktop-action-buttons .customize-btn');
-      if (desktopCustomizeBtn) desktopCustomizeBtn.style.display = 'none';
-    }
+    // Always show customize button for all users
+    if (customizeBtn) customizeBtn.style.display = 'inline-block';
+    
+    // Show desktop customize button for all users
+    const desktopCustomizeBtn = document.querySelector('.desktop-action-buttons .customize-btn');
+    if (desktopCustomizeBtn) desktopCustomizeBtn.style.display = 'block';
+    
+    console.log('✅ Customize button enabled for all users');
     
     // Show desktop buttons container if any button is visible
     if (desktopActionButtons) {
