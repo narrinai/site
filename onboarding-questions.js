@@ -1166,46 +1166,94 @@ Which of these would you like to explore first? Or is there something else you'd
     enabled: true,
     questions: [
       {
-        id: 'friendship_style',
-        question: 'What kind of friend are you looking for?',
+        id: 'social_confidence',
+        question: 'How confident do you feel in social situations and making friends?',
         type: 'multiple_choice',
         options: [
-          { value: 'everyday_chat', label: 'Someone to chat about everyday life' },
-          { value: 'deep_confidant', label: 'A close confidant for deep conversations' },
-          { value: 'fun_companion', label: 'A fun companion for adventures and humor' },
-          { value: 'supportive_friend', label: 'Someone supportive during tough times' },
-          { value: 'shared_interests', label: 'A friend to explore new interests with' }
+          { value: 'very_anxious', label: 'Very anxious - social situations feel overwhelming' },
+          { value: 'somewhat_nervous', label: 'Somewhat nervous but want to improve' },
+          { value: 'moderately_confident', label: 'Moderately confident with some areas to work on' },
+          { value: 'quite_confident', label: 'Quite confident but want to deepen connections' },
+          { value: 'very_confident', label: 'Very confident - just exploring friendship dynamics' }
         ],
         required: true
       },
       {
-        id: 'communication_preference',
-        question: 'How do you prefer to communicate with friends?',
+        id: 'friendship_skills',
+        question: 'What friendship skills do you want to practice most?',
         type: 'multiple_choice',
         options: [
-          { value: 'daily_checkins', label: 'Daily casual check-ins' },
-          { value: 'deep_conversations', label: 'Deep meaningful conversations' },
-          { value: 'humor_sharing', label: 'Sharing funny stories and memes' },
-          { value: 'problem_solving', label: 'Talking through problems together' },
-          { value: 'mutual_encouragement', label: 'Encouraging each other\'s goals' }
+          { value: 'starting_conversations', label: 'Starting conversations and small talk' },
+          { value: 'being_vulnerable', label: 'Being more open and vulnerable with friends' },
+          { value: 'showing_support', label: 'Showing support when friends need help' },
+          { value: 'setting_boundaries', label: 'Setting healthy boundaries in friendships' },
+          { value: 'conflict_resolution', label: 'Resolving conflicts and misunderstandings' }
         ],
         required: true
+      },
+      {
+        id: 'social_challenges',
+        question: 'What\'s your biggest challenge in friendships or social connections?',
+        type: 'multiple_choice',
+        options: [
+          { value: 'fear_judgment', label: 'Fear of being judged or not being interesting enough' },
+          { value: 'maintaining_friendships', label: 'Maintaining long-term friendships and staying connected' },
+          { value: 'making_new_friends', label: 'Making new friends as an adult' },
+          { value: 'social_anxiety', label: 'Social anxiety in group settings or new environments' },
+          { value: 'deeper_connections', label: 'Moving beyond surface-level to deeper friendships' }
+        ],
+        required: true
+      },
+      {
+        id: 'friendship_goals',
+        question: 'What do you hope to achieve by practicing social skills?',
+        type: 'multiple_choice',
+        options: [
+          { value: 'build_confidence', label: 'Build confidence for real-world social interactions' },
+          { value: 'improve_existing', label: 'Improve my existing friendships and connections' },
+          { value: 'overcome_anxiety', label: 'Overcome social anxiety and fear of judgment' },
+          { value: 'learn_social_cues', label: 'Better understand social cues and dynamics' },
+          { value: 'be_better_friend', label: 'Become a more supportive and caring friend' }
+        ],
+        required: true
+      },
+      {
+        id: 'social_growth_hopes',
+        question: 'What would help you feel more confident and authentic in your friendships?',
+        type: 'text',
+        placeholder: 'Share what you\'d like to practice or overcome to become more confident in real social situations. This helps me understand how to best support your social growth...',
+        required: false,
+        maxLength: 500
       }
     ],
     contextMappings: {
-      friendship_style: {
-        'everyday_chat': 'casual everyday companionship',
-        'deep_confidant': 'deep meaningful friendship',
-        'fun_companion': 'fun and adventurous friendship',
-        'supportive_friend': 'supportive friendship during challenges',
-        'shared_interests': 'friendship focused on shared exploration'
+      social_confidence: {
+        'very_anxious': 'experiencing high social anxiety',
+        'somewhat_nervous': 'feeling some social nervousness',
+        'moderately_confident': 'moderately confident socially',
+        'quite_confident': 'quite confident with room for growth',
+        'very_confident': 'very confident in social situations'
       },
-      communication_preference: {
-        'daily_checkins': 'daily casual conversations',
-        'deep_conversations': 'deep meaningful discussions',
-        'humor_sharing': 'humor and light-hearted sharing',
-        'problem_solving': 'problem-solving conversations',
-        'mutual_encouragement': 'mutual encouragement and support'
+      friendship_skills: {
+        'starting_conversations': 'practicing conversation skills and small talk',
+        'being_vulnerable': 'developing emotional openness in friendships',
+        'showing_support': 'learning to provide better friend support',
+        'setting_boundaries': 'practicing healthy friendship boundaries',
+        'conflict_resolution': 'improving friendship conflict resolution'
+      },
+      social_challenges: {
+        'fear_judgment': 'working through fear of social judgment',
+        'maintaining_friendships': 'developing friendship maintenance skills',
+        'making_new_friends': 'building adult friendship-making abilities',
+        'social_anxiety': 'overcoming social anxiety in groups',
+        'deeper_connections': 'developing deeper friendship connections'
+      },
+      friendship_goals: {
+        'build_confidence': 'building social confidence for real interactions',
+        'improve_existing': 'enhancing existing friend relationships',
+        'overcome_anxiety': 'overcoming social anxiety and fears',
+        'learn_social_cues': 'developing social awareness and understanding',
+        'be_better_friend': 'becoming a more supportive friend to others'
       }
     }
   },

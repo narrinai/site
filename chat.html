@@ -11442,7 +11442,7 @@ function displayMemoryHubContent(answers) {
   const config = window.onboardingQuestions && window.onboardingQuestions[category];
   
   console.log('📊 Display Memory Hub - Category:', category);
-  console.log('📊 Raw character category:', character?.Category || character?.category);
+  console.log('📊 Raw character category:', currentCharacter?.Category || currentCharacter?.category);
   console.log('📊 Available onboarding categories:', Object.keys(window.onboardingQuestions || {}));
   console.log('📊 Config found:', !!config);
   console.log('📊 Answers to display:', answers);
@@ -15884,15 +15884,8 @@ document.addEventListener('DOMContentLoaded', () => {
             button.classList.add('selected');
           }
           
-          // Parse emoji and text from label
-          const labelParts = option.label.split(' ');
-          const emoji = labelParts[0];
-          const text = labelParts.slice(1).join(' ');
-          
-          button.innerHTML = `
-            <span class="option-emoji">${emoji}</span>
-            <span class="option-text">${text}</span>
-          `;
+          // Use the full label text without emoji parsing
+          button.textContent = option.label;
           
           grid.appendChild(button);
         });
