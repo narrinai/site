@@ -5899,11 +5899,31 @@ async function loadProfile() {
       full_data: data
     });
     
-    if (data?.grace_period_end) {
-      localStorage.setItem('trial_end_date', data.grace_period_end);
-      console.log('📅 Trial end date saved:', data.grace_period_end);
+    // Try multiple possible field names for trial end date
+    const possibleEndDateFields = [
+      'grace_period_end',
+      'Grace_Period_End', 
+      'GracePeriodEnd',
+      'grace-period-end',
+      'trial_end_date',
+      'trial_expires',
+      'trialEndDate'
+    ];
+    
+    let trialEndDate = null;
+    for (const fieldName of possibleEndDateFields) {
+      if (data?.[fieldName]) {
+        trialEndDate = data[fieldName];
+        console.log('📅 Found trial end date in field:', fieldName, '=', trialEndDate);
+        break;
+      }
+    }
+    
+    if (trialEndDate) {
+      localStorage.setItem('trial_end_date', trialEndDate);
+      console.log('📅 Trial end date saved:', trialEndDate);
     } else {
-      console.log('⚠️ No grace_period_end found in Airtable data');
+      console.log('⚠️ No trial end date found in any field:', possibleEndDateFields);
     }
     
     // Save stripe_customer_id to localStorage if available
