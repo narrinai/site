@@ -3491,12 +3491,24 @@ body.has-referral-banner {
       } else {
         if (loginBtn) {
           loginBtn.textContent = 'Login/Register';
-          loginBtn.href = profileUrl;
+          loginBtn.href = '#';
+          loginBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (window.netlifyIdentity) {
+              window.netlifyIdentity.open();
+            }
+          });
         }
         if (mobileLoginBtn) {
           const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
           mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}Login/Register`;
-          mobileLoginBtn.href = profileUrl;
+          mobileLoginBtn.href = '#';
+          mobileLoginBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (window.netlifyIdentity) {
+              window.netlifyIdentity.open();
+            }
+          });
         }
       }
     }
