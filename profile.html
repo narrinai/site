@@ -5165,10 +5165,16 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
       const hasAnonymousCredentials = userEmail === 'anonymous@narrin.ai';
       
-      if (isAnonymousUser && hasAnonymousCredentials) {
+      // Only redirect if BOTH anonymous flags are true AND email is anonymous
+      if (isAnonymousUser && hasAnonymousCredentials && userEmail === 'anonymous@narrin.ai') {
         console.log('💰 Active anonymous user detected, redirecting to pricing page');
         window.location.href = 'pricing.html';
         return;
+      }
+      
+      // Clean up anonymous flags for registered users
+      if (userEmail && userEmail !== 'anonymous@narrin.ai') {
+        localStorage.removeItem('is_anonymous_user');
       }
       
       // Check if we're processing verification (should skip if handled by early script)
