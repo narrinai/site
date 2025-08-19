@@ -6073,6 +6073,16 @@ async function loadProfile() {
       console.log('📅 Trial end date saved:', trialEndDate);
     } else {
       console.log('⚠️ No trial end date found in any field:', possibleEndDateFields);
+      
+      // If user has trial status but no end date, create a default one (7 days from now)
+      if (data?.subscription_status === 'trial') {
+        const defaultEndDate = new Date();
+        defaultEndDate.setDate(defaultEndDate.getDate() + 7);
+        const defaultEndDateString = defaultEndDate.toISOString();
+        
+        localStorage.setItem('trial_end_date', defaultEndDateString);
+        console.log('📅 Created default trial end date (7 days):', defaultEndDateString);
+      }
     }
     
     // Save stripe_customer_id to localStorage if available
@@ -7208,6 +7218,7 @@ async function checkTrialStatus(email, uid) {
         localStorage.setItem('subscription_status', 'trial');
         if (data['grace_period_end']) {
           localStorage.setItem('trial_end_date', data['grace_period_end']);
+          console.log('📅 Trial end date from check-trial:', data['grace_period_end']);
         }
         
         // Update trial status display after data is loaded
