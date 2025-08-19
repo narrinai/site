@@ -5595,9 +5595,14 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       
       logoutInProgress = true;
       
-      // Direct logout without confirmation for mobile debugging
-      console.log('🚪 Direct logout initiated...');
-      clearAllAuthData();
+      // Use native confirm for better mobile compatibility
+      if (confirm('Are you sure you want to log out?')) {
+        console.log('🚪 Logout confirmed...');
+        clearAllAuthData();
+      } else {
+        logoutInProgress = false;
+        console.log('❌ Logout cancelled');
+      }
     }
     
     function clearAllAuthData() {
