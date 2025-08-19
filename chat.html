@@ -11607,14 +11607,18 @@ function restartOnboarding() {
   const slug = characterSlug || currentCharacter?.slug || currentCharacter?.character_id;
   
   if (uid && slug) {
-    // Clear all onboarding-related localStorage entries
+    // Clear all onboarding-related localStorage entries (more aggressive clearing)
     const completionKey = `onboarding_${uid}_${slug}`;
     const shownKey = `onboarding_shown_${uid}_${slug}`;
     
     localStorage.removeItem(completionKey);
     localStorage.removeItem(shownKey);
     
-    console.log('✅ Cleared onboarding data for restart');
+    // Also clear possible alternative keys
+    localStorage.removeItem(`onboarding_completed_${uid}_${slug}`);
+    localStorage.removeItem(`onboarding_data_${uid}_${slug}`);
+    
+    console.log('✅ Cleared all onboarding data for restart:', { completionKey, shownKey });
   }
   
   // Set restart flag
@@ -15790,7 +15794,10 @@ document.addEventListener('DOMContentLoaded', () => {
       // Check if onboarding is needed using the function from onboarding-questions.js
       // Use the consistent characterId (URL slug) for checking  
       // Force onboarding if shouldRestart is true
-      if (shouldRestart || (typeof needsOnboarding === 'function' && needsOnboarding(category, userId, characterId))) {
+      const onboardingNeeded = typeof needsOnboarding === 'function' && needsOnboarding(category, userId, characterId);
+      console.log('🔍 Onboarding check result:', { shouldRestart, onboardingNeeded, willShow: shouldRestart || onboardingNeeded });
+      
+      if (shouldRestart || onboardingNeeded) {
         console.log('✅ Onboarding needed for category:', category, shouldRestart ? '(restart requested)' : '');
         
         // Get questions for this category
