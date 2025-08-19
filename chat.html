@@ -4442,7 +4442,6 @@
 
   <script>
     // Mobile navigation elements - will be initialized after DOM loads
-    let mobileSearchBtn, mobileSearchOverlay, mobileSearchInput;
     let mobileMenuBtn, mobileMenuOverlay;
 
     // ===== MOBILE SEARCH FUNCTIONALITY =====
@@ -4457,8 +4456,7 @@
           mobileSearchBtn.setAttribute('aria-expanded', 'false');
         }
       } else {
-        // Close mobile menu if open
-        closeMobileMenu();
+        // Mobile search removed - no menu to close
         
         mobileSearchOverlay.classList.add('active');
         if (mobileSearchBtn) {
@@ -4484,13 +4482,7 @@
     }
 
     function openMobileMenu() {
-      // Close search overlay if open
-      if (mobileSearchOverlay && mobileSearchOverlay.classList.contains('active')) {
-        mobileSearchOverlay.classList.remove('active');
-        if (mobileSearchBtn) {
-          mobileSearchBtn.setAttribute('aria-expanded', 'false');
-        }
-      }
+      // Mobile search removed
       
       if (mobileMenuOverlay) {
         mobileMenuOverlay.classList.add('active');
@@ -4518,16 +4510,11 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-      // Initialize mobile navigation elements
-      mobileSearchBtn = document.getElementById('mobileSearchBtn');
-      mobileSearchOverlay = document.getElementById('mobileSearchOverlay');
-      mobileSearchInput = document.getElementById('mobileSearchInput');
+      // Initialize mobile navigation elements (search removed)
       mobileMenuBtn = document.getElementById('mobileMenuBtn');
       mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
       
       console.log('📱 Mobile elements initialized:', {
-        searchBtn: !!mobileSearchBtn,
-        searchOverlay: !!mobileSearchOverlay,
         menuBtn: !!mobileMenuBtn,
         menuOverlay: !!mobileMenuOverlay
       });
@@ -4543,9 +4530,7 @@
           }
         });
       }
-      if (mobileSearchBtn) {
-        mobileSearchBtn.addEventListener('click', toggleMobileSearch);
-      }
+      // Mobile search removed
       
       // Close menu when clicking on menu items
       document.querySelectorAll('.mobile-menu-link').forEach(link => {
@@ -5787,10 +5772,7 @@
         if (uspTrack) {
           uspTrack.style.transform = '';
         }
-        if (mobileSearchOverlay?.classList.contains('active')) {
-          mobileSearchOverlay.classList.remove('active');
-          mobileSearchBtn?.setAttribute('aria-expanded', 'false');
-        }
+        // Mobile search removed
         if (mobileMenuOverlay?.classList.contains('active')) {
           closeMobileMenu();
         }
