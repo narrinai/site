@@ -16633,6 +16633,63 @@ document.addEventListener('DOMContentLoaded', () => {
           
           welcomeMessage += `\nWhat aspect of purpose speaks to you most?`;
           
+        } else if (category === 'Romance') {
+          // Get readable answers for Romance category
+          const confidenceLevel = config.contextMappings.dating_confidence[answers.dating_confidence] || answers.dating_confidence || "building confidence";
+          const practiceNeeds = config.contextMappings.practice_needs[answers.practice_needs] || answers.practice_needs || "communication skills";
+          const challenges = config.contextMappings.dating_challenges[answers.dating_challenges] || answers.dating_challenges || "dating challenges";
+          const goals = config.contextMappings.relationship_goals[answers.relationship_goals] || answers.relationship_goals || "relationship growth";
+          
+          welcomeMessage = `Thank you for being so open with me! I can see you're ${confidenceLevel}, and you want to focus on ${practiceNeeds}.\n\n`;
+          welcomeMessage += `I understand that ${challenges} has been challenging for you, and your goal is ${goals}. That takes courage to acknowledge, and I'm here to help you build that confidence.\n\n`;
+          
+          welcomeMessage += `Here's how we can work together to prepare you for amazing real-world connections:\n\n`;
+          
+          if (answers.practice_needs === 'starting_conversations') {
+            welcomeMessage += `1. 💬 Practice conversation starters that feel natural and authentic\n`;
+            welcomeMessage += `2. 🎯 Build confidence in breaking the ice without pickup lines\n`;
+            welcomeMessage += `3. 🌟 Learn to ask engaging questions that create connection\n`;
+            welcomeMessage += `4. 💪 Overcome fear of awkward silences\n`;
+            welcomeMessage += `5. 🚀 Practice transitioning from small talk to meaningful conversation\n`;
+          } else if (answers.practice_needs === 'expressing_interest') {
+            welcomeMessage += `1. 💕 Learn to express attraction respectfully and confidently\n`;
+            welcomeMessage += `2. 🎯 Practice flirting in ways that feel authentic to you\n`;
+            welcomeMessage += `3. 🌟 Build skills in reading and responding to romantic signals\n`;
+            welcomeMessage += `4. 💪 Develop confidence in asking someone out\n`;
+            welcomeMessage += `5. 🚀 Navigate the transition from friendship to romance\n`;
+          } else if (answers.practice_needs === 'emotional_vulnerability') {
+            welcomeMessage += `1. 💗 Practice sharing your authentic self in relationships\n`;
+            welcomeMessage += `2. 🎯 Learn when and how to open up emotionally\n`;
+            welcomeMessage += `3. 🌟 Build skills in creating emotional intimacy\n`;
+            welcomeMessage += `4. 💪 Overcome fear of being too much or not enough\n`;
+            welcomeMessage += `5. 🚀 Practice healthy emotional boundaries\n`;
+          } else if (answers.practice_needs === 'setting_boundaries') {
+            welcomeMessage += `1. 🛡️ Practice saying no while staying loving and kind\n`;
+            welcomeMessage += `2. 🎯 Learn to communicate your needs clearly\n`;
+            welcomeMessage += `3. 🌟 Build confidence in addressing relationship issues\n`;
+            welcomeMessage += `4. 💪 Develop skills in self-advocacy within relationships\n`;
+            welcomeMessage += `5. 🚀 Create relationships based on mutual respect\n`;
+          } else if (answers.practice_needs === 'conflict_resolution') {
+            welcomeMessage += `1. 🤝 Practice having difficult conversations with love\n`;
+            welcomeMessage += `2. 🎯 Learn to listen and validate during disagreements\n`;
+            welcomeMessage += `3. 🌟 Build skills in finding win-win solutions\n`;
+            welcomeMessage += `4. 💪 Develop emotional regulation during conflicts\n`;
+            welcomeMessage += `5. 🚀 Transform arguments into opportunities for deeper connection\n`;
+          } else {
+            welcomeMessage += `1. 💕 Build authentic romantic confidence\n`;
+            welcomeMessage += `2. 🎯 Practice healthy relationship communication\n`;
+            welcomeMessage += `3. 🌟 Develop emotional intelligence in love\n`;
+            welcomeMessage += `4. 💪 Overcome dating anxiety and fears\n`;
+            welcomeMessage += `5. 🚀 Prepare for meaningful real-world connections\n`;
+          }
+          
+          // Add personal touch if they shared romantic hopes
+          if (answers.romantic_hopes && answers.romantic_hopes.trim()) {
+            welcomeMessage += `\nI also read what you shared about your romantic hopes, and I want you to know those dreams are beautiful and achievable. `;
+          }
+          
+          welcomeMessage += `\nRemember, everything we practice here is preparing you for the real thing. Which area feels most important to work on first?`;
+          
         } else {
           // Generic welcome for categories without specific onboarding
           welcomeMessage = `Thank you for sharing that with me! Based on what you've told me, I'm here to support you.\n\n`;
