@@ -27,7 +27,7 @@ exports.handler = async (event, context) => {
     console.log('🔍 Checking trial status for:', user_email);
     
     // Find user in Airtable
-    const searchUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=AND({Email}='${user_email}',{NetlifyUID}='${user_uid}')`;
+    const searchUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={Email}='${user_email}'`;
     
     const searchResponse = await fetch(searchUrl, {
       headers: {
