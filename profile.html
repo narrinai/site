@@ -5598,7 +5598,27 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       // Use native confirm for better mobile compatibility
       if (confirm('Are you sure you want to log out?')) {
         console.log('🚪 Logout confirmed...');
-        clearAllAuthData();
+        
+        // Try Netlify Identity logout first
+        if (window.netlifyIdentity) {
+          try {
+            const currentUser = window.netlifyIdentity.currentUser();
+            if (currentUser) {
+              console.log('👤 Logging out Netlify user:', currentUser.email);
+              window.netlifyIdentity.logout();
+              // clearAllAuthData will be called by the logout event listener
+            } else {
+              console.log('⚠️ No Netlify user found, clearing local storage');
+              clearAllAuthData();
+            }
+          } catch (error) {
+            console.error('❌ Error during Netlify logout:', error);
+            clearAllAuthData();
+          }
+        } else {
+          console.log('⚠️ Netlify Identity not available, clearing local storage');
+          clearAllAuthData();
+        }
       } else {
         logoutInProgress = false;
         console.log('❌ Logout cancelled');
