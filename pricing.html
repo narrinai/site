@@ -1009,7 +1009,7 @@
           </ul>
           
           <div class="card-action">
-            <a href="profile.html" class="plan-button upgrade-button">
+            <a href="#" class="plan-button upgrade-button" id="startTrialBtn">
               Start Free 7-Day Trial
             </a>
             <p class="trial-notice">Automatically returns to basic free plan after trial ends.</p>
@@ -1185,6 +1185,7 @@
       const userEmail = localStorage.getItem('user_email');
       const loginBtn = document.getElementById('loginBtn');
       const mobileLoginBtn = document.getElementById('mobileLoginBtn');
+      const startTrialBtn = document.getElementById('startTrialBtn');
       
       if (userEmail) {
         // User is logged in
@@ -1195,6 +1196,10 @@
         if (mobileLoginBtn) {
           mobileLoginBtn.innerHTML = '<span class="mobile-menu-link-icon">👤</span>My Profile';
           mobileLoginBtn.href = 'profile.html';
+        }
+        // User is logged in - redirect to profile
+        if (startTrialBtn) {
+          startTrialBtn.href = 'profile.html';
         }
       } else {
         // User not logged in - make buttons open Netlify Identity modal
@@ -1211,6 +1216,15 @@
             e.preventDefault();
             if (window.netlifyIdentity) {
               window.netlifyIdentity.open();
+            }
+          });
+        }
+        // User not logged in - open registration modal
+        if (startTrialBtn) {
+          startTrialBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (window.netlifyIdentity) {
+              window.netlifyIdentity.open('signup');
             }
           });
         }
