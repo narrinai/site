@@ -46,11 +46,17 @@ exports.handler = async (event, context) => {
 
     const searchData = await searchResponse.json();
     
+    console.log('🔍 Search results:', searchData);
+    console.log('📊 Records found:', searchData.records.length);
+    
     if (searchData.records.length === 0) {
       return {
         statusCode: 404,
         headers,
-        body: JSON.stringify({ error: 'User not found' })
+        body: JSON.stringify({ 
+          error: 'User not found',
+          debug: { searched_email: user_email, total_records: searchData.records.length }
+        })
       };
     }
 
