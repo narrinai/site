@@ -1265,6 +1265,30 @@
     
     .cancel-text {
       color: #e17055;
+    }
+    
+    /* Trial Notice */
+    .trial-notice {
+      background: linear-gradient(135deg, #e8f8f5 0%, #d1f2eb 100%);
+      border: 1px solid #52c41a;
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin-top: 8px;
+      text-align: center;
+    }
+    
+    .trial-badge {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #389e0d;
+      margin-bottom: 2px;
+    }
+    
+    .trial-text {
+      color: #389e0d;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
       font-size: 12px;
       font-weight: 500;
     }
@@ -3128,6 +3152,11 @@
                 <div class="active-badge">
                   ✓ Active Plan
                 </div>
+              </div>
+              <!-- Trial Notice for Engage -->
+              <div id="engageTrialNotice" class="trial-notice" style="display: none;">
+                <div class="trial-badge">🎉 Free Trial</div>
+                <span class="trial-text">Your 7-day trial ends <strong id="engageTrialDate"></strong>. No payment required until then!</span>
               </div>
               <!-- Compact Cancellation Notice for Engage -->
               <div id="engageCancelNotice" class="compact-cancel-notice" style="display: none;">
@@ -6317,6 +6346,10 @@ function updatePricingCard(plan) {
   }
   if (engageActive) engageActive.style.display = 'none';
   
+  // Reset trial notices
+  const engageTrialNotice = document.getElementById('engageTrialNotice');
+  if (engageTrialNotice) engageTrialNotice.style.display = 'none';
+  
   if (immerseButton) {
     immerseButton.style.display = 'block';
     immerseButton.disabled = false;
@@ -6340,6 +6373,29 @@ function updatePricingCard(plan) {
       // Hide Engage button, show active badge
       if (engageButton) engageButton.style.display = 'none';
       if (engageActive) engageActive.style.display = 'block';
+      
+      // Check if user is on trial
+      const subscriptionStatus = localStorage.getItem('subscription_status');
+      const trialEndDate = localStorage.getItem('trial_end_date');
+      
+      if (subscriptionStatus === 'trial' && trialEndDate) {
+        console.log('📅 Showing trial information for Engage plan');
+        const engageTrialNotice = document.getElementById('engageTrialNotice');
+        const engageTrialDateEl = document.getElementById('engageTrialDate');
+        
+        if (engageTrialNotice && engageTrialDateEl) {
+          // Format the trial end date
+          const endDate = new Date(trialEndDate);
+          const formattedDate = endDate.toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+          });
+          
+          engageTrialDateEl.textContent = formattedDate;
+          engageTrialNotice.style.display = 'block';
+        }
+      }
       
       // Show Immerse button as upgrade option
       if (immerseButton) {
