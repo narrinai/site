@@ -3274,7 +3274,7 @@
           </div>
           
           <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--color-light-gray); text-align: center;">
-            <a href="#" id="logout-btn" onclick="handleLogout(); return false;">
+            <a href="#" id="logout-btn">
               Log out
             </a>
           </div>
@@ -5476,6 +5476,8 @@ function handleLoginSuccess(user, eventType = 'unknown') {
     }
 
     function handleLogout() {
+      console.log('🔍 handleLogout called');
+      
       customConfirm('Are you sure you want to log out?', 'Confirm Logout', () => {
         console.log('🚪 Logout initiated...');
         
@@ -6316,6 +6318,16 @@ function setField(field, text) {
 
         window.netlifyIdentity.on('logout', () => {
           updateLoginButton();
+        });
+      }
+      
+      // Add logout button event listener
+      const logoutBtn = document.getElementById('logout-btn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          console.log('🚪 Logout button clicked');
+          handleLogout();
         });
       }
     });
