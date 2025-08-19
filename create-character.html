@@ -3716,12 +3716,18 @@ function handleRedirectAfterLogin() {
       
       // Check if data is still fresh (within 30 minutes)
       if (Date.now() - characterData.timestamp < 30 * 60 * 1000) {
-        // Restore form data
-        document.getElementById('characterName').value = characterData.name || '';
-        document.getElementById('characterTitle').value = characterData.title || '';
-        document.getElementById('characterDescription').value = characterData.description || '';
-        document.getElementById('characterPrompt').value = characterData.prompt || '';
-        document.getElementById('characterCategory').value = characterData.category || '';
+        // Restore form data with null checks
+        const nameEl = document.getElementById('characterName');
+        const titleEl = document.getElementById('characterTitle');
+        const descEl = document.getElementById('characterDescription');
+        const promptEl = document.getElementById('characterPrompt');
+        const categoryEl = document.getElementById('characterCategory');
+        
+        if (nameEl) nameEl.value = characterData.name || '';
+        if (titleEl) titleEl.value = characterData.title || '';
+        if (descEl) descEl.value = characterData.description || '';
+        if (promptEl) promptEl.value = characterData.prompt || '';
+        if (categoryEl) categoryEl.value = characterData.category || '';
         
         // Restore personality state
         if (characterData.personalityState) {
@@ -4595,26 +4601,38 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
     }
   }
   
-  // Collect form data - ENHANCED VERSION
+  // Collect form data - ENHANCED VERSION with null checks
+  const nameEl = document.getElementById('characterName');
+  const titleEl = document.getElementById('characterTitle');
+  const promptEl = document.getElementById('characterPrompt');
+  const categoryEl = document.querySelector('input[name="characterCategory"]');
+  const typeEl = document.getElementById('characterType');
+  const visibilityEl = document.querySelector('input[name="visibility"]');
+  
+  if (!nameEl || !titleEl || !promptEl || !categoryEl || !typeEl || !visibilityEl) {
+    console.error('❌ Required form elements not found for logged in user');
+    return;
+  }
+  
   const formData = {
-    name: document.getElementById('characterName').value.trim(),
-    title: document.getElementById('characterTitle').value.trim(), 
+    name: nameEl.value.trim(),
+    title: titleEl.value.trim(), 
     description: '', // REMOVED
-    prompt: document.getElementById('characterPrompt').value.trim(),
-    category: document.getElementById('characterCategory').value,
-    character_type: document.getElementById('characterType').value,
-    visibility: document.querySelector('input[name="visibility"]:checked').value,
+    prompt: promptEl.value.trim(),
+    category: categoryEl.value,
+    character_type: typeEl.value,
+    visibility: visibilityEl.value,
     avatarUrl: currentAvatarUrl,
     
     // NIEUWE VELDEN TOEVOEGEN:
     character_data: {
-      name: document.getElementById('characterName').value.trim(),
-      title: document.getElementById('characterTitle').value.trim(),
+      name: nameEl.value.trim(),
+      title: titleEl.value.trim(),
       description: '', // REMOVED 
-      prompt: document.getElementById('characterPrompt').value.trim(),
-      category: document.getElementById('characterCategory').value,
-      character_type: document.getElementById('characterType').value,
-      visibility: document.querySelector('input[name="visibility"]:checked').value,
+      prompt: promptEl.value.trim(),
+      category: categoryEl.value,
+      character_type: typeEl.value,
+      visibility: visibilityEl.value,
       avatar_url: currentAvatarUrl || ''
     }
   };
