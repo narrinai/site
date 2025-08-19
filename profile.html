@@ -5954,6 +5954,8 @@ async function loadProfile() {
         welcomeStory.style.display = 'block';
         
         // Show trial status if user is on trial
+        console.log('🔍 Trial check:', { subscriptionStatus, trialEndDate, hasTrialStatus: !!trialStatus });
+        
         if (subscriptionStatus === 'trial' && trialEndDate && trialStatus) {
           console.log('📅 Showing trial status in welcome section');
           
@@ -6037,6 +6039,9 @@ async function loadProfile() {
     
     console.log('✅ Profile loaded successfully');
     updateUsageCountdown(userPlan, usage, quota);
+    
+    // Update trial status display after profile data is loaded
+    updateTrialStatus();
     
 
   } catch (error) {
@@ -7006,10 +7011,48 @@ async function checkTrialStatus(email, uid) {
         if (data['grace_period_end']) {
           localStorage.setItem('trial_end_date', data['grace_period_end']);
         }
+        
+        // Update trial status display after data is loaded
+        updateTrialStatus();
       }
     }
   } catch (error) {
     console.error('❌ Error checking trial status:', error);
+  }
+}
+
+// Function to update trial status display
+function updateTrialStatus() {
+  const trialStatus = document.getElementById('trialStatus');
+  const subscriptionStatus = localStorage.getItem('subscription_status');
+  const trialEndDate = localStorage.getItem('trial_end_date');
+  
+  console.log('🔍 updateTrialStatus called:', { subscriptionStatus, trialEndDate, hasTrialStatus: !!trialStatus });
+  
+  if (subscriptionStatus === 'trial' && trialEndDate && trialStatus) {
+    console.log('📅 Updating trial status display');
+    
+    // Calculate days remaining
+    const endDate = new Date(trialEndDate);
+    const now = new Date();
+    const daysRemaining = Math.max(0, Math.ceil((endDate - now) / (1000 * 60 * 60 * 24)));
+    
+    // Update trial information
+    const trialDaysEl = document.getElementById('trialDaysRemaining');
+    const trialEndEl = document.getElementById('trialEndDate');
+    
+    if (trialDaysEl) trialDaysEl.textContent = daysRemaining;
+    if (trialEndEl) {
+      const formattedDate = endDate.toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+      });
+      trialEndEl.textContent = formattedDate;
+    }
+    
+    trialStatus.style.display = 'block';
+    console.log('✅ Trial status display updated');
   }
 }
 
