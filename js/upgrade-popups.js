@@ -183,12 +183,10 @@ function addUpgradePopupCSS() {
   document.head.appendChild(styleSheet);
 }
 
-// DISABLED: Global showUpgradePrompt function - was blocking navigation
+// Global showUpgradePrompt function
 window.showUpgradePrompt = function(usage, quota, type = 'messages') {
-  console.log('DISABLED: showUpgradePrompt called but disabled');
-  return;
+  console.log('📢 showUpgradePrompt called:', { usage, quota, type });
   
-  /*
   // Ensure CSS is loaded
   addUpgradePopupCSS();
   
@@ -215,13 +213,10 @@ window.showUpgradePrompt = function(usage, quota, type = 'messages') {
       closeUpgradePrompt();
     }
   });
-  */
 };
 
-// DISABLED: Global closeUpgradePrompt function
+// Global closeUpgradePrompt function
 window.closeUpgradePrompt = function() {
-  return;
-  /*
   const upgradeOverlay = document.getElementById('upgradeOverlay');
   if (upgradeOverlay) {
     upgradeOverlay.classList.remove('active');
@@ -229,7 +224,6 @@ window.closeUpgradePrompt = function() {
       upgradeOverlay.style.display = 'none';
     }, 300);
   }
-  */
 };
 
 // Generate content based on popup type
