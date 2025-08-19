@@ -5373,26 +5373,7 @@ function handleLoginSuccess(user, eventType = 'unknown') {
           // Initialize Netlify Identity
           window.netlifyIdentity.init();
           
-          // Set up a one-time listener for when user is confirmed
-          window.netlifyIdentity.on('login', (user) => {
-            console.log('✅ User confirmed and logged in via token:', user.email);
-            
-            // Store auth data
-            localStorage.setItem('user_email', user.email);
-            localStorage.setItem('user_uid', user.id);
-            localStorage.setItem('user_token', user.token?.access_token || user.id);
-            localStorage.setItem('user_auth_timestamp', Date.now().toString());
-            
-            // Clean URL
-            window.history.replaceState({}, document.title, window.location.pathname);
-            
-            // Clear verification flag
-            sessionStorage.removeItem('email_verification_in_progress');
-            
-            // Show profile
-            showProfileUI();
-            setTimeout(() => loadProfile(), 500);
-          });
+          // DISABLED: Duplicate login listener removed to prevent double webhook calls
           
           // Also listen for the init event with user
           window.netlifyIdentity.on('init', (user) => {
@@ -6446,15 +6427,7 @@ function setField(field, text) {
           updateLoginButton();
         });
 
-        window.netlifyIdentity.on('login', user => {
-          updateLoginButton();
-          window.netlifyIdentity.close();
-          
-          // Handle redirect back to create-character if needed
-          setTimeout(() => {
-            handlePostLoginRedirect();
-          }, 500);
-        });
+        // DISABLED: Duplicate login listener removed to prevent double webhook calls
 
         window.netlifyIdentity.on('logout', () => {
           updateLoginButton();
