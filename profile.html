@@ -5883,6 +5883,17 @@ async function loadProfile() {
     // Store current plan in localStorage for cancellation logic
     localStorage.setItem('user_plan', userPlan);
     
+    // Store trial data from Airtable profile response
+    if (data?.subscription_status) {
+      localStorage.setItem('subscription_status', data.subscription_status);
+      console.log('📅 Subscription status saved:', data.subscription_status);
+    }
+    
+    if (data?.grace_period_end) {
+      localStorage.setItem('trial_end_date', data.grace_period_end);
+      console.log('📅 Trial end date saved:', data.grace_period_end);
+    }
+    
     // Save stripe_customer_id to localStorage if available
     if (data?.stripe_customer_id) {
       localStorage.setItem('stripe_customer_id', data.stripe_customer_id);
