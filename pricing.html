@@ -1351,7 +1351,17 @@
       window.netlifyIdentity.on("init", user => {
         if (!user) {
           window.netlifyIdentity.on("login", user => {
-            document.location.href = "/profile.html";
+            window.netlifyIdentity.close();
+            setTimeout(() => {
+              window.location.href = "/profile.html";
+            }, 500);
+          });
+          
+          window.netlifyIdentity.on("signup", user => {
+            window.netlifyIdentity.close();
+            setTimeout(() => {
+              window.location.href = "/profile.html";
+            }, 500);
           });
         }
       });
