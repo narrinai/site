@@ -2595,17 +2595,30 @@
 
 /* ===== NETLIFY IDENTITY MODAL CUSTOM STYLING ===== */
 
-/* Modal overlay/backdrop */
-.netlify-identity-widget {
+/* Modal overlay/backdrop - Maximum Specificity */
+body .netlify-identity-widget,
+body .netlify-identity-widget *,
+body .netlify-identity-widget iframe,
+body [data-netlify-identity-widget],
+body [data-netlify-identity-modal],
+body div[data-netlify-identity-widget],
+body iframe[src*="netlify"] {
+  z-index: 2147483647 !important;
+  position: relative !important;
   font-family: var(--font-primary) !important;
   backdrop-filter: blur(20px) !important;
   -webkit-backdrop-filter: blur(20px) !important;
-  z-index: 999999999 !important;
 }
 
-.netlify-identity-widget *,
-.netlify-identity-widget iframe {
-  z-index: 999999999 !important;
+/* Force modal backdrop above everything */
+body .netlify-identity-widget > div[style*="position: fixed"],
+body .netlify-identity-widget > div[data-netlify-identity-modal] {
+  z-index: 2147483647 !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
 }
 
 /* Add "by signing up" disclaimer to signup form */
