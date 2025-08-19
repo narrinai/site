@@ -8992,18 +8992,30 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     const memoryBtn = document.getElementById('memoryBtn');
     const desktopActionButtons = document.getElementById('desktopActionButtons');
     
+    // Always show memory button for all users (auth check happens in openMemoryHub)
+    if (memoryBtn) memoryBtn.style.display = 'inline-block';
+    console.log('✅ Memory Hub button visible for all users');
+    
     if (userToken) {
-      // Always show customize button
+      // Show customize button only for authenticated users
       if (customizeBtn) customizeBtn.style.display = 'inline-block';
       
-      // Always show memory button for authenticated users
-      if (memoryBtn) memoryBtn.style.display = 'inline-block';
-      console.log('✅ Memory Hub enabled for authenticated user');
+      // Show desktop customize button for authenticated users
+      const desktopCustomizeBtn = document.querySelector('.desktop-action-buttons .customize-btn');
+      if (desktopCustomizeBtn) desktopCustomizeBtn.style.display = 'block';
       
-      // Show desktop buttons container if any button is visible
-      if (desktopActionButtons && userToken) {
-        desktopActionButtons.style.display = 'flex';
-      }
+      console.log('✅ Customize button enabled for authenticated user');
+    } else {
+      // Hide customize buttons for non-authenticated users
+      if (customizeBtn) customizeBtn.style.display = 'none';
+      
+      const desktopCustomizeBtn = document.querySelector('.desktop-action-buttons .customize-btn');
+      if (desktopCustomizeBtn) desktopCustomizeBtn.style.display = 'none';
+    }
+    
+    // Show desktop buttons container if any button is visible
+    if (desktopActionButtons) {
+      desktopActionButtons.style.display = 'flex';
     }
     
     // Generate conversation topics after character is loaded
@@ -11523,11 +11535,29 @@ async function openMemoryHub() {
   }
   
   modal.style.display = 'flex';
+  
+  // Check if user is authenticated
+  const userToken = localStorage.getItem('user_token');
+  const uid = localStorage.getItem('user_uid');
+  
+  if (!userToken || !uid) {
+    // Show upgrade prompt for unauthenticated users
+    content.innerHTML = `
+      <div class="no-memories">
+        <div class="no-memories-title">🔐 Unlock Your Memory Hub</div>
+        <div class="no-memories-text">Start your free Engage trial to create personalized memories with your companion and enhance your conversations!</div>
+        <button class="start-onboarding-btn" onclick="closeMemoryHub(); showUpgradeModal();">
+          <span>✨</span> Start Free Trial
+        </button>
+      </div>
+    `;
+    return;
+  }
+  
   content.innerHTML = '<div class="loading-spinner">Loading your memories...</div>';
   
   try {
     // Get user data
-    const uid = localStorage.getItem('user_uid');
     const slug = characterSlug;
     
     if (!uid || !slug) {
