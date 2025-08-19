@@ -5595,34 +5595,9 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       
       logoutInProgress = true;
       
-      customConfirm('Are you sure you want to log out?', 'Confirm Logout', () => {
-        console.log('🚪 Logout initiated...');
-        
-        // Try Netlify Identity logout first
-        if (window.netlifyIdentity) {
-          try {
-            const currentUser = window.netlifyIdentity.currentUser();
-            if (currentUser) {
-              console.log('👤 Logging out Netlify user:', currentUser.email);
-              window.netlifyIdentity.logout();
-            } else {
-              console.log('⚠️ No Netlify user found, clearing local storage');
-              // No Netlify user, just clear localStorage
-              clearAllAuthData();
-            }
-          } catch (error) {
-            console.error('❌ Error during Netlify logout:', error);
-            // Fallback to clearing everything
-            clearAllAuthData();
-          }
-        } else {
-          console.log('⚠️ Netlify Identity not available, clearing local storage');
-          clearAllAuthData();
-        }
-      }, () => {
-        // Reset flag on cancel
-        logoutInProgress = false;
-      });
+      // Direct logout without confirmation for mobile debugging
+      console.log('🚪 Direct logout initiated...');
+      clearAllAuthData();
     }
     
     function clearAllAuthData() {
