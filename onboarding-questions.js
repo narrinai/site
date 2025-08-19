@@ -1213,94 +1213,94 @@ Which of these would you like to explore first? Or is there something else you'd
     enabled: true,
     questions: [
       {
-        id: 'connection_type',
-        question: 'What kind of romantic connection are you seeking?',
+        id: 'dating_confidence',
+        question: 'How confident do you feel in romantic/dating situations?',
         type: 'multiple_choice',
         options: [
-          { value: 'sweet_tender', label: 'Sweet and tender moments' },
-          { value: 'playful_flirty', label: 'Playful and flirty interactions' },
-          { value: 'deep_intimacy', label: 'Deep emotional intimacy' },
-          { value: 'romantic_adventures', label: 'Romantic adventures and experiences' },
-          { value: 'supportive_partnership', label: 'Supportive partnership' }
+          { value: 'very_anxious', label: 'Very anxious - dating feels overwhelming' },
+          { value: 'somewhat_nervous', label: 'Somewhat nervous but willing to try' },
+          { value: 'moderately_confident', label: 'Moderately confident with some areas to improve' },
+          { value: 'quite_confident', label: 'Quite confident but want to refine my approach' },
+          { value: 'very_confident', label: 'Very confident - just exploring dynamics' }
         ],
         required: true
       },
       {
-        id: 'communication_style',
-        question: 'How do you like to express affection?',
+        id: 'practice_needs',
+        question: 'What romantic communication skills do you want to practice most?',
         type: 'multiple_choice',
         options: [
-          { value: 'thoughtful_words', label: 'Through thoughtful words and compliments' },
-          { value: 'playful_teasing', label: 'With playful teasing and humor' },
-          { value: 'emotional_sharing', label: 'Through deep emotional sharing' },
-          { value: 'special_moments', label: 'By planning special moments together' },
-          { value: 'consistent_care', label: 'With consistent care and attention' }
+          { value: 'starting_conversations', label: 'Starting conversations and breaking the ice' },
+          { value: 'expressing_interest', label: 'Expressing romantic interest appropriately' },
+          { value: 'emotional_vulnerability', label: 'Being emotionally vulnerable and open' },
+          { value: 'setting_boundaries', label: 'Setting healthy boundaries in relationships' },
+          { value: 'conflict_resolution', label: 'Navigating disagreements and conflict resolution' }
         ],
         required: true
       },
       {
-        id: 'relationship_pace',
-        question: 'What pace feels right for building romantic connection?',
+        id: 'dating_challenges',
+        question: 'What\'s your biggest challenge in dating or relationships?',
         type: 'multiple_choice',
         options: [
-          { value: 'slow_steady', label: 'Slow and steady emotional building' },
-          { value: 'natural_spontaneous', label: 'Natural and spontaneous development' },
-          { value: 'intense_passionate', label: 'Intense and passionate connection' },
-          { value: 'gentle_nurturing', label: 'Gentle and nurturing growth' },
-          { value: 'balanced_respectful', label: 'Balanced with respect for boundaries' }
+          { value: 'fear_rejection', label: 'Fear of rejection or not being good enough' },
+          { value: 'overthinking', label: 'Overthinking conversations and interactions' },
+          { value: 'past_hurt', label: 'Past relationship hurt affecting new connections' },
+          { value: 'social_anxiety', label: 'Social anxiety in romantic settings' },
+          { value: 'finding_right_person', label: 'Finding someone who truly understands me' }
         ],
         required: true
       },
       {
-        id: 'dating_experience',
-        question: 'How would you describe your dating experience?',
+        id: 'relationship_goals',
+        question: 'What do you hope to achieve through practicing romantic communication?',
         type: 'multiple_choice',
         options: [
-          { value: 'new_to_dating', label: 'New to dating and relationships' },
-          { value: 'some_experience', label: 'Some experience but want to improve' },
-          { value: 'experienced_seeking', label: 'Experienced but seeking deeper connection' },
-          { value: 'healing_from_past', label: 'Healing from past relationship challenges' },
-          { value: 'confident_exploring', label: 'Confident and exploring new dynamics' }
+          { value: 'build_confidence', label: 'Build confidence for real-world dating' },
+          { value: 'learn_healthy_patterns', label: 'Learn what healthy relationships feel like' },
+          { value: 'overcome_anxiety', label: 'Overcome dating anxiety and social fears' },
+          { value: 'improve_communication', label: 'Improve my romantic communication skills' },
+          { value: 'prepare_for_love', label: 'Prepare myself to be a better partner' }
         ],
         required: true
       },
       {
-        id: 'romantic_goals',
-        question: 'What are your hopes and dreams for romantic relationships? (Open question)',
+        id: 'romantic_hopes',
+        question: 'What would help you feel more confident and authentic in future romantic relationships?',
         type: 'text',
-        placeholder: 'Share what you\'re looking for in love, your relationship aspirations, or what would make you feel truly cherished in a romantic partnership...',
+        placeholder: 'Share what you\'d like to practice, overcome, or develop to become more confident in real romantic situations. This helps me understand how to best support your growth...',
         required: false,
         maxLength: 500
       }
     ],
     contextMappings: {
-      connection_type: {
-        'sweet_tender': 'sweet tender connection',
-        'playful_flirty': 'playful romantic dynamic',
-        'deep_intimacy': 'deep emotional romance',
-        'romantic_adventures': 'adventurous romance',
-        'supportive_partnership': 'supportive romantic partnership'
+      dating_confidence: {
+        'very_anxious': 'experiencing high dating anxiety',
+        'somewhat_nervous': 'feeling some dating nervousness',
+        'moderately_confident': 'moderately confident in dating',
+        'quite_confident': 'quite confident with room for growth',
+        'very_confident': 'very confident in romantic situations'
       },
-      communication_style: {
-        'thoughtful_words': 'thoughtful verbal affection',
-        'playful_teasing': 'playful romantic communication',
-        'emotional_sharing': 'deep emotional expression',
-        'special_moments': 'romantic gesture planning',
-        'consistent_care': 'consistent caring attention'
+      practice_needs: {
+        'starting_conversations': 'practicing conversation starters and ice-breaking',
+        'expressing_interest': 'learning to express romantic interest appropriately',
+        'emotional_vulnerability': 'developing emotional vulnerability skills',
+        'setting_boundaries': 'practicing healthy boundary setting',
+        'conflict_resolution': 'improving conflict resolution in relationships'
       },
-      relationship_pace: {
-        'slow_steady': 'gradual emotional building',
-        'natural_spontaneous': 'natural relationship development',
-        'intense_passionate': 'passionate romantic intensity',
-        'gentle_nurturing': 'gentle nurturing approach',
-        'balanced_respectful': 'balanced and respectful pacing'
+      dating_challenges: {
+        'fear_rejection': 'working through fear of rejection',
+        'overthinking': 'managing overthinking in romantic situations',
+        'past_hurt': 'healing from past relationship experiences',
+        'social_anxiety': 'overcoming social anxiety in dating',
+        'finding_right_person': 'seeking deeper authentic connections'
       },
-      dating_experience: {
-        'new_to_dating': 'new to dating',
-        'some_experience': 'developing dating skills',
-        'experienced_seeking': 'seeking deeper romantic connection',
-        'healing_from_past': 'healing from past relationships',
-        'confident_exploring': 'confidently exploring romance'
+      relationship_goals: {
+        'build_confidence': 'building romantic confidence for real dating',
+        'learn_healthy_patterns': 'learning healthy relationship dynamics',
+        'overcome_anxiety': 'overcoming dating anxiety and fears',
+        'improve_communication': 'developing romantic communication skills',
+        'prepare_for_love': 'preparing to be a better romantic partner'
       }
     }
   },
