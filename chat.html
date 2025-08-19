@@ -4796,29 +4796,7 @@
         <!-- Logo -->
         <a href="index.html" class="logo" aria-label="Narrin AI Home">Narrin AI</a>
 
-        <!-- Desktop Navigation Center -->
-        <nav class="nav-center" role="navigation" aria-label="Main navigation">
-          <!-- USPs - Random Display -->
-          <div class="nav-usps" aria-label="Key features">
-            <div class="usp-item" data-usp="practice" style="display: none;">
-              <span class="usp-icon" aria-hidden="true">🗣️</span>
-              <span>Practice Without Pressure</span>
-            </div>
-            <div class="usp-item" data-usp="growth" style="display: none;">
-              <span class="usp-icon" aria-hidden="true">🌱</span>
-              <span>Daily Growth Coach</span>
-            </div>
-            <div class="usp-item" data-usp="memory" style="display: none;">
-              <span class="usp-icon" aria-hidden="true">🧠</span>
-              <span>Remembers Everything</span>
-            </div>
-            <div class="usp-item" data-usp="private" style="display: none;">
-              <span class="usp-icon" aria-hidden="true">🔒</span>
-              <span>Private & Secure</span>
-            </div>
-          </div>
-
-        </nav>
+        <!-- REMOVED: Desktop navigation center with USPs -->
 
         <!-- Desktop Navigation Links -->
         <nav class="nav-links" role="navigation" aria-label="Secondary navigation">
@@ -11829,22 +11807,13 @@ function openCustomizationModal() {
   if (preview) preview.style.display = 'none';
   
   // Load character's prompt or generate based on existing customization
-  const promptPreview = document.getElementById('promptPreview');
-  
   if (existingCustom) {
-    // If editing existing custom character, use its prompt
-    promptPreview.value = existingCustom.generated_prompt || existingCustom.prompt || '';
-    
     // Restore personality state if available
     if (existingCustom.personality_state) {
       personalityState = existingCustom.personality_state;
       updateCommunicationStyleUI();
       generatePrompt();
     }
-  } else if (currentCharacter.prompt || currentCharacter.Prompt) {
-    // For new customizations, start with the original prompt
-    const originalPrompt = currentCharacter.prompt || currentCharacter.Prompt || '';
-    promptPreview.value = originalPrompt;
   }
   
   // Load voice settings from current character
@@ -11883,8 +11852,6 @@ function openCustomizationModal() {
   if (existingCustom) {
     // Load existing customization
     document.getElementById('customName').value = existingCustom.name || currentCharacter.name || '';
-    document.getElementById('customTitle').value = existingCustom.title || currentCharacter.title || currentCharacter.Title || currentCharacter.Character_Title || '';
-    document.getElementById('customCharacterType').value = existingCustom.character_type || currentCharacter.character_type || '';
     document.getElementById('customAvatarUrl').value = existingCustom.avatar_url || existingCustom.Avatar_URL || '';
     
     // Show avatar preview if exists
@@ -11960,8 +11927,6 @@ function openCustomizationModal() {
   } else {
     // Pre-fill with original character data
     document.getElementById('customName').value = currentCharacter.name || currentCharacter.Name || '';
-    document.getElementById('customTitle').value = currentCharacter.title || currentCharacter.Title || currentCharacter.Character_Title || '';
-    document.getElementById('customCharacterType').value = currentCharacter.character_type || '';
     document.getElementById('customAvatarUrl').value = currentCharacter.avatar_url || currentCharacter.Avatar_URL || '';
     
     // Show current avatar preview
@@ -12164,11 +12129,7 @@ function initializeCustomizationForm() {
     const characterId = characterSlug; // Use slug as unique identifier
     
     // Get the prompt from the textarea (user may have edited it)
-    const promptPreviewElement = document.getElementById('promptPreview');
-    console.log('🔍 Prompt preview element:', promptPreviewElement);
-    console.log('🔍 Prompt preview value:', promptPreviewElement ? promptPreviewElement.value : 'ELEMENT NOT FOUND');
     
-    const generatedPrompt = promptPreviewElement ? promptPreviewElement.value.trim() : '';
     const customInstructions = document.getElementById('customPrompt').value.trim();
     
     // Combine generated prompt with custom instructions
@@ -13099,7 +13060,6 @@ function buildResponseStyleFromSliders() {
 }
 
 function updatePromptPreview(prompt) {
-  const preview = document.getElementById('promptPreview');
   const originalPrompt = currentCharacter?.prompt || currentCharacter?.Prompt || '';
   
   if (prompt.trim()) {
