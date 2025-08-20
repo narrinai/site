@@ -11841,8 +11841,13 @@ function openCustomizationModal() {
   const deleteBtn = document.getElementById('deleteCustomBtn');
   const transferSection = document.getElementById('transferSection');
   
-  // Check if this is a user-created character (has Created_By field or is customized)
-  const isUserCreated = currentCharacter.Created_by || currentCharacter.created_by || currentCharacter.Created_By || existingCustom;
+  // Check if this is a user-created character
+  // 1. Has Created_By field (already saved user-created character)
+  // 2. Has existing customization (previously customized character)  
+  // 3. Is from create-character flow (character_type field indicates new character)
+  const isUserCreated = currentCharacter.Created_by || currentCharacter.created_by || currentCharacter.Created_By || 
+                        existingCustom || 
+                        (currentCharacter.character_type && ['friendship', 'romance', 'mindfulness', 'mentor'].includes(currentCharacter.character_type));
   
   // Show transfer section only for new customizations
   if (transferSection) {
@@ -12572,9 +12577,23 @@ function initializeCustomizationForm() {
             ? `${customName} has been updated.`
             : `${customName} created! You can now chat with your new companion.`);
         
-        // Close the customization modal after successful creation/update
+        // Close the customization modal and redirect after successful creation/update
         setTimeout(() => {
           closeCustomizationModal();
+          
+          // For new characters, redirect to chat with the new companion
+          if (!isUpdate && !existingCustom && result.character_id) {
+            console.log('🔄 Redirecting to new companion:', result.character_id);
+            setTimeout(() => {
+              window.location.href = `chat.html?char=${result.character_id}`;
+            }, 500);
+          } else if (!isUpdate && customSlug) {
+            // Fallback: use custom slug if no character_id returned
+            console.log('🔄 Redirecting to new companion via slug:', customSlug);
+            setTimeout(() => {
+              window.location.href = `chat.html?char=${customSlug}`;
+            }, 500);
+          }
         }, 2000);
         
         // Update the character limit checker count if a new character was created
