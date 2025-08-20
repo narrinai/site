@@ -14729,12 +14729,27 @@ async function checkUsageLimit() {
       usageGreaterThanQuota: usage >= quota
     });
 
-    // Check user plan for message limits - only Engage and Immerse are paid plans
-    // IMPORTANT: Free plan with "active" subscription should still be limited
+    // Check for trial status in localStorage as backup
+    const localTrialStatus = localStorage.getItem('subscription_status');
+    const localTrialEnd = localStorage.getItem('trial_end_date');
+    const isLocalTrial = localTrialStatus === 'trial' && localTrialEnd && new Date(localTrialEnd) > new Date();
+    
+    // Check user plan for message limits - include trial users with unlimited messages
     const isPaidPlan = 
       (plan.toLowerCase() === 'immerse' || plan.toLowerCase() === 'engage') &&
-      (subscriptionStatus === 'active' || subscriptionStatus === 'trialing' ||
-       stripeStatus === 'active' || stripeStatus === 'trialing');
+      (subscriptionStatus === 'active' || subscriptionStatus === 'trialing' || subscriptionStatus === 'trial' ||
+       stripeStatus === 'active' || stripeStatus === 'trialing' || stripeStatus === 'trial') ||
+      isLocalTrial;
+      
+    console.log('🔍 Trial check details:', { 
+      localTrialStatus, 
+      localTrialEnd, 
+      isLocalTrial, 
+      isPaidPlan,
+      planLower: plan.toLowerCase(),
+      subscriptionStatus,
+      stripeStatus 
+    });
       
     if (isPaidPlan) {
       console.log('✅ Paid user - unlimited messages');
