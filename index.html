@@ -2352,9 +2352,12 @@ body.has-referral-banner {
       z-index: 2147483647 !important;
     }
     
-    /* Override header z-index when modal is open */
+    /* Hide header when modal is open - most reliable solution */
     body.modal-open .header {
-      z-index: 100 !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transform: translateY(-100%) !important;
+      transition: all 0.3s ease !important;
     }
     
     /* Force full-screen modal positioning */
@@ -3843,8 +3846,10 @@ if (window.netlifyIdentity) {
   window.netlifyIdentity.on('close', () => {
     console.log('🔒 Netlify Identity modal closed');
     
-    // Remove modal-open class from body
-    document.body.classList.remove('modal-open');
+    // Remove modal-open class from body with small delay for smooth transition
+    setTimeout(() => {
+      document.body.classList.remove('modal-open');
+    }, 100);
     
     // Remove disclaimer
     const disclaimer = document.getElementById('netlify-disclaimer');
