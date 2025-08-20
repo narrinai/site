@@ -1380,6 +1380,40 @@ Which of these would you like to explore first? Or is there something else you'd
           { value: 'spiritual_growth', label: 'Looking for spiritual growth' }
         ],
         required: true
+      },
+      {
+        id: 'mindfulness_practice',
+        question: 'What type of mindfulness practice appeals to you most?',
+        type: 'multiple_choice',
+        options: [
+          { value: 'guided_meditation', label: 'Guided meditation and breathing exercises' },
+          { value: 'mindful_conversations', label: 'Mindful conversations and reflection' },
+          { value: 'nature_based', label: 'Nature-based mindfulness and grounding' },
+          { value: 'body_awareness', label: 'Body awareness and physical grounding' },
+          { value: 'philosophical_exploration', label: 'Philosophical and spiritual exploration' }
+        ],
+        required: true
+      },
+      {
+        id: 'relationship_mindfulness',
+        question: 'How do you want mindfulness to improve your relationships?',
+        type: 'multiple_choice',
+        options: [
+          { value: 'better_listening', label: 'Become a better listener and more present' },
+          { value: 'emotional_regulation', label: 'Better emotional regulation in conflicts' },
+          { value: 'authentic_communication', label: 'More authentic and honest communication' },
+          { value: 'compassionate_responses', label: 'Respond with more compassion and understanding' },
+          { value: 'deeper_connections', label: 'Create deeper, more meaningful connections' }
+        ],
+        required: true
+      },
+      {
+        id: 'mindfulness_hopes',
+        question: 'What would help you bring more mindfulness into your daily relationships?',
+        type: 'text',
+        placeholder: 'Share what you\'d like to practice or develop to become more present and conscious in your interactions with others...',
+        required: false,
+        maxLength: 500
       }
     ],
     contextMappings: {
@@ -1389,6 +1423,27 @@ Which of these would you like to explore first? Or is there something else you'd
         'self_awareness': 'self-awareness development',
         'focus_clarity': 'focus and mental clarity',
         'present_moment': 'present moment connection'
+      },
+      current_state: {
+        'stressed_overwhelmed': 'experiencing stress and overwhelm',
+        'seeking_balance': 'seeking life balance',
+        'curious_understanding': 'exploring self-understanding',
+        'wanting_presence': 'wanting more presence',
+        'spiritual_growth': 'seeking spiritual growth'
+      },
+      mindfulness_practice: {
+        'guided_meditation': 'guided meditation practice',
+        'mindful_conversations': 'mindful conversation practice',
+        'nature_based': 'nature-based mindfulness',
+        'body_awareness': 'body awareness practice',
+        'philosophical_exploration': 'philosophical exploration'
+      },
+      relationship_mindfulness: {
+        'better_listening': 'developing better listening skills',
+        'emotional_regulation': 'practicing emotional regulation',
+        'authentic_communication': 'building authentic communication',
+        'compassionate_responses': 'cultivating compassionate responses',
+        'deeper_connections': 'creating deeper connections'
       }
     }
   },

@@ -3332,11 +3332,13 @@
       }
       
       .close-modal {
-        width: 36px;
-        height: 36px;
-        font-size: var(--font-size-lg);
-        top: 10px;
-        right: 10px;
+        width: 44px;
+        height: 44px;
+        font-size: var(--font-size-xl);
+        top: 15px;
+        right: 15px;
+        min-width: 44px;
+        min-height: 44px;
       }
       
       .customization-header {
@@ -5582,8 +5584,114 @@
             'Looking for spiritual growth': 'seeking spiritual growth'
           }
         }
+      },
+      Romance: {
+        enabled: true,
+        questions: [
+          {
+            id: 'dating_confidence',
+            question: 'How confident do you feel in romantic/dating situations?',
+            options: ['Very anxious - dating feels overwhelming', 'Somewhat nervous but willing to try', 'Moderately confident with some areas to improve', 'Quite confident but want to refine my approach', 'Very confident - just exploring dynamics']
+          },
+          {
+            id: 'practice_needs',
+            question: 'What romantic communication skills do you want to practice most?',
+            options: ['Starting conversations and breaking the ice', 'Expressing romantic interest appropriately', 'Being emotionally vulnerable and open', 'Setting healthy boundaries in relationships', 'Navigating disagreements and conflict resolution']
+          },
+          {
+            id: 'dating_challenges',
+            question: 'What\'s your biggest challenge in dating or relationships?',
+            options: ['Fear of rejection or not being good enough', 'Overthinking conversations and interactions', 'Past relationship hurt affecting new connections', 'Social anxiety in romantic settings', 'Finding someone who truly understands me']
+          },
+          {
+            id: 'relationship_goals',
+            question: 'What do you hope to achieve through practicing romantic communication?',
+            options: ['Build confidence for real-world dating', 'Learn what healthy relationships feel like', 'Overcome dating anxiety and social fears', 'Improve my romantic communication skills', 'Prepare myself to be a better partner']
+          }
+        ],
+        contextMappings: {
+          dating_confidence: {
+            'Very anxious - dating feels overwhelming': 'experiencing high dating anxiety',
+            'Somewhat nervous but willing to try': 'feeling some dating nervousness',
+            'Moderately confident with some areas to improve': 'moderately confident in dating',
+            'Quite confident but want to refine my approach': 'quite confident with room for growth',
+            'Very confident - just exploring dynamics': 'very confident in romantic situations'
+          },
+          practice_needs: {
+            'Starting conversations and breaking the ice': 'practicing conversation starters and ice-breaking',
+            'Expressing romantic interest appropriately': 'learning to express romantic interest appropriately',
+            'Being emotionally vulnerable and open': 'developing emotional vulnerability skills',
+            'Setting healthy boundaries in relationships': 'practicing healthy boundary setting',
+            'Navigating disagreements and conflict resolution': 'improving conflict resolution in relationships'
+          },
+          dating_challenges: {
+            'Fear of rejection or not being good enough': 'working through fear of rejection',
+            'Overthinking conversations and interactions': 'managing overthinking in romantic situations',
+            'Past relationship hurt affecting new connections': 'healing from past relationship experiences',
+            'Social anxiety in romantic settings': 'overcoming social anxiety in dating',
+            'Finding someone who truly understands me': 'seeking deeper authentic connections'
+          },
+          relationship_goals: {
+            'Build confidence for real-world dating': 'building romantic confidence for real dating',
+            'Learn what healthy relationships feel like': 'learning healthy relationship dynamics',
+            'Overcome dating anxiety and social fears': 'overcoming dating anxiety and fears',
+            'Improve my romantic communication skills': 'developing romantic communication skills',
+            'Prepare myself to be a better partner': 'preparing to be a better romantic partner'
+          }
+        }
+      },
+      Friendship: {
+        enabled: true,
+        questions: [
+          {
+            id: 'social_confidence',
+            question: 'How confident do you feel in social situations and making friends?',
+            options: ['Very anxious - social situations feel overwhelming', 'Somewhat nervous but want to improve', 'Moderately confident with some areas to work on', 'Quite confident but want to deepen connections', 'Very confident - just exploring friendship dynamics']
+          },
+          {
+            id: 'friendship_skills',
+            question: 'What friendship skills do you want to practice most?',
+            options: ['Starting conversations and small talk', 'Being more open and vulnerable with friends', 'Showing support when friends need help', 'Setting healthy boundaries in friendships', 'Resolving conflicts and misunderstandings']
+          },
+          {
+            id: 'social_challenges',
+            question: 'What\'s your biggest challenge in friendships or social connections?',
+            options: ['Fear of being judged or not being interesting enough', 'Maintaining long-term friendships and staying connected', 'Making new friends as an adult', 'Social anxiety in group settings or new environments', 'Moving beyond surface-level to deeper friendships']
+          },
+          {
+            id: 'friendship_goals',
+            question: 'What do you hope to achieve by practicing social skills?',
+            options: ['Build confidence for real-world social interactions', 'Improve my existing friendships and connections', 'Overcome social anxiety and fear of judgment', 'Better understand social cues and dynamics', 'Become a more supportive and caring friend']
+          }
+        ]
+      },
+      Mentorship: {
+        enabled: true,
+        questions: [
+          {
+            id: 'growth_area',
+            question: 'What area do you want to grow in?',
+            options: ['Personal development and self-awareness', 'Professional skills and career', 'Leadership and decision-making', 'Creativity and self-expression', 'Life skills and wisdom']
+          },
+          {
+            id: 'learning_style',
+            question: 'How do you learn best?',
+            options: ['Through guidance and step-by-step advice', 'By exploring ideas together', 'Through challenging questions that make me think', 'With practical examples and stories', 'Through encouragement and motivation']
+          },
+          {
+            id: 'current_challenge',
+            question: 'What\'s your biggest challenge right now?',
+            options: ['Lack of direction or clarity', 'Self-doubt and confidence issues', 'Overwhelm and prioritization', 'Fear of taking risks', 'Need for accountability']
+          },
+          {
+            id: 'mentorship_style',
+            question: 'What mentorship style appeals to you most?',
+            options: ['Gentle guidance and encouragement', 'Direct feedback and honest advice', 'Collaborative problem-solving', 'Inspiring stories and wisdom sharing', 'Structured goal-setting and planning']
+          }
+        ]
       }
-    };
+    }
+};
     
     // ===== CUSTOM NOTIFICATION SYSTEM =====
     function showNotification(type, title, message, buttons = null) {
@@ -11707,8 +11815,8 @@ function openCustomizationModal() {
   const deleteBtn = document.getElementById('deleteCustomBtn');
   const transferSection = document.getElementById('transferSection');
   
-  // Check if this is a user-created character (has Created_By field)
-  const isUserCreated = currentCharacter.Created_by || currentCharacter.created_by || currentCharacter.Created_By;
+  // Check if this is a user-created character (has Created_By field or is customized)
+  const isUserCreated = currentCharacter.Created_by || currentCharacter.created_by || currentCharacter.Created_By || existingCustom;
   
   // Show transfer section only for new customizations
   if (transferSection) {
