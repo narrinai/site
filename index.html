@@ -2339,27 +2339,33 @@ body.has-referral-banner {
   }
 }
 
-    /* Netlify Identity Widget Styling - Maximum Specificity */
-    body .netlify-identity-widget,
-    body .netlify-identity-widget *,
-    body .netlify-identity-widget iframe,
-    body [data-netlify-identity-widget],
-    body [data-netlify-identity-modal],
-    body div[data-netlify-identity-widget],
-    body iframe[src*="netlify"] {
+    /* Netlify Identity Widget - Nuclear Option */
+    .netlify-identity-widget,
+    .netlify-identity-widget *,
+    .netlify-identity-widget iframe,
+    .netlify-identity-widget div,
+    [data-netlify-identity-widget],
+    [data-netlify-identity-modal],
+    div[class*="netlify"],
+    iframe[src*="netlify"],
+    div[style*="position: fixed"][style*="background"] {
       z-index: 2147483647 !important;
-      position: relative !important;
     }
     
-    /* Force modal backdrop above everything */
-    body .netlify-identity-widget > div[style*="position: fixed"],
-    body .netlify-identity-widget > div[data-netlify-identity-modal] {
-      z-index: 2147483647 !important;
+    /* Override header z-index when modal is open */
+    body.modal-open .header {
+      z-index: 100 !important;
+    }
+    
+    /* Force full-screen modal positioning */
+    .netlify-identity-widget > div:first-child {
       position: fixed !important;
       top: 0 !important;
       left: 0 !important;
       right: 0 !important;
       bottom: 0 !important;
+      z-index: 2147483647 !important;
+      background: rgba(0, 0, 0, 0.8) !important;
     }
     
     .netlify-identity-widget input[placeholder="Nickname"]::placeholder {
@@ -3574,6 +3580,36 @@ if (window.netlifyIdentity) {
   window.netlifyIdentity.on('open', () => {
     console.log('🔓 Netlify Identity modal opened');
     
+    // Add modal-open class to body for CSS targeting
+    document.body.classList.add('modal-open');
+    
+    // Add external disclaimer at bottom of screen
+    setTimeout(() => {
+      let disclaimer = document.getElementById('netlify-disclaimer');
+      if (!disclaimer) {
+        disclaimer = document.createElement('div');
+        disclaimer.id = 'netlify-disclaimer';
+        disclaimer.innerHTML = 'By signing up, you agree to our <a href="terms-and-conditions.html" target="_blank" style="color: #14b8a6;">Terms & Conditions</a> and <a href="privacy-policy.html" target="_blank" style="color: #14b8a6;">Privacy Policy</a>';
+        disclaimer.style.cssText = `
+          position: fixed;
+          bottom: 20px;
+          left: 20px;
+          right: 20px;
+          background: white;
+          border: 2px solid #14b8a6;
+          border-radius: 12px;
+          padding: 16px;
+          text-align: center;
+          font-size: 14px;
+          color: #334155;
+          z-index: 2147483648;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+          line-height: 1.4;
+        `;
+        document.body.appendChild(disclaimer);
+      }
+    }, 500);
+    
     // Add signup disclaimer - Multiple methods for reliability
     const addSignupDisclaimer = () => {
       // Method 1: Try to inject into iframe (if accessible)
@@ -3802,6 +3838,19 @@ if (window.netlifyIdentity) {
   window.netlifyIdentity.on('logout', () => {
     clearAuthData();
     updateLoginButton();
+  });
+  
+  window.netlifyIdentity.on('close', () => {
+    console.log('🔒 Netlify Identity modal closed');
+    
+    // Remove modal-open class from body
+    document.body.classList.remove('modal-open');
+    
+    // Remove disclaimer
+    const disclaimer = document.getElementById('netlify-disclaimer');
+    if (disclaimer) {
+      disclaimer.remove();
+    }
   });
   
   // Update bestaande signup event
