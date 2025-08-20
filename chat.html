@@ -11355,7 +11355,22 @@ function isConversationalCategory(category) {
 function getNormalizedCategory(character) {
   if (!character) return '';
   
-  let category = character.Category || character.category || '';
+  let category = character.Category || character.category || character.character_type || '';
+  
+  // Special mapping for common create-character types
+  const typeMapping = {
+    'friendship': 'Friendship',
+    'romance': 'Romance', 
+    'mindfulness': 'Mindfulness',
+    'mentor': 'Mentorship',
+    'mentorship': 'Mentorship'
+  };
+  
+  // First try direct mapping for common types
+  if (typeMapping[category.toLowerCase()]) {
+    console.log('🔗 Mapped category via typeMapping:', category, '→', typeMapping[category.toLowerCase()]);
+    return typeMapping[category.toLowerCase()];
+  }
   
   // Normalize category to match onboardingQuestions keys
   if (category && window.onboardingQuestions) {
@@ -11363,6 +11378,7 @@ function getNormalizedCategory(character) {
     const exactMatch = categoryKeys.find(key => key.toLowerCase() === category.toLowerCase());
     
     if (exactMatch) {
+      console.log('🔗 Found exact category match:', category, '→', exactMatch);
       return exactMatch;
     }
     
@@ -11373,10 +11389,12 @@ function getNormalizedCategory(character) {
     );
     
     if (partialMatch) {
+      console.log('🔗 Found partial category match:', category, '→', partialMatch);
       return partialMatch;
     }
   }
   
+  console.log('⚠️ No category match found for:', category);
   return category;
 }
 
@@ -11562,14 +11580,22 @@ function displayMemoryHubContent(answers) {
       let displayAnswer = answer;
       
       // For options type, find the label from the options array
-      if (question.type === 'options' && question.options) {
-        const option = question.options.find(opt => opt.value === answer);
-        if (option) {
-          // Show full label text (keep emoji if present)
-          displayAnswer = option.label;
-        } else {
-          // If option not found, show the raw answer
-          displayAnswer = answer;
+      if (question.options) {
+        // Handle both old format (array of strings) and new format (array of objects)
+        if (Array.isArray(question.options)) {
+          if (typeof question.options[0] === 'string') {
+            // Old format - options are just strings, answer is the full text
+            const optionIndex = question.options.indexOf(answer);
+            displayAnswer = optionIndex >= 0 ? answer : answer;
+          } else if (question.options[0] && typeof question.options[0] === 'object') {
+            // New format - options are {value, label} objects
+            const option = question.options.find(opt => opt.value === answer);
+            if (option) {
+              displayAnswer = option.label;
+            } else {
+              displayAnswer = answer;
+            }
+          }
         }
       }
       // For text input, show the full text
