@@ -3844,6 +3844,18 @@ Always respond as ${name} would, with the wisdom and compassion of a mindful gui
      const characterType = document.getElementById('characterType').value;
      const extraInstructions = document.getElementById('extraInstructions').value;
      
+     // Update character title based on type
+     const titleMapping = {
+       'friendship': 'Friendship Companion',
+       'mentor': 'Mentorship Companion', 
+       'romance': 'Romance Companion',
+       'mindfulness': 'Mindfulness Companion'
+     };
+     const titleField = document.getElementById('characterTitle');
+     if (titleField && characterType && titleMapping[characterType]) {
+       titleField.value = titleMapping[characterType];
+     }
+     
      // Get base prompt for the selected type
      let prompt = getBasePromptForType(characterType, name);
      
