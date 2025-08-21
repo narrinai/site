@@ -1889,135 +1889,13 @@ line-clamp: 3;
       <p>Continue your conversations with AI companions</p>
     </div>
 
-    <!-- Companion Status Counter -->
-    <div class="companion-status-counter" id="companionStatusCounter" style="
-      background: white;
-      border-radius: 12px;
-      padding: 12px 16px;
+    <!-- Free Plan Status -->
+    <div class="free-plan-status" id="freePlanStatus" style="
+      display: flex;
+      justify-content: center;
       margin-bottom: 20px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      display: none !important;
     ">
-      <style>
-        @media (min-width: 769px) {
-          .companion-status-counter {
-            display: flex !important;
-            align-items: center;
-            justify-content: center;
-            gap: 24px;
-          }
-          .status-divider {
-            width: 1px;
-            height: 36px;
-            background: #e5e7eb;
-          }
-          .status-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-          }
-          .status-box {
-            width: 42px;
-            height: 42px;
-            font-size: 18px;
-          }
-        }
-        
-        @media (max-width: 768px) {
-          .companion-status-counter {
-            display: grid !important;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            padding: 12px !important;
-          }
-          .status-divider {
-            display: none !important;
-          }
-          .status-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            gap: 6px;
-          }
-          .status-box {
-            width: 36px;
-            height: 36px;
-            font-size: 16px;
-            border-radius: 10px !important;
-          }
-          .status-label {
-            font-size: 11px !important;
-            line-height: 1.2;
-          }
-          .status-type {
-            font-size: 13px !important;
-            line-height: 1.2;
-          }
-          #planLimitInfo {
-            grid-column: 1 / -1;
-            margin: 0 !important;
-            padding: 6px 12px !important;
-            font-size: 12px !important;
-            text-align: center;
-          }
-        }
-      </style>
-      
-      <div class="status-item">
-        <div class="status-box" style="
-          background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%);
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: white;
-          font-weight: 700;
-        " id="activeCount">0</div>
-        <div>
-          <div class="status-label" style="font-size: 13px; color: #64748b;">Active</div>
-          <div class="status-type" style="font-size: 14px; font-weight: 600; color: #0f172a;">Companions</div>
-        </div>
-      </div>
-      
-      <div class="status-divider"></div>
-      
-      <div class="status-item">
-        <div class="status-box" style="
-          background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: white;
-          font-weight: 700;
-        " id="pausedCount">0</div>
-        <div>
-          <div class="status-label" style="font-size: 13px; color: #64748b;">Paused</div>
-          <div class="status-type" style="font-size: 14px; font-weight: 600; color: #0f172a;">Companions</div>
-        </div>
-      </div>
-      
-      <div class="status-divider"></div>
-      
-      <div class="status-item">
-        <div class="status-box" style="
-          background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%);
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: white;
-          font-weight: 700;
-        " id="totalCount">0</div>
-        <div>
-          <div class="status-label" style="font-size: 13px; color: #64748b;">Total</div>
-          <div class="status-type" style="font-size: 14px; font-weight: 600; color: #0f172a;">Companions</div>
-        </div>
-      </div>
-      
       <a href="profile.html#plans" id="planLimitInfo" style="
-        margin-left: auto;
         padding: 8px 16px;
         background: linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, rgba(249, 115, 22, 0.1) 100%);
         border-radius: 8px;
@@ -2027,7 +1905,9 @@ line-clamp: 3;
         text-decoration: none;
         transition: all 0.3s;
         cursor: pointer;
-      " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(20, 184, 166, 0.2)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'"></a>
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        background: white;
+      " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(20, 184, 166, 0.2)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.08)'"></a>
     </div>
 
     <!-- Loading State -->
@@ -3522,43 +3402,46 @@ function extractAvatarUrl(chat) {
       }
     }
 
-    // Update companion status counter
+    // Update free plan status
     function updateCompanionStatusCounter(chatsToCount = userChats) {
-      const counter = document.getElementById('companionStatusCounter');
-      if (!counter) return;
+      const planLimitInfo = document.getElementById('planLimitInfo');
+      if (!planLimitInfo) return;
       
-      // Count active and paused companions from filtered list
+      // Count active companions from filtered list
       const activeCompanions = chatsToCount.filter(chat => !chat.isPaused);
-      const pausedCompanions = chatsToCount.filter(chat => chat.isPaused);
-      const totalCompanions = chatsToCount.length;
-      
-      // Update counts
-      document.getElementById('activeCount').textContent = activeCompanions.length;
-      document.getElementById('pausedCount').textContent = pausedCompanions.length;
-      document.getElementById('totalCount').textContent = totalCompanions;
       
       // Get user plan and show limit info
       const userPlan = localStorage.getItem('user_plan') || 'Free';
-      const planLimitInfo = document.getElementById('planLimitInfo');
       
       if (userPlan === 'Free') {
         planLimitInfo.innerHTML = `Free Plan: ${activeCompanions.length}/3 active`;
+        // Reset styles first
+        planLimitInfo.style.background = 'white';
+        planLimitInfo.style.color = '#0f172a';
+        // Apply warning styles if at limit
         if (activeCompanions.length >= 3) {
           planLimitInfo.style.background = 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(249, 115, 22, 0.1) 100%)';
           planLimitInfo.style.color = '#dc2626';
         }
       } else if (userPlan === 'Engage') {
         planLimitInfo.innerHTML = `Engage Plan: ${activeCompanions.length}/5 active`;
+        planLimitInfo.style.background = 'white';
+        planLimitInfo.style.color = '#0f172a';
         if (activeCompanions.length >= 5) {
           planLimitInfo.style.background = 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(249, 115, 22, 0.1) 100%)';
           planLimitInfo.style.color = '#dc2626';
         }
       } else {
         planLimitInfo.innerHTML = 'Immerse Plan: Unlimited';
+        planLimitInfo.style.background = 'white';
+        planLimitInfo.style.color = '#0f172a';
       }
       
-      // Show the counter
-      counter.style.display = 'flex';
+      // Show the free plan status
+      const freePlanStatus = document.getElementById('freePlanStatus');
+      if (freePlanStatus) {
+        freePlanStatus.style.display = 'flex';
+      }
     }
 
     // UI State Functions
