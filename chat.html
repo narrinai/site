@@ -1304,32 +1304,37 @@
     /* Conversation Topics Styles */
     .conversation-topics {
       background: var(--color-white);
-      padding: var(--spacing-lg) var(--spacing-xl);
-      border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+      padding: var(--spacing-md) var(--spacing-lg);
+      border-radius: var(--radius-md);
       max-width: 900px;
-      margin: -2px auto 0 auto;  /* Negative margin to overlap borders */
+      margin: var(--spacing-sm) auto 0 auto;
       box-shadow: var(--shadow-sm);
       border: 2px solid var(--color-light-gray);
-      border-top: 2px solid var(--color-light-gray);  /* Keep consistent border */
       transition: all 300ms ease-out;
     }
     
     @media (max-width: 768px) {
       .conversation-topics {
         margin: 0 auto;
-        padding: var(--spacing-md);
+        padding: var(--spacing-sm);
         border-radius: var(--radius-md);
         background: var(--color-white);
         border: 2px solid var(--color-light-gray);
         box-shadow: var(--shadow-sm);
       }
       
-      /* Ensure no spacing from desktop action buttons */
+      /* Force zero spacing for all elements between disclaimer and topics */
       .desktop-action-buttons {
         display: none !important;
         margin: 0 !important;
         padding: 0 !important;
         height: 0 !important;
+      }
+      
+      /* Force conversation topics to appear right after disclaimer */
+      .conversation-topics {
+        margin-top: var(--spacing-xs) !important;
+        margin-bottom: var(--spacing-sm) !important;
       }
       
       /* Reduce chat section bottom padding on mobile */
@@ -12961,17 +12966,20 @@ function setupCommunicationStyle() {
     });
   });
   
-  // Bonding approach buttons
-  const bondingButtons = document.querySelectorAll('#bondingApproach .personality-button');
-  bondingButtons.forEach(button => {
-    button.addEventListener('click', (e) => {
-      e.preventDefault();
-      const bonding = button.getAttribute('data-bonding');
-      toggleArraySelection(personalityState.bonding, bonding, 2, button, 'bondingCounter', 'approaches');
-      updateBondingCounter();
-      generatePrompt();
+  // Bonding approach buttons (only if element exists)
+  const bondingContainer = document.getElementById('bondingApproach');
+  if (bondingContainer) {
+    const bondingButtons = bondingContainer.querySelectorAll('.personality-button');
+    bondingButtons.forEach(button => {
+      button.addEventListener('click', (e) => {
+        e.preventDefault();
+        const bonding = button.getAttribute('data-bonding');
+        toggleArraySelection(personalityState.bonding, bonding, 2, button, 'bondingCounter', 'approaches');
+        updateBondingCounter();
+        generatePrompt();
+      });
     });
-  });
+  }
   
   // Personality quirks buttons
   const quirkButtons = document.querySelectorAll('#personalityQuirks .personality-button');
