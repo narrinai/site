@@ -3725,64 +3725,7 @@ async function checkTrialStatus(email, uid) {
   }
 }
 
-  event?.preventDefault();
-  event?.stopPropagation();
-  
-  console.log('🗑️ Delete companion requested:', { companionSlug, companionName });
-  
-  // Confirmation dialog
-  if (!confirm(`Are you sure you want to permanently delete "${companionName}"?\n\nThe character will be removed from your companions list.\nChat history will be preserved for your records.`)) {
-    console.log('❌ Delete cancelled by user');
-    return;
-  }
-  
-  try {
-    console.log('📤 Sending delete request to Make.com...');
-    
-    const response = await fetch('/.netlify/functions/delete-companion', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        user_uid: localStorage.getItem('user_uid'),
-        companion_slug: companionSlug
-      })
-    });
-    
-    console.log('📥 Delete response status:', response.status);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-    
-    const result = await response.json();
-    console.log('✅ Delete response:', result);
-    
-    if (result.success) {
-      showNotification('success', 'Companion Deleted', 
-        `${companionName} has been removed from your companions.`);
-      
-      // Remove from local storage if exists
-      const customizedCharacters = JSON.parse(localStorage.getItem('customizedCharacters') || '{}');
-      if (customizedCharacters[companionSlug]) {
-        delete customizedCharacters[companionSlug];
-        localStorage.setItem('customizedCharacters', JSON.stringify(customizedCharacters));
-        console.log('🧹 Removed from localStorage customizedCharacters');
-      }
-      
-      // Reload page to refresh companions list
-      setTimeout(() => {
-        console.log('🔄 Reloading page to refresh companions list');
-        window.location.reload();
-      }, 2000);
-    } else {
-      throw new Error(result.error || 'Unknown error occurred');
-    }
-  } catch (error) {
-    console.error('❌ Delete companion error:', error);
-    showNotification('error', 'Delete Failed', 
-      `Failed to delete ${companionName}. ${error.message}`);
-  }
-}
+// ===== DELETE COMPANION FUNCTIONALITY (CLEANED UP) =====
 
   </script>
 
