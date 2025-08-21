@@ -6084,6 +6084,7 @@ async function loadProfile() {
     
     // Try multiple possible field names for trial end date
     const possibleEndDateFields = [
+      'cancel_at',          // This field exists in the response
       'grace_period_end',
       'Grace_Period_End', 
       'GracePeriodEnd',
@@ -6120,9 +6121,22 @@ async function loadProfile() {
         console.log('🔍 Available fields in Airtable data:', Object.keys(data || {}));
         console.log('🔍 Trying each field individually:');
         Object.keys(data || {}).forEach(key => {
-          console.log(`  ${key}: ${data[key]} (type: ${typeof data[key]})`);
+          const value = data[key];
+          const isDateLike = typeof value === 'string' && (value.includes('/') || value.includes('-') || value.includes('T'));
+          console.log(`  ${key}: ${value} (type: ${typeof value}) ${isDateLike ? '📅 DATE-LIKE' : ''}`);
         });
         console.log('🔍 Field we need should contain date like "8/26/2025 15:36"');
+        
+        // Try to use cancel_at if it looks like a date
+        if (data.cancel_at && typeof data.cancel_at === 'string') {
+          console.log('🔄 Attempting to use cancel_at as trial end date:', data.cancel_at);
+          localStorage.setItem('trial_end_date', data.cancel_at);
+          
+          // Update trial status display
+          setTimeout(() => {
+            updateTrialStatus();
+          }, 100);
+        }
       }
     }
     
