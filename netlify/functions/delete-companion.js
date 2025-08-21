@@ -26,11 +26,13 @@ exports.handler = async (event, context) => {
 
   try {
     console.log('🗑️ Delete companion request received');
+    console.log('📥 Raw request body:', event.body);
     
     const requestBody = JSON.parse(event.body);
     const { user_uid, slug } = requestBody;
 
     console.log('📤 Delete request for:', { user_uid, slug });
+    console.log('📤 Full request body parsed:', requestBody);
 
     if (!user_uid || !slug) {
       return {
@@ -58,20 +60,33 @@ exports.handler = async (event, context) => {
 
     console.log('📥 Make.com response status:', makeResponse.status, makeResponse.statusText);
 
+    // Get response text for debugging
+    const makeResponseText = await makeResponse.text();
+    console.log('📥 Raw Make.com response:', makeResponseText);
+
     if (!makeResponse.ok) {
       console.error('❌ Make.com webhook failed:', makeResponse.status, makeResponse.statusText);
+      console.error('❌ Make.com response body:', makeResponseText);
       return {
         statusCode: 500,
         headers,
         body: JSON.stringify({ 
           success: false,
-          error: 'Failed to process delete request' 
+          error: `Make.com error: ${makeResponse.status} - ${makeResponseText}` 
         })
       };
     }
 
-    const makeResult = await makeResponse.json();
-    console.log('✅ Make.com response:', makeResult);
+    let makeResult;
+    try {
+      makeResult = JSON.parse(makeResponseText);
+      console.log('✅ Parsed Make.com response:', makeResult);
+    } catch (parseError) {
+      console.error('❌ Failed to parse Make.com response:', parseError);
+      console.error('❌ Raw Make.com response was:', makeResponseText);
+      // Return success anyway since Make.com might not return JSON
+      makeResult = { success: true, message: 'Processed by Make.com' };
+    }
 
     return {
       statusCode: 200,
