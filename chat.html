@@ -1262,9 +1262,9 @@
 
     .topic-buttons {
       display: flex;
-      flex-wrap: wrap;
-      gap: var(--spacing-sm);
-      justify-content: center;
+      flex-direction: column;
+      gap: 0;
+      align-items: stretch;
     }
 
     .topic-btn {
@@ -1283,6 +1283,28 @@
       display: inline-block;
       line-height: 1.4;
       box-shadow: none;
+      margin-bottom: var(--spacing-xs);
+      width: 100%;
+    }
+    
+    .topic-btn.main-topic {
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      font-weight: 600;
+      font-size: var(--font-size-base);
+      padding: var(--spacing-md) var(--spacing-lg);
+      margin-bottom: var(--spacing-sm);
+    }
+    
+    .topic-btn.subtopic {
+      background: var(--color-white);
+      color: var(--color-navy);
+      border: 2px solid var(--color-light-gray);
+      font-weight: 400;
+      font-size: var(--font-size-sm);
+      padding: var(--spacing-sm) var(--spacing-md);
+      margin-left: var(--spacing-lg);
+      margin-bottom: var(--spacing-xs);
     }
 
     .topic-btn:hover {
@@ -1291,6 +1313,14 @@
       border-color: transparent;
       transform: translateY(-4px);
       box-shadow: var(--shadow-xl);
+    }
+    
+    .topic-btn.subtopic:hover {
+      border-color: var(--color-teal);
+      background: var(--color-off-white);
+      color: var(--color-navy);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
     }
 
     .topic-btn:active {
@@ -4887,7 +4917,7 @@
         <div class="conversation-topics" id="conversationTopics" style="display: none;">
           <div class="topics-header">
             <button class="topics-toggle" id="topicsToggle" onclick="toggleConversationTopics()">
-              <span id="topicsTitle">💬  Conversation ideas</span>
+              <span id="topicsTitle">🤝  What can I help with?</span>
               <svg class="topics-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
@@ -5339,40 +5369,54 @@
         enabled: true,
         questions: [
           {
-            id: 'friendship_style',
-            question: 'What kind of friend are you looking for?',
-            options: ['Someone to chat about everyday life', 'A close confidant for deep conversations', 'A fun companion for adventures and humor', 'Someone supportive during tough times', 'A friend to explore new interests with']
+            id: 'thinking_style',
+            question: 'How do you typically process your daily thoughts?',
+            options: ['I tend to overthink and spiral', 'I ramble and jump between ideas', 'I keep most thoughts to myself', 'I need to talk things through out loud', 'I prefer organized, step-by-step thinking']
           },
           {
-            id: 'communication_preference',
-            question: 'How do you prefer to communicate with friends?',
-            options: ['Daily casual check-ins', 'Deep meaningful conversations', 'Sharing funny stories and memes', 'Talking through problems together', 'Encouraging each other\'s goals']
+            id: 'processing_preference',
+            question: 'When your mind feels cluttered, what helps most?',
+            options: ['Just having someone listen while I talk it out', 'Getting gentle questions to help me think clearer', 'Having someone reflect back what I said more clearly', 'Breaking overwhelming thoughts into smaller pieces', 'Finding patterns in my daily experiences']
           },
           {
-            id: 'friendship_needs',
-            question: 'What do you need most from a friendship right now?',
-            options: ['Someone to listen without judgment', 'Companionship and feeling less alone', 'Fun and laughter in daily life', 'Emotional support and understanding', 'Shared interests and activities']
+            id: 'daily_challenges',
+            question: 'What makes your thoughts feel most scattered?',
+            options: ['Too many decisions to make each day', 'Replaying conversations or situations', 'Worrying about things I can\'t control', 'Feeling overwhelmed by daily responsibilities', 'Not knowing what I actually want or need']
           },
           {
-            id: 'personality_match',
-            question: 'What personality type do you connect with best?',
-            options: ['Warm and empathetic', 'Upbeat and energetic', 'Calm and thoughtful', 'Adventurous and spontaneous', 'Wise and mature']
+            id: 'clarity_goals',
+            question: 'What would mental clarity look like for you?',
+            options: ['Being able to fall asleep without my mind racing', 'Making decisions without endless second-guessing', 'Knowing what actually matters vs what\'s just noise', 'Feeling organized and in control of my thoughts', 'Understanding my own patterns and reactions better']
           }
         ],
         contextMappings: {
-          friendship_style: {
-            'Someone to chat about everyday life': 'casual everyday companionship',
-            'A close confidant for deep conversations': 'deep meaningful friendship',
-            'A fun companion for adventures and humor': 'fun and adventurous friendship',
-            'Someone supportive during tough times': 'supportive friendship during challenges',
-            'A friend to explore new interests with': 'friendship focused on shared exploration'
+          thinking_style: {
+            'I tend to overthink and spiral': 'tend to overthink and spiral with thoughts',
+            'I ramble and jump between ideas': 'process thoughts by rambling and jumping between ideas',
+            'I keep most thoughts to myself': 'keep most thoughts internal',
+            'I need to talk things through out loud': 'need to talk through thoughts out loud',
+            'I prefer organized, step-by-step thinking': 'prefer organized, step-by-step thought processing'
           },
-          communication_preference: {
-            'Daily casual check-ins': 'daily casual conversations',
-            'Deep meaningful conversations': 'deep meaningful discussions',
-            'Sharing funny stories and memes': 'humor and light-hearted sharing',
-            'Talking through problems together': 'problem-solving conversations',
-            'Encouraging each other\'s goals': 'mutual encouragement and support'
+          processing_preference: {
+            'Just having someone listen while I talk it out': 'benefit from having someone listen while talking things out',
+            'Getting gentle questions to help me think clearer': 'need gentle questions to achieve clearer thinking',
+            'Having someone reflect back what I said more clearly': 'find clarity when thoughts are reflected back more clearly',
+            'Breaking overwhelming thoughts into smaller pieces': 'need help breaking overwhelming thoughts into manageable pieces',
+            'Finding patterns in my daily experiences': 'benefit from identifying patterns in daily experiences'
+          },
+          daily_challenges: {
+            'Too many decisions to make each day': 'feel overwhelmed by daily decisions',
+            'Replaying conversations or situations': 'tend to replay conversations and situations',
+            'Worrying about things I can\'t control': 'worry about uncontrollable things',
+            'Feeling overwhelmed by daily responsibilities': 'feel mentally scattered by daily responsibilities',
+            'Not knowing what I actually want or need': 'struggle with clarity about personal wants and needs'
+          },
+          clarity_goals: {
+            'Being able to fall asleep without my mind racing': 'want to quiet racing thoughts at bedtime',
+            'Making decisions without endless second-guessing': 'want to make decisions with confidence',
+            'Knowing what actually matters vs what\'s just noise': 'want to distinguish important thoughts from mental noise',
+            'Feeling organized and in control of my thoughts': 'want organized, controlled thinking',
+            'Understanding my own patterns and reactions better': 'want better understanding of personal thought patterns'
           }
         }
       },
@@ -5380,40 +5424,54 @@
         enabled: true,
         questions: [
           {
-            id: 'growth_area',
-            question: 'What area do you want to grow in?',
-            options: ['Personal development and self-awareness', 'Professional skills and career', 'Leadership and decision-making', 'Creativity and self-expression', 'Life skills and wisdom']
+            id: 'thinking_challenges',
+            question: 'What gets in the way of your clearest thinking?',
+            options: ['I get stuck analyzing the same problems over and over', 'I have too many goals and can\'t prioritize', 'I second-guess myself constantly', 'I feel paralyzed by having too many options', 'I struggle to see the bigger picture']
           },
           {
-            id: 'learning_style',
-            question: 'How do you learn best?',
-            options: ['Through guidance and step-by-step advice', 'By exploring ideas together', 'Through challenging questions that make me think', 'With practical examples and stories', 'Through encouragement and motivation']
+            id: 'decision_style',
+            question: 'How do you typically approach big decisions?',
+            options: ['I research endlessly but struggle to choose', 'I make quick decisions then worry I was wrong', 'I ask everyone for advice and get more confused', 'I avoid deciding until I absolutely have to', 'I make pro/con lists but still feel uncertain']
           },
           {
-            id: 'current_challenge',
-            question: 'What\'s your biggest challenge right now?',
-            options: ['Lack of direction or clarity', 'Self-doubt and confidence issues', 'Overwhelm and prioritization', 'Fear of taking risks', 'Need for accountability']
+            id: 'mental_organization',
+            question: 'What would help you think more systematically?',
+            options: ['Breaking complex situations into clear steps', 'Having frameworks to organize different types of problems', 'Learning to separate emotions from facts', 'Getting better at seeing long-term consequences', 'Developing systems to track my thoughts and insights']
           },
           {
-            id: 'mentorship_style',
-            question: 'What mentorship style appeals to you most?',
-            options: ['Gentle guidance and encouragement', 'Direct feedback and honest advice', 'Collaborative problem-solving', 'Inspiring stories and wisdom sharing', 'Structured goal-setting and planning']
+            id: 'goal_clarity',
+            question: 'When you think about your goals, what happens?',
+            options: ['I have too many and can\'t focus on what matters most', 'They feel overwhelming so I avoid thinking about them', 'I change my mind about what I want too often', 'I know what I want but can\'t figure out how to get there', 'I\'m not even sure what I really want']
           }
         ],
         contextMappings: {
-          growth_area: {
-            'Personal development and self-awareness': 'personal development',
-            'Professional skills and career': 'professional growth',
-            'Leadership and decision-making': 'leadership development',
-            'Creativity and self-expression': 'creative expression',
-            'Life skills and wisdom': 'life wisdom and skills'
+          thinking_challenges: {
+            'I get stuck analyzing the same problems over and over': 'tend to get stuck in repetitive analysis loops',
+            'I have too many goals and can\'t prioritize': 'struggle with prioritizing among multiple goals',
+            'I second-guess myself constantly': 'frequently second-guess decisions and thoughts',
+            'I feel paralyzed by having too many options': 'feel paralyzed when facing multiple options',
+            'I struggle to see the bigger picture': 'have difficulty seeing broader perspectives'
           },
-          learning_style: {
-            'Through guidance and step-by-step advice': 'structured guidance',
-            'By exploring ideas together': 'collaborative exploration',
-            'Through challenging questions that make me think': 'thought-provoking discussions',
-            'With practical examples and stories': 'story-based learning',
-            'Through encouragement and motivation': 'motivational support'
+          decision_style: {
+            'I research endlessly but struggle to choose': 'research extensively but struggle with final decisions',
+            'I make quick decisions then worry I was wrong': 'make quick decisions followed by worry and doubt',
+            'I ask everyone for advice and get more confused': 'seek multiple opinions which creates more confusion',
+            'I avoid deciding until I absolutely have to': 'tend to delay decisions until forced to choose',
+            'I make pro/con lists but still feel uncertain': 'use analytical tools but still feel uncertain'
+          },
+          mental_organization: {
+            'Breaking complex situations into clear steps': 'benefit from breaking complex situations into clear steps',
+            'Having frameworks to organize different types of problems': 'need frameworks for organizing different problem types',
+            'Learning to separate emotions from facts': 'want to better separate emotions from factual analysis',
+            'Getting better at seeing long-term consequences': 'need help understanding long-term consequences',
+            'Developing systems to track my thoughts and insights': 'want systems for tracking thoughts and insights'
+          },
+          goal_clarity: {
+            'I have too many and can\'t focus on what matters most': 'have too many goals and struggle with focus',
+            'They feel overwhelming so I avoid thinking about them': 'find goals overwhelming and avoid thinking about them',
+            'I change my mind about what I want too often': 'frequently change mind about desired goals',
+            'I know what I want but can\'t figure out how to get there': 'know goals but struggle with implementation paths',
+            'I\'m not even sure what I really want': 'lack clarity about true desires and goals'
           }
         }
       },
@@ -5421,40 +5479,54 @@
         enabled: true,
         questions: [
           {
-            id: 'connection_type',
-            question: 'What kind of romantic connection are you seeking?',
-            options: ['Sweet and tender moments', 'Playful and flirty interactions', 'Deep emotional intimacy', 'Romantic adventures and experiences', 'Supportive partnership']
+            id: 'emotional_confusion',
+            question: 'When it comes to relationships and emotions, what happens in your head?',
+            options: ['I overthink every interaction and text message', 'I have conflicting feelings I can\'t make sense of', 'I feel overwhelmed by relationship decisions', 'I replay romantic conversations obsessively', 'I don\'t know what I actually want in love']
           },
           {
-            id: 'communication_style',
-            question: 'How do you like to express affection?',
-            options: ['Through thoughtful words and compliments', 'With playful teasing and humor', 'Through deep emotional sharing', 'By planning special moments together', 'With consistent care and attention']
+            id: 'relationship_thoughts',
+            question: 'How do you typically process romantic situations?',
+            options: ['I analyze everything endlessly but still feel confused', 'I have intense emotions but can\'t organize them clearly', 'I need to talk through my feelings to understand them', 'I keep romantic thoughts mostly to myself', 'I jump between different interpretations of the same situation']
           },
           {
-            id: 'relationship_pace',
-            question: 'What pace feels right for building connection?',
-            options: ['Slow and steady emotional building', 'Natural and spontaneous development', 'Intense and passionate connection', 'Gentle and nurturing growth', 'Balanced with respect for boundaries']
+            id: 'emotional_patterns',
+            question: 'What relationship patterns do you notice in yourself?',
+            options: ['I second-guess my feelings constantly', 'I get stuck replaying past relationship moments', 'I worry about saying or doing the wrong thing', 'I have trouble identifying what I actually feel', 'I get overwhelmed by the complexity of emotions']
           },
           {
-            id: 'romantic_style',
-            question: 'What romantic style resonates with you?',
-            options: ['Classic romance with traditional gestures', 'Modern and casual with genuine connection', 'Passionate and intense emotional bond', 'Sweet and caring partnership', 'Adventurous with shared experiences']
+            id: 'clarity_needs',
+            question: 'What would emotional clarity in relationships look like for you?',
+            options: ['Understanding my own feelings without confusion', 'Being able to communicate my emotions clearly', 'Making relationship decisions with confidence', 'Stopping the endless romantic overthinking', 'Knowing what kind of love I actually want']
           }
         ],
         contextMappings: {
-          connection_type: {
-            'Sweet and tender moments': 'sweet tender connection',
-            'Playful and flirty interactions': 'playful romantic dynamic',
-            'Deep emotional intimacy': 'deep emotional romance',
-            'Romantic adventures and experiences': 'adventurous romance',
-            'Supportive partnership': 'supportive romantic partnership'
+          emotional_confusion: {
+            'I overthink every interaction and text message': 'tend to overthink romantic interactions and communications',
+            'I have conflicting feelings I can\'t make sense of': 'experience conflicting romantic feelings that need organizing',
+            'I feel overwhelmed by relationship decisions': 'feel overwhelmed when making relationship decisions',
+            'I replay romantic conversations obsessively': 'replay romantic conversations and interactions obsessively',
+            'I don\'t know what I actually want in love': 'struggle with clarity about romantic desires and needs'
           },
-          communication_style: {
-            'Through thoughtful words and compliments': 'thoughtful verbal affection',
-            'With playful teasing and humor': 'playful romantic communication',
-            'Through deep emotional sharing': 'deep emotional expression',
-            'By planning special moments together': 'romantic gesture planning',
-            'With consistent care and attention': 'consistent caring attention'
+          relationship_thoughts: {
+            'I analyze everything endlessly but still feel confused': 'analyze romantic situations endlessly while remaining confused',
+            'I have intense emotions but can\'t organize them clearly': 'experience intense romantic emotions that need organizing',
+            'I need to talk through my feelings to understand them': 'need to verbally process romantic feelings for clarity',
+            'I keep romantic thoughts mostly to myself': 'tend to internalize romantic thoughts and feelings',
+            'I jump between different interpretations of the same situation': 'jump between multiple interpretations of romantic situations'
+          },
+          emotional_patterns: {
+            'I second-guess my feelings constantly': 'frequently second-guess romantic feelings and reactions',
+            'I get stuck replaying past relationship moments': 'get mentally stuck replaying past romantic experiences',
+            'I worry about saying or doing the wrong thing': 'worry extensively about romantic mistakes and missteps',
+            'I have trouble identifying what I actually feel': 'struggle to identify and name actual romantic feelings',
+            'I get overwhelmed by the complexity of emotions': 'feel overwhelmed by complex romantic emotional landscapes'
+          },
+          clarity_needs: {
+            'Understanding my own feelings without confusion': 'want clear understanding of personal romantic feelings',
+            'Being able to communicate my emotions clearly': 'want to communicate romantic emotions with clarity',
+            'Making relationship decisions with confidence': 'want confident decision-making in romantic situations',
+            'Stopping the endless romantic overthinking': 'want to reduce excessive romantic rumination and overthinking',
+            'Knowing what kind of love I actually want': 'want clarity about desired romantic relationship style and needs'
           }
         }
       },
@@ -5462,40 +5534,54 @@
         enabled: true,
         questions: [
           {
-            id: 'mindfulness_goal',
-            question: 'What draws you to mindfulness?',
-            options: ['Reducing stress and anxiety', 'Finding inner peace and calm', 'Developing self-awareness', 'Improving focus and clarity', 'Connecting with the present moment']
+            id: 'mental_state',
+            question: 'How would you describe your daily mental landscape?',
+            options: ['My mind races constantly and I can\'t slow down', 'I feel mentally scattered and all over the place', 'I get caught up in worry loops I can\'t escape', 'I feel disconnected from my own thoughts', 'I want to be more aware of my thinking patterns']
           },
           {
-            id: 'current_state',
-            question: 'How would you describe your current mental state?',
-            options: ['Often stressed or overwhelmed', 'Seeking more balance and harmony', 'Curious about deeper self-understanding', 'Wanting to be more present in life', 'Looking for spiritual growth']
+            id: 'thinking_awareness',
+            question: 'When you notice your thoughts, what do you observe?',
+            options: ['I jump rapidly between different concerns', 'I get stuck replaying the same worries', 'I react emotionally before I can think clearly', 'I often don\'t notice my thoughts until they\'ve spiraled', 'I wish I could observe my thoughts without getting swept away']
           },
           {
-            id: 'practice_preference',
-            question: 'What type of mindfulness practice appeals to you?',
-            options: ['Guided meditation and breathing', 'Mindful conversations and reflection', 'Nature-based mindfulness', 'Body awareness and grounding', 'Philosophical and spiritual exploration']
+            id: 'mindful_processing',
+            question: 'What would mindful thought organization look like for you?',
+            options: ['Slowing down enough to actually process my day', 'Creating space between thoughts and reactions', 'Being able to notice thought patterns without judgment', 'Processing experiences calmly instead of frantically', 'Having a peaceful mind that can think clearly']
           },
           {
-            id: 'support_needed',
-            question: 'What support would help your mindfulness journey?',
-            options: ['Gentle reminders to stay present', 'Guidance through difficult emotions', 'Encouragement to maintain practice', 'Wisdom and spiritual insights', 'Practical techniques for daily life']
+            id: 'daily_practice',
+            question: 'How would you like to approach your daily mental processing?',
+            options: ['Through gentle, mindful conversation', 'With moments of calm reflection throughout the day', 'By creating quiet space to organize my thoughts', 'Through awareness practices that bring clarity', 'With patient guidance to develop better thought habits']
           }
         ],
         contextMappings: {
-          mindfulness_goal: {
-            'Reducing stress and anxiety': 'stress reduction through mindfulness',
-            'Finding inner peace and calm': 'seeking inner peace',
-            'Developing self-awareness': 'self-awareness development',
-            'Improving focus and clarity': 'focus and mental clarity',
-            'Connecting with the present moment': 'present moment connection'
+          mental_state: {
+            'My mind races constantly and I can\'t slow down': 'experience a constantly racing mind that needs slowing down',
+            'I feel mentally scattered and all over the place': 'feel mentally scattered and unfocused',
+            'I get caught up in worry loops I can\'t escape': 'get trapped in repetitive worry patterns',
+            'I feel disconnected from my own thoughts': 'feel disconnected from personal thought processes',
+            'I want to be more aware of my thinking patterns': 'want greater awareness of thinking patterns and habits'
           },
-          current_state: {
-            'Often stressed or overwhelmed': 'experiencing stress and overwhelm',
-            'Seeking more balance and harmony': 'seeking life balance',
-            'Curious about deeper self-understanding': 'exploring self-understanding',
-            'Wanting to be more present in life': 'wanting more presence',
-            'Looking for spiritual growth': 'seeking spiritual growth'
+          thinking_awareness: {
+            'I jump rapidly between different concerns': 'tend to jump rapidly between different mental concerns',
+            'I get stuck replaying the same worries': 'get mentally stuck replaying the same worries',
+            'I react emotionally before I can think clearly': 'react emotionally before achieving mental clarity',
+            'I often don\'t notice my thoughts until they\'ve spiraled': 'lack awareness of thoughts until they become overwhelming',
+            'I wish I could observe my thoughts without getting swept away': 'want to observe thoughts with detached awareness'
+          },
+          mindful_processing: {
+            'Slowing down enough to actually process my day': 'need to slow down for proper daily mental processing',
+            'Creating space between thoughts and reactions': 'want space between thoughts and emotional reactions',
+            'Being able to notice thought patterns without judgment': 'want non-judgmental awareness of thought patterns',
+            'Processing experiences calmly instead of frantically': 'want calm rather than frantic experience processing',
+            'Having a peaceful mind that can think clearly': 'want peaceful mental clarity and organized thinking'
+          },
+          daily_practice: {
+            'Through gentle, mindful conversation': 'prefer gentle, mindful conversational processing',
+            'With moments of calm reflection throughout the day': 'want calm reflective moments for thought organization',
+            'By creating quiet space to organize my thoughts': 'need quiet mental space for thought organization',
+            'Through awareness practices that bring clarity': 'want awareness practices that promote mental clarity',
+            'With patient guidance to develop better thought habits': 'need patient guidance for developing healthier thought patterns'
           }
         }
       },
@@ -10125,27 +10211,37 @@ async function generateConversationTopics() {
   // Clear existing topics
   topicButtonsContainer.innerHTML = '';
   
-  // Get memory-based and personalized topics
-  const topics = await getPersonalizedTopics(currentCharacter);
-  currentTopics = topics;
+  // Get structured topics based on companion type
+  const topicsData = getStructuredTopics(currentCharacter);
+  currentTopics = topicsData;
   
   // Update title based on conversation state
   const chatlog = document.getElementById('chatlog');
   if (!chatlog || chatlog.children.length === 0) {
-    topicsTitle.textContent = "💬  Conversation topics";
+    topicsTitle.textContent = "🤝  What can I help with?";
   } else if (conversationMemory.length > 0) {
-    topicsTitle.textContent = "💬  Keep exploring";
+    topicsTitle.textContent = "🤝  What else can I help with?";
   } else {
-    topicsTitle.textContent = "💬  Conversation ideas";
+    topicsTitle.textContent = "🤝  What can I help with?";
   }
   
-  // Create topic buttons
-  topics.forEach((topic, index) => {
-    const button = document.createElement('button');
-    button.className = 'topic-btn';
-    button.textContent = topic;
-    button.onclick = () => handleTopicClick(topic, index);
-    topicButtonsContainer.appendChild(button);
+  // Create structured topic buttons
+  topicsData.forEach((topicGroup, groupIndex) => {
+    // Create main topic button
+    const mainButton = document.createElement('button');
+    mainButton.className = 'topic-btn main-topic';
+    mainButton.textContent = topicGroup.main;
+    mainButton.onclick = () => handleTopicClick(topicGroup.main, `main-${groupIndex}`);
+    topicButtonsContainer.appendChild(mainButton);
+    
+    // Create subtopic buttons
+    topicGroup.subtopics.forEach((subtopic, subIndex) => {
+      const subButton = document.createElement('button');
+      subButton.className = 'topic-btn subtopic';
+      subButton.textContent = subtopic;
+      subButton.onclick = () => handleTopicClick(subtopic, `sub-${groupIndex}-${subIndex}`);
+      topicButtonsContainer.appendChild(subButton);
+    });
   });
   
   // Show topics section
@@ -14630,6 +14726,177 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+// ===== STRUCTURED TOPICS DATA =====
+function getStructuredTopics(character) {
+  const category = character.category || character.Category || 'friendship';
+  const companionType = category.toLowerCase();
+  
+  const topicStructures = {
+    'friendship': [
+      {
+        main: "💭 Help me process today's thoughts",
+        subtopics: [
+          "I'm feeling mentally scattered about everything",
+          "Help me organize what happened today",
+          "My mind is racing - help me slow down",
+          "What patterns do you notice in what I'm saying?",
+          "I can't make sense of these mixed emotions"
+        ]
+      },
+      {
+        main: "🤔 Work through a decision with me",
+        subtopics: [
+          "I'm torn between two options",
+          "Help me see what I'm missing",
+          "What would you do in my situation?",
+          "Challenge my thinking on this choice",
+          "What are the real pros and cons here?"
+        ]
+      },
+      {
+        main: "🔍 Help me understand this situation",
+        subtopics: [
+          "I'm confused about someone's behavior",
+          "This social situation feels complicated",
+          "Help me see this from another perspective",
+          "What am I not understanding here?"
+        ]
+      },
+      {
+        main: "🌱 Check in on my growth",
+        subtopics: [
+          "How have I changed since we started talking?",
+          "What progress do you see in me?",
+          "What patterns have you noticed?",
+          "Help me see my own growth"
+        ]
+      }
+    ],
+    'romance': [
+      {
+        main: "💕 Sort out my romantic feelings",
+        subtopics: [
+          "I'm confused about my feelings for someone",
+          "Help me understand what I really want",
+          "These emotions are all mixed up",
+          "What does my heart actually want here?",
+          "Am I overthinking this romantic situation?"
+        ]
+      },
+      {
+        main: "💔 Process this relationship situation",
+        subtopics: [
+          "Help me understand their behavior",
+          "What are the red flags I'm missing?",
+          "How should I approach this conversation?",
+          "Is this relationship healthy for me?",
+          "What boundaries do I need to set?"
+        ]
+      },
+      {
+        main: "🤷 I'm confused about dating",
+        subtopics: [
+          "Help me understand dating dynamics",
+          "What signals am I missing?",
+          "How do I express interest appropriately?",
+          "What would confidence look like here?"
+        ]
+      },
+      {
+        main: "💞 Help me grow in love",
+        subtopics: [
+          "What have you learned about my romantic patterns?",
+          "How can I be a better partner?",
+          "What does healthy love look like?",
+          "Help me process past relationship lessons"
+        ]
+      }
+    ],
+    'mentorship': [
+      {
+        main: "🎯 Challenge my thinking on this goal",
+        subtopics: [
+          "Am I approaching this the right way?",
+          "What blind spots do I have?",
+          "Help me think bigger about this",
+          "What would success really look like?",
+          "Challenge my assumptions here"
+        ]
+      },
+      {
+        main: "📈 Help me strategize my next steps",
+        subtopics: [
+          "What should I prioritize first?",
+          "Help me break this down into actions",
+          "What obstacles should I prepare for?",
+          "How do I stay motivated through this?",
+          "What would you do in my position?"
+        ]
+      },
+      {
+        main: "🧩 Solve this complex problem",
+        subtopics: [
+          "Help me see this from all angles",
+          "What creative solutions exist?",
+          "What resources am I not considering?",
+          "How can I simplify this complexity?"
+        ]
+      },
+      {
+        main: "💪 Build my confidence",
+        subtopics: [
+          "Help me see my own strengths",
+          "What progress have I made?",
+          "How do I overcome this self-doubt?",
+          "What would confidence sound like here?"
+        ]
+      }
+    ],
+    'mindfulness': [
+      {
+        main: "🧘 Slow down and process mindfully",
+        subtopics: [
+          "I'm feeling overwhelmed and scattered",
+          "Help me find center in this chaos",
+          "Guide me through this difficult emotion",
+          "What am I not paying attention to?",
+          "Help me breathe through this"
+        ]
+      },
+      {
+        main: "🌊 Find clarity in mental chaos",
+        subtopics: [
+          "My thoughts are all over the place",
+          "Help me see what's truly important",
+          "What needs my attention vs what's just noise?",
+          "Guide me to mental stillness",
+          "What is this situation teaching me?"
+        ]
+      },
+      {
+        main: "💆 Calm my racing mind",
+        subtopics: [
+          "I can't stop worrying about this",
+          "Help me let go of what I can't control",
+          "What would peaceful acceptance look like?",
+          "How do I stay present with difficult feelings?"
+        ]
+      },
+      {
+        main: "🌟 Mindful perspective on this",
+        subtopics: [
+          "What would mindful awareness show me?",
+          "How can I approach this with more presence?",
+          "What patterns am I repeating unconsciously?",
+          "Help me see the bigger picture mindfully"
+        ]
+      }
+    ]
+  };
+  
+  return topicStructures[companionType] || topicStructures['friendship'];
+}
+
 // ===== CONVERSATION TOPICS TOGGLE FUNCTIONALITY =====
 function toggleConversationTopics() {
   const topicsToggle = document.getElementById('topicsToggle');
@@ -14642,11 +14909,11 @@ function toggleConversationTopics() {
   if (isExpanded) {
     topicButtons.style.display = 'none';
     topicsToggle.classList.remove('expanded');
-    topicsToggle.setAttribute('aria-label', 'Show conversation topics');
+    topicsToggle.setAttribute('aria-label', 'Show help topics');
   } else {
-    topicButtons.style.display = 'flex';
+    topicButtons.style.display = 'block';
     topicsToggle.classList.add('expanded');
-    topicsToggle.setAttribute('aria-label', 'Hide conversation topics');
+    topicsToggle.setAttribute('aria-label', 'Hide help topics');
   }
 }
 
