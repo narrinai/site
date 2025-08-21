@@ -11733,14 +11733,15 @@ function restartOnboarding() {
     return;
   }
   
-  // Clear existing onboarding data
+  // Close Memory Hub first
+  closeMemoryHub();
+  
+  // Clear existing onboarding data aggressively
   const completionKey = `onboarding_${uid}_${slug}`;
   const shownKey = `onboarding_shown_${uid}_${slug}`;
   
   localStorage.removeItem(completionKey);
   localStorage.removeItem(shownKey);
-  
-  // Also clear possible alternative keys
   localStorage.removeItem(`onboarding_completed_${uid}_${slug}`);
   localStorage.removeItem(`onboarding_data_${uid}_${slug}`);
   
@@ -11749,57 +11750,27 @@ function restartOnboarding() {
   // Set restart flag
   sessionStorage.setItem('restart_onboarding', 'true');
   
-  // Close Memory Hub
-  closeMemoryHub();
-  
-  // Directly trigger the onboarding check and show overlay
+  // Get category and force show onboarding
   const category = currentCharacter?.Category || currentCharacter?.category || '';
-  if (category && window.onboardingQuestions && window.onboardingQuestions[category]) {
-    console.log('🚀 Directly triggering onboarding for category:', category);
+  const normalizedCategory = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
+  
+  if (window.onboardingQuestions && window.onboardingQuestions[normalizedCategory] && window.onboardingQuestions[normalizedCategory].enabled) {
+    console.log('🚀 Directly triggering onboarding for category:', normalizedCategory);
     
     // Set up the current questions
-    currentQuestions = window.onboardingQuestions[category].questions;
+    currentQuestions = window.onboardingQuestions[normalizedCategory].questions;
     
     // Show the onboarding overlay immediately
     showOnboardingOverlay();
   } else {
-    console.warn('⚠️ No onboarding configuration found for category:', category);
-  }
-  
-  // Close Memory Hub
-  closeMemoryHub();
-  
-  // Clear the stored onboarding flag to force it to show again
-  // uid already declared above, reuse existing slug or get from character
-  const slugForClearing = characterSlug || currentCharacter?.slug || currentCharacter?.character_id;
-  
-  if (uid && slugForClearing) {
-    // Clear all onboarding-related localStorage entries (more aggressive clearing)
-    const completionKey = `onboarding_${uid}_${slugForClearing}`;
-    const shownKey = `onboarding_shown_${uid}_${slugForClearing}`;
+    console.warn('⚠️ No onboarding configuration found for category:', normalizedCategory);
+    console.log('📊 Available categories:', Object.keys(window.onboardingQuestions || {}));
     
-    localStorage.removeItem(completionKey);
-    localStorage.removeItem(shownKey);
-    
-    // Also clear possible alternative keys
-    localStorage.removeItem(`onboarding_completed_${uid}_${slugForClearing}`);
-    localStorage.removeItem(`onboarding_data_${uid}_${slugForClearing}`);
-    
-    console.log('✅ Cleared all onboarding data for restart:', { completionKey, shownKey });
-  }
-  
-  // Set restart flag
-  sessionStorage.setItem('restart_onboarding', 'true');
-  
-  // Call checkAndShowOnboarding to restart
-  if (typeof checkAndShowOnboarding === 'function') {
-    checkAndShowOnboarding();
-  } else {
-    console.error('❌ checkAndShowOnboarding function not available');
-    // Fallback: reload page to trigger onboarding
-    setTimeout(() => {
-      window.location.reload();
-    }, 100);
+    // Fallback: try to call checkAndShowOnboarding
+    if (typeof checkAndShowOnboarding === 'function') {
+      const result = checkAndShowOnboarding();
+      console.log('🎯 checkAndShowOnboarding fallback result:', result);
+    }
   }
 }
 
@@ -11812,9 +11783,38 @@ function startOnboardingFromHub() {
   // Force show onboarding by setting restart flag
   sessionStorage.setItem('restart_onboarding', 'true');
   
+  // Clear any existing onboarding completion to force restart
+  const urlParams = new URLSearchParams(window.location.search);
+  const characterSlug = urlParams.get('char');
+  const userId = localStorage.getItem('user_uid') || 'anonymous';
+  
+  if (characterSlug && userId) {
+    const onboardingKey = `onboarding_${userId}_${characterSlug}`;
+    console.log('🔄 Clearing onboarding completion for key:', onboardingKey);
+    localStorage.removeItem(onboardingKey);
+  }
+  
   // Call checkAndShowOnboarding to start
   if (typeof checkAndShowOnboarding === 'function') {
-    checkAndShowOnboarding();
+    const result = checkAndShowOnboarding();
+    console.log('🎯 checkAndShowOnboarding result:', result);
+    
+    if (!result) {
+      console.warn('⚠️ Onboarding was not shown, forcing display...');
+      // Force show the onboarding overlay directly
+      if (typeof showOnboardingOverlay === 'function') {
+        // Set up questions for current character
+        const category = currentCharacter?.Category || currentCharacter?.category || '';
+        const normalizedCategory = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
+        
+        if (window.onboardingQuestions && window.onboardingQuestions[normalizedCategory] && window.onboardingQuestions[normalizedCategory].enabled) {
+          currentQuestions = window.onboardingQuestions[normalizedCategory].questions;
+          showOnboardingOverlay();
+        } else {
+          console.error('❌ No valid onboarding questions found for category:', normalizedCategory);
+        }
+      }
+    }
   } else {
     console.error('❌ checkAndShowOnboarding function not available');
     // Fallback: reload page to trigger onboarding
