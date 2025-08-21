@@ -1316,7 +1316,7 @@
     
     @media (max-width: 768px) {
       .conversation-topics {
-        margin: -15px auto 10px auto;
+        margin: 0 auto;
         padding: var(--spacing-md);
         border-radius: var(--radius-md);
         background: var(--color-white);
@@ -1362,6 +1362,41 @@
       box-shadow: var(--shadow-xl);
     }
 
+    .topics-header {
+      text-align: center;
+      margin-bottom: 0;
+    }
+    
+    .topics-toggle {
+      background: none;
+      border: none;
+      font-size: var(--font-size-base);
+      font-weight: 600;
+      color: var(--color-navy);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-xs);
+      width: 100%;
+      padding: var(--spacing-sm);
+      border-radius: var(--radius-md);
+      transition: all var(--transition-base);
+    }
+    
+    .topics-toggle:hover {
+      background: var(--color-light-gray);
+      color: var(--color-teal);
+    }
+    
+    .topics-arrow {
+      transition: transform var(--transition-base);
+    }
+    
+    .topics-toggle.expanded .topics-arrow {
+      transform: rotate(180deg);
+    }
+    
     .conversation-topics h3 {
       font-size: var(--font-size-lg);
       font-weight: 700;
@@ -5047,8 +5082,15 @@
       
       <!-- Conversation Topics Section (below chat) -->
       <div class="conversation-topics" id="conversationTopics" style="display: none;">
-        <h3 id="topicsTitle">Continue the conversation:</h3>
-        <div class="topic-buttons" id="topicButtons">
+        <div class="topics-header">
+          <button class="topics-toggle" id="topicsToggle" onclick="toggleConversationTopics()">
+            <span id="topicsTitle">💬 Conversation ideas</span>
+            <svg class="topics-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+        <div class="topic-buttons" id="topicButtons" style="display: none;">
           <!-- Dynamically generated topic buttons will appear here -->
         </div>
       </div>
@@ -10259,11 +10301,11 @@ async function generateConversationTopics() {
   // Update title based on conversation state
   const chatlog = document.getElementById('chatlog');
   if (!chatlog || chatlog.children.length === 0) {
-    topicsTitle.textContent = "Conversation topics:";
+    topicsTitle.textContent = "💬 Conversation topics";
   } else if (conversationMemory.length > 0) {
-    topicsTitle.textContent = "Keep exploring:";
+    topicsTitle.textContent = "💬 Keep exploring";
   } else {
-    topicsTitle.textContent = "Continue the conversation:";
+    topicsTitle.textContent = "💬 Conversation ideas";
   }
   
   // Create topic buttons
@@ -14746,6 +14788,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+// ===== CONVERSATION TOPICS TOGGLE FUNCTIONALITY =====
+function toggleConversationTopics() {
+  const topicsToggle = document.getElementById('topicsToggle');
+  const topicButtons = document.getElementById('topicButtons');
+  
+  if (!topicsToggle || !topicButtons) return;
+  
+  const isExpanded = topicButtons.style.display !== 'none';
+  
+  if (isExpanded) {
+    topicButtons.style.display = 'none';
+    topicsToggle.classList.remove('expanded');
+    topicsToggle.setAttribute('aria-label', 'Show conversation topics');
+  } else {
+    topicButtons.style.display = 'flex';
+    topicsToggle.classList.add('expanded');
+    topicsToggle.setAttribute('aria-label', 'Hide conversation topics');
+  }
+}
 
 // ===== USAGE LIMIT CHECK =====
 async function checkUsageLimit() {
