@@ -4255,13 +4255,16 @@
       color: var(--color-navy);
       font-weight: 500;
       display: block;
-      line-height: 1.4;
-      min-height: 48px;
+      line-height: 1.5;
+      min-height: auto;
       width: 100%;
       box-sizing: border-box;
       margin-bottom: 8px;
       white-space: normal;
       word-wrap: break-word;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      hyphens: auto;
     }
     
     @media (min-width: 769px) {
@@ -4341,6 +4344,8 @@
       display: flex;
       justify-content: space-between;
       gap: var(--spacing-md);
+      flex-shrink: 0;
+      margin-top: auto;
     }
     
     @media (min-width: 769px) {
@@ -4393,12 +4398,13 @@
       }
       
       .onboarding-container {
-        max-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+        max-height: calc(100vh - 20px);
         height: auto;
+        min-height: 0;
         border-radius: var(--radius-lg);
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        padding-bottom: env(safe-area-inset-bottom);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
       }
       
       .onboarding-header {
@@ -4416,6 +4422,10 @@
       
       .onboarding-content {
         padding: var(--spacing-md);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        flex: 1;
+        min-height: 0;
       }
       
       .question-title {
@@ -4427,8 +4437,13 @@
       .option-button {
         padding: 12px 16px;
         font-size: var(--font-size-sm);
-        min-height: 48px;
-        line-height: 1.4;
+        min-height: auto;
+        line-height: 1.5;
+        white-space: normal;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        word-break: break-word;
+        height: auto;
       }
       
       .option-emoji {
@@ -4443,6 +4458,12 @@
         word-break: break-word;
         overflow-wrap: break-word;
         hyphens: auto;
+      }
+      
+      .onboarding-footer {
+        padding: 12px var(--spacing-md);
+        flex-shrink: 0;
+        margin-top: auto;
       }
       
       .onboarding-actions {
