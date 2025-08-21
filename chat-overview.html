@@ -945,6 +945,14 @@
       padding: var(--spacing-lg) 0;
     }
 
+    /* Center companions when there are only 1 or 2 */
+    .chats-grid.center-few {
+      justify-content: center;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 400px));
+      max-width: 860px; /* Space for 2 cards plus gap */
+      margin: 0 auto;
+    }
+
     /* ===== GEAVANCEERDE CHAT CARD STYLING ZOALS INDEX.HTML ===== */
     .chat-card {
       background: linear-gradient(145deg,
@@ -2941,6 +2949,13 @@ function extractAvatarUrl(chat) {
         const chatCard = createChatCard(chat);
         chatsGrid.appendChild(chatCard);
       });
+
+      // Add centering class if there are 2 or fewer companions
+      if (sortedChats.length <= 2) {
+        chatsGrid.classList.add('center-few');
+      } else {
+        chatsGrid.classList.remove('center-few');
+      }
     }
 
    function createChatCard(chat) {
