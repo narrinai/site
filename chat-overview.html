@@ -3014,8 +3014,8 @@ function extractAvatarUrl(chat) {
       hideLoading();
       showMainContent();
       
-      // Update companion status counter
-      updateCompanionStatusCounter();
+      // Update companion status counter with filtered chats
+      updateCompanionStatusCounter(filteredChats);
 
       const chatsGrid = document.getElementById('chatsGrid');
       const emptyState = document.getElementById('emptyState');
@@ -3536,14 +3536,14 @@ function extractAvatarUrl(chat) {
     }
 
     // Update companion status counter
-    function updateCompanionStatusCounter() {
+    function updateCompanionStatusCounter(chatsToCount = userChats) {
       const counter = document.getElementById('companionStatusCounter');
       if (!counter) return;
       
-      // Count active and paused companions
-      const activeCompanions = userChats.filter(chat => !chat.isPaused);
-      const pausedCompanions = userChats.filter(chat => chat.isPaused);
-      const totalCompanions = userChats.length;
+      // Count active and paused companions from filtered list
+      const activeCompanions = chatsToCount.filter(chat => !chat.isPaused);
+      const pausedCompanions = chatsToCount.filter(chat => chat.isPaused);
+      const totalCompanions = chatsToCount.length;
       
       // Update counts
       document.getElementById('activeCount').textContent = activeCompanions.length;
@@ -3725,8 +3725,6 @@ async function checkTrialStatus(email, uid) {
   }
 }
 
-// ===== DELETE COMPANION FUNCTIONALITY =====
-async function deleteCompanion(companionSlug, companionName, event) {
   event?.preventDefault();
   event?.stopPropagation();
   

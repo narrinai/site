@@ -28,22 +28,23 @@ exports.handler = async (event, context) => {
     console.log('🗑️ Delete companion request received');
     
     const requestBody = JSON.parse(event.body);
-    const { user_uid, companion_slug } = requestBody;
+    const { user_uid, slug } = requestBody;
 
-    console.log('📤 Delete request for:', { user_uid, companion_slug });
+    console.log('📤 Delete request for:', { user_uid, slug });
 
-    if (!user_uid || !companion_slug) {
+    if (!user_uid || !slug) {
       return {
         statusCode: 400,
         headers,
         body: JSON.stringify({ 
           success: false,
-          error: 'Missing required fields: user_uid and companion_slug' 
+          error: 'Missing required fields: user_uid and slug' 
         })
       };
     }
 
     // Call Make.com webhook
+    console.log('📡 Calling Make.com webhook with payload:', { user_uid, slug });
     const makeResponse = await fetch('https://hook.eu2.make.com/6cjl72gaeopsgoc3gift4jifx1fslyi3', {
       method: 'POST',
       headers: {
@@ -51,9 +52,11 @@ exports.handler = async (event, context) => {
       },
       body: JSON.stringify({
         user_uid: user_uid,
-        companion_slug: companion_slug
+        slug: slug
       })
     });
+
+    console.log('📥 Make.com response status:', makeResponse.status, makeResponse.statusText);
 
     if (!makeResponse.ok) {
       console.error('❌ Make.com webhook failed:', makeResponse.status, makeResponse.statusText);
