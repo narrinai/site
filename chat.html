@@ -11724,6 +11724,48 @@ window.closeMemoryHub = function() {
 function restartOnboarding() {
   console.log('🔄 Restarting onboarding');
   
+  // Get current user and character info
+  const uid = localStorage.getItem('user_uid');
+  const slug = getCharacterSlugFromURL();
+  
+  if (!uid || !slug) {
+    console.error('❌ Missing user ID or character slug for onboarding restart');
+    return;
+  }
+  
+  // Clear existing onboarding data
+  const completionKey = `onboarding_${uid}_${slug}`;
+  const shownKey = `onboarding_shown_${uid}_${slug}`;
+  
+  localStorage.removeItem(completionKey);
+  localStorage.removeItem(shownKey);
+  
+  // Also clear possible alternative keys
+  localStorage.removeItem(`onboarding_completed_${uid}_${slug}`);
+  localStorage.removeItem(`onboarding_data_${uid}_${slug}`);
+  
+  console.log('✅ Cleared all onboarding data for restart:', { completionKey, shownKey });
+  
+  // Set restart flag
+  sessionStorage.setItem('restart_onboarding', 'true');
+  
+  // Close Memory Hub
+  closeMemoryHub();
+  
+  // Directly trigger the onboarding check and show overlay
+  const category = currentCharacter?.Category || currentCharacter?.category || '';
+  if (category && window.onboardingQuestions && window.onboardingQuestions[category]) {
+    console.log('🚀 Directly triggering onboarding for category:', category);
+    
+    // Set up the current questions
+    currentQuestions = window.onboardingQuestions[category].questions;
+    
+    // Show the onboarding overlay immediately
+    showOnboardingOverlay();
+  } else {
+    console.warn('⚠️ No onboarding configuration found for category:', category);
+  }</search>
+  
   // Close Memory Hub
   closeMemoryHub();
   

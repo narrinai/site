@@ -209,39 +209,15 @@
 
     /* Desktop Navigation Center */
     .nav-center {
-      display: none !important;
+      display: none;
       align-items: center;
       gap: var(--spacing-lg);
       flex: 1;
-      justify-content: flex-start;
-      margin-left: var(--spacing-xl);
+      justify-content: center;
+      position: relative;
     }
 
-    /* USPs Container - Desktop */
-    .nav-usps {
-      display: none !important;
-    }
-
-    .usp-item {
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-xs);
-      color: var(--color-gray-dark);
-      font-size: var(--font-size-xs);
-      font-weight: 500;
-      white-space: nowrap;
-    }
-
-    .usp-icon {
-      font-size: var(--font-size-lg);
-      color: var(--color-teal);
-    }
-    /* Mobile USP Carousel adjustments */
-    @media (max-width: 768px) {
-      .nav-usps {
-        display: none !important;
-      }
-    }
+    /* Remove USP styling - no longer needed */
 
     .nav-search {
       position: relative;
@@ -305,7 +281,7 @@
 
     /* Navigation Links - Desktop */
     .nav-links {
-      display: none !important;
+      display: none;
       align-items: center;
       gap: var(--spacing-xl);
     }
@@ -385,7 +361,7 @@
 
     /* Mobile Chat Button */
     .mobile-chat-btn {
-      display: none !important;
+      display: none;
       align-items: center;
       justify-content: center;
       width: var(--touch-target);
@@ -409,9 +385,9 @@
       height: 24px;
     }
 
-    /* Mobile Search Button - DISABLED */
+    /* Mobile Search Button */
     .mobile-search-btn {
-      display: none !important;
+      display: none;
       align-items: center;
       justify-content: center;
       width: var(--touch-target);
@@ -436,7 +412,7 @@
 
     /* Mobile Hamburger Menu */
     .mobile-menu-btn {
-      display: none !important;
+      display: none;
       align-items: center;
       justify-content: center;
       width: var(--touch-target);
@@ -676,8 +652,8 @@
         min-height: 60px;
         gap: var(--spacing-sm);
         padding: 0;
-        display: flex;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: auto 1fr auto auto auto;
         align-items: center;
       }
 
@@ -685,6 +661,7 @@
         font-size: var(--font-size-lg);
         flex-shrink: 0;
         min-width: fit-content;
+        grid-column: 1;
       }
 
       .mobile-nav-container {
@@ -692,6 +669,13 @@
         min-width: fit-content;
         display: flex !important;
         gap: var(--spacing-xs);
+        grid-column: 3 / 6;
+        justify-self: end;
+      }
+
+      .mobile-chat-btn {
+        display: flex;
+        flex-shrink: 0;
       }
 
       .nav-center {
@@ -702,12 +686,12 @@
         display: none !important;
       }
 
-            .mobile-chat-btn {
+      .mobile-chat-btn {
         display: flex;
         flex-shrink: 0;
       }
 
-.mobile-search-btn {
+      .mobile-search-btn {
         display: flex;
         flex-shrink: 0;
       }
@@ -1180,12 +1164,11 @@
         </div>
 
         <!-- Desktop Navigation Links -->
-        <nav class="nav-links">
-          <a href="index.html" class="nav-link">Characters</a>
-          <a href="chat-overview.html" class="nav-link">Chats</a>
-          <a href="contact.html" class="nav-link">Contact</a>
-          <a href="profile.html" class="nav-link">Profile</a>
-          <a href="create-character.html" class="btn btn-primary">✨ Create Character</a>
+        <nav class="nav-links" role="navigation" aria-label="Secondary navigation">
+          <a href="pricing.html" class="nav-link">Plans</a>
+          <a href="chat-overview.html" class="nav-link">My Companions</a>
+          <a href="profile.html" class="nav-link" id="loginBtn">Login/Register</a>
+          <a href="/create-character" class="btn btn-primary">✨ Create Companion</a>
         </nav>
 
         <!-- Mobile Navigation Container -->
@@ -1239,22 +1222,18 @@
         <div class="mobile-menu-logo">Narrin AI</div>
         <div class="mobile-menu-subtitle">AI Companion Platform</div>
       </div>
-      <nav class="mobile-menu-nav">
-        <a href="index.html" class="mobile-menu-link">
-          <span class="mobile-menu-link-icon">📚</span>
-          Categories
-        </a>
+      <nav class="mobile-menu-nav" role="navigation" aria-label="Mobile navigation">
         <a href="chat-overview.html" class="mobile-menu-link">
           <span class="mobile-menu-link-icon">💬</span>
           My Companions
         </a>
-        <a href="contact.html" class="mobile-menu-link">
-          <span class="mobile-menu-link-icon">📧</span>
-          Contact
+        <a href="pricing.html" class="mobile-menu-link">
+          <span class="mobile-menu-link-icon">💎</span>
+          Plans
         </a>
-        <a href="profile.html" class="mobile-menu-link">
+        <a href="profile.html" class="mobile-menu-link" id="mobileLoginBtn">
           <span class="mobile-menu-link-icon">👤</span>
-          Profile
+          Login/Register
         </a>
         <a href="create-character.html" class="mobile-menu-link btn-primary">
           <span class="mobile-menu-link-icon">✨</span>
@@ -1275,7 +1254,7 @@
     <!-- Built with Passion - Top Block -->
     <div class="passion-block">
       <div class="passion-block-content">
-        <p>Narrin AI is built by a single developer with a deep passion for companion chat and AI. Our goal is to provide people with rich, meaningful experiences that go beyond their imagination, creating genuine connections in an increasingly digital world.</p>
+        <p>Narrin AI helps you turn daily mental chaos into clear thinking through meaningful AI companionship. We're building AI companions who help you organize your thoughts, process your day, and end each conversation feeling clearer about what matters most.</p>
       </div>
     </div>
 
@@ -1426,11 +1405,11 @@
   <footer class="footer">
     <div class="footer-content">
       <div class="footer-links">
-        <a href="index.html" class="footer-link">Characters</a>
+        <a href="index.html" class="footer-link">Home</a>
         <span class="footer-separator">•</span>
-        <a href="chat-overview.html" class="footer-link">Chats</a>
+        <a href="chat-overview.html" class="footer-link">My Companions</a>
         <span class="footer-separator">•</span>
-        <a href="create-character.html" class="footer-link">Create Character</a>
+        <a href="create-character.html" class="footer-link">Create Companion</a>
         <span class="footer-separator">•</span>
         <a href="contact.html" class="footer-link">Contact</a>
         <span class="footer-separator">•</span>
@@ -1447,65 +1426,173 @@
   </footer>
 
   <script>
-    // Mobile USP Carousel Animation
-    function initMobileUSPCarousel() {
-      const uspContainer = document.querySelector('.nav-usps');
-      if (!uspContainer) return;
+    // ===== MOBILE MENU FUNCTIONALITY =====
+    function toggleMobileMenu() {
+      const mobileMenuOverlay = document.querySelector('.mobile-menu-overlay');
+      const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
       
-      const usps = [
-        { icon: '⚡', text: 'Lightning Fast' },
-        { icon: '🎯', text: 'Highly Accurate' },
-        { icon: '🔒', text: '100% Private' }
-      ];
+      if (!mobileMenuOverlay || !mobileMenuBtn) return;
       
-      let currentIndex = 0;
+      const isActive = mobileMenuOverlay.classList.contains('active');
       
-      function rotateUSPs() {
-        currentIndex = (currentIndex + 1) % usps.length;
-        const currentUsp = usps[currentIndex];
-        uspContainer.style.transform = `translateX(-${currentIndex * 100}%)`;
+      if (isActive) {
+        closeMobileMenu();
+      } else {
+        openMobileMenu();
+      }
+    }
+
+    function openMobileMenu() {
+      const mobileMenuOverlay = document.querySelector('.mobile-menu-overlay');
+      const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+      
+      if (mobileMenuOverlay) {
+        mobileMenuOverlay.classList.add('active');
+      }
+      if (mobileMenuBtn) {
+        mobileMenuBtn.classList.add('active');
+        mobileMenuBtn.setAttribute('aria-expanded', 'true');
+      }
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeMobileMenu() {
+      const mobileMenuOverlay = document.querySelector('.mobile-menu-overlay');
+      const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+      
+      if (mobileMenuOverlay) {
+        mobileMenuOverlay.classList.remove('active');
+      }
+      if (mobileMenuBtn) {
+        mobileMenuBtn.classList.remove('active');
+        mobileMenuBtn.setAttribute('aria-expanded', 'false');
+      }
+      document.body.style.overflow = '';
+    }
+
+    // ===== AUTHENTICATION CHECK =====
+    function initializeAuthenticationCheck() {
+      console.log('🔐 Initializing authentication check...');
+      
+      // Check localStorage first
+      const token = localStorage.getItem('user_token');
+      const email = localStorage.getItem('user_email');
+      const uid = localStorage.getItem('user_uid');
+      const timestamp = localStorage.getItem('user_auth_timestamp');
+      
+      if (token && email && uid && token !== 'false' && token !== 'null') {
+        // Check if token is not too old (24 hours)
+        const authAge = Date.now() - parseInt(timestamp || '0');
+        if (authAge < 24 * 60 * 60 * 1000) {
+          console.log('✅ Valid authentication found in localStorage:', email);
+          
+          // Set global auth state
+          window.isAuthenticated = true;
+          window.currentUser = { email, uid, token };
+          
+          // Update UI
+          updateLoginButton();
+          
+          return true;
+        } else {
+          console.log('⏰ Authentication expired, clearing...');
+          clearAuthData();
+        }
       }
       
-      // Start rotation
-      setInterval(rotateUSPs, 3000);
+      // Fallback: Check Netlify Identity
+      if (window.netlifyIdentity) {
+        const netlifyUser = window.netlifyIdentity.currentUser();
+        if (netlifyUser) {
+          console.log('✅ Found Netlify Identity user:', netlifyUser.email);
+          
+          // Restore localStorage from Netlify
+          handleLoginSuccess(netlifyUser, 'recovery');
+          return true;
+        }
+      }
+      
+      console.log('❌ No valid authentication found');
+      window.isAuthenticated = false;
+      window.currentUser = null;
+      updateLoginButton();
+      return false;
     }
 
-    // Mobile Menu Toggle
-    function initMobileMenu() {
-      const menuBtn = document.querySelector('.mobile-menu-btn');
-      const menuOverlay = document.querySelector('.mobile-menu-overlay');
+    // Clear authentication data
+    function clearAuthData() {
+      localStorage.removeItem('user_email');
+      localStorage.removeItem('user_token');
+      localStorage.removeItem('user_uid');
+      localStorage.removeItem('user_auth_timestamp');
+      localStorage.removeItem('user_refresh_token');
+      localStorage.removeItem('user_netlify_data');
       
-      if (!menuBtn || !menuOverlay) return;
-      
-      menuBtn.addEventListener('click', () => {
-        menuBtn.classList.toggle('active');
-        menuOverlay.classList.toggle('active');
-        document.body.style.overflow = menuOverlay.classList.contains('active') ? 'hidden' : '';
-      });
-      
-      // Close menu when clicking outside
-      menuOverlay.addEventListener('click', (e) => {
-        if (e.target === menuOverlay) {
-          menuBtn.classList.remove('active');
-          menuOverlay.classList.remove('active');
-          document.body.style.overflow = '';
-        }
-      });
+      window.isAuthenticated = false;
+      window.currentUser = null;
     }
 
-    // Mobile Search Toggle
-    function initMobileSearch() {
-      const searchBtn = document.querySelector('.mobile-search-btn');
-      const searchOverlay = document.querySelector('.mobile-search-overlay');
+    // Handle login success and store auth data
+    function handleLoginSuccess(user, source = 'login') {
+      console.log(`✅ handleLoginSuccess called for: ${user.email} (${source})`);
       
-      if (!searchBtn || !searchOverlay) return;
+      // Store authentication data in localStorage
+      localStorage.setItem('user_email', user.email);
+      localStorage.setItem('user_token', user.token?.access_token || 'true');
+      localStorage.setItem('user_uid', user.id);
+      localStorage.setItem('user_auth_timestamp', Date.now().toString());
+      localStorage.setItem('user_netlify_data', JSON.stringify(user));
       
-      searchBtn.addEventListener('click', () => {
-        searchOverlay.classList.toggle('active');
-        if (searchOverlay.classList.contains('active')) {
-          searchOverlay.querySelector('.mobile-search-input').focus();
+      // Set global auth state
+      window.isAuthenticated = true;
+      window.currentUser = { email: user.email, uid: user.id, token: user.token?.access_token };
+      
+      // Update UI
+      updateLoginButton();
+    }
+
+    // ===== NETLIFY IDENTITY =====
+    function updateLoginButton() {
+      const loginBtn = document.getElementById('loginBtn');
+      const mobileLoginBtn = document.getElementById('mobileLoginBtn');
+      const user = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+      
+      // Always use plain profile.html URL
+      const profileUrl = 'profile.html';
+      
+      if (user) {
+        // Always show "Profile" for logged in users instead of their name
+        if (loginBtn) {
+          loginBtn.textContent = 'Profile';
+          loginBtn.href = 'profile.html';
         }
-      });
+        if (mobileLoginBtn) {
+          const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
+          mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}Profile`;
+        }
+      } else {
+        if (loginBtn) {
+          loginBtn.textContent = 'Login/Register';
+          loginBtn.href = '#';
+          loginBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (window.netlifyIdentity) {
+              window.netlifyIdentity.open();
+            }
+          });
+        }
+        if (mobileLoginBtn) {
+          const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
+          mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}Login/Register`;
+          mobileLoginBtn.href = '#';
+          mobileLoginBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (window.netlifyIdentity) {
+              window.netlifyIdentity.open();
+            }
+          });
+        }
+      }
     }
 
     // ===== SEARCH FUNCTIONALITY =====
@@ -1534,43 +1621,79 @@
       handleSearch(searchInput.value);
     });
 
-    // Initialize all functionality
+    // ===== INITIALIZATION =====
     document.addEventListener('DOMContentLoaded', () => {
-      // Check voor referral parameter
+      console.log('🚀 Initializing Contact page...');
+      
+      // Initialize authentication check first
+      initializeAuthenticationCheck();
+      
+      // Mobile menu event listeners
+      const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+      mobileMenuBtn?.addEventListener('click', toggleMobileMenu);
+
+      const mobileMenuOverlay = document.querySelector('.mobile-menu-overlay');
+      mobileMenuOverlay?.addEventListener('click', (e) => {
+        if (e.target === mobileMenuOverlay) {
+          closeMobileMenu();
+        }
+      });
+
+      document.querySelectorAll('.mobile-menu-link').forEach(link => {
+        link.addEventListener('click', closeMobileMenu);
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          if (mobileMenuOverlay?.classList.contains('active')) {
+            closeMobileMenu();
+          }
+        }
+      });
+
+      // Check for referral parameter
       const urlParams = new URLSearchParams(window.location.search);
       const referralCode = urlParams.get('ref');
       if (referralCode) {
         localStorage.setItem('referralCode', referralCode);
-        console.log('📌 Referral code opgeslagen:', referralCode);
+        console.log('📌 Referral code saved:', referralCode);
         // Clean URL
         const cleanUrl = window.location.pathname;
         window.history.replaceState({}, document.title, cleanUrl);
       }
       
-      initMobileUSPCarousel();
-      initMobileMenu();
-      initMobileSearch();
-      
-      // Show random USP (excluding Lightning Fast)
-      const uspItems = document.querySelectorAll('.usp-item');
-      if (uspItems.length > 0) {
-        // Hide all USPs first
-        uspItems.forEach(item => item.style.display = 'none');
-        
-        // Show a random one
-        const randomIndex = Math.floor(Math.random() * uspItems.length);
-        uspItems[randomIndex].style.display = 'flex';
-      }
+      console.log('✅ Contact page initialization complete');
     });
 
-    // Netlify Identity
+    // FIRST: Check for referral code before anything else
+    const urlParams = new URLSearchParams(window.location.search);
+    const referralCode = urlParams.get('ref');
+    if (referralCode) {
+      localStorage.setItem('referralCode', referralCode);
+      console.log('📌 Referral code saved BEFORE Identity init:', referralCode);
+    }
+    
+    // Initialize Netlify Identity
     if (window.netlifyIdentity) {
-      window.netlifyIdentity.on("init", user => {
-        if (!user) {
-          window.netlifyIdentity.on("login", () => {
-            document.location.href = "chat-overview.html";
-          });
-        }
+      window.netlifyIdentity.init({
+        namePlaceholder: 'Nickname'
+      });
+      
+      window.netlifyIdentity.on('init', updateLoginButton);
+      
+      window.netlifyIdentity.on('login', (user) => {
+        handleLoginSuccess(user, 'login');
+        window.netlifyIdentity.close();
+        
+        // Ensure redirect to profile
+        setTimeout(() => {
+          window.location.href = '/profile.html';
+        }, 500);
+      });
+      
+      window.netlifyIdentity.on('logout', () => {
+        clearAuthData();
+        updateLoginButton();
       });
     }
   </script>
