@@ -16216,11 +16216,28 @@ document.addEventListener('DOMContentLoaded', () => {
       if (shouldRestart || onboardingNeeded) {
         console.log('✅ Onboarding needed for category:', category, shouldRestart ? '(restart requested)' : '');
         
+        // Normalize category to match onboarding config (same logic as needsOnboarding function)
+        let normalizedCategory = category;
+        const categoryKeys = Object.keys(window.onboardingQuestions || {});
+        const exactMatch = categoryKeys.find(key => key.toLowerCase() === category.toLowerCase());
+        
+        if (exactMatch) {
+          normalizedCategory = exactMatch;
+        } else {
+          normalizedCategory = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
+        }
+        
+        console.log('📐 Final normalized category for onboarding questions:', normalizedCategory);
+        console.log('📊 Available categories:', categoryKeys);
+        
         // Get questions for this category
-        if (window.onboardingQuestions[category] && window.onboardingQuestions[category].enabled) {
-          currentQuestions = window.onboardingQuestions[category].questions;
+        if (window.onboardingQuestions[normalizedCategory] && window.onboardingQuestions[normalizedCategory].enabled) {
+          currentQuestions = window.onboardingQuestions[normalizedCategory].questions;
           showOnboardingOverlay();
           return true;
+        } else {
+          console.error('❌ No onboarding questions found for normalized category:', normalizedCategory);
+          console.error('❌ Available categories:', categoryKeys);
         }
       }
       
