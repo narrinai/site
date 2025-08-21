@@ -3109,19 +3109,20 @@ function extractAvatarUrl(chat) {
       <span class="chat-date">${formatChatDate(chat.last_message_date)}</span>
       <span class="message-count">${chat.message_count || 0} messages</span>
     </div>
-    <div class="pause-toggle-container" onclick="event.preventDefault(); event.stopPropagation();" style="
+    <div class="chat-actions-container" onclick="event.preventDefault(); event.stopPropagation();" style="
       margin-top: 12px;
       padding-top: 12px;
       border-top: 1px solid #e5e7eb;
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 12px;
+      justify-content: space-between;
+      gap: 8px;
     ">
-      <span style="font-size: 13px; background: ${chat.isPaused ? 'transparent' : 'linear-gradient(135deg, #14b8a6 0%, #f97316 100%)'}; -webkit-background-clip: ${chat.isPaused ? 'unset' : 'text'}; -webkit-text-fill-color: ${chat.isPaused ? '#ef4444' : 'transparent'}; background-clip: ${chat.isPaused ? 'unset' : 'text'}; color: ${chat.isPaused ? '#ef4444' : '#14b8a6'}; font-weight: 600;">
-        ${chat.isPaused ? 'Paused' : 'Active'}
-      </span>
-      <button class="pause-toggle-btn" onclick="event.preventDefault(); event.stopPropagation(); togglePauseChat('${chat.character_slug}', '${(chat.character_name || 'Unknown Character').replace(/'/g, "\\'")}', ${chat.isPaused || false}, event)" style="
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 12px; background: ${chat.isPaused ? 'transparent' : 'linear-gradient(135deg, #14b8a6 0%, #f97316 100%)'}; -webkit-background-clip: ${chat.isPaused ? 'unset' : 'text'}; -webkit-text-fill-color: ${chat.isPaused ? '#ef4444' : 'transparent'}; background-clip: ${chat.isPaused ? 'unset' : 'text'}; color: ${chat.isPaused ? '#ef4444' : '#14b8a6'}; font-weight: 600;">
+          ${chat.isPaused ? 'Paused' : 'Active'}
+        </span>
+        <button class="pause-toggle-btn" onclick="event.preventDefault(); event.stopPropagation(); togglePauseChat('${chat.character_slug}', '${(chat.character_name || 'Unknown Character').replace(/'/g, "\\'")}', ${chat.isPaused || false}, event)" style="
         background: ${chat.isPaused ? '#fee2e2' : 'linear-gradient(135deg, #14b8a6 0%, #f97316 100%)'};
         color: ${chat.isPaused ? '#dc2626' : 'white'};
         border: ${chat.isPaused ? '1px solid #fca5a5' : 'none'};
@@ -3144,6 +3145,20 @@ function extractAvatarUrl(chat) {
           transition: all 0.3s;
           box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         "></div>
+      </button>
+      </div>
+      <button class="delete-companion-btn" onclick="event.preventDefault(); event.stopPropagation(); deleteCompanion('${chat.character_slug}', '${(chat.character_name || 'Unknown Character').replace(/'/g, "\\'")}', event)" style="
+        background: #fee2e2;
+        color: #dc2626;
+        border: 1px solid #fca5a5;
+        border-radius: 8px;
+        padding: 6px 10px;
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+      " title="Delete companion permanently">
+        🗑️ Delete
       </button>
     </div>
   `;
@@ -3707,6 +3722,67 @@ async function checkTrialStatus(email, uid) {
     }
   } catch (error) {
     console.error('❌ Error checking trial status:', error);
+  }
+}
+
+// ===== DELETE COMPANION FUNCTIONALITY =====
+async function deleteCompanion(companionSlug, companionName, event) {
+  event?.preventDefault();
+  event?.stopPropagation();
+  
+  console.log('🗑️ Delete companion requested:', { companionSlug, companionName });
+  
+  // Confirmation dialog
+  if (!confirm(`Are you sure you want to permanently delete "${companionName}"?\n\nThe character will be removed from your companions list.\nChat history will be preserved for your records.`)) {
+    console.log('❌ Delete cancelled by user');
+    return;
+  }
+  
+  try {
+    console.log('📤 Sending delete request to Make.com...');
+    
+    const response = await fetch('/.netlify/functions/delete-companion', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_uid: localStorage.getItem('user_uid'),
+        companion_slug: companionSlug
+      })
+    });
+    
+    console.log('📥 Delete response status:', response.status);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const result = await response.json();
+    console.log('✅ Delete response:', result);
+    
+    if (result.success) {
+      showNotification('success', 'Companion Deleted', 
+        `${companionName} has been removed from your companions.`);
+      
+      // Remove from local storage if exists
+      const customizedCharacters = JSON.parse(localStorage.getItem('customizedCharacters') || '{}');
+      if (customizedCharacters[companionSlug]) {
+        delete customizedCharacters[companionSlug];
+        localStorage.setItem('customizedCharacters', JSON.stringify(customizedCharacters));
+        console.log('🧹 Removed from localStorage customizedCharacters');
+      }
+      
+      // Reload page to refresh companions list
+      setTimeout(() => {
+        console.log('🔄 Reloading page to refresh companions list');
+        window.location.reload();
+      }, 2000);
+    } else {
+      throw new Error(result.error || 'Unknown error occurred');
+    }
+  } catch (error) {
+    console.error('❌ Delete companion error:', error);
+    showNotification('error', 'Delete Failed', 
+      `Failed to delete ${companionName}. ${error.message}`);
   }
 }
 
