@@ -3013,16 +3013,32 @@ function extractAvatarUrl(chat) {
 
       hideLoading();
       showMainContent();
-      
-      // Update companion status counter with filtered chats
-      updateCompanionStatusCounter(filteredChats);
 
       const chatsGrid = document.getElementById('chatsGrid');
       const emptyState = document.getElementById('emptyState');
 
-      console.log('🎨 Displaying chats:', userChats.length);
+      // Filter out removed platform companions
+      const removedCompanions = JSON.parse(localStorage.getItem('removedCompanions') || '[]');
+      const filteredChats = userChats.filter(chat => {
+        const isRemoved = removedCompanions.includes(chat.character_slug);
+        if (isRemoved) {
+          console.log('🙈 Filtering out removed companion:', chat.character_slug);
+        }
+        return !isRemoved;
+      });
+      
+      console.log('🔍 Filtered chats:', { 
+        original: userChats.length, 
+        filtered: filteredChats.length, 
+        removed: removedCompanions 
+      });
+      
+      // Update companion status counter with filtered chats
+      updateCompanionStatusCounter(filteredChats);
 
-      if (userChats.length === 0) {
+      console.log('🎨 Displaying chats:', filteredChats.length);
+
+      if (filteredChats.length === 0) {
         chatsGrid.style.display = 'none';
         emptyState.style.display = 'block';
         return;
@@ -3033,7 +3049,7 @@ function extractAvatarUrl(chat) {
       chatsGrid.innerHTML = '';
 
       // Sort chats: active first, then paused
-      const sortedChats = [...userChats].sort((a, b) => {
+      const sortedChats = [...filteredChats].sort((a, b) => {
         // Active chats come first
         if (!a.isPaused && b.isPaused) return -1;
         if (a.isPaused && !b.isPaused) return 1;
