@@ -6118,7 +6118,11 @@ async function loadProfile() {
       if (data?.subscription_status === 'trial') {
         console.log('⚠️ Trial user but no end date found in Airtable - this should not happen');
         console.log('🔍 Available fields in Airtable data:', Object.keys(data || {}));
-        console.log('🔍 Full Airtable data:', data);
+        console.log('🔍 Trying each field individually:');
+        Object.keys(data || {}).forEach(key => {
+          console.log(`  ${key}: ${data[key]} (type: ${typeof data[key]})`);
+        });
+        console.log('🔍 Field we need should contain date like "8/26/2025 15:36"');
       }
     }
     
