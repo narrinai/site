@@ -3867,10 +3867,10 @@ if (window.netlifyIdentity) {
     handleLoginSuccess(user, 'signup');
     updateLoginButton();
     
-    // Setup 7-day Engage trial for new users (with delay for user creation)
+    // Setup 3-day Engage trial for new users (with delay for user creation)
     setTimeout(async () => {
       try {
-        console.log('🎁 Setting up 7-day Engage trial...');
+        console.log('🎁 Setting up 3-day Engage trial...');
         const trialResponse = await fetch('/.netlify/functions/setup-trial', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -3889,7 +3889,7 @@ if (window.netlifyIdentity) {
           localStorage.setItem('subscription_status', 'trial');
           localStorage.setItem('trial_end_date', trialData.grace_period_end);
           
-          showNotification('🎉 Welcome! You have 7 days of Engage plan access with unlimited messaging!');
+          showNotification('🎉 Welcome! You have 3 days of Engage plan access with unlimited messaging!');
         } else {
           const errorData = await trialResponse.json();
           console.error('❌ Failed to setup trial:', errorData);
@@ -4010,7 +4010,7 @@ if (window.netlifyIdentity) {
             
             // Get user plan
             const userPlan = localStorage.getItem('user_plan') || 'Free';
-            const maxActive = userPlan === 'Free' ? 2 : userPlan === 'Engage' ? 5 : Infinity;
+            const maxActive = userPlan === 'Free' ? 3 : userPlan === 'Engage' ? 5 : Infinity;
             
             if (activeChats.length >= maxActive) {
               console.log(`⚠️ Active companion limit reached: ${activeChats.length}/${maxActive}`);
@@ -4310,7 +4310,7 @@ if (window.netlifyIdentity) {
         localStorage.removeItem('trial_end_date');
         
         // Show notification about trial expiration
-        showNotification('⏰ Your 7-day Engage trial has ended. Upgrade to continue with unlimited messaging!');
+        showNotification('⏰ Your 3-day Engage trial has ended. Upgrade to continue with unlimited messaging!');
       } else if (data.current_plan === 'Engage' && data.subscription_status === 'trial') {
         // Update localStorage with current trial info
         localStorage.setItem('user_plan', 'Engage');

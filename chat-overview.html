@@ -2350,9 +2350,9 @@ line-clamp: 3;
         console.log('🎉 New user signup:', user.email);
         console.log('📍 Current page:', window.location.pathname);
         
-        // Setup 7-day Engage trial for new users
+        // Setup 3-day Engage trial for new users
         try {
-          console.log('🎁 Setting up 7-day Engage trial...');
+          console.log('🎁 Setting up 3-day Engage trial...');
           const trialResponse = await fetch('/.netlify/functions/setup-trial', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -2371,7 +2371,7 @@ line-clamp: 3;
             localStorage.setItem('subscription_status', 'trial');
             localStorage.setItem('trial_end_date', trialData['grace_period_end']);
             
-            showNotification('🎉 Welcome! You have 7 days of Engage plan access with unlimited messaging!');
+            showNotification('🎉 Welcome! You have 3 days of Engage plan access with unlimited messaging!');
           } else {
             console.error('❌ Failed to setup trial');
           }
@@ -2550,7 +2550,7 @@ line-clamp: 3;
             
             // Get user plan
             const userPlan = localStorage.getItem('user_plan') || 'Free';
-            const maxActive = userPlan === 'Free' ? 2 : userPlan === 'Engage' ? 5 : Infinity;
+            const maxActive = userPlan === 'Free' ? 3 : userPlan === 'Engage' ? 5 : Infinity;
             
             if (activeChats.length >= maxActive) {
               console.log(`⚠️ Active companion limit reached: ${activeChats.length}/${maxActive}`);
@@ -3270,7 +3270,7 @@ function extractAvatarUrl(chat) {
           const userPlan = localStorage.getItem('user_plan') || 'Free';
           const activeCount = userChats.filter(c => !c.isPaused && c.character_slug !== characterSlug).length;
           
-          let maxActive = userPlan === 'Free' ? 2 : userPlan === 'Engage' ? 5 : Infinity;
+          let maxActive = userPlan === 'Free' ? 3 : userPlan === 'Engage' ? 5 : Infinity;
           
           if (activeCount >= maxActive) {
             // Show upgrade modal using global function
@@ -3375,7 +3375,7 @@ function extractAvatarUrl(chat) {
           <div style="background: #f8fafc; border-radius: 12px; padding: 20px; margin-bottom: 24px; text-align: left;">
             <div style="display: flex; align-items: center; padding: 8px 0;">
               <span style="font-size: 20px; margin-right: 12px;">✨</span>
-              <span style="color: #475569;">Free: 2 active companions</span>
+              <span style="color: #475569;">Free: 3 active companions</span>
             </div>
             <div style="display: flex; align-items: center; padding: 8px 0;">
               <span style="font-size: 20px; margin-right: 12px;">🎯</span>
@@ -3542,8 +3542,8 @@ function extractAvatarUrl(chat) {
       const planLimitInfo = document.getElementById('planLimitInfo');
       
       if (userPlan === 'Free') {
-        planLimitInfo.innerHTML = `Free Plan: ${activeCompanions.length}/2 active`;
-        if (activeCompanions.length >= 2) {
+        planLimitInfo.innerHTML = `Free Plan: ${activeCompanions.length}/3 active`;
+        if (activeCompanions.length >= 3) {
           planLimitInfo.style.background = 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(249, 115, 22, 0.1) 100%)';
           planLimitInfo.style.color = '#dc2626';
         }
@@ -3697,7 +3697,7 @@ async function checkTrialStatus(email, uid) {
         localStorage.removeItem('trial_end_date');
         
         // Show notification about trial expiration
-        showNotification('⏰ Your 7-day Engage trial has ended. Upgrade to continue with unlimited messaging!');
+        showNotification('⏰ Your 3-day Engage trial has ended. Upgrade to continue with unlimited messaging!');
       } else if (data.current_plan === 'Engage' && data.subscription_status === 'trial') {
         // Update localStorage with current trial info
         localStorage.setItem('user_plan', 'Engage');

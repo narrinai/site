@@ -3184,8 +3184,8 @@ body .netlify-identity-widget > div[data-netlify-identity-modal] {
         <!-- Trial Status for new users -->
         <div class="trial-status" id="trialStatus" style="display: none;">
           <div class="trial-info">
-            <div class="trial-badge-large">🎉 7-Day Free Trial Activated</div>
-            <p class="trial-description">You now have full access to the Engage plan for <strong id="trialDaysRemaining">7</strong> <strong>days</strong>. Enjoy unlimited messaging and premium features!</p>
+            <div class="trial-badge-large">🎉 3-Day Free Trial Activated</div>
+            <p class="trial-description">You now have full access to the Engage plan for <strong id="trialDaysRemaining">3</strong> <strong>days</strong>. Enjoy unlimited messaging and premium features!</p>
             <div class="trial-timer">
               <span class="timer-label">Trial ends:</span>
               <span class="timer-date" id="trialEndDate">-</span>
@@ -3207,16 +3207,16 @@ body .netlify-identity-widget > div[data-netlify-identity-modal] {
         
         
         <div class="pricing-cards">
-          <!-- 7-Day Trial Plan (Free) -->
+          <!-- 3-Day Trial Plan (Free) -->
           <div class="pricing-card featured" data-plan="trial">
             <div class="card-header">
-              <h3 class="plan-name">7-Day Free Trial</h3>
+              <h3 class="plan-name">3-Day Free Trial</h3>
               <div class="plan-price">
                 <span class="price-currency">$</span>
                 <span class="price-amount">0</span>
-                <span class="price-period">/7 days</span>
+                <span class="price-period">/3 days</span>
               </div>
-              <span class="price-daily">Free for 7 days</span>
+              <span class="price-daily">Free for 3 days</span>
               <p class="plan-description">Experience the Engage Plan - no payment required</p>
             </div>
             
@@ -3316,7 +3316,7 @@ body .netlify-identity-widget > div[data-netlify-identity-modal] {
                 <div class="trial-badge">🎉 Free Trial</div>
                 <div class="benefit-item trial-benefit">
                   <span class="checkmark">✓</span>
-                  <span>Your 7-day trial ends <strong id="engageTrialDate"></strong>. Automatically returns to free plan after trial.</span>
+                  <span>Your 3-day trial ends <strong id="engageTrialDate"></strong>. Automatically returns to free plan after trial.</span>
                 </div>
               </div>
               <!-- Compact Cancellation Notice for Engage -->
@@ -4929,7 +4929,7 @@ function handleLoginSuccess(user, eventType = 'unknown') {
         
         // Setup 7-day Engage trial for new users
         try {
-          console.log('🎁 Setting up 7-day Engage trial...');
+          console.log('🎁 Setting up 3-day Engage trial...');
           const trialResponse = await fetch('/.netlify/functions/setup-trial', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -4948,7 +4948,7 @@ function handleLoginSuccess(user, eventType = 'unknown') {
             localStorage.setItem('subscription_status', 'trial');
             localStorage.setItem('trial_end_date', trialData['grace_period_end']);
             
-            showSuccess('🎉 Welcome! You have 7 days of Engage plan access with unlimited messaging!');
+            showSuccess('🎉 Welcome! You have 3 days of Engage plan access with unlimited messaging!');
           } else {
             console.error('❌ Failed to setup trial');
             showSuccess('Welcome! Your account has been created successfully.');
@@ -7267,7 +7267,7 @@ async function checkTrialStatus(email, uid) {
         localStorage.removeItem('trial_end_date');
         
         // Show notification about trial expiration
-        showNotification('⏰ Your 7-day Engage trial has ended. Upgrade to continue with unlimited messaging!');
+        showNotification('⏰ Your 3-day Engage trial has ended. Upgrade to continue with unlimited messaging!');
       } else if (data.current_plan === 'Engage' && data.subscription_status === 'trial') {
         // Update localStorage with current trial info
         localStorage.setItem('user_plan', 'Engage');
