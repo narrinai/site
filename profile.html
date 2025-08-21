@@ -6090,7 +6090,13 @@ async function loadProfile() {
       'grace-period-end',
       'trial_end_date',
       'trial_expires',
-      'trialEndDate'
+      'trialEndDate',
+      'Trial_End_Date',
+      'graceperiodend',
+      'trial_expiry',
+      'trial_expiry_date',
+      'expiry_date',
+      'end_date'
     ];
     
     let trialEndDate = null;
@@ -6108,14 +6114,11 @@ async function loadProfile() {
     } else {
       console.log('⚠️ No trial end date found in any field:', possibleEndDateFields);
       
-      // If user has trial status but no end date, create a default one (7 days from now)
+      // If user has trial status but no end date, DON'T create default - something is wrong
       if (data?.subscription_status === 'trial') {
-        const defaultEndDate = new Date();
-        defaultEndDate.setDate(defaultEndDate.getDate() + 7);
-        const defaultEndDateString = defaultEndDate.toISOString();
-        
-        localStorage.setItem('trial_end_date', defaultEndDateString);
-        console.log('📅 Created default trial end date (7 days):', defaultEndDateString);
+        console.log('⚠️ Trial user but no end date found in Airtable - this should not happen');
+        console.log('🔍 Available fields in Airtable data:', Object.keys(data || {}));
+        console.log('🔍 Full Airtable data:', data);
       }
     }
     
