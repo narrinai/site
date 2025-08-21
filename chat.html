@@ -4954,11 +4954,14 @@
             </div>
             
             <div class="form-group">
-              <label for="customAvatar">Avatar (optional)</label>
-              <div style="display: flex; gap: var(--spacing-md); align-items: center;">
+              <label for="customAvatar">Companion Profile Image</label>
+              <div style="display: flex; gap: var(--spacing-md); align-items: center; flex-wrap: wrap;">
                 <input type="file" id="customAvatarFile" accept="image/*" style="display: none;">
                 <button type="button" class="btn-secondary-form" onclick="document.getElementById('customAvatarFile').click()" style="flex: 0 0 auto;">
                   Choose File
+                </button>
+                <button type="button" class="btn-secondary-form" onclick="generateCompanionImage()" style="flex: 0 0 auto;" id="generateImageBtn">
+                  ✨ Generate New Image
                 </button>
                 <span id="customAvatarFileName" style="color: var(--color-gray); font-size: var(--font-size-sm);">No file chosen</span>
               </div>
@@ -17005,6 +17008,111 @@ async function checkTrialStatus(email, uid) {
     console.error('❌ Error checking trial status:', error);
   }
 }
+
+
+// ===== COMPANION IMAGE GENERATION =====
+async function generateCompanionImage() {
+  const generateBtn = document.getElementById('generateImageBtn');
+  const preview = document.getElementById('customAvatarPreview');
+  const previewImg = document.getElementById('customAvatarImg');
+  const urlInput = document.getElementById('customAvatarUrl');
+  const fileName = document.getElementById('customAvatarFileName');
+  
+  if (!generateBtn) return;
+  
+  const companionName = document.getElementById('customName').value.trim() || currentCharacter.name || 'Character';
+  
+  const originalText = generateBtn.textContent;
+  generateBtn.disabled = true;
+  generateBtn.textContent = '⏳ Generating...';
+  generateBtn.style.opacity = '0.7';
+  
+  try {
+    console.log('🎨 Generating companion image for:', companionName);
+    
+    const imageUrl = await generateCharacterAvatar(companionName);
+    
+    if (imageUrl) {
+      if (preview && previewImg) {
+        previewImg.src = imageUrl;
+        preview.style.display = 'block';
+      }
+      
+      if (urlInput) urlInput.value = imageUrl;
+      if (fileName) fileName.textContent = companionName + '-generated.webp';
+      
+      customAvatarUploadUrl = imageUrl;
+      
+      console.log('✅ Generated companion image:', imageUrl);
+      showNotification('success', 'Image Generated', 'New profile image created for ' + companionName + '!');
+    } else {
+      throw new Error('No image URL returned from generation');
+    }
+  } catch (error) {
+    console.error('❌ Image generation failed:', error);
+    showNotification('error', 'Generation Failed', 'Failed to generate image. Please try uploading a custom image instead.');
+  } finally {
+    generateBtn.disabled = false;
+    generateBtn.textContent = originalText;
+    generateBtn.style.opacity = '1';
+  }
+}
+
+// ===== COMPANION IMAGE GENERATION =====
+async function generateCompanionImage() {
+  const generateBtn = document.getElementById('generateImageBtn');
+  const preview = document.getElementById('customAvatarPreview');
+  const previewImg = document.getElementById('customAvatarImg');
+  const urlInput = document.getElementById('customAvatarUrl');
+  const fileName = document.getElementById('customAvatarFileName');
+  
+  if (!generateBtn) return;
+  
+  // Get companion details for generation
+  const companionName = document.getElementById('customName').value.trim() || currentCharacter.name || 'Character';
+  
+  // Show loading state
+  const originalText = generateBtn.textContent;
+  generateBtn.disabled = true;
+  generateBtn.textContent = '⏳ Generating...';
+  generateBtn.style.opacity = '0.7';
+  
+  try {
+    console.log('🎨 Generating companion image for:', companionName);
+    
+    // Call image generation function (reuse existing logic)
+    const imageUrl = await generateCharacterAvatar(companionName);
+    
+    if (imageUrl) {
+      // Show preview
+      if (preview && previewImg) {
+        previewImg.src = imageUrl;
+        preview.style.display = 'block';
+      }
+      
+      // Update hidden input and filename
+      if (urlInput) urlInput.value = imageUrl;
+      if (fileName) fileName.textContent = `${companionName}-generated.webp`;
+      
+      // Store for form submission
+      customAvatarUploadUrl = imageUrl;
+      
+      console.log('✅ Generated companion image:', imageUrl);
+      showNotification('success', 'Image Generated', `New profile image created for ${companionName}!`);
+    } else {
+      throw new Error('No image URL returned from generation');
+    }
+  } catch (error) {
+    console.error('❌ Image generation failed:', error);
+    showNotification('error', 'Generation Failed', 'Failed to generate image. Please try uploading a custom image instead.');
+  } finally {
+    // Restore button state
+    generateBtn.disabled = false;
+    generateBtn.textContent = originalText;
+    generateBtn.style.opacity = '1';
+  }
+}
+
   </script>
 
   <!-- Character Limit Check Script -->
