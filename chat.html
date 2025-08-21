@@ -11726,10 +11726,12 @@ function restartOnboarding() {
   
   // Get current user and character info
   const uid = localStorage.getItem('user_uid');
-  const slug = getCharacterSlugFromURL();
+  const urlParams = new URLSearchParams(window.location.search);
+  const slug = urlParams.get('char') || currentCharacter?.slug || currentCharacter?.character_id || '';
   
   if (!uid || !slug) {
     console.error('❌ Missing user ID or character slug for onboarding restart');
+    console.error('❌ Debug info:', { uid, slug, currentCharacter });
     return;
   }
   
