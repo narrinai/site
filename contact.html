@@ -1213,6 +1213,18 @@
       </div>
     </div>
 
+    <!-- Mobile Search Overlay -->
+    <div class="mobile-search-overlay" id="mobileSearchOverlay">
+      <form class="mobile-search-form">
+        <input
+          type="text"
+          class="mobile-search-input"
+          placeholder="Search companions..."
+          aria-label="Search companions"
+        >
+        <button type="submit" class="btn btn-primary">Search</button>
+      </form>
+    </div>
   </header>
 
   <!-- Mobile Menu Overlay -->
@@ -1608,7 +1620,7 @@
     }
 
     // Desktop search
-    document.querySelector('.nav-search')?.addEventListener('submit', (e) => {
+    document.querySelector('.search-form')?.addEventListener('submit', (e) => {
       e.preventDefault();
       const searchInput = e.target.querySelector('.nav-search-input');
       handleSearch(searchInput.value);
@@ -1621,6 +1633,50 @@
       handleSearch(searchInput.value);
     });
 
+    // Mobile search button toggle
+    function toggleMobileSearch() {
+      const mobileSearchOverlay = document.querySelector('.mobile-search-overlay');
+      const mobileSearchBtn = document.querySelector('.mobile-search-btn');
+      
+      if (!mobileSearchOverlay || !mobileSearchBtn) return;
+      
+      const isActive = mobileSearchOverlay.classList.contains('active');
+      
+      if (isActive) {
+        closeMobileSearch();
+      } else {
+        openMobileSearch();
+      }
+    }
+
+    function openMobileSearch() {
+      const mobileSearchOverlay = document.querySelector('.mobile-search-overlay');
+      const mobileSearchBtn = document.querySelector('.mobile-search-btn');
+      const mobileSearchInput = document.querySelector('.mobile-search-input');
+      
+      if (mobileSearchOverlay) {
+        mobileSearchOverlay.classList.add('active');
+      }
+      if (mobileSearchBtn) {
+        mobileSearchBtn.setAttribute('aria-expanded', 'true');
+      }
+      if (mobileSearchInput) {
+        setTimeout(() => mobileSearchInput.focus(), 100);
+      }
+    }
+
+    function closeMobileSearch() {
+      const mobileSearchOverlay = document.querySelector('.mobile-search-overlay');
+      const mobileSearchBtn = document.querySelector('.mobile-search-btn');
+      
+      if (mobileSearchOverlay) {
+        mobileSearchOverlay.classList.remove('active');
+      }
+      if (mobileSearchBtn) {
+        mobileSearchBtn.setAttribute('aria-expanded', 'false');
+      }
+    }
+
     // ===== INITIALIZATION =====
     document.addEventListener('DOMContentLoaded', () => {
       console.log('🚀 Initializing Contact page...');
@@ -1631,6 +1687,10 @@
       // Mobile menu event listeners
       const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
       mobileMenuBtn?.addEventListener('click', toggleMobileMenu);
+
+      // Mobile search event listeners
+      const mobileSearchBtn = document.querySelector('.mobile-search-btn');
+      mobileSearchBtn?.addEventListener('click', toggleMobileSearch);
 
       const mobileMenuOverlay = document.querySelector('.mobile-menu-overlay');
       mobileMenuOverlay?.addEventListener('click', (e) => {
@@ -1647,6 +1707,10 @@
         if (e.key === 'Escape') {
           if (mobileMenuOverlay?.classList.contains('active')) {
             closeMobileMenu();
+          }
+          const mobileSearchOverlay = document.querySelector('.mobile-search-overlay');
+          if (mobileSearchOverlay?.classList.contains('active')) {
+            closeMobileSearch();
           }
         }
       });
