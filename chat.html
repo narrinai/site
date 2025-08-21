@@ -12187,9 +12187,21 @@ function initializeCustomizationForm() {
     
     // Check if this is a "Save As New" action (creating a new character from system character)
     const submitButton = document.getElementById('customizationSubmitBtn');
-    const isUserCreated = currentCharacter.Created_by || currentCharacter.created_by || currentCharacter.Created_By;
+    const isUserCreated = currentCharacter.Created_by || currentCharacter.created_by || currentCharacter.Created_By || 
+                          existingCustom || 
+                          (currentCharacter.character_type && ['friendship', 'romance', 'mindfulness', 'mentor'].includes(currentCharacter.character_type));
     const isNewCharacter = submitButton && submitButton.textContent.includes('Save As New');
     const isUserCreatedUpdate = isUserCreated; // User-created characters always update, never create new
+    
+    console.log('🔍 Save action analysis:', {
+      isUserCreated,
+      isNewCharacter,
+      isUserCreatedUpdate,
+      buttonText: submitButton?.textContent,
+      hasCreatedBy: !!(currentCharacter.Created_by || currentCharacter.created_by),
+      hasCharacterType: currentCharacter.character_type,
+      existingCustom: !!existingCustom
+    });
     
     // Check character limit for new characters (but not for updates to user-created characters)
     if (isNewCharacter && window.characterLimitChecker) {
