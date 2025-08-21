@@ -24,11 +24,11 @@ exports.handler = async (event, context) => {
   try {
     const { user_email, user_uid } = JSON.parse(event.body);
     
-    console.log('🎯 Setting up 7-day Engage trial for:', user_email);
+    console.log('🎯 Setting up 3-day Engage trial for:', user_email);
     
-    // Calculate trial end date (7 days from now)
+    // Calculate trial end date (3 days from now)
     const trialEndDate = new Date();
-    trialEndDate.setDate(trialEndDate.getDate() + 7);
+    trialEndDate.setDate(trialEndDate.getDate() + 3);
     
     // Find user in Airtable
     const searchUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=AND({Email}='${user_email}',{NetlifyUID}='${user_uid}')`;
@@ -107,7 +107,7 @@ exports.handler = async (event, context) => {
         success: true,
         plan: 'Engage',
         trial_end_date: trialEndDate.toISOString(),
-        message: '7-day Engage trial activated'
+        message: '3-day Engage trial activated'
       })
     };
     

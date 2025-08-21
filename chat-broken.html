@@ -6001,9 +6001,9 @@ document.addEventListener('DOMContentLoaded', () => {
           // Update authentication state
           updateLoginButton();
           
-          // Setup 7-day Engage trial for new users
+          // Setup 3-day Engage trial for new users
           try {
-            console.log('🎁 Setting up 7-day Engage trial...');
+            console.log('🎁 Setting up 3-day Engage trial...');
             const trialResponse = await fetch('/.netlify/functions/setup-trial', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -6022,7 +6022,7 @@ document.addEventListener('DOMContentLoaded', () => {
               localStorage.setItem('subscription_status', 'trial');
               localStorage.setItem('trial_end_date', trialData['grace_period_end']);
               
-              showNotification('🎉 Welcome! You have 7 days of Engage plan access with unlimited messaging!');
+              showNotification('🎉 Welcome! You have 3 days of Engage plan access with unlimited messaging!');
             } else {
               console.error('❌ Failed to setup trial');
             }
@@ -16962,7 +16962,7 @@ async function checkTrialStatus(email, uid) {
         localStorage.removeItem('trial_end_date');
         
         // Show notification about trial expiration
-        showNotification('⏰ Your 7-day Engage trial has ended. Upgrade to continue with unlimited messaging!');
+        showNotification('⏰ Your 3-day Engage trial has ended. Upgrade to continue with unlimited messaging!');
       } else if (data.current_plan === 'Engage' && data.subscription_status === 'trial') {
         // Update localStorage with current trial info
         localStorage.setItem('user_plan', 'Engage');
