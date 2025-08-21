@@ -1333,8 +1333,10 @@
       
       /* Force conversation topics to appear right after disclaimer */
       .conversation-topics {
-        margin-top: var(--spacing-xs) !important;
+        margin-top: 0 !important;
         margin-bottom: var(--spacing-sm) !important;
+        position: relative;
+        transform: translateY(-10px);
       }
       
       /* Reduce chat section bottom padding on mobile */
@@ -5861,10 +5863,14 @@
 
     // Close search and menu on outside click
     document.addEventListener('click', (e) => {
-      // Close search overlay
-      if (!mobileSearchOverlay?.contains(e.target) &&
-          !mobileSearchBtn?.contains(e.target) &&
-          mobileSearchOverlay?.classList.contains('active')) {
+      // Close search overlay (only if elements exist)
+      const mobileSearchOverlay = document.getElementById('mobileSearchOverlay');
+      const mobileSearchBtn = document.getElementById('mobileSearchBtn');
+      
+      if (mobileSearchOverlay && mobileSearchBtn &&
+          !mobileSearchOverlay.contains(e.target) &&
+          !mobileSearchBtn.contains(e.target) &&
+          mobileSearchOverlay.classList.contains('active')) {
         mobileSearchOverlay.classList.remove('active');
         mobileSearchBtn.setAttribute('aria-expanded', 'false');
       }
@@ -5873,10 +5879,13 @@
     // Close menu on escape key
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
-        if (mobileMenuOverlay.classList.contains('active')) {
+        if (mobileMenuOverlay && mobileMenuOverlay.classList.contains('active')) {
           closeMobileMenu();
         }
-        if (mobileSearchOverlay.classList.contains('active')) {
+        
+        const mobileSearchOverlay = document.getElementById('mobileSearchOverlay');
+        const mobileSearchBtn = document.getElementById('mobileSearchBtn');
+        if (mobileSearchOverlay && mobileSearchBtn && mobileSearchOverlay.classList.contains('active')) {
           mobileSearchOverlay.classList.remove('active');
           mobileSearchBtn.setAttribute('aria-expanded', 'false');
         }
@@ -13005,20 +13014,27 @@ function setupCommunicationStyle() {
     });
   });
   
-  // Character counters
-  document.getElementById('customName').addEventListener('input', () => {
-    updateCharacterCounter('customName', 'nameCounter');
-  });
+  // Character counters (only if elements exist)
+  const customNameEl = document.getElementById('customName');
+  if (customNameEl) {
+    customNameEl.addEventListener('input', () => {
+      updateCharacterCounter('customName', 'nameCounter');
+    });
+  }
   
-  document.getElementById('customTitle').addEventListener('input', () => {
-    updateCharacterCounter('customTitle', 'titleCounter');
-  });
+  const customTitleEl = document.getElementById('customTitle');
+  if (customTitleEl) {
+    customTitleEl.addEventListener('input', () => {
+      updateCharacterCounter('customTitle', 'titleCounter');
+    });
+  }
   
   // Voice preview functionality
   const previewVoiceBtn = document.getElementById('previewVoice');
-  if (previewVoiceBtn) {
+  const voicePresetEl = document.getElementById('voicePreset');
+  if (previewVoiceBtn && voicePresetEl) {
     previewVoiceBtn.addEventListener('click', async () => {
-      const voicePreset = document.getElementById('voicePreset').value;
+      const voicePreset = voicePresetEl.value;
       if (!voicePreset) {
         showNotification('warning', 'No Voice Selected', 'Please select a voice to preview.');
         return;
