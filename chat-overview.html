@@ -3743,6 +3743,437 @@ async function checkTrialStatus(email, uid) {
 
 // ===== DELETE COMPANION FUNCTIONALITY (CLEANED UP) =====
 
+// Custom styled confirmation dialog
+function showDeleteConfirmation(companionName, isPlatformCharacter) {
+  return new Promise((resolve) => {
+    // Create modal overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'delete-modal-overlay';
+    
+    const actionText = isPlatformCharacter ? 'Remove' : 'Delete';
+    const actionDescription = isPlatformCharacter 
+      ? 'The character will be hidden from your view but remains available for other users.'
+      : 'This will completely remove your custom character from the platform.';
+    
+    overlay.innerHTML = `
+      <div class="delete-modal">
+        <div class="delete-modal-header">
+          <div class="delete-modal-icon">🗑️</div>
+          <h3>${actionText} Companion</h3>
+        </div>
+        <div class="delete-modal-body">
+          <p class="delete-question">${actionText} "<strong>${companionName}</strong>"?</p>
+          <p class="delete-description">${actionDescription}</p>
+          <p class="delete-note">Chat history will be preserved for your records.</p>
+        </div>
+        <div class="delete-modal-actions">
+          <button class="delete-btn cancel" id="deleteCancel">Cancel</button>
+          <button class="delete-btn confirm" id="deleteConfirm">${actionText}</button>
+        </div>
+      </div>
+    `;
+    
+    // Add styling
+    const style = document.createElement('style');
+    style.textContent = `
+      .delete-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(30, 41, 59, 0.95);
+        backdrop-filter: blur(20px);
+        z-index: 999999999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: all 0.3s ease;
+      }
+      .delete-modal-overlay.active {
+        opacity: 1;
+      }
+      .delete-modal {
+        background: var(--color-white);
+        border-radius: var(--radius-xl);
+        padding: var(--spacing-2xl);
+        box-shadow: var(--shadow-xl);
+        max-width: 420px;
+        width: 90%;
+        transform: scale(0.9);
+        transition: all 0.3s ease;
+      }
+      .delete-modal-overlay.active .delete-modal {
+        transform: scale(1);
+      }
+      .delete-modal-header {
+        text-align: center;
+        margin-bottom: var(--spacing-xl);
+      }
+      .delete-modal-icon {
+        font-size: 48px;
+        margin-bottom: var(--spacing-md);
+      }
+      .delete-modal-header h3 {
+        margin: 0;
+        color: var(--color-navy);
+        font-family: var(--font-secondary);
+        font-weight: 700;
+        font-size: var(--font-size-xl);
+      }
+      .delete-modal-body {
+        text-align: center;
+        margin-bottom: var(--spacing-xl);
+      }
+      .delete-question {
+        font-size: var(--font-size-base);
+        color: var(--color-navy);
+        margin: 0 0 var(--spacing-md) 0;
+        line-height: 1.5;
+      }
+      .delete-description {
+        font-size: var(--font-size-sm);
+        color: var(--color-gray-dark);
+        margin: 0 0 var(--spacing-sm) 0;
+        line-height: 1.5;
+      }
+      .delete-note {
+        font-size: var(--font-size-xs);
+        color: var(--color-gray);
+        margin: 0;
+        font-style: italic;
+      }
+      .delete-modal-actions {
+        display: flex;
+        gap: var(--spacing-md);
+        justify-content: center;
+      }
+      .delete-btn {
+        padding: var(--spacing-md) var(--spacing-xl);
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: none;
+        font-size: var(--font-size-sm);
+        min-width: 100px;
+        font-family: var(--font-primary);
+      }
+      .delete-btn.cancel {
+        background: var(--color-light-gray);
+        color: var(--color-gray-dark);
+      }
+      .delete-btn.cancel:hover {
+        background: var(--color-gray-light);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+      }
+      .delete-btn.confirm {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: var(--color-white);
+      }
+      .delete-btn.confirm:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+      }
+    `;
+    
+    document.head.appendChild(style);
+    document.body.appendChild(overlay);
+    
+    // Show modal with animation
+    setTimeout(() => overlay.classList.add('active'), 10);
+    
+    // Event handlers
+    document.getElementById('deleteCancel').addEventListener('click', () => {
+      overlay.classList.remove('active');
+      setTimeout(() => {
+        document.body.removeChild(overlay);
+        document.head.removeChild(style);
+        resolve(false);
+      }, 300);
+    });
+    
+    document.getElementById('deleteConfirm').addEventListener('click', () => {
+      overlay.classList.remove('active');
+      setTimeout(() => {
+        document.body.removeChild(overlay);
+        document.head.removeChild(style);
+        resolve(true);
+      }, 300);
+    });
+    
+    // Close on overlay click
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        document.getElementById('deleteCancel').click();
+      }
+    });
+    
+    // Close on Escape key
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        document.getElementById('deleteCancel').click();
+        document.removeEventListener('keydown', handleEscape);
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+  });
+}
+
+// Custom Narrin-styled notification system
+function showNarrinNotification(type, title, message) {
+  // Remove any existing notification
+  const existingNotification = document.querySelector('.narrin-notification');
+  if (existingNotification) {
+    existingNotification.remove();
+  }
+  
+  // Create notification element
+  const notification = document.createElement('div');
+  notification.className = 'narrin-notification';
+  
+  const icons = {
+    success: '✅',
+    error: '❌', 
+    warning: '⚠️',
+    info: 'ℹ️'
+  };
+  
+  const colors = {
+    success: { bg: 'linear-gradient(135deg, #10b981, #059669)', border: '#10b981' },
+    error: { bg: 'linear-gradient(135deg, #ef4444, #dc2626)', border: '#ef4444' },
+    warning: { bg: 'linear-gradient(135deg, #f59e0b, #d97706)', border: '#f59e0b' },
+    info: { bg: 'var(--gradient-primary)', border: 'var(--color-teal)' }
+  };
+  
+  notification.innerHTML = `
+    <div class="narrin-notification-content">
+      <div class="narrin-notification-icon">${icons[type]}</div>
+      <div class="narrin-notification-text">
+        <div class="narrin-notification-title">${title}</div>
+        <div class="narrin-notification-message">${message}</div>
+      </div>
+      <button class="narrin-notification-close" onclick="this.parentElement.parentElement.remove()">✕</button>
+    </div>
+  `;
+  
+  // Add styles
+  const style = document.createElement('style');
+  style.textContent = `
+    .narrin-notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: ${colors[type].bg};
+      color: white;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-xl);
+      z-index: 999999999;
+      animation: slideInRight 0.3s ease;
+      max-width: 400px;
+      min-width: 300px;
+      border: 2px solid ${colors[type].border};
+    }
+    
+    .narrin-notification-content {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--spacing-md);
+      padding: var(--spacing-lg);
+    }
+    
+    .narrin-notification-icon {
+      font-size: 24px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    
+    .narrin-notification-text {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .narrin-notification-title {
+      font-weight: 700;
+      font-size: var(--font-size-base);
+      margin-bottom: 4px;
+      font-family: var(--font-secondary);
+    }
+    
+    .narrin-notification-message {
+      font-size: var(--font-size-sm);
+      opacity: 0.95;
+      line-height: 1.4;
+    }
+    
+    .narrin-notification-close {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+      opacity: 0.8;
+      flex-shrink: 0;
+    }
+    
+    .narrin-notification-close:hover {
+      opacity: 1;
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.1);
+    }
+    
+    @keyframes slideInRight {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .narrin-notification {
+        top: auto;
+        bottom: 20px;
+        right: 20px;
+        left: 20px;
+        max-width: none;
+      }
+    }
+  `;
+  
+  // Add styles if not already present
+  if (!document.querySelector('#narrin-notification-styles')) {
+    style.id = 'narrin-notification-styles';
+    document.head.appendChild(style);
+  }
+  
+  // Add to page
+  document.body.appendChild(notification);
+  
+  // Auto remove after 5 seconds
+  setTimeout(() => {
+    if (notification.parentElement) {
+      notification.remove();
+    }
+  }, 5000);
+}
+
+async function deleteCompanion(companionSlug, companionName, event) {
+  event?.preventDefault();
+  event?.stopPropagation();
+  
+  console.log('🗑️ Delete companion requested:', { companionSlug, companionName });
+  
+  // Check if this is a platform character (galina, blake, emerald, sol)
+  const platformCharacters = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
+  const isPlatformCharacter = platformCharacters.includes(companionSlug);
+  
+  console.log('🔍 Character type check:', { companionSlug, isPlatformCharacter });
+  
+  // Show custom Narrin-styled confirmation dialog
+  const confirmed = await showDeleteConfirmation(companionName, isPlatformCharacter);
+  if (!confirmed) {
+    console.log('❌ Delete cancelled by user');
+    return;
+  }
+  
+  try {
+    if (isPlatformCharacter) {
+      // Platform character - just hide locally
+      console.log('🙈 Hiding platform character locally');
+      
+      const removedCompanions = JSON.parse(localStorage.getItem('removedCompanions') || '[]');
+      if (!removedCompanions.includes(companionSlug)) {
+        removedCompanions.push(companionSlug);
+        localStorage.setItem('removedCompanions', JSON.stringify(removedCompanions));
+        console.log('✅ Platform character hidden:', removedCompanions);
+      }
+      
+      showNarrinNotification('success', 'Companion Removed', 
+        `${companionName} has been removed from your companions.`);
+      
+      // Reload page to refresh companions list
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+      
+    } else {
+      // User-created character - delete completely via Make.com
+      console.log('🗑️ Deleting user-created character via Make.com...');
+      
+      const payload = {
+        user_uid: localStorage.getItem('user_uid'),
+        slug: companionSlug
+      };
+      
+      console.log('📤 Sending payload to Netlify function:', payload);
+      console.log('📤 user_uid from localStorage:', localStorage.getItem('user_uid'));
+      console.log('📤 companion slug:', companionSlug);
+      
+      const response = await fetch('/.netlify/functions/delete-companion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      
+      console.log('📥 Delete response status:', response.status);
+      console.log('📥 Delete response headers:', response.headers);
+      
+      // Log response text for debugging
+      const responseText = await response.text();
+      console.log('📥 Raw response text:', responseText);
+      
+      if (!response.ok) {
+        console.error('❌ Netlify function failed:', response.status, response.statusText);
+        console.error('❌ Response text:', responseText);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      let result;
+      try {
+        result = JSON.parse(responseText);
+        console.log('✅ Parsed delete response:', result);
+      } catch (parseError) {
+        console.error('❌ Failed to parse response as JSON:', parseError);
+        console.error('❌ Raw response was:', responseText);
+        throw new Error('Invalid response from server');
+      }
+      
+      if (result.success) {
+        showNarrinNotification('success', 'Companion Deleted', 
+          `${companionName} has been permanently deleted.`);
+        
+        // Remove from local storage if exists
+        const customizedCharacters = JSON.parse(localStorage.getItem('customizedCharacters') || '{}');
+        if (customizedCharacters[companionSlug]) {
+          delete customizedCharacters[companionSlug];
+          localStorage.setItem('customizedCharacters', JSON.stringify(customizedCharacters));
+          console.log('🧹 Removed from localStorage customizedCharacters');
+        }
+        
+        // Reload page to refresh companions list
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        throw new Error(result.error || 'Unknown error occurred');
+      }
+    }
+  } catch (error) {
+    console.error('❌ Delete companion error:', error);
+    showNarrinNotification('error', 'Delete Failed', 
+      `Failed to delete ${companionName}. ${error.message}`);
+  }
+}
+
   </script>
 
   <!-- Footer -->
