@@ -11770,20 +11770,20 @@ function restartOnboarding() {
   closeMemoryHub();
   
   // Clear the stored onboarding flag to force it to show again
-  const uid = localStorage.getItem('user_uid');
-  const slug = characterSlug || currentCharacter?.slug || currentCharacter?.character_id;
+  // uid already declared above, reuse existing slug or get from character
+  const slugForClearing = characterSlug || currentCharacter?.slug || currentCharacter?.character_id;
   
-  if (uid && slug) {
+  if (uid && slugForClearing) {
     // Clear all onboarding-related localStorage entries (more aggressive clearing)
-    const completionKey = `onboarding_${uid}_${slug}`;
-    const shownKey = `onboarding_shown_${uid}_${slug}`;
+    const completionKey = `onboarding_${uid}_${slugForClearing}`;
+    const shownKey = `onboarding_shown_${uid}_${slugForClearing}`;
     
     localStorage.removeItem(completionKey);
     localStorage.removeItem(shownKey);
     
     // Also clear possible alternative keys
-    localStorage.removeItem(`onboarding_completed_${uid}_${slug}`);
-    localStorage.removeItem(`onboarding_data_${uid}_${slug}`);
+    localStorage.removeItem(`onboarding_completed_${uid}_${slugForClearing}`);
+    localStorage.removeItem(`onboarding_data_${uid}_${slugForClearing}`);
     
     console.log('✅ Cleared all onboarding data for restart:', { completionKey, shownKey });
   }
