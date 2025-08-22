@@ -31,14 +31,13 @@ exports.handler = async (event, context) => {
   sgMail.setApiKey(SENDGRID_API_KEY);
 
   try {
-    // Get chats from last 48 hours to check for 24h inactivity
-    const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
-    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    // Get chats from last 96 hours to check for 72h check-in intervals
+    const ninetySevenHoursAgo = new Date(Date.now() - 96 * 60 * 60 * 1000).toISOString();
     
-    // Fetch all recent chat messages
+    // Fetch all recent chat messages (increased range for 72h logic)
     const chatsResponse = await fetch(
       `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?` + 
-      `filterByFormula=${encodeURIComponent(`IS_AFTER({CreatedTime}, '${fortyEightHoursAgo}')`)}` +
+      `filterByFormula=${encodeURIComponent(`IS_AFTER({CreatedTime}, '${ninetySevenHoursAgo}')`)}` +
       `&sort[0][field]=CreatedTime&sort[0][direction]=desc`,
       {
         headers: {
@@ -53,7 +52,7 @@ exports.handler = async (event, context) => {
     }
 
     const chatsData = await chatsResponse.json();
-    console.log(`📊 Found ${chatsData.records.length} chat records in last 48 hours`);
+    console.log(`📊 Found ${chatsData.records.length} chat records in last 96 hours`);
     
     // Group messages by user-character combination
     const conversations = {};
@@ -124,18 +123,47 @@ exports.handler = async (event, context) => {
       const timeSinceLastMessage = now - conv.last_message_time;
       const hoursSinceLastMessage = timeSinceLastMessage / (1000 * 60 * 60);
       
-      // Check if:
-      // 1. More than 24 hours since last message
-      // 2. No check-in sent in last 48 hours
-      // 3. Last message was from AI (we want to follow up when user hasn't responded)
-      const recentCheckin = conv.messages.find(m => {
-        const isCheckin = m.is_checkin === true || m.is_checkin === 'true';
-        const checkinAge = (now - m.created_time) / (1000 * 60 * 60);
-        if (isCheckin) {
-          console.log(`  📌 Found check-in from ${checkinAge.toFixed(1)} hours ago`);
+      // Enhanced check-in logic:
+      // 1. First check-in: after 24-48h inactivity
+      // 2. After user responds to check-in: wait 72h for next check-in
+      // 3. After second check-in response: wait 72h for third check-in
+      
+      // Sort messages by time (newest first)
+      const sortedMessages = conv.messages.sort((a, b) => b.created_time - a.created_time);
+      
+      // Find all check-ins and user responses after check-ins
+      const checkins = sortedMessages.filter(m => m.is_checkin === true || m.is_checkin === 'true');
+      let shouldSendCheckin = false;
+      let waitTimeHours = 24; // Default first check-in wait time
+      
+      if (checkins.length === 0) {
+        // No check-ins sent yet - use 24-48h rule
+        shouldSendCheckin = hoursSinceLastMessage >= 24 && hoursSinceLastMessage < 48;
+        console.log(`  🏁 No check-ins yet - using 24-48h rule`);
+      } else {
+        // Find most recent check-in
+        const lastCheckin = checkins[0];
+        const checkinAge = (now - lastCheckin.created_time) / (1000 * 60 * 60);
+        
+        // Find if user responded after the last check-in
+        const userResponseAfterCheckin = sortedMessages.find(m => 
+          m.is_user && m.created_time > lastCheckin.created_time
+        );
+        
+        if (userResponseAfterCheckin) {
+          // User responded to check-in - wait 72h from their response
+          const hoursSinceResponse = (now - userResponseAfterCheckin.created_time) / (1000 * 60 * 60);
+          shouldSendCheckin = hoursSinceResponse >= 72;
+          waitTimeHours = 72;
+          console.log(`  💬 User responded to check-in ${hoursSinceResponse.toFixed(1)}h ago - using 72h rule`);
+        } else {
+          // User hasn't responded to last check-in - don't send another until they do
+          shouldSendCheckin = false;
+          console.log(`  ⏳ User hasn't responded to check-in from ${checkinAge.toFixed(1)}h ago - waiting for response`);
         }
-        return isCheckin && (now - m.created_time) < 48 * 60 * 60 * 1000;
-      });
+      }
+      
+      const recentCheckin = checkins.length > 0 && (now - checkins[0].created_time) < waitTimeHours * 60 * 60 * 1000;
       
       // Check if last message was from AI (not user) - we want to follow up when AI is waiting
       const lastMessageWasAI = conv.messages.length > 0 && conv.messages[0]?.is_user === false;
@@ -147,26 +175,28 @@ exports.handler = async (event, context) => {
         userEmail,
         hoursSinceLastMessage: hoursSinceLastMessage.toFixed(1),
         hasRecentCheckin: !!recentCheckin,
+        shouldSendCheckin,
+        waitTimeHours,
         lastMessageWasAI,
         characterName: conv.character_name,
-        totalMessages: conv.messages.length
+        totalMessages: conv.messages.length,
+        totalCheckins: checkins.length
       });
       
-      // For testing: also check messages from last 48 hours if test mode is enabled
+      // For testing: also check messages if test mode is enabled
       const testMode = event.queryStringParameters?.test === 'true';
-      const minHours = testMode ? 0 : 24; // 0 hours for testing (all messages), 24 hours for production
-      const maxHours = testMode ? 48 : 48; // 48 hours for both test and production
       
       if (testMode) {
-        console.log('🧪 TEST MODE ENABLED - Including all chats from last 48 hours');
+        console.log('🧪 TEST MODE ENABLED - Using 72h rule for all check-ins');
+        // In test mode, allow check-ins regardless of normal timing
       }
       
       // Skip test conversations in production (we'll check email during processing)
       // For now, just flag them for later checking
       
-      // Send check-in when AI is waiting for user response
-      if (hoursSinceLastMessage >= minHours && hoursSinceLastMessage < maxHours && !recentCheckin && lastMessageWasAI) {
-        console.log(`✅ Adding to inactive list: ${conv.character_name} (AI waiting for response)`);
+      // Send check-in based on enhanced logic
+      if (shouldSendCheckin && !recentCheckin && lastMessageWasAI) {
+        console.log(`✅ Adding to inactive list: ${conv.character_name} (${waitTimeHours}h rule triggered)`);
         inactiveChats.push(conv);
       }
     }

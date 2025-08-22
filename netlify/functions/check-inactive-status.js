@@ -88,7 +88,7 @@ exports.handler = async (event, context) => {
       
       const hoursSince = (now - conv.last_message_time) / (1000 * 60 * 60);
       const hasRecentCheckin = conv.messages.some(m => 
-        m.is_checkin && (now - m.time) < 48 * 60 * 60 * 1000
+        m.is_checkin && (now - m.time) < 72 * 60 * 60 * 1000
       );
       
       // Get user info for non-test emails
@@ -125,11 +125,11 @@ exports.handler = async (event, context) => {
         status.already_sent.push(convInfo);
       } else if (!conv.is_user_last) {
         status.waiting_for_user.push(convInfo);
-      } else if (hoursSince >= 24 && hoursSince < 48) {
+      } else if (hoursSince >= 72) {
         status.ready_for_checkin.push(convInfo);
-      } else if (hoursSince >= 12 && hoursSince < 24) {
+      } else if (hoursSince >= 48 && hoursSince < 72) {
         status.upcoming_soon.push(convInfo);
-      } else if (hoursSince < 12) {
+      } else if (hoursSince < 48) {
         status.recently_active.push(convInfo);
       }
     }
