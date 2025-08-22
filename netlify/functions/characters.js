@@ -226,6 +226,7 @@ exports.handler = async (event, context) => {
         voice_type: fields.voice_type || 'none',
         Visibility: fields.Visibility || 'public',
         Created_by: createdBy,
+        character_type: fields.Character_Type || fields.character_type || '',
         _Created_by_record_id: (Array.isArray(fields.Created_By) && fields.Created_By.length > 0) ? fields.Created_By[0] : null
       };
     });
