@@ -5111,7 +5111,7 @@
                 <button type="button" class="btn-secondary-form" onclick="generateCompanionImage()" style="flex: 0 0 auto;" id="generateImageBtn">
                   ✨ Generate New Image
                 </button>
-                <span id="customAvatarFileName" style="color: var(--color-gray); font-size: var(--font-size-sm);">No file chosen</span>
+                <span id="customAvatarFileName" style="color: var(--color-gray); font-size: var(--font-size-sm); flex: 1 1 auto; min-width: 0; text-align: left;">No file chosen</span>
               </div>
               <div id="customAvatarPreview" style="margin-top: var(--spacing-md); display: none;">
                 <img id="customAvatarImg" src="" alt="Avatar preview" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover;">
@@ -17688,6 +17688,13 @@ async function generateCompanionImage() {
       
       // Store for form submission
       customAvatarUploadUrl = imageUrl;
+      
+      // Update currentCharacter avatar_url so it persists when customize modal closes
+      currentCharacter.avatar_url = imageUrl;
+      currentCharacter.Avatar_URL = imageUrl;
+      
+      // Update the main character avatar in header
+      updateAllAvatarDisplays();
       
       console.log('✅ Generated companion image:', imageUrl);
       showNotification('success', 'Image Generated', `New profile image created for ${companionName}!`);
