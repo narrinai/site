@@ -1493,9 +1493,9 @@ Which of these would you like to explore first? Or is there something else you'd
 function needsOnboarding(category, userId, characterSlug) {
   console.log('🔍 needsOnboarding called with:', { category, userId, characterSlug });
   
-  // Handle empty or undefined categories
+  // Handle empty or undefined categories - now category should be pre-normalized from getNormalizedCategory
   if (!category || category.trim() === '') {
-    console.log('❌ Empty category, skipping onboarding');
+    console.log('❌ Empty category after normalization, skipping onboarding');
     return false;
   }
   

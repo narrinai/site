@@ -16182,20 +16182,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return false; // Don't show onboarding again
       }
       
-      // Try to get category from various fields
-      let category = currentCharacter.Category || currentCharacter.category || '';
-      
-      // Normalize category (capitalize first letter)
-      if (category) {
-        category = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
-        console.log('📐 Normalized category:', category);
-      }
-      
-      // Fallback: if no category but title contains "Career", use Career category
-      if (!category && currentCharacter.character_title && currentCharacter.character_title.toLowerCase().includes('career')) {
-        category = 'Career';
-        console.log('📌 Using Career category based on character_title:', currentCharacter.character_title);
-      }
+      // Use the comprehensive category normalization function which includes character_type
+      let category = getNormalizedCategory(currentCharacter);
+      console.log('📐 Normalized category using getNormalizedCategory:', category);
       
       const userId = localStorage.getItem('user_id') || localStorage.getItem('user_uid') || 'anonymous';
       
@@ -16205,7 +16194,8 @@ document.addEventListener('DOMContentLoaded', () => {
         characterId: characterId,  // This is already the URL slug
         allCategoryFields: {
           Category: currentCharacter.Category,
-          category: currentCharacter.category
+          category: currentCharacter.category,
+          character_type: currentCharacter.character_type
         }
       });
       
