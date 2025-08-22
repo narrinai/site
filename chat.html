@@ -1336,6 +1336,115 @@
       transform: translateY(0);
     }
 
+    /* Avatar Enlargement Modal */
+    .avatar-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(4px);
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    .avatar-modal.show {
+      display: flex;
+    }
+
+    .avatar-modal-content {
+      position: relative;
+      max-width: 90vw;
+      max-height: 90vh;
+      background: var(--color-white);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-md);
+      box-shadow: var(--shadow-xl);
+      animation: slideIn 0.3s ease-out;
+    }
+
+    .avatar-modal-image {
+      max-width: 100%;
+      max-height: 80vh;
+      width: auto;
+      height: auto;
+      border-radius: var(--radius-md);
+      object-fit: contain;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .avatar-modal-close {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      width: 32px;
+      height: 32px;
+      background: var(--color-white);
+      border: 2px solid var(--color-light-gray);
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: bold;
+      color: var(--color-dark-gray);
+      box-shadow: var(--shadow-md);
+      transition: all var(--transition-base);
+    }
+
+    .avatar-modal-close:hover {
+      background: var(--color-red);
+      color: var(--color-white);
+      border-color: var(--color-red);
+      transform: scale(1.1);
+    }
+
+    @media (max-width: 768px) {
+      .avatar-modal-content {
+        max-width: 95vw;
+        max-height: 85vh;
+        padding: var(--spacing-sm);
+      }
+      
+      .avatar-modal-image {
+        max-height: 75vh;
+      }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideIn {
+      from { 
+        opacity: 0;
+        transform: scale(0.8) translateY(-20px);
+      }
+      to { 
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    /* Make avatar images clickable */
+    .character-avatar img,
+    #customAvatarImg {
+      cursor: pointer;
+      transition: transform var(--transition-base);
+    }
+
+    .character-avatar img:hover,
+    #customAvatarImg:hover {
+      transform: scale(1.05);
+    }
+
     /* Support Escalation Styles */
     .support-escalation {
       background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
@@ -9162,7 +9271,7 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
                          currentCharacter.image_url;
         
         if (avatarUrl && avatarUrl.trim() !== '') {
-          avatarElement.innerHTML = `<img src="${avatarUrl}" alt="${currentCharacter.name}" onerror="this.onerror=null; this.parentElement.innerHTML='👤';">`;
+          avatarElement.innerHTML = `<img src="${avatarUrl}" alt="${currentCharacter.name}" onerror="this.onerror=null; this.parentElement.innerHTML='👤';" onclick="openAvatarModal('${avatarUrl}')">`;
         } else {
           avatarElement.innerHTML = '👤';
         }
@@ -12004,6 +12113,11 @@ function openCustomizationModal() {
       if (preview && previewImg) {
         previewImg.src = avatarUrl;
         preview.style.display = 'block';
+        
+        // Add click handler for modal
+        previewImg.onclick = function() {
+          openAvatarModal(avatarUrl);
+        };
       }
       customAvatarUploadUrl = avatarUrl;
     }
@@ -12079,6 +12193,11 @@ function openCustomizationModal() {
       if (preview && previewImg) {
         previewImg.src = avatarUrl;
         preview.style.display = 'block';
+        
+        // Add click handler for modal
+        previewImg.onclick = function() {
+          openAvatarModal(avatarUrl);
+        };
       }
     }
     document.getElementById('customPrompt').value = '';
@@ -16002,8 +16121,92 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     </div>
   </div>
+
+  <!-- Avatar Enlargement Modal -->
+  <div id="avatarModal" class="avatar-modal">
+    <div class="avatar-modal-content">
+      <button class="avatar-modal-close" onclick="closeAvatarModal()">×</button>
+      <img id="avatarModalImage" class="avatar-modal-image" src="" alt="Enlarged avatar">
+    </div>
+  </div>
   
   <script>
+    // Avatar Modal Functions
+    function openAvatarModal(imageSrc) {
+      if (!imageSrc || imageSrc.trim() === '') return;
+      
+      const modal = document.getElementById('avatarModal');
+      const modalImage = document.getElementById('avatarModalImage');
+      
+      if (modal && modalImage) {
+        modalImage.src = imageSrc;
+        modal.classList.add('show');
+        
+        // Prevent body scroll when modal is open
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    function closeAvatarModal() {
+      const modal = document.getElementById('avatarModal');
+      
+      if (modal) {
+        modal.classList.remove('show');
+        
+        // Restore body scroll
+        document.body.style.overflow = '';
+      }
+    }
+
+    // Close modal when clicking outside the image
+    function setupAvatarModalEvents() {
+      const modal = document.getElementById('avatarModal');
+      
+      if (modal) {
+        modal.addEventListener('click', function(e) {
+          if (e.target === modal) {
+            closeAvatarModal();
+          }
+        });
+        
+        // Close on Escape key
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape' && modal.classList.contains('show')) {
+            closeAvatarModal();
+          }
+        });
+      }
+    }
+
+    // Add click handlers to avatar images
+    function addAvatarClickHandlers() {
+      // Character avatar in header
+      const characterAvatar = document.querySelector('.character-avatar img');
+      if (characterAvatar) {
+        characterAvatar.addEventListener('click', function() {
+          openAvatarModal(this.src);
+        });
+      }
+
+      // Custom avatar preview in customize section
+      const customAvatarImg = document.getElementById('customAvatarImg');
+      if (customAvatarImg) {
+        customAvatarImg.addEventListener('click', function() {
+          if (this.src && this.src !== '') {
+            openAvatarModal(this.src);
+          }
+        });
+      }
+
+      // Onboarding avatar
+      const onboardingAvatar = document.querySelector('.onboarding-avatar img');
+      if (onboardingAvatar) {
+        onboardingAvatar.addEventListener('click', function() {
+          openAvatarModal(this.src);
+        });
+      }
+    }
+
     // Add event listeners after DOM loads for mobile compatibility
     document.addEventListener('DOMContentLoaded', function() {
       const closeBtn = document.getElementById('feedbackCloseBtn');
@@ -16065,6 +16268,12 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         });
       }
+
+      // Setup avatar modal events
+      setupAvatarModalEvents();
+
+      // Add click handlers to existing avatar images
+      addAvatarClickHandlers();
     });
     
     // Update show function to use display instead of class
@@ -16266,7 +16475,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Add character avatar
       const avatarDiv = document.getElementById('onboardingAvatar');
       if (currentCharacter && currentCharacter.avatar_url) {
-        avatarDiv.innerHTML = `<img src="${currentCharacter.avatar_url}" alt="${currentCharacter.name || 'Character'}" />`;
+        avatarDiv.innerHTML = `<img src="${currentCharacter.avatar_url}" alt="${currentCharacter.name || 'Character'}" onclick="openAvatarModal('${currentCharacter.avatar_url}')" />`;
       } else {
         avatarDiv.innerHTML = '👤';
         avatarDiv.style.fontSize = '30px';
@@ -17369,6 +17578,11 @@ async function generateCompanionImage() {
       if (preview && previewImg) {
         previewImg.src = imageUrl;
         preview.style.display = 'block';
+        
+        // Add click handler for modal
+        previewImg.onclick = function() {
+          openAvatarModal(imageUrl);
+        };
       }
       
       if (urlInput) urlInput.value = imageUrl;
@@ -17461,6 +17675,11 @@ async function generateCompanionImage() {
       if (preview && previewImg) {
         previewImg.src = imageUrl;
         preview.style.display = 'block';
+        
+        // Add click handler for modal
+        previewImg.onclick = function() {
+          openAvatarModal(imageUrl);
+        };
       }
       
       // Update hidden input and filename
