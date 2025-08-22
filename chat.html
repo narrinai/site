@@ -4445,13 +4445,14 @@
       
       .onboarding-container {
         max-width: 95vw;
-        max-height: calc(100vh - 20px);
+        max-height: calc(100vh - 40px);
         height: auto;
         min-height: 0;
         border-radius: var(--radius-lg);
         overflow: hidden;
         display: flex;
         flex-direction: column;
+        margin: 20px auto;
       }
       
       .onboarding-header {
@@ -8880,6 +8881,30 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     }
 
     currentCharacter = data.character;
+    
+    // Supplement character data with fields from characters API (like character_type)
+    try {
+      const charactersApiResponse = await fetch(`/.netlify/functions/characters?slug=${slug}&limit=1`);
+      if (charactersApiResponse.ok) {
+        const apiData = await charactersApiResponse.json();
+        if (apiData.characters && apiData.characters.length > 0) {
+          const apiCharacter = apiData.characters[0];
+          
+          // Add missing fields from API to currentCharacter
+          if (apiCharacter.character_type && !currentCharacter.character_type) {
+            currentCharacter.character_type = apiCharacter.character_type;
+            console.log('✅ Added character_type from API:', apiCharacter.character_type);
+          }
+          if (apiCharacter.Category && !currentCharacter.Category) {
+            currentCharacter.Category = apiCharacter.Category;
+            console.log('✅ Added Category from API:', apiCharacter.Category);
+          }
+        }
+      }
+    } catch (apiError) {
+      console.warn('⚠️ Could not supplement character data from API:', apiError);
+    }
+    
     console.log('🔍 Character data received:', currentCharacter);
     console.log('🔍 Character name fields:', {
       name: currentCharacter.name,
