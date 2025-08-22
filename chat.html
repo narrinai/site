@@ -1157,6 +1157,9 @@
       box-shadow: var(--shadow-sm);
       border: 2px solid var(--color-light-gray);
       transition: all 300ms ease-out;
+      box-sizing: border-box;
+      overflow: hidden;
+      width: calc(100% - 40px);
     }
     
     @media (max-width: 768px) {
@@ -1265,6 +1268,9 @@
       flex-direction: column;
       gap: 0;
       align-items: stretch;
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow: hidden;
     }
 
     .topic-btn {
@@ -4723,7 +4729,7 @@
         
         <div class="memory-hub-footer">
           <button class="update-answers-btn" onclick="restartOnboarding()">
-            <span>🔄</span> Update Information
+            <span>🔄</span> Start Personal Quiz
           </button>
         </div>
       </div>
@@ -11469,7 +11475,7 @@ async function openMemoryHub() {
       content.innerHTML = `
         <div class="no-memories">
           <div class="no-memories-title">No Memories Yet</div>
-          <div class="no-memories-text">Click the <strong>"Update Information"</strong> button below to answer a few quick questions and create your personalized memories</div>
+          <div class="no-memories-text">Click the <strong>"Start Personal Quiz"</strong> button below to answer a few quick questions and create your personalized memories</div>
         </div>
       `;
       return;
@@ -11523,14 +11529,14 @@ async function openMemoryHub() {
         <div class="no-memories">
           <div class="no-memories-title">No Memories Yet</div>
           <div class="no-memories-text">
-            <p style="margin: 0 0 12px 0;">Click the <strong>"Update Information"</strong> button below to answer a few quick questions about yourself.</p>
+            <p style="margin: 0 0 12px 0;">Click the <strong>"Start Personal Quiz"</strong> button below to answer a few quick questions about yourself.</p>
             <p style="margin: 0;">This helps ${currentCharacter?.Name || 'your companion'} remember important details and personalize your conversations!</p>
             <div style="font-size: 24px; margin-top: 16px; animation: bounce 2s infinite;">👇</div>
           </div>
         </div>
       `;
       
-      // Add a glow effect to the Update Information button
+      // Add a glow effect to the Start Personal Quiz button
       setTimeout(() => {
         const updateBtn = document.querySelector('.update-answers-btn');
         if (updateBtn) {
@@ -16216,6 +16222,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (shouldRestart || onboardingNeeded) {
         console.log('✅ Onboarding needed for category:', category, shouldRestart ? '(restart requested)' : '');
         
+        // Handle empty or undefined categories
+        if (!category || category.trim() === '') {
+          console.log('❌ Empty category, skipping onboarding');
+          return false;
+        }
+        
         // Normalize category to match onboarding config (same logic as needsOnboarding function)
         let normalizedCategory = category;
         const categoryKeys = Object.keys(window.onboardingQuestions || {});
@@ -17383,6 +17395,38 @@ async function generateCompanionImage() {
     generateBtn.disabled = false;
     generateBtn.textContent = originalText;
     generateBtn.style.opacity = '1';
+  }
+}
+
+// Helper function to generate character avatar using Netlify function
+async function generateCharacterAvatar(characterName) {
+  try {
+    const response = await fetch('/.netlify/functions/generate-avatar-replicate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        character_name: characterName,
+        character_title: currentCharacter?.character_title || 'AI Companion',
+        category: currentCharacter?.category || 'General'
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP ${response.status}: ${errorText}`);
+    }
+
+    const result = await response.json();
+    if (result.success && result.imageUrl) {
+      return result.imageUrl;
+    } else {
+      throw new Error(result.message || 'Failed to generate avatar');
+    }
+  } catch (error) {
+    console.error('❌ Error generating character avatar:', error);
+    throw error;
   }
 }
 
