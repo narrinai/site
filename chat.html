@@ -2451,13 +2451,13 @@
       
       /* Make chat screen taller on mobile */
       .chat-section {
-        min-height: calc(100vh - 120px);
+        min-height: calc(100vh - 160px);
       }
 
       #chatlog {
-        height: calc(75vh - 140px) !important;
-        min-height: 450px !important;
-        max-height: 650px !important;
+        height: calc(60vh - 120px) !important;
+        min-height: 300px !important;
+        max-height: 500px !important;
         padding: var(--spacing-md);
         font-size: var(--font-size-sm);
       }
@@ -4985,7 +4985,7 @@
 
     <div id="chatInterface" style="display: none;">
       <div class="page-header">
-        <h1>AI Companions That Make You Better at Being Human</h1>
+        <h1>Your Daily Processing Partner</h1>
         <p>Build confidence and grow emotionally in a judgment-free environment.</p>
         
       </div>
@@ -11479,7 +11479,17 @@ function isConversationalCategory(category) {
 function getNormalizedCategory(character) {
   if (!character) return '';
   
-  let category = character.Category || character.category || character.character_type || '';
+  console.log('🔍 getNormalizedCategory input:', {
+    Category: character.Category,
+    category: character.category,
+    character_type: character.character_type,
+    Character_Type: character.Character_Type,
+    characterType: character.characterType
+  });
+  
+  let category = character.Category || character.category || character.character_type || character.Character_Type || character.characterType || '';
+  
+  console.log('🔍 Selected category field:', category);
   
   // Special mapping for common create-character types
   const typeMapping = {
@@ -16407,8 +16417,11 @@ document.addEventListener('DOMContentLoaded', () => {
         allCategoryFields: {
           Category: currentCharacter.Category,
           category: currentCharacter.category,
-          character_type: currentCharacter.character_type
-        }
+          character_type: currentCharacter.character_type,
+          Character_Type: currentCharacter.Character_Type,
+          characterType: currentCharacter.characterType
+        },
+        fullCharacterData: currentCharacter
       });
       
       console.log('📚 typeof needsOnboarding:', typeof needsOnboarding);
