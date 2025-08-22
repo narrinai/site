@@ -1299,7 +1299,9 @@
       font-weight: 600;
       font-size: var(--font-size-base);
       padding: var(--spacing-md) var(--spacing-lg);
-      margin-bottom: var(--spacing-sm);
+      margin: 0 var(--spacing-sm) var(--spacing-sm) var(--spacing-sm);
+      max-width: calc(100% - 32px);
+      box-sizing: border-box;
     }
     
     .topic-btn.subtopic {
@@ -1309,8 +1311,9 @@
       font-weight: 400;
       font-size: var(--font-size-sm);
       padding: var(--spacing-sm) var(--spacing-md);
-      margin-left: var(--spacing-lg);
-      margin-bottom: var(--spacing-xs);
+      margin: 0 var(--spacing-md) var(--spacing-xs) var(--spacing-md);
+      max-width: calc(100% - 48px);
+      box-sizing: border-box;
     }
 
     .topic-btn:hover {
@@ -17397,8 +17400,8 @@ async function generateCharacterAvatar(characterName) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        character_name: characterName,
-        character_title: currentCharacter?.character_title || 'AI Companion',
+        characterName: characterName,
+        characterTitle: currentCharacter?.character_title || 'AI Companion',
         category: currentCharacter?.category || 'General'
       })
     });
@@ -17431,7 +17434,11 @@ async function generateCompanionImage() {
   if (!generateBtn) return;
   
   // Get companion details for generation
-  const companionName = document.getElementById('customName').value.trim() || currentCharacter.name || 'Character';
+  const companionName = document.getElementById('customName').value.trim() || 
+                        currentCharacter.name || 
+                        currentCharacter.Name || 
+                        currentCharacter.Character_Name || 
+                        'Character';
   
   // Show loading state
   const originalText = generateBtn.textContent;
@@ -17442,8 +17449,12 @@ async function generateCompanionImage() {
   try {
     console.log('🎨 Generating companion image for:', companionName);
     
+    if (!companionName || companionName.trim() === '') {
+      throw new Error('Character name is required for image generation');
+    }
+    
     // Call image generation function (reuse existing logic)
-    const imageUrl = await generateCharacterAvatar(companionName);
+    const imageUrl = await generateCharacterAvatar(companionName.trim());
     
     if (imageUrl) {
       // Show preview
