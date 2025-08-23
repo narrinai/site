@@ -7165,16 +7165,52 @@ document.addEventListener('DOMContentLoaded', () => {
         const hasOnboardingData = window.additionalContext?.onboarding;
         
         if (hasHistory || hasOnboardingData) {
-          // User has setup, just simple welcome
-          return "Hey! I'm here whenever you need to talk through something or want to explore ideas together. What's on your mind today?";
+          // User has setup, just simple welcome based on companion type
+          const companionType = currentCharacter?.character_type || 'friendship';
+          
+          switch (companionType.toLowerCase()) {
+            case 'mentorship':
+              return "Hey! I'm here to help you grow and tackle challenges. What's something you'd like to work on today?";
+            case 'friendship':
+              return "Hey! I'm here whenever you need to talk through something or explore ideas together. What's on your mind?";
+            case 'romance':
+              return "Hey there! I'm here for meaningful conversations and connection. What's been on your heart lately?";
+            case 'mindfulness':
+              return "Hey! I'm here to help you find clarity and peace. What's weighing on your mind today?";
+            case 'other':
+            case 'entertainment':
+            default:
+              return "Hey! I'm here for whatever kind of conversation you need. What brings you here today?";
+          }
         } else {
-          // New user, include personalization tips
-          return `Hey! I'm here to chat and get to know you better.
+          // New user, include personalization tips with companion type context
+          const companionType = currentCharacter?.character_type || 'friendship';
+          let baseMessage = "";
+          
+          switch (companionType.toLowerCase()) {
+            case 'mentorship':
+              baseMessage = "Hey! I'm here as your mentor and guide. ";
+              break;
+            case 'friendship':
+              baseMessage = "Hey! I'm here as your friendly companion. ";
+              break;
+            case 'romance':
+              baseMessage = "Hey! I'm here for meaningful connection and conversation. ";
+              break;
+            case 'mindfulness':
+              baseMessage = "Hey! I'm here to help you find peace and clarity. ";
+              break;
+            case 'other':
+            case 'entertainment':
+            default:
+              baseMessage = "Hey! I'm here to chat and connect with you. ";
+          }
+          
+          return `${baseMessage}To get the most personalized experience:
 
-To personalize our conversations, you can:
-• Take the personal quiz in the Memory Hub 🧠
-• Customize my personality with the Customize button ⚙️  
-• Import your ChatGPT memories via Import Memory 📥
+• Take the <a href="#" onclick="document.querySelector('.memory-hub-btn').click(); return false;" style="color: var(--color-teal); text-decoration: none;">personal quiz in Memory Hub 🧠</a>
+• <a href="#" onclick="document.querySelector('.customize-btn').click(); return false;" style="color: var(--color-teal); text-decoration: none;">Customize my personality ⚙️</a>
+• <a href="memory-import.html" style="color: var(--color-teal); text-decoration: none;">Import your ChatGPT memories 📥</a>
 
 What would you like to start with?`;
         }
