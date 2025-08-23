@@ -67,6 +67,7 @@ function validateEmotionalState(state) {
 function mapCategoryToTags(category) {
   const categoryMap = {
     'personal_info': ['personal_info'],
+    'professional': ['preference'], // Map professional to preference tag for now
     'preference': ['preference'],
     'goal': ['goal'], 
     'relationship': ['relationship'],
