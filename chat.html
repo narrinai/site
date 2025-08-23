@@ -12541,7 +12541,7 @@ function initializeCustomizationForm() {
     if (isUserCreatedUpdate) {
       // User-created characters ALWAYS update, never create new
       action = 'update_character';
-    } else if (existingCustom && existingCustom.airtable_id) {
+    } else if (formExistingCustom && formExistingCustom.airtable_id) {
       // Existing customization being updated
       action = 'update_character';
     } else {
@@ -12592,8 +12592,8 @@ function initializeCustomizationForm() {
       if (airtableId) {
         requestData.airtable_id = airtableId;
       }
-    } else if (existingCustom && existingCustom.airtable_id) {
-      requestData.airtable_id = existingCustom.airtable_id;
+    } else if (formExistingCustom && formExistingCustom.airtable_id) {
+      requestData.airtable_id = formExistingCustom.airtable_id;
     }
     
     // Add response length preference
@@ -12608,8 +12608,8 @@ function initializeCustomizationForm() {
     }
     
     // Add Airtable ID if updating existing character
-    if (existingCustom && existingCustom.airtable_id) {
-      requestData.airtable_id = existingCustom.airtable_id;
+    if (formExistingCustom && formExistingCustom.airtable_id) {
+      requestData.airtable_id = formExistingCustom.airtable_id;
     }
     
     // Log each field to identify empty values
@@ -12627,7 +12627,7 @@ function initializeCustomizationForm() {
     console.log('🔍 Voice selection:', voiceSelection);
     console.log('🔍 Is this from existing character?', !!currentCharacter.character_id);
     console.log('🔍 Action type:', requestData.action);
-    console.log('🔍 Existing custom data:', existingCustom);
+    console.log('🔍 Existing custom data:', formExistingCustom);
     
     // Debug: Log the exact JSON that will be sent
     console.log('📦 Has prompt field:', 'prompt' in requestData);
@@ -12638,7 +12638,7 @@ function initializeCustomizationForm() {
     const submitBtn = e.target.querySelector('button[type="submit"]');
     const originalText = submitBtn.textContent;
     submitBtn.disabled = true;
-    submitBtn.textContent = existingCustom && existingCustom.airtable_id ? 'Updating Character...' : 'Creating Character...';
+    submitBtn.textContent = formExistingCustom && formExistingCustom.airtable_id ? 'Updating Character...' : 'Creating Character...';
     submitBtn.style.opacity = '0.7';
     submitBtn.style.cursor = 'not-allowed';
     
@@ -12730,10 +12730,10 @@ function initializeCustomizationForm() {
           voice: selectedVoice,
           voice_type: voiceSelection,
           response_length: responseLength, // Store response length preference
-          created_at: existingCustom && existingCustom.created_at ? existingCustom.created_at : new Date().toISOString(),
+          created_at: formExistingCustom && formExistingCustom.created_at ? formExistingCustom.created_at : new Date().toISOString(),
           updated_at: new Date().toISOString(),
           avatar_url: customAvatarUrl || currentCharacter.avatar_url || currentCharacter.Avatar_URL,
-          airtable_id: existingCustom && existingCustom.airtable_id ? existingCustom.airtable_id : (result.character_id || result.airtable_id)
+          airtable_id: formExistingCustom && formExistingCustom.airtable_id ? formExistingCustom.airtable_id : (result.character_id || result.airtable_id)
         };
         
         customizedCharacters[characterId] = customization;
@@ -12746,7 +12746,7 @@ function initializeCustomizationForm() {
         closeCustomizationModal();
         
         // Determine if this is an update or new character
-        const isUpdate = existingCustom && existingCustom.airtable_id;
+        const isUpdate = formExistingCustom && formExistingCustom.airtable_id;
         
         // Debug transfer conditions
         console.log('🔍 Transfer conditions check:', {
@@ -12807,7 +12807,7 @@ function initializeCustomizationForm() {
           closeCustomizationModal();
           
           // For new characters, redirect to chat with the new companion
-          if (!isUpdate && !existingCustom && result.character_id) {
+          if (!isUpdate && !formExistingCustom && result.character_id) {
             console.log('🔄 Redirecting to new companion:', result.character_id);
             setTimeout(() => {
               window.location.href = `chat.html?char=${result.character_id}`;
@@ -12822,7 +12822,7 @@ function initializeCustomizationForm() {
         }, 2000);
         
         // Update the character limit checker count if a new character was created
-        if (!isUpdate && !existingCustom && window.characterLimitChecker) {
+        if (!isUpdate && !formExistingCustom && window.characterLimitChecker) {
           window.characterLimitChecker.activeCharacterCount++;
           console.log(`📊 Updated character count: ${window.characterLimitChecker.activeCharacterCount}`);
         }
@@ -12831,7 +12831,7 @@ function initializeCustomizationForm() {
       }
     } catch (error) {
       console.error('❌ Character creation/update error:', error);
-      const isUpdate = existingCustom && existingCustom.airtable_id;
+      const isUpdate = formExistingCustom && formExistingCustom.airtable_id;
       showNotification('error', isUpdate ? 'Update Failed' : 'Creation Failed', 
         `Unable to ${isUpdate ? 'update' : 'create'} your customized character. ${error.message}. Please try again.`);
     } finally {
