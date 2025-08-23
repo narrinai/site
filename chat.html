@@ -5043,7 +5043,7 @@
         <div class="conversation-topics" id="conversationTopics" style="display: none;">
           <div class="topics-header">
             <button class="topics-toggle" id="topicsToggle" onclick="toggleConversationTopics()">
-              <span id="topicsTitle">✨  Let's turn today's chaos into clarity</span>
+              <span id="topicsTitle">🧠  Organize Thoughts</span>
               <svg class="topics-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
@@ -5111,21 +5111,21 @@
             
             <div class="form-group">
               <label for="customAvatar">Companion Profile Image</label>
-              <div style="display: flex; gap: var(--spacing-lg); align-items: flex-start;">
+              <div style="display: flex; gap: var(--spacing-md); align-items: flex-start; flex-wrap: wrap;">
                 <!-- Image Preview on Left -->
-                <div id="customAvatarPreview" style="flex: 0 0 auto;">
-                  <img id="customAvatarImg" src="" alt="Avatar preview" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; display: none;">
-                  <div id="avatarPlaceholder" style="width: 100px; height: 100px; border-radius: 50%; background: var(--color-light-gray); display: flex; align-items: center; justify-content: center; font-size: 40px; color: var(--color-gray);">👤</div>
+                <div id="customAvatarPreview" style="flex: 0 0 auto; min-width: 80px;">
+                  <img id="customAvatarImg" src="" alt="Avatar preview" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; display: none;">
+                  <div id="avatarPlaceholder" style="width: 80px; height: 80px; border-radius: 50%; background: var(--color-light-gray); display: flex; align-items: center; justify-content: center; font-size: 32px; color: var(--color-gray);">👤</div>
                 </div>
                 
                 <!-- Controls on Right -->
-                <div style="flex: 1; display: flex; flex-direction: column; gap: var(--spacing-sm);">
+                <div style="flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: var(--spacing-sm);">
                   <input type="file" id="customAvatarFile" accept="image/*" style="display: none;">
-                  <div style="display: flex; gap: var(--spacing-sm);">
-                    <button type="button" class="btn-secondary-form" onclick="document.getElementById('customAvatarFile').click()" style="flex: 1;">
+                  <div style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap; align-items: center;">
+                    <button type="button" class="btn-secondary-form" onclick="document.getElementById('customAvatarFile').click()" style="flex: 0 0 auto;">
                       Choose File
                     </button>
-                    <span id="customAvatarFileName" style="color: var(--color-gray); font-size: var(--font-size-sm); display: flex; align-items: center; white-space: nowrap;">No file chosen</span>
+                    <span id="customAvatarFileName" style="color: var(--color-gray); font-size: var(--font-size-sm); flex: 1; min-width: 0;">No file chosen</span>
                   </div>
                   <button type="button" class="btn-secondary-form" onclick="generateCompanionImage()" style="width: 100%;" id="generateImageBtn">
                     ✨ Generate New Image
@@ -10376,11 +10376,11 @@ async function generateConversationTopics() {
   // Update title based on conversation state
   const chatlog = document.getElementById('chatlog');
   if (!chatlog || chatlog.children.length === 0) {
-    topicsTitle.textContent = "✨  Let's turn today's chaos into clarity";
+    topicsTitle.textContent = "🧠  Organize Thoughts";
   } else if (conversationMemory.length > 0) {
-    topicsTitle.textContent = "✨  What else can I help organize?";
+    topicsTitle.textContent = "🧠  Organize More Thoughts";
   } else {
-    topicsTitle.textContent = "✨  Let's turn today's chaos into clarity";
+    topicsTitle.textContent = "🧠  Organize Thoughts";
   }
   
   // Create structured topic buttons
@@ -11527,11 +11527,7 @@ function getNormalizedCategory(character) {
     characterType: character.characterType
   });
   
-  let category = character.Category || character.category || character.character_type || character.Character_Type || character.characterType || '';
-  
-  console.log('🔍 Selected category field:', category);
-  
-  // Special mapping for common create-character types
+  // Special mapping for common create-character types  
   const typeMapping = {
     'friendship': 'Friendship',
     'romance': 'Romance', 
@@ -11540,7 +11536,20 @@ function getNormalizedCategory(character) {
     'mentorship': 'Mentorship'
   };
   
-  // First try direct mapping for common types
+  // Check character_type FIRST for onboarding-specific categories
+  // This ensures user-created companions get the right onboarding flow
+  const characterType = character.character_type || character.Character_Type || character.characterType || '';
+  if (characterType && typeMapping[characterType.toLowerCase()]) {
+    console.log('🎯 Using character_type for onboarding:', characterType, '→', typeMapping[characterType.toLowerCase()]);
+    return typeMapping[characterType.toLowerCase()];
+  }
+  
+  // Fallback to Category/category fields for other cases
+  let category = character.Category || character.category || '';
+  
+  console.log('🔍 Selected category field after character_type check:', category);
+  
+  // Try direct mapping for category fields too
   if (typeMapping[category.toLowerCase()]) {
     console.log('🔗 Mapped category via typeMapping:', category, '→', typeMapping[category.toLowerCase()]);
     return typeMapping[category.toLowerCase()];
@@ -16449,9 +16458,33 @@ document.addEventListener('DOMContentLoaded', () => {
         return false; // Don't show onboarding again
       }
       
-      // Use the comprehensive category normalization function which includes character_type
-      let category = getNormalizedCategory(currentCharacter);
-      console.log('📐 Normalized category using getNormalizedCategory:', category);
+      // For onboarding, prioritize character_type over category
+      // Character types 'friendship', 'romance', 'mindfulness', 'mentorship' map directly to onboarding flows
+      let category = '';
+      const characterType = currentCharacter.character_type || currentCharacter.Character_Type || '';
+      
+      if (characterType) {
+        const typeToOnboardingMap = {
+          'friendship': 'Friendship',
+          'romance': 'Romance',
+          'mindfulness': 'Mindfulness', 
+          'mentorship': 'Mentorship',
+          'mentor': 'Mentorship'
+        };
+        
+        if (typeToOnboardingMap[characterType.toLowerCase()]) {
+          category = typeToOnboardingMap[characterType.toLowerCase()];
+          console.log('🎯 Using character_type for onboarding:', characterType, '→', category);
+        }
+      }
+      
+      // Fallback to category normalization if no character_type match
+      if (!category) {
+        category = getNormalizedCategory(currentCharacter);
+        console.log('📐 Fallback to getNormalizedCategory:', category);
+      }
+      
+      console.log('📐 Final category for onboarding:', category);
       
       const userId = localStorage.getItem('user_id') || localStorage.getItem('user_uid') || 'anonymous';
       
@@ -17760,7 +17793,10 @@ async function generateCompanionImage() {
       currentCharacter.Avatar_URL = imageUrl;
       
       // Update the main character avatar in header
-      updateAllAvatarDisplays();
+      const avatarElement = document.getElementById('characterAvatar');
+      if (avatarElement && imageUrl) {
+        avatarElement.innerHTML = `<img src="${imageUrl}" alt="${companionName}" onclick="openAvatarModal('${imageUrl}')" style="width: 100%; height: 100%; border-radius: var(--radius-full); object-fit: cover;">`;
+      }
       
       console.log('✅ Generated companion image:', imageUrl);
       showNotification('success', 'Image Generated', `New profile image created for ${companionName}!`);
