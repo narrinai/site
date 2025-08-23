@@ -8168,8 +8168,8 @@ async function getRelevantMemories(userId, characterId, currentMessage) {
             user_uid: userUid || userId,  // Use NetlifyUID from localStorage
             slug: characterId,
             current_message: currentMessage,
-            min_importance: 3,  // Verhoogd van 1 naar 3 voor betere filtering
-            max_results: 5
+            min_importance: 1,  // Lower threshold to include more memories
+            max_results: 10  // More memories to ensure important ones are included
         };
         
         console.log('📤 Memory request data:', requestData);
@@ -10393,8 +10393,8 @@ async function getMemoryBasedTopics() {
           user_uid: uid,
           slug: characterSlug || currentCharacter.Slug || currentCharacter.slug,
           current_message: '',
-          min_importance: 3,  // Verhoogd van 1 naar 3 voor betere filtering
-          max_results: 5
+          min_importance: 1,  // Lower threshold to include more memories
+          max_results: 10  // More memories to ensure important ones are included
         })
       });
       
@@ -13796,8 +13796,13 @@ async function sendMessage(event) {
           // Always include very important memories (8+)
           if (memory.importance >= 8) return true;
           
+          // PRIORITY: Always include imported personal_info for name questions
+          if (memory.type === 'imported' && tags.includes('personal_info')) {
+            if (lowerInput.includes('name') || lowerInput.includes('who am') || lowerInput.includes('called')) return true;
+          }
+          
           // Check if current message relates to memory
-          if (lowerInput.includes('name') && (tags.includes('personal_info') || summary.includes('name'))) return true;
+          if (lowerInput.includes('name') && (tags.includes('personal_info') || summary.toLowerCase().includes('name') || summary.toLowerCase().includes('sebastiaan'))) return true;
           if (lowerInput.includes('age') && (summary.includes('age') || summary.includes('old'))) return true;
           if (lowerInput.includes('remember') || lowerInput.includes('forget')) return true;
           if (tags.includes('memory_check')) return true;
