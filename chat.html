@@ -7087,7 +7087,7 @@ document.addEventListener('DOMContentLoaded', () => {
           "It's wonderful to meet you! What brings joy to your life these days?",
           "I love connecting with people! What's your story?",
           "Every person is fascinating in their own way. What makes you unique?",
-          "Friendship starts with shared interests. What are you passionate about?",
+          "Hey! I'm here to chat and get to know you better. To personalize our conversations, try the Memory Hub 🧠, Customize button ⚙️, or Import Memory 📥. What's on your mind?",
           "I believe in the power of conversation. What shall we explore together?"
         ],
         professional: [
@@ -7144,9 +7144,26 @@ document.addEventListener('DOMContentLoaded', () => {
       // Ensure we always have a fallback starter
       const selectedStarters = personalityStarters[personalityType] || personalityStarters['default'];
       
-      // If we still don't have starters, use a generic one
+      // If we still don't have starters, use a generic one with personalization tips
       if (!selectedStarters || selectedStarters.length === 0) {
-        return "Hello! I'm excited to chat with you. What brings you here today?";
+        // Check if user has completed onboarding or has memories
+        const hasHistory = window.messages && window.messages.length > 0;
+        const hasOnboardingData = window.additionalContext?.onboarding;
+        
+        if (hasHistory || hasOnboardingData) {
+          // User has setup, just simple welcome
+          return "Hey! I'm here whenever you need to talk through something or want to explore ideas together. What's on your mind today?";
+        } else {
+          // New user, include personalization tips
+          return `Hey! I'm here to chat and get to know you better.
+
+To personalize our conversations, you can:
+• Take the personal quiz in the Memory Hub 🧠
+• Customize my personality with the Customize button ⚙️  
+• Import your ChatGPT memories via Import Memory 📥
+
+What would you like to start with?`;
+        }
       }
       
       return selectedStarters[Math.floor(Math.random() * selectedStarters.length)];
