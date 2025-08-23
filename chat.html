@@ -13777,12 +13777,12 @@ async function sendMessage(event) {
       // Filter OTHER memories based on relevance
       const otherMemories = memories.filter(memory => {
           const tags = memory.tags || [];
-          const hasPersonalTag = Array.isArray(tags) 
+          const hasPersonalTag2 = Array.isArray(tags) 
             ? tags.includes('personal_info') 
             : (tags && tags.toString().includes('personal_info'));
           
           // Skip imported personal_info - handled separately above
-          if (memory.type === 'imported' && hasPersonalTag) return false;
+          if (memory.type === 'imported' && hasPersonalTag2) return false;
           
           const summary = (memory.summary || '').toLowerCase();
           const context = (memory.context || '').toLowerCase();
@@ -13804,12 +13804,8 @@ async function sendMessage(event) {
           // Always include very important memories (8+) OR imported personal_info
           if (memory.importance >= 8) return true;
           
-          // FORCE include ALL imported personal_info memories
-          const hasPersonalTag = Array.isArray(tags) 
-            ? tags.includes('personal_info') 
-            : (tags && tags.toString().includes('personal_info'));
-            
-          if (memory.type === 'imported' && hasPersonalTag) {
+          // FORCE include ALL imported personal_info memories (already handled above, so this is redundant)
+          if (memory.type === 'imported' && hasPersonalTag2) {
             console.log(`🎯 FORCING inclusion of imported personal_info: ${summary.substring(0, 50)}`);
             return true;
           }
