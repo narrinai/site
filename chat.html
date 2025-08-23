@@ -13763,11 +13763,29 @@ async function sendMessage(event) {
       const lowerInput = input.toLowerCase();
       const originalCount = memories.length;
       
-      // Filter memories based on relevance AND ensure they're for current user
-      const relevantMemories = memories.filter(memory => {
+      // Separate imported personal_info from other memories - these should NEVER be filtered out
+      const importedPersonalInfo = memories.filter(memory => {
+          const tags = memory.tags || [];
+          const hasPersonalTag = Array.isArray(tags) 
+            ? tags.includes('personal_info') 
+            : (tags && tags.toString().includes('personal_info'));
+          return memory.type === 'imported' && hasPersonalTag;
+      });
+      
+      console.log(`🔒 Found ${importedPersonalInfo.length} imported personal_info memories - these will ALWAYS be included`);
+      
+      // Filter OTHER memories based on relevance
+      const otherMemories = memories.filter(memory => {
+          const tags = memory.tags || [];
+          const hasPersonalTag = Array.isArray(tags) 
+            ? tags.includes('personal_info') 
+            : (tags && tags.toString().includes('personal_info'));
+          
+          // Skip imported personal_info - handled separately above
+          if (memory.type === 'imported' && hasPersonalTag) return false;
+          
           const summary = (memory.summary || '').toLowerCase();
           const context = (memory.context || '').toLowerCase();
-          const tags = memory.tags || [];
           
           // Skip onboarding memories from OTHER sessions (only keep the most recent one)
           if (memory.type === 'onboarding' && memory.metadata?.type === 'onboarding_complete') {
@@ -13819,37 +13837,15 @@ async function sendMessage(event) {
           return hasRelevantWord;
       });
       
-      // EMERGENCY FIX: Always include name memory for name questions
-      if (lowerInput.includes('name') || lowerInput.includes('who am') || lowerInput.includes('called')) {
-        console.log(`🚨 EMERGENCY FIX: Looking for name memory in ${memories.length} total memories`);
-        
-        // Look through ALL memories (original list) for name info
-        const allMemories = memories; // Use original memories list before filtering
-        const nameMemory = allMemories.find(m => {
-          const hasNameInMessage = m.message && m.message.toLowerCase().includes('name');
-          const hasSebastiaan = m.message && m.message.toLowerCase().includes('sebastiaan');
-          const isImported = m.type === 'imported';
-          const hasPersonalTag = Array.isArray(m.tags) ? m.tags.includes('personal_info') : (m.tags && m.tags.toString().includes('personal_info'));
-          
-          console.log(`🔍 Checking memory: "${m.summary?.substring(0, 50)}" - imported:${isImported}, personalTag:${hasPersonalTag}, hasName:${hasNameInMessage}, hasSebastiaan:${hasSebastiaan}`);
-          
-          return isImported && hasPersonalTag && (hasNameInMessage || hasSebastiaan);
-        });
-        
-        if (nameMemory && !relevantMemories.some(rm => rm.id === nameMemory.id)) {
-          console.log(`🚨 EMERGENCY: Adding name memory that was filtered out:`, nameMemory.summary);
-          relevantMemories.unshift(nameMemory); // Add to front
-        } else if (!nameMemory) {
-          console.log(`🚨 EMERGENCY: No name memory found in ${allMemories.length} memories`);
-        } else {
-          console.log(`🚨 EMERGENCY: Name memory already in relevant list`);
-        }
-      }
+      // Combine: imported personal_info (always included) + top relevant other memories
+      // Sort by importance, but ensure imported personal_info stays at top
+      const allRelevantMemories = [
+        ...importedPersonalInfo.sort((a, b) => b.importance - a.importance),
+        ...otherMemories.sort((a, b) => b.importance - a.importance)
+      ];
       
-      // Limit to top 5 most relevant memories (increased from 3)
-      memories = relevantMemories
-          .sort((a, b) => b.importance - a.importance)
-          .slice(0, 5);
+      // Limit to top 8 memories total (increased to accommodate always-included personal_info)
+      memories = allRelevantMemories.slice(0, 8);
           
       console.log(`🎯 Filtered ${originalCount} memories to ${memories.length} relevant ones`);
       console.log(`📚 Relevant memories for "${input}":`);
