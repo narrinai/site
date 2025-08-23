@@ -9312,7 +9312,7 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     // Function to split AI response into natural message chunks
     function splitIntoNaturalMessages(text) {
       // Check if this is a roleplaying category
-      const category = (currentCharacter?.category || currentCharacter?.Category || '').toLowerCase();
+      const category = (currentCharacter?.character_type || currentCharacter?.Category || currentCharacter?.category || '').toLowerCase();
       
       // Special handling for user-created characters (Made By You)
       // Default them to conversational style unless explicitly marked as roleplay
@@ -11391,41 +11391,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ===== HELPER FUNCTIONS =====
 
-// Helper function to determine if a category is roleplay-based
-function isRoleplayCategoryHelper(category) {
-  if (!category) return false;
+// Helper function to determine if a character_type is roleplay-based
+function isRoleplayCategoryHelper(characterType) {
+  if (!characterType) return false;
   
-  const cat = category.toLowerCase();
+  const type = characterType.toLowerCase();
   
-  // Roleplay categories based on active website categories
-  // These categories allow roleplay actions like *smiles* or *leans forward*
-  const roleplayCategories = [
+  // Roleplay character_types that allow roleplay actions like *smiles* or *leans forward*
+  const roleplayTypes = [
     'anime', 'anime-manga',
     'fictional',
-    'original'
+    'original',
+    'fantasy',
+    'mythology'
   ];
   
   // Check exact match or contains
-  return roleplayCategories.some(rpCat => 
-    cat === rpCat || cat.includes(rpCat)
+  return roleplayTypes.some(rpType => 
+    type === rpType || type.includes(rpType)
   );
 }
 
-// Helper function to determine if a category should use human-like conversation style
-function isConversationalCategory(category) {
-  if (!category) return true; // Default to conversational
+// Helper function to determine if a character_type should use human-like conversation style
+function isConversationalCategory(characterType) {
+  if (!characterType) return true; // Default to conversational
   
-  const cat = category.toLowerCase();
+  const type = characterType.toLowerCase();
   
-  // Non-roleplay categories from active website (should be conversational)
+  // Non-roleplay character_types (should be conversational)
   // These use natural, human-like texting style without roleplay actions
-  const conversationalCategories = [
+  const conversationalTypes = [
     'friendship',
     'life', 'life coach',
     'love',
     'romance',  // Note: Romance is NON-roleplay per user specification
     'career',
-    'mindfulness',
+    'mentorship',
     'purpose',
     'self-improvement',
     'motivation',
@@ -13868,7 +13869,7 @@ async function sendMessage(event) {
       });
       
       // Check character category for roleplay actions
-      const category = (currentCharacter?.category || currentCharacter?.Category || '').toLowerCase();
+      const category = (currentCharacter?.character_type || currentCharacter?.Category || currentCharacter?.category || '').toLowerCase();
       // Use helper function to check if this is a roleplay category
       const allowRoleplay = isRoleplayCategoryHelper(category);
       
@@ -13917,7 +13918,7 @@ CONVERSATIONAL STYLE FOR NATURAL TEXTING:
       console.log("📭 No relevant memories found - adding variation instructions only");
       // Still add variation and companion instructions even without memories
       // Check character category for roleplay actions
-      const category = (currentCharacter?.category || currentCharacter?.Category || '').toLowerCase();
+      const category = (currentCharacter?.character_type || currentCharacter?.Category || currentCharacter?.category || '').toLowerCase();
       // Use helper function to check if this is a roleplay category
       const allowRoleplay = isRoleplayCategoryHelper(category);
       
@@ -14610,7 +14611,7 @@ hideTypingIndicator();
       
       // Create separate message for each chunk with a delay
       // Add typing indicator between messages for more natural feel
-      const category = (currentCharacter?.category || currentCharacter?.Category || '').toLowerCase();
+      const category = (currentCharacter?.character_type || currentCharacter?.Category || currentCharacter?.category || '').toLowerCase();
       const isUserCreated = currentCharacter?.Created_by || currentCharacter?.created_by;
       const isRoleplayCategory = isUserCreated ? false : isRoleplayCategoryHelper(category);
       
