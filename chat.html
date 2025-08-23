@@ -11528,6 +11528,49 @@ function getNormalizedOnboardingCategory(character) {
 }
 
 // ===== MEMORY HUB SYSTEM =====
+function updateMemoryHubButtons(isAuthenticated) {
+  const importButton = document.querySelector('.memory-hub-footer a[href="/memory-import"]');
+  const quizButton = document.querySelector('.memory-hub-footer button[onclick="restartOnboarding()"]');
+  
+  if (importButton) {
+    if (!isAuthenticated) {
+      importButton.style.opacity = '0.5';
+      importButton.style.cursor = 'not-allowed';
+      importButton.title = 'Sign up required to import memories';
+      importButton.onclick = (e) => {
+        e.preventDefault();
+        if (window.netlifyIdentity) {
+          window.netlifyIdentity.open('signup');
+        }
+      };
+    } else {
+      importButton.style.opacity = '1';
+      importButton.style.cursor = 'pointer';
+      importButton.title = '';
+      importButton.onclick = null;
+    }
+  }
+  
+  if (quizButton) {
+    if (!isAuthenticated) {
+      quizButton.style.opacity = '0.5';
+      quizButton.style.cursor = 'not-allowed';
+      quizButton.title = 'Sign up required to take personal quiz';
+      quizButton.onclick = (e) => {
+        e.preventDefault();
+        if (window.netlifyIdentity) {
+          window.netlifyIdentity.open('signup');
+        }
+      };
+    } else {
+      quizButton.style.opacity = '1';
+      quizButton.style.cursor = 'pointer';
+      quizButton.title = '';
+      quizButton.onclick = () => restartOnboarding();
+    }
+  }
+}
+
 async function openMemoryHub() {
   console.log('🧠 Opening Memory Hub');
   const modal = document.getElementById('memoryHubModal');
@@ -11546,16 +11589,21 @@ async function openMemoryHub() {
   const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
   const userEmail = localStorage.getItem('user_email');
   const isAnonymousEmail = userEmail === 'anonymous@narrin.ai';
+  const isAuthenticated = userToken && uid && !isAnonymousUser && !isAnonymousEmail;
   
   console.log('🔍 Memory Hub auth check:', { 
     userToken: !!userToken, 
     uid: !!uid, 
     isAnonymousUser, 
     userEmail,
-    isAnonymousEmail 
+    isAnonymousEmail,
+    isAuthenticated 
   });
   
-  if (!userToken || !uid || isAnonymousUser || isAnonymousEmail) {
+  // Update footer buttons based on auth status
+  updateMemoryHubButtons(isAuthenticated);
+  
+  if (!isAuthenticated) {
     // Show upgrade prompt for unauthenticated users
     content.innerHTML = `
       <div class="no-memories">

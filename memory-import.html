@@ -2115,9 +2115,51 @@ Example JSON format:
       }
     }
 
+    // Check auth status and disable buttons if needed
+    function checkAuthAndUpdateButtons() {
+      const userToken = localStorage.getItem('user_token');
+      const uid = localStorage.getItem('user_uid');
+      const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+      const userEmail = localStorage.getItem('user_email');
+      const isAnonymousEmail = userEmail === 'anonymous@narrin.ai';
+      const isAuthenticated = userToken && uid && !isAnonymousUser && !isAnonymousEmail;
+      
+      const parseButton = document.querySelector('.parse-button');
+      
+      if (parseButton) {
+        if (!isAuthenticated) {
+          parseButton.style.opacity = '0.5';
+          parseButton.style.cursor = 'not-allowed';
+          parseButton.title = 'Sign up required to import memories';
+          parseButton.onclick = (e) => {
+            e.preventDefault();
+            if (window.netlifyIdentity) {
+              window.netlifyIdentity.open('signup');
+            }
+          };
+        } else {
+          parseButton.style.opacity = '1';
+          parseButton.style.cursor = 'pointer';
+          parseButton.title = '';
+          parseButton.onclick = () => parseMemories();
+        }
+      }
+    }
+
     window.addEventListener('load', () => {
+      checkAuthAndUpdateButtons();
       handleResize();
     });
+    
+    // Listen for auth changes to re-enable buttons
+    if (window.netlifyIdentity) {
+      window.netlifyIdentity.on('login', () => {
+        setTimeout(checkAuthAndUpdateButtons, 100);
+      });
+      window.netlifyIdentity.on('signup', () => {
+        setTimeout(checkAuthAndUpdateButtons, 100);
+      });
+    }
 
     let resizeTimer;
     window.addEventListener('resize', () => {
