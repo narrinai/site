@@ -12416,7 +12416,7 @@ function initializeCustomizationForm() {
       buttonText: submitButton?.textContent,
       hasCreatedBy: !!(currentCharacter.Created_by || currentCharacter.created_by),
       hasCharacterType: currentCharacter.character_type,
-      existingCustom: !!existingCustom
+      existingCustom: !!formExistingCustom
     });
     
     // Check character limit for new characters (but not for updates to user-created characters)
@@ -12480,8 +12480,8 @@ function initializeCustomizationForm() {
     // existingCustom is already declared above
     
     // Use existing slug if editing, otherwise create new slug
-    const customSlug = existingCustom && existingCustom.slug 
-      ? existingCustom.slug 
+    const customSlug = formExistingCustom && formExistingCustom.slug 
+      ? formExistingCustom.slug 
       : customName.toLowerCase()
           .replace(/[^a-z0-9]+/g, '-')
           .replace(/(^-|-$)/g, '') + '-custom-' + Date.now();
@@ -12522,11 +12522,11 @@ function initializeCustomizationForm() {
     
     // Check if transfer history is enabled
     const transferHistoryCheckbox = document.getElementById('transferHistory');
-    const shouldTransferHistory = transferHistoryCheckbox && transferHistoryCheckbox.checked && !existingCustom;
+    const shouldTransferHistory = transferHistoryCheckbox && transferHistoryCheckbox.checked && !formExistingCustom;
     
     if (shouldTransferHistory) {
       console.log('📋 Transfer history enabled - will copy chat history and memories from:', characterSlug);
-    } else if (transferHistoryCheckbox && transferHistoryCheckbox.checked && existingCustom) {
+    } else if (transferHistoryCheckbox && transferHistoryCheckbox.checked && formExistingCustom) {
       console.log('⚠️ Transfer history checkbox checked but this is an update, not a new character');
     } else {
       console.log('ℹ️ Transfer history not enabled or checkbox not found');
