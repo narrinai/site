@@ -369,8 +369,15 @@ if (!userMatch && Array.isArray(recordUserField) && recordUserField.length > 0) 
        
        // Check character match - handle both slugs and record IDs
        let characterMatch = true; // Default to true if no character specified
-
-       if (characterIdentifier) {
+       
+       // ALWAYS include imported memories (user-profile) regardless of character
+       const isImportedMemory = fields.message_type === 'imported' || 
+                               (fields.Character && String(fields.Character).toLowerCase() === 'user-profile');
+       
+       if (isImportedMemory) {
+         characterMatch = true;
+         console.log(`🧠 Including imported memory regardless of character`);
+       } else if (characterIdentifier) {
          const recordCharacterField = fields.Character; // "Batman"
          const recordSlug = fields['Slug (from Character)']; // "batman"
          
@@ -399,7 +406,7 @@ if (!userMatch && Array.isArray(recordUserField) && recordUserField.length > 0) 
          }
          
          console.log(`🎭 Character match result: ${characterMatch}`);
-       }
+       } // End of else if (characterIdentifier)
        
        if (!characterMatch) {
          console.log(`❌ Character mismatch, skipping record`);
