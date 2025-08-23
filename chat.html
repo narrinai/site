@@ -11659,12 +11659,30 @@ async function openMemoryHub() {
       displayMemoryHubContent(onboardingData.answers);
     } else {
       content.innerHTML = `
-        <div class="no-memories">
-          <div class="no-memories-title">No Memories Yet</div>
-          <div class="no-memories-text">
-            <p style="margin: 0 0 12px 0;">Click the <strong>"Start Personal Quiz"</strong> button below to answer a few quick questions about yourself.</p>
-            <p style="margin: 0;">This helps ${currentCharacter?.Name || 'your companion'} remember important details and personalize your conversations!</p>
-            <div style="font-size: 24px; margin-top: 16px; animation: bounce 2s infinite;">👇</div>
+        <div style="padding: 30px; text-align: center;">
+          <div style="margin-bottom: 30px;">
+            <h3 style="color: var(--color-navy); margin-bottom: 10px; font-size: var(--font-size-lg);">Quick Setup Options</h3>
+            <p style="color: var(--color-gray); font-size: var(--font-size-sm); margin: 0;">Pick the method that works best for you</p>
+          </div>
+          
+          <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 200px; max-width: 250px;">
+              <a href="/memory-import" style="display: block; padding: 20px; background: white; border: 2px solid #4fd1c7; border-radius: 12px; text-decoration: none; color: #1a202c; transition: all 0.2s ease; cursor: pointer;" onmouseover="this.style.borderColor='#1a202c'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.borderColor='#4fd1c7'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                <div style="font-size: 32px; margin-bottom: 10px;">📥</div>
+                <h4 style="margin: 0 0 8px 0; font-weight: 600; color: #4fd1c7;">Import from ChatGPT</h4>
+                <p style="margin: 0; font-size: 14px; color: #6b7280; line-height: 1.4;">Already have ChatGPT conversations? Import your existing memories instantly</p>
+              </a>
+            </div>
+            
+            <div style="display: flex; align-items: center; color: #6b7280; font-size: 18px; font-weight: 300;">OR</div>
+            
+            <div style="flex: 1; min-width: 200px; max-width: 250px;">
+              <button onclick="restartOnboarding()" style="display: block; width: 100%; padding: 20px; background: white; border: 2px solid #8b5cf6; border-radius: 12px; color: #1a202c; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.borderColor='#1a202c'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.borderColor='#8b5cf6'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                <div style="font-size: 32px; margin-bottom: 10px;">🔄</div>
+                <h4 style="margin: 0 0 8px 0; font-weight: 600; color: #8b5cf6;">Take Personal Quiz</h4>
+                <p style="margin: 0; font-size: 14px; color: #6b7280; line-height: 1.4;">Answer questions to build your memory profile from scratch</p>
+              </button>
+            </div>
           </div>
         </div>
       `;
