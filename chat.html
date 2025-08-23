@@ -13816,6 +13816,20 @@ async function sendMessage(event) {
           return hasRelevantWord;
       });
       
+      // EMERGENCY FIX: Always include name memory for name questions
+      if (lowerInput.includes('name') || lowerInput.includes('who am') || lowerInput.includes('called')) {
+        const nameMemory = memories.find(m => 
+          m.type === 'imported' && 
+          m.tags.includes('personal_info') && 
+          (m.message.toLowerCase().includes('name') || m.message.toLowerCase().includes('sebastiaan'))
+        );
+        
+        if (nameMemory && !relevantMemories.includes(nameMemory)) {
+          console.log(`🚨 EMERGENCY: Adding name memory that was filtered out:`, nameMemory.summary);
+          relevantMemories.unshift(nameMemory); // Add to front
+        }
+      }
+      
       // Limit to top 5 most relevant memories (increased from 3)
       memories = relevantMemories
           .sort((a, b) => b.importance - a.importance)
