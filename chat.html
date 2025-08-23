@@ -13766,10 +13766,10 @@ async function sendMessage(event) {
       // Separate imported personal_info from other memories - these should NEVER be filtered out
       const importedPersonalInfo = memories.filter(memory => {
           const tags = memory.tags || [];
-          const hasPersonalTag = Array.isArray(tags) 
+          const isPersonalInfo = Array.isArray(tags) 
             ? tags.includes('personal_info') 
             : (tags && tags.toString().includes('personal_info'));
-          return memory.type === 'imported' && hasPersonalTag;
+          return memory.type === 'imported' && isPersonalInfo;
       });
       
       console.log(`🔒 Found ${importedPersonalInfo.length} imported personal_info memories - these will ALWAYS be included`);
@@ -13777,23 +13777,21 @@ async function sendMessage(event) {
       // Filter OTHER memories based on relevance
       const otherMemories = memories.filter(memory => {
           const tags = memory.tags || [];
-          const hasPersonalTag2 = Array.isArray(tags) 
+          const isPersonalInfoOther = Array.isArray(tags) 
             ? tags.includes('personal_info') 
             : (tags && tags.toString().includes('personal_info'));
           
           // Skip imported personal_info - handled separately above
-          if (memory.type === 'imported' && hasPersonalTag2) return false;
+          if (memory.type === 'imported' && isPersonalInfoOther) return false;
           
           const summary = (memory.summary || '').toLowerCase();
           const context = (memory.context || '').toLowerCase();
           
           // Skip onboarding memories from OTHER sessions (only keep the most recent one)
           if (memory.type === 'onboarding' && memory.metadata?.type === 'onboarding_complete') {
-              // Only include if it matches the current onboarding data
               const currentOnboarding = window.additionalContext?.onboarding;
               if (currentOnboarding) {
                   const memoryAnswers = memory.metadata?.answers;
-                  // Check if this is the same onboarding session
                   if (JSON.stringify(memoryAnswers) !== JSON.stringify(currentOnboarding)) {
                       console.log('⚠️ Skipping onboarding memory from different session:', memoryAnswers);
                       return false;
@@ -13801,21 +13799,8 @@ async function sendMessage(event) {
               }
           }
           
-          // Always include very important memories (8+) OR imported personal_info
+          // Always include very important memories (8+)
           if (memory.importance >= 8) return true;
-          
-          // FORCE include ALL imported personal_info memories (already handled above, so this is redundant)
-          if (memory.type === 'imported' && hasPersonalTag2) {
-            console.log(`🎯 FORCING inclusion of imported personal_info: ${summary.substring(0, 50)}`);
-            return true;
-          }
-          
-          // FORCE include ANY imported memory containing name info for name questions
-          if (memory.type === 'imported' && lowerInput.includes('name') && 
-              (summary.toLowerCase().includes('name') || summary.toLowerCase().includes('sebastiaan'))) {
-            console.log(`🎯 FORCING inclusion of imported name memory: ${summary.substring(0, 50)}`);
-            return true;
-          }
           
           // Check if current message relates to memory
           if (lowerInput.includes('name') && (tags.includes('personal_info') || summary.toLowerCase().includes('name') || summary.toLowerCase().includes('sebastiaan'))) return true;
