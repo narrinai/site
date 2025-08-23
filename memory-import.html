@@ -933,7 +933,6 @@ Example:
   </style>
 
   <!-- JavaScript -->
-  <script src="js/auth.js"></script>
   <script>
     let parsedMemories = [];
     let selectedMemories = [];
@@ -1177,16 +1176,51 @@ Example:
       document.getElementById('loginModal').style.display = 'none';
     }
 
+    // Simple auth check - based on profile.html patterns
+    function initializeAuth() {
+      if (window.netlifyIdentity) {
+        netlifyIdentity.init();
+        
+        const user = netlifyIdentity.currentUser();
+        if (user) {
+          // User is logged in
+          document.getElementById('login-link').style.display = 'none';
+          document.getElementById('logout-link').style.display = 'block';
+          // Hide Pro notice for logged-in users
+          document.querySelector('.pro-feature-notice').style.display = 'none';
+        } else {
+          // User not logged in
+          document.getElementById('login-link').style.display = 'block';
+          document.getElementById('logout-link').style.display = 'none';
+        }
+      }
+    }
+
+    function logout() {
+      if (window.netlifyIdentity) {
+        netlifyIdentity.logout();
+      }
+    }
+
     // Initialize page
     window.addEventListener('DOMContentLoaded', function() {
       initializeAuth();
       
-      // Check if user is Pro subscriber
-      const user = netlifyIdentity.currentUser();
-      if (user) {
-        // TODO: Check Pro subscription status
-        // For now, show the feature to all logged-in users
-        document.querySelector('.pro-feature-notice').style.display = 'none';
+      // Listen for Netlify Identity events
+      if (window.netlifyIdentity) {
+        netlifyIdentity.on('login', function() {
+          document.getElementById('login-link').style.display = 'none';
+          document.getElementById('logout-link').style.display = 'block';
+          document.querySelector('.pro-feature-notice').style.display = 'none';
+          closeLoginModal();
+        });
+        
+        netlifyIdentity.on('logout', function() {
+          document.getElementById('login-link').style.display = 'block';
+          document.getElementById('logout-link').style.display = 'none';
+          document.querySelector('.pro-feature-notice').style.display = 'flex';
+          window.location.reload();
+        });
       }
     });
   </script>
