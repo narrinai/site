@@ -1340,102 +1340,17 @@
       transform: translateY(0);
     }
 
-    /* Avatar Enlargement Modal */
-    .avatar-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.8);
-      z-index: 2147483646;
-      justify-content: center;
-      align-items: center;
-      backdrop-filter: blur(4px);
-      animation: fadeIn 0.2s ease-out;
-    }
+    .avatar-modal{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.8);z-index:2147483646;justify-content:center;align-items:center;backdrop-filter:blur(4px);animation:fadeIn .2s ease-out}
+    .avatar-modal.show{display:flex}
+    .avatar-modal-content{position:relative;max-width:90vw;max-height:90vh;background:var(--color-white);border-radius:var(--radius-lg);padding:var(--spacing-md);box-shadow:var(--shadow-xl);animation:slideIn .3s ease-out}
 
-    .avatar-modal.show {
-      display: flex;
-    }
+    .avatar-modal-image{max-width:100%;max-height:80vh;width:auto;height:auto;border-radius:var(--radius-md);object-fit:contain;display:block;margin:0 auto}
+    .avatar-modal-close{position:absolute;top:-10px;right:-10px;width:32px;height:32px;background:var(--color-white);border:2px solid var(--color-light-gray);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:bold;color:var(--color-dark-gray);box-shadow:var(--shadow-md);transition:all var(--transition-base)}
+    .avatar-modal-close:hover{background:var(--color-red);color:var(--color-white);border-color:var(--color-red);transform:scale(1.1)}
 
-    .avatar-modal-content {
-      position: relative;
-      max-width: 90vw;
-      max-height: 90vh;
-      background: var(--color-white);
-      border-radius: var(--radius-lg);
-      padding: var(--spacing-md);
-      box-shadow: var(--shadow-xl);
-      animation: slideIn 0.3s ease-out;
-    }
-
-    .avatar-modal-image {
-      max-width: 100%;
-      max-height: 80vh;
-      width: auto;
-      height: auto;
-      border-radius: var(--radius-md);
-      object-fit: contain;
-      display: block;
-      margin: 0 auto;
-    }
-
-    .avatar-modal-close {
-      position: absolute;
-      top: -10px;
-      right: -10px;
-      width: 32px;
-      height: 32px;
-      background: var(--color-white);
-      border: 2px solid var(--color-light-gray);
-      border-radius: 50%;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      font-weight: bold;
-      color: var(--color-dark-gray);
-      box-shadow: var(--shadow-md);
-      transition: all var(--transition-base);
-    }
-
-    .avatar-modal-close:hover {
-      background: var(--color-red);
-      color: var(--color-white);
-      border-color: var(--color-red);
-      transform: scale(1.1);
-    }
-
-    @media (max-width: 768px) {
-      .avatar-modal-content {
-        max-width: 95vw;
-        max-height: 85vh;
-        padding: var(--spacing-sm);
-      }
-      
-      .avatar-modal-image {
-        max-height: 75vh;
-      }
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    @keyframes slideIn {
-      from { 
-        opacity: 0;
-        transform: scale(0.8) translateY(-20px);
-      }
-      to { 
-        opacity: 1;
-        transform: scale(1) translateY(0);
-      }
-    }
+    @media(max-width:768px){.avatar-modal-content{max-width:95vw;max-height:85vh;padding:var(--spacing-sm)}.avatar-modal-image{max-height:75vh}}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    @keyframes slideIn{from{opacity:0;transform:scale(0.8) translateY(-20px)}to{opacity:1;transform:scale(1) translateY(0)}}
 
     /* Make avatar images clickable */
     .character-avatar img,
@@ -11456,8 +11371,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sendButton.addEventListener('click', resetInactivityTimer);
   }
   
-  // Initialize customization form
-  initializeCustomizationForm();
+  // Customization form will be initialized when customize button is clicked
 });
 
 // ===== HELPER FUNCTIONS =====
@@ -12024,6 +11938,13 @@ let personalityState = {
 function openCustomizationModal() {
   if (!currentCharacter) return;
   
+  // Lazy load customization form on first open
+  if (typeof initializeCustomizationForm === 'function') {
+    initializeCustomizationForm();
+    // Prevent re-initialization
+    window.initializeCustomizationForm = null;
+  }
+  
   const modal = document.getElementById('customizationModal');
   const form = document.getElementById('customizationForm');
   
@@ -12256,8 +12177,10 @@ function openCustomizationModal() {
   // Re-initialize prompt generation
   generatePrompt();
   
-  // Initialize avatar upload
-  initializeCustomAvatarUpload();
+  // Lazy load avatar upload on modal open
+  if (typeof initializeCustomAvatarUpload === 'function') {
+    initializeCustomAvatarUpload();
+  }
   
   modal.style.display = 'flex';
 }
@@ -16243,6 +16166,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Add event listeners after DOM loads for mobile compatibility
+    // Lazy load non-critical features after page load
+    function loadNonCriticalFeatures() {
+      if (typeof initializeCustomizationForm === 'function') {
+        initializeCustomizationForm();
+      }
+      if (typeof initializeCustomAvatarUpload === 'function') {
+        initializeCustomAvatarUpload();
+      }
+      console.log('🚀 Non-critical features loaded');
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
       const closeBtn = document.getElementById('feedbackCloseBtn');
       const skipBtn = document.getElementById('feedbackSkipBtn');
@@ -16309,6 +16243,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Add click handlers to existing avatar images
       addAvatarClickHandlers();
+      
+      // Load non-critical features after DOM is ready
+      setTimeout(loadNonCriticalFeatures, 100);
     });
     
     // Update show function to use display instead of class
