@@ -371,8 +371,7 @@ if (!userMatch && Array.isArray(recordUserField) && recordUserField.length > 0) 
        let characterMatch = true; // Default to true if no character specified
        
        // ALWAYS include imported memories regardless of character
-       const isImportedMemory = fields.message_type === 'imported' || 
-                               (!fields.Character && fields.Memory_Importance); // No character = imported memory
+       const isImportedMemory = fields.message_type === 'imported';
        
        if (isImportedMemory) {
          characterMatch = true;

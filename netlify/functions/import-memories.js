@@ -1,6 +1,6 @@
 // netlify/functions/import-memories.js
 
-// Define allowed memory tags (consistent with update-memory.js)
+// Define allowed memory tags (must exist in Airtable)
 const ALLOWED_MEMORY_TAGS = [
   'personal_info',
   'relationship', 
@@ -12,9 +12,8 @@ const ALLOWED_MEMORY_TAGS = [
   'memory_check',
   'long_message',
   'story',
-  'casual',
-  'imported',
-  'chatgpt'
+  'casual'
+  // Note: 'imported' and 'chatgpt' removed - not available in Airtable
 ];
 
 // Define allowed emotional states
@@ -28,10 +27,7 @@ const ALLOWED_EMOTIONAL_STATES = [
 
 // Helper function to validate and filter tags
 function validateTags(tags) {
-  if (!Array.isArray(tags)) return ['general', 'imported'];
-  
-  // Always include 'imported' tag for imported memories
-  const baseTags = ['imported', 'chatgpt'];
+  if (!Array.isArray(tags)) return ['general'];
   
   // Check for invalid tags and warn
   const invalidTags = tags.filter(tag => !ALLOWED_MEMORY_TAGS.includes(tag));
@@ -41,9 +37,8 @@ function validateTags(tags) {
   }
   
   const validTags = tags.filter(tag => ALLOWED_MEMORY_TAGS.includes(tag));
-  const finalTags = [...new Set([...baseTags, ...validTags])]; // Remove duplicates
   
-  return finalTags.length > 2 ? finalTags : [...baseTags, 'general'];
+  return validTags.length > 0 ? validTags : ['general'];
 }
 
 // Helper function to validate emotional state
