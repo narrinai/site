@@ -1452,38 +1452,112 @@ Which of these would you like to explore first? Or is there something else you'd
     questions: [
       {
         id: 'growth_area',
-        question: 'What area do you want to grow in?',
+        question: 'What area do you want to grow in most?',
         type: 'multiple_choice',
         options: [
-          { value: 'personal_development', label: 'Personal development and self-awareness' },
-          { value: 'professional_skills', label: 'Professional skills and career' },
-          { value: 'leadership', label: 'Leadership and decision-making' },
-          { value: 'creativity', label: 'Creativity and self-expression' },
-          { value: 'life_skills', label: 'Life skills and wisdom' }
+          { value: 'personal_development', label: '🌱 Personal development and self-awareness' },
+          { value: 'professional_skills', label: '💼 Professional skills and career advancement' },
+          { value: 'leadership', label: '🎯 Leadership and decision-making abilities' },
+          { value: 'creativity', label: '🎨 Creativity and self-expression' },
+          { value: 'life_skills', label: '🧭 Life skills and practical wisdom' }
         ],
         required: true
       },
       {
         id: 'learning_style',
-        question: 'How do you learn best?',
+        question: 'How do you prefer to learn and receive guidance?',
         type: 'multiple_choice',
         options: [
-          { value: 'structured_guidance', label: 'Through guidance and step-by-step advice' },
-          { value: 'collaborative_exploration', label: 'By exploring ideas together' },
-          { value: 'challenging_questions', label: 'Through challenging questions that make me think' },
-          { value: 'practical_examples', label: 'With practical examples and stories' },
-          { value: 'encouragement_motivation', label: 'Through encouragement and motivation' }
+          { value: 'structured_guidance', label: '📋 Through clear guidance and step-by-step advice' },
+          { value: 'collaborative_exploration', label: '🤝 By exploring ideas and solutions together' },
+          { value: 'challenging_questions', label: '🤔 Through thought-provoking questions that challenge me' },
+          { value: 'practical_examples', label: '📚 With real-world examples and stories' },
+          { value: 'encouragement_motivation', label: '💪 Through encouragement and motivational support' }
         ],
+        required: true
+      },
+      {
+        id: 'current_challenge',
+        question: 'What is your biggest challenge right now?',
+        type: 'multiple_choice',
+        options: [
+          { value: 'clarity_direction', label: '🧭 Lack of clarity or direction in life' },
+          { value: 'confidence_self_doubt', label: '😰 Confidence issues and self-doubt' },
+          { value: 'procrastination_action', label: '⏰ Procrastination and taking action' },
+          { value: 'work_life_balance', label: '⚖️ Balancing different areas of my life' },
+          { value: 'relationships_communication', label: '💬 Communication and relationship challenges' }
+        ],
+        required: true
+      },
+      {
+        id: 'mentorship_goals',
+        question: 'What do you hope to achieve through mentorship?',
+        type: 'multiple_choice',
+        options: [
+          { value: 'breakthrough_mindset', label: '💡 Break through limiting beliefs and mindset blocks' },
+          { value: 'accountability_structure', label: '📅 Get accountability and structure in my growth' },
+          { value: 'skill_development', label: '🛠️ Develop specific skills and capabilities' },
+          { value: 'perspective_wisdom', label: '🔍 Gain new perspectives and wisdom' },
+          { value: 'confidence_motivation', label: '🚀 Build confidence and stay motivated' }
+        ],
+        required: true
+      },
+      {
+        id: 'support_preference',
+        question: 'What kind of support do you respond to best?',
+        type: 'multiple_choice',
+        options: [
+          { value: 'gentle_encouragement', label: '🤗 Gentle encouragement and understanding' },
+          { value: 'direct_honest_feedback', label: '💯 Direct, honest feedback and truth-telling' },
+          { value: 'structured_plans', label: '📊 Structured plans and clear next steps' },
+          { value: 'brainstorming_exploration', label: '🌊 Open brainstorming and exploration' },
+          { value: 'celebration_wins', label: '🎉 Recognition and celebration of progress' }
+        ],
+        required: true
+      },
+      {
+        id: 'personal_growth_vision',
+        question: 'In your own words, what would success in your personal growth journey look like? What would be different about your life?',
+        type: 'text',
+        placeholder: 'Share your vision for growth and what meaningful change would look like for you...',
         required: true
       }
     ],
     contextMappings: {
       growth_area: {
-        'personal_development': 'personal development',
-        'professional_skills': 'professional growth',
-        'leadership': 'leadership development',
-        'creativity': 'creative expression',
-        'life_skills': 'life wisdom and skills'
+        'personal_development': 'personal development and self-awareness',
+        'professional_skills': 'professional growth and career advancement',
+        'leadership': 'leadership development and decision-making',
+        'creativity': 'creative expression and innovation',
+        'life_skills': 'life wisdom and practical skills'
+      },
+      learning_style: {
+        'structured_guidance': 'structured guidance and clear direction',
+        'collaborative_exploration': 'collaborative exploration and discovery',
+        'challenging_questions': 'thought-provoking questions and deep reflection',
+        'practical_examples': 'practical examples and real-world stories',
+        'encouragement_motivation': 'encouragement and motivational support'
+      },
+      current_challenge: {
+        'clarity_direction': 'finding clarity and direction in life',
+        'confidence_self_doubt': 'building confidence and overcoming self-doubt',
+        'procrastination_action': 'overcoming procrastination and taking action',
+        'work_life_balance': 'achieving better work-life balance',
+        'relationships_communication': 'improving relationships and communication'
+      },
+      mentorship_goals: {
+        'breakthrough_mindset': 'breaking through limiting beliefs',
+        'accountability_structure': 'accountability and structured growth',
+        'skill_development': 'developing specific skills and capabilities',
+        'perspective_wisdom': 'gaining new perspectives and wisdom',
+        'confidence_motivation': 'building confidence and motivation'
+      },
+      support_preference: {
+        'gentle_encouragement': 'gentle encouragement and understanding',
+        'direct_honest_feedback': 'direct, honest feedback and truth-telling',
+        'structured_plans': 'structured plans and clear action steps',
+        'brainstorming_exploration': 'open brainstorming and exploration',
+        'celebration_wins': 'recognition and celebration of progress'
       }
     }
   }

@@ -16968,25 +16968,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function generatePersonalizedWelcome(answers) {
       // Generate a personalized welcome message based on answers
-      let category = currentCharacter.Category || currentCharacter.category || '';
+      const category = getNormalizedOnboardingCategory(currentCharacter);
       
-      console.log('🎯 generatePersonalizedWelcome - Raw category:', category);
+      console.log('🎯 generatePersonalizedWelcome - Using character_type category:', category);
       console.log('🎯 Available onboarding categories:', Object.keys(window.onboardingQuestions));
-      
-      // Normalize category to match onboardingQuestions keys (case-insensitive match)
-      if (category) {
-        const categoryKeys = Object.keys(window.onboardingQuestions);
-        const exactMatch = categoryKeys.find(key => key.toLowerCase() === category.toLowerCase());
-        
-        if (exactMatch) {
-          category = exactMatch;
-          console.log('🎯 Found exact match:', category);
-        } else {
-          // If no exact match, try capitalizing first letter
-          category = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
-          console.log('🎯 No exact match, trying capitalized:', category);
-        }
-      }
       
       console.log('🎯 Final normalized category:', category);
       
