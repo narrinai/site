@@ -13793,12 +13793,11 @@ async function sendMessage(event) {
               }
           }
           
-          // Always include very important memories (8+)
+          // Always include very important memories (8+) OR imported personal_info
           if (memory.importance >= 8) return true;
-          
-          // PRIORITY: Always include imported personal_info for name questions
           if (memory.type === 'imported' && tags.includes('personal_info')) {
-            if (lowerInput.includes('name') || lowerInput.includes('who am') || lowerInput.includes('called')) return true;
+            console.log(`🎯 FORCING inclusion of imported personal_info: ${summary.substring(0, 50)}`);
+            return true;
           }
           
           // Check if current message relates to memory
@@ -13817,10 +13816,10 @@ async function sendMessage(event) {
           return hasRelevantWord;
       });
       
-      // Limit to top 3 most relevant memories
+      // Limit to top 5 most relevant memories (increased from 3)
       memories = relevantMemories
           .sort((a, b) => b.importance - a.importance)
-          .slice(0, 3);
+          .slice(0, 5);
           
       console.log(`🎯 Filtered ${originalCount} memories to ${memories.length} relevant ones`);
       console.log(`📚 Relevant memories for "${input}":`);
