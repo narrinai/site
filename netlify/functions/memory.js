@@ -370,9 +370,9 @@ if (!userMatch && Array.isArray(recordUserField) && recordUserField.length > 0) 
        // Check character match - handle both slugs and record IDs
        let characterMatch = true; // Default to true if no character specified
        
-       // ALWAYS include imported memories (user-profile) regardless of character
+       // ALWAYS include imported memories regardless of character
        const isImportedMemory = fields.message_type === 'imported' || 
-                               (fields.Character && String(fields.Character).toLowerCase() === 'user-profile');
+                               (!fields.Character && fields.Memory_Importance); // No character = imported memory
        
        if (isImportedMemory) {
          characterMatch = true;

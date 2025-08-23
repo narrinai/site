@@ -211,11 +211,11 @@ exports.handler = async (event, context) => {
           // Calculate importance
           const importance = calculateImportance(memory);
           
-          // Create Airtable record - use special "user-profile" character for imported memories
+          // Create Airtable record - imported memories without specific character
           const memoryRecord = {
             fields: {
               "User": [userRecordId],  // Array for linked record
-              "Character": "user-profile",  // Special character for user's imported memories
+              // No Character field - these are character-agnostic memories
               "Message": String(memory.content),
               "Role": "user",
               "Memory_Importance": importance,

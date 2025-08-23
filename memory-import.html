@@ -1015,6 +1015,12 @@ Example JSON format:
         document.getElementById('preview-step').style.display = 'block';
         document.getElementById('preview-step').scrollIntoView({ behavior: 'smooth' });
         
+        // Set initial button text
+        const selectAllButton = document.querySelector('.select-all-button');
+        if (selectAllButton) {
+          selectAllButton.textContent = 'Unselect All'; // All are selected by default
+        }
+        
       } catch (error) {
         console.error('❌ JSON parsing error:', error);
         alert('Error parsing JSON: ' + error.message + '\n\nTip: You can paste the entire ChatGPT response (including explanatory text), or just the JSON part between the ```json``` markers.');
@@ -1103,12 +1109,16 @@ Example JSON format:
     function selectAllMemories() {
       const checkboxes = document.querySelectorAll('.memory-item input[type="checkbox"]');
       const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+      const button = document.querySelector('.select-all-button');
       
       checkboxes.forEach(checkbox => {
         checkbox.checked = !allChecked;
         const memoryId = checkbox.id;
         toggleMemory(memoryId, checkbox.checked);
       });
+      
+      // Update button text
+      button.textContent = allChecked ? 'Select All' : 'Unselect All';
     }
 
     // Update selected count
