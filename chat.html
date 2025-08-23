@@ -12030,6 +12030,7 @@ function openCustomizationModal() {
   // Pre-fill form with current character data or existing customization
   // Use characterSlug as the unique identifier for customizations
   const characterId = characterSlug; // Use slug as unique identifier
+  const customizedCharacters = JSON.parse(localStorage.getItem('customizedCharacters') || '{}');
   const existingCustom = customizedCharacters[characterId];
   const deleteBtn = document.getElementById('deleteCustomBtn');
   const transferSection = document.getElementById('transferSection');
@@ -12393,17 +12394,17 @@ function initializeCustomizationForm() {
       return;
     }
     
-    // Get existing customization data early
-    const characterSlug = new URLSearchParams(window.location.search).get('char') || 
-                          currentCharacter?.slug || currentCharacter?.character_id || '';
-    const customizedCharacters = JSON.parse(localStorage.getItem('customizedCharacters') || '{}');
-    const characterId = characterSlug;
-    const existingCustom = customizedCharacters[characterId];
+    // Get character slug for form handling  
+    const formCharacterSlug = new URLSearchParams(window.location.search).get('char') || 
+                              currentCharacter?.slug || currentCharacter?.character_id || '';
+    const formCustomizedCharacters = JSON.parse(localStorage.getItem('customizedCharacters') || '{}');
+    const formCharacterId = formCharacterSlug;
+    const formExistingCustom = formCustomizedCharacters[formCharacterId];
     
     // Check if this is a "Save As New" action (creating a new character from system character)
     const submitButton = document.getElementById('customizationSubmitBtn');
     const isUserCreated = currentCharacter.Created_by || currentCharacter.created_by || currentCharacter.Created_By || 
-                          existingCustom || 
+                          formExistingCustom || 
                           (currentCharacter.character_type && ['friendship', 'romance', 'mindfulness', 'mentorship'].includes(currentCharacter.character_type));
     const isNewCharacter = submitButton && submitButton.textContent.includes('Save As New');
     const isUserCreatedUpdate = isUserCreated; // User-created characters always update, never create new
