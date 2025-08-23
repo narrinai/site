@@ -372,10 +372,15 @@ if (!userMatch && Array.isArray(recordUserField) && recordUserField.length > 0) 
        
        // ALWAYS include imported memories regardless of character
        const isImportedMemory = fields.message_type === 'imported';
+       // ALWAYS include personal_info memories for all characters
+       const isPersonalInfo = fields.Memory_Tags && fields.Memory_Tags.includes('personal_info');
        
        if (isImportedMemory) {
          characterMatch = true;
          console.log(`🧠 Including imported memory regardless of character`);
+       } else if (isPersonalInfo) {
+         characterMatch = true;
+         console.log(`👤 Including personal_info memory for all characters`);
        } else if (characterIdentifier) {
          const recordCharacterField = fields.Character; // "Batman"
          const recordSlug = fields['Slug (from Character)']; // "batman"
