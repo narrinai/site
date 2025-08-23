@@ -118,9 +118,14 @@ Rate importance 1-10 where 10 is most important personal information.</textarea>
             <p>Paste the JSON response from ChatGPT here:</p>
             
             <div class="response-container">
-              <textarea id="chatgpt-response" placeholder='Paste ChatGPT JSON response here...
+              <textarea id="chatgpt-response" placeholder='Paste ChatGPT response here (full response with explanatory text is fine)...
 
-Example:
+You can paste either:
+1. The entire ChatGPT response including explanatory text
+2. Just the JSON part between ```json``` markers
+3. Just the raw JSON object
+
+Example JSON format:
 {
   "memories": [
     {
@@ -961,13 +966,46 @@ Example:
       document.getElementById('parsing-spinner').style.display = 'flex';
       
       try {
-        const data = JSON.parse(responseText);
+        let jsonData;
         
-        if (!data.memories || !Array.isArray(data.memories)) {
+        // Try to extract JSON from ChatGPT response if it contains markdown or extra text
+        if (responseText.includes('```json') || responseText.includes('```')) {
+          // Extract JSON from code blocks
+          const jsonMatch = responseText.match(/```json\s*([\s\S]*?)\s*```/) || 
+                           responseText.match(/```\s*([\s\S]*?)\s*```/);
+          
+          if (jsonMatch) {
+            console.log('📝 Extracted JSON from code block');
+            jsonData = JSON.parse(jsonMatch[1].trim());
+          } else {
+            // Try to find JSON object in the text
+            const jsonStart = responseText.indexOf('{');
+            const jsonEnd = responseText.lastIndexOf('}');
+            
+            if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+              const extractedJson = responseText.substring(jsonStart, jsonEnd + 1);
+              console.log('📝 Extracted JSON from text content');
+              jsonData = JSON.parse(extractedJson);
+            } else {
+              throw new Error('No JSON found in the response. Please copy only the JSON part.');
+            }
+          }
+        } else {
+          // Try to parse as direct JSON
+          console.log('📝 Parsing as direct JSON');
+          jsonData = JSON.parse(responseText);
+        }
+        
+        if (!jsonData.memories || !Array.isArray(jsonData.memories)) {
           throw new Error('Invalid JSON format: memories array not found');
         }
 
-        parsedMemories = data.memories;
+        if (jsonData.memories.length === 0) {
+          throw new Error('No memories found in the JSON data');
+        }
+
+        console.log(`✅ Successfully parsed ${jsonData.memories.length} memories`);
+        parsedMemories = jsonData.memories;
         selectedMemories = [...parsedMemories]; // Select all by default
         
         showPreview();
@@ -975,7 +1013,8 @@ Example:
         document.getElementById('preview-step').scrollIntoView({ behavior: 'smooth' });
         
       } catch (error) {
-        alert('Error parsing JSON: ' + error.message + '\n\nPlease check the format and try again.');
+        console.error('❌ JSON parsing error:', error);
+        alert('Error parsing JSON: ' + error.message + '\n\nTip: You can paste the entire ChatGPT response (including explanatory text), or just the JSON part between the ```json``` markers.');
       } finally {
         document.getElementById('parsing-spinner').style.display = 'none';
       }
