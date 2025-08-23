@@ -13808,15 +13808,28 @@ async function sendMessage(event) {
       
       // EMERGENCY FIX: Always include name memory for name questions
       if (lowerInput.includes('name') || lowerInput.includes('who am') || lowerInput.includes('called')) {
-        const nameMemory = memories.find(m => 
-          m.type === 'imported' && 
-          m.tags.includes('personal_info') && 
-          (m.message.toLowerCase().includes('name') || m.message.toLowerCase().includes('sebastiaan'))
-        );
+        console.log(`🚨 EMERGENCY FIX: Looking for name memory in ${memories.length} total memories`);
         
-        if (nameMemory && !relevantMemories.includes(nameMemory)) {
+        // Look through ALL memories (original list) for name info
+        const allMemories = memories; // Use original memories list before filtering
+        const nameMemory = allMemories.find(m => {
+          const hasNameInMessage = m.message && m.message.toLowerCase().includes('name');
+          const hasSebastiaan = m.message && m.message.toLowerCase().includes('sebastiaan');
+          const isImported = m.type === 'imported';
+          const hasPersonalTag = Array.isArray(m.tags) ? m.tags.includes('personal_info') : (m.tags && m.tags.toString().includes('personal_info'));
+          
+          console.log(`🔍 Checking memory: "${m.summary?.substring(0, 50)}" - imported:${isImported}, personalTag:${hasPersonalTag}, hasName:${hasNameInMessage}, hasSebastiaan:${hasSebastiaan}`);
+          
+          return isImported && hasPersonalTag && (hasNameInMessage || hasSebastiaan);
+        });
+        
+        if (nameMemory && !relevantMemories.some(rm => rm.id === nameMemory.id)) {
           console.log(`🚨 EMERGENCY: Adding name memory that was filtered out:`, nameMemory.summary);
           relevantMemories.unshift(nameMemory); // Add to front
+        } else if (!nameMemory) {
+          console.log(`🚨 EMERGENCY: No name memory found in ${allMemories.length} memories`);
+        } else {
+          console.log(`🚨 EMERGENCY: Name memory already in relevant list`);
         }
       }
       
