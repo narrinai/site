@@ -1216,14 +1216,17 @@
     }
     
     .topics-toggle {
-      background: var(--color-white);
+      background: var(--gradient-primary);
       border: none;
+      padding: var(--spacing-md) var(--spacing-xl);
+      border-radius: var(--radius-md);
       font-size: var(--font-size-base);
-      font-weight: 500;
-      color: var(--color-navy);
+      font-weight: 600;
+      color: var(--color-white);
       cursor: pointer;
       display: flex;
       align-items: center;
+      box-shadow: var(--shadow-md);
       justify-content: center;
       gap: var(--spacing-sm);
       width: 100%;
@@ -1233,8 +1236,9 @@
     }
     
     .topics-toggle:hover:not(.expanded) {
-      background: var(--color-light-gray);
-      color: var(--color-teal);
+      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
     }
     
     .topics-toggle.expanded {
@@ -11516,18 +11520,16 @@ function isConversationalCategory(category) {
   );
 }
 
-function getNormalizedCategory(character) {
+function getNormalizedOnboardingCategory(character) {
   if (!character) return '';
   
-  console.log('🔍 getNormalizedCategory input:', {
-    Category: character.Category,
-    category: character.category,
+  console.log('🔍 getNormalizedOnboardingCategory input:', {
     character_type: character.character_type,
     Character_Type: character.Character_Type,
     characterType: character.characterType
   });
   
-  // Special mapping for common create-character types  
+  // ONBOARDING IS BASED ON CHARACTER_TYPE ONLY
   const typeMapping = {
     'friendship': 'Friendship',
     'romance': 'Romance', 
@@ -11536,28 +11538,16 @@ function getNormalizedCategory(character) {
     'mentorship': 'Mentorship'
   };
   
-  // Check character_type FIRST for onboarding-specific categories
-  // This ensures user-created companions get the right onboarding flow
+  // Check character_type for onboarding flows
   const characterType = character.character_type || character.Character_Type || character.characterType || '';
   if (characterType && typeMapping[characterType.toLowerCase()]) {
     console.log('🎯 Using character_type for onboarding:', characterType, '→', typeMapping[characterType.toLowerCase()]);
     return typeMapping[characterType.toLowerCase()];
   }
   
-  // Fallback to Category/category fields for other cases
-  let category = character.Category || character.category || '';
-  
-  console.log('🔍 Selected category field after character_type check:', category);
-  
-  // Try direct mapping for category fields too
-  if (typeMapping[category.toLowerCase()]) {
-    console.log('🔗 Mapped category via typeMapping:', category, '→', typeMapping[category.toLowerCase()]);
-    return typeMapping[category.toLowerCase()];
-  }
-  
-  // Normalize category to match onboardingQuestions keys
-  if (category && window.onboardingQuestions) {
-    const categoryKeys = Object.keys(window.onboardingQuestions);
+  console.log('❌ No valid character_type found for onboarding');
+  return '';
+}
     const exactMatch = categoryKeys.find(key => key.toLowerCase() === category.toLowerCase());
     
     if (exactMatch) {
@@ -11731,7 +11721,7 @@ async function openMemoryHub() {
 function displayMemoryHubContent(answers) {
   const content = document.getElementById('memoryHubContent');
   // Use the normalized category helper
-  const category = getNormalizedCategory(currentCharacter);
+  const category = getNormalizedOnboardingCategory(currentCharacter);
   const config = window.onboardingQuestions && window.onboardingQuestions[category];
   
   console.log('📊 Display Memory Hub - Category:', category);
@@ -11828,7 +11818,7 @@ window.discussMemory = function(questionId, answer) {
   closeMemoryHub();
   
   // Get the question text using normalized category
-  const category = getNormalizedCategory(currentCharacter);
+  const category = getNormalizedOnboardingCategory(currentCharacter);
   const config = window.onboardingQuestions && window.onboardingQuestions[category];
   const question = config?.questions?.find(q => q.id === questionId);
   
@@ -11929,21 +11919,20 @@ function restartOnboarding() {
   // Set restart flag
   sessionStorage.setItem('restart_onboarding', 'true');
   
-  // Get category and force show onboarding
-  const category = currentCharacter?.Category || currentCharacter?.category || '';
-  const normalizedCategory = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
+  // Get character_type and force show onboarding
+  const onboardingCategory = getNormalizedOnboardingCategory(currentCharacter);
   
-  if (window.onboardingQuestions && window.onboardingQuestions[normalizedCategory] && window.onboardingQuestions[normalizedCategory].enabled) {
-    console.log('🚀 Directly triggering onboarding for category:', normalizedCategory);
+  if (window.onboardingQuestions && window.onboardingQuestions[onboardingCategory] && window.onboardingQuestions[onboardingCategory].enabled) {
+    console.log('🚀 Directly triggering onboarding for category:', onboardingCategory);
     
     // Set up the current questions
-    currentQuestions = window.onboardingQuestions[normalizedCategory].questions;
+    currentQuestions = window.onboardingQuestions[onboardingCategory].questions;
     
     // Show the onboarding overlay immediately
     showOnboardingOverlay();
   } else {
-    console.warn('⚠️ No onboarding configuration found for category:', normalizedCategory);
-    console.log('📊 Available categories:', Object.keys(window.onboardingQuestions || {}));
+    console.warn('⚠️ No onboarding configuration found for character_type:', onboardingCategory);
+    console.log('📊 Available onboarding categories:', Object.keys(window.onboardingQuestions || {}));
     
     // Fallback: try to call checkAndShowOnboarding
     if (typeof checkAndShowOnboarding === 'function') {
@@ -11982,15 +11971,14 @@ function startOnboardingFromHub() {
       console.warn('⚠️ Onboarding was not shown, forcing display...');
       // Force show the onboarding overlay directly
       if (typeof showOnboardingOverlay === 'function') {
-        // Set up questions for current character
-        const category = currentCharacter?.Category || currentCharacter?.category || '';
-        const normalizedCategory = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
+        // Set up questions for current character based on character_type
+        const onboardingCategory = getNormalizedOnboardingCategory(currentCharacter);
         
-        if (window.onboardingQuestions && window.onboardingQuestions[normalizedCategory] && window.onboardingQuestions[normalizedCategory].enabled) {
-          currentQuestions = window.onboardingQuestions[normalizedCategory].questions;
+        if (window.onboardingQuestions && window.onboardingQuestions[onboardingCategory] && window.onboardingQuestions[onboardingCategory].enabled) {
+          currentQuestions = window.onboardingQuestions[onboardingCategory].questions;
           showOnboardingOverlay();
         } else {
-          console.error('❌ No valid onboarding questions found for category:', normalizedCategory);
+          console.error('❌ No valid onboarding questions found for character_type:', onboardingCategory);
         }
       }
     }
@@ -16458,33 +16446,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return false; // Don't show onboarding again
       }
       
-      // For onboarding, prioritize character_type over category
-      // Character types 'friendship', 'romance', 'mindfulness', 'mentorship' map directly to onboarding flows
-      let category = '';
-      const characterType = currentCharacter.character_type || currentCharacter.Character_Type || '';
-      
-      if (characterType) {
-        const typeToOnboardingMap = {
-          'friendship': 'Friendship',
-          'romance': 'Romance',
-          'mindfulness': 'Mindfulness', 
-          'mentorship': 'Mentorship',
-          'mentor': 'Mentorship'
-        };
-        
-        if (typeToOnboardingMap[characterType.toLowerCase()]) {
-          category = typeToOnboardingMap[characterType.toLowerCase()];
-          console.log('🎯 Using character_type for onboarding:', characterType, '→', category);
-        }
-      }
-      
-      // Fallback to category normalization if no character_type match
-      if (!category) {
-        category = getNormalizedCategory(currentCharacter);
-        console.log('📐 Fallback to getNormalizedCategory:', category);
-      }
-      
-      console.log('📐 Final category for onboarding:', category);
+      // Use character_type directly for onboarding
+      const category = getNormalizedOnboardingCategory(currentCharacter);
+      console.log('📐 Onboarding category from character_type:', category);
       
       const userId = localStorage.getItem('user_id') || localStorage.getItem('user_uid') || 'anonymous';
       
