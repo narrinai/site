@@ -13785,8 +13785,21 @@ async function sendMessage(event) {
           
           // Always include very important memories (8+) OR imported personal_info
           if (memory.importance >= 8) return true;
-          if (memory.type === 'imported' && tags.includes('personal_info')) {
+          
+          // FORCE include ALL imported personal_info memories
+          const hasPersonalTag = Array.isArray(tags) 
+            ? tags.includes('personal_info') 
+            : (tags && tags.toString().includes('personal_info'));
+            
+          if (memory.type === 'imported' && hasPersonalTag) {
             console.log(`🎯 FORCING inclusion of imported personal_info: ${summary.substring(0, 50)}`);
+            return true;
+          }
+          
+          // FORCE include ANY imported memory containing name info for name questions
+          if (memory.type === 'imported' && lowerInput.includes('name') && 
+              (summary.toLowerCase().includes('name') || summary.toLowerCase().includes('sebastiaan'))) {
+            console.log(`🎯 FORCING inclusion of imported name memory: ${summary.substring(0, 50)}`);
             return true;
           }
           
