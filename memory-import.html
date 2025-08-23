@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Import Memories | Transfer ChatGPT Memories - Narrin AI</title>
+  <meta name="description" content="Import your memories from ChatGPT to Narrin AI. Transfer your personal information and conversation history seamlessly.">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://narrin.ai/memory-import">
+  <meta property="og:title" content="Import Memories | Transfer from ChatGPT - Narrin AI">
+  <meta property="og:description" content="Seamlessly transfer your ChatGPT memories to Narrin AI. Import personal information and conversation history.">
+  <meta property="og:image" content="https://narrin.ai/og-image.jpg">
+  
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://narrin.ai/memory-import">
+  <meta property="twitter:title" content="Memory Import - Transfer ChatGPT Data | Narrin AI">
+  <meta property="twitter:description" content="Import your ChatGPT memories to Narrin AI for a personalized AI experience.">
+  <meta property="twitter:image" content="https://narrin.ai/og-image.jpg">
+
+  <!-- Netlify Identity Widget -->
+  <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+
+  <!-- Microsoft Clarity Analytics -->
+  <script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "svaxez2fed");
+  </script>
+
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet"
+  />
+</head>
+
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="nav-logo">
+        <img src="logo.svg" alt="Narrin AI" />
+      </a>
+      <div class="nav-menu">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="search-results.html" class="nav-link">Characters</a>
+        <a href="profile.html" class="nav-link">Profile</a>
+        <a href="#" onclick="logout()" class="nav-link" id="logout-link" style="display: none;">Logout</a>
+        <a href="#" onclick="openLoginModal()" class="nav-link" id="login-link">Login</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container">
+      <!-- Header -->
+      <div class="memory-import-header">
+        <h1>Import Memories from ChatGPT</h1>
+        <p class="subtitle">Transfer your personal information and conversation history from ChatGPT to enhance your Narrin AI experience.</p>
+      </div>
+
+      <!-- Pro Feature Notice -->
+      <div class="pro-feature-notice">
+        <div class="pro-badge">🌟 Pro Feature</div>
+        <p>Memory import is available for Pro subscribers. <a href="profile.html">Upgrade to Pro</a> to unlock this feature.</p>
+      </div>
+
+      <!-- Import Steps -->
+      <div class="import-steps">
+        <!-- Step 1: Copy Prompt -->
+        <div class="step-card">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <h3>Copy the ChatGPT Prompt</h3>
+            <p>Copy this prompt and paste it into ChatGPT to export your memories:</p>
+            
+            <div class="prompt-container">
+              <textarea id="chatgpt-prompt" readonly>Please export all your memories about me in the following JSON format for import into another AI system:
+
+{
+  "memories": [
+    {
+      "content": "specific memory or fact about me",
+      "importance": 1-10,
+      "category": "personal_info|preference|goal|relationship|emotional|general",
+      "date_learned": "approximate date if known",
+      "context": "brief context where this was learned"
+    }
+  ]
+}
+
+Include all important details you remember about:
+- My name and personal information
+- My preferences and interests  
+- My goals and aspirations
+- Our relationship dynamic
+- Emotional context from our conversations
+- Any specific facts or details about my life
+
+Rate importance 1-10 where 10 is most important personal information.</textarea>
+              
+              <button class="copy-button" onclick="copyPrompt()">
+                <span id="copy-text">Copy Prompt</span>
+                <span id="copy-success" style="display: none;">✓ Copied!</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Paste Response -->
+        <div class="step-card">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <h3>Paste ChatGPT's Response</h3>
+            <p>Paste the JSON response from ChatGPT here:</p>
+            
+            <div class="response-container">
+              <textarea id="chatgpt-response" placeholder='Paste ChatGPT JSON response here...
+
+Example:
+{
+  "memories": [
+    {
+      "content": "User\'s name is Sarah and works as a graphic designer",
+      "importance": 9,
+      "category": "personal_info",
+      "date_learned": "2024-03-15",
+      "context": "Introduced herself in our first conversation"
+    }
+  ]
+}'></textarea>
+              
+              <div class="response-actions">
+                <button class="parse-button" onclick="parseMemories()">
+                  Parse & Preview Memories
+                </button>
+                <div class="loading-spinner" id="parsing-spinner" style="display: none;">
+                  Parsing memories...
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Preview & Import -->
+        <div class="step-card" id="preview-step" style="display: none;">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <h3>Preview & Import</h3>
+            <p>Review the memories found and select which ones to import:</p>
+            
+            <div id="import-preview">
+              <!-- Preview content will be inserted here -->
+            </div>
+            
+            <div class="import-actions">
+              <button class="select-all-button" onclick="selectAllMemories()">
+                Select All
+              </button>
+              <button class="import-button" onclick="importSelectedMemories()" disabled>
+                Import <span id="selected-count">0</span> Selected
+              </button>
+            </div>
+            
+            <div class="import-progress" id="import-progress" style="display: none;">
+              <div class="progress-bar">
+                <div class="progress-fill"></div>
+              </div>
+              <p class="progress-text">Importing memories...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4: Success -->
+        <div class="step-card success-card" id="success-step" style="display: none;">
+          <div class="step-number">✓</div>
+          <div class="step-content">
+            <h3>Import Complete!</h3>
+            <p id="success-message">Successfully imported memories to your Narrin AI profile.</p>
+            <div class="success-actions">
+              <a href="index.html" class="chat-button">Start Chatting</a>
+              <button onclick="resetImport()" class="reset-button">Import More</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Help Section -->
+      <div class="help-section">
+        <h3>Need Help?</h3>
+        <div class="help-items">
+          <div class="help-item">
+            <h4>How to get ChatGPT memories?</h4>
+            <p>Go to ChatGPT, paste the prompt above, and it will generate a JSON with your memories.</p>
+          </div>
+          <div class="help-item">
+            <h4>What gets imported?</h4>
+            <p>Personal information, preferences, goals, and important conversation context that ChatGPT remembers about you.</p>
+          </div>
+          <div class="help-item">
+            <h4>Is my data secure?</h4>
+            <p>Yes, all imported memories are encrypted and stored securely. Only you can access your imported memories.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>Narrin AI</h4>
+        <p>The future of AI companions</p>
+      </div>
+      <div class="footer-section">
+        <h4>Support</h4>
+        <a href="contact.html">Contact Us</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2024 Narrin AI. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- Login Modal (reuse existing) -->
+  <div id="loginModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <span class="close" onclick="closeLoginModal()">&times;</span>
+      <h2>Login Required</h2>
+      <p>Please log in to import memories from ChatGPT.</p>
+      <button onclick="netlifyIdentity.open()" class="cta-button">Login / Sign Up</button>
+    </div>
+  </div>
+
+  <!-- Custom CSS for Memory Import -->
+  <style>
+    .memory-import-header {
+      text-align: center;
+      margin-bottom: 2rem;
+      padding: 2rem 0;
+    }
+
+    .memory-import-header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 1rem;
+    }
+
+    .memory-import-header .subtitle {
+      font-size: 1.2rem;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .pro-feature-notice {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .pro-badge {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .pro-feature-notice a {
+      color: #fff;
+      text-decoration: underline;
+    }
+
+    .import-steps {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .step-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .step-number {
+      width: 40px;
+      height: 40px;
+      background: var(--accent-color);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .step-content {
+      flex: 1;
+    }
+
+    .step-content h3 {
+      margin-bottom: 0.5rem;
+      font-size: 1.4rem;
+      font-weight: 600;
+    }
+
+    .step-content p {
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+    }
+
+    .prompt-container, .response-container {
+      position: relative;
+    }
+
+    .prompt-container textarea, .response-container textarea {
+      width: 100%;
+      min-height: 200px;
+      padding: 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      background: var(--bg-primary);
+      resize: vertical;
+    }
+
+    .copy-button, .parse-button {
+      background: var(--accent-color);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .copy-button:hover, .parse-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .memory-preview {
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .memory-categories {
+      margin-bottom: 1rem;
+    }
+
+    .category {
+      margin-bottom: 1rem;
+    }
+
+    .category h5 {
+      color: var(--accent-color);
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+
+    .memory-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      padding: 0.75rem;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+      background: var(--bg-primary);
+    }
+
+    .memory-item input[type="checkbox"] {
+      margin-top: 2px;
+    }
+
+    .memory-content {
+      flex: 1;
+    }
+
+    .memory-text {
+      font-size: 0.95rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .memory-meta {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .importance-badge {
+      background: var(--accent-color);
+      color: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+
+    .import-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .select-all-button {
+      background: transparent;
+      border: 1px solid var(--accent-color);
+      color: var(--accent-color);
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .import-button {
+      background: var(--accent-color);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .import-button:disabled {
+      background: var(--text-muted);
+      cursor: not-allowed;
+    }
+
+    .success-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .success-card .step-number {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .success-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .chat-button {
+      background: white;
+      color: var(--accent-color);
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .reset-button {
+      background: transparent;
+      border: 1px solid white;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .help-section {
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .help-section h3 {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .help-items {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .help-item {
+      padding: 1.5rem;
+      background: var(--bg-secondary);
+      border-radius: 12px;
+    }
+
+    .help-item h4 {
+      margin-bottom: 0.5rem;
+      color: var(--accent-color);
+    }
+
+    .loading-spinner {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .import-progress {
+      margin-top: 1rem;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: var(--border-color);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent-color);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .progress-text {
+      text-align: center;
+      margin-top: 0.5rem;
+      color: var(--text-secondary);
+    }
+
+    @media (max-width: 768px) {
+      .step-card {
+        flex-direction: column;
+        gap: 1rem;
+      }
+      
+      .import-actions, .success-actions {
+        flex-direction: column;
+      }
+      
+      .help-items {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+
+  <!-- JavaScript -->
+  <script src="js/auth.js"></script>
+  <script>
+    let parsedMemories = [];
+    let selectedMemories = [];
+
+    // Copy prompt to clipboard
+    function copyPrompt() {
+      const promptText = document.getElementById('chatgpt-prompt');
+      promptText.select();
+      document.execCommand('copy');
+      
+      // Show success feedback
+      document.getElementById('copy-text').style.display = 'none';
+      document.getElementById('copy-success').style.display = 'inline';
+      
+      setTimeout(() => {
+        document.getElementById('copy-text').style.display = 'inline';
+        document.getElementById('copy-success').style.display = 'none';
+      }, 2000);
+    }
+
+    // Parse memories from JSON
+    function parseMemories() {
+      const responseText = document.getElementById('chatgpt-response').value.trim();
+      
+      if (!responseText) {
+        alert('Please paste the ChatGPT JSON response first.');
+        return;
+      }
+
+      // Show loading
+      document.getElementById('parsing-spinner').style.display = 'flex';
+      
+      try {
+        const data = JSON.parse(responseText);
+        
+        if (!data.memories || !Array.isArray(data.memories)) {
+          throw new Error('Invalid JSON format: memories array not found');
+        }
+
+        parsedMemories = data.memories;
+        selectedMemories = [...parsedMemories]; // Select all by default
+        
+        showPreview();
+        document.getElementById('preview-step').style.display = 'block';
+        document.getElementById('preview-step').scrollIntoView({ behavior: 'smooth' });
+        
+      } catch (error) {
+        alert('Error parsing JSON: ' + error.message + '\n\nPlease check the format and try again.');
+      } finally {
+        document.getElementById('parsing-spinner').style.display = 'none';
+      }
+    }
+
+    // Show preview of memories
+    function showPreview() {
+      const previewContainer = document.getElementById('import-preview');
+      
+      // Group memories by category
+      const categories = {};
+      parsedMemories.forEach(memory => {
+        const cat = memory.category || 'general';
+        if (!categories[cat]) categories[cat] = [];
+        categories[cat].push(memory);
+      });
+
+      let html = `<div class="memory-preview">
+        <h4>Found ${parsedMemories.length} memories to import:</h4>
+        <div class="memory-categories">`;
+
+      Object.keys(categories).forEach(category => {
+        const categoryMemories = categories[category];
+        html += `<div class="category">
+          <h5>${formatCategoryName(category)} (${categoryMemories.length})</h5>`;
+        
+        categoryMemories.forEach((memory, index) => {
+          const memoryId = `${category}_${index}`;
+          html += `<div class="memory-item">
+            <input type="checkbox" id="${memoryId}" checked onchange="toggleMemory('${memoryId}', this.checked)">
+            <div class="memory-content">
+              <div class="memory-text">${escapeHtml(memory.content)}</div>
+              <div class="memory-meta">
+                <span class="importance-badge">Importance: ${memory.importance}/10</span>
+                ${memory.context ? ` • Context: ${escapeHtml(memory.context)}` : ''}
+                ${memory.date_learned ? ` • Date: ${memory.date_learned}` : ''}
+              </div>
+            </div>
+          </div>`;
+        });
+        
+        html += `</div>`;
+      });
+
+      html += `</div></div>`;
+      previewContainer.innerHTML = html;
+      
+      updateSelectedCount();
+    }
+
+    // Format category names for display
+    function formatCategoryName(category) {
+      const categoryNames = {
+        'personal_info': 'Personal Information',
+        'preference': 'Preferences',
+        'goal': 'Goals',
+        'relationship': 'Relationship',
+        'emotional': 'Emotional Context',
+        'general': 'General'
+      };
+      return categoryNames[category] || category;
+    }
+
+    // Toggle memory selection
+    function toggleMemory(memoryId, isChecked) {
+      const [category, index] = memoryId.split('_');
+      const memory = parsedMemories.find(m => (m.category || 'general') === category);
+      
+      if (isChecked && !selectedMemories.includes(memory)) {
+        selectedMemories.push(memory);
+      } else if (!isChecked) {
+        const memoryIndex = selectedMemories.findIndex(m => m === memory);
+        if (memoryIndex > -1) {
+          selectedMemories.splice(memoryIndex, 1);
+        }
+      }
+      
+      updateSelectedCount();
+    }
+
+    // Select all memories
+    function selectAllMemories() {
+      const checkboxes = document.querySelectorAll('.memory-item input[type="checkbox"]');
+      const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+      
+      checkboxes.forEach(checkbox => {
+        checkbox.checked = !allChecked;
+        const memoryId = checkbox.id;
+        toggleMemory(memoryId, checkbox.checked);
+      });
+    }
+
+    // Update selected count
+    function updateSelectedCount() {
+      const count = selectedMemories.length;
+      document.getElementById('selected-count').textContent = count;
+      document.querySelector('.import-button').disabled = count === 0;
+    }
+
+    // Import selected memories
+    async function importSelectedMemories() {
+      if (selectedMemories.length === 0) {
+        alert('Please select at least one memory to import.');
+        return;
+      }
+
+      // Check authentication
+      const user = netlifyIdentity.currentUser();
+      if (!user) {
+        alert('Please log in to import memories.');
+        openLoginModal();
+        return;
+      }
+
+      // Show progress
+      document.getElementById('import-progress').style.display = 'block';
+      const progressFill = document.querySelector('.progress-fill');
+      
+      try {
+        // Import memories via Netlify function
+        const response = await fetch('/.netlify/functions/import-memories', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${user.token.access_token}`
+          },
+          body: JSON.stringify({
+            memories: selectedMemories,
+            user_uid: user.id,
+            user_email: user.email
+          })
+        });
+
+        // Animate progress
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+          progress += 10;
+          progressFill.style.width = progress + '%';
+          if (progress >= 100) {
+            clearInterval(progressInterval);
+          }
+        }, 100);
+
+        if (!response.ok) {
+          throw new Error(`Import failed: ${response.status}`);
+        }
+
+        const result = await response.json();
+        
+        if (result.success) {
+          // Show success
+          document.getElementById('import-progress').style.display = 'none';
+          document.getElementById('success-step').style.display = 'block';
+          document.getElementById('success-message').textContent = 
+            `Successfully imported ${result.imported_count || selectedMemories.length} memories to your Narrin AI profile.`;
+          document.getElementById('success-step').scrollIntoView({ behavior: 'smooth' });
+        } else {
+          throw new Error(result.error || 'Import failed');
+        }
+
+      } catch (error) {
+        document.getElementById('import-progress').style.display = 'none';
+        alert('Import failed: ' + error.message);
+        console.error('Import error:', error);
+      }
+    }
+
+    // Reset import process
+    function resetImport() {
+      document.getElementById('chatgpt-response').value = '';
+      document.getElementById('preview-step').style.display = 'none';
+      document.getElementById('success-step').style.display = 'none';
+      parsedMemories = [];
+      selectedMemories = [];
+    }
+
+    // Utility function to escape HTML
+    function escapeHtml(unsafe) {
+      return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // Login modal functions
+    function openLoginModal() {
+      document.getElementById('loginModal').style.display = 'flex';
+    }
+
+    function closeLoginModal() {
+      document.getElementById('loginModal').style.display = 'none';
+    }
+
+    // Initialize page
+    window.addEventListener('DOMContentLoaded', function() {
+      initializeAuth();
+      
+      // Check if user is Pro subscriber
+      const user = netlifyIdentity.currentUser();
+      if (user) {
+        // TODO: Check Pro subscription status
+        // For now, show the feature to all logged-in users
+        document.querySelector('.pro-feature-notice').style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>

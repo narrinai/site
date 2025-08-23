@@ -1518,9 +1518,10 @@ Which of these would you like to explore first? Or is there something else you'd
       {
         id: 'personal_growth_vision',
         question: 'In your own words, what would success in your personal growth journey look like? What would be different about your life?',
-        type: 'text',
+        type: 'open_text',
         placeholder: 'Share your vision for growth and what meaningful change would look like for you...',
-        required: true
+        maxLength: 300,
+        required: false
       }
     ],
     contextMappings: {
