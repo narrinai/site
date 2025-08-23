@@ -12393,6 +12393,13 @@ function initializeCustomizationForm() {
       return;
     }
     
+    // Get existing customization data early
+    const characterSlug = new URLSearchParams(window.location.search).get('char') || 
+                          currentCharacter?.slug || currentCharacter?.character_id || '';
+    const customizedCharacters = JSON.parse(localStorage.getItem('customizedCharacters') || '{}');
+    const characterId = characterSlug;
+    const existingCustom = customizedCharacters[characterId];
+    
     // Check if this is a "Save As New" action (creating a new character from system character)
     const submitButton = document.getElementById('customizationSubmitBtn');
     const isUserCreated = currentCharacter.Created_by || currentCharacter.created_by || currentCharacter.Created_By || 
@@ -17723,6 +17730,34 @@ async function generateCompanionImage() {
       const avatarElement = document.getElementById('characterAvatar');
       if (avatarElement && imageUrl) {
         avatarElement.innerHTML = `<img src="${imageUrl}" alt="${companionName}" onclick="openAvatarModal('${imageUrl}')" style="width: 100%; height: 100%; border-radius: var(--radius-full); object-fit: cover;">`;
+      }
+      
+      // Auto-save the generated image to Airtable via update-character-avatar endpoint
+      try {
+        const characterSlug = new URLSearchParams(window.location.search).get('char') || 
+                             currentCharacter?.slug || currentCharacter?.character_id || '';
+        
+        console.log('💾 Auto-saving generated image to Airtable for:', characterSlug);
+        
+        const saveResponse = await fetch('/.netlify/functions/update-character-avatar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            character_slug: characterSlug,
+            avatar_url: imageUrl,
+            replicate_url: imageUrl
+          })
+        });
+        
+        if (saveResponse.ok) {
+          const saveResult = await saveResponse.json();
+          console.log('✅ Generated image auto-saved to Airtable:', saveResult);
+          showNotification('success', 'Image Saved', 'Avatar updated in database and will be downloaded locally within 24 hours');
+        } else {
+          console.warn('⚠️ Failed to auto-save generated image to Airtable');
+        }
+      } catch (autoSaveError) {
+        console.warn('⚠️ Auto-save error (image still generated):', autoSaveError);
       }
       
       console.log('✅ Generated companion image:', imageUrl);
