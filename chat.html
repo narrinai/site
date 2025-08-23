@@ -12148,19 +12148,30 @@ function openCustomizationModal() {
     document.getElementById('customAvatarUrl').value = currentCharacter.avatar_url || currentCharacter.Avatar_URL || '';
     
     // Show current avatar preview
-    if (currentCharacter.avatar_url || currentCharacter.Avatar_URL) {
-      const avatarUrl = currentCharacter.avatar_url || currentCharacter.Avatar_URL;
+    const currentAvatarUrl = currentCharacter.avatar_url || currentCharacter.Avatar_URL || '';
+    console.log('🖼️ Setting up avatar preview with URL:', currentAvatarUrl);
+    
+    if (currentAvatarUrl && currentAvatarUrl.trim() !== '') {
       const preview = document.getElementById('customAvatarPreview');
       const previewImg = document.getElementById('customAvatarImg');
+      const placeholder = document.getElementById('avatarPlaceholder');
+      
       if (preview && previewImg) {
-        previewImg.src = avatarUrl;
-        preview.style.display = 'block';
+        previewImg.src = currentAvatarUrl;
+        previewImg.style.display = 'block';
+        
+        // Hide placeholder when showing image
+        if (placeholder) placeholder.style.display = 'none';
         
         // Add click handler for modal
         previewImg.onclick = function() {
-          openAvatarModal(avatarUrl);
+          openAvatarModal(currentAvatarUrl);
         };
+        
+        console.log('✅ Avatar preview set up successfully');
       }
+    } else {
+      console.log('⚠️ No avatar URL available for preview');
     }
     document.getElementById('customPrompt').value = '';
     
