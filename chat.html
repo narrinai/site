@@ -26,10 +26,17 @@
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   
-  <!-- Import Modern Google Fonts -->
+  <!-- Network Performance Optimizations -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://narrin.ai">
+  <link rel="preconnect" href="https://hook.eu2.make.com">
+  <link rel="dns-prefetch" href="https://api.airtable.com">
+  <link rel="dns-prefetch" href="https://replicate.delivery">
+  
+  <!-- Preload Critical Fonts -->
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap"></noscript>
 
   <style>
     /* ===== CSS CUSTOM PROPERTIES ===== */
@@ -8801,15 +8808,12 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
 
     currentCharacter = data.character;
     
-    // Supplement character data with fields from characters API (like character_type)
-    try {
-      const charactersApiResponse = await fetch(`/.netlify/functions/characters?slug=${slug}&limit=1`);
-      if (charactersApiResponse.ok) {
-        const apiData = await charactersApiResponse.json();
-        if (apiData.characters && apiData.characters.length > 0) {
+    // Supplement character data with fields from characters API (parallel with other operations)
+    const supplementDataPromise = fetch(`/.netlify/functions/characters?slug=${slug}&limit=1`)
+      .then(response => response.ok ? response.json() : null)
+      .then(apiData => {
+        if (apiData?.characters?.[0]) {
           const apiCharacter = apiData.characters[0];
-          
-          // Add missing fields from API to currentCharacter
           if (apiCharacter.character_type && !currentCharacter.character_type) {
             currentCharacter.character_type = apiCharacter.character_type;
             console.log('✅ Added character_type from API:', apiCharacter.character_type);
@@ -8819,10 +8823,11 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
             console.log('✅ Added Category from API:', apiCharacter.Category);
           }
         }
-      }
-    } catch (apiError) {
-      console.warn('⚠️ Could not supplement character data from API:', apiError);
-    }
+      })
+      .catch(apiError => console.warn('⚠️ Could not supplement character data from API:', apiError));
+    
+    // Don't await - let it run in background
+    supplementDataPromise;
     
     console.log('🔍 Character data received:', currentCharacter);
     console.log('🔍 Character name fields:', {
@@ -8889,17 +8894,15 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
         currentCharacter.avatar_url = avatarUrl;
         console.log('✅ Avatar URL normalized:', avatarUrl);
         
-        // Preload the avatar image to ensure it's cached
+        // Preload avatar in background (non-blocking)
         const img = new Image();
-        img.onload = () => {
-          console.log('✅ Avatar preloaded successfully');
-        };
+        img.onload = () => console.log('✅ Avatar preloaded');
         img.onerror = () => {
           console.error('❌ Failed to preload avatar:', avatarUrl);
-          // Clear invalid avatar URL
           currentCharacter.avatar_url = null;
         };
-        img.src = avatarUrl;
+        // Non-blocking preload
+        setTimeout(() => { img.src = avatarUrl; }, 0);
       } else {
         console.log('⚠️ No avatar URL found for character');
       }
@@ -8957,12 +8960,19 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     console.log('Character avatar_url:', currentCharacter.avatar_url);
     console.log('Full character data:', JSON.stringify(currentCharacter, null, 2));
     
-    // CRITICAL: Load chat history BEFORE setting up interface (which checks onboarding)
-    console.log('🔄 Loading chat history FIRST before interface setup...');
-    await loadChatHistory();
+    // PARALLEL: Load chat history and setup interface simultaneously for better performance
+    console.log('🔄 Loading chat history and setting up interface in parallel...');
+    const [historyResult] = await Promise.allSettled([
+      loadChatHistory(),
+      new Promise(resolve => {
+        setupCharacterInterface();
+        resolve();
+      })
+    ]);
     
-    // NOW setup interface after history is loaded
-    setupCharacterInterface();
+    if (historyResult.status === 'rejected') {
+      console.warn('⚠️ Chat history loading failed, but interface is ready:', historyResult.reason);
+    }
     
     // If history was transferred, give user feedback
     if (window.historyWasTransferred) {
@@ -16244,8 +16254,14 @@ document.addEventListener('DOMContentLoaded', () => {
       // Add click handlers to existing avatar images
       addAvatarClickHandlers();
       
-      // Load non-critical features after DOM is ready
-      setTimeout(loadNonCriticalFeatures, 100);
+      // Load non-critical features after page is fully loaded
+      if (document.readyState === 'complete') {
+        setTimeout(loadNonCriticalFeatures, 50);
+      } else {
+        window.addEventListener('load', () => {
+          setTimeout(loadNonCriticalFeatures, 50);
+        });
+      }
     });
     
     // Update show function to use display instead of class
