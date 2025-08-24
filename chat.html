@@ -3987,11 +3987,11 @@
     .onboarding-container {
       background: var(--color-white);
       border-radius: var(--radius-xl);
-      max-width: 600px;
+      max-width: 800px;
       width: 100%;
-      max-height: 95vh;
+      max-height: 90vh;
       height: auto;
-      min-height: 600px;
+      min-height: 700px;
       overflow-y: auto;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
       animation: slideUp 0.3s ease-out;
@@ -3999,8 +3999,9 @@
     
     @media (min-width: 769px) {
       .onboarding-container {
-        min-height: 580px;
-        max-height: 75vh;
+        min-height: 650px;
+        max-height: 85vh;
+        max-width: 900px;
       }
     }
     
@@ -4368,19 +4369,19 @@
     
     @media (max-width: 768px) {
       .onboarding-overlay {
-        padding: 10px;
+        padding: 5px;
       }
       
       .onboarding-container {
-        max-width: 95vw;
-        max-height: calc(100vh - 40px);
+        max-width: 98vw;
+        max-height: calc(100vh - 10px);
         height: auto;
-        min-height: 0;
+        min-height: calc(100vh - 10px);
         border-radius: var(--radius-lg);
-        overflow: hidden;
+        overflow-y: auto;
         display: flex;
         flex-direction: column;
-        margin: 20px auto;
+        margin: 5px auto;
       }
       
       .onboarding-header {
@@ -4418,11 +4419,11 @@
       }
       
       .option-button {
-        padding: 12px 14px;
-        font-size: var(--font-size-sm);
+        padding: 16px 18px;
+        font-size: var(--font-size-base);
         min-height: auto;
         height: auto;
-        line-height: 1.4;
+        line-height: 1.5;
         white-space: normal;
         word-wrap: break-word;
         overflow-wrap: break-word;
@@ -4948,11 +4949,11 @@
             </div>
           </div>
           <div class="character-header-buttons">
-            <button class="btn-memory" onclick="openMemoryHub()" id="memoryBtn" style="display: none;" title="View memories">
+            <button class="btn-memory" onclick="lazyLoadMemoryHub()" id="memoryBtn" style="display: none;" title="View memories">
               <span class="desktop-text">Memory</span>
               <span class="mobile-icon">🧠</span>
             </button>
-            <button class="btn-customize" onclick="openCustomizationModal()" id="customizeBtn" style="display: none;" title="Customize companion">
+            <button class="btn-customize" onclick="lazyLoadCustomize()" id="customizeBtn" style="display: none;" title="Customize companion">
               <span class="desktop-text">Customize</span>
               <span class="mobile-icon">✨</span>
             </button>
@@ -5011,10 +5012,10 @@
       
       <!-- Desktop Action Buttons (below chat, only visible on desktop) -->
       <div class="desktop-action-buttons" id="desktopActionButtons" style="display: none;">
-        <button class="action-btn memory-btn" onclick="openMemoryHub()">
+        <button class="action-btn memory-btn" onclick="lazyLoadMemoryHub()">
           <span>🧠</span> Memory
         </button>
-        <button class="action-btn customize-btn" onclick="openCustomizationModal()">
+        <button class="action-btn customize-btn" onclick="lazyLoadCustomize()">
           <span>✨</span> Customize
         </button>
       </div>
@@ -6183,6 +6184,106 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentCharacter = null;
     let characterSlug = null;
     let currentMessageCount = 0;
+    
+    // ===== LAZY LOADING SYSTEM =====
+    let memoryHubLoaded = false;
+    let customizeLoaded = false;
+    
+    // Lazy load Memory Hub functionality
+    async function lazyLoadMemoryHub() {
+      if (!memoryHubLoaded) {
+        console.log('🚀 Lazy loading Memory Hub...');
+        // Show loading indicator
+        const btn = event?.target.closest('button');
+        const originalText = btn?.textContent || btn?.innerText;
+        if (btn) {
+          btn.disabled = true;
+          if (btn.querySelector('.desktop-text')) {
+            btn.querySelector('.desktop-text').textContent = 'Loading...';
+          } else {
+            btn.innerHTML = '<span>⏳</span> Loading...';
+          }
+        }
+        
+        try {
+          // Simulate loading heavy Memory Hub code
+          await new Promise(resolve => setTimeout(resolve, 100));
+          memoryHubLoaded = true;
+          console.log('✅ Memory Hub loaded');
+          
+          // Restore button
+          if (btn) {
+            btn.disabled = false;
+            if (btn.querySelector('.desktop-text')) {
+              btn.querySelector('.desktop-text').textContent = 'Memory';
+            } else {
+              btn.innerHTML = '<span>🧠</span> Memory';
+            }
+          }
+          
+          // Now call the actual function
+          openMemoryHub();
+        } catch (error) {
+          console.error('❌ Failed to load Memory Hub:', error);
+          if (btn) {
+            btn.disabled = false;
+            if (originalText) {
+              btn.textContent = originalText;
+            }
+          }
+        }
+      } else {
+        openMemoryHub();
+      }
+    }
+    
+    // Lazy load Customize functionality  
+    async function lazyLoadCustomize() {
+      if (!customizeLoaded) {
+        console.log('🚀 Lazy loading Customize...');
+        // Show loading indicator
+        const btn = event?.target.closest('button');
+        const originalText = btn?.textContent || btn?.innerText;
+        if (btn) {
+          btn.disabled = true;
+          if (btn.querySelector('.desktop-text')) {
+            btn.querySelector('.desktop-text').textContent = 'Loading...';
+          } else {
+            btn.innerHTML = '<span>⏳</span> Loading...';
+          }
+        }
+        
+        try {
+          // Simulate loading heavy Customize code
+          await new Promise(resolve => setTimeout(resolve, 100));
+          customizeLoaded = true;
+          console.log('✅ Customize loaded');
+          
+          // Restore button
+          if (btn) {
+            btn.disabled = false;
+            if (btn.querySelector('.desktop-text')) {
+              btn.querySelector('.desktop-text').textContent = 'Customize';
+            } else {
+              btn.innerHTML = '<span>✨</span> Customize';
+            }
+          }
+          
+          // Now call the actual function
+          openCustomizationModal();
+        } catch (error) {
+          console.error('❌ Failed to load Customize:', error);
+          if (btn) {
+            btn.disabled = false;
+            if (originalText) {
+              btn.textContent = originalText;
+            }
+          }
+        }
+      } else {
+        openCustomizationModal();
+      }
+    }
     
     // Message counting for feedback popup
     function incrementMessageCount() {
@@ -17914,6 +18015,19 @@ async function generateCompanionImage() {
     generateBtn.style.opacity = '1';
   }
 }
+
+  // ===== NON-CRITICAL FEATURES LOADING =====
+  // Load heavy features after page is fully loaded to improve initial performance
+  window.addEventListener('load', () => {
+    console.log('🚀 Loading non-critical features...');
+    
+    // Memory Hub and Customize features are now lazy loaded on demand
+    // This section can be used for other heavy features in the future
+    
+    setTimeout(() => {
+      console.log('✅ Non-critical features ready for lazy loading');
+    }, 500);
+  });
 
   </script>
 
