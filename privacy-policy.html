@@ -1576,6 +1576,65 @@
     window.addEventListener('beforeunload', () => {
       stopUspCarousel();
     });
+
+    // Add login button functionality
+    function setupLoginButtons() {
+      const loginBtn = document.getElementById('loginBtn');
+      const mobileLoginBtn = document.getElementById('mobileLoginBtn');
+      
+      if (loginBtn) {
+        loginBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          if (window.netlifyIdentity) {
+            window.netlifyIdentity.open();
+          }
+        });
+      }
+      
+      if (mobileLoginBtn) {
+        mobileLoginBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          if (window.netlifyIdentity) {
+            window.netlifyIdentity.open();
+          }
+        });
+      }
+    }
+
+    // Initialize login buttons when page loads
+    document.addEventListener('DOMContentLoaded', setupLoginButtons);
+
+    // Simple auth check and button setup
+    function checkAuthAndSetupButtons() {
+      const loginBtn = document.getElementById('loginBtn');
+      const mobileLoginBtn = document.getElementById('mobileLoginBtn');
+      
+      const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+      const localEmail = localStorage.getItem("user_email");
+      const localToken = localStorage.getItem("user_token");
+      const isLoggedIn = netlifyUser || (localEmail && localToken);
+      
+      if (isLoggedIn) {
+        if (loginBtn) {
+          loginBtn.textContent = 'Profile';
+          loginBtn.href = 'profile.html';
+        }
+        if (mobileLoginBtn) {
+          mobileLoginBtn.innerHTML = '<span class="mobile-menu-link-icon">👤</span>Profile';
+          mobileLoginBtn.href = 'profile.html';
+        }
+      } else {
+        setupLoginButtons();
+      }
+    }
+
+    // Check auth on page load and window load
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(checkAuthAndSetupButtons, 100);
+    });
+    window.addEventListener('load', () => {
+      setTimeout(checkAuthAndSetupButtons, 200);
+    });
   </script>
 </body>
 </html>

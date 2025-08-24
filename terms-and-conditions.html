@@ -1588,11 +1588,23 @@ use the Character and all Generations elicited by you for any purpose in any for
         // Update buttons for non-logged in users
         if (loginBtn) {
           loginBtn.textContent = 'Login/Register';
-          loginBtn.href = 'profile.html';
+          loginBtn.href = '#';
+          loginBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (window.netlifyIdentity) {
+              window.netlifyIdentity.open();
+            }
+          });
         }
         if (mobileLoginBtn) {
           mobileLoginBtn.innerHTML = '<span class="mobile-menu-link-icon">👤</span>Login/Register';
           mobileLoginBtn.href = '#';
+          mobileLoginBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (window.netlifyIdentity) {
+              window.netlifyIdentity.open();
+            }
+          });
         }
       }
     }
