@@ -3073,7 +3073,7 @@ body .netlify-identity-widget > div[data-netlify-identity-modal] {
           <a href="pricing.html" class="nav-link">Plans</a>
           <a href="chat-overview.html" class="nav-link">My Companions</a>
           <a href="memory-import.html" class="nav-link">Import Memory</a>
-          <a href="profile.html" class="nav-link" id="loginBtn">Login/Register</a>
+          <a href="#" class="nav-link" id="loginBtn">Login/Register</a>
           <a href="/create-character" class="btn btn-primary">✨ Create Companion</a>
         </nav>
 
@@ -3141,7 +3141,7 @@ body .netlify-identity-widget > div[data-netlify-identity-modal] {
           <span class="mobile-menu-link-icon">🧠</span>
           Import Memory
         </a>
-        <a href="profile.html" class="mobile-menu-link" id="mobileLoginBtn">
+        <a href="#" class="mobile-menu-link" id="mobileLoginBtn">
           <span class="mobile-menu-link-icon">👤</span>
           Login/Register
         </a>
@@ -4985,9 +4985,8 @@ function handleLoginSuccess(user, eventType = 'unknown') {
         clearAuthData(); // Clear auth data first
         resetAuthState();
         localStorage.clear();
-        showLoginUI();
-        updateLoginButton();
-        setTimeout(() => window.location.href = 'index.html', 1000);
+        // Redirect immediately to home page instead of showing logged out profile
+        window.location.href = 'index.html';
       });
 
       window.netlifyIdentity.on('error', err => {
@@ -6608,7 +6607,7 @@ function setField(field, text) {
         if (mobileLoginBtn) {
           const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
           mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}Profile`;
-          mobileLoginBtn.href = 'profile.html';
+          mobileLoginBtn.href = '#';
         }
       } else {
         // User is not logged in
@@ -6619,7 +6618,7 @@ function setField(field, text) {
         if (mobileLoginBtn) {
           const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
           mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}Login/Register`;
-          mobileLoginBtn.href = 'profile.html';
+          mobileLoginBtn.href = '#';
         }
       }
     }

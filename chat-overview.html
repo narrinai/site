@@ -2311,6 +2311,13 @@ line-clamp: 3;
       
       const isLoggedIn = netlifyUser || (localEmail && localToken);
       
+      console.log('🔍 updateLoginButton debug:', {
+        netlifyUser: !!netlifyUser,
+        localEmail: !!localEmail,
+        localToken: !!localToken,
+        isLoggedIn
+      });
+      
       if (isLoggedIn) {
         // Always show "Profile" for logged in users instead of their name
         
@@ -2487,8 +2494,10 @@ line-clamp: 3;
 
     // Initialize login button on page load
     document.addEventListener('DOMContentLoaded', () => {
-      // Update immediately on page load
-      updateLoginButton();
+      // Wait for Netlify Identity to initialize before updating buttons
+      setTimeout(() => {
+        updateLoginButton();
+      }, 200);
       
       // Add event listener for the not-logged-in login button
       const notLoggedInBtn = document.getElementById('notLoggedInBtn');
@@ -2524,6 +2533,13 @@ line-clamp: 3;
           updateLoginButton();
         });
       }
+    });
+
+    // Also update on window load as backup
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        updateLoginButton();
+      }, 300);
     });
 
     function checkAuthAndLoadChats() {
