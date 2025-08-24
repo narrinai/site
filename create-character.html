@@ -2545,7 +2545,7 @@
               <button type="button" class="upload-button" onclick="triggerFileUpload()">
                 Choose File
               </button>
-              <span class="file-name" id="fileName">No file chosen</span>
+              <span class="file-name" id="fileName" style="display: none;">No file chosen</span>
             </div>
          </div>
          
@@ -4106,7 +4106,7 @@ function updatePromptCounter() {
      avatarFileInput.addEventListener('change', async (e) => {
        const file = e.target.files[0];
        if (file) {
-         fileName.textContent = file.name;
+         // fileName.textContent = file.name; // Hidden filename display
          
          // Show immediate preview with local file
          const reader = new FileReader();
@@ -4119,7 +4119,7 @@ function updatePromptCounter() {
          
          // Upload to Cloudinary
          try {
-           fileName.textContent = `${file.name} (uploading...)`;
+           // fileName.textContent = `${file.name} (uploading...)`; // Hidden filename display
            
            // Generate temporary slug for upload
            const tempSlug = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -4127,11 +4127,11 @@ function updatePromptCounter() {
            const uploadResult = await uploadToCloudinary(file, tempSlug);
            
            currentAvatarUrl = uploadResult.secure_url;
-           fileName.textContent = `${file.name} (uploaded successfully)`;
+           // fileName.textContent = `${file.name} (uploaded successfully)`; // Hidden filename display
            
          } catch (error) {
            console.error('❌ Avatar upload failed:', error);
-           fileName.textContent = `${file.name} (upload failed)`;
+           // fileName.textContent = `${file.name} (upload failed)`; // Hidden filename display
            showError('Avatar upload failed: ' + error.message, 'Upload Error');
            currentAvatarUrl = ''; // Clear URL on failure
          }
