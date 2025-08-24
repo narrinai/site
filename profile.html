@@ -3062,7 +3062,7 @@ body .netlify-identity-widget > div[data-netlify-identity-modal] {
     <div class="header-container">
       <div class="header-content">
         <!-- Logo -->
-        <a href="index.html" class="logo" aria-label="Narrin AI Home">Narrin AI</a>
+        <a href="/" class="logo" aria-label="Narrin AI Home">Narrin AI</a>
 
         <!-- Desktop Navigation Center -->
         <nav class="nav-center" role="navigation" aria-label="Main navigation">
@@ -3070,9 +3070,9 @@ body .netlify-identity-widget > div[data-netlify-identity-modal] {
 
         <!-- Desktop Navigation Links -->
         <nav class="nav-links" role="navigation" aria-label="Secondary navigation">
-          <a href="pricing.html" class="nav-link">Plans</a>
-          <a href="chat-overview.html" class="nav-link">My Companions</a>
-          <a href="memory-import.html" class="nav-link">Import Memory</a>
+          <a href="/pricing" class="nav-link">Plans</a>
+          <a href="/chat-overview" class="nav-link">My Companions</a>
+          <a href="/memory-import" class="nav-link">Import Memory</a>
           <a href="#" class="nav-link" id="loginBtn">Login/Register</a>
           <a href="/create-character" class="btn btn-primary">✨ Create Companion</a>
         </nav>
@@ -3081,7 +3081,7 @@ body .netlify-identity-widget > div[data-netlify-identity-modal] {
         <div class="mobile-nav-container">
           <!-- Mobile Chat Button -->
           <a 
-            href="chat-overview.html" 
+            href="/chat-overview" 
             class="mobile-chat-btn"
             aria-label="Go to chats"
           >
@@ -3129,15 +3129,15 @@ body .netlify-identity-widget > div[data-netlify-identity-modal] {
         <div class="mobile-menu-subtitle">AI Companion Platform</div>
       </div>
       <nav class="mobile-menu-nav" role="navigation" aria-label="Mobile navigation">
-        <a href="chat-overview.html" class="mobile-menu-link">
+        <a href="/chat-overview" class="mobile-menu-link">
           <span class="mobile-menu-link-icon">💬</span>
           My Companions
         </a>
-        <a href="pricing.html" class="mobile-menu-link">
+        <a href="/pricing" class="mobile-menu-link">
           <span class="mobile-menu-link-icon">💎</span>
           Plans
         </a>
-        <a href="memory-import.html" class="mobile-menu-link">
+        <a href="/memory-import" class="mobile-menu-link">
           <span class="mobile-menu-link-icon">🧠</span>
           Import Memory
         </a>
@@ -3202,7 +3202,7 @@ body .netlify-identity-widget > div[data-netlify-identity-modal] {
           <a href="/create-character" class="welcome-cta">Create Companion</a>
         </div>
         <div class="welcome-actions" style="margin-top: var(--spacing-sm);">
-          <a href="index.html" class="text-link">Start Chatting</a>
+          <a href="/" class="text-link">Start Chatting</a>
         </div>
       </div>
 
@@ -3253,7 +3253,7 @@ body .netlify-identity-widget > div[data-netlify-identity-modal] {
             </ul>
             
             <div class="card-action">
-              <a href="index.html" class="plan-button upgrade-button" id="discoverButton">
+              <a href="/" class="plan-button upgrade-button" id="discoverButton">
                 Active
               </a>
             </div>
@@ -3440,7 +3440,7 @@ body .netlify-identity-widget > div[data-netlify-identity-modal] {
           </div>
           
           <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--color-light-gray); text-align: center;">
-            <a href="memory-import.html" style="display: inline-block; margin-bottom: 16px; color: var(--color-primary); text-decoration: none; font-weight: normal;">
+            <a href="/memory-import" style="display: inline-block; margin-bottom: 16px; color: var(--color-primary); text-decoration: none; font-weight: normal;">
               Import Memories
             </a>
             <br>
@@ -3930,17 +3930,17 @@ body .netlify-identity-widget > div[data-netlify-identity-modal] {
         }, 2000); // 2 seconde delay zodat webhook verwerkt is
         
         // Clean URL
-        window.history.replaceState({}, document.title, 'profile.html');
+        window.history.replaceState({}, document.title, '/profile');
         
       } else if (upgradeStatus === 'cancelled') {
         showError('Upgrade was cancelled. You can try again anytime.');
-        window.history.replaceState({}, document.title, 'profile.html');
+        window.history.replaceState({}, document.title, '/profile');
       } else if (downgradeStatus === 'success') {
         // Store downgrade flag for loadProfile to use
         sessionStorage.setItem('justDowngraded', 'true');
         
         // Clean URL
-        window.history.replaceState({}, document.title, 'profile.html');
+        window.history.replaceState({}, document.title, '/profile');
       }
     }
     
@@ -4233,7 +4233,7 @@ Join here: ${inviteLink}`;
         const referrer = new URL(document.referrer);
         // Only store if it's from the same domain and not already the profile page
         if (referrer.hostname === window.location.hostname && 
-            !referrer.pathname.includes('profile.html')) {
+            !referrer.pathname.includes('/profile')) {
           // Check if this is likely a signup scenario (coming from homepage)
           if (referrer.pathname === '/' || referrer.pathname === '/index.html') {
             console.log('🚫 Not storing homepage as redirect URL (likely signup scenario)');
@@ -4986,7 +4986,7 @@ function handleLoginSuccess(user, eventType = 'unknown') {
         resetAuthState();
         localStorage.clear();
         // Redirect immediately to home page instead of showing logged out profile
-        window.location.href = 'index.html';
+        window.location.href = '/';
       });
 
       window.netlifyIdentity.on('error', err => {
@@ -5366,7 +5366,7 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       // Only redirect if BOTH anonymous flags are true AND email is anonymous
       if (isAnonymousUser && hasAnonymousCredentials && userEmail === 'anonymous@narrin.ai') {
         console.log('💰 Active anonymous user detected, redirecting to pricing page');
-        window.location.href = 'pricing.html';
+        window.location.href = '/pricing';
         return;
       }
       
@@ -5825,7 +5825,7 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       showLoginUI();
       
       setTimeout(() => {
-        window.location.href = 'index.html';
+        window.location.href = '/';
       }, 500);
     }
 
@@ -6602,7 +6602,7 @@ function setField(field, text) {
         // Update desktop button
         if (loginBtn) {
           loginBtn.textContent = 'Profile';
-          loginBtn.href = '/profile.html';
+          loginBtn.href = '/profile';
         }
         
         // Update mobile button
@@ -6615,7 +6615,7 @@ function setField(field, text) {
         // User is not logged in
         if (loginBtn) {
           loginBtn.textContent = 'Login/Register';
-          loginBtn.href = '/profile.html';
+          loginBtn.href = '/profile';
         }
         if (mobileLoginBtn) {
           const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
@@ -6644,7 +6644,7 @@ function setField(field, text) {
           
           if (isLoggedIn) {
             // User is logged in, go directly to profile page
-            window.location.href = '/profile.html';
+            window.location.href = '/profile';
           } else {
             // User not logged in, store current page for redirect and open login
             localStorage.setItem('login_redirect_url', window.location.href);
@@ -6667,7 +6667,7 @@ function setField(field, text) {
           
           if (isLoggedIn) {
             // User is logged in, go directly to profile page
-            window.location.href = '/profile.html';
+            window.location.href = '/profile';
           } else {
             // User not logged in, store current page for redirect and open login
             localStorage.setItem('login_redirect_url', window.location.href);
@@ -6706,7 +6706,7 @@ function setField(field, text) {
       } else {
         // Fallback if Netlify Identity is not available
         console.log('❌ Netlify Identity not available, redirecting to profile page');
-        window.location.href = '/profile.html';
+        window.location.href = '/profile';
       }
     }
 
@@ -7340,19 +7340,19 @@ function updateTrialStatus() {
   <footer class="footer">
     <div class="footer-content">
       <div class="footer-links">
-        <a href="index.html" class="footer-link">Home</a>
+        <a href="/" class="footer-link">Home</a>
         <span class="footer-separator">•</span>
-        <a href="chat-overview.html" class="footer-link">My Companions</a>
+        <a href="/chat-overview" class="footer-link">My Companions</a>
         <span class="footer-separator">•</span>
         <a href="/create-character" class="footer-link">Create Character</a>
         <span class="footer-separator">•</span>
-        <a href="contact.html" class="footer-link">Contact</a>
+        <a href="/contact" class="footer-link">Contact</a>
         <span class="footer-separator">•</span>
-        <a href="profile.html" class="footer-link">Profile</a>
+        <a href="/profile" class="footer-link">Profile</a>
         <span class="footer-separator">•</span>
-        <a href="privacy-policy.html" class="footer-link">Privacy Policy</a>
+        <a href="/privacy-policy" class="footer-link">Privacy Policy</a>
         <span class="footer-separator">•</span>
-        <a href="terms-and-conditions.html" class="footer-link">Terms and Conditions</a>
+        <a href="/terms-and-conditions" class="footer-link">Terms and Conditions</a>
       </div>
       <div class="footer-copyright">
         © 2025 Narrin AI. All rights reserved.
