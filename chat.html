@@ -7139,19 +7139,59 @@ document.addEventListener('DOMContentLoaded', () => {
         personalityType = 'mysterious';
       }
       
-      // Special handling for romance characters - always show personalization tips
-      const companionType = currentCharacter?.character_type || 'friendship';
-      if (companionType.toLowerCase() === 'romance') {
+      // Define standard companions (from index.html featured section)
+      const standardCompanions = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
+      const characterSlug = currentCharacter?.slug || currentCharacter?.character_id || '';
+      const isStandardCompanion = standardCompanions.includes(characterSlug);
+      
+      // Special handling for new companions (non-standard) - always show personalization tips
+      if (!isStandardCompanion) {
         // Check if user has completed onboarding or has memories
         const hasHistory = window.messages && window.messages.length > 0;
         const hasOnboardingData = window.additionalContext?.onboarding;
         
         if (hasHistory || hasOnboardingData) {
-          // User has setup, just simple romance welcome
-          return "Hey there! I'm here for meaningful conversations and connection. What's been on your heart lately?";
+          // User has setup, personalized welcome based on companion type
+          const companionType = currentCharacter?.character_type || 'friendship';
+          switch (companionType.toLowerCase()) {
+            case 'mentorship':
+              return "Hey! I'm here to help you grow and tackle challenges. What's something you'd like to work on today?";
+            case 'friendship':
+              return "Hey! I'm here whenever you need to talk through something or explore ideas together. What's on your mind?";
+            case 'romance':
+              return "Hey there! I'm here for meaningful conversations and connection. What's been on your heart lately?";
+            case 'mindfulness':
+              return "Hey! I'm here to help you find clarity and peace. What's weighing on your mind today?";
+            case 'other':
+            case 'entertainment':
+            default:
+              return "Hey! I'm here for whatever kind of conversation you need. What brings you here today?";
+          }
         } else {
-          // New user with romance companion, include personalization tips
-          return `Hey! I'm here for meaningful connection and conversation. To get the most personalized experience:
+          // New user with new companion, include personalization tips
+          const companionType = currentCharacter?.character_type || 'friendship';
+          let baseMessage = "";
+          
+          switch (companionType.toLowerCase()) {
+            case 'mentorship':
+              baseMessage = "Hey! I'm here as your mentor and guide. ";
+              break;
+            case 'friendship':
+              baseMessage = "Hey! I'm here as your friendly companion. ";
+              break;
+            case 'romance':
+              baseMessage = "Hey! I'm here for meaningful connection and conversation. ";
+              break;
+            case 'mindfulness':
+              baseMessage = "Hey! I'm here to help you find peace and clarity. ";
+              break;
+            case 'other':
+            case 'entertainment':
+            default:
+              baseMessage = "Hey! I'm here to chat and connect with you. ";
+          }
+          
+          return `${baseMessage}To get the most personalized experience:
 
 • Take the <a href="#" onclick="document.querySelector('.memory-hub-btn').click(); return false;" style="color: var(--color-teal); text-decoration: none;">personal quiz in Memory Hub 🧠</a>
 • <a href="#" onclick="document.querySelector('.customize-btn').click(); return false;" style="color: var(--color-teal); text-decoration: none;">Customize my personality ⚙️</a>
