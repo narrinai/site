@@ -1828,7 +1828,7 @@ line-clamp: 3;
           <a href="pricing.html" class="nav-link">Plans</a>
           <a href="chat-overview.html" class="nav-link">My Companions</a>
           <a href="memory-import.html" class="nav-link">Import Memory</a>
-          <a href="profile.html" class="nav-link" id="loginBtn">Login/Register</a>
+          <a href="#" class="nav-link" id="loginBtn">Login/Register</a>
           <a href="/create-character" class="btn btn-primary">✨ Create Companion</a>
         </nav>
 
@@ -1884,7 +1884,7 @@ line-clamp: 3;
           <span class="mobile-menu-link-icon">🧠</span>
           Import Memory
         </a>
-        <a href="profile.html" class="mobile-menu-link" id="mobileLoginBtn">
+        <a href="#" class="mobile-menu-link" id="mobileLoginBtn">
           <span class="mobile-menu-link-icon">👤</span>
           Login/Register
         </a>
@@ -1941,7 +1941,7 @@ line-clamp: 3;
       <p>Create your perfect AI companion or browse 1000+ existing characters to start meaningful conversations.</p>
       <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 1.5rem;">
         <a href="/create-character" class="btn btn-primary" style="text-decoration: none;">✨ Create Companion</a>
-        <a href="/" class="btn btn-secondary" style="text-decoration: none;">💬 Browse Characters</a>
+        <a href="index.html" class="btn btn-secondary" style="text-decoration: none;">💬 Start Chatting</a>
       </div>
       <div style="margin-top: 1rem;">
         <button class="btn" id="notLoggedInBtn" style="background: transparent; color: var(--color-gray); border: 1px solid var(--color-gray-light);">👤 Login/Register</button>
@@ -2331,7 +2331,10 @@ line-clamp: 3;
         if (loginBtn) {
           loginBtn.textContent = 'Login/Register';
           loginBtn.href = '#';
-          loginBtn.addEventListener('click', (e) => {
+          // Remove existing listeners by cloning element
+          const newLoginBtn = loginBtn.cloneNode(true);
+          loginBtn.parentNode.replaceChild(newLoginBtn, loginBtn);
+          newLoginBtn.addEventListener('click', (e) => {
             e.preventDefault();
             if (window.netlifyIdentity) {
               window.netlifyIdentity.open();
@@ -2342,7 +2345,13 @@ line-clamp: 3;
           const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
           mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}Login/Register`;
           mobileLoginBtn.href = '#';
-          mobileLoginBtn.addEventListener('click', (e) => {
+          // Remove existing listeners by cloning element
+          const newMobileLoginBtn = mobileLoginBtn.cloneNode(true);
+          mobileLoginBtn.parentNode.replaceChild(newMobileLoginBtn, mobileLoginBtn);
+          // Re-add the innerHTML after cloning
+          const newIcon = newMobileLoginBtn.querySelector('.mobile-menu-link-icon');
+          newMobileLoginBtn.innerHTML = `${newIcon ? newIcon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}Login/Register`;
+          newMobileLoginBtn.addEventListener('click', (e) => {
             e.preventDefault();
             if (window.netlifyIdentity) {
               window.netlifyIdentity.open();
