@@ -1572,7 +1572,9 @@ use the Character and all Generations elicited by you for any purpose in any for
       const localEmail = localStorage.getItem("user_email");
       const localToken = localStorage.getItem("user_token");
       
-      const isLoggedIn = netlifyUser || (localEmail && localToken);
+      const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+      const isAnonymousEmail = localEmail === 'anonymous@narrin.ai';
+      const isLoggedIn = netlifyUser || (localEmail && localToken && !isAnonymousUser && !isAnonymousEmail);
       
       if (isLoggedIn) {
         // Update buttons for logged in users

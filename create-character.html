@@ -3025,7 +3025,9 @@
      const localEmail = localStorage.getItem("user_email");
      const localToken = localStorage.getItem("user_token");
      
-     const isLoggedIn = netlifyUser || (localEmail && localToken);
+     const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+      const isAnonymousEmail = localEmail === 'anonymous@narrin.ai';
+      const isLoggedIn = netlifyUser || (localEmail && localToken && !isAnonymousUser && !isAnonymousEmail);
      
      if (isLoggedIn) {
        // Always show "Profile" for logged in users instead of their name
@@ -3069,7 +3071,9 @@
          const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
          const localEmail = localStorage.getItem("user_email");
          const localToken = localStorage.getItem("user_token");
-         const isLoggedIn = netlifyUser || (localEmail && localToken);
+         const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+      const isAnonymousEmail = localEmail === 'anonymous@narrin.ai';
+      const isLoggedIn = netlifyUser || (localEmail && localToken && !isAnonymousUser && !isAnonymousEmail);
          
          if (isLoggedIn) {
            // User is logged in, go directly to profile page
@@ -3090,7 +3094,9 @@
          const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
          const localEmail = localStorage.getItem("user_email");
          const localToken = localStorage.getItem("user_token");
-         const isLoggedIn = netlifyUser || (localEmail && localToken);
+         const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+      const isAnonymousEmail = localEmail === 'anonymous@narrin.ai';
+      const isLoggedIn = netlifyUser || (localEmail && localToken && !isAnonymousUser && !isAnonymousEmail);
          
          if (isLoggedIn) {
            // User is logged in, go directly to profile page
@@ -4625,7 +4631,9 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
   const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
   const localEmail = localStorage.getItem("user_email");
   const localToken = localStorage.getItem("user_token");
-  const isLoggedIn = netlifyUser || (localEmail && localToken);
+  const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+      const isAnonymousEmail = localEmail === 'anonymous@narrin.ai';
+      const isLoggedIn = netlifyUser || (localEmail && localToken && !isAnonymousUser && !isAnonymousEmail);
   
   if (!isLoggedIn) {
   // First collect form data with null checks

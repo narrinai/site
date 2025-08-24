@@ -1577,12 +1577,18 @@
     function updateLoginButton() {
       const loginBtn = document.getElementById('loginBtn');
       const mobileLoginBtn = document.getElementById('mobileLoginBtn');
-      const user = window.netlifyIdentity && window.netlifyIdentity.currentUser();
       
-      // Always use plain profile.html URL
-      const profileUrl = 'profile.html';
+      // Check both Netlify Identity and local storage for user info
+      const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+      const localEmail = localStorage.getItem("user_email");
+      const localToken = localStorage.getItem("user_token");
+      const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+      const isAnonymousEmail = localEmail === 'anonymous@narrin.ai';
       
-      if (user) {
+      // Only consider truly authenticated users (not anonymous)
+      const isLoggedIn = netlifyUser || (localEmail && localToken && !isAnonymousUser && !isAnonymousEmail);
+      
+      if (isLoggedIn) {
         // Always show "Profile" for logged in users instead of their name
         if (loginBtn) {
           loginBtn.textContent = 'Profile';

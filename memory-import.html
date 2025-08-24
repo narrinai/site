@@ -2029,7 +2029,9 @@ Example JSON format:
       const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
       const localEmail = localStorage.getItem("user_email");
       const localToken = localStorage.getItem("user_token");
-      const isLoggedIn = netlifyUser || (localEmail && localToken);
+      const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+      const isAnonymousEmail = localEmail === 'anonymous@narrin.ai';
+      const isLoggedIn = netlifyUser || (localEmail && localToken && !isAnonymousUser && !isAnonymousEmail);
       
       if (!isLoggedIn) {
         alert('Please log in to import memories.');
@@ -2140,7 +2142,9 @@ Example JSON format:
         const netlifyUser = window.netlifyIdentity.currentUser();
         const localEmail = localStorage.getItem("user_email");
         const localToken = localStorage.getItem("user_token");
-        const isLoggedIn = netlifyUser || (localEmail && localToken);
+        const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+      const isAnonymousEmail = localEmail === 'anonymous@narrin.ai';
+      const isLoggedIn = netlifyUser || (localEmail && localToken && !isAnonymousUser && !isAnonymousEmail);
         
         if (isLoggedIn) {
           // User is logged in
@@ -2304,7 +2308,9 @@ Example JSON format:
       const localEmail = localStorage.getItem("user_email");
       const localToken = localStorage.getItem("user_token");
       
-      const isLoggedIn = netlifyUser || (localEmail && localToken);
+      const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+      const isAnonymousEmail = localEmail === 'anonymous@narrin.ai';
+      const isLoggedIn = netlifyUser || (localEmail && localToken && !isAnonymousUser && !isAnonymousEmail);
       
       if (isLoggedIn) {
         // Update desktop navigation

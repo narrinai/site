@@ -6592,7 +6592,9 @@ function setField(field, text) {
       const localEmail = localStorage.getItem("user_email");
       const localToken = localStorage.getItem("user_token");
       
-      const isLoggedIn = netlifyUser || (localEmail && localToken);
+      const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+      const isAnonymousEmail = localEmail === 'anonymous@narrin.ai';
+      const isLoggedIn = netlifyUser || (localEmail && localToken && !isAnonymousUser && !isAnonymousEmail);
       
       if (isLoggedIn) {
         // Always show "Profile" for logged in users instead of their name
@@ -6636,7 +6638,9 @@ function setField(field, text) {
           const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
           const localEmail = localStorage.getItem("user_email");
           const localToken = localStorage.getItem("user_token");
-          const isLoggedIn = netlifyUser || (localEmail && localToken);
+          const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+      const isAnonymousEmail = localEmail === 'anonymous@narrin.ai';
+      const isLoggedIn = netlifyUser || (localEmail && localToken && !isAnonymousUser && !isAnonymousEmail);
           
           if (isLoggedIn) {
             // User is logged in, go directly to profile page
@@ -6657,7 +6661,9 @@ function setField(field, text) {
           const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
           const localEmail = localStorage.getItem("user_email");
           const localToken = localStorage.getItem("user_token");
-          const isLoggedIn = netlifyUser || (localEmail && localToken);
+          const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+      const isAnonymousEmail = localEmail === 'anonymous@narrin.ai';
+      const isLoggedIn = netlifyUser || (localEmail && localToken && !isAnonymousUser && !isAnonymousEmail);
           
           if (isLoggedIn) {
             // User is logged in, go directly to profile page

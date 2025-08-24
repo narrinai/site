@@ -2309,7 +2309,9 @@ line-clamp: 3;
       const localEmail = localStorage.getItem("user_email");
       const localToken = localStorage.getItem("user_token");
       
-      const isLoggedIn = netlifyUser || (localEmail && localToken);
+      const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+      const isAnonymousEmail = localEmail === 'anonymous@narrin.ai';
+      const isLoggedIn = netlifyUser || (localEmail && localToken && !isAnonymousUser && !isAnonymousEmail);
       
       console.log('🔍 updateLoginButton debug:', {
         netlifyUser: !!netlifyUser,
@@ -2381,7 +2383,9 @@ line-clamp: 3;
           const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
           const localEmail = localStorage.getItem("user_email");
           const localToken = localStorage.getItem("user_token");
-          const isLoggedIn = netlifyUser || (localEmail && localToken);
+          const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+      const isAnonymousEmail = localEmail === 'anonymous@narrin.ai';
+      const isLoggedIn = netlifyUser || (localEmail && localToken && !isAnonymousUser && !isAnonymousEmail);
           
           if (isLoggedIn) {
             // User is logged in, go directly to profile page
@@ -2402,7 +2406,9 @@ line-clamp: 3;
           const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
           const localEmail = localStorage.getItem("user_email");
           const localToken = localStorage.getItem("user_token");
-          const isLoggedIn = netlifyUser || (localEmail && localToken);
+          const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+      const isAnonymousEmail = localEmail === 'anonymous@narrin.ai';
+      const isLoggedIn = netlifyUser || (localEmail && localToken && !isAnonymousUser && !isAnonymousEmail);
           
           if (isLoggedIn) {
             // User is logged in, go directly to profile page
