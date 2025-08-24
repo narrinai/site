@@ -58,7 +58,7 @@
           <a href="pricing.html" class="nav-link">Plans</a>
           <a href="chat-overview.html" class="nav-link">My Companions</a>
           <a href="memory-import.html" class="nav-link">Import Memory</a>
-          <a href="profile.html" class="nav-link" id="loginBtn">Login/Register</a>
+          <a href="#" class="nav-link" id="loginBtn">Login/Register</a>
           <a href="/create-character" class="btn btn-primary">✨ Create Companion</a>
         </nav>
 
@@ -126,7 +126,7 @@
           <span class="mobile-menu-link-icon">🧠</span>
           Import Memory
         </a>
-        <a href="profile.html" class="mobile-menu-link" id="mobileLoginBtn">
+        <a href="#" class="mobile-menu-link" id="mobileLoginBtn">
           <span class="mobile-menu-link-icon">👤</span>
           Login/Register
         </a>
@@ -2026,8 +2026,12 @@ Example JSON format:
       }
 
       // Check authentication
-      const user = netlifyIdentity.currentUser();
-      if (!user) {
+      const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+      const localEmail = localStorage.getItem("user_email");
+      const localToken = localStorage.getItem("user_token");
+      const isLoggedIn = netlifyUser || (localEmail && localToken);
+      
+      if (!isLoggedIn) {
         alert('Please log in to import memories.');
         openLoginModal();
         return;
@@ -2038,17 +2042,31 @@ Example JSON format:
       const progressFill = document.querySelector('.progress-fill');
       
       try {
+        // Prepare user data based on auth method
+        let authHeaders = { 'Content-Type': 'application/json' };
+        let userData = {};
+        
+        if (netlifyUser && netlifyUser.token) {
+          authHeaders['Authorization'] = `Bearer ${netlifyUser.token.access_token}`;
+          userData = {
+            user_uid: netlifyUser.id,
+            user_email: netlifyUser.email
+          };
+        } else if (localEmail && localToken) {
+          authHeaders['Authorization'] = `Bearer ${localToken}`;
+          userData = {
+            user_uid: localStorage.getItem("user_uid"),
+            user_email: localEmail
+          };
+        }
+        
         // Import memories via Netlify function
         const response = await fetch('/.netlify/functions/import-memories', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${user.token.access_token}`
-          },
+          headers: authHeaders,
           body: JSON.stringify({
             memories: selectedMemories,
-            user_uid: user.id,
-            user_email: user.email
+            ...userData
           })
         });
 
@@ -2119,15 +2137,27 @@ Example JSON format:
       if (window.netlifyIdentity) {
         netlifyIdentity.init();
         
-        const user = netlifyIdentity.currentUser();
-        if (user) {
+        const netlifyUser = window.netlifyIdentity.currentUser();
+        const localEmail = localStorage.getItem("user_email");
+        const localToken = localStorage.getItem("user_token");
+        const isLoggedIn = netlifyUser || (localEmail && localToken);
+        
+        if (isLoggedIn) {
           // User is logged in
-          document.getElementById('login-link').style.display = 'none';
-          document.getElementById('logout-link').style.display = 'block';
+          if (document.getElementById('login-link')) {
+            document.getElementById('login-link').style.display = 'none';
+          }
+          if (document.getElementById('logout-link')) {
+            document.getElementById('logout-link').style.display = 'block';
+          }
         } else {
           // User not logged in
-          document.getElementById('login-link').style.display = 'block';
-          document.getElementById('logout-link').style.display = 'none';
+          if (document.getElementById('login-link')) {
+            document.getElementById('login-link').style.display = 'block';
+          }
+          if (document.getElementById('logout-link')) {
+            document.getElementById('logout-link').style.display = 'none';
+          }
         }
       }
     }
@@ -2268,20 +2298,35 @@ Example JSON format:
     function updateAuthDisplay() {
       const loginBtn = document.getElementById('loginBtn');
       const mobileLoginBtn = document.getElementById('mobileLoginBtn');
-      const user = netlifyIdentity.currentUser();
       
-      if (user) {
+      // Check both Netlify Identity and local storage for user info
+      const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+      const localEmail = localStorage.getItem("user_email");
+      const localToken = localStorage.getItem("user_token");
+      
+      const isLoggedIn = netlifyUser || (localEmail && localToken);
+      
+      if (isLoggedIn) {
+        // Update desktop navigation
         if (loginBtn) {
-          const icon = loginBtn.querySelector('.mobile-menu-link-icon');
-          loginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}Profile`;
+          loginBtn.textContent = 'Profile';
           loginBtn.href = 'profile.html';
+          // Remove any existing click listeners by cloning
+          const newLoginBtn = loginBtn.cloneNode(true);
+          loginBtn.parentNode.replaceChild(newLoginBtn, loginBtn);
         }
+        
+        // Update mobile navigation
         if (mobileLoginBtn) {
           const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
           mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}Profile`;
           mobileLoginBtn.href = 'profile.html';
+          // Remove any existing click listeners by cloning
+          const newMobileLoginBtn = mobileLoginBtn.cloneNode(true);
+          mobileLoginBtn.parentNode.replaceChild(newMobileLoginBtn, mobileLoginBtn);
         }
       } else {
+        // Update desktop navigation
         if (loginBtn) {
           loginBtn.textContent = 'Login/Register';
           loginBtn.href = '#';
@@ -2292,6 +2337,8 @@ Example JSON format:
             }
           });
         }
+        
+        // Update mobile navigation  
         if (mobileLoginBtn) {
           const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
           mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}Login/Register`;
@@ -2308,11 +2355,18 @@ Example JSON format:
 
     // Initialize page
     window.addEventListener('DOMContentLoaded', function() {
-      initializeAuth();
-      updateAuthDisplay();
+      // Wait a bit for Netlify Identity to initialize
+      setTimeout(() => {
+        initializeAuth();
+        updateAuthDisplay();
+      }, 100);
       
       // Listen for Netlify Identity events
       if (window.netlifyIdentity) {
+        netlifyIdentity.on('init', function() {
+          updateAuthDisplay();
+        });
+        
         netlifyIdentity.on('login', function() {
           updateAuthDisplay();
           closeLoginModal();
@@ -2323,6 +2377,11 @@ Example JSON format:
           window.location.reload();
         });
       }
+    });
+
+    // Also run on window load as backup
+    window.addEventListener('load', function() {
+      updateAuthDisplay();
     });
   </script>
 </body>
