@@ -7139,6 +7139,28 @@ document.addEventListener('DOMContentLoaded', () => {
         personalityType = 'mysterious';
       }
       
+      // Special handling for romance characters - always show personalization tips
+      const companionType = currentCharacter?.character_type || 'friendship';
+      if (companionType.toLowerCase() === 'romance') {
+        // Check if user has completed onboarding or has memories
+        const hasHistory = window.messages && window.messages.length > 0;
+        const hasOnboardingData = window.additionalContext?.onboarding;
+        
+        if (hasHistory || hasOnboardingData) {
+          // User has setup, just simple romance welcome
+          return "Hey there! I'm here for meaningful conversations and connection. What's been on your heart lately?";
+        } else {
+          // New user with romance companion, include personalization tips
+          return `Hey! I'm here for meaningful connection and conversation. To get the most personalized experience:
+
+• Take the <a href="#" onclick="document.querySelector('.memory-hub-btn').click(); return false;" style="color: var(--color-teal); text-decoration: none;">personal quiz in Memory Hub 🧠</a>
+• <a href="#" onclick="document.querySelector('.customize-btn').click(); return false;" style="color: var(--color-teal); text-decoration: none;">Customize my personality ⚙️</a>
+• <a href="memory-import.html" style="color: var(--color-teal); text-decoration: none;">Import your ChatGPT memories 📥</a>
+
+What would you like to start with?`;
+        }
+      }
+      
       // Ensure we always have a fallback starter
       const selectedStarters = personalityStarters[personalityType] || personalityStarters['default'];
       
