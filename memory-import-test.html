@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Memory Import Test - Narrin AI</title>
+  <meta name="robots" content="noindex, nofollow" />
+  
+  <!-- Import Modern Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ===== CSS CUSTOM PROPERTIES (Narrin AI Styling) ===== */
+    :root {
+      /* Primary Colors */
+      --color-white: #ffffff;
+      --color-off-white: #fafafa;
+      --color-light-gray: #f5f5f5;
+      
+      /* Accent Colors */
+      --color-teal: #14b8a6;
+      --color-teal-light: #5eead4;
+      --color-teal-dark: #0f766e;
+      --color-teal-alt: #10a394;
+      --color-coral: #f97316;
+      --color-coral-light: #fb923c;
+      --color-coral-dark: #ea580c;
+      
+      /* Supporting Colors */
+      --color-navy: #1e293b;
+      --color-navy-light: #334155;
+      --color-gray: #64748b;
+      --color-gray-light: #94a3b8;
+      --color-gray-dark: #475569;
+      
+      /* Gradients */
+      --gradient-primary: linear-gradient(135deg, var(--color-teal) 0%, var(--color-coral) 100%);
+      --gradient-subtle: linear-gradient(135deg, var(--color-teal-light) 0%, var(--color-coral-light) 100%);
+      
+      /* Shadows */
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      --shadow-colored: 0 10px 25px -5px rgba(20, 184, 166, 0.2);
+      
+      /* Spacing */
+      --spacing-xs: 0.5rem;
+      --spacing-sm: 0.75rem;
+      --spacing-md: 1rem;
+      --spacing-lg: 1.5rem;
+      --spacing-xl: 2rem;
+      --spacing-2xl: 3rem;
+      --spacing-3xl: 4rem;
+      
+      /* Typography */
+      --font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-secondary: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      
+      /* Font Sizes */
+      --font-size-xs: 0.75rem;
+      --font-size-sm: 0.875rem;
+      --font-size-base: 1rem;
+      --font-size-lg: 1.125rem;
+      --font-size-xl: 1.25rem;
+      --font-size-2xl: 1.5rem;
+      --font-size-3xl: 1.875rem;
+      --font-size-4xl: 2.25rem;
+      
+      /* Border Radius */
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --radius-full: 9999px;
+      
+      /* Transitions */
+      --transition-fast: 150ms ease-out;
+      --transition-base: 300ms ease-out;
+      --transition-slow: 500ms ease-out;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font-primary);
+      background: var(--color-off-white);
+      color: var(--color-navy);
+      line-height: 1.6;
+      font-size: var(--font-size-base);
+      min-height: 100vh;
+      padding: var(--spacing-2xl) var(--spacing-lg);
+    }
+
+    .memory-import-showcase {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: var(--color-white);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: var(--shadow-xl);
+      border: 1px solid rgba(20, 184, 166, 0.1);
+    }
+
+    .showcase-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      min-height: 500px;
+    }
+
+    .text-content {
+      padding: var(--spacing-3xl);
+    }
+
+    .text-content h2 {
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-4xl);
+      color: var(--color-navy);
+      margin-bottom: var(--spacing-lg);
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .text-content p {
+      font-size: var(--font-size-lg);
+      color: var(--color-gray);
+      line-height: 1.8;
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .feature-list {
+      list-style: none;
+      margin: var(--spacing-xl) 0;
+    }
+
+    .feature-list li {
+      display: flex;
+      align-items: center;
+      margin-bottom: var(--spacing-md);
+      font-size: var(--font-size-base);
+      color: var(--color-navy);
+    }
+
+    .feature-list li::before {
+      content: "📥";
+      margin-right: var(--spacing-sm);
+      font-size: var(--font-size-xl);
+    }
+
+    .cta-button {
+      display: inline-block;
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      padding: var(--spacing-md) var(--spacing-xl);
+      border-radius: var(--radius-full);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: var(--font-size-base);
+      transition: all var(--transition-base);
+      margin-top: var(--spacing-lg);
+      box-shadow: var(--shadow-colored);
+    }
+
+    .cta-button:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-xl), var(--shadow-colored);
+    }
+
+    .image-content {
+      background: var(--gradient-subtle);
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      padding: var(--spacing-xl);
+    }
+
+    .import-preview {
+      width: 90%;
+      max-width: 400px;
+      background: var(--color-white);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .preview-header {
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      padding: var(--spacing-lg);
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .import-steps {
+      padding: var(--spacing-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+    }
+
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-md);
+      background: var(--color-off-white);
+      border-radius: var(--radius-md);
+      transition: all var(--transition-base);
+    }
+
+    .step-item:hover {
+      background: var(--color-light-gray);
+      transform: translateX(4px);
+    }
+
+    .step-number {
+      background: var(--color-teal);
+      color: var(--color-white);
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .step-text {
+      flex: 1;
+    }
+
+    .step-title {
+      font-weight: 600;
+      color: var(--color-navy);
+      font-size: var(--font-size-sm);
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .step-description {
+      color: var(--color-gray);
+      font-size: var(--font-size-xs);
+      line-height: 1.4;
+    }
+
+    @media (max-width: 768px) {
+      .showcase-content {
+        grid-template-columns: 1fr;
+      }
+      
+      .text-content {
+        padding: var(--spacing-xl) var(--spacing-lg);
+      }
+      
+      .text-content h2 {
+        font-size: var(--font-size-3xl);
+      }
+      
+      .image-content {
+        min-height: 400px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="memory-import-showcase">
+    <div class="showcase-content">
+      <div class="text-content">
+        <h2>Memory Import</h2>
+        <p>Transfer your ChatGPT conversation history to give your AI companion context about your preferences and past discussions.</p>
+        
+        <ul class="feature-list">
+          <li>Import entire ChatGPT conversation history</li>
+          <li>Automatic memory extraction and organization</li>
+          <li>Seamless integration with your companion</li>
+        </ul>
+        
+        <a href="/pricing" class="cta-button">Start Your Free Trial</a>
+      </div>
+      
+      <div class="image-content">
+        <div class="import-preview">
+          <div class="preview-header">Import Process</div>
+          <div class="import-steps">
+            <div class="step-item">
+              <div class="step-number">1</div>
+              <div class="step-text">
+                <div class="step-title">Copy ChatGPT Prompt</div>
+                <div class="step-description">Use our special prompt to extract your conversation data</div>
+              </div>
+            </div>
+            <div class="step-item">
+              <div class="step-number">2</div>
+              <div class="step-text">
+                <div class="step-title">Get Your Data</div>
+                <div class="step-description">ChatGPT will generate a summary of your conversations</div>
+              </div>
+            </div>
+            <div class="step-item">
+              <div class="step-number">3</div>
+              <div class="step-text">
+                <div class="step-title">Upload to Narrin</div>
+                <div class="step-description">Paste the data into our import tool</div>
+              </div>
+            </div>
+            <div class="step-item">
+              <div class="step-number">4</div>
+              <div class="step-text">
+                <div class="step-title">Start Chatting</div>
+                <div class="step-description">Your companion now knows your history and preferences</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
