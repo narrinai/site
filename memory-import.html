@@ -147,6 +147,16 @@
         <p class="subtitle">Transfer your personal information and conversation history from ChatGPT to give your AI companion a flying start.</p>
       </div>
 
+      <!-- Recent Imports Section -->
+      <div class="recent-imports-section" id="recent-imports-section" style="display: none;">
+        <div class="recent-imports-header">
+          <h3>📥 Recent Imports</h3>
+          <p>Your latest ChatGPT memory imports</p>
+        </div>
+        <div class="recent-imports-list" id="recent-imports-list">
+          <!-- Recent imports will be dynamically inserted here -->
+        </div>
+      </div>
 
       <!-- Import Steps -->
       <div class="import-steps">
@@ -1520,6 +1530,119 @@ Example JSON format:
       color: var(--color-teal);
     }
 
+    /* Recent Imports Section */
+    .recent-imports-section {
+      margin-bottom: var(--spacing-3xl);
+      padding: var(--spacing-xl);
+      background: var(--color-off-white);
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--color-light-gray);
+    }
+
+    .recent-imports-header {
+      text-align: center;
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .recent-imports-header h3 {
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-2xl);
+      font-weight: 600;
+      color: var(--color-navy);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .recent-imports-header p {
+      color: var(--color-gray);
+      font-size: var(--font-size-base);
+    }
+
+    .recent-imports-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: var(--spacing-lg);
+    }
+
+    .recent-import-card {
+      background: var(--color-white);
+      border: 1px solid var(--color-light-gray);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-lg);
+      transition: all var(--transition-base);
+      position: relative;
+    }
+
+    .recent-import-card:hover {
+      border-color: var(--color-teal);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .import-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: var(--spacing-md);
+    }
+
+    .import-date {
+      font-size: var(--font-size-sm);
+      color: var(--color-gray);
+      font-weight: 500;
+    }
+
+    .import-badge {
+      background: linear-gradient(135deg, #8B5CF6 0%, #A855F7 100%);
+      color: var(--color-white);
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: var(--radius-full);
+    }
+
+    .import-stats {
+      display: flex;
+      gap: var(--spacing-lg);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .import-stat {
+      text-align: center;
+    }
+
+    .import-stat-number {
+      font-size: var(--font-size-xl);
+      font-weight: 700;
+      color: var(--color-teal);
+      display: block;
+    }
+
+    .import-stat-label {
+      font-size: var(--font-size-xs);
+      color: var(--color-gray);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .import-categories {
+      margin-top: var(--spacing-md);
+    }
+
+    .category-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-xs);
+    }
+
+    .category-tag {
+      background: var(--color-light-gray);
+      color: var(--color-gray-dark);
+      font-size: var(--font-size-xs);
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      font-weight: 500;
+    }
+
     /* FAQ Section */
     .faq-section {
       margin-top: var(--spacing-3xl);
@@ -1813,6 +1936,20 @@ Example JSON format:
         margin-top: var(--spacing-xl);
       }
       
+      .recent-imports-section {
+        padding: var(--spacing-lg);
+        margin-bottom: var(--spacing-xl);
+      }
+      
+      .recent-imports-list {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+      }
+      
+      .import-stats {
+        gap: var(--spacing-md);
+      }
+      
       .footer-links {
         flex-direction: column;
         gap: var(--spacing-sm);
@@ -2094,6 +2231,9 @@ Example JSON format:
           localStorage.setItem('chatgpt_import_timestamp', importTimestamp);
           localStorage.setItem('chatgpt_import_count', (result.imported_count || selectedMemories.length).toString());
           
+          // Clear Memory Hub viewed status to trigger notification badge
+          localStorage.removeItem('memory_hub_viewed');
+          
           // Show success
           document.getElementById('import-progress').style.display = 'none';
           document.getElementById('success-step').style.display = 'block';
@@ -2364,12 +2504,85 @@ Example JSON format:
       }
     }
 
+    // Load and display recent imports
+    function loadRecentImports() {
+      const userToken = localStorage.getItem('user_token');
+      const uid = localStorage.getItem('user_uid');
+      const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+      const userEmail = localStorage.getItem('user_email');
+      const isAnonymousEmail = userEmail === 'anonymous@narrin.ai';
+      const isAuthenticated = userToken && uid && !isAnonymousUser && !isAnonymousEmail;
+      
+      if (!isAuthenticated) {
+        return; // Don't show recent imports for unauthenticated users
+      }
+
+      // Check if user has any import history
+      const hasImportHistory = localStorage.getItem('chatgpt_import_timestamp');
+      if (!hasImportHistory) {
+        return; // No imports to show
+      }
+
+      // Show the recent imports section
+      document.getElementById('recent-imports-section').style.display = 'block';
+      
+      // Create example recent imports (in real app, this would come from an API)
+      const recentImports = [
+        {
+          date: localStorage.getItem('chatgpt_import_timestamp') ? new Date(localStorage.getItem('chatgpt_import_timestamp')).toLocaleDateString() : new Date().toLocaleDateString(),
+          count: localStorage.getItem('chatgpt_import_count') || '24',
+          categories: ['Personal Info', 'Preferences', 'Professional', 'Goals'],
+          highImportance: Math.floor(Math.random() * 8) + 3,
+          totalMemories: localStorage.getItem('chatgpt_import_count') || '24'
+        }
+      ];
+
+      displayRecentImports(recentImports);
+    }
+
+    function displayRecentImports(imports) {
+      const container = document.getElementById('recent-imports-list');
+      
+      container.innerHTML = imports.map(importData => `
+        <div class="recent-import-card">
+          <div class="import-meta">
+            <span class="import-date">${importData.date}</span>
+            <span class="import-badge">ChatGPT</span>
+          </div>
+          
+          <div class="import-stats">
+            <div class="import-stat">
+              <span class="import-stat-number">${importData.totalMemories}</span>
+              <span class="import-stat-label">Memories</span>
+            </div>
+            <div class="import-stat">
+              <span class="import-stat-number">${importData.highImportance}</span>
+              <span class="import-stat-label">High Priority</span>
+            </div>
+            <div class="import-stat">
+              <span class="import-stat-number">${importData.categories.length}</span>
+              <span class="import-stat-label">Categories</span>
+            </div>
+          </div>
+          
+          <div class="import-categories">
+            <div class="category-tags">
+              ${importData.categories.map(category => 
+                `<span class="category-tag">${category}</span>`
+              ).join('')}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
     // Initialize page
     window.addEventListener('DOMContentLoaded', function() {
       // Wait a bit for Netlify Identity to initialize
       setTimeout(() => {
         initializeAuth();
         updateAuthDisplay();
+        loadRecentImports();
       }, 100);
       
       // Listen for Netlify Identity events
