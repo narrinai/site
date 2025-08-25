@@ -2539,19 +2539,21 @@
         <div class="form-group">
           <label>How would you like to add an image?</label>
           
-          <div class="avatar-choice-options" style="margin-bottom: var(--spacing-lg);">
-            <div class="choice-option">
+          <div class="voice-options" style="margin-bottom: var(--spacing-lg);">
+            <div class="voice-option selected" onclick="selectAvatarOption('generate')">
               <input type="radio" id="autoGenerate" name="avatarChoice" value="generate" checked>
-              <label for="autoGenerate" style="margin-left: var(--spacing-sm); font-weight: normal;">
-                🤖 <strong>Auto-generate</strong> - We'll create a unique image for your companion
-              </label>
+              <div class="voice-option-content">
+                <div class="voice-option-title">🤖 Auto-generate</div>
+                <div class="voice-option-desc">We'll create a unique image for your companion</div>
+              </div>
             </div>
             
-            <div class="choice-option" style="margin-top: var(--spacing-sm);">
+            <div class="voice-option" onclick="selectAvatarOption('upload')">
               <input type="radio" id="uploadOwn" name="avatarChoice" value="upload">
-              <label for="uploadOwn" style="margin-left: var(--spacing-sm); font-weight: normal;">
-                📁 <strong>Upload your own</strong> - Choose a custom image file
-              </label>
+              <div class="voice-option-content">
+                <div class="voice-option-title">📁 Upload your own</div>
+                <div class="voice-option-desc">Choose a custom image file</div>
+              </div>
             </div>
           </div>
           
@@ -4169,64 +4171,36 @@ function updatePromptCounter() {
      document.getElementById('avatarFileInput').click();
    }
 
-   // Handle avatar choice radio buttons
-   function setupAvatarChoiceHandlers() {
-     const autoGenerateRadio = document.getElementById('autoGenerate');
-     const uploadOwnRadio = document.getElementById('uploadOwn');
+   // Avatar selection function (similar to voice selection)
+   function selectAvatarOption(type) {
+     // Only target avatar option elements, not voice options
+     const avatarSection = document.querySelector('.form-section:has(input[name="avatarChoice"])');
+     if (avatarSection) {
+       avatarSection.querySelectorAll('.voice-option').forEach(option => {
+         option.classList.remove('selected');
+       });
+       
+       event.target.closest('.voice-option').classList.add('selected');
+     }
+     
+     document.querySelector(`input[name="avatarChoice"][value="${type}"]`).checked = true;
+     
      const uploadSection = document.getElementById('uploadSection');
-     
-     function handleAvatarChoice() {
-       if (uploadOwnRadio.checked) {
-         uploadSection.style.display = 'block';
-       } else {
-         uploadSection.style.display = 'none';
-       }
+     if (type === 'upload') {
+       uploadSection.style.display = 'block';
+     } else {
+       uploadSection.style.display = 'none';
      }
-     
-     if (autoGenerateRadio) {
-       autoGenerateRadio.addEventListener('change', handleAvatarChoice);
-     }
-     
-     if (uploadOwnRadio) {
-       uploadOwnRadio.addEventListener('change', handleAvatarChoice);
-     }
-     
-     // Initialize with default state (auto-generate selected)
-     handleAvatarChoice();
    }
 
-   // Initialize avatar choice handlers when page loads
-   document.addEventListener('DOMContentLoaded', setupAvatarChoiceHandlers);
-
-   // Add basic styling for radio button choices
-   const style = document.createElement('style');
-   style.textContent = `
-     .choice-option {
-       display: flex;
-       align-items: flex-start;
-       cursor: pointer;
-       padding: var(--spacing-sm);
-       border-radius: var(--radius-sm);
-       transition: background-color var(--transition-base);
+   // Initialize upload section state on page load
+   document.addEventListener('DOMContentLoaded', function() {
+     // Hide upload section by default since auto-generate is selected
+     const uploadSection = document.getElementById('uploadSection');
+     if (uploadSection) {
+       uploadSection.style.display = 'none';
      }
-     
-     .choice-option:hover {
-       background-color: var(--color-off-white);
-     }
-     
-     .choice-option input[type="radio"] {
-       margin-right: var(--spacing-sm);
-       margin-top: 2px;
-       accent-color: var(--color-teal);
-     }
-     
-     .choice-option label {
-       cursor: pointer;
-       line-height: 1.5;
-       color: var(--color-navy);
-     }
-   `;
-   document.head.appendChild(style);
+   });
 
    // Visibility selection
    // REMOVED: selectVisibility function - no longer needed
