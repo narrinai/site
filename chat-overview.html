@@ -4038,8 +4038,39 @@ async function deleteCompanion(companionSlug, companionName, event) {
       }, 400);
       
     } else {
-      // User-created character - delete completely via Make.com
-      console.log('🗑️ Deleting user-created character via Make.com...');
+      // User-created character - hide locally first, then attempt deletion
+      console.log('🗑️ Hiding user-created character locally...');
+      
+      // Always hide locally first for immediate UX
+      let removedCompanions = JSON.parse(localStorage.getItem('removedCompanions') || '[]');
+      if (!removedCompanions.includes(companionSlug)) {
+        removedCompanions.push(companionSlug);
+        localStorage.setItem('removedCompanions', JSON.stringify(removedCompanions));
+        console.log('✅ User-created character added to removedCompanions:', removedCompanions);
+      }
+      
+      // Remove from customizedCharacters 
+      const customizedCharacters = JSON.parse(localStorage.getItem('customizedCharacters') || '{}');
+      if (customizedCharacters[companionSlug]) {
+        delete customizedCharacters[companionSlug];
+        localStorage.setItem('customizedCharacters', JSON.stringify(customizedCharacters));
+        console.log('🧹 Removed from localStorage customizedCharacters');
+      }
+      
+      // Remove from DOM immediately
+      const companionCard = document.querySelector(`[data-companion-slug="${companionSlug}"]`);
+      if (companionCard) {
+        companionCard.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        companionCard.style.opacity = '0';
+        companionCard.style.transform = 'scale(0.9)';
+        setTimeout(() => companionCard.remove(), 300);
+      }
+      
+      showNarrinNotification('success', 'Companion Removed', 
+        `${companionName} has been removed from your companions.`);
+      
+      // Attempt database deletion in background (best effort)
+      console.log('🗑️ Attempting database deletion via Make.com...');
       
       const payload = {
         user_uid: localStorage.getItem('user_uid'),
@@ -4047,70 +4078,36 @@ async function deleteCompanion(companionSlug, companionName, event) {
       };
       
       console.log('📤 Sending payload to Netlify function:', payload);
-      console.log('📤 user_uid from localStorage:', localStorage.getItem('user_uid'));
-      console.log('📤 companion slug:', companionSlug);
       
-      const response = await fetch('/.netlify/functions/delete-companion', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      
-      console.log('📥 Delete response status:', response.status);
-      console.log('📥 Delete response headers:', response.headers);
-      
-      // Log response text for debugging
-      const responseText = await response.text();
-      console.log('📥 Raw response text:', responseText);
-      
-      if (!response.ok) {
-        console.error('❌ Netlify function failed:', response.status, response.statusText);
-        console.error('❌ Response text:', responseText);
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      let result;
+      // Attempt database deletion in background (don't wait for success)
       try {
-        result = JSON.parse(responseText);
-        console.log('✅ Parsed delete response:', result);
-      } catch (parseError) {
-        console.error('❌ Failed to parse response as JSON:', parseError);
-        console.error('❌ Raw response was:', responseText);
-        throw new Error('Invalid response from server');
+        const response = await fetch('/.netlify/functions/delete-companion', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        
+        const responseText = await response.text();
+        console.log('📥 Make.com deletion response:', responseText);
+        
+        if (response.ok) {
+          const result = JSON.parse(responseText);
+          console.log('✅ Database deletion result:', result);
+        } else {
+          console.warn('⚠️ Database deletion failed, but companion is hidden locally');
+        }
+      } catch (deleteError) {
+        console.warn('⚠️ Database deletion error (companion still hidden locally):', deleteError);
       }
       
-      if (result.success) {
-        showNarrinNotification('success', 'Companion Removed', 
-          `${companionName} has been removed from your companions.`);
-        
-        // Remove from local storage if exists
-        const customizedCharacters = JSON.parse(localStorage.getItem('customizedCharacters') || '{}');
-        if (customizedCharacters[companionSlug]) {
-          delete customizedCharacters[companionSlug];
-          localStorage.setItem('customizedCharacters', JSON.stringify(customizedCharacters));
-          console.log('🧹 Removed from localStorage customizedCharacters');
+      // Check if we need to show empty state after removal
+      setTimeout(() => {
+        const remainingCards = document.querySelectorAll('.chat-item:not([style*="display: none"])');
+        if (remainingCards.length === 0) {
+          document.getElementById('emptyState').style.display = 'block';
+          document.getElementById('chatsGrid').style.display = 'none';
         }
-        
-        // Immediately remove from DOM before reload
-        const companionCard = document.querySelector(`[data-companion-slug="${companionSlug}"]`);
-        if (companionCard) {
-          companionCard.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-          companionCard.style.opacity = '0';
-          companionCard.style.transform = 'scale(0.9)';
-          setTimeout(() => companionCard.remove(), 300);
-        }
-        
-        // Check if we need to show empty state after removal
-        setTimeout(() => {
-          const remainingCards = document.querySelectorAll('.chat-item:not([style*="display: none"])');
-          if (remainingCards.length === 0) {
-            document.getElementById('emptyState').style.display = 'block';
-            document.getElementById('chatsGrid').style.display = 'none';
-          }
-        }, 400);
-      } else {
-        throw new Error(result.error || 'Unknown error occurred');
-      }
+      }, 400);
     }
   } catch (error) {
     console.error('❌ Delete companion error:', error);
