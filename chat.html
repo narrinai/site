@@ -5091,7 +5091,7 @@
                     <button type="button" class="btn-secondary-form" onclick="document.getElementById('customAvatarFile').click()" style="flex: 0 0 auto;">
                       Choose File
                     </button>
-                    <span id="customAvatarFileName" style="color: var(--color-gray); font-size: var(--font-size-sm); flex: 1; min-width: 0;">No file chosen</span>
+                    <span id="customAvatarFileName" style="display: none;">No file chosen</span>
                   </div>
                   <button type="button" class="btn-secondary-form" onclick="generateCompanionImage()" style="width: 100%;" id="generateImageBtn">
                     ✨ Generate New Image
@@ -12296,7 +12296,7 @@ function openCustomizationModal() {
   const preview = document.getElementById('customAvatarPreview');
   
   if (fileInput) fileInput.value = '';
-  if (fileName) fileName.textContent = 'No file chosen';
+  // if (fileName) fileName.textContent = 'No file chosen'; // Hidden filename display
   if (preview) {
     const previewImg = document.getElementById('customAvatarImg');
     const placeholder = document.getElementById('avatarPlaceholder');
@@ -12567,7 +12567,7 @@ function initializeCustomAvatarUpload() {
     if (!file) return;
     
     // Update file name display
-    fileName.textContent = file.name;
+    // fileName.textContent = file.name; // Hidden filename display
     
     // Show local preview immediately
     const reader = new FileReader();
@@ -12579,7 +12579,7 @@ function initializeCustomAvatarUpload() {
     
     // Upload to Cloudinary
     try {
-      fileName.textContent = `${file.name} (uploading...)`;
+      // fileName.textContent = `${file.name} (uploading...)`; // Hidden filename display
       
       const characterName = document.getElementById('customName').value || 
                           currentCharacter.name || 
@@ -12592,12 +12592,12 @@ function initializeCustomAvatarUpload() {
       customAvatarUploadUrl = uploadedUrl;
       urlInput.value = uploadedUrl;
       
-      fileName.textContent = `${file.name} (uploaded)`;
+      // fileName.textContent = `${file.name} (uploaded)`; // Hidden filename display
       console.log('✅ Avatar uploaded successfully:', uploadedUrl);
       
     } catch (error) {
       console.error('❌ Avatar upload failed:', error);
-      fileName.textContent = `${file.name} (upload failed)`;
+      // fileName.textContent = `${file.name} (upload failed)`; // Hidden filename display
       showNotification('error', 'Upload Failed', 'Failed to upload avatar. Please try again.');
       customAvatarUploadUrl = '';
       urlInput.value = '';
@@ -17883,7 +17883,7 @@ async function generateCompanionImage() {
       }
       
       if (urlInput) urlInput.value = imageUrl;
-      if (fileName) fileName.textContent = companionName + '-generated.webp';
+      // if (fileName) fileName.textContent = companionName + '-generated.webp'; // Hidden filename display
       
       customAvatarUploadUrl = imageUrl;
       
@@ -17985,7 +17985,7 @@ async function generateCompanionImage() {
       
       // Update hidden input and filename
       if (urlInput) urlInput.value = imageUrl;
-      if (fileName) fileName.textContent = `${companionName}-generated.webp`;
+      // if (fileName) fileName.textContent = `${companionName}-generated.webp`; // Hidden filename display
       
       // Store for form submission
       customAvatarUploadUrl = imageUrl;
@@ -18020,7 +18020,7 @@ async function generateCompanionImage() {
         if (saveResponse.ok) {
           const saveResult = await saveResponse.json();
           console.log('✅ Generated image auto-saved to Airtable:', saveResult);
-          showNotification('success', 'Image Saved', 'Avatar updated in database and will be downloaded locally within 24 hours');
+          // showNotification('success', 'Image Saved', 'Avatar updated in database and will be downloaded locally within 24 hours'); // Hidden notification
         } else {
           console.warn('⚠️ Failed to auto-save generated image to Airtable');
         }
