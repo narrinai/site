@@ -4017,10 +4017,14 @@ async function deleteCompanion(companionSlug, companionName, event) {
         setTimeout(() => companionCard.remove(), 300);
       }
       
-      // Refresh companions list without full page reload
+      // Check if we need to show empty state after removal
       setTimeout(() => {
-        checkAuthAndLoadChats();
-      }, 500);
+        const remainingCards = document.querySelectorAll('.chat-item:not([style*="display: none"])');
+        if (remainingCards.length === 0) {
+          document.getElementById('emptyState').style.display = 'block';
+          document.getElementById('chatsGrid').style.display = 'none';
+        }
+      }, 400);
       
     } else {
       // User-created character - delete completely via Make.com
@@ -4085,10 +4089,14 @@ async function deleteCompanion(companionSlug, companionName, event) {
           setTimeout(() => companionCard.remove(), 300);
         }
         
-        // Refresh companions list without full page reload
+        // Check if we need to show empty state after removal
         setTimeout(() => {
-          checkAuthAndLoadChats();
-        }, 500);
+          const remainingCards = document.querySelectorAll('.chat-item:not([style*="display: none"])');
+          if (remainingCards.length === 0) {
+            document.getElementById('emptyState').style.display = 'block';
+            document.getElementById('chatsGrid').style.display = 'none';
+          }
+        }, 400);
       } else {
         throw new Error(result.error || 'Unknown error occurred');
       }
