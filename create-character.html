@@ -2537,8 +2537,25 @@
         <h2>👤 Companion profile image <span style="font-size: var(--font-size-sm); color: var(--color-gray); font-weight: normal;">(Optional)</span></h2>
         
         <div class="form-group">
-          <label>Upload Image</label>
-          <div class="avatar-input-options">
+          <label>How would you like to add an image?</label>
+          
+          <div class="avatar-choice-options" style="margin-bottom: var(--spacing-lg);">
+            <div class="choice-option">
+              <input type="radio" id="autoGenerate" name="avatarChoice" value="generate" checked>
+              <label for="autoGenerate" style="margin-left: var(--spacing-sm); font-weight: normal;">
+                🤖 <strong>Auto-generate</strong> - We'll create a unique image for your companion
+              </label>
+            </div>
+            
+            <div class="choice-option" style="margin-top: var(--spacing-sm);">
+              <input type="radio" id="uploadOwn" name="avatarChoice" value="upload">
+              <label for="uploadOwn" style="margin-left: var(--spacing-sm); font-weight: normal;">
+                📁 <strong>Upload your own</strong> - Choose a custom image file
+              </label>
+            </div>
+          </div>
+          
+          <div class="avatar-input-options" id="uploadSection" style="display: none;">
             <div class="avatar-option">
               <input type="file" id="avatarFileInput" name="avatarFileInput" 
                      accept="image/*" style="display: none;">
@@ -4151,6 +4168,65 @@ function updatePromptCounter() {
    function triggerFileUpload() {
      document.getElementById('avatarFileInput').click();
    }
+
+   // Handle avatar choice radio buttons
+   function setupAvatarChoiceHandlers() {
+     const autoGenerateRadio = document.getElementById('autoGenerate');
+     const uploadOwnRadio = document.getElementById('uploadOwn');
+     const uploadSection = document.getElementById('uploadSection');
+     
+     function handleAvatarChoice() {
+       if (uploadOwnRadio.checked) {
+         uploadSection.style.display = 'block';
+       } else {
+         uploadSection.style.display = 'none';
+       }
+     }
+     
+     if (autoGenerateRadio) {
+       autoGenerateRadio.addEventListener('change', handleAvatarChoice);
+     }
+     
+     if (uploadOwnRadio) {
+       uploadOwnRadio.addEventListener('change', handleAvatarChoice);
+     }
+     
+     // Initialize with default state (auto-generate selected)
+     handleAvatarChoice();
+   }
+
+   // Initialize avatar choice handlers when page loads
+   document.addEventListener('DOMContentLoaded', setupAvatarChoiceHandlers);
+
+   // Add basic styling for radio button choices
+   const style = document.createElement('style');
+   style.textContent = `
+     .choice-option {
+       display: flex;
+       align-items: flex-start;
+       cursor: pointer;
+       padding: var(--spacing-sm);
+       border-radius: var(--radius-sm);
+       transition: background-color var(--transition-base);
+     }
+     
+     .choice-option:hover {
+       background-color: var(--color-off-white);
+     }
+     
+     .choice-option input[type="radio"] {
+       margin-right: var(--spacing-sm);
+       margin-top: 2px;
+       accent-color: var(--color-teal);
+     }
+     
+     .choice-option label {
+       cursor: pointer;
+       line-height: 1.5;
+       color: var(--color-navy);
+     }
+   `;
+   document.head.appendChild(style);
 
    // Visibility selection
    // REMOVED: selectVisibility function - no longer needed
