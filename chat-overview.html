@@ -3006,6 +3006,7 @@ function extractAvatarUrl(chat) {
   const card = document.createElement('a');
   card.className = chat.isPaused ? 'chat-card paused' : 'chat-card';
   card.href = `chat.html?char=${chat.character_slug}`;
+  card.setAttribute('data-companion-slug', chat.character_slug);
   card.onclick = (e) => checkCompanionLimitForChat(e, chat.character_slug);
   
   // Extract avatar URL using helper function
@@ -4011,10 +4012,19 @@ async function deleteCompanion(companionSlug, companionName, event) {
       showNarrinNotification('success', 'Companion Removed', 
         `${companionName} has been removed from your companions.`);
       
+      // Immediately remove from DOM before reload
+      const companionCard = document.querySelector(`[data-companion-slug="${companionSlug}"]`);
+      if (companionCard) {
+        companionCard.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        companionCard.style.opacity = '0';
+        companionCard.style.transform = 'scale(0.9)';
+        setTimeout(() => companionCard.remove(), 300);
+      }
+      
       // Reload page to refresh companions list
       setTimeout(() => {
         window.location.reload();
-      }, 1500);
+      }, 1000);
       
     } else {
       // User-created character - delete completely via Make.com
@@ -4070,10 +4080,19 @@ async function deleteCompanion(companionSlug, companionName, event) {
           console.log('🧹 Removed from localStorage customizedCharacters');
         }
         
+        // Immediately remove from DOM before reload
+        const companionCard = document.querySelector(`[data-companion-slug="${companionSlug}"]`);
+        if (companionCard) {
+          companionCard.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+          companionCard.style.opacity = '0';
+          companionCard.style.transform = 'scale(0.9)';
+          setTimeout(() => companionCard.remove(), 300);
+        }
+        
         // Reload page to refresh companions list
         setTimeout(() => {
           window.location.reload();
-        }, 2000);
+        }, 1000);
       } else {
         throw new Error(result.error || 'Unknown error occurred');
       }
