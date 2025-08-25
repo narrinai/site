@@ -3424,22 +3424,18 @@ function extractAvatarUrl(chat) {
           return;
         }
         
-        // Call webhook to delete user-created character
-        const response = await fetch('https://hook.eu2.make.com/your-delete-character-webhook-url', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            action: 'delete_character',
-            user_email: userEmail,
-            user_uid: userUid,
-            user_token: userToken,
-            character_slug: characterSlug
-          })
-        });
+        // For user-created characters, remove from localStorage and hide
+        console.log('🗑️ Removing user-created character locally');
         
-        if (response.ok) {
+        // Add to removed companions list
+        let removedCompanions = JSON.parse(localStorage.getItem('removedCompanions') || '[]');
+        if (!removedCompanions.includes(characterSlug)) {
+          removedCompanions.push(characterSlug);
+          localStorage.setItem('removedCompanions', JSON.stringify(removedCompanions));
+        }
+        
+        // Always treat as successful for local removal
+        if (true) {
           // Remove chat history from local storage (but keep memories in Airtable)
           localStorage.removeItem(`chat_history_${characterSlug}`);
           
@@ -4069,8 +4065,8 @@ async function deleteCompanion(companionSlug, companionName, event) {
       }
       
       if (result.success) {
-        showNarrinNotification('success', 'Companion Deleted', 
-          `${companionName} has been permanently deleted.`);
+        showNarrinNotification('success', 'Companion Removed', 
+          `${companionName} has been removed from your companions.`);
         
         // Remove from local storage if exists
         const customizedCharacters = JSON.parse(localStorage.getItem('customizedCharacters') || '{}');
