@@ -2386,9 +2386,17 @@
         display: flex;
         flex-direction: row;
         gap: 6px;
-        position: relative;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
         width: 100%;
         align-items: center;
+        background: var(--color-white);
+        padding: 8px;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        box-sizing: border-box;
       }
 
       #userInput {
@@ -2436,9 +2444,9 @@
       
       /* Remove aggressive spacing overrides - use normal spacing */
 
-      /* Ensure chat section has proper bottom padding for input */
+      /* Ensure chat section has proper bottom padding for fixed input */
       .chat-section {
-        padding-bottom: var(--spacing-xs);
+        padding-bottom: 80px;
         margin-bottom: 0;
       }
     }
@@ -3249,7 +3257,7 @@
     /* Mobile Styles for Customization Modal */
     @media (max-width: 768px) {
       .customization-modal {
-        padding: 10px;
+        padding: 0;
         align-items: center;
         justify-content: center;
         position: fixed;
@@ -3258,17 +3266,26 @@
         right: 0;
         bottom: 0;
         overflow: hidden;
+        touch-action: none;
+        -webkit-user-select: none;
+        user-select: none;
       }
       
       .customization-modal-content {
-        width: 95%;
-        max-width: 95%;
-        height: 90vh;
-        max-height: 90vh;
-        border-radius: var(--radius-lg);
+        width: 100%;
+        max-width: 100%;
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
-        position: relative;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        transform: none;
+        touch-action: pan-y;
       }
       
       .modal-header {
@@ -4786,8 +4803,11 @@
         </div>
         
         <div class="memory-hub-footer" style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-          <a href="/memory-import" class="update-answers-btn" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">
-            <span>📥</span> Import from ChatGPT
+          <a href="/memory-import" class="update-answers-btn" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; flex-direction: column; gap: 4px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span>📥</span> Import from ChatGPT
+            </div>
+            <span id="import-timestamp" style="font-size: 12px; opacity: 0.7; display: none;"></span>
           </a>
           <button class="update-answers-btn" onclick="restartOnboarding()">
             <span>🔄</span> Take Personal Quiz
@@ -11694,9 +11714,32 @@ function getNormalizedOnboardingCategory(character) {
 }
 
 // ===== MEMORY HUB SYSTEM =====
+function getTimeAgo(date) {
+  const now = new Date();
+  const diffInSeconds = Math.floor((now - date) / 1000);
+  
+  if (diffInSeconds < 60) return 'just now';
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+  if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)} days ago`;
+  return `${Math.floor(diffInSeconds / 2592000)} months ago`;
+}
+
 function updateMemoryHubButtons(isAuthenticated) {
   const importButton = document.querySelector('.memory-hub-footer a[href="/memory-import"]');
   const quizButton = document.querySelector('.memory-hub-footer button[onclick="restartOnboarding()"]');
+  const timestampElement = document.getElementById('import-timestamp');
+  
+  // Check for ChatGPT import history
+  const importTimestamp = localStorage.getItem('chatgpt_import_timestamp');
+  const importCount = localStorage.getItem('chatgpt_import_count');
+  
+  if (importTimestamp && importCount && timestampElement) {
+    const importDate = new Date(importTimestamp);
+    const timeAgo = getTimeAgo(importDate);
+    timestampElement.textContent = `Last imported ${importCount} memories ${timeAgo}`;
+    timestampElement.style.display = 'block';
+  }
   
   if (importButton) {
     if (!isAuthenticated) {
@@ -11716,6 +11759,7 @@ function updateMemoryHubButtons(isAuthenticated) {
       importButton.onclick = null;
     }
   }
+}
   
   if (quizButton) {
     if (!isAuthenticated) {

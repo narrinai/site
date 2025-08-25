@@ -2089,6 +2089,11 @@ Example JSON format:
         const result = await response.json();
         
         if (result.success) {
+          // Store import timestamp for Memory Hub display
+          const importTimestamp = new Date().toISOString();
+          localStorage.setItem('chatgpt_import_timestamp', importTimestamp);
+          localStorage.setItem('chatgpt_import_count', (result.imported_count || selectedMemories.length).toString());
+          
           // Show success
           document.getElementById('import-progress').style.display = 'none';
           document.getElementById('success-step').style.display = 'block';
