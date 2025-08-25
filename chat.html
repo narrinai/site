@@ -15522,21 +15522,28 @@ async function checkUsageLimit() {
     const localTrialEnd = localStorage.getItem('trial_end_date');
     const isLocalTrial = localTrialStatus === 'trial' && localTrialEnd && new Date(localTrialEnd) > new Date();
     
-    // Check user plan for message limits - include trial users with unlimited messages
+    // IMPORTANT: New users get 3-day Engage trial with unlimited messages
+    // Check if user is on any form of trial or paid plan
+    const isOnTrial = subscriptionStatus === 'trial' || subscriptionStatus === 'trialing' || 
+                     stripeStatus === 'trial' || stripeStatus === 'trialing' ||
+                     localTrialStatus === 'trial' || isLocalTrial;
+    
     const isPaidPlan = 
       (plan.toLowerCase() === 'immerse' || plan.toLowerCase() === 'engage') &&
-      (subscriptionStatus === 'active' || subscriptionStatus === 'trialing' || subscriptionStatus === 'trial' ||
-       stripeStatus === 'active' || stripeStatus === 'trialing' || stripeStatus === 'trial') ||
-      isLocalTrial;
+      (subscriptionStatus === 'active' || subscriptionStatus === 'trial' || subscriptionStatus === 'trialing' ||
+       stripeStatus === 'active' || stripeStatus === 'trial' || stripeStatus === 'trialing') ||
+      isLocalTrial || isOnTrial;
       
     console.log('🔍 Trial check details:', { 
       localTrialStatus, 
       localTrialEnd, 
       isLocalTrial, 
+      isOnTrial,
       isPaidPlan,
       planLower: plan.toLowerCase(),
       subscriptionStatus,
-      stripeStatus 
+      stripeStatus,
+      fullServerResponse: data
     });
       
     if (isPaidPlan) {
