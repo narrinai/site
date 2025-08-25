@@ -2949,6 +2949,8 @@ function extractAvatarUrl(chat) {
 
       // Filter out removed platform companions
       const removedCompanions = JSON.parse(localStorage.getItem('removedCompanions') || '[]');
+      console.log('🗂️ Current removedCompanions from localStorage:', removedCompanions);
+      
       const filteredChats = userChats.filter(chat => {
         const isRemoved = removedCompanions.includes(chat.character_slug);
         if (isRemoved) {
@@ -2960,7 +2962,8 @@ function extractAvatarUrl(chat) {
       console.log('🔍 Filtered chats:', { 
         original: userChats.length, 
         filtered: filteredChats.length, 
-        removed: removedCompanions 
+        removed: removedCompanions,
+        slugsInChats: userChats.map(c => c.character_slug).slice(0, 5)
       });
       
       // Update companion status counter with filtered chats
@@ -3999,10 +4002,18 @@ async function deleteCompanion(companionSlug, companionName, event) {
       console.log('🙈 Hiding platform character locally');
       
       const removedCompanions = JSON.parse(localStorage.getItem('removedCompanions') || '[]');
+      console.log('🗂️ Before adding - removedCompanions:', removedCompanions);
+      
       if (!removedCompanions.includes(companionSlug)) {
         removedCompanions.push(companionSlug);
         localStorage.setItem('removedCompanions', JSON.stringify(removedCompanions));
-        console.log('✅ Platform character hidden:', removedCompanions);
+        console.log('✅ Platform character hidden. Updated removedCompanions:', removedCompanions);
+        
+        // Verify localStorage was saved correctly
+        const verification = JSON.parse(localStorage.getItem('removedCompanions') || '[]');
+        console.log('🔍 Verification - localStorage now contains:', verification);
+      } else {
+        console.log('ℹ️ Companion already in removedCompanions list');
       }
       
       showNarrinNotification('success', 'Companion Removed', 
