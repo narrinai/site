@@ -7342,9 +7342,11 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Special handling for new companions (non-standard) - always show personalization tips
       // Also check if this is a newly created character (contains hyphens and random suffix)
-      const isNewlyCreated = currentCharacterSlug.includes('-') && currentCharacterSlug.length > 10;
+      const isNewlyCreated = currentCharacterSlug.includes('-') && currentCharacterSlug.length > 8;
       
-      if (!isStandardCompanion || isNewlyCreated) {
+      // ALWAYS show guide for non-standard companions, regardless of other factors
+      if (!isStandardCompanion) {
+        console.log('🎯 Non-standard companion detected:', currentCharacterSlug, '- showing welcoming guide');
         // For any new/custom companion, always show the welcoming guide with personalization tips
         const companionType = currentCharacter?.character_type || 'friendship';
         let baseMessage = "";
