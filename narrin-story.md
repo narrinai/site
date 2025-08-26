@@ -44,20 +44,11 @@ The platform focuses on transforming scattered, overwhelming thoughts into organ
 
 ## Challenges I ran into
 
-**Memory System Complexity:**
-Creating a memory system that feels natural while being structured enough for AI use required extensive iteration. Balancing automatic memory extraction with user control was particularly challenging.
-
 **Chat Interface Performance:**
 Building a responsive chat interface that handles long conversations, typing indicators, and message chunking without lag required careful optimization and lazy loading strategies.
 
-**Authentication Flow:**
-Implementing a smooth user experience across anonymous users, trial accounts, and paid subscriptions while maintaining security proved complex, especially with Netlify Identity integration.
-
 **Mobile UX:**
 Creating a chat interface that works seamlessly across devices, especially handling mobile keyboard interactions and responsive layouts for conversation flows.
-
-**Data Privacy Balance:**
-Designing a system that provides strong privacy guarantees while still allowing for customer support and debugging access required careful consideration of encryption vs. operational needs.
 
 ## Accomplishments that I'm proud of
 
@@ -103,9 +94,6 @@ Expanding voice capabilities to make conversations feel more natural and accessi
 
 **Companion Collaboration:**
 Building features where multiple companions can work together on complex user challenges, providing different perspectives while maintaining individual personalities.
-
-**Mental Health Integration:**
-Partnering with mental health professionals to provide evidence-based conversation techniques while maintaining clear boundaries around therapeutic claims.
 
 **Advanced Customization:**
 Developing more granular companion customization options, including emotional intelligence patterns, conversation depth preferences, and specialized knowledge areas.
