@@ -7335,8 +7335,9 @@ document.addEventListener('DOMContentLoaded', () => {
         personalityType = 'mysterious';
       }
       
-      // Define standard companions (from index.html featured section)
-      const standardCompanions = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
+      // Define standard companions that should NOT get the welcoming guide  
+      // Only include companions that should use their personality-based starters
+      const standardCompanions = ['galina', 'blake-devoted-boyfriend'];
       const currentCharacterSlug = currentCharacter?.slug || currentCharacter?.character_id || '';
       const isStandardCompanion = standardCompanions.includes(currentCharacterSlug);
       
@@ -15455,6 +15456,28 @@ async function checkUsageLimit() {
   
   if (!token || !uid || !email) {
     return false;
+  }
+  
+  // For anonymous users on featured characters, skip server check and use browser-only limits
+  const featuredCharacters = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
+  const currentCharSlug = new URLSearchParams(window.location.search).get('char') || new URLSearchParams(window.location.search).get('character');
+  const isFeaturedCharacter = featuredCharacters.includes(currentCharSlug);
+  
+  if (isAnonymousUser && isFeaturedCharacter) {
+    console.log('📊 Anonymous user on featured character - using browser-only limit check');
+    const usageKey = `anonymous_usage_${currentCharSlug}`;
+    const currentUsage = parseInt(localStorage.getItem(usageKey) || '0');
+    
+    console.log(`📊 Browser-only check: ${currentUsage}/5 for ${currentCharSlug}`);
+    
+    if (currentUsage >= 5) {
+      console.log('🚫 Browser limit reached for anonymous user');
+      showUpgradePrompt(5, 5, 'messages');
+      return false;
+    }
+    
+    console.log('✅ Anonymous user within browser limit');
+    return true;
   }
   
   // For anonymous users, use shared anonymous user for usage tracking
