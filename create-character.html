@@ -4727,40 +4727,8 @@ document.getElementById('characterForm').addEventListener('submit', async (e) =>
   return;
 }
 
-  // Check companion creation limits based on plan (only count active companions)
-  const userPlan = localStorage.getItem('user_plan') || 'Free';
-  const userUid = localStorage.getItem('user_uid');
-  
-  if ((userPlan === 'Free' || userPlan === 'Engage') && userUid) {
-    try {
-      // Check how many characters user has already created
-      const response = await fetch(`/.netlify/functions/characters?user_created=${userUid}&limit=20`);
-      const data = await response.json();
-      
-      if (data.success && data.characters) {
-        const userCharacters = data.characters.filter(char => char.Created_by === localEmail);
-        
-        // Get paused companions
-        const pausedChats = JSON.parse(localStorage.getItem('pausedChats') || '[]');
-        
-        // Count only active companions
-        const activeCompanions = userCharacters.filter(char => !pausedChats.includes(char.Slug));
-        const maxActive = userPlan === 'Free' ? 3 : 5;
-        
-        if (activeCompanions.length >= maxActive) {
-          // Show upgrade popup
-          showUpgradePopup('companion_limit');
-          
-          // Reset submission flag and re-enable button
-          isSubmitting = false;
-          submitBtn.disabled = false;
-          return;
-        }
-      }
-    } catch (error) {
-      console.error('Error checking companion limit:', error);
-    }
-  }
+  // DISABLED: Companion creation limits removed for better user experience
+  // Users can now create unlimited companions on all plans
   
   // Collect form data - ENHANCED VERSION with null checks
   const nameEl = document.getElementById('characterName');
@@ -5169,16 +5137,9 @@ function showUpgradePopup(reason) {
   const title = document.getElementById('upgradeTitle');
   const userPlan = localStorage.getItem('user_plan') || 'Free';
   
-  if (reason === 'companion_limit') {
-    title.textContent = 'Companion Limit Reached';
-    if (userPlan === 'Free') {
-      message.innerHTML = "<strong>You've reached your limit of 3 active companions on the Free plan.</strong><br><br>To create this new companion, you'll need to pause an existing one or upgrade your plan. Free users can have 3 active companions at a time.";
-    } else if (userPlan === 'Engage') {
-      message.innerHTML = "<strong>You've reached your limit of 5 active companions on the Engage plan.</strong><br><br>To create this new companion, you'll need to pause an existing one or upgrade to Immerse for unlimited active companions.";
-    }
-  } else if (reason === 'message_limit') {
+  if (reason === 'message_limit') {
     title.textContent = 'Message Limit Reached';
-    message.innerHTML = "<strong>You've used all 10 free messages for today.</strong><br><br>Upgrade to continue chatting with unlimited messages and unlock voice features, more companions, and premium benefits.";
+    message.innerHTML = "<strong>Your trial has ended.</strong><br><br>Upgrade to Engage for unlimited messages, voice features, and advanced companion personalization.";
   } else if (reason === 'voice_feature') {
     title.textContent = 'Premium Feature';
     message.innerHTML = "<strong>Voice chat is a premium feature.</strong><br><br>Upgrade to Immerse to use unlimited voice messages (text-to-speech) and voice input (speech-to-text) with all your companions.";

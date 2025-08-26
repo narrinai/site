@@ -6429,7 +6429,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Additional voice IDs from create-character
         'xrnmhZSWIj7bbiePgGvN', 'bPTYXR1t7VO7OqE0XKTC', 'G5GoD2FgQe3Hzaz0vt43',
         '51yNzCRVCZm7Y1tnCXkv', '0lQiUnjkvRkmBWp91f0M', 'LQE5CZhudCF69ZH1OqB4',
-        'nhcRWQJQwy0CaUoH3L6C'
+        'nhcRWQJQwy0CaUoH3L6C',
+        // Standard character voice IDs from Airtable
+        '6GfbESaLNZPx6NipwU47', 'il0pl3iuDH1GLLncqr9', 'ePPRaOM9BrJQfYvzFL5Y', 'hFSbWotde4aAxqnuJtnS'
       ];
       
       // Bekende ongeldige voice IDs die vervangen moeten worden
@@ -15527,7 +15529,7 @@ async function checkUsageLimit() {
     const currentCharSlug = new URLSearchParams(window.location.search).get('char') || new URLSearchParams(window.location.search).get('character');
     const isFeaturedCharacter = featuredCharacters.includes(currentCharSlug);
     
-    const quota = isFeaturedCharacter ? 5 : (parseInt(data.quota) || 10);
+    const quota = isFeaturedCharacter ? 5 : (parseInt(data.quota) || 0);
     const subscriptionStatus = data.subscription_status || data.subscriptionStatus || '';
     const stripeStatus = data.stripe_status || data.stripeStatus || '';
 
@@ -15719,8 +15721,8 @@ function showUpgradePrompt(usage, quota, type = 'messages') {
               : type === 'companions'
               ? `<strong>You've reached your limit of ${quota} active companions.</strong><br><br>To activate more companions, you need to pause existing ones or upgrade to Immerse for unlimited active companions.`
               : isFeaturedCharacter 
-                ? `<strong>You've used all ${quota} free messages with this character.</strong><br><br>Create an account for 10 free messages per day, or upgrade to Engage for unlimited messaging!`
-                : `<strong>You've used all ${quota} free messages.</strong><br><br>Upgrade to Engage or Immerse for unlimited messaging with all your companions!`
+                ? `<strong>You've used all ${quota} free messages with this character.</strong><br><br>Create an account for a 3-day unlimited trial, or upgrade to Engage for unlimited messaging!`
+                : `<strong>Your trial has ended.</strong><br><br>Upgrade to Engage for unlimited messaging with all your companions!`
           }</p>
         </div>
         
