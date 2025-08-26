@@ -13956,8 +13956,10 @@ async function sendMessage(event) {
       
       console.log(`📊 Anonymous usage check for ${currentCharSlug}: ${currentUsage}/5`);
       
+      // Block only when trying to send the 6th message (currentUsage = 5)
+      // Allow messages 1-5 (currentUsage 0-4)
       if (currentUsage >= 5) {
-        console.log('🚫 Anonymous user has reached 5 message limit');
+        console.log('🚫 Anonymous user trying to send 6th message - showing limit popup');
         showUpgradePrompt(5, 5, 'messages');
         return;
       }
