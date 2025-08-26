@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chat Visualization Test - Narrin AI</title>
+  <meta name="robots" content="noindex, nofollow" />
+  
+  <!-- Import Modern Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ===== CSS CUSTOM PROPERTIES (Narrin AI Styling) ===== */
+    :root {
+      /* Primary Colors */
+      --color-white: #ffffff;
+      --color-off-white: #fafafa;
+      --color-light-gray: #f5f5f5;
+      
+      /* Accent Colors */
+      --color-teal: #14b8a6;
+      --color-teal-light: #5eead4;
+      --color-teal-dark: #0f766e;
+      --color-coral: #f97316;
+      --color-coral-light: #fb923c;
+      
+      /* Supporting Colors */
+      --color-navy: #1e293b;
+      --color-navy-light: #334155;
+      --color-gray: #64748b;
+      --color-gray-light: #94a3b8;
+      --color-gray-dark: #475569;
+      
+      /* Gradients */
+      --gradient-primary: linear-gradient(135deg, var(--color-teal) 0%, var(--color-coral) 100%);
+      --gradient-subtle: linear-gradient(135deg, var(--color-teal-light) 0%, var(--color-coral-light) 100%);
+      
+      /* Shadows */
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      
+      /* Spacing */
+      --spacing-xs: 0.5rem;
+      --spacing-sm: 0.75rem;
+      --spacing-md: 1rem;
+      --spacing-lg: 1.5rem;
+      --spacing-xl: 2rem;
+      --spacing-2xl: 3rem;
+      --spacing-3xl: 4rem;
+      
+      /* Typography */
+      --font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-secondary: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      
+      /* Font Sizes */
+      --font-size-xs: 0.75rem;
+      --font-size-sm: 0.875rem;
+      --font-size-base: 1rem;
+      --font-size-lg: 1.125rem;
+      --font-size-xl: 1.25rem;
+      --font-size-2xl: 1.5rem;
+      --font-size-3xl: 1.875rem;
+      --font-size-4xl: 2.25rem;
+      
+      /* Border Radius */
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --radius-full: 9999px;
+      
+      /* Transitions */
+      --transition-fast: 150ms ease-out;
+      --transition-base: 300ms ease-out;
+      --transition-slow: 500ms ease-out;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font-primary);
+      background: var(--color-off-white);
+      color: var(--color-navy);
+      line-height: 1.6;
+      font-size: var(--font-size-base);
+      min-height: 100vh;
+      padding: var(--spacing-2xl) var(--spacing-lg);
+    }
+
+    .chat-visualization {
+      max-width: 800px;
+      margin: 0 auto;
+      background: var(--color-white);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: var(--shadow-xl);
+      border: 1px solid rgba(20, 184, 166, 0.1);
+    }
+
+    .chat-header {
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      padding: var(--spacing-lg) var(--spacing-xl);
+      text-align: center;
+    }
+
+    .chat-header h2 {
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-2xl);
+      font-weight: 700;
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .chat-header p {
+      font-size: var(--font-size-sm);
+      opacity: 0.9;
+    }
+
+    .chat-messages {
+      padding: var(--spacing-xl);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-lg);
+      background: #f8fafc;
+    }
+
+    .message {
+      display: flex;
+      gap: var(--spacing-md);
+      align-items: flex-start;
+    }
+
+    .message.user {
+      flex-direction: row-reverse;
+    }
+
+    .message-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: var(--font-size-sm);
+      flex-shrink: 0;
+    }
+
+    .user .message-avatar {
+      background: var(--gradient-primary);
+      color: var(--color-white);
+    }
+
+    .ai .message-avatar {
+      background: var(--color-light-gray);
+      color: var(--color-gray-dark);
+    }
+
+    .message-bubble {
+      background: var(--color-white);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-md) var(--spacing-lg);
+      box-shadow: var(--shadow-sm);
+      max-width: 70%;
+      border: 1px solid var(--color-light-gray);
+    }
+
+    .user .message-bubble {
+      background: var(--gradient-subtle);
+      color: var(--color-navy);
+      border: 1px solid rgba(20, 184, 166, 0.2);
+    }
+
+    .message-text {
+      font-size: var(--font-size-sm);
+      line-height: 1.5;
+      color: var(--color-gray-dark);
+    }
+
+    .user .message-text {
+      color: var(--color-navy);
+    }
+
+    .chat-explanation {
+      background: var(--color-off-white);
+      padding: var(--spacing-xl);
+      text-align: center;
+      border-top: 1px solid var(--color-light-gray);
+    }
+
+    .chat-explanation h3 {
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-xl);
+      font-weight: 600;
+      color: var(--color-navy);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .chat-explanation p {
+      color: var(--color-gray);
+      font-size: var(--font-size-base);
+      line-height: 1.6;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 768px) {
+      .chat-visualization {
+        margin: 0;
+      }
+      
+      .chat-messages {
+        padding: var(--spacing-lg);
+        gap: var(--spacing-md);
+      }
+      
+      .message-bubble {
+        max-width: 80%;
+        padding: var(--spacing-sm) var(--spacing-md);
+      }
+      
+      .chat-header {
+        padding: var(--spacing-lg);
+      }
+      
+      .chat-explanation {
+        padding: var(--spacing-lg);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-visualization">
+    <div class="chat-header">
+      <h2>Deepen Your Bond</h2>
+      <p>Watch how conversations grow more meaningful over time</p>
+    </div>
+    
+    <div class="chat-messages">
+      <div class="message user">
+        <div class="message-avatar">You</div>
+        <div class="message-bubble">
+          <div class="message-text">I'm feeling really scattered today. My thoughts are all over the place.</div>
+        </div>
+      </div>
+      
+      <div class="message ai">
+        <div class="message-avatar">AI</div>
+        <div class="message-bubble">
+          <div class="message-text">I can hear that you're feeling overwhelmed. What's been weighing on your mind the most?</div>
+        </div>
+      </div>
+      
+      <div class="message user">
+        <div class="message-avatar">You</div>
+        <div class="message-bubble">
+          <div class="message-text">Work deadlines, relationship stress, and I can't stop thinking about everything at once.</div>
+        </div>
+      </div>
+      
+      <div class="message ai">
+        <div class="message-avatar">AI</div>
+        <div class="message-bubble">
+          <div class="message-text">Let's organize these thoughts. You mentioned three areas: work deadlines, relationship stress, and racing thoughts. Which feels most urgent right now?</div>
+        </div>
+      </div>
+      
+      <div class="message user">
+        <div class="message-avatar">You</div>
+        <div class="message-bubble">
+          <div class="message-text">Actually, the work deadline. That's probably causing the racing thoughts.</div>
+        </div>
+      </div>
+      
+      <div class="message ai">
+        <div class="message-avatar">AI</div>
+        <div class="message-bubble">
+          <div class="message-text">Great insight! You've just turned mental chaos into a clear priority. What's one small step you can take on that deadline today?</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="chat-explanation">
+      <h3>From Chaos to Clarity</h3>
+      <p>The more you talk, the better your companion understands you. Growth happens naturally through genuine connection and thoughtful conversation.</p>
+    </div>
+  </div>
+</body>
+</html>
