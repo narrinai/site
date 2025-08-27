@@ -6631,6 +6631,8 @@ document.addEventListener('DOMContentLoaded', () => {
       
       const characterName = currentCharacter.name || '';
       const characterSlug = currentCharacter.slug || currentCharacter.character_id || '';
+      
+      console.log('🚀 generateConversationStarter called for:', characterSlug);
       const characterTitle = currentCharacter.character_title || '';
       const characterCategory = (currentCharacter.category || '').toLowerCase();
       const characterDesc = (currentCharacter.description || '').toLowerCase();
@@ -7319,6 +7321,13 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // For newly created companions, always use friendly to show welcoming guide
       const isNewCompanion = currentCharacterSlug.includes('-') && currentCharacterSlug.length > 8;
+      console.log('🔍 New companion check:', { 
+        characterSlug: currentCharacterSlug, 
+        hasDash: currentCharacterSlug.includes('-'),
+        length: currentCharacterSlug.length,
+        isNewCompanion: isNewCompanion
+      });
+      
       if (isNewCompanion) {
         personalityType = 'friendly';
         console.log('🎯 New companion detected, forcing friendly personality for welcoming guide');
