@@ -6633,6 +6633,26 @@ document.addEventListener('DOMContentLoaded', () => {
       const characterSlug = currentCharacter.slug || currentCharacter.character_id || '';
       
       console.log('🚀 generateConversationStarter called for:', characterSlug);
+      
+      // FORCE new companions to get welcoming guide - bypass all other logic
+      const isNewUserCreated = characterSlug.includes('-') && characterSlug.length > 8;
+      if (isNewUserCreated) {
+        console.log('🎯 FORCING welcoming guide for new companion:', characterSlug);
+        const companionType = currentCharacter?.character_type || 'friendship';
+        let baseMessage = "Hey! I'm here to help you find peace and clarity. ";
+        
+        if (companionType === 'mindfulness') {
+          baseMessage = "Hey! I'm here to help you find peace and clarity. ";
+        }
+        
+        return `${baseMessage}To get the most personalized experience:
+
+• Take the <a href="#" onclick="lazyLoadMemoryHub(); return false;" style="color: var(--color-teal); text-decoration: none;">personal quiz in Memory Hub 🧠</a>
+• <a href="#" onclick="lazyLoadCustomize(); return false;" style="color: var(--color-teal); text-decoration: none;">Customize my personality ⚙️</a>
+• <a href="/memory-import" style="color: var(--color-teal); text-decoration: none;">Import your ChatGPT memories 📥</a>
+
+What would you like to start with?`;
+      }
       const characterTitle = currentCharacter.character_title || '';
       const characterCategory = (currentCharacter.category || '').toLowerCase();
       const characterDesc = (currentCharacter.description || '').toLowerCase();
