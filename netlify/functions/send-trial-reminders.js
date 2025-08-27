@@ -132,7 +132,7 @@ exports.handler = async (event, context) => {
             <div style="padding: 50px 40px; text-align: center;">
               <div style="font-size: 64px; margin-bottom: 24px;">💝</div>
               
-              <h2 style="font-family: 'Outfit', sans-serif; font-size: 28px; font-weight: 700; color: #1e293b; margin-bottom: 16px;">Don't lose your mental clarity progress</h2>
+              <h2 style="font-family: 'Outfit', sans-serif; font-size: 28px; font-weight: 700; color: #1e293b; margin-bottom: 16px;">Don't lose your companion memories</h2>
               <p style="font-size: 18px; color: #64748b; margin-bottom: 32px;">Your free trial ends in 24 hours</p>
               
               <div style="text-align: left; margin-bottom: 40px;">
@@ -144,7 +144,7 @@ exports.handler = async (event, context) => {
                 
                 <ul style="margin: 20px 0; padding-left: 20px;">
                   <li style="margin-bottom: 8px;"><strong>Unlimited conversations</strong> - No message limits</li>
-                  <li style="margin-bottom: 8px;"><strong>Voice chat</strong> - Hear your companions speak</li>
+                  <li style="margin-bottom: 8px;"><strong>Unlimited voice chat</strong> - Hear your companions speak</li>
                   <li style="margin-bottom: 8px;"><strong>Memory persistence</strong> - Your companions remember everything</li>
                   <li style="margin-bottom: 8px;"><strong>Advanced features</strong> - Customize personalities & more</li>
                 </ul>
@@ -156,9 +156,6 @@ exports.handler = async (event, context) => {
                 Continue My Journey →
               </a>
               
-              <p style="font-size: 14px; color: #94a3b8; margin-top: 20px;">
-                Not ready to upgrade? No worries - you can still chat with our free companions anytime.
-              </p>
             </div>
 
             <!-- Footer -->
