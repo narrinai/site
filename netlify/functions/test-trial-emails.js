@@ -15,27 +15,6 @@ exports.handler = async (event, context) => {
     };
   }
 
-  try {
-    // Send both test emails
-    await sendTestTrialEndingEmail();
-    await sendTestTrialExpiredEmail();
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ 
-        success: true,
-        message: 'Test emails sent to info@narrin.ai'
-      })
-    };
-
-  } catch (error) {
-    console.error('❌ Test email error:', error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: error.message })
-    };
-  }
-
   async function sendTestTrialEndingEmail() {
     const emailBody = {
       personalizations: [{
@@ -128,5 +107,26 @@ exports.handler = async (event, context) => {
       console.error(`❌ Email error:`, error);
       return false;
     }
+  }
+
+  try {
+    // Send both test emails
+    await sendTestTrialEndingEmail();
+    await sendTestTrialExpiredEmail();
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ 
+        success: true,
+        message: 'Test emails sent to info@narrin.ai'
+      })
+    };
+
+  } catch (error) {
+    console.error('❌ Test email error:', error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: error.message })
+    };
   }
 };
