@@ -4229,17 +4229,22 @@ function updatePromptCounter() {
        previewTitle.textContent = title;
      }
      
-     // Update avatar
+     // Update avatar (safely)
      const previewAvatar = document.getElementById('previewAvatar');
-     if (currentAvatarUrl) {
-       previewAvatar.innerHTML = `<img src="${currentAvatarUrl}" alt="Avatar">`;
-     } else {
-       previewAvatar.innerHTML = '👤';
+     if (previewAvatar) {
+       if (currentAvatarUrl) {
+         previewAvatar.innerHTML = `<img src="${currentAvatarUrl}" alt="Avatar">`;
+       } else {
+         previewAvatar.innerHTML = '👤';
+       }
      }
      
-     // Show preview if there's content
+     // Show preview if there's content (safely)
      const hasContent = name !== 'Character Name' || title !== 'Character title will appear here';
-     document.getElementById('previewSection').style.display = hasContent ? 'block' : 'none';
+     const previewSection = document.getElementById('previewSection');
+     if (previewSection) {
+       previewSection.style.display = hasContent ? 'block' : 'none';
+     }
    }
 
 // 🔧 CLOUDINARY AVATAR UPLOAD FUNCTION
