@@ -13920,16 +13920,98 @@ function analyzeConversationMood(message) {
   return null;
 }
 
-// Add gentle check-in if conversation seems consistently negative
+// Add personalized gentle check-in based on onboarding and memories
 function showGentleCheckIn() {
+  // Get personalized context from onboarding and memories
+  let personalizedMessage = "I've noticed our conversation has been touching on some heavy topics.";
+  let supportMessage = "Just a gentle reminder that it's okay to take breaks, and professional support is always available if you need someone to talk to.";
+  let icon = "💜";
+  
+  // Personalize based on onboarding data
+  if (window.additionalContext && window.additionalContext.onboarding) {
+    const answers = window.additionalContext.onboarding;
+    const category = window.additionalContext.onboardingCategory || 
+                    getNormalizedOnboardingCategory(currentCharacter);
+    
+    console.log('💜 Personalizing check-in based on onboarding:', { category, answers });
+    
+    switch (category) {
+      case 'Mindfulness':
+        icon = "🧘";
+        if (answers.mental_state === 'racing_mind' || answers.mental_state === 'scattered') {
+          personalizedMessage = "I can sense your mind has been especially active in our conversation.";
+          supportMessage = "Remember the breathing techniques we've discussed, and know that professional mindfulness or therapy support can provide additional grounding when needed.";
+        } else {
+          personalizedMessage = "I notice we've been exploring some deeper feelings together.";
+          supportMessage = "This is part of the mindful processing journey. Consider taking a moment to breathe, and remember that professional support is always available.";
+        }
+        break;
+        
+      case 'Romance':
+        icon = "💕";
+        if (answers.emotional_confusion === 'overwhelmed' || answers.dating_challenges === 'anxiety') {
+          personalizedMessage = "I can feel how much these relationship topics are weighing on your heart.";
+          supportMessage = "Romantic feelings can be intense. Remember it's okay to process at your own pace, and relationship counselors are wonderful resources for deeper support.";
+        } else {
+          personalizedMessage = "Our conversation about love and relationships has touched on some tender areas.";
+          supportMessage = "It's beautiful that you're exploring these feelings. Professional relationship counseling can provide additional perspective when needed.";
+        }
+        break;
+        
+      case 'Career':
+      case 'Mentorship':
+        icon = "🌟";
+        if (answers.biggest_challenge === 'confidence' || answers.thinking_challenges === 'self_doubt') {
+          personalizedMessage = "I notice self-doubt has been coming up in our career conversation.";
+          supportMessage = "These feelings about your professional worth are more common than you think. Career counselors and coaches can provide structured support for building confidence.";
+        } else {
+          personalizedMessage = "Our career discussion has brought up some challenging professional feelings.";
+          supportMessage = "Professional growth can bring up complex emotions. Career counseling or coaching can provide additional frameworks for navigating these challenges.";
+        }
+        break;
+        
+      case 'Friendship':
+        icon = "🤗";
+        if (answers.social_challenges === 'anxiety' || answers.social_challenges === 'judgment') {
+          personalizedMessage = "I can sense how much social connections matter to you, and how challenging they can feel.";
+          supportMessage = "Social anxiety is very real and valid. Therapists who specialize in social skills can provide wonderful support alongside our conversations.";
+        } else {
+          personalizedMessage = "Our friendship conversation has touched on some meaningful but difficult topics.";
+          supportMessage = "Exploring social dynamics can bring up complex feelings. Professional support is always there when you need additional perspective.";
+        }
+        break;
+        
+      default:
+        // Use memories if available for personalization
+        if (window.lastRetrievedMemories && window.lastRetrievedMemories.length > 0) {
+          const importantMemory = window.lastRetrievedMemories.find(m => m.importance >= 7);
+          if (importantMemory && importantMemory.emotional_state && importantMemory.emotional_state !== 'neutral') {
+            personalizedMessage = `I'm remembering how you've shared about feeling ${importantMemory.emotional_state}, and I notice we're exploring some heavy territory again.`;
+          }
+        }
+    }
+  }
+  
+  // Check recent memories for additional personalization
+  if (window.lastRetrievedMemories && window.lastRetrievedMemories.length > 0) {
+    const stressMemories = window.lastRetrievedMemories.filter(m => 
+      (m.summary && (m.summary.toLowerCase().includes('stress') || 
+       m.summary.toLowerCase().includes('anxiety') || 
+       m.summary.toLowerCase().includes('overwhelm'))) ||
+      m.emotional_state === 'negative' || m.emotional_state === 'stressed'
+    );
+    
+    if (stressMemories.length > 0) {
+      supportMessage += " I remember you've mentioned feeling stressed before - you don't have to carry this alone.";
+    }
+  }
+  
   const checkInDiv = document.createElement('div');
   checkInDiv.className = 'gentle-checkin';
   checkInDiv.innerHTML = `
     <div class="checkin-content">
-      <span class="checkin-icon">💜</span>
-      <p>I've noticed our conversation has been touching on some heavy topics. 
-         Just a gentle reminder that it's okay to take breaks, and professional 
-         support is always available if you need someone to talk to.</p>
+      <span class="checkin-icon">${icon}</span>
+      <p>${personalizedMessage} ${supportMessage}</p>
       <button onclick="this.parentElement.parentElement.style.display='none';" class="checkin-dismiss">
         I understand, thanks
       </button>
@@ -14069,6 +14151,9 @@ async function sendMessage(event) {
     } else {
       memories = memoryResponse || [];
     }
+    
+    // Store memories globally for check-ins and other features
+    window.lastRetrievedMemories = memories;
     
     console.log("✅ Memory retrieval completed:", memories?.length || 0, "memories found");
     console.log("📊 Full memory response:", memoryResponse);
