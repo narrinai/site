@@ -16,12 +16,27 @@ async function simpleTest() {
     await page.screenshot({ path: 'emerald-test-1.png', fullPage: true });
     console.log('📸 Screenshot taken: emerald-test-1.png');
     
-    // Wait longer for content to load
+    // Wait longer for content to load and listen for console messages
+    console.log('⏳ Waiting for content to load...');
     await page.waitForTimeout(10000);
     
-    // Check if we can see the chatlog now
+    // Check multiple elements
+    const loadingVisible = await page.locator('#loadingState').isVisible();
+    const chatInterfaceVisible = await page.locator('#chatInterface').isVisible();
     const chatlogVisible = await page.locator('#chatlog').isVisible();
-    console.log('💬 Chatlog visible:', chatlogVisible);
+    const errorVisible = await page.locator('#errorState').isVisible();
+    
+    console.log('📊 Element visibility check:', {
+      loading: loadingVisible,
+      chatInterface: chatInterfaceVisible,
+      chatlog: chatlogVisible,
+      error: errorVisible
+    });
+    
+    // Try to get any text content that's visible
+    const bodyContent = await page.textContent('body');
+    const visibleText = bodyContent.replace(/\s+/g, ' ').trim();
+    console.log('📝 Visible page content (first 300 chars):', visibleText.substring(0, 300));
     
     if (chatlogVisible) {
       // Get the chatlog content
