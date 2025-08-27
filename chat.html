@@ -9545,17 +9545,8 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
       
       const displayName = currentCharacter.name || currentCharacter.Name || 'Unknown Character';
       document.title = `Chat with ${displayName}`;
-      
-      // Safely update character name and title
-      const nameElement = document.getElementById('characterName');
-      const titleElement = document.getElementById('characterTitle');
-      
-      if (nameElement) {
-        nameElement.textContent = displayName;
-      }
-      if (titleElement) {
-        titleElement.textContent = currentCharacter.title || currentCharacter.Title || currentCharacter.Character_Title || currentCharacter.character_title || '';
-      }
+      document.getElementById('characterName').textContent = displayName;
+      document.getElementById('characterTitle').textContent = currentCharacter.title || currentCharacter.Title || currentCharacter.Character_Title || currentCharacter.character_title || '';
 
       const avatarElement = document.getElementById('characterAvatar');
       const hasNoAvatar = !currentCharacter.avatar_url || currentCharacter.avatar_url.trim() === '';
@@ -11819,10 +11810,8 @@ function updateMemoryHubButtons(isAuthenticated) {
   if (importTimestamp && importCount && timestampElement) {
     const importDate = new Date(importTimestamp);
     const timeAgo = getTimeAgo(importDate);
-    if (timestampElement && timestampElement.textContent !== undefined) {
-      timestampElement.textContent = `Last imported ${importCount} memories ${timeAgo}`;
-      timestampElement.style.display = 'block';
-    }
+    timestampElement.textContent = `Last imported ${importCount} memories ${timeAgo}`;
+    timestampElement.style.display = 'block';
   }
   
   if (importButton) {
@@ -13226,16 +13215,9 @@ function applyCustomization(customization) {
     currentCharacter.voice = customization.voice;
   }
   
-  // Update UI safely
-  const nameEl = document.getElementById('characterName');
-  const titleEl = document.getElementById('characterTitle');
-  
-  if (nameEl) {
-    nameEl.textContent = customization.name || currentCharacter.name;
-  }
-  if (titleEl) {
-    titleEl.textContent = customization.title || currentCharacter.title || currentCharacter.Title || currentCharacter.Character_Title;
-  }
+  // Update UI
+  document.getElementById('characterName').textContent = customization.name || currentCharacter.name;
+  document.getElementById('characterTitle').textContent = customization.title || currentCharacter.title || currentCharacter.Title || currentCharacter.Character_Title;
   
   // Customization indicator removed
 }
@@ -14041,20 +14023,6 @@ function showGentleCheckIn() {
   chatlog.scrollTop = chatlog.scrollHeight;
 }
 
-// Reset send button state
-function resetSendButton() {
-  const sendButton = document.getElementById('sendButton');
-  const userInput = document.getElementById('userInput');
-  if (sendButton) {
-    sendButton.style.background = '';
-    sendButton.textContent = 'Send';
-    sendButton.disabled = false;
-  }
-  if (userInput) {
-    userInput.disabled = false;
-  }
-}
-
 async function sendMessage(event) {
   event?.preventDefault();
   
@@ -14482,8 +14450,22 @@ User message: ${input}`;
     }, 3000); // Show after 3 seconds
   }
 
+  // Reset send button state
+  function resetSendButton() {
+    const sendButton = document.getElementById('sendButton');
+    const userInput = document.getElementById('userInput');
+    if (sendButton) {
+      sendButton.style.background = '';
+      sendButton.textContent = 'Send';
+      sendButton.disabled = false;
+    }
+    if (userInput) {
+      userInput.disabled = false;
+    }
+  }
+
   // Show typing indicator immediately
-  showTypingIndicator();
+showTypingIndicator();
 
   try {
     // BELANGRIJKE OPMERKING VOOR WEBHOOK:
@@ -17037,16 +17019,8 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Update progress
       const progress = ((index + 1) / currentQuestions.length) * 100;
-      
-      const progressFill = document.getElementById('progressFill');
-      const progressText = document.getElementById('progressText');
-      
-      if (progressFill) {
-        progressFill.style.width = progress + '%';
-      }
-      if (progressText) {
-        progressText.textContent = `Question ${index + 1} of ${currentQuestions.length}`;
-      }
+      document.getElementById('progressFill').style.width = progress + '%';
+      document.getElementById('progressText').textContent = `Question ${index + 1} of ${currentQuestions.length}`;
       
       // Clear previous content and remove any selected state
       content.innerHTML = '';
