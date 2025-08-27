@@ -7785,16 +7785,9 @@ What would you like to start with?`;
         return;
       }
       
-      // Check if character has onboarding flow - skip conversation starter for these
-      const category = currentCharacter?.Category || currentCharacter?.category || '';
-      const hasOnboarding = ['Career', 'Life', 'Love'].includes(category);
-      
-      if (hasOnboarding) {
-        console.log('🎯 Character has onboarding flow, skipping conversation starter');
-        // Still mark as shown to prevent duplicate attempts
-        window.conversationStarterShown = true;
-        return;
-      }
+      // DISABLED: Skip onboarding check - all companions should show conversation starter with guide
+      // All companions (including those with onboarding) should show the welcoming guide
+      console.log('🎯 Showing conversation starter for all companions (onboarding check disabled)');
       
       const starter = generateConversationStarter();
       console.log('🎯 Generated starter:', starter);
@@ -8996,6 +8989,7 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
               window.additionalContext = {};
             }
             window.additionalContext.onboarding = onboardingData.answers;
+            window.additionalContext.onboardingCategory = onboardingData.category;
             
             // Also restore welcome message if available
             if (onboardingData.welcomeMessage) {
@@ -9009,7 +9003,11 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
               console.log('✅ Suggestions restored from localStorage:', onboardingData.suggestions);
             }
             
-            console.log('✅ Onboarding data restored from localStorage:', onboardingData.answers);
+            console.log('✅ Onboarding data restored from localStorage:', {
+              category: onboardingData.category,
+              answersCount: Object.keys(onboardingData.answers).length,
+              answers: onboardingData.answers
+            });
           }
         } catch (e) {
           console.error('Error parsing stored onboarding data:', e);
@@ -14444,11 +14442,20 @@ showTypingIndicator();
     let onboardingSummaryContext = '';
     if (window.additionalContext && window.additionalContext.onboarding) {
       const answers = window.additionalContext.onboarding;
-      const category = currentCharacter.Category || currentCharacter.category || '';
-      const config = window.onboardingQuestions && window.onboardingQuestions[category];
+      const onboardingCategory = window.additionalContext.onboardingCategory || 
+                                getNormalizedOnboardingCategory(currentCharacter);
+      const config = window.onboardingQuestions && window.onboardingQuestions[onboardingCategory];
+      
+      console.log('🧠 Including onboarding in memory context:', {
+        category: onboardingCategory,
+        hasConfig: !!config,
+        answersCount: Object.keys(answers).length
+      });
       
       if (config && config.contextMappings) {
-        onboardingContext = '\n\n[User Onboarding Information]\n';
+        onboardingContext = '\n\n[User Personal Information from Onboarding]\n';
+        onboardingContext += `Category: ${onboardingCategory}\n`;
+        
         for (const [questionId, answer] of Object.entries(answers)) {
           const question = config.questions.find(q => q.id === questionId);
           if (question) {
@@ -14458,6 +14465,15 @@ showTypingIndicator();
             onboardingContext += `- ${question.question}: ${contextValue}\n`;
           }
         }
+        
+        onboardingContext += '\nThis information helps you understand the user better and provide personalized responses.\n';
+      } else {
+        // Fallback if no config found
+        onboardingContext = '\n\n[User Personal Information]\n';
+        for (const [key, value] of Object.entries(answers)) {
+          onboardingContext += `- ${key}: ${value}\n`;
+        }
+      }
         
         // ALWAYS include the onboarding conversation context - the AI needs to remember what they suggested
         // Use either the stored welcome message or the previous AI message
@@ -16808,6 +16824,12 @@ document.addEventListener('DOMContentLoaded', () => {
       // Use character_type directly for onboarding
       const category = getNormalizedOnboardingCategory(currentCharacter);
       console.log('📐 Onboarding category from character_type:', category);
+      console.log('📐 Character data for onboarding:', {
+        character_type: currentCharacter?.character_type,
+        Category: currentCharacter?.Category,
+        category: currentCharacter?.category,
+        name: currentCharacter?.name
+      });
       
       const userId = localStorage.getItem('user_id') || localStorage.getItem('user_uid') || 'anonymous';
       
@@ -17344,6 +17366,19 @@ document.addEventListener('DOMContentLoaded', () => {
         window.additionalContext.onboarding = answers;
       } else {
         window.additionalContext = { onboarding: answers };
+      }
+      
+      // Also store in localStorage for persistent access
+      const userId = localStorage.getItem('user_uid') || 'anonymous';
+      const characterSlug = currentCharacter?.slug || currentCharacter?.character_id || '';
+      if (userId && characterSlug) {
+        const storageKey = `onboarding_${userId}_${characterSlug}`;
+        localStorage.setItem(storageKey, JSON.stringify({
+          answers: answers,
+          timestamp: new Date().toISOString(),
+          category: category
+        }));
+        console.log('💾 Onboarding data stored in localStorage for future access');
       }
     }
     
