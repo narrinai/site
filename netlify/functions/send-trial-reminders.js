@@ -27,13 +27,13 @@ exports.handler = async (event, context) => {
 
     // Find users whose trial ends tomorrow (for "ending soon" email)
     const endingTomorrowFormula = `AND(
-      {trial_end_date} = DATESTR(DATEADD(TODAY(), 1, 'day')),
+      {grace_period_end} = DATESTR(DATEADD(TODAY(), 1, 'day')),
       NOT({trial_ending_email_sent})
     )`;
 
     // Find users whose trial ended yesterday (for "expired" email)  
     const expiredYesterdayFormula = `AND(
-      {trial_end_date} = DATESTR(DATEADD(TODAY(), -1, 'day')),
+      {grace_period_end} = DATESTR(DATEADD(TODAY(), -1, 'day')),
       NOT({trial_expired_email_sent})
     )`;
 
