@@ -7314,12 +7314,14 @@ document.addEventListener('DOMContentLoaded', () => {
         ]
       };
       
-      // Determine personality type
+      // Determine personality type - Force all new companions to use friendly (welcoming guide)
       let personalityType = 'friendly'; // default
       
-      // Force newly created characters to use friendly personality for welcoming guide
-      if (isNewlyCreated) {
+      // For newly created companions, always use friendly to show welcoming guide
+      const isNewCompanion = currentCharacterSlug.includes('-') && currentCharacterSlug.length > 8;
+      if (isNewCompanion) {
         personalityType = 'friendly';
+        console.log('🎯 New companion detected, forcing friendly personality for welcoming guide');
       }
       
       if (characterTitle.toLowerCase().includes('professional') || 

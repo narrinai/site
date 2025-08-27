@@ -29,7 +29,7 @@ async function sendTestTrialEndingEmail(SENDGRID_API_KEY) {
           <div style="padding: 50px 40px; text-align: center;">
             <div style="font-size: 64px; margin-bottom: 24px;">💝</div>
             
-            <h2 style="font-family: 'Outfit', sans-serif; font-size: 28px; font-weight: 700; color: #1e293b; margin-bottom: 16px;">Don't lose your mental clarity progress</h2>
+            <h2 style="font-family: 'Outfit', sans-serif; font-size: 28px; font-weight: 700; color: #1e293b; margin-bottom: 16px;">Don't lose your companion memories</h2>
             <p style="font-size: 18px; color: #64748b; margin-bottom: 32px;">Your free trial ends in 24 hours</p>
             
             <div style="text-align: left; margin-bottom: 40px;">
