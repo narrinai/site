@@ -7785,9 +7785,16 @@ What would you like to start with?`;
         return;
       }
       
-      // DISABLED: Skip onboarding check - all companions should show conversation starter with guide
-      // All companions (including those with onboarding) should show the welcoming guide
-      console.log('🎯 Showing conversation starter for all companions (onboarding check disabled)');
+      // Check if character has onboarding flow - skip conversation starter for these
+      const category = currentCharacter?.Category || currentCharacter?.category || '';
+      const hasOnboarding = ['Career', 'Life', 'Love'].includes(category);
+      
+      if (hasOnboarding) {
+        console.log('🎯 Character has onboarding flow, skipping conversation starter');
+        // Still mark as shown to prevent duplicate attempts
+        window.conversationStarterShown = true;
+        return;
+      }
       
       const starter = generateConversationStarter();
       console.log('🎯 Generated starter:', starter);
@@ -8989,7 +8996,6 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
               window.additionalContext = {};
             }
             window.additionalContext.onboarding = onboardingData.answers;
-            window.additionalContext.onboardingCategory = onboardingData.category;
             
             // Also restore welcome message if available
             if (onboardingData.welcomeMessage) {
@@ -9003,11 +9009,7 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
               console.log('✅ Suggestions restored from localStorage:', onboardingData.suggestions);
             }
             
-            console.log('✅ Onboarding data restored from localStorage:', {
-              category: onboardingData.category,
-              answersCount: Object.keys(onboardingData.answers).length,
-              answers: onboardingData.answers
-            });
+            console.log('✅ Onboarding data restored from localStorage:', onboardingData.answers);
           }
         } catch (e) {
           console.error('Error parsing stored onboarding data:', e);
@@ -13920,98 +13922,16 @@ function analyzeConversationMood(message) {
   return null;
 }
 
-// Add personalized gentle check-in based on onboarding and memories
+// Add gentle check-in if conversation seems consistently negative
 function showGentleCheckIn() {
-  // Get personalized context from onboarding and memories
-  let personalizedMessage = "I've noticed our conversation has been touching on some heavy topics.";
-  let supportMessage = "Just a gentle reminder that it's okay to take breaks, and professional support is always available if you need someone to talk to.";
-  let icon = "💜";
-  
-  // Personalize based on onboarding data
-  if (window.additionalContext && window.additionalContext.onboarding) {
-    const answers = window.additionalContext.onboarding;
-    const category = window.additionalContext.onboardingCategory || 
-                    getNormalizedOnboardingCategory(currentCharacter);
-    
-    console.log('💜 Personalizing check-in based on onboarding:', { category, answers });
-    
-    switch (category) {
-      case 'Mindfulness':
-        icon = "🧘";
-        if (answers.mental_state === 'racing_mind' || answers.mental_state === 'scattered') {
-          personalizedMessage = "I can sense your mind has been especially active in our conversation.";
-          supportMessage = "Remember the breathing techniques we've discussed, and know that professional mindfulness or therapy support can provide additional grounding when needed.";
-        } else {
-          personalizedMessage = "I notice we've been exploring some deeper feelings together.";
-          supportMessage = "This is part of the mindful processing journey. Consider taking a moment to breathe, and remember that professional support is always available.";
-        }
-        break;
-        
-      case 'Romance':
-        icon = "💕";
-        if (answers.emotional_confusion === 'overwhelmed' || answers.dating_challenges === 'anxiety') {
-          personalizedMessage = "I can feel how much these relationship topics are weighing on your heart.";
-          supportMessage = "Romantic feelings can be intense. Remember it's okay to process at your own pace, and relationship counselors are wonderful resources for deeper support.";
-        } else {
-          personalizedMessage = "Our conversation about love and relationships has touched on some tender areas.";
-          supportMessage = "It's beautiful that you're exploring these feelings. Professional relationship counseling can provide additional perspective when needed.";
-        }
-        break;
-        
-      case 'Career':
-      case 'Mentorship':
-        icon = "🌟";
-        if (answers.biggest_challenge === 'confidence' || answers.thinking_challenges === 'self_doubt') {
-          personalizedMessage = "I notice self-doubt has been coming up in our career conversation.";
-          supportMessage = "These feelings about your professional worth are more common than you think. Career counselors and coaches can provide structured support for building confidence.";
-        } else {
-          personalizedMessage = "Our career discussion has brought up some challenging professional feelings.";
-          supportMessage = "Professional growth can bring up complex emotions. Career counseling or coaching can provide additional frameworks for navigating these challenges.";
-        }
-        break;
-        
-      case 'Friendship':
-        icon = "🤗";
-        if (answers.social_challenges === 'anxiety' || answers.social_challenges === 'judgment') {
-          personalizedMessage = "I can sense how much social connections matter to you, and how challenging they can feel.";
-          supportMessage = "Social anxiety is very real and valid. Therapists who specialize in social skills can provide wonderful support alongside our conversations.";
-        } else {
-          personalizedMessage = "Our friendship conversation has touched on some meaningful but difficult topics.";
-          supportMessage = "Exploring social dynamics can bring up complex feelings. Professional support is always there when you need additional perspective.";
-        }
-        break;
-        
-      default:
-        // Use memories if available for personalization
-        if (window.lastRetrievedMemories && window.lastRetrievedMemories.length > 0) {
-          const importantMemory = window.lastRetrievedMemories.find(m => m.importance >= 7);
-          if (importantMemory && importantMemory.emotional_state && importantMemory.emotional_state !== 'neutral') {
-            personalizedMessage = `I'm remembering how you've shared about feeling ${importantMemory.emotional_state}, and I notice we're exploring some heavy territory again.`;
-          }
-        }
-    }
-  }
-  
-  // Check recent memories for additional personalization
-  if (window.lastRetrievedMemories && window.lastRetrievedMemories.length > 0) {
-    const stressMemories = window.lastRetrievedMemories.filter(m => 
-      (m.summary && (m.summary.toLowerCase().includes('stress') || 
-       m.summary.toLowerCase().includes('anxiety') || 
-       m.summary.toLowerCase().includes('overwhelm'))) ||
-      m.emotional_state === 'negative' || m.emotional_state === 'stressed'
-    );
-    
-    if (stressMemories.length > 0) {
-      supportMessage += " I remember you've mentioned feeling stressed before - you don't have to carry this alone.";
-    }
-  }
-  
   const checkInDiv = document.createElement('div');
   checkInDiv.className = 'gentle-checkin';
   checkInDiv.innerHTML = `
     <div class="checkin-content">
-      <span class="checkin-icon">${icon}</span>
-      <p>${personalizedMessage} ${supportMessage}</p>
+      <span class="checkin-icon">💜</span>
+      <p>I've noticed our conversation has been touching on some heavy topics. 
+         Just a gentle reminder that it's okay to take breaks, and professional 
+         support is always available if you need someone to talk to.</p>
       <button onclick="this.parentElement.parentElement.style.display='none';" class="checkin-dismiss">
         I understand, thanks
       </button>
@@ -14151,9 +14071,6 @@ async function sendMessage(event) {
     } else {
       memories = memoryResponse || [];
     }
-    
-    // Store memories globally for check-ins and other features
-    window.lastRetrievedMemories = memories;
     
     console.log("✅ Memory retrieval completed:", memories?.length || 0, "memories found");
     console.log("📊 Full memory response:", memoryResponse);
@@ -14527,20 +14444,11 @@ showTypingIndicator();
     let onboardingSummaryContext = '';
     if (window.additionalContext && window.additionalContext.onboarding) {
       const answers = window.additionalContext.onboarding;
-      const onboardingCategory = window.additionalContext.onboardingCategory || 
-                                getNormalizedOnboardingCategory(currentCharacter);
-      const config = window.onboardingQuestions && window.onboardingQuestions[onboardingCategory];
-      
-      console.log('🧠 Including onboarding in memory context:', {
-        category: onboardingCategory,
-        hasConfig: !!config,
-        answersCount: Object.keys(answers).length
-      });
+      const category = currentCharacter.Category || currentCharacter.category || '';
+      const config = window.onboardingQuestions && window.onboardingQuestions[category];
       
       if (config && config.contextMappings) {
-        onboardingContext = '\n\n[User Personal Information from Onboarding]\n';
-        onboardingContext += `Category: ${onboardingCategory}\n`;
-        
+        onboardingContext = '\n\n[User Onboarding Information]\n';
         for (const [questionId, answer] of Object.entries(answers)) {
           const question = config.questions.find(q => q.id === questionId);
           if (question) {
@@ -14550,15 +14458,6 @@ showTypingIndicator();
             onboardingContext += `- ${question.question}: ${contextValue}\n`;
           }
         }
-        
-        onboardingContext += '\nThis information helps you understand the user better and provide personalized responses.\n';
-      } else {
-        // Fallback if no config found
-        onboardingContext = '\n\n[User Personal Information]\n';
-        for (const [key, value] of Object.entries(answers)) {
-          onboardingContext += `- ${key}: ${value}\n`;
-        }
-      }
         
         // ALWAYS include the onboarding conversation context - the AI needs to remember what they suggested
         // Use either the stored welcome message or the previous AI message
@@ -16909,12 +16808,6 @@ document.addEventListener('DOMContentLoaded', () => {
       // Use character_type directly for onboarding
       const category = getNormalizedOnboardingCategory(currentCharacter);
       console.log('📐 Onboarding category from character_type:', category);
-      console.log('📐 Character data for onboarding:', {
-        character_type: currentCharacter?.character_type,
-        Category: currentCharacter?.Category,
-        category: currentCharacter?.category,
-        name: currentCharacter?.name
-      });
       
       const userId = localStorage.getItem('user_id') || localStorage.getItem('user_uid') || 'anonymous';
       
@@ -17451,19 +17344,6 @@ document.addEventListener('DOMContentLoaded', () => {
         window.additionalContext.onboarding = answers;
       } else {
         window.additionalContext = { onboarding: answers };
-      }
-      
-      // Also store in localStorage for persistent access
-      const userId = localStorage.getItem('user_uid') || 'anonymous';
-      const characterSlug = currentCharacter?.slug || currentCharacter?.character_id || '';
-      if (userId && characterSlug) {
-        const storageKey = `onboarding_${userId}_${characterSlug}`;
-        localStorage.setItem(storageKey, JSON.stringify({
-          answers: answers,
-          timestamp: new Date().toISOString(),
-          category: category
-        }));
-        console.log('💾 Onboarding data stored in localStorage for future access');
       }
     }
     
