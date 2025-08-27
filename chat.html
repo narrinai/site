@@ -14041,6 +14041,20 @@ function showGentleCheckIn() {
   chatlog.scrollTop = chatlog.scrollHeight;
 }
 
+// Reset send button state
+function resetSendButton() {
+  const sendButton = document.getElementById('sendButton');
+  const userInput = document.getElementById('userInput');
+  if (sendButton) {
+    sendButton.style.background = '';
+    sendButton.textContent = 'Send';
+    sendButton.disabled = false;
+  }
+  if (userInput) {
+    userInput.disabled = false;
+  }
+}
+
 async function sendMessage(event) {
   event?.preventDefault();
   
@@ -14466,20 +14480,6 @@ User message: ${input}`;
     setTimeout(() => {
       showGentleCheckIn();
     }, 3000); // Show after 3 seconds
-  }
-
-  // Reset send button state
-  function resetSendButton() {
-    const sendButton = document.getElementById('sendButton');
-    const userInput = document.getElementById('userInput');
-    if (sendButton) {
-      sendButton.style.background = '';
-      sendButton.textContent = 'Send';
-      sendButton.disabled = false;
-    }
-    if (userInput) {
-      userInput.disabled = false;
-    }
   }
 
   // Show typing indicator immediately
