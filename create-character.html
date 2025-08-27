@@ -4218,8 +4218,16 @@ function updatePromptCounter() {
      const name = document.getElementById('characterName').value || 'Character Name';
      const title = document.getElementById('characterTitle').value || 'Character title will appear here';
      
-     document.getElementById('previewName').textContent = name;
-     document.getElementById('previewTitle').textContent = title;
+     // Safely update preview elements if they exist
+     const previewName = document.getElementById('previewName');
+     const previewTitle = document.getElementById('previewTitle');
+     
+     if (previewName) {
+       previewName.textContent = name;
+     }
+     if (previewTitle) {
+       previewTitle.textContent = title;
+     }
      
      // Update avatar
      const previewAvatar = document.getElementById('previewAvatar');
