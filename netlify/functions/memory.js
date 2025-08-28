@@ -336,81 +336,55 @@ if (!userMatch && user_id) {
   }
 }
 
-// FALLBACK: Check if record has any User field that we should consider valid
-if (!userMatch && Array.isArray(recordUserField) && recordUserField.length > 0) {
-  // Log what we found for debugging
-  const firstUserId = recordUserField[0];
-  console.log(`👤 FALLBACK - Found User array with first ID: ${firstUserId}`);
-  
-  // If we have a valid email and this record also has that email, consider it a match
-  if (validUserEmails.length > 0) {
-    // Get the actual email from the lookup field
-    const actualEmail = fields['Email (from Email)'] || recordUserEmail;
-    if (actualEmail) {
-      const emailMatch = validUserEmails.some(email => 
-        String(actualEmail).toLowerCase() === String(email).toLowerCase()
-      );
-      if (emailMatch) {
-        userMatch = true;
-        console.log(`👤 FALLBACK - Accepting record based on email match: ${actualEmail}`);
-        // Add this user record ID to our valid list for future reference
-        if (!validUserRecordIds.includes(firstUserId)) {
-          validUserRecordIds.push(firstUserId);
-          debugInfo.allUserRecordIds.push(firstUserId);
-        }
-      }
-    }
-  }
-}
+// REMOVED DANGEROUS FALLBACK - No weak email matching allowed for privacy
+// Only exact NetlifyUID matches are allowed for memory access
        if (!userMatch) {
          console.log(`❌ User mismatch, skipping record`);
          continue;
        }
        
        // Check character match - handle both slugs and record IDs
-       let characterMatch = true; // Default to true if no character specified
+       let characterMatch = false; // Default to false for strict filtering
        
-       // ALWAYS include imported memories regardless of character
+       // SECURITY: Only include memories for the specific character being chatted with
+       // OR imported personal_info that belongs to the current user (but still check character)
        const isImportedMemory = fields.message_type === 'imported';
-       // ALWAYS include personal_info memories for all characters
        const isPersonalInfo = fields.Memory_Tags && fields.Memory_Tags.includes('personal_info');
        
-       if (isImportedMemory) {
-         characterMatch = true;
-         console.log(`🧠 Including imported memory regardless of character`);
-       } else if (isPersonalInfo) {
-         characterMatch = true;
-         console.log(`👤 Including personal_info memory for all characters`);
-       } else if (characterIdentifier) {
+       if (characterIdentifier) {
          const recordCharacterField = fields.Character; // "Batman"
          const recordSlug = fields['Slug (from Character)']; // "batman"
          
-         console.log(`🎭 Character match check: "${characterIdentifier}" vs Character: "${recordCharacterField}", Slug: "${recordSlug}"`);
+         console.log(`🎭 STRICT Character match check: "${characterIdentifier}" vs Slug: "${recordSlug}"`);
          
-         // Check if Character field matches (e.g., "Batman" === "harry-potter")
-         if (recordCharacterField && !Array.isArray(recordCharacterField)) {
-           characterMatch = String(recordCharacterField).toLowerCase() === String(characterIdentifier).toLowerCase();
-           console.log(`  Character field match: "${recordCharacterField}" === "${characterIdentifier}" = ${characterMatch}`);
-         }
-         
-         // Check the Slug (from Character) field
-         if (!characterMatch && recordSlug) {
+         // SECURITY: Only exact slug matches allowed - no fallbacks
+         if (recordSlug && Array.isArray(recordSlug) && recordSlug.length > 0) {
+           // Handle array of slugs
+           characterMatch = recordSlug.some(slug => String(slug).toLowerCase() === String(characterIdentifier).toLowerCase());
+           console.log(`  Slug array match: ${JSON.stringify(recordSlug)} contains "${characterIdentifier}" = ${characterMatch}`);
+         } else if (recordSlug && !Array.isArray(recordSlug)) {
+           // Handle single slug
            characterMatch = String(recordSlug).toLowerCase() === String(characterIdentifier).toLowerCase();
            console.log(`  Slug match: "${recordSlug}" === "${characterIdentifier}" = ${characterMatch}`);
+         } else {
+           console.log(`  No valid slug found in record`);
+           characterMatch = false;
          }
          
-         // If Character field is an array of record IDs (unlikely based on screenshots)
-         if (!characterMatch && Array.isArray(recordCharacterField) && characterIdentifier.startsWith('rec')) {
-           characterMatch = recordCharacterField.includes(characterIdentifier);
-           console.log(`  Character record ID check: ${JSON.stringify(recordCharacterField)} includes "${characterIdentifier}" = ${characterMatch}`);
+         // SECURITY: Only allow imported personal_info if it ALSO matches character
+         if ((isImportedMemory && isPersonalInfo) && characterMatch) {
+           console.log(`🔒 Allowing imported personal_info for current character only`);
+         } else if (isImportedMemory || isPersonalInfo) {
+           console.log(`🚫 BLOCKING imported/personal_info - wrong character`);
+           characterMatch = false;
          }
          
-         if (!characterMatch) {
-           console.log(`  No character match found`);
-         }
-         
-         console.log(`🎭 Character match result: ${characterMatch}`);
-       } // End of else if (characterIdentifier)
+         console.log(`🎭 Final character match result: ${characterMatch}`);
+       } else {
+         // No character specified - don't include memories
+         characterMatch = false;
+         console.log(`❌ No character specified - blocking all memories`);
+       }
        
        if (!characterMatch) {
          console.log(`❌ Character mismatch, skipping record`);
