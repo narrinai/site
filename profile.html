@@ -7325,6 +7325,11 @@ function updateTrialStatus() {
       if (daysRemaining === 0 && endDate < now) {
         // Trial has expired - show expired messaging
         console.log('⏰ Trial has expired, showing post-trial messaging');
+        // Remove parent container styling to avoid double border
+        trialStatus.style.background = 'transparent';
+        trialStatus.style.border = 'none';
+        trialStatus.style.padding = '0';
+        
         trialStatus.innerHTML = `
           <div style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%); border: 2px solid #f97316; border-radius: 16px; padding: 24px; text-align: center;">
             <div style="font-size: 32px; margin-bottom: 16px;">⏰</div>
@@ -7357,6 +7362,11 @@ function updateTrialStatus() {
     } else if (subscriptionStatus === 'expired_trial' || (subscriptionStatus !== 'trial' && trialEndDate)) {
       // Handle explicitly expired trials or free users with past trial dates
       console.log('⏰ Showing expired trial messaging');
+      // Remove parent container styling to avoid double border
+      trialStatus.style.background = 'transparent';
+      trialStatus.style.border = 'none';
+      trialStatus.style.padding = '0';
+      
       trialStatus.innerHTML = `
         <div style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%); border: 2px solid #f97316; border-radius: 16px; padding: 24px; text-align: center;">
           <div style="font-size: 32px; margin-bottom: 16px;">💔</div>
