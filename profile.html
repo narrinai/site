@@ -7312,30 +7312,63 @@ function updateTrialStatus() {
   
   console.log('🔍 updateTrialStatus called:', { subscriptionStatus, trialEndDate, hasTrialStatus: !!trialStatus });
   
-  if (subscriptionStatus === 'trial' && trialEndDate && trialStatus) {
-    console.log('📅 Updating trial status display');
-    
-    // Calculate days remaining
-    const endDate = new Date(trialEndDate);
-    const now = new Date();
-    const daysRemaining = Math.max(0, Math.ceil((endDate - now) / (1000 * 60 * 60 * 24)));
-    
-    // Update trial information
-    const trialDaysEl = document.getElementById('trialDaysRemaining');
-    const trialEndEl = document.getElementById('trialEndDate');
-    
-    if (trialDaysEl) trialDaysEl.textContent = daysRemaining;
-    if (trialEndEl) {
-      const formattedDate = endDate.toLocaleDateString('en-US', {
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric'
-      });
-      trialEndEl.textContent = formattedDate;
+  if (trialStatus) {
+    if (subscriptionStatus === 'trial' && trialEndDate) {
+      console.log('📅 Updating trial status display');
+      
+      // Calculate days remaining
+      const endDate = new Date(trialEndDate);
+      const now = new Date();
+      const daysRemaining = Math.max(0, Math.ceil((endDate - now) / (1000 * 60 * 60 * 24)));
+      
+      // Check if trial has expired
+      if (daysRemaining === 0 && endDate < now) {
+        // Trial has expired - show expired messaging
+        console.log('⏰ Trial has expired, showing post-trial messaging');
+        trialStatus.innerHTML = `
+          <div style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%); border: 2px solid #f97316; border-radius: 16px; padding: 24px; text-align: center;">
+            <div style="font-size: 32px; margin-bottom: 16px;">⏰</div>
+            <h3 style="color: #1e293b; margin-bottom: 12px; font-size: 20px;">Your Trial Has Ended</h3>
+            <p style="color: #64748b; margin-bottom: 20px;">To continue chatting with your companions and create new ones, upgrade to Engage or Immerse. Your companions are waiting for you!</p>
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+              <a href="#plans" onclick="document.getElementById('pricing-section').scrollIntoView({behavior: 'smooth'}); return false;" style="background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">Reactivate Companions →</a>
+            </div>
+          </div>
+        `;
+        trialStatus.style.display = 'block';
+      } else {
+        // Active trial - show normal trial info
+        const trialDaysEl = document.getElementById('trialDaysRemaining');
+        const trialEndEl = document.getElementById('trialEndDate');
+        
+        if (trialDaysEl) trialDaysEl.textContent = daysRemaining;
+        if (trialEndEl) {
+          const formattedDate = endDate.toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+          });
+          trialEndEl.textContent = formattedDate;
+        }
+        
+        trialStatus.style.display = 'block';
+        console.log('✅ Trial status display updated');
+      }
+    } else if (subscriptionStatus === 'expired_trial' || (subscriptionStatus !== 'trial' && trialEndDate)) {
+      // Handle explicitly expired trials or free users with past trial dates
+      console.log('⏰ Showing expired trial messaging');
+      trialStatus.innerHTML = `
+        <div style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%); border: 2px solid #f97316; border-radius: 16px; padding: 24px; text-align: center;">
+          <div style="font-size: 32px; margin-bottom: 16px;">💔</div>
+          <h3 style="color: #1e293b; margin-bottom: 12px; font-size: 20px;">Your Trial Has Ended</h3>
+          <p style="color: #64748b; margin-bottom: 20px;">Your companions miss you! Upgrade to continue chatting and unlock unlimited companions.</p>
+          <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+            <a href="#plans" onclick="document.getElementById('pricing-section').scrollIntoView({behavior: 'smooth'}); return false;" style="background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">Reactivate Companions →</a>
+          </div>
+        </div>
+      `;
+      trialStatus.style.display = 'block';
     }
-    
-    trialStatus.style.display = 'block';
-    console.log('✅ Trial status display updated');
   }
 }
 
