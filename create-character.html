@@ -5131,8 +5131,13 @@ function showUpgradePopup(reason) {
   const userPlan = localStorage.getItem('user_plan') || 'Free';
   
   if (reason === 'companion_limit') {
-    title.textContent = 'Companion Limit Reached';
     const subscriptionStatus = localStorage.getItem('subscription_status') || '';
+    
+    if (userPlan === 'Free' && subscriptionStatus !== 'trial') {
+      title.textContent = 'Trial Has Ended';
+    } else {
+      title.textContent = 'Companion Limit Reached';
+    }
     
     console.log('🔍 Popup messaging debug:', {
       userPlan: userPlan,
@@ -5144,7 +5149,7 @@ function showUpgradePopup(reason) {
     if (subscriptionStatus === 'trial') {
       message.innerHTML = "<strong>You've reached your trial limit of 3 companions.</strong><br><br>Upgrade for unlimited companions, or continue with your existing ones during the trial!";
     } else if (userPlan === 'Free') {
-      message.innerHTML = "<strong>Your trial has ended.</strong><br><br>Upgrade to Engage to create and chat with AI companions. Start your mental clarity journey today!";
+      message.innerHTML = "<strong>Your trial has ended.</strong><br><br>To continue chatting with your companions and create new ones, upgrade to Engage or Immerse. Your companions are waiting for you!";
     } else if (userPlan === 'Engage') {
       message.innerHTML = "<strong>You've reached your limit of 3 companions on the Engage plan.</strong><br><br>Upgrade to Immerse for unlimited companions and advanced features!";
     } else {
