@@ -1520,30 +1520,6 @@
       box-shadow: var(--shadow-md);
     }
 
-    .demo-progress {
-      display: flex;
-      justify-content: center;
-      margin-top: var(--spacing-lg);
-    }
-
-    .progress-dots {
-      display: flex;
-      gap: var(--spacing-sm);
-    }
-
-    .dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: var(--color-light-gray);
-      cursor: pointer;
-      transition: all var(--transition-base);
-    }
-
-    .dot.active {
-      background: var(--color-teal);
-      transform: scale(1.2);
-    }
 
     .chat-conversation {
       margin-bottom: var(--spacing-lg);
@@ -1761,6 +1737,196 @@
       flex-grow: 1;
       display: flex;
       align-items: center;
+    }
+
+    /* ===== COMPANION SHOWCASE ===== */
+    .companion-showcase {
+      margin-bottom: var(--spacing-3xl);
+      padding: var(--spacing-3xl) 0;
+      background: var(--color-white);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .showcase-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 var(--spacing-lg);
+    }
+    
+    .showcase-header {
+      text-align: center;
+      margin-bottom: var(--spacing-3xl);
+    }
+    
+    .showcase-header h2 {
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-3xl);
+      font-weight: 700;
+      color: var(--color-navy);
+      margin-bottom: var(--spacing-md);
+    }
+    
+    .showcase-header p {
+      font-size: var(--font-size-lg);
+      color: var(--color-gray);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    .companion-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: var(--spacing-xl);
+    }
+    
+    .companion-card {
+      background: var(--color-off-white);
+      border: 2px solid var(--color-light-gray);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-xl);
+      text-align: center;
+      transition: all var(--transition-base);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .companion-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: var(--gradient-subtle);
+      opacity: 0;
+      transition: all var(--transition-base);
+      z-index: 0;
+    }
+    
+    .companion-card:hover {
+      border-color: var(--color-teal);
+      transform: translateY(-8px);
+      box-shadow: var(--shadow-xl);
+    }
+    
+    .companion-card:hover::before {
+      left: 0;
+      opacity: 0.05;
+    }
+    
+    .companion-card > * {
+      position: relative;
+      z-index: 1;
+    }
+    
+    .companion-avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: var(--radius-full);
+      margin: 0 auto var(--spacing-lg);
+      border: 3px solid var(--color-light-gray);
+      overflow: hidden;
+      transition: all var(--transition-base);
+    }
+    
+    .companion-card:hover .companion-avatar {
+      border-color: var(--color-teal);
+      transform: scale(1.05);
+    }
+    
+    .companion-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .companion-card h3 {
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-xl);
+      font-weight: 700;
+      color: var(--color-navy);
+      margin-bottom: var(--spacing-xs);
+    }
+    
+    .companion-role {
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: var(--color-teal);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: var(--spacing-md);
+    }
+    
+    .companion-description {
+      font-size: var(--font-size-base);
+      color: var(--color-gray);
+      line-height: 1.6;
+      margin-bottom: var(--spacing-lg);
+    }
+    
+    .companion-cta {
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: var(--font-size-sm);
+      padding: var(--spacing-sm) var(--spacing-xl);
+      border-radius: var(--radius-md);
+      display: inline-block;
+      transition: all var(--transition-base);
+      box-shadow: var(--shadow-colored);
+    }
+    
+    .companion-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    /* Mobile responsive styles for companion showcase */
+    @media (max-width: 768px) {
+      .companion-showcase {
+        margin-bottom: var(--spacing-2xl);
+        padding: var(--spacing-2xl) 0;
+      }
+      
+      .showcase-content {
+        padding: 0 var(--spacing-md);
+      }
+      
+      .showcase-header {
+        margin-bottom: var(--spacing-2xl);
+      }
+      
+      .showcase-header h2 {
+        font-size: var(--font-size-2xl);
+      }
+      
+      .companion-cards {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: var(--spacing-lg);
+      }
+      
+      .companion-card {
+        padding: var(--spacing-lg);
+      }
+      
+      .companion-avatar {
+        width: 100px;
+        height: 100px;
+        margin-bottom: var(--spacing-md);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .companion-cards {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+      }
+      
+      .companion-card {
+        padding: var(--spacing-md);
+      }
     }
     
     /* How It Works Section */
@@ -2859,13 +3025,6 @@ body.has-referral-banner {
             </div>
           </div>
           
-          <div class="demo-progress">
-            <div class="progress-dots">
-              <span class="dot active" data-demo="0"></span>
-              <span class="dot" data-demo="1"></span>
-              <span class="dot" data-demo="2"></span>
-            </div>
-          </div>
         </div>
         
       </section>
@@ -2899,6 +3058,54 @@ body.has-referral-banner {
             <div class="value-icon">🔒</div>
             <h3>Private & Secure</h3>
             <p>Your conversations and personal data are completely private and securely stored. No sharing, no tracking, no judgment – just a safe space for authentic growth and self-discovery.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- AI Companion Cards Section -->
+      <section class="companion-showcase">
+        <div class="showcase-content">
+          <div class="showcase-header">
+            <h2>Meet Your AI Companions</h2>
+            <p>Choose from specialized AI companions designed to help you think clearer</p>
+          </div>
+          <div class="companion-cards">
+            <div class="companion-card">
+              <div class="companion-avatar">
+                <img src="https://narrin.ai/avatars/emerald-1754253047878.webp" alt="Emerald - Mindfulness Coach">
+              </div>
+              <h3>Emerald</h3>
+              <p class="companion-role">Mindfulness Coach</p>
+              <p class="companion-description">Guides you through daily reflection and helps organize scattered thoughts into clear insights.</p>
+              <a href="/create-character" class="companion-cta">Create Companion</a>
+            </div>
+            <div class="companion-card">
+              <div class="companion-avatar">
+                <img src="https://narrin.ai/avatars/sage-wisdom-guide.webp" alt="Sage - Wisdom Guide">
+              </div>
+              <h3>Sage</h3>
+              <p class="companion-role">Wisdom Guide</p>
+              <p class="companion-description">Offers thoughtful perspectives and helps you see patterns in your experiences.</p>
+              <a href="/create-character" class="companion-cta">Create Companion</a>
+            </div>
+            <div class="companion-card">
+              <div class="companion-avatar">
+                <img src="https://narrin.ai/avatars/alex-life-coach.webp" alt="Alex - Life Coach">
+              </div>
+              <h3>Alex</h3>
+              <p class="companion-role">Life Coach</p>
+              <p class="companion-description">Motivates and supports you through challenges while celebrating your growth.</p>
+              <a href="/create-character" class="companion-cta">Create Companion</a>
+            </div>
+            <div class="companion-card">
+              <div class="companion-avatar">
+                <img src="https://narrin.ai/avatars/nova-creative-guide.webp" alt="Nova - Creative Guide">
+              </div>
+              <h3>Nova</h3>
+              <p class="companion-role">Creative Guide</p>
+              <p class="companion-description">Sparks creativity and helps you explore new perspectives on familiar problems.</p>
+              <a href="/create-character" class="companion-cta">Create Companion</a>
+            </div>
           </div>
         </div>
       </section>
@@ -4726,10 +4933,6 @@ document.addEventListener('DOMContentLoaded', function() {
       insightElement.style.opacity = '0';
     }
     
-    // Update progress dots
-    document.querySelectorAll('.dot').forEach((dot, i) => {
-      dot.classList.toggle('active', i === index);
-    });
     
     // Play messages with realistic timing
     for (let i = 0; i < demo.messages.length; i++) {
@@ -4783,29 +4986,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Add click handlers for dots (only if they exist)
-  const dots = document.querySelectorAll('.dot');
-  if (dots.length > 0) {
-    dots.forEach((dot, index) => {
-      dot.addEventListener('click', () => {
-        clearTimeout(demoTimeout);
-        currentDemoIndex = index;
-        playDemo(index);
-        
-        // Restart cycling
-        setTimeout(() => {
-          function restartCycle() {
-            demoTimeout = setTimeout(() => {
-              currentDemoIndex = (currentDemoIndex + 1) % chatDemos.length;
-              playDemo(currentDemoIndex);
-              restartCycle();
-            }, 8000);
-          }
-          restartCycle();
-        }, 6000);
-      });
-    });
-  }
 
   // Start demo when page loads
   startChatDemo();
