@@ -2796,8 +2796,8 @@ body.has-referral-banner {
     <!-- Hero Section -->
     <section class="hero">
       <div class="hero-content">
-        <h1>Turn Daily Mental Chaos Into Clear Thinking</h1>
-        <p>AI Companions who help organize your daily thoughts.</p>
+        <h1>Your Daily AI Journal for Mental Clarity</h1>
+        <p>Reflect, organize, and grow through personalized AI conversations that transform daily experiences into meaningful insights.</p>
         <div class="hero-benefits">
           <div class="benefit-item">
             <span class="checkmark">✓</span>
@@ -4702,19 +4702,16 @@ document.addEventListener('DOMContentLoaded', function() {
   async function playDemo(index) {
     const demo = chatDemos[index];
     const chatContainer = document.getElementById('chatDemo');
-    const titleElement = document.getElementById('demoTitle');
     const insightElement = document.getElementById('insightText');
     const insightContent = document.getElementById('insightContent');
-    const currentDemoSpan = document.querySelector('.current-demo');
     
     if (!chatContainer) return; // Exit if element doesn't exist
     
     // Clear previous demo
     chatContainer.innerHTML = '';
-    insightElement.style.opacity = '0';
-    
-    // Update title
-    titleElement.textContent = demo.title;
+    if (insightElement) {
+      insightElement.style.opacity = '0';
+    }
     
     // Update progress dots
     document.querySelectorAll('.dot').forEach((dot, i) => {
@@ -4740,8 +4737,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (isLastMessage) {
           // Show insight after last AI message
           setTimeout(() => {
-            insightContent.textContent = demo.insight;
-            insightElement.style.opacity = '1';
+            if (insightContent && insightElement) {
+              insightContent.textContent = demo.insight;
+              insightElement.style.opacity = '1';
+            }
           }, 1000);
         }
       } else {
