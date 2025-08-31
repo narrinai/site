@@ -1775,18 +1775,44 @@
     }
     
     .companion-cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: var(--spacing-xl);
+      display: flex;
+      gap: var(--spacing-sm);
+      overflow-x: auto;
+      overflow-y: visible;
+      padding-bottom: var(--spacing-sm);
+      padding-top: var(--spacing-sm);
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-gray-light) transparent;
+    }
+
+    .companion-cards::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .companion-cards::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .companion-cards::-webkit-scrollbar-thumb {
+      background: var(--color-gray-light);
+      border-radius: var(--radius-full);
     }
     
     .companion-card {
-      background: var(--color-off-white);
+      background: var(--color-white);
       border: 2px solid var(--color-light-gray);
       border-radius: var(--radius-lg);
-      padding: var(--spacing-xl);
+      padding: var(--spacing-sm);
       text-align: center;
       transition: all var(--transition-base);
+      width: 180px;
+      min-width: 180px;
+      max-width: 180px;
+      flex-shrink: 0;
+      scroll-snap-align: start;
+      padding-top: var(--spacing-md);
       position: relative;
       overflow: hidden;
     }
@@ -1821,13 +1847,18 @@
     }
     
     .companion-avatar {
-      width: 120px;
-      height: 120px;
+      width: 100px;
+      height: 100px;
       border-radius: var(--radius-full);
-      margin: 0 auto var(--spacing-lg);
-      border: 3px solid var(--color-light-gray);
+      margin: 0 auto var(--spacing-xs);
+      background: var(--color-off-white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid var(--color-light-gray);
       overflow: hidden;
       transition: all var(--transition-base);
+      position: relative;
     }
     
     .companion-card:hover .companion-avatar {
@@ -1839,30 +1870,41 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+      border-radius: var(--radius-full);
     }
     
     .companion-card h3 {
-      font-family: var(--font-secondary);
-      font-size: var(--font-size-xl);
       font-weight: 700;
+      font-size: var(--font-size-sm);
       color: var(--color-navy);
-      margin-bottom: var(--spacing-xs);
+      margin-bottom: 2px;
+      text-decoration: none !important;
     }
     
     .companion-role {
-      font-size: var(--font-size-sm);
-      font-weight: 600;
-      color: var(--color-teal);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: var(--spacing-md);
+      font-size: var(--font-size-xs);
+      color: var(--color-gray);
+      line-height: 1.3;
+      margin-top: 4px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      word-break: break-word;
+      max-width: 140px;
+      margin-left: auto;
+      margin-right: auto;
+      text-decoration: none !important;
+      margin-bottom: var(--spacing-sm);
     }
     
     .companion-description {
-      font-size: var(--font-size-base);
-      color: var(--color-gray);
-      line-height: 1.6;
-      margin-bottom: var(--spacing-lg);
+      display: none;
     }
     
     .companion-cta {
@@ -1870,17 +1912,18 @@
       color: var(--color-white);
       text-decoration: none;
       font-weight: 600;
-      font-size: var(--font-size-sm);
-      padding: var(--spacing-sm) var(--spacing-xl);
-      border-radius: var(--radius-md);
+      font-size: var(--font-size-xs);
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
       display: inline-block;
       transition: all var(--transition-base);
-      box-shadow: var(--shadow-colored);
+      box-shadow: var(--shadow-sm);
+      margin-top: var(--spacing-xs);
     }
     
     .companion-cta:hover {
       transform: translateY(-2px);
-      box-shadow: var(--shadow-lg);
+      box-shadow: var(--shadow-md);
     }
 
     /* Mobile responsive styles for companion showcase */
@@ -1903,29 +1946,20 @@
       }
       
       .companion-cards {
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: var(--spacing-lg);
+        gap: 12px;
+        padding: 0 16px;
+        margin: 0 -16px;
+        padding-bottom: 8px;
       }
       
       .companion-card {
-        padding: var(--spacing-lg);
+        width: 150px;
+        min-width: 150px;
+        max-width: 150px;
       }
       
-      .companion-avatar {
-        width: 100px;
-        height: 100px;
-        margin-bottom: var(--spacing-md);
-      }
-    }
-
-    @media (max-width: 480px) {
-      .companion-cards {
-        grid-template-columns: 1fr;
-        gap: var(--spacing-md);
-      }
-      
-      .companion-card {
-        padding: var(--spacing-md);
+      .companion-cards::-webkit-scrollbar {
+        height: 4px;
       }
     }
     
@@ -3076,34 +3110,30 @@ body.has-referral-banner {
               </div>
               <h3>Emerald</h3>
               <p class="companion-role">Mindfulness Coach</p>
-              <p class="companion-description">Guides you through daily reflection and helps organize scattered thoughts into clear insights.</p>
               <a href="/create-character" class="companion-cta">Create Companion</a>
             </div>
             <div class="companion-card">
               <div class="companion-avatar">
-                <img src="https://narrin.ai/avatars/sage-wisdom-guide.webp" alt="Sage - Wisdom Guide">
+                <img src="https://narrin.ai/avatars/bonnie-1754288594177.webp" alt="Bonnie - Relationship Mentor">
               </div>
-              <h3>Sage</h3>
-              <p class="companion-role">Wisdom Guide</p>
-              <p class="companion-description">Offers thoughtful perspectives and helps you see patterns in your experiences.</p>
+              <h3>Bonnie</h3>
+              <p class="companion-role">Relationship Mentor</p>
               <a href="/create-character" class="companion-cta">Create Companion</a>
             </div>
             <div class="companion-card">
               <div class="companion-avatar">
-                <img src="https://narrin.ai/avatars/alex-life-coach.webp" alt="Alex - Life Coach">
+                <img src="https://narrin.ai/avatars/dimitri-1754287756954.webp" alt="Dimitri - Love Coach">
               </div>
-              <h3>Alex</h3>
-              <p class="companion-role">Life Coach</p>
-              <p class="companion-description">Motivates and supports you through challenges while celebrating your growth.</p>
+              <h3>Dimitri</h3>
+              <p class="companion-role">Love Coach</p>
               <a href="/create-character" class="companion-cta">Create Companion</a>
             </div>
             <div class="companion-card">
               <div class="companion-avatar">
-                <img src="https://narrin.ai/avatars/nova-creative-guide.webp" alt="Nova - Creative Guide">
+                <img src="https://narrin.ai/avatars/lena-1754288559875.webp" alt="Lena - Love Companion">
               </div>
-              <h3>Nova</h3>
+              <h3>Lena</h3>
               <p class="companion-role">Creative Guide</p>
-              <p class="companion-description">Sparks creativity and helps you explore new perspectives on familiar problems.</p>
               <a href="/create-character" class="companion-cta">Create Companion</a>
             </div>
           </div>
