@@ -3182,6 +3182,11 @@
          
          updateLoginButton();
          window.netlifyIdentity.close();
+         
+         // Restore form data after login
+         setTimeout(() => {
+           restoreFormDataFromLocalStorage();
+         }, 500);
        });
 
        window.netlifyIdentity.on('signup', async user => {
@@ -3228,6 +3233,11 @@
          
          updateLoginButton();
          window.netlifyIdentity.close();
+         
+         // Restore form data after signup
+         setTimeout(() => {
+           restoreFormDataFromLocalStorage();
+         }, 500);
        });
 
        window.netlifyIdentity.on('logout', () => {
@@ -4352,6 +4362,9 @@ function checkInappropriateContent(name, description, backstory, greeting) {
    }
 
    function showLoginModal() {
+  // Save current form data before showing login
+  saveFormDataToLocalStorage();
+  
   // Verberg de popup overlay eerst
   hideLoginOverlay();
   
@@ -4363,6 +4376,163 @@ function checkInappropriateContent(name, description, backstory, greeting) {
    // Go back function
    function goBack() {
      window.history.back();
+   }
+
+   // Save form data to localStorage before login
+   function saveFormDataToLocalStorage() {
+     const formData = {
+       // Basic fields
+       characterName: document.getElementById('characterName')?.value || '',
+       characterTitle: document.getElementById('characterTitle')?.value || '',
+       characterDescription: document.getElementById('characterDescription')?.value || '',
+       extraInstructions: document.getElementById('extraInstructions')?.value || '',
+       
+       // Communication style sliders
+       formalitySlider: document.getElementById('formalitySlider')?.value || 50,
+       enthusiasmSlider: document.getElementById('enthusiasmSlider')?.value || 50,
+       humorSlider: document.getElementById('humorSlider')?.value || 50,
+       empathySlider: document.getElementById('empathySlider')?.value || 50,
+       
+       // Character type selection
+       selectedCharacterType: document.querySelector('input[name="characterType"]:checked')?.value || 'friendship',
+       
+       // Voice selection
+       selectedVoice: document.querySelector('input[name="voiceSelection"]:checked')?.value || 'auto',
+       voicePreset: document.getElementById('voicePreset')?.value || '',
+       
+       // Avatar choice
+       selectedAvatarChoice: document.querySelector('input[name="avatarChoice"]:checked')?.value || 'generate',
+       avatarUrl: currentAvatarUrl || '',
+       
+       // Traits
+       selectedTraits: selectedTraits || [],
+       
+       timestamp: Date.now()
+     };
+     
+     localStorage.setItem('pendingCharacterForm', JSON.stringify(formData));
+     localStorage.setItem('shouldRestoreForm', 'true');
+     console.log('💾 Form data saved to localStorage before login');
+   }
+
+   // Restore form data after login
+   function restoreFormDataFromLocalStorage() {
+     const shouldRestore = localStorage.getItem('shouldRestoreForm');
+     if (!shouldRestore) return;
+     
+     const savedData = localStorage.getItem('pendingCharacterForm');
+     if (!savedData) return;
+     
+     try {
+       const formData = JSON.parse(savedData);
+       console.log('🔄 Restoring form data after login:', formData);
+       
+       // Restore basic fields
+       if (formData.characterName && document.getElementById('characterName')) {
+         document.getElementById('characterName').value = formData.characterName;
+         updateCharacterCounter('characterName', 'nameCounter');
+       }
+       
+       if (formData.characterTitle && document.getElementById('characterTitle')) {
+         document.getElementById('characterTitle').value = formData.characterTitle;
+         updateCharacterCounter('characterTitle', 'titleCounter');
+       }
+       
+       if (formData.characterDescription && document.getElementById('characterDescription')) {
+         document.getElementById('characterDescription').value = formData.characterDescription;
+         updateCharacterCounter('characterDescription', 'descCounter');
+       }
+       
+       if (formData.extraInstructions && document.getElementById('extraInstructions')) {
+         document.getElementById('extraInstructions').value = formData.extraInstructions;
+         updateCharacterCounter('extraInstructions', 'extraCounter');
+       }
+       
+       // Restore sliders
+       if (formData.formalitySlider && document.getElementById('formalitySlider')) {
+         document.getElementById('formalitySlider').value = formData.formalitySlider;
+         updateSliderValue('formalitySlider');
+       }
+       
+       if (formData.enthusiasmSlider && document.getElementById('enthusiasmSlider')) {
+         document.getElementById('enthusiasmSlider').value = formData.enthusiasmSlider;
+         updateSliderValue('enthusiasmSlider');
+       }
+       
+       if (formData.humorSlider && document.getElementById('humorSlider')) {
+         document.getElementById('humorSlider').value = formData.humorSlider;
+         updateSliderValue('humorSlider');
+       }
+       
+       if (formData.empathySlider && document.getElementById('empathySlider')) {
+         document.getElementById('empathySlider').value = formData.empathySlider;
+         updateSliderValue('empathySlider');
+       }
+       
+       // Restore character type
+       if (formData.selectedCharacterType) {
+         const typeRadio = document.querySelector(`input[name="characterType"][value="${formData.selectedCharacterType}"]`);
+         if (typeRadio) {
+           typeRadio.checked = true;
+           selectCharacterType(formData.selectedCharacterType);
+         }
+       }
+       
+       // Restore voice selection
+       if (formData.selectedVoice) {
+         const voiceRadio = document.querySelector(`input[name="voiceSelection"][value="${formData.selectedVoice}"]`);
+         if (voiceRadio) {
+           voiceRadio.checked = true;
+           selectVoice(formData.selectedVoice);
+         }
+         
+         if (formData.voicePreset && document.getElementById('voicePreset')) {
+           document.getElementById('voicePreset').value = formData.voicePreset;
+         }
+       }
+       
+       // Restore avatar choice
+       if (formData.selectedAvatarChoice) {
+         const avatarRadio = document.querySelector(`input[name="avatarChoice"][value="${formData.selectedAvatarChoice}"]`);
+         if (avatarRadio) {
+           avatarRadio.checked = true;
+           selectAvatarOption(formData.selectedAvatarChoice);
+         }
+       }
+       
+       // Restore avatar URL if exists
+       if (formData.avatarUrl) {
+         currentAvatarUrl = formData.avatarUrl;
+         if (document.getElementById('avatarImg')) {
+           document.getElementById('avatarImg').src = formData.avatarUrl;
+           document.getElementById('avatarPreview').style.display = 'block';
+         }
+       }
+       
+       // Restore selected traits
+       if (formData.selectedTraits && Array.isArray(formData.selectedTraits)) {
+         selectedTraits = formData.selectedTraits;
+         // Re-select trait buttons
+         formData.selectedTraits.forEach(trait => {
+           const traitButton = document.querySelector(`[data-trait="${trait}"]`);
+           if (traitButton) {
+             traitButton.classList.add('selected');
+           }
+         });
+         updateSelectedTraits();
+       }
+       
+       // Clear the restore flag and saved data
+       localStorage.removeItem('shouldRestoreForm');
+       localStorage.removeItem('pendingCharacterForm');
+       
+       console.log('✅ Form data restored successfully');
+       
+     } catch (error) {
+       console.error('❌ Error restoring form data:', error);
+       localStorage.removeItem('shouldRestoreForm');
+       localStorage.removeItem('pendingCharacterForm');
+     }
    }
 
    // ===== SAFARI COMPATIBILITY CHECK =====
@@ -4501,6 +4671,11 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Handle redirect after login
   handleRedirectAfterLogin();
+  
+  // Check if we need to restore form data (after login/signup)
+  setTimeout(() => {
+    restoreFormDataFromLocalStorage();
+  }, 1000);
 
   console.log('✅ Create Character page initialization complete');
 });
