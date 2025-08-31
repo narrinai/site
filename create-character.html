@@ -5300,38 +5300,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <script>
 function showUpgradePopup(reason) {
+  // Companion limits removed - do not show popup for companion_limit reason
+  if (reason === 'companion_limit') {
+    console.log('🚫 Companion limit popups disabled - users can create unlimited companions');
+    return;
+  }
+  
   const popup = document.getElementById('upgradePopup');
   const message = document.getElementById('upgradeMessage');
   const title = document.getElementById('upgradeTitle');
   const userPlan = localStorage.getItem('user_plan') || 'Free';
   
-  if (reason === 'companion_limit') {
-    const subscriptionStatus = localStorage.getItem('subscription_status') || '';
-    
-    if (userPlan === 'Free' && subscriptionStatus !== 'trial') {
-      title.textContent = 'Trial Has Ended';
-    } else {
-      title.textContent = 'Companion Limit Reached';
-    }
-    
-    console.log('🔍 Popup messaging debug:', {
-      userPlan: userPlan,
-      subscriptionStatus: subscriptionStatus,
-      reason: reason
-    });
-    
-    // Check for trial status first (regardless of plan)
-    if (subscriptionStatus === 'trial') {
-      message.innerHTML = "<strong>You've reached your trial limit of 3 companions.</strong><br><br>Upgrade for unlimited companions, or continue with your existing ones during the trial!";
-    } else if (userPlan === 'Free') {
-      message.innerHTML = "<strong>Your trial has ended.</strong><br><br>To continue chatting with your companions and create new ones, upgrade to Engage or Immerse. Your companions are waiting for you!";
-    } else if (userPlan === 'Engage') {
-      message.innerHTML = "<strong>You've reached your limit of 3 companions on the Engage plan.</strong><br><br>Upgrade to Immerse for unlimited companions and advanced features!";
-    } else {
-      // Fallback for any other case
-      message.innerHTML = "<strong>You've reached your companion limit.</strong><br><br>Upgrade to Immerse for unlimited companions and advanced features!";
-    }
-  } else if (reason === 'message_limit') {
+  if (reason === 'message_limit') {
     title.textContent = 'Message Limit Reached';
     message.innerHTML = "<strong>Your trial has ended.</strong><br><br>Upgrade to Engage for unlimited messages, voice features, and advanced companion personalization.";
   } else if (reason === 'voice_feature') {
@@ -5383,129 +5363,7 @@ async function checkTrialStatus(email, uid) {
   }
 }
 
-// ===== COMPANION LIMIT CHECK =====
-async function checkCompanionLimit() {
-  try {
-    const userPlan = localStorage.getItem('user_plan') || 'Free';
-    const subscriptionStatus = localStorage.getItem('subscription_status') || '';
-    const trialEndDate = localStorage.getItem('trial_end_date');
-    const userUid = localStorage.getItem('user_uid');
-    const userEmail = localStorage.getItem('user_email');
-    
-    // Skip check if not logged in
-    if (!userUid || !userEmail || userEmail === 'anonymous@narrin.ai') {
-      return { canCreate: true, current: 0, max: 'unlimited' };
-    }
-    
-    // Determine effective plan and limits
-    let effectivePlan = userPlan;
-    let maxCompanions = 0;
-    
-    // Trial users get 3 companions (Engage benefits)
-    if (subscriptionStatus === 'trial' && trialEndDate && new Date(trialEndDate) > new Date()) {
-      effectivePlan = 'trial';
-      maxCompanions = 3;
-    } else if (userPlan === 'Free') {
-      maxCompanions = 0; // No companions after trial
-    } else if (userPlan === 'Engage') {
-      maxCompanions = 3;
-    } else if (userPlan === 'Immerse') {
-      return { canCreate: true, current: 0, max: 'unlimited' };
-    }
-    
-    console.log(`📊 Companion limit check - Plan: ${effectivePlan}, Max: ${maxCompanions}`);
-    
-    // Get user's current companions using same endpoint as chat-overview
-    const response = await fetch('/.netlify/functions/get-user-chats', {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({
-        user_email: userEmail,
-        user_uid: userUid,
-        user_token: localStorage.getItem('user_token')
-      })
-    });
-    
-    if (!response.ok) {
-      console.warn('Could not check companion count, allowing creation');
-      return { canCreate: true, current: 0, max: maxCompanions };
-    }
-    
-    const data = await response.json();
-    let currentCount = 0;
-    
-    if (data.success && data.chats) {
-      // Same filtering logic as chat-overview
-      const removedCompanions = JSON.parse(localStorage.getItem('removedCompanions') || '[]');
-      const filteredChats = data.chats.filter(chat => {
-        const isRemoved = removedCompanions.includes(chat.character_slug);
-        return !isRemoved;
-      });
-      currentCount = filteredChats.length;
-      
-      console.log('📊 Companion count details:', {
-        totalChats: data.chats.length,
-        removedCompanions: removedCompanions.length,
-        finalCount: currentCount,
-        maxAllowed: maxCompanions
-      });
-    }
-    
-    const canCreate = currentCount < maxCompanions;
-    
-    console.log(`📊 Companion check result: ${currentCount}/${maxCompanions} (${effectivePlan}) - Can create: ${canCreate}`);
-    
-    return { 
-      canCreate, 
-      current: currentCount, 
-      max: maxCompanions,
-      plan: effectivePlan 
-    };
-    
-  } catch (error) {
-    console.error('Error checking companion limits:', error);
-    return { canCreate: true, current: 0, max: 0 }; // Allow on error
-  }
-}
-
-// Check companion limit when page loads
-document.addEventListener('DOMContentLoaded', async () => {
-  // Wait briefly for auth data to be available (reduced delay for better UX)
-  setTimeout(async () => {
-    const limitCheck = await checkCompanionLimit();
-    
-    if (!limitCheck.canCreate && limitCheck.max !== 'unlimited') {
-      console.log('🚫 Companion limit reached, showing popup');
-      
-      // Show the upgrade popup using existing function
-      showUpgradePopup('companion_limit');
-      
-      // Hide the form to prevent creation
-      const form = document.getElementById('characterForm');
-      if (form) {
-        form.style.display = 'none';
-      }
-      
-      // Show a message above the popup  
-      const container = document.querySelector('.container');
-      if (container) {
-        const limitMessage = document.createElement('div');
-        limitMessage.innerHTML = `
-          <div style="text-align: center; padding: 20px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; margin-bottom: 20px;">
-            <h2 style="color: #991b1b; margin: 0 0 8px 0;">Companion Limit Reached</h2>
-            <p style="color: #7f1d1d; margin: 0;">You've reached the maximum number of companions for your plan. Please upgrade to continue creating AI companions.</p>
-          </div>
-        `;
-        container.insertBefore(limitMessage, container.firstChild);
-      }
-    } else {
-      console.log('✅ Companion limit check passed');
-    }
-  }, 200);
-});
+// REMOVED: Companion limit check - Users can now create unlimited companions
 
 </script>
 

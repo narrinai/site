@@ -1944,7 +1944,6 @@ line-clamp: 3;
       <h3>Ready to Be Truly Understood?</h3>
       <p>Join thousands turning daily mental chaos into clear thinking with AI&nbsp;companions.</p>
       <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 1.5rem;">
-        <a href="chat.html?char=galina" class="btn btn-primary" style="text-decoration: none;">💬 Start Your First Conversation</a>
         <a href="/create-character" class="btn btn-primary" style="text-decoration: none;">✨ Create Your Companion</a>
       </div>
       <div style="margin-top: 1.5rem;">
@@ -1965,7 +1964,7 @@ line-clamp: 3;
         <!-- Empty State -->
         <div id="emptyState" class="empty-state" style="display: none;">
           <h3>No conversations yet</h3>
-          <p>Create your own AI companion or browse existing characters to start chatting</p>
+          <p>Create your own AI companion to start meaningful conversations</p>
           <a href="/create-character" class="btn btn-primary">✨ Create Companion</a>
         </div>
       </div>
@@ -3014,7 +3013,7 @@ function extractAvatarUrl(chat) {
   card.className = chat.isPaused ? 'chat-card paused' : 'chat-card';
   card.href = `chat.html?char=${chat.character_slug}`;
   card.setAttribute('data-companion-slug', chat.character_slug);
-  card.onclick = (e) => checkCompanionLimitForChat(e, chat.character_slug);
+  // Companion limit removed - direct navigation allowed
   
   // Extract avatar URL using helper function
   const avatarUrl = extractAvatarUrl(chat);
@@ -3468,35 +3467,14 @@ function extractAvatarUrl(chat) {
       const planLimitInfo = document.getElementById('planLimitInfo');
       if (!planLimitInfo) return;
       
-      // Count active companions from filtered list
-      const activeCompanions = chatsToCount.filter(chat => !chat.isPaused);
-      
-      // Get user plan and show limit info
+      // Companion limits removed - always show unlimited
       const userPlan = localStorage.getItem('user_plan') || 'Free';
       
-      if (userPlan === 'Free') {
-        planLimitInfo.innerHTML = `Free Plan: ${activeCompanions.length}/3 active`;
-        // Reset styles first
-        planLimitInfo.style.background = 'white';
-        planLimitInfo.style.color = '#0f172a';
-        // Apply warning styles if at limit
-        if (activeCompanions.length >= 3) {
-          planLimitInfo.style.background = 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(249, 115, 22, 0.1) 100%)';
-          planLimitInfo.style.color = '#dc2626';
-        }
-      } else if (userPlan === 'Engage') {
-        planLimitInfo.innerHTML = `Engage Plan: ${activeCompanions.length}/5 active`;
-        planLimitInfo.style.background = 'white';
-        planLimitInfo.style.color = '#0f172a';
-        if (activeCompanions.length >= 5) {
-          planLimitInfo.style.background = 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(249, 115, 22, 0.1) 100%)';
-          planLimitInfo.style.color = '#dc2626';
-        }
-      } else {
-        planLimitInfo.innerHTML = 'Immerse Plan: Unlimited';
-        planLimitInfo.style.background = 'white';
-        planLimitInfo.style.color = '#0f172a';
-      }
+      // Show unlimited for all plans
+      planLimitInfo.innerHTML = `${userPlan} Plan: Unlimited companions`;
+      planLimitInfo.style.background = 'white';
+      planLimitInfo.style.color = '#0f172a';
+    }
       
       // Show the free plan status
       const freePlanStatus = document.getElementById('freePlanStatus');
