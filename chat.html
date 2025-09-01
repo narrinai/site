@@ -5303,8 +5303,11 @@
           <div class="customization-actions">
             <button type="button" class="btn-delete" onclick="deleteCustomization()" style="display: none;" id="deleteCustomBtn">Delete Customization</button>
             <div style="flex: 1;"></div>
-            <button type="button" class="btn-secondary-form" onclick="closeCustomizationModal()">Cancel</button>
-            <button type="submit" class="btn-primary-form" id="customizationSubmitBtn">Save As New</button>
+            <div class="auto-save-indicator" style="color: var(--color-teal); font-size: var(--font-size-sm); display: flex; align-items: center; gap: var(--spacing-xs);">
+              <span>💾</span>
+              <span>Changes saved automatically</span>
+            </div>
+            <button type="button" class="btn-primary-form" onclick="closeCustomizationModal()">Done</button>
           </div>
         </form>
       </div>
@@ -12728,10 +12731,123 @@ function initializeCustomAvatarUpload() {
 
 // Global flag to prevent double submissions
 let isCustomizationSubmitting = false;
+let autoSaveTimeout = null;
+
+// Auto-save function that saves changes automatically
+async function autoSaveCustomization() {
+  if (isCustomizationSubmitting) return; // Don't auto-save during manual submission
+  
+  // Show saving indicator
+  const indicator = document.querySelector('.auto-save-indicator');
+  if (indicator) {
+    indicator.innerHTML = '<span>⏳</span><span>Saving changes...</span>';
+    indicator.style.color = 'var(--color-gray)';
+  }
+  
+  console.log('💾 Auto-saving customization...');
+  
+  const customName = document.getElementById('customName')?.value?.trim();
+  const customTitle = document.getElementById('customTitle')?.value?.trim();
+  const customAvatarUrl = document.getElementById('customAvatarUrl')?.value;
+  
+  if (!customName || !currentCharacter) return; // Don't save if no name or character
+  
+  // Apply changes immediately to current character for real-time updates
+  const oldName = currentCharacter.name || currentCharacter.Name;
+  const oldAvatar = currentCharacter.avatar_url || currentCharacter.Avatar_URL;
+  
+  // Update currentCharacter data
+  currentCharacter.name = customName;
+  currentCharacter.Name = customName;
+  if (customTitle) {
+    currentCharacter.character_title = customTitle;
+    currentCharacter.Character_Title = customTitle;
+  }
+  
+  if (customAvatarUrl && customAvatarUrl !== oldAvatar) {
+    currentCharacter.avatar_url = customAvatarUrl;
+    currentCharacter.Avatar_URL = customAvatarUrl;
+    
+    // Update avatar in chat header immediately
+    const avatarElement = document.getElementById('characterAvatar');
+    if (avatarElement) {
+      avatarElement.innerHTML = `<img src="${customAvatarUrl}" alt="${customName}" onclick="openAvatarModal('${customAvatarUrl}')" style="width: 100%; height: 100%; border-radius: var(--radius-full); object-fit: cover;">`;
+      console.log('✅ Updated chat avatar immediately');
+    }
+  }
+  
+  // Update character name in header if changed
+  if (customName !== oldName) {
+    const nameElement = document.querySelector('.character-info h2');
+    if (nameElement) {
+      nameElement.textContent = customName;
+      console.log('✅ Updated character name immediately');
+    }
+  }
+  
+  // Update character title in header  
+  if (customTitle) {
+    const titleElement = document.querySelector('.character-info p');
+    if (titleElement) {
+      titleElement.textContent = customTitle;
+      console.log('✅ Updated character title immediately');
+    }
+  }
+  
+  // Save to localStorage for persistence
+  const characterSlug = new URLSearchParams(window.location.search).get('char') || 
+                        currentCharacter?.slug || currentCharacter?.character_id || '';
+  
+  if (characterSlug) {
+    const customizedCharacters = JSON.parse(localStorage.getItem('customizedCharacters') || '{}');
+    customizedCharacters[characterSlug] = {
+      name: customName,
+      character_title: customTitle || currentCharacter.character_title || currentCharacter.Character_Title,
+      avatar_url: customAvatarUrl || currentCharacter.avatar_url || currentCharacter.Avatar_URL,
+      lastUpdated: new Date().toISOString()
+    };
+    localStorage.setItem('customizedCharacters', JSON.stringify(customizedCharacters));
+    console.log('✅ Auto-saved to localStorage for:', characterSlug);
+  }
+  
+  // Show saved indicator
+  const indicator = document.querySelector('.auto-save-indicator');
+  if (indicator) {
+    indicator.innerHTML = '<span>✅</span><span>Changes saved automatically</span>';
+    indicator.style.color = 'var(--color-teal)';
+  }
+}
+
+// Set up auto-save listeners for form fields
+function setupAutoSave() {
+  const fields = ['customName', 'customTitle', 'customAvatarUrl'];
+  
+  fields.forEach(fieldId => {
+    const field = document.getElementById(fieldId);
+    if (field) {
+      field.addEventListener('input', () => {
+        // Debounce auto-save to avoid too many calls
+        clearTimeout(autoSaveTimeout);
+        autoSaveTimeout = setTimeout(autoSaveCustomization, 1000); // Save after 1 second of no typing
+      });
+      
+      // Also save on blur (when user clicks away)
+      field.addEventListener('blur', () => {
+        clearTimeout(autoSaveTimeout);
+        autoSaveTimeout = setTimeout(autoSaveCustomization, 100);
+      });
+    }
+  });
+  
+  console.log('✅ Auto-save listeners set up for form fields');
+}
 
 function initializeCustomizationForm() {
   const form = document.getElementById('customizationForm');
   if (!form) return;
+  
+  // Set up auto-save functionality
+  setupAutoSave();
   
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
