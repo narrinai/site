@@ -12808,6 +12808,32 @@ async function autoSaveCustomization() {
     };
     localStorage.setItem('customizedCharacters', JSON.stringify(customizedCharacters));
     console.log('✅ Auto-saved to localStorage for:', characterSlug);
+    
+    // Also save to Airtable if avatar URL changed
+    if (customAvatarUrl && customAvatarUrl !== (currentCharacter.avatar_url || currentCharacter.Avatar_URL)) {
+      try {
+        console.log('💾 Auto-saving avatar to Airtable...', customAvatarUrl);
+        
+        const saveResponse = await fetch('/.netlify/functions/update-character-avatar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            character_slug: characterSlug,
+            avatar_url: customAvatarUrl,
+            replicate_url: customAvatarUrl
+          })
+        });
+        
+        if (saveResponse.ok) {
+          const saveResult = await saveResponse.json();
+          console.log('✅ Avatar auto-saved to Airtable:', saveResult);
+        } else {
+          console.warn('⚠️ Failed to auto-save avatar to Airtable');
+        }
+      } catch (autoSaveError) {
+        console.warn('⚠️ Airtable auto-save error:', autoSaveError);
+      }
+    }
   }
   
   // Show saved indicator
