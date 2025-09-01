@@ -3099,6 +3099,7 @@
            window.location.href = '/profile';
          } else {
            // User not logged in, store current page for redirect and open login
+           console.log('🔑 User not logged in, opening login modal...');
            localStorage.setItem('login_redirect_url', window.location.href);
            openLogin();
          }
@@ -3122,6 +3123,7 @@
            window.location.href = '/profile';
          } else {
            // User not logged in, store current page for redirect and open login
+           console.log('🔑 User not logged in, opening login modal...');
            localStorage.setItem('login_redirect_url', window.location.href);
            openLogin();
          }
@@ -3135,8 +3137,10 @@
    // Function to open login modal
    function openLogin() {
      if (window.netlifyIdentity) {
+       console.log('🔑 Opening Netlify Identity login modal...');
        window.netlifyIdentity.open('login');
      } else {
+       console.log('⚠️ Netlify Identity not available, redirecting to profile...');
        // Fallback if Netlify Identity is not available
        window.location.href = '/profile';
      }
@@ -4354,7 +4358,8 @@ function checkInappropriateContent(name, description, backstory, greeting) {
   // Also keep the pending character data that was already stored in localStorage
   // It will be restored when user returns after login
   
-  window.location.href = '/profile';
+  // Open login modal instead of redirecting to profile
+  openLogin();
 }
 
    function hideLoginOverlay() {
