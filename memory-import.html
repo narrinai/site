@@ -2628,14 +2628,14 @@ Example JSON format:
       
       if (parseButton) {
         if (!isAuthenticated) {
-          parseButton.style.opacity = '0.5';
-          parseButton.style.cursor = 'not-allowed';
-          parseButton.title = 'Sign up required to import memories';
+          // Keep button fully styled and clickable for logged out users
+          parseButton.style.opacity = '1';
+          parseButton.style.cursor = 'pointer';
+          parseButton.title = 'Parse memories - sign up to import them permanently';
           parseButton.onclick = (e) => {
             e.preventDefault();
-            if (window.netlifyIdentity) {
-              window.netlifyIdentity.open('signup');
-            }
+            // Allow parsing but show signup modal after parsing
+            parseMemories();
           };
         } else {
           parseButton.style.opacity = '1';
