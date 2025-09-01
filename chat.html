@@ -5132,7 +5132,7 @@
                     <span id="customAvatarFileName" style="display: none;">No file chosen</span>
                   </div>
                   <button type="button" class="btn-secondary-form" onclick="generateCompanionImage()" style="width: 100%;" id="generateImageBtn">
-                    ✨ Generate New Image
+                    🎲 Select Random Avatar
                   </button>
                 </div>
               </div>
@@ -18096,7 +18096,7 @@ async function generateCompanionImage() {
   
   if (!generateBtn) return;
   
-  // Get companion details for generation
+  // Get companion details
   const companionName = document.getElementById('customName').value.trim() || 
                         currentCharacter.name || 
                         currentCharacter.Name || 
@@ -18106,88 +18106,117 @@ async function generateCompanionImage() {
   // Show loading state
   const originalText = generateBtn.textContent;
   generateBtn.disabled = true;
-  generateBtn.textContent = '⏳ Generating...';
+  generateBtn.textContent = '🎲 Selecting Avatar...';
   generateBtn.style.opacity = '0.7';
   
   try {
-    console.log('🎨 Generating companion image for:', companionName);
+    console.log('🎨 Selecting random avatar for:', companionName);
     
-    if (!companionName || companionName.trim() === '') {
-      throw new Error('Character name is required for image generation');
+    // High-quality avatar options from the /avatars folder
+    const availableAvatars = [
+      'https://narrin.ai/avatars/emerald-1754253047878.webp',
+      'https://narrin.ai/avatars/galina-1754739995932.webp',
+      'https://narrin.ai/avatars/blake-heart-1754250872458.webp',
+      'https://narrin.ai/avatars/sol-1754289534624.webp',
+      'https://narrin.ai/avatars/aaliyah-1754250478518.webp',
+      'https://narrin.ai/avatars/aaron-1754250394855.webp',
+      'https://narrin.ai/avatars/ada-1754250803439.webp',
+      'https://narrin.ai/avatars/adrian-1754252368714.webp',
+      'https://narrin.ai/avatars/aidan-1754249279880.webp',
+      'https://narrin.ai/avatars/aiko-1754252402847.webp',
+      'https://narrin.ai/avatars/alana-1754288298450.webp',
+      'https://narrin.ai/avatars/albert-1754250765242.webp',
+      'https://narrin.ai/avatars/alex-1754251155984.webp',
+      'https://narrin.ai/avatars/alexis-1754289406923.webp',
+      'https://narrin.ai/avatars/alice-1754252426957.webp',
+      'https://narrin.ai/avatars/amanda-1754250124728.webp',
+      'https://narrin.ai/avatars/amber-1754251823734.webp',
+      'https://narrin.ai/avatars/amy-1754251006681.webp',
+      'https://narrin.ai/avatars/angel-1754251966644.webp',
+      'https://narrin.ai/avatars/anna-1754251234608.webp',
+      'https://narrin.ai/avatars/aria-1754252493701.webp',
+      'https://narrin.ai/avatars/austin-1754252134871.webp',
+      'https://narrin.ai/avatars/ava-1754249596658.webp',
+      'https://narrin.ai/avatars/bailey-1754251300595.webp',
+      'https://narrin.ai/avatars/bella-1754250013953.webp',
+      'https://narrin.ai/avatars/ben-1754251121851.webp',
+      'https://narrin.ai/avatars/brook-1754251857638.webp',
+      'https://narrin.ai/avatars/cameron-1754252064775.webp',
+      'https://narrin.ai/avatars/chloe-1754249766699.webp',
+      'https://narrin.ai/avatars/claire-1754251269452.webp'
+    ];
+    
+    // Select random avatar
+    const randomIndex = Math.floor(Math.random() * availableAvatars.length);
+    const selectedAvatar = availableAvatars[randomIndex];
+    
+    // Simulate brief selection time for better UX
+    await new Promise(resolve => setTimeout(resolve, 600));
+    
+    // Show preview
+    if (preview && previewImg) {
+      previewImg.src = selectedAvatar;
+      previewImg.style.display = 'block';
+      
+      // Hide placeholder when image is shown
+      const placeholder = document.getElementById('avatarPlaceholder');
+      if (placeholder) placeholder.style.display = 'none';
+      
+      // Add click handler for modal
+      previewImg.onclick = function() {
+        openAvatarModal(selectedAvatar);
+      };
     }
     
-    // Call image generation function (reuse existing logic)
-    const imageUrl = await generateCharacterAvatar(companionName.trim());
+    // Update hidden input and filename
+    if (urlInput) urlInput.value = selectedAvatar;
     
-    if (imageUrl) {
-      // Show preview
-      if (preview && previewImg) {
-        previewImg.src = imageUrl;
-        previewImg.style.display = 'block';
-        
-        // Hide placeholder when image is shown
-        const placeholder = document.getElementById('avatarPlaceholder');
-        if (placeholder) placeholder.style.display = 'none';
-        
-        // Add click handler for modal
-        previewImg.onclick = function() {
-          openAvatarModal(imageUrl);
-        };
-      }
-      
-      // Update hidden input and filename
-      if (urlInput) urlInput.value = imageUrl;
-      // if (fileName) fileName.textContent = `${companionName}-generated.webp`; // Hidden filename display
-      
-      // Store for form submission
-      customAvatarUploadUrl = imageUrl;
-      
-      // Update currentCharacter avatar_url so it persists when customize modal closes
-      currentCharacter.avatar_url = imageUrl;
-      currentCharacter.Avatar_URL = imageUrl;
-      
-      // Update the main character avatar in header
-      const avatarElement = document.getElementById('characterAvatar');
-      if (avatarElement && imageUrl) {
-        avatarElement.innerHTML = `<img src="${imageUrl}" alt="${companionName}" onclick="openAvatarModal('${imageUrl}')" style="width: 100%; height: 100%; border-radius: var(--radius-full); object-fit: cover;">`;
-      }
-      
-      // Auto-save the generated image to Airtable via update-character-avatar endpoint
-      try {
-        const characterSlug = new URLSearchParams(window.location.search).get('char') || 
-                             currentCharacter?.slug || currentCharacter?.character_id || '';
-        
-        console.log('💾 Auto-saving generated image to Airtable for:', characterSlug);
-        
-        const saveResponse = await fetch('/.netlify/functions/update-character-avatar', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            character_slug: characterSlug,
-            avatar_url: imageUrl,
-            replicate_url: imageUrl
-          })
-        });
-        
-        if (saveResponse.ok) {
-          const saveResult = await saveResponse.json();
-          console.log('✅ Generated image auto-saved to Airtable:', saveResult);
-          // showNotification('success', 'Image Saved', 'Avatar updated in database and will be downloaded locally within 24 hours'); // Hidden notification
-        } else {
-          console.warn('⚠️ Failed to auto-save generated image to Airtable');
-        }
-      } catch (autoSaveError) {
-        console.warn('⚠️ Auto-save error (image still generated):', autoSaveError);
-      }
-      
-      console.log('✅ Generated companion image:', imageUrl);
-      showNotification('success', 'Image Generated', `New profile image created for ${companionName}!`);
-    } else {
-      throw new Error('No image URL returned from generation');
+    // Store for form submission
+    customAvatarUploadUrl = selectedAvatar;
+    
+    // Update currentCharacter avatar_url so it persists when customize modal closes
+    currentCharacter.avatar_url = selectedAvatar;
+    currentCharacter.Avatar_URL = selectedAvatar;
+    
+    // Update the main character avatar in header
+    const avatarElement = document.getElementById('characterAvatar');
+    if (avatarElement && selectedAvatar) {
+      avatarElement.innerHTML = `<img src="${selectedAvatar}" alt="${companionName}" onclick="openAvatarModal('${selectedAvatar}')" style="width: 100%; height: 100%; border-radius: var(--radius-full); object-fit: cover;">`;
     }
+    
+    // Auto-save the selected avatar to Airtable
+    try {
+      const characterSlug = new URLSearchParams(window.location.search).get('char') || 
+                           currentCharacter?.slug || currentCharacter?.character_id || '';
+      
+      console.log('💾 Auto-saving selected avatar to Airtable for:', characterSlug);
+      
+      const saveResponse = await fetch('/.netlify/functions/update-character-avatar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          character_slug: characterSlug,
+          avatar_url: selectedAvatar,
+          replicate_url: selectedAvatar
+        })
+      });
+      
+      if (saveResponse.ok) {
+        const saveResult = await saveResponse.json();
+        console.log('✅ Selected avatar auto-saved to Airtable:', saveResult);
+      } else {
+        console.warn('⚠️ Failed to auto-save selected avatar to Airtable');
+      }
+    } catch (autoSaveError) {
+      console.warn('⚠️ Auto-save error (avatar still selected):', autoSaveError);
+    }
+    
+    console.log('✅ Selected random avatar:', selectedAvatar);
+    showNotification('success', 'Avatar Selected', `New profile image selected for ${companionName}!`);
+    
   } catch (error) {
-    console.error('❌ Image generation failed:', error);
-    showNotification('error', 'Generation Failed', 'Failed to generate image. Please try uploading a custom image instead.');
+    console.error('❌ Avatar selection failed:', error);
+    showNotification('error', 'Selection Failed', 'Failed to select avatar. Please try uploading a custom image instead.');
   } finally {
     // Restore button state
     generateBtn.disabled = false;
