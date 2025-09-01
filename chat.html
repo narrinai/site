@@ -9187,6 +9187,31 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
 
     currentCharacter = data.character;
     
+    // Apply any saved customizations from localStorage
+    const customizedCharacters = JSON.parse(localStorage.getItem('customizedCharacters') || '{}');
+    const savedCustomization = customizedCharacters[slug];
+    
+    if (savedCustomization) {
+      console.log('🎨 Applying saved customizations:', savedCustomization);
+      
+      // Apply saved customizations to currentCharacter
+      if (savedCustomization.name) {
+        currentCharacter.name = savedCustomization.name;
+        currentCharacter.Name = savedCustomization.name;
+      }
+      
+      if (savedCustomization.character_title) {
+        currentCharacter.character_title = savedCustomization.character_title;
+        currentCharacter.Character_Title = savedCustomization.character_title;
+      }
+      
+      if (savedCustomization.avatar_url) {
+        currentCharacter.avatar_url = savedCustomization.avatar_url;
+        currentCharacter.Avatar_URL = savedCustomization.avatar_url;
+        console.log('✅ Applied saved avatar:', savedCustomization.avatar_url);
+      }
+    }
+    
     // Supplement character data with fields from characters API (parallel with other operations)
     const supplementDataPromise = fetch(`/.netlify/functions/characters?slug=${slug}&limit=1`)
       .then(response => response.ok ? response.json() : null)
