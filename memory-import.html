@@ -1505,6 +1505,7 @@ Example JSON format:
 
     .prompt-container, .response-container {
       position: relative;
+      z-index: 1;
     }
 
     .prompt-container textarea, .response-container textarea {
@@ -1519,6 +1520,13 @@ Example JSON format:
       resize: vertical;
       transition: all var(--transition-base);
       line-height: 1.5;
+      pointer-events: auto;
+      user-select: text;
+      -webkit-user-select: text;
+      -moz-user-select: text;
+      -ms-user-select: text;
+      position: relative;
+      z-index: 10;
     }
 
     .prompt-container textarea:focus, .response-container textarea:focus {
@@ -2817,6 +2825,31 @@ Example JSON format:
     // Also run on window load as backup
     window.addEventListener('load', function() {
       updateAuthDisplay();
+      
+      // Fix textarea clickability issues
+      const textarea = document.getElementById('chatgpt-response');
+      if (textarea) {
+        // Ensure textarea is clickable and focusable
+        textarea.style.pointerEvents = 'auto';
+        textarea.style.userSelect = 'text';
+        textarea.style.webkitUserSelect = 'text';
+        textarea.style.position = 'relative';
+        textarea.style.zIndex = '999';
+        
+        // Add click handler to ensure focus
+        textarea.addEventListener('click', function(e) {
+          e.stopPropagation();
+          textarea.focus();
+        });
+        
+        // Add touchstart handler for mobile
+        textarea.addEventListener('touchstart', function(e) {
+          e.stopPropagation();
+          setTimeout(() => textarea.focus(), 100);
+        });
+        
+        console.log('✅ Textarea clickability fix applied');
+      }
     });
   </script>
 </body>
