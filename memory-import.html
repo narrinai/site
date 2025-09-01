@@ -2207,12 +2207,60 @@ Example JSON format:
       }, 2000);
     }
 
+    // Save textarea content to localStorage
+    function saveTextareaContent() {
+      const textarea = document.getElementById('chatgpt-response');
+      if (textarea && textarea.value.trim()) {
+        localStorage.setItem('memory_import_textarea_content', textarea.value);
+        localStorage.setItem('memory_import_return_url', window.location.href);
+        console.log('💾 Saved textarea content for post-registration');
+      }
+    }
+
+    // Restore textarea content from localStorage
+    function restoreTextareaContent() {
+      const savedContent = localStorage.getItem('memory_import_textarea_content');
+      const returnUrl = localStorage.getItem('memory_import_return_url');
+      const textarea = document.getElementById('chatgpt-response');
+      
+      if (savedContent && textarea && returnUrl === window.location.href) {
+        textarea.value = savedContent;
+        console.log('✅ Restored textarea content after registration');
+        
+        // Auto-parse the restored content after a short delay
+        setTimeout(() => {
+          parseMemories();
+          // Clean up localStorage
+          localStorage.removeItem('memory_import_textarea_content');
+          localStorage.removeItem('memory_import_return_url');
+        }, 500);
+      }
+    }
+
     // Parse memories from JSON
     function parseMemories() {
       const responseText = document.getElementById('chatgpt-response').value.trim();
       
       if (!responseText) {
         alert('Please paste the ChatGPT JSON response first.');
+        return;
+      }
+
+      // Check authentication status 
+      const userToken = localStorage.getItem('user_token');
+      const uid = localStorage.getItem('user_uid');
+      const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+      const userEmail = localStorage.getItem('user_email');
+      const isAnonymousEmail = userEmail === 'anonymous@narrin.ai';
+      const isAuthenticated = userToken && uid && !isAnonymousUser && !isAnonymousEmail;
+
+      // If not authenticated, save content and open signup
+      if (!isAuthenticated) {
+        console.log('🔐 User not authenticated, saving content and opening signup');
+        saveTextareaContent();
+        if (window.netlifyIdentity) {
+          window.netlifyIdentity.open('signup');
+        }
         return;
       }
 
@@ -2658,6 +2706,16 @@ Example JSON format:
       });
       window.netlifyIdentity.on('signup', () => {
         setTimeout(checkAuthAndUpdateButtons, 100);
+        
+        // Redirect back to memory-import with preserved content
+        setTimeout(() => {
+          if (window.location.pathname !== '/memory-import' && window.location.pathname !== '/memory-import.html') {
+            window.location.href = '/memory-import';
+          } else {
+            // Already on memory-import, just restore content
+            restoreTextareaContent();
+          }
+        }, 1000);
       });
     }
 
@@ -2802,6 +2860,9 @@ Example JSON format:
         initializeAuth();
         updateAuthDisplay();
         loadRecentImports();
+        
+        // Restore textarea content if user returned after registration
+        restoreTextareaContent();
       }, 100);
       
       // Listen for Netlify Identity events
