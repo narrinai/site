@@ -133,72 +133,119 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ===== HEADER ===== */
+    /* ===== HEADER NAVIGATION ===== */
     .header {
-      background: var(--color-white);
-      border-bottom: 1px solid var(--color-light-gray);
       position: sticky;
       top: 0;
-      z-index: 100;
+      z-index: var(--z-sticky);
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      transition: all var(--transition-base);
     }
 
     .header-container {
-      max-width: 1200px;
+      max-width: 1400px;
       margin: 0 auto;
       padding: 0 var(--spacing-lg);
+      width: 100%;
+      overflow: hidden;
     }
 
     .header-content {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: var(--spacing-lg) 0;
+      min-height: 72px;
+      gap: var(--spacing-lg);
+      width: 100%;
     }
 
+    /* Logo */
     .logo {
       font-family: var(--font-secondary);
       font-size: var(--font-size-xl);
       font-weight: 800;
       text-decoration: none;
-      color: var(--color-navy);
+      letter-spacing: -0.02em;
       background: var(--gradient-primary);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
+      transition: transform var(--transition-base);
+      flex-shrink: 0;
     }
 
+    .logo:hover {
+      transform: scale(1.05);
+    }
+
+    /* Navigation Links - Desktop */
     .nav-links {
-      display: flex;
-      gap: var(--spacing-xl);
+      display: none;
       align-items: center;
+      gap: var(--spacing-xl);
     }
 
     .nav-link {
-      color: var(--color-gray);
+      color: var(--color-navy);
       text-decoration: none;
       font-weight: 500;
+      font-size: var(--font-size-sm);
       transition: color var(--transition-base);
+      position: relative;
+      padding: var(--spacing-xs) 0;
     }
 
-    .nav-link:hover,
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--gradient-primary);
+      transition: width var(--transition-base);
+    }
+
+    .nav-link:hover {
+      color: var(--color-teal);
+    }
+
+    .nav-link:hover::after {
+      width: 100%;
+    }
+
     .nav-link.active {
       color: var(--color-teal);
     }
 
+    .nav-link.active::after {
+      width: 100%;
+    }
+
+    /* Buttons */
     .btn {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       padding: var(--spacing-sm) var(--spacing-lg);
+      font-size: var(--font-size-sm);
       font-weight: 600;
       text-decoration: none;
+      border: none;
       border-radius: var(--radius-md);
+      cursor: pointer;
       transition: all var(--transition-base);
+      min-height: var(--touch-target);
+      white-space: nowrap;
     }
 
     .btn-primary {
       background: var(--gradient-primary);
       color: var(--color-white);
-      box-shadow: var(--shadow-md);
+      box-shadow: var(--shadow-colored);
     }
 
     .btn-primary:hover {
@@ -228,6 +275,7 @@
       color: var(--color-navy);
       transition: all var(--transition-base);
       border-radius: var(--radius-md);
+      flex-shrink: 0;
       text-decoration: none;
     }
 
@@ -404,6 +452,10 @@
 
     /* Desktop Navigation Override */
     @media (min-width: 769px) {
+      .nav-links {
+        display: flex;
+      }
+
       .mobile-nav-container {
         display: none;
       }
@@ -819,9 +871,9 @@
         <!-- Desktop Navigation Links -->
         <nav class="nav-links" role="navigation" aria-label="Secondary navigation">
           <a href="/pricing" class="nav-link">Plans</a>
-          <a href="/news" class="nav-link active">News & Insights</a>
           <a href="/chat-overview" class="nav-link">My Companions</a>
           <a href="/memory-import" class="nav-link">Import Memory</a>
+          <a href="/news" class="nav-link active">News & Insights</a>
           <a href="#" class="nav-link" id="loginBtn">Login/Register</a>
           <a href="/create-character" class="btn btn-primary">✨ Create Companion</a>
         </nav>
@@ -869,10 +921,6 @@
           <span class="mobile-menu-link-icon">💬</span>
           My Companions
         </a>
-        <a href="/news" class="mobile-menu-link active">
-          <span class="mobile-menu-link-icon">📰</span>
-          News & Insights
-        </a>
         <a href="/pricing" class="mobile-menu-link">
           <span class="mobile-menu-link-icon">💎</span>
           Plans
@@ -880,6 +928,10 @@
         <a href="/memory-import" class="mobile-menu-link">
           <span class="mobile-menu-link-icon">🧠</span>
           Import Memory
+        </a>
+        <a href="/news" class="mobile-menu-link active">
+          <span class="mobile-menu-link-icon">📰</span>
+          News & Insights
         </a>
         <a href="#" class="mobile-menu-link" id="mobileLoginBtn">
           <span class="mobile-menu-link-icon">👤</span>
@@ -1184,6 +1236,41 @@
       }
     `;
     document.head.appendChild(style);
+    // Category filtering functionality
+    document.addEventListener('DOMContentLoaded', () => {
+      const categoryButtons = document.querySelectorAll('.category-btn');
+      const newsCards = document.querySelectorAll('.news-card');
+
+      categoryButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const category = btn.dataset.category;
+          
+          // Update active button
+          categoryButtons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          
+          // Filter articles
+          newsCards.forEach(card => {
+            if (category === 'all' || card.dataset.category === category) {
+              card.style.display = 'block';
+              card.style.animation = 'fadeIn 0.3s ease';
+            } else {
+              card.style.display = 'none';
+            }
+          });
+        });
+      });
+    });
+
+    // Add fade-in animation
+    const filterStyle = document.createElement('style');
+    filterStyle.textContent = `
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+    `;
+    document.head.appendChild(filterStyle);
   </script>
 </body>
 </html>
