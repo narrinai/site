@@ -76,15 +76,45 @@ exports.handler = async (event, context) => {
       const chatData = await chatResponse.json();
       console.log('📊 Found', chatData.records.length, 'total records');
       
-      // Step 3: Filter for this user's records by NetlifyUID field directly  
-      const userRecords = chatData.records.filter(record => {
-        const recordNetlifyUID = record.fields.NetlifyUID;
-        return recordNetlifyUID === user_uid;
+      // Step 3: Get user record ID from NetlifyUID lookup
+      const userLookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={NetlifyUID}='${user_uid}'&maxRecords=1`;
+      const userLookupResponse = await fetch(userLookupUrl, {
+        headers: {
+          'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+          'Content-Type': 'application/json'
+        }
       });
       
-      console.log('👤 Found', userRecords.length, 'records for NetlifyUID:', user_uid);
+      let userRecordId = null;
+      if (userLookupResponse.ok) {
+        const userData = await userLookupResponse.json();
+        if (userData.records.length > 0) {
+          userRecordId = userData.records[0].id;
+          console.log('✅ Found user record ID:', userRecordId);
+        }
+      }
       
-      // Step 4: Filter for current character using 'slug' field
+      if (!userRecordId) {
+        console.log('❌ No user record found for NetlifyUID:', user_uid);
+        return {
+          statusCode: 404,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ error: 'User not found' })
+        };
+      }
+      
+      // Step 4: Filter ChatHistory for this user record ID
+      const userRecords = chatData.records.filter(record => {
+        const recordUser = record.fields.User;
+        if (Array.isArray(recordUser)) {
+          return recordUser.includes(userRecordId);
+        }
+        return recordUser === userRecordId;
+      });
+      
+      console.log('👤 Found', userRecords.length, 'records for user record ID:', userRecordId);
+      
+      // Step 5: Filter for current character using 'slug' field
       const characterSlugToUse = character_slug || slug;
       const characterRecords = userRecords.filter(record => {
         const slugField = record.fields.slug;
@@ -93,7 +123,7 @@ exports.handler = async (event, context) => {
       
       console.log('🎭 Found', characterRecords.length, 'records for character:', characterSlugToUse);
       
-      // Step 5: Convert to memory format
+      // Step 6: Convert to memory format
       const memories = characterRecords
         .filter(record => record.fields.Summary || record.fields.Message)
         .map(record => ({
