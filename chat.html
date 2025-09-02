@@ -693,6 +693,87 @@
         grid-template-columns: auto 1fr auto auto auto;
         align-items: center;
       }
+      
+      /* Fixed character header below mobile nav */
+      .character-header {
+        position: sticky !important;
+        top: 60px !important;
+        z-index: 150 !important;
+        background: var(--color-white) !important;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+        padding: var(--spacing-sm) var(--spacing-md) !important;
+        box-shadow: var(--shadow-sm) !important;
+        margin: 0 !important;
+      }
+      
+      /* Chat section layout changes */
+      .chat-section {
+        display: flex !important;
+        flex-direction: column !important;
+        height: calc(100vh - 120px - 200px) !important; /* Subtract mobile nav, character header, and bottom section */
+        position: relative !important;
+        padding-bottom: 0 !important;
+      }
+      
+      /* Chat messages take remaining space */
+      #chatlog {
+        flex: 1 !important;
+        overflow-y: auto !important;
+        padding: var(--spacing-md) !important;
+        margin-bottom: 0 !important;
+        min-height: 0 !important;
+        height: auto !important;
+        max-height: none !important;
+      }
+      
+      /* Hide desktop input and topics on mobile */
+      .desktop-input,
+      .desktop-topics,
+      .input-group:not(.mobile-input),
+      .conversation-topics:not(.mobile-topics) {
+        display: none !important;
+      }
+      
+      /* Fixed bottom section */
+      .mobile-bottom-section {
+        display: block !important;
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        background: var(--color-white) !important;
+        border-top: 1px solid rgba(0, 0, 0, 0.08) !important;
+        padding: var(--spacing-sm) var(--spacing-md) !important;
+        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1) !important;
+        z-index: 200 !important;
+      }
+      
+      /* Mobile input styling */
+      .mobile-input {
+        margin-bottom: var(--spacing-sm) !important;
+        display: flex !important;
+      }
+      
+      /* Mobile topics styling */
+      .mobile-topics {
+        margin: 0 0 var(--spacing-sm) 0 !important;
+        display: block !important;
+      }
+      
+      /* Fixed AI message */
+      .mobile-ai-message {
+        background: rgba(20, 184, 166, 0.05) !important;
+        border: 1px solid var(--color-teal-light) !important;
+        border-radius: var(--radius-md) !important;
+        padding: var(--spacing-xs) !important;
+        font-size: var(--font-size-xs) !important;
+        color: var(--color-gray-dark) !important;
+        text-align: center !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: var(--spacing-xs) !important;
+      }
 
       .logo {
         font-size: var(--font-size-lg);
@@ -4999,11 +5080,6 @@
     </div>
 
     <div id="chatInterface" style="display: none;">
-      <div class="page-header">
-        <h1>Your Daily Reflection Partner</h1>
-        <p>End each day feeling clearer.</p>
-        
-      </div>
 
       <!-- USP Badges - Desktop Sidebar -->
       <div class="chat-layout-wrapper">
@@ -5034,11 +5110,12 @@
 
       <div class="chat-section">
         <div id="chatlog"></div>
-        <div class="input-group">
+        <!-- Desktop input (hidden on mobile) -->
+        <div class="input-group desktop-input">
           <input id="userInput" type="text" placeholder="Share what's on your mind..." />
           <button onclick="toggleSpeechToText()" id="micButton" class="mic-button" aria-label="Use microphone">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 1C10.34 1 9 2.34 9 4V12C9 13.66 10.34 15 12 15C13.66 15 15 13.66 15 12V4C15 2.34 13.66 1 12 1Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 1C10.34 1 9 2.34 9 4V12C9 13.66 10.34 15 12 15C13.66 15 15 13.66 15 12 V4C15 2.34 13.66 1 12 1Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               <path d="M19 10V12C19 15.866 15.866 19 12 19C8.13401 19 5 15.866 5 12V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               <path d="M12 19V23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               <path d="M8 23H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -5047,8 +5124,8 @@
           <button onclick="handleSendClick(event)" id="sendButton">Send</button>
         </div>
         
-        <!-- Conversation Topics Section (moved above disclaimer) -->
-        <div class="conversation-topics" id="conversationTopics" style="display: none;">
+        <!-- Desktop Conversation Topics Section -->
+        <div class="conversation-topics desktop-topics" id="conversationTopics" style="display: none;">
           <div class="topics-header">
             <button class="topics-toggle" id="topicsToggle" onclick="toggleConversationTopics()">
               <span id="topicsTitle">🧠  Organize Thoughts</span>
@@ -5093,6 +5170,43 @@
       </div>
         </div> <!-- End of chat-main-content -->
       </div> <!-- End of chat-layout-wrapper -->
+      
+      <!-- Mobile Bottom Section (only visible on mobile) -->
+      <div class="mobile-bottom-section" style="display: none;">
+        <!-- Mobile input group -->
+        <div class="input-group mobile-input">
+          <input id="userInputMobile" type="text" placeholder="Share what's on your mind..." />
+          <button onclick="toggleSpeechToTextMobile()" id="micButtonMobile" class="mic-button" aria-label="Use microphone">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 1C10.34 1 9 2.34 9 4V12C9 13.66 10.34 15 12 15C13.66 15 15 13.66 15 12V4C15 2.34 13.66 1 12 1Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M19 10V12C19 15.866 15.866 19 12 19C8.13401 19 5 15.866 5 12V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 19V23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M8 23H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button onclick="handleSendClickMobile(event)" id="sendButtonMobile">Send</button>
+        </div>
+        
+        <!-- Mobile Conversation Topics Section -->
+        <div class="conversation-topics mobile-topics" id="conversationTopicsMobile" style="display: none;">
+          <div class="topics-header">
+            <button class="topics-toggle" id="topicsToggleMobile" onclick="toggleConversationTopicsMobile()">
+              <span id="topicsTitleMobile">🧠  Organize Thoughts</span>
+              <svg class="topics-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+          <div class="topic-buttons" id="topicButtonsMobile" style="display: none;">
+            <!-- Dynamically generated topic buttons will appear here -->
+          </div>
+        </div>
+        
+        <!-- Fixed AI message -->
+        <div class="mobile-ai-message">
+          🤖 Remember: everything we practice here is preparing you for the real thing. This is your safe space to grow!
+        </div>
+      </div>
     </div>
   </div>
 
@@ -8416,6 +8530,9 @@ Ready to start chatting, or would you like to explore these personalization opti
       console.log('📝 Text to type:', text);
       console.log('📏 Text length:', text.length);
       
+      // Pre-process HTML to avoid showing raw HTML during typing
+      const processedText = formatAIResponse(text);
+      
       // Clear element and prepare for fade effect
       element.innerHTML = '';
       element.style.opacity = '1';
@@ -8447,12 +8564,15 @@ Ready to start chatting, or would you like to explore these personalization opti
       const originalText = text;
       const chars = [];
       
-      // Split text while preserving newlines
-      for (let i = 0; i < text.length; i++) {
-        if (text[i] === '\n') {
+      // Use processed text for character-by-character typing
+      const textForTyping = processedText;
+      
+      // Split processed text while preserving newlines  
+      for (let i = 0; i < textForTyping.length; i++) {
+        if (textForTyping[i] === '\n') {
           chars.push('\n');
         } else {
-          chars.push(text[i]);
+          chars.push(textForTyping[i]);
         }
       }
       
@@ -8484,10 +8604,7 @@ Ready to start chatting, or would you like to explore these personalization opti
         } else {
           console.log('✅ Typewriter with voice completed. Total chars typed:', index);
           
-          // After typewriter completes, apply markdown formatting
-          setTimeout(() => {
-            element.innerHTML = processMarkdown(originalText);
-          }, 100);
+          // Skip additional formatting since we already used processed text
           
           // Final scroll to ensure everything is visible
           const chatlog = document.getElementById("chatlog");
@@ -18399,10 +18516,136 @@ async function generateCompanionImage() {
   }
 }
 
+  // ===== MOBILE SPECIFIC FUNCTIONS =====
+  
+  // Mobile version of handleSendClick
+  async function handleSendClickMobile(event) {
+    // Get mobile input
+    const userInput = document.getElementById('userInputMobile');
+    if (!userInput) return;
+    
+    // Transfer to main input and trigger main send function
+    const mainInput = document.getElementById('userInput');
+    if (mainInput) {
+      mainInput.value = userInput.value;
+      userInput.value = '';
+    }
+    
+    // Call main send function
+    return await handleSendClick(event);
+  }
+  
+  // Mobile version of toggleConversationTopics
+  function toggleConversationTopicsMobile() {
+    const topicsToggle = document.getElementById('topicsToggleMobile');
+    const topicButtons = document.getElementById('topicButtonsMobile');
+    
+    if (!topicsToggle || !topicButtons) return;
+    
+    const isExpanded = topicButtons.style.display !== 'none';
+    
+    if (isExpanded) {
+      topicButtons.style.display = 'none';
+      topicsToggle.classList.remove('expanded');
+    } else {
+      // Generate topics if not already present
+      if (topicButtons.children.length === 0) {
+        generateConversationTopicsMobile();
+      }
+      topicButtons.style.display = 'block';
+      topicsToggle.classList.add('expanded');
+    }
+  }
+  
+  // Generate conversation topics for mobile
+  function generateConversationTopicsMobile() {
+    const topicButtons = document.getElementById('topicButtonsMobile');
+    if (!topicButtons) return;
+    
+    // Get the same topics as desktop version
+    const companionType = getCurrentCompanionType();
+    const topics = getConversationTopics(companionType);
+    
+    // Clear existing topics
+    topicButtons.innerHTML = '';
+    
+    // Add topics
+    topics.forEach(topicGroup => {
+      // Add group title
+      const groupTitle = document.createElement('div');
+      groupTitle.className = 'topic-group-title';
+      groupTitle.textContent = topicGroup.group;
+      topicButtons.appendChild(groupTitle);
+      
+      // Add topic buttons
+      topicGroup.topics.forEach(topic => {
+        const button = document.createElement('button');
+        button.className = 'topic-btn';
+        button.textContent = topic;
+        button.onclick = () => selectTopicMobile(topic);
+        topicButtons.appendChild(button);
+      });
+    });
+  }
+  
+  // Select topic for mobile
+  function selectTopicMobile(topic) {
+    const userInput = document.getElementById('userInputMobile');
+    if (userInput) {
+      userInput.value = topic;
+      userInput.focus();
+    }
+    
+    // Close topics
+    const topicButtons = document.getElementById('topicButtonsMobile');
+    const topicsToggle = document.getElementById('topicsToggleMobile');
+    if (topicButtons && topicsToggle) {
+      topicButtons.style.display = 'none';
+      topicsToggle.classList.remove('expanded');
+    }
+  }
+  
+  // Mobile version of toggleSpeechToText
+  function toggleSpeechToTextMobile() {
+    // For now, use the same functionality as desktop
+    // You can customize this for mobile-specific behavior if needed
+    toggleSpeechToText();
+  }
+  
+  // Sync input between mobile and desktop
+  function syncInputs() {
+    const mobileInput = document.getElementById('userInputMobile');
+    const desktopInput = document.getElementById('userInput');
+    
+    if (mobileInput && desktopInput) {
+      mobileInput.addEventListener('input', () => {
+        desktopInput.value = mobileInput.value;
+      });
+      
+      desktopInput.addEventListener('input', () => {
+        mobileInput.value = desktopInput.value;
+      });
+    }
+  }
+  
+  // Show mobile organize thoughts by default when chat loads on mobile
+  function showMobileOrganizeThoughts() {
+    if (window.innerWidth <= 768) {
+      const conversationTopicsMobile = document.getElementById('conversationTopicsMobile');
+      if (conversationTopicsMobile) {
+        conversationTopicsMobile.style.display = 'block';
+      }
+    }
+  }
+
   // ===== NON-CRITICAL FEATURES LOADING =====
   // Load heavy features after page is fully loaded to improve initial performance
   window.addEventListener('load', () => {
     console.log('🚀 Loading non-critical features...');
+    
+    // Initialize mobile functionality
+    syncInputs();
+    showMobileOrganizeThoughts();
     
     // Memory Hub and Customize features are now lazy loaded on demand
     // This section can be used for other heavy features in the future
