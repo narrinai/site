@@ -333,6 +333,19 @@
           <div class="template-dimensions">400x400px (Circle crop)</div>
           <button class="download-btn" onclick="downloadTemplate('profile-green')">Download PNG</button>
         </div>
+
+        <div class="template-card">
+          <div class="template-preview">
+            <div style="width: 100%; height: 120px; background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%); display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+              <div style="color: white; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 24px; letter-spacing: -1px;">
+                Narrin AI
+              </div>
+            </div>
+          </div>
+          <div class="template-title">Logo Only (No Tagline)</div>
+          <div class="template-dimensions">Various sizes</div>
+          <button class="download-btn" onclick="downloadTemplate('logo-only')">Download PNG</button>
+        </div>
       </div>
     </div>
 
@@ -620,6 +633,7 @@
       const templates = {
         'profile-universal': { width: 400, height: 400, isCircle: true },
         'profile-green': { width: 400, height: 400, isCircle: true, bgColor: '#22c55e' },
+        'logo-only': { width: 800, height: 300, logoOnly: true },
         'linkedin-company': { width: 1128, height: 191 },
         'linkedin-personal': { width: 1584, height: 396 },
         'twitter-header': { width: 1500, height: 500 },
@@ -658,6 +672,17 @@
         
         // Draw logo in center
         drawNarrinLogo(ctx, canvas.width / 2 - 60, canvas.height / 2 - 60, 120, config.bgColor);
+      } else if (config.logoOnly) {
+        // For logo-only template, fill with gradient
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Add only "Narrin AI" text (no tagline)
+        const mainFontSize = Math.min(canvas.width / 12, canvas.height / 3, 100);
+        ctx.fillStyle = 'white';
+        ctx.font = `bold ${mainFontSize}px Outfit, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText('Narrin AI', canvas.width / 2, canvas.height / 2 + mainFontSize / 4);
       } else {
         // For banners, fill with gradient
         ctx.fillStyle = gradient;
