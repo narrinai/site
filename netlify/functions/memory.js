@@ -1,8 +1,9 @@
 // netlify/functions/memory.js - FIXED VERSION WITH FULL DEBUG
 
 exports.handler = async (event, context) => {
- console.log('🧠 memory function called - v2.1 FIXED AI assistant inclusion');
+ console.log('🧠 memory function v2.2 - FORCE REDEPLOY');
  console.log('📨 Event body:', event.body);
+ console.log('⚡ Forced cache bust - new deployment');
  
  if (event.httpMethod !== 'POST') {
    return {
@@ -265,8 +266,11 @@ exports.handler = async (event, context) => {
          continue;
        }
        
-       // Log what we're including
+       // Log what we're including  
        console.log(`✅ Including message: Role=${fields.Role}, importance=${fields.Memory_Importance}, summary="${fields.Summary}"`);
+       if (fields.Memory_Importance >= 8) {
+         console.log(`🎯 HIGH IMPORTANCE MEMORY FOUND: ${fields.Memory_Importance} - ${fields.Summary}`);
+       }
        
        // For onboarding messages, set high importance automatically
        if (isOnboardingMessage && !fields.Memory_Importance) {
