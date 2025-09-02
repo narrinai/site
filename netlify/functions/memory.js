@@ -1,7 +1,7 @@
 // netlify/functions/memory.js - FIXED VERSION WITH FULL DEBUG
 
 exports.handler = async (event, context) => {
- console.log('🧠 memory function called - v2.0 with AI message support');
+ console.log('🧠 memory function called - v2.1 FIXED AI assistant inclusion');
  console.log('📨 Event body:', event.body);
  
  if (event.httpMethod !== 'POST') {
@@ -255,16 +255,18 @@ exports.handler = async (event, context) => {
          Message: fields.Message ? fields.Message.substring(0, 50) + '...' : null
        });
        
-       // Include user messages, onboarding messages, AND AI messages with memory data
+       // SIMPLIFIED: Include any message with memory importance >= 1
+       const hasMemoryImportance = fields.Memory_Importance && fields.Memory_Importance >= 1;
        const isUserMessage = fields.Role === 'user' || fields.Role === 'User';
        const isOnboardingMessage = fields.message_type === 'onboarding';
-       const isAIMessageWithMemory = (fields.Role === 'ai assistant' || fields.Role === 'assistant') && 
-                                     (fields.Memory_Importance && fields.Memory_Importance >= 1);
        
-       if (!isUserMessage && !isOnboardingMessage && !isAIMessageWithMemory) {
-         console.log(`⏭️ Skipping non-memory message (Role=${fields.Role}, importance=${fields.Memory_Importance}), record:`, record.id);
+       if (!hasMemoryImportance && !isOnboardingMessage) {
+         console.log(`⏭️ Skipping message without memory data (Role=${fields.Role}, importance=${fields.Memory_Importance}), record:`, record.id);
          continue;
        }
+       
+       // Log what we're including
+       console.log(`✅ Including message: Role=${fields.Role}, importance=${fields.Memory_Importance}, summary="${fields.Summary}"`);
        
        // For onboarding messages, set high importance automatically
        if (isOnboardingMessage && !fields.Memory_Importance) {
@@ -367,6 +369,16 @@ exports.handler = async (event, context) => {
            }
          }
          
+         // Set correct type based on role
+         let memoryType = 'user'; // default
+         if (fields.message_type === 'onboarding') {
+           memoryType = 'onboarding';
+         } else if (fields.Role === 'ai assistant' || fields.Role === 'assistant') {
+           memoryType = 'ai_assistant';
+         } else if (fields.Role === 'user' || fields.Role === 'User') {
+           memoryType = 'user';
+         }
+         
          memories.push({
            id: record.id,
            message: message,
@@ -376,7 +388,7 @@ exports.handler = async (event, context) => {
            emotional_state: fields.Emotional_State || 'neutral',
            tags: fields.Memory_Tags || [],
            context: message.substring(0, 200),
-           type: fields.message_type || 'user',
+           type: memoryType,
            metadata: additionalData
          });
        } else {
