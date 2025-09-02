@@ -709,16 +709,14 @@
         min-height: 50px !important; /* Smaller header */
       }
       
-      /* Chat section layout - realistic buffer for proper display */
+      /* Simple chat section - let it fill available space naturally */
       .chat-section {
         display: flex !important;
         flex-direction: column !important;
         margin-top: 110px !important;
-        height: calc(100vh - 110px - 240px) !important; /* Realistic buffer */
-        max-height: calc(100vh - 110px - 240px) !important;
+        padding-bottom: 250px !important; /* Simple bottom padding for mobile section */
         position: relative !important;
-        padding-bottom: 0 !important;
-        overflow: hidden !important;
+        overflow: visible !important;
       }
       
       /* Hide desktop input and topics on mobile */
@@ -825,14 +823,12 @@
         text-align: center !important;
       }
       
-      /* Fix chat scroll - strict boundaries, never overlap input */
+      /* Simple chatlog - natural height, good scrolling */
       #chatlog {
-        flex: 1 !important;
         overflow-y: auto !important;
         margin-bottom: 0 !important;
-        padding-bottom: var(--spacing-lg) !important;
-        height: 100% !important;
-        max-height: 100% !important;
+        padding-bottom: 250px !important; /* Bottom padding for mobile section */
+        min-height: 300px !important;
         scroll-behavior: smooth !important;
         -webkit-overflow-scrolling: touch !important;
         touch-action: pan-y !important;
@@ -841,12 +837,15 @@
         z-index: 1 !important;
       }
       
-      /* Better touch scroll handling */
-      .chat-section {
-        position: relative !important;
-        contain: layout !important;
-        touch-action: pan-y !important;
-        overscroll-behavior: contain !important;
+      /* Ensure character header stays absolutely fixed */
+      .character-header {
+        position: fixed !important;
+        top: 60px !important;
+        left: 0 !important;
+        right: 0 !important;
+        z-index: 250 !important;
+        background: white !important;
+        backdrop-filter: blur(10px) !important;
       }
       
       /* Prevent body scroll on mobile */
@@ -879,14 +878,12 @@
         box-sizing: border-box !important;
       }
       
-      /* Prevent any content from going under mobile bottom section */
+      /* Simple wrapper - let content flow naturally */
       .chat-layout-wrapper,
       .chat-main-content {
-        overflow: hidden !important;
-        height: calc(100vh - 110px - 240px) !important;
-        max-height: calc(100vh - 110px - 240px) !important;
         margin-top: 110px !important;
         position: relative !important;
+        overflow: visible !important;
       }
       
       /* Character section should not interfere */
