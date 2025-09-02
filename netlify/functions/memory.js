@@ -114,10 +114,13 @@ exports.handler = async (event, context) => {
       
       console.log('👤 Found', userRecords.length, 'records for user record ID:', userRecordId);
       
-      // Step 5: Filter for current character using 'slug' field
+      // Step 5: Filter for current character using mapped field 'Slug (from Character)'
       const characterSlugToUse = character_slug || slug;
       const characterRecords = userRecords.filter(record => {
-        const slugField = record.fields.slug;
+        const slugField = record.fields['Slug (from Character)'];
+        if (Array.isArray(slugField)) {
+          return slugField.includes(characterSlugToUse);
+        }
         return slugField === characterSlugToUse;
       });
       
