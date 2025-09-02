@@ -255,12 +255,14 @@ exports.handler = async (event, context) => {
          Message: fields.Message ? fields.Message.substring(0, 50) + '...' : null
        });
        
-       // Include both user messages AND onboarding messages for memory
+       // Include user messages, onboarding messages, AND AI messages with memory data
        const isUserMessage = fields.Role === 'user' || fields.Role === 'User';
        const isOnboardingMessage = fields.message_type === 'onboarding';
+       const isAIMessageWithMemory = (fields.Role === 'ai assistant' || fields.Role === 'assistant') && 
+                                     (fields.Memory_Importance && fields.Memory_Importance >= 1);
        
-       if (!isUserMessage && !isOnboardingMessage) {
-         console.log(`⏭️ Skipping non-memory message (Role=${fields.Role}, type=${fields.message_type}), record:`, record.id);
+       if (!isUserMessage && !isOnboardingMessage && !isAIMessageWithMemory) {
+         console.log(`⏭️ Skipping non-memory message (Role=${fields.Role}, importance=${fields.Memory_Importance}), record:`, record.id);
          continue;
        }
        
@@ -285,7 +287,6 @@ exports.handler = async (event, context) => {
         console.log(`👤 SIMPLIFIED User match (single): "${recordUserField}" === "${userRecordId}" = ${userMatch}`);
       } else {
         console.log(`👤 SIMPLIFIED User match failed: userRecordId=${userRecordId}, recordUserField=${JSON.stringify(recordUserField)}`);
-        console.log(`🔍 DEBUG: Expected userRecordId="${userRecordId}", got recordUserField=${JSON.stringify(recordUserField)}, types: ${typeof userRecordId} vs ${typeof recordUserField}`);
       }
        if (!userMatch) {
          console.log(`❌ User mismatch, skipping record`);
