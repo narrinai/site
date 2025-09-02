@@ -709,21 +709,14 @@
         min-height: 50px !important; /* Smaller header */
       }
       
-      /* Chat section - start directly below character header */
+      /* Hide chat section on mobile - using absolute positioned chatlog instead */
       .chat-section {
-        display: flex !important;
-        flex-direction: column !important;
-        margin-top: 110px !important;
-        padding-top: 0 !important; /* Remove any top padding */
-        padding-bottom: 250px !important;
-        position: relative !important;
-        overflow: visible !important;
+        display: none !important;
       }
       
-      /* Character section - no bottom margin */
+      /* Hide character section on mobile - header is now fixed */
       .character-section {
-        margin-bottom: 0 !important;
-        padding-bottom: 0 !important;
+        display: none !important;
       }
       
       /* Hide desktop input and topics on mobile */
@@ -892,18 +885,25 @@
         text-align: center !important;
       }
       
-      /* Chatlog - compact bottom padding */
+      /* Chatlog - absolutely positioned, fixed boundaries */
       #chatlog {
+        position: fixed !important;
+        top: 110px !important; /* Below character header */
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 120px !important; /* Above bottom section */
         overflow-y: auto !important;
-        margin-bottom: 0 !important;
-        padding-bottom: 120px !important; /* Reduced padding for compact bottom */
-        min-height: 300px !important;
+        padding: var(--spacing-md) !important;
+        background: var(--color-off-white) !important;
+        border: 2px solid var(--color-teal-light) !important; /* Single border */
+        border-radius: var(--radius-lg) !important;
+        margin: var(--spacing-sm) !important;
+        box-shadow: inset 0 0 0 1px rgba(20, 184, 166, 0.1) !important;
         scroll-behavior: smooth !important;
         -webkit-overflow-scrolling: touch !important;
         touch-action: pan-y !important;
         overscroll-behavior: contain !important;
-        position: relative !important;
-        z-index: 1 !important;
+        z-index: 10 !important;
       }
       
       /* Ensure character header stays absolutely fixed */
@@ -973,13 +973,10 @@
         box-sizing: border-box !important;
       }
       
-      /* Simple wrapper - tight connection to character header */
+      /* Hide wrapper elements on mobile - using direct positioning */
       .chat-layout-wrapper,
       .chat-main-content {
-        margin-top: 110px !important;
-        padding-top: 0 !important;
-        position: relative !important;
-        overflow: visible !important;
+        display: none !important;
       }
       
       /* Character section should not interfere */
