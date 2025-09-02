@@ -708,13 +708,13 @@
         margin: 0 !important;
       }
       
-      /* Chat section layout changes - proper height calculation */
+      /* Chat section layout changes - much larger buffer to prevent overlap */
       .chat-section {
         display: flex !important;
         flex-direction: column !important;
         margin-top: 120px !important; /* Space for fixed nav + character header */
-        height: calc(100vh - 120px - 200px) !important; /* nav + character header + bottom section with buffer */
-        max-height: calc(100vh - 120px - 200px) !important;
+        height: calc(100vh - 120px - 280px) !important; /* nav + character header + larger bottom buffer */
+        max-height: calc(100vh - 120px - 280px) !important;
         position: relative !important;
         padding-bottom: 0 !important;
         overflow: hidden !important;
@@ -822,18 +822,20 @@
         text-align: center !important;
       }
       
-      /* Fix chat scroll - better touch handling, stay within bounds */
+      /* Fix chat scroll - strict boundaries, never overlap input */
       #chatlog {
         flex: 1 !important;
         overflow-y: auto !important;
         margin-bottom: 0 !important;
-        padding-bottom: var(--spacing-md) !important;
+        padding-bottom: var(--spacing-lg) !important;
         height: 100% !important;
         max-height: 100% !important;
         scroll-behavior: smooth !important;
         -webkit-overflow-scrolling: touch !important;
         touch-action: pan-y !important;
         overscroll-behavior: contain !important;
+        position: relative !important;
+        z-index: 1 !important;
       }
       
       /* Better touch scroll handling */
@@ -874,18 +876,20 @@
         box-sizing: border-box !important;
       }
       
-      /* Ensure chat section takes full available height */
-      .chat-section {
-        height: calc(100vh - 120px - 180px) !important;
-        max-height: calc(100vh - 120px - 180px) !important;
-        overflow: hidden !important;
-      }
-      
-      /* Prevent any scrolling beyond chat boundaries */
+      /* Prevent any content from going under mobile bottom section */
       .chat-layout-wrapper,
       .chat-main-content {
         overflow: hidden !important;
-        height: 100% !important;
+        height: calc(100vh - 120px - 280px) !important;
+        max-height: calc(100vh - 120px - 280px) !important;
+        margin-top: 120px !important;
+        position: relative !important;
+      }
+      
+      /* Character section should not interfere */
+      .character-section {
+        position: relative !important;
+        z-index: 5 !important;
       }
 
       .logo {
