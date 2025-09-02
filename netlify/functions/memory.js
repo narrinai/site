@@ -270,74 +270,22 @@ exports.handler = async (event, context) => {
          console.log(`🎯 Setting onboarding message to max importance`);
        }
        
-       // Check user match - properly handle all field types
-const recordUserField = fields.User; // Can be string (User_ID like "42") or array of record IDs
-const recordUserEmail = fields.Email || fields['Email (from Email)'] || fields.User_Email;
-let userMatch = false;
+       // SIMPLIFIED: Check user match using the most reliable method
+      // We already looked up the user by NetlifyUID and have their userRecordId
+      const recordUserField = fields.User; // Should be array of record IDs like ["recWuhhuLbz9I54i3"]
+      let userMatch = false;
 
-// First check if User field is a string (NetlifyUID)
-if (recordUserField && !Array.isArray(recordUserField)) {
-  // Direct string comparison
-  userMatch = String(recordUserField) === String(user_uid);
-  console.log(`👤 User field (string) match check: "${recordUserField}" === "${user_uid}" = ${userMatch}`);
-}
-
-// If User field is an array of record IDs
-if (!userMatch && Array.isArray(recordUserField) && recordUserField.length > 0) {
-  // Check if ANY of our valid user record IDs match
-  if (validUserRecordIds.length > 0) {
-    userMatch = recordUserField.some(recId => validUserRecordIds.includes(recId));
-    console.log(`👤 User record ID match check: ${recordUserField} includes any of ${validUserRecordIds} = ${userMatch}`);
-  } else if (userRecordId) {
-    userMatch = recordUserField.includes(userRecordId);
-    console.log(`👤 User record ID match check: ${recordUserField} includes ${userRecordId} = ${userMatch}`);
-  } else if (user_id && user_id.startsWith('rec')) {
-    // Direct record ID provided
-    userMatch = recordUserField.includes(user_id);
-    console.log(`👤 Direct record ID match: ${recordUserField} includes ${user_id} = ${userMatch}`);
-  }
-}
-
-// Email-based matching - also check the email from request body
-if (!userMatch && (body.user_email || (user_id && user_id.includes('@')))) {
-  const emailToCheck = body.user_email || user_id;
-  userMatch = String(recordUserEmail).toLowerCase() === String(emailToCheck).toLowerCase();
-  console.log(`👤 Email match check: ${recordUserEmail} === ${emailToCheck} = ${userMatch}`);
-}
-
-// FALLBACK: Check if the Email field in ChatHistory matches any valid emails
-if (!userMatch && validUserEmails.length > 0) {
-  // Get the actual email from the lookup field
-  const actualEmail = fields['Email (from Email)'] || recordUserEmail;
-  if (actualEmail) {
-    userMatch = validUserEmails.some(email => 
-      String(actualEmail).toLowerCase() === String(email).toLowerCase()
-    );
-    if (userMatch) {
-      console.log(`👤 FALLBACK Email match found: ${actualEmail} in valid emails`);
-    }
-  }
-}
-
-// If no match yet, check if the User field contains the user_id value directly
-// This handles the case where Make.com saves User_ID instead of record ID
-if (!userMatch && user_id && recordUserField) {
-  // Check if the User field contains the user_id value (not as array)
-  userMatch = String(recordUserField) === String(user_id);
-  console.log(`👤 Direct User_ID match check: ${recordUserField} === ${user_id} = ${userMatch}`);
-}
-
-// Also check the User_ID field if present
-if (!userMatch && user_id) {
-  const recordUserId = fields.User_ID || fields.user_id;
-  if (recordUserId) {
-    userMatch = String(recordUserId) === String(user_id);
-    console.log(`👤 User_ID field match check: ${recordUserId} === ${user_id} = ${userMatch}`);
-  }
-}
-
-// REMOVED DANGEROUS FALLBACK - No weak email matching allowed for privacy
-// Only exact NetlifyUID matches are allowed for memory access
+      if (userRecordId && Array.isArray(recordUserField)) {
+        // Check if the user record ID is in the User field array
+        userMatch = recordUserField.includes(userRecordId);
+        console.log(`👤 SIMPLIFIED User match: ${JSON.stringify(recordUserField)} includes "${userRecordId}" = ${userMatch}`);
+      } else if (userRecordId && recordUserField === userRecordId) {
+        // Handle case where User field is a single value instead of array
+        userMatch = true;
+        console.log(`👤 SIMPLIFIED User match (single): "${recordUserField}" === "${userRecordId}" = ${userMatch}`);
+      } else {
+        console.log(`👤 SIMPLIFIED User match failed: userRecordId=${userRecordId}, recordUserField=${JSON.stringify(recordUserField)}`);
+      }
        if (!userMatch) {
          console.log(`❌ User mismatch, skipping record`);
          continue;
