@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mobile Chat Test - Narrin AI</title>
+  <meta name="description" content="Mobile chat layout test for Narrin AI">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* Copy the mobile-specific styles from the main chat.html */
+    :root {
+      --color-white: #ffffff;
+      --color-off-white: #fafafa;
+      --color-light-gray: #f5f5f5;
+      --color-teal: #14b8a6;
+      --color-teal-light: #5eead4;
+      --color-teal-dark: #0f766e;
+      --color-teal-alt: #10a394;
+      --color-coral: #f97316;
+      --color-coral-light: #fb923c;
+      --color-coral-dark: #ea580c;
+      --color-navy: #1e293b;
+      --color-navy-light: #334155;
+      --color-gray: #64748b;
+      --color-gray-light: #94a3b8;
+      --color-gray-dark: #475569;
+      --gradient-primary: linear-gradient(135deg, var(--color-teal) 0%, var(--color-coral) 100%);
+      --gradient-subtle: linear-gradient(135deg, var(--color-teal-light) 0%, var(--color-coral-light) 100%);
+      --gradient-tags: linear-gradient(135deg, var(--color-teal-alt) 0%, var(--color-coral) 100%);
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      --shadow-colored: 0 10px 25px -5px rgba(20, 184, 166, 0.2);
+      --spacing-xs: 0.5rem;
+      --spacing-sm: 0.75rem;
+      --spacing-md: 1rem;
+      --spacing-lg: 1.5rem;
+      --spacing-xl: 2rem;
+      --spacing-2xl: 3rem;
+      --spacing-3xl: 4rem;
+      --font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-secondary: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-size-xs: 0.75rem;
+      --font-size-sm: 0.875rem;
+      --font-size-base: 1rem;
+      --font-size-lg: 1.125rem;
+      --font-size-xl: 1.25rem;
+      --font-size-2xl: 1.5rem;
+      --font-size-3xl: 1.875rem;
+      --font-size-4xl: 2.25rem;
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --radius-full: 9999px;
+      --transition-fast: 150ms ease-out;
+      --transition-base: 300ms ease-out;
+      --transition-slow: 500ms ease-out;
+      --touch-target: 44px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-primary);
+      background: var(--color-off-white);
+      color: var(--color-navy);
+      line-height: 1.6;
+      font-size: var(--font-size-base);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Mobile Navigation */
+    .mobile-nav {
+      background: var(--color-white);
+      padding: var(--spacing-sm) var(--spacing-md);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 60px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-lg);
+      font-weight: 700;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: var(--spacing-xs);
+    }
+
+    .nav-btn {
+      background: none;
+      border: none;
+      padding: var(--spacing-xs);
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+      color: var(--color-gray);
+      transition: all var(--transition-fast);
+    }
+
+    .nav-btn:hover {
+      background: var(--color-light-gray);
+    }
+
+    /* Character Header - Fixed below nav */
+    .character-header {
+      background: var(--color-white);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+      padding: var(--spacing-sm) var(--spacing-md);
+      box-shadow: var(--shadow-sm);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 60px;
+      z-index: 90;
+    }
+
+    .character-info {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
+
+    .character-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--color-teal-light);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .character-details h2 {
+      font-size: var(--font-size-lg);
+      font-weight: 600;
+      color: var(--color-navy);
+      margin-bottom: 2px;
+    }
+
+    .character-details p {
+      font-size: var(--font-size-xs);
+      color: var(--color-gray);
+    }
+
+    .character-buttons {
+      display: flex;
+      gap: var(--spacing-xs);
+    }
+
+    .char-btn {
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      border: none;
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-xs);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .char-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    /* Chat Messages Area */
+    .chat-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--spacing-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+      -webkit-overflow-scrolling: touch;
+      min-height: 0;
+      padding-bottom: 220px; /* Space for bottom section */
+    }
+
+    /* Messages */
+    .message {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--spacing-sm);
+      max-width: 85%;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message.user {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+      max-width: 80%;
+    }
+
+    .message-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+      border: 2px solid var(--color-light-gray);
+    }
+
+    .message-content {
+      background: var(--color-white);
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-radius: 16px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .message.user .message-content {
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      border: none;
+    }
+
+    .message-text {
+      font-size: var(--font-size-sm);
+      line-height: 1.4;
+      word-wrap: break-word;
+    }
+
+    .message-actions {
+      display: flex;
+      gap: var(--spacing-xs);
+      margin-top: var(--spacing-xs);
+      justify-content: flex-end;
+      opacity: 0;
+      transition: opacity var(--transition-base);
+    }
+
+    .message:hover .message-actions {
+      opacity: 1;
+    }
+
+    .message.user .message-actions {
+      justify-content: flex-start;
+    }
+
+    .message-action {
+      background: rgba(100, 116, 139, 0.1);
+      border: none;
+      padding: 4px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      color: var(--color-gray);
+    }
+
+    .message-action:hover {
+      background: var(--color-teal);
+      color: var(--color-white);
+    }
+
+    /* Fixed Bottom Section */
+    .bottom-section {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--color-white);
+      border-top: 1px solid rgba(0, 0, 0, 0.08);
+      padding: var(--spacing-sm) var(--spacing-md);
+      box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+      z-index: 200;
+      flex-shrink: 0;
+    }
+
+    /* Input Group */
+    .input-group {
+      display: flex;
+      align-items: flex-end;
+      gap: var(--spacing-sm);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .input-wrapper {
+      flex: 1;
+      position: relative;
+      background: var(--color-light-gray);
+      border-radius: var(--radius-xl);
+      border: 2px solid transparent;
+      display: flex;
+      align-items: center;
+      padding: 0 var(--spacing-md);
+      min-height: 40px;
+      transition: all var(--transition-base);
+    }
+
+    .input-wrapper:focus-within {
+      border-color: var(--color-teal);
+      background: var(--color-white);
+      box-shadow: var(--shadow-colored);
+    }
+
+    .chat-input {
+      flex: 1;
+      border: none;
+      background: none;
+      outline: none;
+      font-size: 16px;
+      padding: var(--spacing-xs) 0;
+      resize: none;
+      max-height: 80px;
+      font-family: var(--font-primary);
+      color: var(--color-navy);
+    }
+
+    .chat-input::placeholder {
+      color: var(--color-gray);
+    }
+
+    .mic-button {
+      background: none;
+      border: none;
+      padding: 6px;
+      margin: 0 4px;
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+      color: var(--color-teal);
+      transition: all var(--transition-fast);
+    }
+
+    .mic-button:hover {
+      background: rgba(20, 184, 166, 0.1);
+    }
+
+    .send-button {
+      background: var(--gradient-primary);
+      border: none;
+      padding: var(--spacing-xs) var(--spacing-md);
+      border-radius: var(--radius-xl);
+      color: var(--color-white);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      flex-shrink: 0;
+    }
+
+    .send-button:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .send-button:disabled {
+      background: var(--color-gray-light);
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Organize Thoughts */
+    .organize-section {
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .organize-button {
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      border: none;
+      padding: var(--spacing-sm) var(--spacing-lg);
+      border-radius: var(--radius-xl);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-xs);
+      width: 100%;
+      box-shadow: var(--shadow-md);
+    }
+
+    .organize-button:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .topics-dropdown {
+      background: var(--color-white);
+      border: 1px solid var(--color-teal-light);
+      border-radius: var(--radius-md);
+      margin-top: var(--spacing-xs);
+      padding: var(--spacing-sm);
+      box-shadow: var(--shadow-md);
+      display: none;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .topics-dropdown.show {
+      display: block;
+      animation: slideDown 0.2s ease-out;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .topic-group-title {
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      color: var(--color-gray-dark);
+      margin: var(--spacing-xs) 0;
+      padding-bottom: var(--spacing-xs);
+      border-bottom: 1px solid var(--color-light-gray);
+    }
+
+    .topic-btn {
+      background: var(--color-light-gray);
+      border: none;
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-xs);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      display: block;
+      width: 100%;
+      text-align: left;
+      margin-bottom: var(--spacing-xs);
+      color: var(--color-gray-dark);
+    }
+
+    .topic-btn:hover {
+      background: var(--color-teal);
+      color: var(--color-white);
+    }
+
+    /* AI Message */
+    .ai-message {
+      background: rgba(20, 184, 166, 0.05);
+      border: 1px solid var(--color-teal-light);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-xs);
+      font-size: var(--font-size-xs);
+      color: var(--color-gray-dark);
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-xs);
+    }
+
+    /* SVG Icons */
+    .icon {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+    }
+
+    .icon-sm {
+      width: 14px;
+      height: 14px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Mobile Navigation -->
+  <div class="mobile-nav">
+    <div class="logo">Narrin AI</div>
+    <div class="nav-buttons">
+      <button class="nav-btn" title="Menu">
+        <svg class="icon" viewBox="0 0 24 24">
+          <path d="M3 12h18M3 6h18M3 18h18"/>
+        </svg>
+      </button>
+      <button class="nav-btn" title="Chat">
+        <svg class="icon" viewBox="0 0 24 24">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Character Header -->
+  <div class="character-header">
+    <div class="character-info">
+      <img src="https://images.unsplash.com/photo-1494790108755-2616c96b8bef?w=200&h=200&fit=crop&crop=face" alt="Test" class="character-avatar">
+      <div class="character-details">
+        <h2>Test</h2>
+        <p>Friendship Companion</p>
+      </div>
+    </div>
+    <div class="character-buttons">
+      <button class="char-btn" onclick="showMemory()">
+        🧠 Memory
+      </button>
+      <button class="char-btn" onclick="showCustomize()">
+        ⚙️ Customize
+      </button>
+    </div>
+  </div>
+
+  <!-- Chat Messages Container -->
+  <div class="chat-container" id="chatContainer">
+    <!-- User Message -->
+    <div class="message user">
+      <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face" alt="User" class="message-avatar">
+      <div class="message-content">
+        <div class="message-text">whats my name?</div>
+      </div>
+    </div>
+
+    <!-- AI Response -->
+    <div class="message">
+      <img src="https://images.unsplash.com/photo-1494790108755-2616c96b8bef?w=100&h=100&fit=crop&crop=face" alt="Test" class="message-avatar">
+      <div class="message-content">
+        <div class="message-text">
+          Hey, actually I don't know your name yet - I'm pretty sure we haven't shared that yet! What should I call you?
+        </div>
+        <div class="message-actions">
+          <button class="message-action" title="Copy" onclick="copyMessage(this)">
+            <svg class="icon-sm" viewBox="0 0 24 24">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+          </button>
+          <button class="message-action" title="Like" onclick="likeMessage(this)">
+            <svg class="icon-sm" viewBox="0 0 24 24">
+              <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+            </svg>
+          </button>
+          <button class="message-action" title="Dislike" onclick="dislikeMessage(this)">
+            <svg class="icon-sm" viewBox="0 0 24 24">
+              <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Another User Message -->
+    <div class="message user">
+      <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face" alt="User" class="message-avatar">
+      <div class="message-content">
+        <div class="message-text">My name is Sarah, what topics can we discuss?</div>
+      </div>
+    </div>
+
+    <!-- AI Response -->
+    <div class="message">
+      <img src="https://images.unsplash.com/photo-1494790108755-2616c96b8bef?w=100&h=100&fit=crop&crop=face" alt="Test" class="message-avatar">
+      <div class="message-content">
+        <div class="message-text">
+          Nice to meet you, Sarah! We can discuss anything that's on your mind. I'm here to help you organize your thoughts and explore topics like friendship, relationships, personal growth, daily challenges, or anything else you'd like to talk through.
+        </div>
+        <div class="message-actions">
+          <button class="message-action" title="Copy" onclick="copyMessage(this)">
+            <svg class="icon-sm" viewBox="0 0 24 24">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+          </button>
+          <button class="message-action" title="Like" onclick="likeMessage(this)">
+            <svg class="icon-sm" viewBox="0 0 24 24">
+              <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+            </svg>
+          </button>
+          <button class="message-action" title="Dislike" onclick="dislikeMessage(this)">
+            <svg class="icon-sm" viewBox="0 0 24 24">
+              <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fixed Bottom Section -->
+  <div class="bottom-section">
+    <!-- Input Group -->
+    <div class="input-group">
+      <div class="input-wrapper">
+        <textarea 
+          class="chat-input" 
+          placeholder="Share what's on your mind..." 
+          rows="1"
+          id="chatInput"
+        ></textarea>
+        <button class="mic-button" id="micButton" title="Use microphone">
+          <svg class="icon" viewBox="0 0 24 24">
+            <path d="M12 1C10.34 1 9 2.34 9 4V12C9 13.66 10.34 15 12 15C13.66 15 15 13.66 15 12V4C15 2.34 13.66 1 12 1Z"/>
+            <path d="M19 10V12C19 15.866 15.866 19 12 19C8.13401 19 5 15.866 5 12V10"/>
+            <path d="M12 19V23"/>
+            <path d="M8 23H16"/>
+          </svg>
+        </button>
+      </div>
+      <button class="send-button" id="sendButton" onclick="sendMessage()">Send</button>
+    </div>
+
+    <!-- Organize Thoughts Section -->
+    <div class="organize-section">
+      <button class="organize-button" onclick="toggleTopics()">
+        🧠 Organize Thoughts
+        <svg class="icon-sm" viewBox="0 0 24 24">
+          <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7z"/>
+        </svg>
+      </button>
+      
+      <div class="topics-dropdown" id="topicsDropdown">
+        <div class="topic-group-title">Friendship & Connection</div>
+        <button class="topic-btn" onclick="selectTopic('Help me understand why I feel lonely even when surrounded by people')">Help me understand why I feel lonely even when surrounded by people</button>
+        <button class="topic-btn" onclick="selectTopic('I want to deepen my existing friendships but don\'t know how')">I want to deepen my existing friendships but don't know how</button>
+        <button class="topic-btn" onclick="selectTopic('How do I make new friends as an adult?')">How do I make new friends as an adult?</button>
+        
+        <div class="topic-group-title">Social Situations</div>
+        <button class="topic-btn" onclick="selectTopic('I feel anxious in social situations - help me practice')">I feel anxious in social situations - help me practice</button>
+        <button class="topic-btn" onclick="selectTopic('Help me navigate conflict with a friend')">Help me navigate conflict with a friend</button>
+        <button class="topic-btn" onclick="selectTopic('I struggle with setting boundaries in friendships')">I struggle with setting boundaries in friendships</button>
+      </div>
+    </div>
+
+    <!-- AI Message -->
+    <div class="ai-message">
+      🤖 Remember: everything we practice here is preparing you for the real thing. This is your safe space to grow!
+    </div>
+  </div>
+
+  <script>
+    // Auto-resize textarea
+    const chatInput = document.getElementById('chatInput');
+    const sendButton = document.getElementById('sendButton');
+
+    chatInput.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 80) + 'px';
+      
+      // Enable/disable send button
+      sendButton.disabled = !this.value.trim();
+    });
+
+    // Send message
+    function sendMessage() {
+      const text = chatInput.value.trim();
+      if (!text) return;
+
+      // Add user message
+      const chatContainer = document.getElementById('chatContainer');
+      const userMessage = document.createElement('div');
+      userMessage.className = 'message user';
+      userMessage.innerHTML = `
+        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face" alt="User" class="message-avatar">
+        <div class="message-content">
+          <div class="message-text">${text}</div>
+        </div>
+      `;
+      chatContainer.appendChild(userMessage);
+
+      // Clear input
+      chatInput.value = '';
+      chatInput.style.height = 'auto';
+      sendButton.disabled = true;
+
+      // Scroll to bottom
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+
+      // Simulate AI response
+      setTimeout(() => {
+        const aiMessage = document.createElement('div');
+        aiMessage.className = 'message';
+        aiMessage.innerHTML = `
+          <img src="https://images.unsplash.com/photo-1494790108755-2616c96b8bef?w=100&h=100&fit=crop&crop=face" alt="Test" class="message-avatar">
+          <div class="message-content">
+            <div class="message-text">I understand what you're sharing, Sarah. Let me help you explore that further...</div>
+            <div class="message-actions">
+              <button class="message-action" title="Copy" onclick="copyMessage(this)">
+                <svg class="icon-sm" viewBox="0 0 24 24">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+              </button>
+              <button class="message-action" title="Like" onclick="likeMessage(this)">
+                <svg class="icon-sm" viewBox="0 0 24 24">
+                  <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                </svg>
+              </button>
+              <button class="message-action" title="Dislike" onclick="dislikeMessage(this)">
+                <svg class="icon-sm" viewBox="0 0 24 24">
+                  <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        `;
+        chatContainer.appendChild(aiMessage);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }, 1000);
+    }
+
+    // Toggle topics dropdown
+    function toggleTopics() {
+      const dropdown = document.getElementById('topicsDropdown');
+      dropdown.classList.toggle('show');
+    }
+
+    // Select topic
+    function selectTopic(topic) {
+      chatInput.value = topic;
+      chatInput.focus();
+      
+      // Close dropdown
+      const dropdown = document.getElementById('topicsDropdown');
+      dropdown.classList.remove('show');
+      
+      // Enable send button
+      sendButton.disabled = false;
+    }
+
+    // Enter key to send
+    chatInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // Button functions
+    function showMemory() {
+      alert('🧠 Memory Hub opened');
+    }
+
+    function showCustomize() {
+      alert('⚙️ Customize Panel opened');
+    }
+
+    function copyMessage(button) {
+      const messageText = button.closest('.message-content').querySelector('.message-text').innerText;
+      navigator.clipboard.writeText(messageText);
+      button.style.background = 'var(--color-teal)';
+      button.style.color = 'white';
+      setTimeout(() => {
+        button.style.background = '';
+        button.style.color = '';
+      }, 1000);
+    }
+
+    function likeMessage(button) {
+      button.style.background = 'var(--color-teal)';
+      button.style.color = 'white';
+    }
+
+    function dislikeMessage(button) {
+      button.style.background = 'var(--color-coral)';
+      button.style.color = 'white';
+    }
+
+    // Focus input on load
+    setTimeout(() => {
+      chatInput.focus();
+    }, 100);
+
+    // Auto-scroll to bottom on load
+    setTimeout(() => {
+      const chatContainer = document.getElementById('chatContainer');
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }, 100);
+  </script>
+</body>
+</html>
