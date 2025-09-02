@@ -14391,8 +14391,9 @@ async function sendMessage(event) {
           // Always include very important memories (8+)
           if (memory.importance >= 8) return true;
           
-          // Check if current message relates to memory
-          if (lowerInput.includes('name') && (tags.includes('personal_info') || summary.toLowerCase().includes('name') || summary.toLowerCase().includes('sebastiaan'))) return true;
+          // Check if current message relates to memory - handle typos
+          const isNameQuery = lowerInput.includes('name') || lowerInput.includes('nsme') || lowerInput.includes('nm');
+          if (isNameQuery && (tags.includes('personal_info') || summary.toLowerCase().includes('name') || summary.toLowerCase().includes('seb'))) return true;
           if (lowerInput.includes('age') && (summary.includes('age') || summary.includes('old'))) return true;
           if (lowerInput.includes('remember') || lowerInput.includes('forget')) return true;
           if (tags.includes('memory_check')) return true;
