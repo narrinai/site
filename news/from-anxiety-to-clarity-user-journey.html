@@ -37,22 +37,29 @@
       --color-teal: #14b8a6;
       --color-teal-light: #5eead4;
       --color-teal-dark: #0f766e;
+      --color-teal-alt: #10a394; /* Slightly different green for tags */
       --color-coral: #f97316;
       --color-coral-light: #fb923c;
+      --color-coral-dark: #ea580c;
       
       /* Supporting Colors */
       --color-navy: #1e293b;
+      --color-navy-light: #334155;
       --color-gray: #64748b;
       --color-gray-light: #94a3b8;
       --color-gray-dark: #475569;
       
       /* Gradients */
       --gradient-primary: linear-gradient(135deg, var(--color-teal) 0%, var(--color-coral) 100%);
+      --gradient-subtle: linear-gradient(135deg, var(--color-teal-light) 0%, var(--color-coral-light) 100%);
+      --gradient-tags: linear-gradient(135deg, var(--color-teal-alt) 0%, var(--color-coral) 100%);
       
       /* Shadows */
       --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
       --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
       --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      --shadow-colored: 0 10px 25px -5px rgba(20, 184, 166, 0.2);
       
       /* Spacing */
       --spacing-xs: 0.5rem;
@@ -84,10 +91,23 @@
       --radius-xl: 24px;
       --radius-full: 9999px;
       
-      /* Transitions */
-      --transition-base: 0.3s ease;
+      /* Transitions - UX Best Practice: 300ms */
+      --transition-fast: 150ms ease-out;
+      --transition-base: 300ms ease-out;
+      --transition-slow: 500ms ease-out;
+      
+      /* Touch Target Size - WCAG Compliance */
+      --touch-target: 44px;
+      
+      /* Z-index Scale */
+      --z-dropdown: 100;
+      --z-sticky: 200;
+      --z-overlay: 300;
+      --z-modal: 400;
+      --z-menu-overlay: 500;
     }
 
+    /* ===== BASE STYLES ===== */
     * {
       margin: 0;
       padding: 0;
@@ -106,71 +126,119 @@
       -webkit-font-smoothing: antialiased;
     }
 
+    /* ===== HEADER NAVIGATION ===== */
     .header {
-      background: var(--color-white);
-      border-bottom: 1px solid var(--color-light-gray);
       position: sticky;
       top: 0;
-      z-index: 100;
+      z-index: var(--z-sticky);
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      transition: all var(--transition-base);
     }
 
     .header-container {
-      max-width: 1200px;
+      max-width: 1400px;
       margin: 0 auto;
       padding: 0 var(--spacing-lg);
+      width: 100%;
+      overflow: hidden;
     }
 
     .header-content {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: var(--spacing-lg) 0;
+      min-height: 72px;
+      gap: var(--spacing-lg);
+      width: 100%;
     }
 
+    /* Logo */
     .logo {
       font-family: var(--font-secondary);
       font-size: var(--font-size-xl);
       font-weight: 800;
       text-decoration: none;
-      color: var(--color-navy);
+      letter-spacing: -0.02em;
       background: var(--gradient-primary);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
+      transition: transform var(--transition-base);
+      flex-shrink: 0;
     }
 
+    .logo:hover {
+      transform: scale(1.05);
+    }
+
+    /* Navigation Links - Desktop */
     .nav-links {
-      display: flex;
-      gap: var(--spacing-xl);
+      display: none;
       align-items: center;
+      gap: var(--spacing-xl);
     }
 
     .nav-link {
-      color: var(--color-gray);
+      color: var(--color-navy);
       text-decoration: none;
       font-weight: 500;
+      font-size: var(--font-size-sm);
       transition: color var(--transition-base);
+      position: relative;
+      padding: var(--spacing-xs) 0;
     }
 
-    .nav-link:hover,
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--gradient-primary);
+      transition: width var(--transition-base);
+    }
+
+    .nav-link:hover {
+      color: var(--color-teal);
+    }
+
+    .nav-link:hover::after {
+      width: 100%;
+    }
+
     .nav-link.active {
       color: var(--color-teal);
     }
 
+    .nav-link.active::after {
+      width: 100%;
+    }
+
+    /* Buttons */
     .btn {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       padding: var(--spacing-sm) var(--spacing-lg);
+      font-size: var(--font-size-sm);
       font-weight: 600;
       text-decoration: none;
+      border: none;
       border-radius: var(--radius-md);
+      cursor: pointer;
       transition: all var(--transition-base);
+      min-height: var(--touch-target);
+      white-space: nowrap;
     }
 
     .btn-primary {
       background: var(--gradient-primary);
       color: var(--color-white);
-      box-shadow: var(--shadow-md);
+      box-shadow: var(--shadow-colored);
     }
 
     .btn-primary:hover {
@@ -326,9 +394,268 @@
       counter-reset: reference-counter;
     }
 
-    @media (max-width: 768px) {
+    /* ===== MOBILE NAVIGATION ===== */
+    /* Mobile Navigation Container */
+    .mobile-nav-container {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      flex-shrink: 0;
+    }
+
+    /* Mobile Chat Button */
+    .mobile-chat-btn {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: var(--touch-target);
+      height: var(--touch-target);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--color-navy);
+      transition: all var(--transition-base);
+      border-radius: var(--radius-md);
+      flex-shrink: 0;
+      text-decoration: none;
+    }
+
+    .mobile-chat-btn:hover {
+      background: var(--color-light-gray);
+    }
+
+    .mobile-chat-btn svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    /* Mobile Hamburger Menu */
+    .mobile-menu-btn {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: var(--touch-target);
+      height: var(--touch-target);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--color-navy);
+      transition: all var(--transition-base);
+      border-radius: var(--radius-md);
+      position: relative;
+      flex-shrink: 0;
+      z-index: var(--z-menu-overlay);
+    }
+
+    .mobile-menu-btn:hover {
+      background: var(--color-light-gray);
+    }
+
+    .hamburger {
+      width: 24px;
+      height: 18px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .hamburger span {
+      display: block;
+      height: 2px;
+      width: 100%;
+      background: var(--color-navy);
+      border-radius: 1px;
+      transition: all var(--transition-base);
+    }
+
+    .mobile-menu-btn.active .hamburger span:nth-child(1) {
+      transform: rotate(45deg) translate(6px, 6px);
+    }
+
+    .mobile-menu-btn.active .hamburger span:nth-child(2) {
+      opacity: 0;
+    }
+
+    .mobile-menu-btn.active .hamburger span:nth-child(3) {
+      transform: rotate(-45deg) translate(6px, -6px);
+    }
+
+    /* Mobile Menu Overlay - Full Screen */
+    .mobile-menu-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(30, 41, 59, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      z-index: var(--z-overlay);
+      opacity: 0;
+      visibility: hidden;
+      transition: all var(--transition-base);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .mobile-menu-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .mobile-menu-content {
+      background: var(--color-white);
+      border-radius: var(--radius-xl);
+      padding: var(--spacing-3xl) var(--spacing-xl);
+      box-shadow: var(--shadow-xl);
+      max-width: 90vw;
+      width: 100%;
+      max-width: 400px;
+      transform: scale(0.9) translateY(20px);
+      transition: all var(--transition-base);
+    }
+
+    .mobile-menu-overlay.active .mobile-menu-content {
+      transform: scale(1) translateY(0);
+    }
+
+    .mobile-menu-header {
+      text-align: center;
+      margin-bottom: var(--spacing-2xl);
+    }
+
+    .mobile-menu-logo {
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-2xl);
+      font-weight: 800;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .mobile-menu-subtitle {
+      color: var(--color-gray);
+      font-size: var(--font-size-sm);
+    }
+
+    .mobile-menu-nav {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+    }
+
+    .mobile-menu-link {
+      display: flex;
+      align-items: center;
+      padding: var(--spacing-md) var(--spacing-lg);
+      color: var(--color-navy);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: var(--font-size-base);
+      transition: all var(--transition-base);
+      border-radius: var(--radius-md);
+      background: var(--color-off-white);
+    }
+
+    .mobile-menu-link:hover {
+      background: var(--color-light-gray);
+      color: var(--color-teal);
+      transform: translateX(4px);
+    }
+
+    .mobile-menu-link.active {
+      background: var(--color-light-gray);
+      color: var(--color-teal);
+    }
+
+    .mobile-menu-link.btn-primary {
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      justify-content: center;
+      font-weight: 700;
+      margin-top: var(--spacing-lg);
+    }
+
+    .mobile-menu-link.btn-primary:hover {
+      background: var(--gradient-primary);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .mobile-menu-link-icon {
+      margin-right: var(--spacing-sm);
+      font-size: var(--font-size-lg);
+    }
+
+    /* Desktop Navigation Override */
+    @media (min-width: 769px) {
       .nav-links {
+        display: flex;
+      }
+
+      .mobile-nav-container {
         display: none;
+      }
+
+      .mobile-chat-btn {
+        display: none !important;
+      }
+
+      .mobile-menu-btn {
+        display: none !important;
+      }
+
+      .mobile-menu-overlay {
+        display: none !important;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .header-container {
+        padding: 0 var(--spacing-md);
+      }
+
+      .header-content {
+        min-height: 60px;
+        gap: var(--spacing-sm);
+        padding: 0;
+        display: grid;
+        grid-template-columns: auto 1fr auto auto auto;
+        align-items: center;
+      }
+
+      .logo {
+        font-size: var(--font-size-lg);
+        flex-shrink: 0;
+        min-width: fit-content;
+        grid-column: 1;
+      }
+
+      .mobile-nav-container {
+        flex-shrink: 0;
+        min-width: fit-content;
+        display: flex !important;
+        gap: var(--spacing-xs);
+        grid-column: 3 / 6;
+        justify-self: end;
+      }
+
+      .mobile-chat-btn {
+        display: flex;
+        flex-shrink: 0;
+      }
+
+      .nav-links {
+        display: none !important;
+      }
+
+      .mobile-menu-btn {
+        display: flex;
+        flex-shrink: 0;
       }
 
       .main-content {
@@ -348,19 +675,89 @@
 </head>
 
 <body>
-  <header class="header">
+  <!-- Header Navigation -->
+  <header class="header" role="banner">
     <div class="header-container">
       <div class="header-content">
-        <a href="/" class="logo">Narrin AI</a>
-        <nav class="nav-links">
-          <a href="/" class="nav-link">Home</a>
-          <a href="/news" class="nav-link active">News & Insights</a>
+        <!-- Logo -->
+        <a href="/" class="logo" aria-label="Narrin AI Home">Narrin AI</a>
+
+        <!-- Desktop Navigation Links -->
+        <nav class="nav-links" role="navigation" aria-label="Secondary navigation">
+          <a href="/pricing" class="nav-link">Plans</a>
           <a href="/chat-overview" class="nav-link">My Companions</a>
+          <a href="/memory-import" class="nav-link">Import Memory</a>
+          <a href="/news" class="nav-link active">News & Insights</a>
+          <a href="#" class="nav-link" id="loginBtn">Login/Register</a>
           <a href="/create-character" class="btn btn-primary">✨ Create Companion</a>
         </nav>
+
+        <!-- Mobile Navigation Container -->
+        <div class="mobile-nav-container">
+          <!-- Mobile Chat Button -->
+          <a
+            href="/chat-overview"
+            class="mobile-chat-btn"
+            aria-label="Go to chats"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </a>
+
+          <!-- Mobile Hamburger Menu -->
+          <button
+            class="mobile-menu-btn"
+            id="mobileMenuBtn"
+            aria-label="Open navigation menu"
+            aria-expanded="false"
+          >
+            <div class="hamburger">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </button>
+        </div>
       </div>
     </div>
   </header>
+
+  <!-- Mobile Menu Overlay -->
+  <div class="mobile-menu-overlay" id="mobileMenuOverlay">
+    <div class="mobile-menu-content">
+      <div class="mobile-menu-header">
+        <div class="mobile-menu-logo">Narrin AI</div>
+        <div class="mobile-menu-subtitle">AI Companion Platform</div>
+      </div>
+      <nav class="mobile-menu-nav" role="navigation" aria-label="Mobile navigation">
+        <a href="/chat-overview" class="mobile-menu-link">
+          <span class="mobile-menu-link-icon">💬</span>
+          My Companions
+        </a>
+        <a href="/pricing" class="mobile-menu-link">
+          <span class="mobile-menu-link-icon">💎</span>
+          Plans
+        </a>
+        <a href="/memory-import" class="mobile-menu-link">
+          <span class="mobile-menu-link-icon">🧠</span>
+          Import Memory
+        </a>
+        <a href="/news" class="mobile-menu-link active">
+          <span class="mobile-menu-link-icon">📰</span>
+          News & Insights
+        </a>
+        <a href="#" class="mobile-menu-link" id="mobileLoginBtn">
+          <span class="mobile-menu-link-icon">👤</span>
+          Login/Register
+        </a>
+        <a href="/create-character" class="mobile-menu-link btn-primary">
+          <span class="mobile-menu-link-icon">✨</span>
+          Create Companion
+        </a>
+      </nav>
+    </div>
+  </div>
 
   <!-- Main Content -->
   <main class="main-content">
@@ -441,7 +838,78 @@
   </main>
 
   <script>
-    // No additional JavaScript needed for this page
+    // ===== NAVIGATION FUNCTIONALITY =====
+    
+    // Mobile Menu Elements
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+    const loginBtn = document.getElementById('loginBtn');
+    const mobileLoginBtn = document.getElementById('mobileLoginBtn');
+
+    // ===== MOBILE MENU FUNCTIONALITY =====
+    function toggleMobileMenu() {
+      if (!mobileMenuOverlay) return;
+      
+      const isActive = mobileMenuOverlay.classList.contains('active');
+      
+      if (isActive) {
+        closeMobileMenu();
+      } else {
+        openMobileMenu();
+      }
+    }
+
+    function openMobileMenu() {
+      if (mobileMenuOverlay) {
+        mobileMenuOverlay.classList.add('active');
+      }
+      if (mobileMenuBtn) {
+        mobileMenuBtn.classList.add('active');
+        mobileMenuBtn.setAttribute('aria-expanded', 'true');
+      }
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeMobileMenu() {
+      if (mobileMenuOverlay) {
+        mobileMenuOverlay.classList.remove('active');
+      }
+      if (mobileMenuBtn) {
+        mobileMenuBtn.classList.remove('active');
+        mobileMenuBtn.setAttribute('aria-expanded', 'false');
+      }
+      document.body.style.overflow = '';
+    }
+
+    mobileMenuBtn?.addEventListener('click', toggleMobileMenu);
+
+    mobileMenuOverlay?.addEventListener('click', (e) => {
+      if (e.target === mobileMenuOverlay) {
+        closeMobileMenu();
+      }
+    });
+
+    document.querySelectorAll('.mobile-menu-link').forEach(link => {
+      link.addEventListener('click', closeMobileMenu);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (mobileMenuOverlay?.classList.contains('active')) {
+          closeMobileMenu();
+        }
+      }
+    });
+
+    function handleResize() {
+      if (window.innerWidth > 768) {
+        if (mobileMenuOverlay?.classList.contains('active')) {
+          closeMobileMenu();
+        }
+      }
+    }
+
+    window.addEventListener('resize', handleResize);
   </script>
 </body>
 </html>
