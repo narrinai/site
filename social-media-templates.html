@@ -303,7 +303,16 @@
         <div class="template-card">
           <div class="template-preview">
             <div class="profile-pic">
-              <div class="icon-circle" style="width: 100px; height: 100px; font-size: 48px;">N</div>
+              <svg width="100" height="100" viewBox="0 0 32 32" style="width: 100px; height: 100px;">
+                <defs>
+                  <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#14b8a6;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#f97316;stop-opacity:1" />
+                  </linearGradient>
+                </defs>
+                <circle cx="16" cy="16" r="15" fill="url(#gradient1)" stroke="none"/>
+                <path d="M 8 24 L 8 8 L 12 8 L 20 20 L 20 8 L 24 8 L 24 24 L 20 24 L 12 12 L 12 24 L 8 24 Z" fill="white" stroke="none"/>
+              </svg>
             </div>
           </div>
           <div class="template-title">Universal Profile Picture</div>
@@ -314,7 +323,10 @@
         <div class="template-card">
           <div class="template-preview">
             <div class="profile-pic" style="background: #22c55e;">
-              <div class="icon-circle" style="width: 100px; height: 100px; font-size: 48px; background: white; color: #22c55e;">N</div>
+              <svg width="100" height="100" viewBox="0 0 32 32" style="width: 100px; height: 100px;">
+                <circle cx="16" cy="16" r="15" fill="white" stroke="none"/>
+                <path d="M 8 24 L 8 8 L 12 8 L 20 20 L 20 8 L 24 8 L 24 24 L 20 24 L 12 12 L 12 24 L 8 24 Z" fill="#22c55e" stroke="none"/>
+              </svg>
             </div>
           </div>
           <div class="template-title">Green Profile Picture</div>
@@ -334,7 +346,10 @@
               <div class="pattern-overlay"></div>
               <div style="text-align: center; z-index: 1;">
                 <div class="banner-logo">
-                  <div class="icon-circle">N</div>
+                  <svg width="40" height="40" viewBox="0 0 32 32" style="width: 40px; height: 40px;">
+                    <circle cx="16" cy="16" r="15" fill="rgba(255,255,255,0.9)" stroke="none"/>
+                    <path d="M 8 24 L 8 8 L 12 8 L 20 20 L 20 8 L 24 8 L 24 24 L 20 24 L 12 12 L 12 24 L 8 24 Z" fill="#14b8a6" stroke="none"/>
+                  </svg>
                   <span>Narrin AI</span>
                 </div>
                 <div class="banner-tagline">AI Companions for Life</div>
@@ -391,7 +406,10 @@
               <div class="pattern-overlay"></div>
               <div style="text-align: center; z-index: 1;">
                 <div class="banner-logo">
-                  <div class="icon-circle">N</div>
+                  <svg width="40" height="40" viewBox="0 0 32 32" style="width: 40px; height: 40px;">
+                    <circle cx="16" cy="16" r="15" fill="rgba(255,255,255,0.9)" stroke="none"/>
+                    <path d="M 8 24 L 8 8 L 12 8 L 20 20 L 20 8 L 24 8 L 24 24 L 20 24 L 12 12 L 12 24 L 8 24 Z" fill="#14b8a6" stroke="none"/>
+                  </svg>
                   <span>Narrin AI</span>
                 </div>
                 <div class="banner-tagline">AI Companions for Life</div>
@@ -415,7 +433,10 @@
               <div class="pattern-overlay"></div>
               <div style="text-align: center; z-index: 1;">
                 <div class="banner-logo">
-                  <div class="icon-circle">N</div>
+                  <svg width="40" height="40" viewBox="0 0 32 32" style="width: 40px; height: 40px;">
+                    <circle cx="16" cy="16" r="15" fill="rgba(255,255,255,0.9)" stroke="none"/>
+                    <path d="M 8 24 L 8 8 L 12 8 L 20 20 L 20 8 L 24 8 L 24 24 L 20 24 L 12 12 L 12 24 L 8 24 Z" fill="#14b8a6" stroke="none"/>
+                  </svg>
                   <span>Narrin AI</span>
                 </div>
                 <div class="banner-tagline">AI Companions for Life</div>
@@ -439,7 +460,10 @@
               <div class="pattern-overlay"></div>
               <div style="text-align: center; z-index: 1;">
                 <div class="banner-logo">
-                  <div class="icon-circle">N</div>
+                  <svg width="40" height="40" viewBox="0 0 32 32" style="width: 40px; height: 40px;">
+                    <circle cx="16" cy="16" r="15" fill="rgba(255,255,255,0.9)" stroke="none"/>
+                    <path d="M 8 24 L 8 8 L 12 8 L 20 20 L 20 8 L 24 8 L 24 24 L 20 24 L 12 12 L 12 24 L 8 24 Z" fill="#14b8a6" stroke="none"/>
+                  </svg>
                   <span>Narrin AI</span>
                 </div>
                 <div class="banner-tagline">AI Companions for Life</div>
@@ -606,11 +630,119 @@
 
   <script>
     function downloadTemplate(type) {
-      // In a real implementation, this would generate and download the actual template
-      alert(`Downloading ${type} template...\n\nNote: This is a preview. In production, this would generate a high-resolution PNG file with the exact dimensions needed for the platform.`);
+      console.log('🎨 Generating template:', type);
       
-      // You could implement actual canvas generation here
-      // Similar to the logo generator
+      // Template configurations
+      const templates = {
+        'profile-universal': { width: 400, height: 400, isCircle: true },
+        'profile-green': { width: 400, height: 400, isCircle: true, bgColor: '#22c55e' },
+        'linkedin-company': { width: 1128, height: 191 },
+        'linkedin-personal': { width: 1584, height: 396 },
+        'twitter-header': { width: 1500, height: 500 },
+        'facebook-cover': { width: 1200, height: 630 },
+        'facebook-profile': { width: 820, height: 312 },
+        'youtube-banner': { width: 2560, height: 1440 },
+        'instagram-post': { width: 1080, height: 1080 },
+        'instagram-portrait': { width: 1080, height: 1350 },
+        'instagram-story': { width: 1080, height: 1920 },
+        'tiktok-video': { width: 1080, height: 1920 },
+        'email-signature': { width: 600, height: 150 }
+      };
+      
+      const config = templates[type];
+      if (!config) {
+        alert('Template configuration not found');
+        return;
+      }
+      
+      // Create canvas
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = config.width;
+      canvas.height = config.height;
+      
+      // Create gradient background
+      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      gradient.addColorStop(0, '#14b8a6');
+      gradient.addColorStop(1, '#f97316');
+      
+      // Fill background
+      if (config.isCircle) {
+        // For profile pictures, fill entire canvas with gradient
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw logo in center
+        drawNarrinLogo(ctx, canvas.width / 2 - 60, canvas.height / 2 - 60, 120, config.bgColor);
+      } else {
+        // For banners, fill with gradient
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Add logo and text in center
+        const logoSize = Math.min(canvas.width / 15, canvas.height / 3, 100);
+        drawNarrinLogo(ctx, canvas.width / 2 - logoSize / 2, canvas.height / 2 - logoSize / 2, logoSize);
+        
+        // Add text
+        ctx.fillStyle = 'white';
+        ctx.font = `bold ${logoSize * 0.8}px Outfit, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText('Narrin AI', canvas.width / 2, canvas.height / 2 + logoSize);
+        
+        // Add tagline
+        ctx.font = `${logoSize * 0.3}px Plus Jakarta Sans, sans-serif`;
+        ctx.fillStyle = 'rgba(255,255,255,0.9)';
+        ctx.fillText('AI Companions for Mental Clarity', canvas.width / 2, canvas.height / 2 + logoSize + logoSize * 0.5);
+      }
+      
+      // Download the canvas as PNG
+      canvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `narrin-ai-${type}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        console.log('✅ Template downloaded:', type);
+      }, 'image/png');
+    }
+    
+    function drawNarrinLogo(ctx, x, y, size, backgroundColor = null) {
+      // Draw background circle if needed
+      if (backgroundColor) {
+        ctx.fillStyle = backgroundColor;
+        ctx.beginPath();
+        ctx.arc(x + size/2, y + size/2, size/2, 0, 2 * Math.PI);
+        ctx.fill();
+      } else {
+        // Draw gradient circle
+        const gradient = ctx.createLinearGradient(x, y, x + size, y + size);
+        gradient.addColorStop(0, '#14b8a6');
+        gradient.addColorStop(1, '#f97316');
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(x + size/2, y + size/2, size/2, 0, 2 * Math.PI);
+        ctx.fill();
+      }
+      
+      // Draw white "N" letter
+      ctx.fillStyle = backgroundColor ? '#22c55e' : 'white';
+      ctx.beginPath();
+      
+      // Scale the N path to the logo size
+      const scale = size / 32;
+      const path = [
+        [8, 24], [8, 8], [12, 8], [20, 20], [20, 8], [24, 8], 
+        [24, 24], [20, 24], [12, 12], [12, 24], [8, 24]
+      ];
+      
+      ctx.moveTo(x + path[0][0] * scale, y + path[0][1] * scale);
+      for (let i = 1; i < path.length; i++) {
+        ctx.lineTo(x + path[i][0] * scale, y + path[i][1] * scale);
+      }
+      ctx.fill();
     }
   </script>
 </body>
