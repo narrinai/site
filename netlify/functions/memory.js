@@ -76,25 +76,18 @@ exports.handler = async (event, context) => {
       const chatData = await chatResponse.json();
       console.log('📊 Found', chatData.records.length, 'total records');
       
-      // Step 3: Filter for this user's records by NetlifyUID directly
+      // Step 3: Filter for this user's records by NetlifyUID field directly  
       const userRecords = chatData.records.filter(record => {
-        const recordUser = record.fields.User;
-        // Check if User field contains the NetlifyUID directly
-        if (Array.isArray(recordUser)) {
-          return recordUser.includes(user_uid);
-        }
-        return recordUser === user_uid;
+        const recordNetlifyUID = record.fields.NetlifyUID;
+        return recordNetlifyUID === user_uid;
       });
       
       console.log('👤 Found', userRecords.length, 'records for NetlifyUID:', user_uid);
       
-      // Step 4: Filter for current character
+      // Step 4: Filter for current character using 'slug' field
       const characterSlugToUse = character_slug || slug;
       const characterRecords = userRecords.filter(record => {
-        const slugField = record.fields['Slug (from Character)'];
-        if (Array.isArray(slugField)) {
-          return slugField.includes(characterSlugToUse);
-        }
+        const slugField = record.fields.slug;
         return slugField === characterSlugToUse;
       });
       
