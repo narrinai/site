@@ -1,9 +1,8 @@
 // netlify/functions/memory.js - FIXED VERSION WITH FULL DEBUG
 
 exports.handler = async (event, context) => {
- console.log('🧠 memory function v2.2 - FORCE REDEPLOY');
+ console.log('🧠 memory function v3.0 - SIMPLIFIED NO IMPORTANCE FILTER');
  console.log('📨 Event body:', event.body);
- console.log('⚡ Forced cache bust - new deployment');
  
  if (event.httpMethod !== 'POST') {
    return {
@@ -26,7 +25,7 @@ exports.handler = async (event, context) => {
 
  try {
    const body = JSON.parse(event.body || '{}');
-   const { action, user_uid, character_slug, min_importance = 1, max_results = 5, user_id, user_email } = body;
+   const { action, user_uid, character_slug, min_importance = 1, max_results = 10, user_id, user_email } = body;
    
    if (action === 'get_memories') {
      console.log('🔍 Getting memories for:', { user_uid, character_slug, min_importance, user_id, user_email });
@@ -256,13 +255,13 @@ exports.handler = async (event, context) => {
          Message: fields.Message ? fields.Message.substring(0, 50) + '...' : null
        });
        
-       // SIMPLIFIED: Include any message with memory importance >= 1
-       const hasMemoryImportance = fields.Memory_Importance && fields.Memory_Importance >= 1;
+       // ULTRA SIMPLIFIED: Include ALL messages that have content
        const isUserMessage = fields.Role === 'user' || fields.Role === 'User';
-       const isOnboardingMessage = fields.message_type === 'onboarding';
+       const isAIMessage = fields.Role === 'ai assistant';
+       const hasContent = fields.Message || fields.Summary;
        
-       if (!hasMemoryImportance && !isOnboardingMessage) {
-         console.log(`⏭️ Skipping message without memory data (Role=${fields.Role}, importance=${fields.Memory_Importance}), record:`, record.id);
+       if (!hasContent) {
+         console.log(`⏭️ Skipping empty message, record:`, record.id);
          continue;
        }
        
@@ -354,7 +353,8 @@ exports.handler = async (event, context) => {
        
        console.log(`🧠 Memory check: importance=${memoryImportance}, min=${min_importance}, has_summary=${!!summary}, role=${fields.Role}`);
        
-       if (memoryImportance >= min_importance && (summary || message)) {
+       // NO FILTERING: Include ALL messages with content - AI decides relevance
+       if (summary || message) {
          const logType = isOnboardingMessage ? 'ONBOARDING' : fields.Role;
          console.log(`✅ Adding ${logType} memory: importance=${memoryImportance}, summary="${summary.substring(0, 30)}..."`, {
            role: fields.Role,
@@ -394,13 +394,8 @@ exports.handler = async (event, context) => {
        }
      }
      
-     // Sort by importance and recency
-     memories.sort((a, b) => {
-       if (b.importance !== a.importance) {
-         return b.importance - a.importance;
-       }
-       return new Date(b.date) - new Date(a.date);
-     });
+     // Sort by recency only - most recent first  
+     memories.sort((a, b) => new Date(b.date) - new Date(a.date));
      
      // Limit results
      const limitedMemories = memories.slice(0, max_results);
