@@ -1,7 +1,7 @@
 // netlify/functions/memory.js - FIXED VERSION WITH FULL DEBUG
 
 exports.handler = async (event, context) => {
- console.log('🧠 memory function called');
+ console.log('🧠 memory function called - v2.0 with AI message support');
  console.log('📨 Event body:', event.body);
  
  if (event.httpMethod !== 'POST') {
