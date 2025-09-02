@@ -351,8 +351,8 @@ exports.handler = async (event, context) => {
        console.log(`🧠 Memory check: importance=${memoryImportance}, min=${min_importance}, has_summary=${!!summary}, role=${fields.Role}`);
        
        if (memoryImportance >= min_importance && (summary || message)) {
-         const memoryType = isOnboardingMessage ? 'ONBOARDING' : 'USER';
-         console.log(`✅ Adding ${memoryType} memory: importance=${memoryImportance}, summary="${summary.substring(0, 30)}..."`, {
+         const logType = isOnboardingMessage ? 'ONBOARDING' : fields.Role;
+         console.log(`✅ Adding ${logType} memory: importance=${memoryImportance}, summary="${summary.substring(0, 30)}..."`, {
            role: fields.Role,
            message: message.substring(0, 50) + '...',
            type: fields.message_type
