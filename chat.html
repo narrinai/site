@@ -734,7 +734,7 @@
         display: none !important;
       }
       
-      /* Fixed bottom section - solid white background to prevent bleed-through */
+      /* Compact fixed bottom section */
       .mobile-bottom-section {
         display: block !important;
         position: fixed !important;
@@ -742,22 +742,84 @@
         left: 0 !important;
         right: 0 !important;
         background: white !important;
-        padding: var(--spacing-md) !important;
-        box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1) !important;
+        padding: 8px var(--spacing-sm) !important; /* Much smaller padding */
+        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1) !important;
         z-index: 300 !important;
         border-top: 1px solid var(--color-light-gray) !important;
       }
       
-      /* Style mobile input - prevent overflow, move send button left */
+      /* Compact mobile input with + icon */
       .mobile-input {
         display: flex !important;
-        margin-bottom: var(--spacing-sm) !important;
+        margin-bottom: 0 !important;
         align-items: center !important;
         gap: 6px !important;
-        padding: 0 var(--spacing-md) !important;
+        padding: 0 var(--spacing-sm) !important;
         max-width: 100% !important;
         box-sizing: border-box !important;
         width: 100% !important;
+      }
+      
+      /* Plus button for organize thoughts */
+      .mobile-input .plus-button {
+        background: var(--color-light-gray) !important;
+        border: none !important;
+        color: var(--color-gray) !important;
+        padding: 0 !important;
+        border-radius: 50% !important;
+        width: 36px !important;
+        height: 36px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex-shrink: 0 !important;
+        transition: all var(--transition-fast) !important;
+      }
+      
+      .mobile-input .plus-button:hover {
+        background: var(--color-teal) !important;
+        color: white !important;
+      }
+      
+      /* Mobile organize popup */
+      .mobile-organize-popup {
+        position: absolute !important;
+        bottom: 100% !important;
+        left: 0 !important;
+        right: 0 !important;
+        background: white !important;
+        border-top: 1px solid var(--color-light-gray) !important;
+        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1) !important;
+        animation: slideUp 0.2s ease-out !important;
+      }
+      
+      @keyframes slideUp {
+        from {
+          transform: translateY(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+      
+      /* Compact disclaimer */
+      .disclaimer.compact {
+        padding: 4px var(--spacing-sm) !important;
+        font-size: 10px !important;
+        background: rgba(100, 116, 139, 0.03) !important;
+        border-top: 1px solid rgba(0, 0, 0, 0.05) !important;
+      }
+      
+      .disclaimer.compact .disclaimer-main-text {
+        font-size: 10px !important;
+      }
+      
+      .disclaimer.compact .disclaimer-toggle {
+        width: 16px !important;
+        height: 16px !important;
+        padding: 2px !important;
       }
       
       /* Mobile input field styling - match original dimensions */
@@ -830,11 +892,11 @@
         text-align: center !important;
       }
       
-      /* Simple chatlog - natural height, good scrolling */
+      /* Chatlog - compact bottom padding */
       #chatlog {
         overflow-y: auto !important;
         margin-bottom: 0 !important;
-        padding-bottom: 250px !important; /* Bottom padding for mobile section */
+        padding-bottom: 120px !important; /* Reduced padding for compact bottom */
         min-height: 300px !important;
         scroll-behavior: smooth !important;
         -webkit-overflow-scrolling: touch !important;
@@ -5324,7 +5386,7 @@
       
       <!-- Mobile Bottom Section (only visible on mobile) -->
       <div class="mobile-bottom-section" style="display: none;">
-        <!-- Mobile input group -->
+        <!-- Compact mobile input with + icon -->
         <div class="input-group mobile-input">
           <input id="userInputMobile" type="text" placeholder="Share what's on your mind..." />
           <button onclick="toggleSpeechToTextMobile()" id="micButtonMobile" class="mic-button" aria-label="Use microphone">
@@ -5335,40 +5397,42 @@
               <path d="M8 23H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </button>
+          <button onclick="toggleMobileOrganizeThoughts()" id="plusButtonMobile" class="plus-button" aria-label="Organize thoughts" title="🧠 Organize Thoughts">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
           <button onclick="handleSendClickMobile(event)" id="sendButtonMobile">Send</button>
         </div>
         
-        <!-- Mobile Conversation Topics Section -->
-        <div class="conversation-topics mobile-topics" id="conversationTopicsMobile" style="display: none;">
-          <div class="topics-header">
-            <button class="topics-toggle" id="topicsToggleMobile" onclick="toggleConversationTopicsMobile()">
-              <span id="topicsTitleMobile">🧠  Organize Thoughts</span>
-              <svg class="topics-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </button>
-          </div>
-          <div class="topic-buttons" id="topicButtonsMobile" style="display: none;">
-            <!-- Dynamically generated topic buttons will appear here -->
+        <!-- Hidden mobile organize section - appears above input when toggled -->
+        <div class="mobile-organize-popup" id="mobileOrganizePopup" style="display: none;">
+          <div class="conversation-topics mobile-topics" id="conversationTopicsMobile">
+            <div class="topics-header">
+              <button class="topics-toggle" id="topicsToggleMobile" onclick="toggleConversationTopicsMobile()">
+                <span id="topicsTitleMobile">🧠  Organize Thoughts</span>
+                <svg class="topics-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
+            <div class="topic-buttons" id="topicButtonsMobile" style="display: none;">
+              <!-- Dynamically generated topic buttons will appear here -->
+            </div>
           </div>
         </div>
         
-        <!-- Move disclaimer to mobile bottom section -->
-        <div class="disclaimer mobile-disclaimer">
-          <span class="disclaimer-icon"></span>
-          <span class="disclaimer-main-text">ℹ️  You are chatting with an AI character. This is not a real person and does not provide professional advice.</span>
-          <button class="disclaimer-toggle" id="disclaimerToggleMobile" aria-label="Show more information">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- Compact disclaimer -->
+        <div class="disclaimer mobile-disclaimer compact">
+          <span class="disclaimer-main-text">ℹ️ AI character - not real advice</span>
+          <button class="disclaimer-toggle" id="disclaimerToggleMobile" aria-label="Show more">
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+              <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5"/>
             </svg>
           </button>
           <div class="disclaimer-expanded" id="disclaimerExpandedMobile" style="display: none;">
             AI characters cannot provide professional advice. For medical, legal, financial, or mental health concerns, always consult licensed professionals. 
-            Never make important decisions based on AI responses. You are 100% responsible for your own decisions and actions.
-            AI responses may contain errors or inappropriate content. Use at your own risk.
-            <br><br>
-            
-            Read our <a href="/privacy-policy" class="disclaimer-link">privacy policy</a> and <a href="/terms-and-conditions" class="disclaimer-link">terms and conditions</a> for full details.
+            Never make important decisions based on AI responses.
           </div>
         </div>
       </div>
@@ -18793,14 +18857,35 @@ async function generateCompanionImage() {
     }
   }
   
-  // Show mobile organize thoughts by default when chat loads on mobile
-  function showMobileOrganizeThoughts() {
-    if (window.innerWidth <= 768) {
-      const conversationTopicsMobile = document.getElementById('conversationTopicsMobile');
-      if (conversationTopicsMobile) {
-        conversationTopicsMobile.style.display = 'block';
+  // Mobile organize thoughts toggle (compact version)
+  function toggleMobileOrganizeThoughts() {
+    const popup = document.getElementById('mobileOrganizePopup');
+    const plusButton = document.getElementById('plusButtonMobile');
+    
+    if (!popup) return;
+    
+    const isVisible = popup.style.display !== 'none';
+    
+    if (isVisible) {
+      popup.style.display = 'none';
+      plusButton.style.transform = 'rotate(0deg)';
+    } else {
+      // Show organize thoughts popup
+      popup.style.display = 'block';
+      plusButton.style.transform = 'rotate(45deg)';
+      
+      // Generate topics if not already present
+      const topicButtons = document.getElementById('topicButtonsMobile');
+      if (topicButtons && topicButtons.children.length === 0) {
+        generateConversationTopicsMobile();
       }
     }
+  }
+  
+  // Show mobile organize thoughts by default when chat loads on mobile
+  function showMobileOrganizeThoughts() {
+    // Don't show by default anymore - only when + is clicked
+    return;
   }
   
   // Mobile disclaimer toggle functionality
