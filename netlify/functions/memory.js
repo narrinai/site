@@ -258,6 +258,7 @@ exports.handler = async (event, context) => {
        // ULTRA SIMPLIFIED: Include ALL messages that have content
        const isUserMessage = fields.Role === 'user' || fields.Role === 'User';
        const isAIMessage = fields.Role === 'ai assistant';
+       const isOnboardingMessage = fields.message_type === 'onboarding';
        const hasContent = fields.Message || fields.Summary;
        
        if (!hasContent) {
