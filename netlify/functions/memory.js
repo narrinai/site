@@ -285,6 +285,7 @@ exports.handler = async (event, context) => {
         console.log(`👤 SIMPLIFIED User match (single): "${recordUserField}" === "${userRecordId}" = ${userMatch}`);
       } else {
         console.log(`👤 SIMPLIFIED User match failed: userRecordId=${userRecordId}, recordUserField=${JSON.stringify(recordUserField)}`);
+        console.log(`🔍 DEBUG: Expected userRecordId="${userRecordId}", got recordUserField=${JSON.stringify(recordUserField)}, types: ${typeof userRecordId} vs ${typeof recordUserField}`);
       }
        if (!userMatch) {
          console.log(`❌ User mismatch, skipping record`);
