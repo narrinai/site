@@ -708,12 +708,13 @@
         margin: 0 !important;
       }
       
-      /* Chat section layout changes */
+      /* Chat section layout changes - proper height calculation */
       .chat-section {
         display: flex !important;
         flex-direction: column !important;
         margin-top: 120px !important; /* Space for fixed nav + character header */
-        height: calc(100vh - 120px - 180px) !important; /* nav + character header + bottom section */
+        height: calc(100vh - 120px - 200px) !important; /* nav + character header + bottom section with buffer */
+        max-height: calc(100vh - 120px - 200px) !important;
         position: relative !important;
         padding-bottom: 0 !important;
         overflow: hidden !important;
@@ -821,23 +822,26 @@
         text-align: center !important;
       }
       
-      /* Fix chat scroll - only when content overflows, stays within chatlog */
+      /* Fix chat scroll - better touch handling, stay within bounds */
       #chatlog {
         flex: 1 !important;
         overflow-y: auto !important;
         margin-bottom: 0 !important;
-        padding-bottom: 0 !important;
+        padding-bottom: var(--spacing-md) !important;
         height: 100% !important;
         max-height: 100% !important;
-        min-height: 100% !important;
         scroll-behavior: smooth !important;
         -webkit-overflow-scrolling: touch !important;
+        touch-action: pan-y !important;
+        overscroll-behavior: contain !important;
       }
       
-      /* Ensure chat section bounds are respected */
+      /* Better touch scroll handling */
       .chat-section {
         position: relative !important;
         contain: layout !important;
+        touch-action: pan-y !important;
+        overscroll-behavior: contain !important;
       }
       
       /* Prevent body scroll on mobile */
