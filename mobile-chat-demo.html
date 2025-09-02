@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Fullscreen Mobile Chat Demo - Narrin AI</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -90,6 +90,14 @@
       padding: 0;
     }
 
+    html, body {
+      height: 100%;
+      overflow-x: hidden;
+      overflow-y: hidden;
+      width: 100%;
+      position: fixed;
+    }
+
     body {
       font-family: var(--font-primary);
       background: var(--color-off-white);
@@ -98,208 +106,135 @@
       font-size: var(--font-size-base);
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
-      height: 100vh;
-      overflow: hidden;
       display: flex;
       flex-direction: column;
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
+      -webkit-overflow-scrolling: touch;
     }
 
-    /* ===== FULLSCREEN CHAT LAYOUT ===== */
-    
-    /* Header with character info (like Character.AI) */
-    .chat-header {
+    /* ===== SIMPLE HEADER ===== */
+    .top-header {
       background: var(--color-white);
-      border-bottom: 1px solid rgba(0, 0, 0, 0.08);
       padding: var(--spacing-sm) var(--spacing-md);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      min-height: 64px;
-      box-shadow: var(--shadow-sm);
-      position: relative;
-      z-index: 10;
+      min-height: 48px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.08);
       flex-shrink: 0;
     }
 
-    .header-left {
-      display: flex;
-      align-items: center;
-      flex: 1;
-      min-width: 0;
+    .logo-simple {
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-lg);
+      font-weight: 700;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
-    .menu-button {
+    .header-buttons {
+      display: flex;
+      gap: var(--spacing-xs);
+    }
+
+    .header-btn {
       background: none;
       border: none;
       padding: var(--spacing-xs);
-      margin-right: var(--spacing-sm);
       cursor: pointer;
       border-radius: var(--radius-sm);
-      transition: background-color var(--transition-fast);
       color: var(--color-gray);
+      transition: all var(--transition-fast);
     }
 
-    .menu-button:hover {
+    .header-btn:hover {
       background: var(--color-light-gray);
     }
 
-    .character-info {
-      display: flex;
-      align-items: center;
-      flex: 1;
-      min-width: 0;
-    }
-
-    .character-avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      margin-right: var(--spacing-sm);
-      object-fit: cover;
-      border: 2px solid var(--color-teal-light);
-      box-shadow: var(--shadow-sm);
-    }
-
-    .character-details {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .character-name {
-      font-weight: 600;
-      font-size: var(--font-size-lg);
-      color: var(--color-navy);
-      margin-bottom: 2px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .character-subtitle {
-      font-size: var(--font-size-xs);
-      color: var(--color-gray);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .header-actions {
-      display: flex;
-      gap: var(--spacing-xs);
-      margin-left: var(--spacing-sm);
-    }
-
-    .action-button {
-      background: var(--gradient-primary);
-      color: var(--color-white);
-      border: none;
-      padding: var(--spacing-xs);
-      cursor: pointer;
-      border-radius: var(--radius-md);
-      transition: all var(--transition-base);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 36px;
-      height: 36px;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .action-button:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-lg);
-    }
-
-    .action-button:active {
-      transform: translateY(0);
-    }
-
-    /* Chat container - takes remaining space */
+    /* ===== MAIN CHAT AREA ===== */
     .chat-container {
       flex: 1;
       display: flex;
       flex-direction: column;
       overflow: hidden;
       background: var(--color-off-white);
+      position: relative;
     }
 
-    .chat-messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: var(--spacing-md);
-      display: flex;
-      flex-direction: column;
-      gap: var(--spacing-lg);
-      -webkit-overflow-scrolling: touch;
-    }
-
-    /* Character intro section */
-    .character-intro {
+    /* Character intro card */
+    .character-card {
       background: var(--color-white);
-      margin: var(--spacing-md) 0;
-      padding: var(--spacing-xl);
+      margin: var(--spacing-md);
+      padding: var(--spacing-lg);
       border-radius: var(--radius-xl);
       box-shadow: var(--shadow-md);
       text-align: center;
-      border: 1px solid rgba(0, 0, 0, 0.05);
+      border: 2px solid var(--color-teal-light);
+      flex-shrink: 0;
     }
 
-    .intro-avatar {
-      width: 80px;
-      height: 80px;
+    .card-avatar {
+      width: 60px;
+      height: 60px;
       border-radius: 50%;
-      margin: 0 auto var(--spacing-lg);
+      margin: 0 auto var(--spacing-md);
       object-fit: cover;
       border: 3px solid var(--color-teal);
       box-shadow: var(--shadow-lg);
     }
 
-    .intro-name {
-      font-size: var(--font-size-2xl);
-      font-weight: 700;
+    .card-name {
+      font-size: var(--font-size-lg);
+      font-weight: 600;
       color: var(--color-navy);
       margin-bottom: 4px;
-      font-family: var(--font-secondary);
     }
 
-    .intro-title {
-      font-size: var(--font-size-sm);
+    .card-title {
+      font-size: var(--font-size-xs);
       color: var(--color-gray);
-      margin-bottom: var(--spacing-md);
+      margin-bottom: var(--spacing-sm);
     }
 
-    .intro-description {
-      font-size: var(--font-size-sm);
-      color: var(--color-gray-dark);
-      line-height: 1.5;
-      margin-bottom: var(--spacing-lg);
-    }
-
-    .intro-tags {
+    .card-actions {
       display: flex;
       gap: var(--spacing-xs);
       justify-content: center;
-      flex-wrap: wrap;
     }
 
-    .intro-tag {
-      background: var(--gradient-tags);
+    .card-action {
+      background: var(--gradient-primary);
       color: var(--color-white);
-      padding: var(--spacing-xs) var(--spacing-md);
+      border: none;
+      padding: var(--spacing-xs) var(--spacing-sm);
       border-radius: var(--radius-full);
       font-size: var(--font-size-xs);
       font-weight: 500;
       cursor: pointer;
       transition: all var(--transition-base);
-      border: none;
-      box-shadow: var(--shadow-sm);
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
 
-    .intro-tag:hover {
-      transform: translateY(-2px);
+    .card-action:hover {
+      transform: translateY(-1px);
       box-shadow: var(--shadow-lg);
+    }
+
+    /* Chat messages area */
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 var(--spacing-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+      -webkit-overflow-scrolling: touch;
+      min-height: 0;
     }
 
     /* Message styles */
@@ -329,8 +264,8 @@
     }
 
     .message-avatar {
-      width: 32px;
-      height: 32px;
+      width: 28px;
+      height: 28px;
       border-radius: 50%;
       object-fit: cover;
       flex-shrink: 0;
@@ -339,9 +274,9 @@
 
     .message-content {
       background: var(--color-white);
-      padding: var(--spacing-md) var(--spacing-lg);
-      border-radius: 18px;
-      box-shadow: var(--shadow-md);
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-radius: 16px;
+      box-shadow: var(--shadow-sm);
       position: relative;
       border: 1px solid rgba(0, 0, 0, 0.05);
     }
@@ -353,15 +288,15 @@
     }
 
     .message-text {
-      font-size: var(--font-size-base);
-      line-height: 1.5;
+      font-size: var(--font-size-sm);
+      line-height: 1.4;
       word-wrap: break-word;
     }
 
     .message-actions {
       display: flex;
       gap: var(--spacing-xs);
-      margin-top: var(--spacing-sm);
+      margin-top: var(--spacing-xs);
       justify-content: flex-end;
       opacity: 0;
       transition: opacity var(--transition-base);
@@ -376,9 +311,9 @@
     }
 
     .message-action {
-      background: rgba(var(--color-gray), 0.1);
+      background: rgba(100, 116, 139, 0.1);
       border: none;
-      padding: var(--spacing-xs);
+      padding: 4px;
       border-radius: var(--radius-sm);
       cursor: pointer;
       transition: all var(--transition-fast);
@@ -388,19 +323,23 @@
     .message-action:hover {
       background: var(--color-teal);
       color: var(--color-white);
-      transform: scale(1.1);
     }
 
-    /* Input area - Character.AI style */
-    .chat-input-container {
+    /* ===== BOTTOM SECTION ===== */
+    .bottom-section {
       background: var(--color-white);
       border-top: 1px solid rgba(0, 0, 0, 0.08);
       padding: var(--spacing-md);
+      flex-shrink: 0;
+      box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Input area */
+    .input-container {
       display: flex;
       align-items: flex-end;
       gap: var(--spacing-sm);
-      flex-shrink: 0;
-      box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+      margin-bottom: var(--spacing-sm);
     }
 
     .input-wrapper {
@@ -411,8 +350,8 @@
       border: 2px solid transparent;
       display: flex;
       align-items: center;
-      padding: 0 var(--spacing-lg);
-      min-height: var(--touch-target);
+      padding: 0 var(--spacing-md);
+      min-height: 40px;
       transition: all var(--transition-base);
     }
 
@@ -428,9 +367,9 @@
       background: none;
       outline: none;
       font-size: 16px; /* Prevent zoom on iOS */
-      padding: var(--spacing-sm) 0;
+      padding: var(--spacing-xs) 0;
       resize: none;
-      max-height: 120px;
+      max-height: 80px;
       font-family: var(--font-primary);
       color: var(--color-navy);
     }
@@ -442,22 +381,22 @@
     .send-button {
       background: var(--gradient-primary);
       border: none;
-      padding: var(--spacing-sm);
+      padding: var(--spacing-xs);
       border-radius: 50%;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: all var(--transition-base);
-      width: var(--touch-target);
-      height: var(--touch-target);
+      width: 40px;
+      height: 40px;
       flex-shrink: 0;
       box-shadow: var(--shadow-md);
     }
 
     .send-button:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-xl);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-lg);
     }
 
     .send-button:disabled {
@@ -467,83 +406,68 @@
       box-shadow: var(--shadow-sm);
     }
 
+    /* Organize thoughts button */
+    .organize-button {
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      border: none;
+      padding: var(--spacing-sm) var(--spacing-lg);
+      border-radius: var(--radius-xl);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-xs);
+      width: 100%;
+      margin-bottom: var(--spacing-sm);
+      box-shadow: var(--shadow-md);
+    }
+
+    .organize-button:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    /* Fixed AI message at bottom */
+    .fixed-ai-message {
+      background: rgba(20, 184, 166, 0.05);
+      border: 1px solid var(--color-teal-light);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-sm);
+      font-size: var(--font-size-xs);
+      color: var(--color-gray-dark);
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-xs);
+    }
+
     /* Disclaimer */
     .disclaimer {
-      background: rgba(var(--color-gray), 0.05);
-      border-top: 1px solid rgba(0, 0, 0, 0.05);
-      padding: var(--spacing-xs) var(--spacing-md);
-      font-size: var(--font-size-xs);
+      background: rgba(100, 116, 139, 0.05);
+      padding: 6px var(--spacing-sm);
+      font-size: 11px;
       color: var(--color-gray);
       text-align: center;
       flex-shrink: 0;
     }
 
-    /* Mobile optimizations */
-    @media (max-width: 768px) {
-      .chat-messages {
-        padding: var(--spacing-sm);
-        gap: var(--spacing-md);
-      }
-
-      .message {
-        gap: var(--spacing-xs);
-      }
-
-      .message-avatar {
-        width: 28px;
-        height: 28px;
-      }
-
-      .message-content {
-        padding: var(--spacing-sm) var(--spacing-md);
-        border-radius: 16px;
-      }
-
-      .message-text {
-        font-size: var(--font-size-sm);
-      }
-
-      .character-intro {
-        margin: var(--spacing-sm) 0;
-        padding: var(--spacing-lg);
-      }
-
-      .intro-avatar {
-        width: 64px;
-        height: 64px;
-      }
-
-      .intro-name {
-        font-size: var(--font-size-xl);
-      }
-
-      .header-actions {
-        gap: 4px;
-      }
-
-      .action-button {
-        width: 32px;
-        height: 32px;
-        padding: 6px;
-      }
-
-      .chat-input {
-        font-size: 16px; /* Prevent zoom */
-      }
-    }
-
     /* SVG Icons */
     .icon {
-      width: 20px;
-      height: 20px;
+      width: 18px;
+      height: 18px;
       stroke: currentColor;
       fill: none;
       stroke-width: 2;
     }
 
     .icon-sm {
-      width: 16px;
-      height: 16px;
+      width: 14px;
+      height: 14px;
     }
 
     /* Typing indicator */
@@ -551,12 +475,12 @@
       display: flex;
       gap: 4px;
       align-items: center;
-      padding: var(--spacing-sm);
+      padding: var(--spacing-xs);
     }
 
     .typing-dot {
-      width: 8px;
-      height: 8px;
+      width: 6px;
+      height: 6px;
       border-radius: 50%;
       background: var(--color-gray-light);
       animation: typing 1.4s infinite ease-in-out;
@@ -575,75 +499,92 @@
         opacity: 1;
       }
     }
+
+    /* Prevent horizontal scroll */
+    * {
+      max-width: 100%;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    /* Mobile specific */
+    @media (max-width: 768px) {
+      .chat-messages {
+        padding: 0 var(--spacing-sm);
+        gap: var(--spacing-sm);
+      }
+
+      .message-content {
+        padding: var(--spacing-xs) var(--spacing-sm);
+      }
+
+      .character-card {
+        margin: var(--spacing-sm);
+        padding: var(--spacing-md);
+      }
+
+      .card-avatar {
+        width: 50px;
+        height: 50px;
+      }
+
+      .bottom-section {
+        padding: var(--spacing-sm);
+      }
+    }
   </style>
 </head>
 <body>
-  <!-- Header with character info and actions (Character.AI style) -->
-  <div class="chat-header">
-    <div class="header-left">
-      <button class="menu-button" onclick="toggleMobileMenu()">
+  <!-- Simple top header -->
+  <div class="top-header">
+    <div class="logo-simple">Narrin AI</div>
+    <div class="header-buttons">
+      <button class="header-btn" onclick="showMenu()" title="Menu">
         <svg class="icon" viewBox="0 0 24 24">
           <path d="M3 12h18M3 6h18M3 18h18"/>
         </svg>
       </button>
-      <div class="character-info">
-        <img src="https://images.unsplash.com/photo-1494790108755-2616c96b8bef?w=200&h=200&fit=crop&crop=face" alt="Character Avatar" class="character-avatar">
-        <div class="character-details">
-          <div class="character-name">Emma Chen</div>
-          <div class="character-subtitle">Life Coach & Mindfulness Expert</div>
-        </div>
-      </div>
-    </div>
-    <div class="header-actions">
-      <button class="action-button btn-memory" onclick="openMemoryHub()" title="🧠 Memory">
+      <button class="header-btn" onclick="showChat()" title="Chat">
         <svg class="icon" viewBox="0 0 24 24">
-          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-        </svg>
-      </button>
-      <button class="action-button btn-customize" onclick="openCustomizePanel()" title="⚙️ Customize">
-        <svg class="icon" viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V6a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-        </svg>
-      </button>
-      <button class="action-button" onclick="showMoreOptions()" title="⋯ More">
-        <svg class="icon" viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="1"/>
-          <circle cx="19" cy="12" r="1"/>
-          <circle cx="5" cy="12" r="1"/>
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
         </svg>
       </button>
     </div>
   </div>
 
-  <!-- Chat Container -->
+  <!-- Main chat container -->
   <div class="chat-container">
-    <!-- Chat Messages -->
+    <!-- Character card -->
+    <div class="character-card">
+      <img src="https://images.unsplash.com/photo-1494790108755-2616c96b8bef?w=200&h=200&fit=crop&crop=face" alt="Test" class="card-avatar">
+      <div class="card-name">Test</div>
+      <div class="card-title">Friendship Companion</div>
+      <div class="card-actions">
+        <button class="card-action" onclick="openMemoryHub()">
+          🧠 Memory
+        </button>
+        <button class="card-action" onclick="openCustomizePanel()">
+          ⚙️ Customize
+        </button>
+      </div>
+    </div>
+
+    <!-- Chat messages area -->
     <div class="chat-messages" id="chatMessages">
-      <!-- Character Introduction -->
-      <div class="character-intro">
-        <img src="https://images.unsplash.com/photo-1494790108755-2616c96b8bef?w=200&h=200&fit=crop&crop=face" alt="Emma Chen" class="intro-avatar">
-        <div class="intro-name">Emma Chen</div>
-        <div class="intro-title">Life Coach & Mindfulness Expert</div>
-        <div class="intro-description">
-          I'm here to help you find clarity in your thoughts and create meaningful change in your life. Whether you're facing challenges or seeking growth, we'll work together to unlock your potential.
-        </div>
-        <div class="intro-tags">
-          <button class="intro-tag">📈 Career Growth</button>
-          <button class="intro-tag">🧘 Mindfulness</button>
-          <button class="intro-tag">💪 Life Goals</button>
-          <button class="intro-tag">💝 Relationships</button>
+      <!-- User Message -->
+      <div class="message user">
+        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face" alt="User" class="message-avatar">
+        <div class="message-content">
+          <div class="message-text">whats my name?</div>
         </div>
       </div>
 
-      <!-- AI Message -->
+      <!-- AI Response -->
       <div class="message">
-        <img src="https://images.unsplash.com/photo-1494790108755-2616c96b8bef?w=100&h=100&fit=crop&crop=face" alt="Emma" class="message-avatar">
+        <img src="https://images.unsplash.com/photo-1494790108755-2616c96b8bef?w=100&h=100&fit=crop&crop=face" alt="Test" class="message-avatar">
         <div class="message-content">
           <div class="message-text">
-            Hi there! I'm Emma, and I'm so glad you're here. I can see you're ready to start this journey of self-discovery and growth. 
-            
-            Based on what you shared during onboarding, it sounds like you're at an exciting crossroads in your career. What would you like to explore first today?
+            Hey, actually I don't know your name yet - I'm pretty sure we haven't shared that yet! What should I call you?
           </div>
           <div class="message-actions">
             <button class="message-action" title="Copy" onclick="copyMessage(this)">
@@ -666,19 +607,17 @@
         </div>
       </div>
 
-      <!-- User Message -->
+      <!-- Another User Message -->
       <div class="message user">
         <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face" alt="User" class="message-avatar">
         <div class="message-content">
-          <div class="message-text">
-            I'm really struggling with deciding whether to take this new position at work. It's a big step up but I'm worried I'm not ready for the responsibility.
-          </div>
+          <div class="message-text">whats my name?</div>
         </div>
       </div>
 
-      <!-- AI Response with typing -->
+      <!-- Typing indicator -->
       <div class="message" id="typingMessage" style="display: none;">
-        <img src="https://images.unsplash.com/photo-1494790108755-2616c96b8bef?w=100&h=100&fit=crop&crop=face" alt="Emma" class="message-avatar">
+        <img src="https://images.unsplash.com/photo-1494790108755-2616c96b8bef?w=100&h=100&fit=crop&crop=face" alt="Test" class="message-avatar">
         <div class="message-content">
           <div class="typing-indicator">
             <div class="typing-dot"></div>
@@ -690,26 +629,42 @@
     </div>
   </div>
 
-  <!-- Input Area -->
-  <div class="chat-input-container">
-    <div class="input-wrapper">
-      <textarea 
-        class="chat-input" 
-        placeholder="Message Emma..." 
-        rows="1"
-        id="chatInput"
-      ></textarea>
+  <!-- Bottom section with input, organize button, and AI message -->
+  <div class="bottom-section">
+    <!-- Input area -->
+    <div class="input-container">
+      <div class="input-wrapper">
+        <textarea 
+          class="chat-input" 
+          placeholder="Share what's on your mind..." 
+          rows="1"
+          id="chatInput"
+        ></textarea>
+      </div>
+      <button class="send-button" id="sendButton" disabled onclick="sendMessage()">
+        <svg class="icon" viewBox="0 0 24 24" fill="white" stroke="white">
+          <path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/>
+        </svg>
+      </button>
     </div>
-    <button class="send-button" id="sendButton" disabled onclick="sendMessage()">
-      <svg class="icon" viewBox="0 0 24 24" fill="white" stroke="white">
-        <path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/>
+
+    <!-- Organize thoughts button -->
+    <button class="organize-button" onclick="organizeThoughts()">
+      🧠 Organize Thoughts
+      <svg class="icon-sm" viewBox="0 0 24 24">
+        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7z"/>
       </svg>
     </button>
+
+    <!-- Fixed AI message -->
+    <div class="fixed-ai-message">
+      🤖 Remember: everything we practice here is preparing you for the real thing. This is your safe space to grow!
+    </div>
   </div>
 
   <!-- Disclaimer -->
   <div class="disclaimer">
-    This is A.I. and not a real person. Treat everything it says as fiction ⚠️
+    This is A.I. and not a real person. Treat everything it says as fiction
   </div>
 
   <script>
@@ -719,7 +674,7 @@
 
     chatInput.addEventListener('input', function() {
       this.style.height = 'auto';
-      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+      this.style.height = Math.min(this.scrollHeight, 80) + 'px';
       
       // Enable/disable send button
       sendButton.disabled = !this.value.trim();
@@ -761,9 +716,9 @@
         const aiMessage = document.createElement('div');
         aiMessage.className = 'message';
         aiMessage.innerHTML = `
-          <img src="https://images.unsplash.com/photo-1494790108755-2616c96b8bef?w=100&h=100&fit=crop&crop=face" alt="Emma" class="message-avatar">
+          <img src="https://images.unsplash.com/photo-1494790108755-2616c96b8bef?w=100&h=100&fit=crop&crop=face" alt="Test" class="message-avatar">
           <div class="message-content">
-            <div class="message-text">That's such a common feeling, and honestly, it shows you're taking this opportunity seriously! The fact that you're considering the responsibilities shows maturity. Let's explore this together - what specific aspects of the new role worry you most?</div>
+            <div class="message-text">Great question! Let me help you explore that further...</div>
             <div class="message-actions">
               <button class="message-action" title="Copy" onclick="copyMessage(this)">
                 <svg class="icon-sm" viewBox="0 0 24 24">
@@ -786,7 +741,7 @@
         `;
         messagesContainer.appendChild(aiMessage);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
-      }, 2000);
+      }, 1500);
     }
 
     // Enter key to send (Shift+Enter for new line)
@@ -797,21 +752,25 @@
       }
     });
 
-    // Button functions (matching current Narrin AI functionality)
+    // Button functions
     function openMemoryHub() {
-      alert('🧠 Memory Hub - Feature from current Narrin AI chat');
+      alert('🧠 Memory Hub opened');
     }
 
     function openCustomizePanel() {
-      alert('⚙️ Customize Panel - Feature from current Narrin AI chat');
+      alert('⚙️ Customize Panel opened');
     }
 
-    function showMoreOptions() {
-      alert('⋯ More options menu');
+    function organizeThoughts() {
+      alert('🧠 Organize Thoughts feature activated');
     }
 
-    function toggleMobileMenu() {
-      alert('☰ Mobile menu toggle');
+    function showMenu() {
+      alert('☰ Menu opened');
+    }
+
+    function showChat() {
+      alert('💬 Chat view');
     }
 
     function copyMessage(button) {
@@ -836,9 +795,11 @@
     }
 
     // Focus input on load
-    chatInput.focus();
+    setTimeout(() => {
+      chatInput.focus();
+    }, 100);
 
-    // Prevent zoom on double tap
+    // Prevent zoom and horizontal scroll
     let lastTouchEnd = 0;
     document.addEventListener('touchend', function (event) {
       const now = (new Date()).getTime();
@@ -847,6 +808,22 @@
       }
       lastTouchEnd = now;
     }, false);
+
+    // Prevent horizontal scroll
+    document.addEventListener('touchmove', function(e) {
+      if (e.touches.length > 1) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    // Auto-scroll to bottom on new messages
+    function scrollToBottom() {
+      const messagesContainer = document.getElementById('chatMessages');
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    // Initial scroll to bottom
+    setTimeout(scrollToBottom, 100);
   </script>
 </body>
 </html>
