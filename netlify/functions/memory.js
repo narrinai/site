@@ -102,9 +102,9 @@ exports.handler = async (event, context) => {
     console.log('🔍 Filter formula:', filterFormula);
     console.log('🔍 User lookup result:', { user_id, userRecordId });
     
-    // Get ALL records to find all possible user matches
-    console.log('🔍 DEBUG: Fetching ALL records to find user matches for email:', body.user_email);
-    const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=100`;
+    // Get MORE records and sort by multiple criteria to include older important memories
+    console.log('🔍 DEBUG: Fetching records for user with broader search');
+    const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=200`;
      
      const response = await fetch(url, {
        headers: {
@@ -283,16 +283,15 @@ exports.handler = async (event, context) => {
       const recordUserField = fields.User; // Should be array of record IDs like ["recWuhhuLbz9I54i3"]
       let userMatch = false;
 
-      if (userRecordId && Array.isArray(recordUserField)) {
-        // Check if the user record ID is in the User field array
-        userMatch = recordUserField.includes(userRecordId);
-        console.log(`👤 SIMPLIFIED User match: ${JSON.stringify(recordUserField)} includes "${userRecordId}" = ${userMatch}`);
-      } else if (userRecordId && recordUserField === userRecordId) {
-        // Handle case where User field is a single value instead of array
+      // Check if this record matches ANY of the valid user record IDs for this email
+      if (Array.isArray(recordUserField)) {
+        userMatch = recordUserField.some(id => validUserRecordIds.includes(id));
+        console.log(`👤 EMAIL-BASED User match: ${JSON.stringify(recordUserField)} intersects ${JSON.stringify(validUserRecordIds)} = ${userMatch}`);
+      } else if (recordUserField && validUserRecordIds.includes(recordUserField)) {
         userMatch = true;
-        console.log(`👤 SIMPLIFIED User match (single): "${recordUserField}" === "${userRecordId}" = ${userMatch}`);
+        console.log(`👤 EMAIL-BASED User match (single): "${recordUserField}" in ${JSON.stringify(validUserRecordIds)} = ${userMatch}`);
       } else {
-        console.log(`👤 SIMPLIFIED User match failed: userRecordId=${userRecordId}, recordUserField=${JSON.stringify(recordUserField)}`);
+        console.log(`👤 User match failed: recordUserField=${JSON.stringify(recordUserField)}, validUserRecordIds=${JSON.stringify(validUserRecordIds)}`);
       }
        if (!userMatch) {
          console.log(`❌ User mismatch, skipping record`);
