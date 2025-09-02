@@ -4,34 +4,123 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Fullscreen Mobile Chat Demo - Narrin AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
   <style>
+    /* ===== CSS CUSTOM PROPERTIES (from Narrin AI) ===== */
+    :root {
+      /* Primary Colors */
+      --color-white: #ffffff;
+      --color-off-white: #fafafa;
+      --color-light-gray: #f5f5f5;
+      
+      /* Accent Colors */
+      --color-teal: #14b8a6;
+      --color-teal-light: #5eead4;
+      --color-teal-dark: #0f766e;
+      --color-teal-alt: #10a394;
+      --color-coral: #f97316;
+      --color-coral-light: #fb923c;
+      --color-coral-dark: #ea580c;
+      
+      /* Supporting Colors */
+      --color-navy: #1e293b;
+      --color-navy-light: #334155;
+      --color-gray: #64748b;
+      --color-gray-light: #94a3b8;
+      --color-gray-dark: #475569;
+      
+      /* Gradients */
+      --gradient-primary: linear-gradient(135deg, var(--color-teal) 0%, var(--color-coral) 100%);
+      --gradient-subtle: linear-gradient(135deg, var(--color-teal-light) 0%, var(--color-coral-light) 100%);
+      --gradient-tags: linear-gradient(135deg, var(--color-teal-alt) 0%, var(--color-coral) 100%);
+      
+      /* Shadows */
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      --shadow-colored: 0 10px 25px -5px rgba(20, 184, 166, 0.2);
+      
+      /* Spacing */
+      --spacing-xs: 0.5rem;
+      --spacing-sm: 0.75rem;
+      --spacing-md: 1rem;
+      --spacing-lg: 1.5rem;
+      --spacing-xl: 2rem;
+      --spacing-2xl: 3rem;
+      --spacing-3xl: 4rem;
+      
+      /* Typography */
+      --font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-secondary: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      
+      /* Font Sizes */
+      --font-size-xs: 0.75rem;
+      --font-size-sm: 0.875rem;
+      --font-size-base: 1rem;
+      --font-size-lg: 1.125rem;
+      --font-size-xl: 1.25rem;
+      --font-size-2xl: 1.5rem;
+      --font-size-3xl: 1.875rem;
+      --font-size-4xl: 2.25rem;
+      
+      /* Border Radius */
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --radius-full: 9999px;
+      
+      /* Transitions */
+      --transition-fast: 150ms ease-out;
+      --transition-base: 300ms ease-out;
+      --transition-slow: 500ms ease-out;
+      
+      /* Touch Target Size */
+      --touch-target: 44px;
+    }
+
+    /* ===== RESET & BASE STYLES ===== */
     * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: var(--font-primary);
+      background: var(--color-off-white);
+      color: var(--color-navy);
+      line-height: 1.6;
+      font-size: var(--font-size-base);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
       height: 100vh;
       overflow: hidden;
-      background: #f8fafc;
       display: flex;
       flex-direction: column;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
 
-    /* Header with character info and actions */
+    /* ===== FULLSCREEN CHAT LAYOUT ===== */
+    
+    /* Header with character info (like Character.AI) */
     .chat-header {
-      background: white;
-      border-bottom: 1px solid #e2e8f0;
-      padding: 12px 16px;
+      background: var(--color-white);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+      padding: var(--spacing-sm) var(--spacing-md);
       display: flex;
       align-items: center;
       justify-content: space-between;
       min-height: 64px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      box-shadow: var(--shadow-sm);
       position: relative;
       z-index: 10;
+      flex-shrink: 0;
     }
 
     .header-left {
@@ -44,15 +133,16 @@
     .menu-button {
       background: none;
       border: none;
-      padding: 8px;
-      margin-right: 12px;
+      padding: var(--spacing-xs);
+      margin-right: var(--spacing-sm);
       cursor: pointer;
-      border-radius: 8px;
-      transition: background-color 0.2s;
+      border-radius: var(--radius-sm);
+      transition: background-color var(--transition-fast);
+      color: var(--color-gray);
     }
 
     .menu-button:hover {
-      background: #f1f5f9;
+      background: var(--color-light-gray);
     }
 
     .character-info {
@@ -66,9 +156,10 @@
       width: 40px;
       height: 40px;
       border-radius: 50%;
-      margin-right: 12px;
+      margin-right: var(--spacing-sm);
       object-fit: cover;
-      border: 2px solid #e2e8f0;
+      border: 2px solid var(--color-teal-light);
+      box-shadow: var(--shadow-sm);
     }
 
     .character-details {
@@ -78,8 +169,8 @@
 
     .character-name {
       font-weight: 600;
-      font-size: 16px;
-      color: #1e293b;
+      font-size: var(--font-size-lg);
+      color: var(--color-navy);
       margin-bottom: 2px;
       white-space: nowrap;
       overflow: hidden;
@@ -87,8 +178,8 @@
     }
 
     .character-subtitle {
-      font-size: 12px;
-      color: #64748b;
+      font-size: var(--font-size-xs);
+      color: var(--color-gray);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -96,24 +187,33 @@
 
     .header-actions {
       display: flex;
-      gap: 8px;
-      margin-left: 12px;
+      gap: var(--spacing-xs);
+      margin-left: var(--spacing-sm);
     }
 
     .action-button {
-      background: none;
+      background: var(--gradient-primary);
+      color: var(--color-white);
       border: none;
-      padding: 8px;
+      padding: var(--spacing-xs);
       cursor: pointer;
-      border-radius: 8px;
-      transition: background-color 0.2s;
+      border-radius: var(--radius-md);
+      transition: all var(--transition-base);
       display: flex;
       align-items: center;
       justify-content: center;
+      width: 36px;
+      height: 36px;
+      box-shadow: var(--shadow-sm);
     }
 
     .action-button:hover {
-      background: #f1f5f9;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .action-button:active {
+      transform: translateY(0);
     }
 
     /* Chat container - takes remaining space */
@@ -122,23 +222,104 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      background: var(--color-off-white);
     }
 
     .chat-messages {
       flex: 1;
       overflow-y: auto;
-      padding: 16px;
+      padding: var(--spacing-md);
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: var(--spacing-lg);
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Character intro section */
+    .character-intro {
+      background: var(--color-white);
+      margin: var(--spacing-md) 0;
+      padding: var(--spacing-xl);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-md);
+      text-align: center;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .intro-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      margin: 0 auto var(--spacing-lg);
+      object-fit: cover;
+      border: 3px solid var(--color-teal);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .intro-name {
+      font-size: var(--font-size-2xl);
+      font-weight: 700;
+      color: var(--color-navy);
+      margin-bottom: 4px;
+      font-family: var(--font-secondary);
+    }
+
+    .intro-title {
+      font-size: var(--font-size-sm);
+      color: var(--color-gray);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .intro-description {
+      font-size: var(--font-size-sm);
+      color: var(--color-gray-dark);
+      line-height: 1.5;
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .intro-tags {
+      display: flex;
+      gap: var(--spacing-xs);
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .intro-tag {
+      background: var(--gradient-tags);
+      color: var(--color-white);
+      padding: var(--spacing-xs) var(--spacing-md);
+      border-radius: var(--radius-full);
+      font-size: var(--font-size-xs);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      border: none;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .intro-tag:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
     }
 
     /* Message styles */
     .message {
       display: flex;
       align-items: flex-start;
-      gap: 12px;
+      gap: var(--spacing-sm);
       max-width: 85%;
+      animation: messageSlideIn 0.3s ease-out;
+    }
+
+    @keyframes messageSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .message.user {
@@ -153,32 +334,41 @@
       border-radius: 50%;
       object-fit: cover;
       flex-shrink: 0;
+      border: 2px solid var(--color-light-gray);
     }
 
     .message-content {
-      background: white;
-      padding: 12px 16px;
+      background: var(--color-white);
+      padding: var(--spacing-md) var(--spacing-lg);
       border-radius: 18px;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      box-shadow: var(--shadow-md);
       position: relative;
+      border: 1px solid rgba(0, 0, 0, 0.05);
     }
 
     .message.user .message-content {
-      background: #14b8a6;
-      color: white;
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      border: none;
     }
 
     .message-text {
-      font-size: 15px;
-      line-height: 1.4;
+      font-size: var(--font-size-base);
+      line-height: 1.5;
       word-wrap: break-word;
     }
 
     .message-actions {
       display: flex;
-      gap: 8px;
-      margin-top: 8px;
+      gap: var(--spacing-xs);
+      margin-top: var(--spacing-sm);
       justify-content: flex-end;
+      opacity: 0;
+      transition: opacity var(--transition-base);
+    }
+
+    .message:hover .message-actions {
+      opacity: 1;
     }
 
     .message.user .message-actions {
@@ -186,46 +376,50 @@
     }
 
     .message-action {
-      background: none;
+      background: rgba(var(--color-gray), 0.1);
       border: none;
-      padding: 6px;
-      border-radius: 6px;
+      padding: var(--spacing-xs);
+      border-radius: var(--radius-sm);
       cursor: pointer;
-      opacity: 0.6;
-      transition: all 0.2s;
+      transition: all var(--transition-fast);
+      color: var(--color-gray);
     }
 
     .message-action:hover {
-      opacity: 1;
-      background: rgba(0, 0, 0, 0.05);
+      background: var(--color-teal);
+      color: var(--color-white);
+      transform: scale(1.1);
     }
 
-    /* Input area */
+    /* Input area - Character.AI style */
     .chat-input-container {
-      background: white;
-      border-top: 1px solid #e2e8f0;
-      padding: 12px 16px 16px;
+      background: var(--color-white);
+      border-top: 1px solid rgba(0, 0, 0, 0.08);
+      padding: var(--spacing-md);
       display: flex;
       align-items: flex-end;
-      gap: 12px;
+      gap: var(--spacing-sm);
+      flex-shrink: 0;
+      box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
     }
 
     .input-wrapper {
       flex: 1;
       position: relative;
-      background: #f8fafc;
-      border-radius: 24px;
-      border: 1px solid #e2e8f0;
+      background: var(--color-light-gray);
+      border-radius: var(--radius-xl);
+      border: 2px solid transparent;
       display: flex;
       align-items: center;
-      padding: 0 16px;
-      min-height: 44px;
-      transition: border-color 0.2s;
+      padding: 0 var(--spacing-lg);
+      min-height: var(--touch-target);
+      transition: all var(--transition-base);
     }
 
     .input-wrapper:focus-within {
-      border-color: #14b8a6;
-      background: white;
+      border-color: var(--color-teal);
+      background: var(--color-white);
+      box-shadow: var(--shadow-colored);
     }
 
     .chat-input {
@@ -233,121 +427,66 @@
       border: none;
       background: none;
       outline: none;
-      font-size: 15px;
-      padding: 12px 0;
+      font-size: 16px; /* Prevent zoom on iOS */
+      padding: var(--spacing-sm) 0;
       resize: none;
       max-height: 120px;
-      font-family: inherit;
+      font-family: var(--font-primary);
+      color: var(--color-navy);
+    }
+
+    .chat-input::placeholder {
+      color: var(--color-gray);
     }
 
     .send-button {
-      background: #14b8a6;
+      background: var(--gradient-primary);
       border: none;
-      padding: 12px;
+      padding: var(--spacing-sm);
       border-radius: 50%;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.2s;
-      width: 44px;
-      height: 44px;
+      transition: all var(--transition-base);
+      width: var(--touch-target);
+      height: var(--touch-target);
       flex-shrink: 0;
+      box-shadow: var(--shadow-md);
     }
 
     .send-button:hover {
-      background: #0f766e;
-      transform: scale(1.05);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-xl);
     }
 
     .send-button:disabled {
-      background: #94a3b8;
+      background: var(--color-gray-light);
       cursor: not-allowed;
       transform: none;
-    }
-
-    /* Character intro section */
-    .character-intro {
-      background: white;
-      margin: 16px;
-      padding: 20px;
-      border-radius: 16px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-      text-align: center;
-      border: 1px solid #e2e8f0;
-    }
-
-    .intro-avatar {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      margin: 0 auto 16px;
-      object-fit: cover;
-      border: 3px solid #14b8a6;
-    }
-
-    .intro-name {
-      font-size: 20px;
-      font-weight: 700;
-      color: #1e293b;
-      margin-bottom: 4px;
-    }
-
-    .intro-title {
-      font-size: 14px;
-      color: #64748b;
-      margin-bottom: 12px;
-    }
-
-    .intro-description {
-      font-size: 14px;
-      color: #475569;
-      line-height: 1.5;
-      margin-bottom: 16px;
-    }
-
-    .intro-actions {
-      display: flex;
-      gap: 8px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    .intro-action {
-      background: #f1f5f9;
-      border: 1px solid #e2e8f0;
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-size: 13px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .intro-action:hover {
-      background: #14b8a6;
-      color: white;
-      border-color: #14b8a6;
+      box-shadow: var(--shadow-sm);
     }
 
     /* Disclaimer */
     .disclaimer {
-      background: #f8fafc;
-      border-top: 1px solid #e2e8f0;
-      padding: 8px 16px;
-      font-size: 12px;
-      color: #64748b;
+      background: rgba(var(--color-gray), 0.05);
+      border-top: 1px solid rgba(0, 0, 0, 0.05);
+      padding: var(--spacing-xs) var(--spacing-md);
+      font-size: var(--font-size-xs);
+      color: var(--color-gray);
       text-align: center;
+      flex-shrink: 0;
     }
 
     /* Mobile optimizations */
     @media (max-width: 768px) {
       .chat-messages {
-        padding: 12px;
-        gap: 12px;
+        padding: var(--spacing-sm);
+        gap: var(--spacing-md);
       }
 
       .message {
-        gap: 8px;
+        gap: var(--spacing-xs);
       }
 
       .message-avatar {
@@ -356,17 +495,17 @@
       }
 
       .message-content {
-        padding: 10px 14px;
+        padding: var(--spacing-sm) var(--spacing-md);
         border-radius: 16px;
       }
 
       .message-text {
-        font-size: 14px;
+        font-size: var(--font-size-sm);
       }
 
       .character-intro {
-        margin: 12px;
-        padding: 16px;
+        margin: var(--spacing-sm) 0;
+        padding: var(--spacing-lg);
       }
 
       .intro-avatar {
@@ -375,7 +514,7 @@
       }
 
       .intro-name {
-        font-size: 18px;
+        font-size: var(--font-size-xl);
       }
 
       .header-actions {
@@ -383,7 +522,13 @@
       }
 
       .action-button {
+        width: 32px;
+        height: 32px;
         padding: 6px;
+      }
+
+      .chat-input {
+        font-size: 16px; /* Prevent zoom */
       }
     }
 
@@ -400,19 +545,49 @@
       width: 16px;
       height: 16px;
     }
+
+    /* Typing indicator */
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      padding: var(--spacing-sm);
+    }
+
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--color-gray-light);
+      animation: typing 1.4s infinite ease-in-out;
+    }
+
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+    @keyframes typing {
+      0%, 80%, 100% {
+        transform: scale(0.8);
+        opacity: 0.5;
+      }
+      40% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
   </style>
 </head>
 <body>
-  <!-- Header with character info and actions -->
+  <!-- Header with character info and actions (Character.AI style) -->
   <div class="chat-header">
     <div class="header-left">
-      <button class="menu-button">
+      <button class="menu-button" onclick="toggleMobileMenu()">
         <svg class="icon" viewBox="0 0 24 24">
           <path d="M3 12h18M3 6h18M3 18h18"/>
         </svg>
       </button>
       <div class="character-info">
-        <img src="https://images.unsplash.com/photo-1494790108755-2616c96b8bef?w=100&h=100&fit=crop&crop=face" alt="Character Avatar" class="character-avatar">
+        <img src="https://images.unsplash.com/photo-1494790108755-2616c96b8bef?w=200&h=200&fit=crop&crop=face" alt="Character Avatar" class="character-avatar">
         <div class="character-details">
           <div class="character-name">Emma Chen</div>
           <div class="character-subtitle">Life Coach & Mindfulness Expert</div>
@@ -420,18 +595,18 @@
       </div>
     </div>
     <div class="header-actions">
-      <button class="action-button" title="Memory">
+      <button class="action-button btn-memory" onclick="openMemoryHub()" title="🧠 Memory">
         <svg class="icon" viewBox="0 0 24 24">
-          <path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/>
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
         </svg>
       </button>
-      <button class="action-button" title="Customize">
+      <button class="action-button btn-customize" onclick="openCustomizePanel()" title="⚙️ Customize">
         <svg class="icon" viewBox="0 0 24 24">
           <circle cx="12" cy="12" r="3"/>
           <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V6a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
         </svg>
       </button>
-      <button class="action-button" title="More">
+      <button class="action-button" onclick="showMoreOptions()" title="⋯ More">
         <svg class="icon" viewBox="0 0 24 24">
           <circle cx="12" cy="12" r="1"/>
           <circle cx="19" cy="12" r="1"/>
@@ -443,23 +618,24 @@
 
   <!-- Chat Container -->
   <div class="chat-container">
-    <!-- Character Introduction -->
-    <div class="character-intro">
-      <img src="https://images.unsplash.com/photo-1494790108755-2616c96b8bef?w=200&h=200&fit=crop&crop=face" alt="Emma Chen" class="intro-avatar">
-      <div class="intro-name">Emma Chen</div>
-      <div class="intro-title">Life Coach & Mindfulness Expert</div>
-      <div class="intro-description">
-        I'm here to help you find clarity in your thoughts and create meaningful change in your life. Whether you're facing challenges or seeking growth, we'll work together to unlock your potential.
-      </div>
-      <div class="intro-actions">
-        <button class="intro-action">📈 Career Growth</button>
-        <button class="intro-action">🧘 Mindfulness</button>
-        <button class="intro-action">💪 Life Goals</button>
-      </div>
-    </div>
-
     <!-- Chat Messages -->
     <div class="chat-messages" id="chatMessages">
+      <!-- Character Introduction -->
+      <div class="character-intro">
+        <img src="https://images.unsplash.com/photo-1494790108755-2616c96b8bef?w=200&h=200&fit=crop&crop=face" alt="Emma Chen" class="intro-avatar">
+        <div class="intro-name">Emma Chen</div>
+        <div class="intro-title">Life Coach & Mindfulness Expert</div>
+        <div class="intro-description">
+          I'm here to help you find clarity in your thoughts and create meaningful change in your life. Whether you're facing challenges or seeking growth, we'll work together to unlock your potential.
+        </div>
+        <div class="intro-tags">
+          <button class="intro-tag">📈 Career Growth</button>
+          <button class="intro-tag">🧘 Mindfulness</button>
+          <button class="intro-tag">💪 Life Goals</button>
+          <button class="intro-tag">💝 Relationships</button>
+        </div>
+      </div>
+
       <!-- AI Message -->
       <div class="message">
         <img src="https://images.unsplash.com/photo-1494790108755-2616c96b8bef?w=100&h=100&fit=crop&crop=face" alt="Emma" class="message-avatar">
@@ -470,22 +646,20 @@
             Based on what you shared during onboarding, it sounds like you're at an exciting crossroads in your career. What would you like to explore first today?
           </div>
           <div class="message-actions">
-            <button class="message-action" title="Copy">
+            <button class="message-action" title="Copy" onclick="copyMessage(this)">
               <svg class="icon-sm" viewBox="0 0 24 24">
                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
               </svg>
             </button>
-            <button class="message-action" title="Like">
+            <button class="message-action" title="Like" onclick="likeMessage(this)">
               <svg class="icon-sm" viewBox="0 0 24 24">
-                <path d="M7 10v12l4-3 4 3V10"/>
-                <path d="M5 10V7a4 4 0 0 1 8 0v3"/>
+                <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
               </svg>
             </button>
-            <button class="message-action" title="Dislike">
+            <button class="message-action" title="Dislike" onclick="dislikeMessage(this)">
               <svg class="icon-sm" viewBox="0 0 24 24">
-                <path d="M7 14v-12l4 3 4-3v12"/>
-                <path d="M5 14v3a4 4 0 0 0 8 0v-3"/>
+                <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
               </svg>
             </button>
           </div>
@@ -502,34 +676,14 @@
         </div>
       </div>
 
-      <!-- AI Response -->
-      <div class="message">
+      <!-- AI Response with typing -->
+      <div class="message" id="typingMessage" style="display: none;">
         <img src="https://images.unsplash.com/photo-1494790108755-2616c96b8bef?w=100&h=100&fit=crop&crop=face" alt="Emma" class="message-avatar">
         <div class="message-content">
-          <div class="message-text">
-            That's such a common feeling, and honestly, it shows you're taking this opportunity seriously! The fact that you're considering the responsibilities shows maturity.
-            
-            Let's explore this together - what specific aspects of the new role worry you most? Is it the day-to-day tasks, managing people, or something else?
-          </div>
-          <div class="message-actions">
-            <button class="message-action" title="Copy">
-              <svg class="icon-sm" viewBox="0 0 24 24">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-              </svg>
-            </button>
-            <button class="message-action" title="Like">
-              <svg class="icon-sm" viewBox="0 0 24 24">
-                <path d="M7 10v12l4-3 4 3V10"/>
-                <path d="M5 10V7a4 4 0 0 1 8 0v3"/>
-              </svg>
-            </button>
-            <button class="message-action" title="Dislike">
-              <svg class="icon-sm" viewBox="0 0 24 24">
-                <path d="M7 14v-12l4 3 4-3v12"/>
-                <path d="M5 14v3a4 4 0 0 0 8 0v-3"/>
-              </svg>
-            </button>
+          <div class="typing-indicator">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
           </div>
         </div>
       </div>
@@ -546,7 +700,7 @@
         id="chatInput"
       ></textarea>
     </div>
-    <button class="send-button" id="sendButton" disabled>
+    <button class="send-button" id="sendButton" disabled onclick="sendMessage()">
       <svg class="icon" viewBox="0 0 24 24" fill="white" stroke="white">
         <path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/>
       </svg>
@@ -555,7 +709,7 @@
 
   <!-- Disclaimer -->
   <div class="disclaimer">
-    This is A.I. and not a real person. Treat everything it says as fiction
+    This is A.I. and not a real person. Treat everything it says as fiction ⚠️
   </div>
 
   <script>
@@ -593,34 +747,38 @@
       chatInput.style.height = 'auto';
       sendButton.disabled = true;
 
+      // Show typing indicator
+      const typingMessage = document.getElementById('typingMessage');
+      typingMessage.style.display = 'flex';
+
       // Scroll to bottom
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-      // Simulate AI response (in real app, this would be an API call)
+      // Simulate AI response
       setTimeout(() => {
+        typingMessage.style.display = 'none';
+        
         const aiMessage = document.createElement('div');
         aiMessage.className = 'message';
         aiMessage.innerHTML = `
           <img src="https://images.unsplash.com/photo-1494790108755-2616c96b8bef?w=100&h=100&fit=crop&crop=face" alt="Emma" class="message-avatar">
           <div class="message-content">
-            <div class="message-text">I understand your concerns. Let me help you work through this decision step by step...</div>
+            <div class="message-text">That's such a common feeling, and honestly, it shows you're taking this opportunity seriously! The fact that you're considering the responsibilities shows maturity. Let's explore this together - what specific aspects of the new role worry you most?</div>
             <div class="message-actions">
-              <button class="message-action" title="Copy">
+              <button class="message-action" title="Copy" onclick="copyMessage(this)">
                 <svg class="icon-sm" viewBox="0 0 24 24">
                   <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
                   <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
                 </svg>
               </button>
-              <button class="message-action" title="Like">
+              <button class="message-action" title="Like" onclick="likeMessage(this)">
                 <svg class="icon-sm" viewBox="0 0 24 24">
-                  <path d="M7 10v12l4-3 4 3V10"/>
-                  <path d="M5 10V7a4 4 0 0 1 8 0v3"/>
+                  <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
                 </svg>
               </button>
-              <button class="message-action" title="Dislike">
+              <button class="message-action" title="Dislike" onclick="dislikeMessage(this)">
                 <svg class="icon-sm" viewBox="0 0 24 24">
-                  <path d="M7 14v-12l4 3 4-3v12"/>
-                  <path d="M5 14v3a4 4 0 0 0 8 0v-3"/>
+                  <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
                 </svg>
               </button>
             </div>
@@ -628,11 +786,8 @@
         `;
         messagesContainer.appendChild(aiMessage);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
-      }, 1000);
+      }, 2000);
     }
-
-    // Send button click
-    sendButton.addEventListener('click', sendMessage);
 
     // Enter key to send (Shift+Enter for new line)
     chatInput.addEventListener('keydown', function(e) {
@@ -642,8 +797,56 @@
       }
     });
 
+    // Button functions (matching current Narrin AI functionality)
+    function openMemoryHub() {
+      alert('🧠 Memory Hub - Feature from current Narrin AI chat');
+    }
+
+    function openCustomizePanel() {
+      alert('⚙️ Customize Panel - Feature from current Narrin AI chat');
+    }
+
+    function showMoreOptions() {
+      alert('⋯ More options menu');
+    }
+
+    function toggleMobileMenu() {
+      alert('☰ Mobile menu toggle');
+    }
+
+    function copyMessage(button) {
+      const messageText = button.closest('.message-content').querySelector('.message-text').innerText;
+      navigator.clipboard.writeText(messageText);
+      button.style.background = 'var(--color-teal)';
+      button.style.color = 'white';
+      setTimeout(() => {
+        button.style.background = '';
+        button.style.color = '';
+      }, 1000);
+    }
+
+    function likeMessage(button) {
+      button.style.background = 'var(--color-teal)';
+      button.style.color = 'white';
+    }
+
+    function dislikeMessage(button) {
+      button.style.background = 'var(--color-coral)';
+      button.style.color = 'white';
+    }
+
     // Focus input on load
     chatInput.focus();
+
+    // Prevent zoom on double tap
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', function (event) {
+      const now = (new Date()).getTime();
+      if (now - lastTouchEnd <= 300) {
+        event.preventDefault();
+      }
+      lastTouchEnd = now;
+    }, false);
   </script>
 </body>
 </html>
