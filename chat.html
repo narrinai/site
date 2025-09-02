@@ -694,10 +694,12 @@
         align-items: center;
       }
       
-      /* Fixed character header below mobile nav */
+      /* Fixed character header below mobile nav - ABSOLUTELY FIXED */
       .character-header {
-        position: sticky !important;
+        position: fixed !important;
         top: 60px !important;
+        left: 0 !important;
+        right: 0 !important;
         z-index: 150 !important;
         background: var(--color-white) !important;
         border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
@@ -710,9 +712,11 @@
       .chat-section {
         display: flex !important;
         flex-direction: column !important;
-        height: calc(100vh - 120px - 200px) !important; /* Subtract mobile nav, character header, and bottom section */
+        margin-top: 120px !important; /* Space for fixed nav + character header */
+        height: calc(100vh - 120px - 180px) !important; /* nav + character header + bottom section */
         position: relative !important;
         padding-bottom: 0 !important;
+        overflow: hidden !important;
       }
       
       /* Hide desktop input and topics on mobile */
@@ -749,12 +753,14 @@
         text-align: center !important;
       }
       
-      /* Fix chat scroll - ONLY within chatlog container */
+      /* Fix chat scroll - ONLY chatlog, NOT including footer */
       #chatlog {
-        height: calc(100vh - 120px - 180px) !important;
+        flex: 1 !important;
         overflow-y: auto !important;
         margin-bottom: 0 !important;
         padding-bottom: 0 !important;
+        height: 100% !important;
+        max-height: 100% !important;
       }
       
       /* Prevent body scroll on mobile */
@@ -762,12 +768,9 @@
         overflow: hidden !important;
       }
       
-      /* Chat section height fix */
-      .chat-section {
-        height: calc(100vh - 120px - 180px) !important;
-        overflow: hidden !important;
-        margin-bottom: 0 !important;
-        padding-bottom: 0 !important;
+      /* Hide original disclaimer on mobile (moved to bottom) */
+      .disclaimer:not(.mobile-disclaimer) {
+        display: none !important;
       }
 
       .logo {
@@ -5194,6 +5197,25 @@
           </div>
           <div class="topic-buttons" id="topicButtonsMobile" style="display: none;">
             <!-- Dynamically generated topic buttons will appear here -->
+          </div>
+        </div>
+        
+        <!-- Move disclaimer to mobile bottom section -->
+        <div class="disclaimer mobile-disclaimer">
+          <span class="disclaimer-icon"></span>
+          <span class="disclaimer-main-text">ℹ️  You are chatting with an AI character. This is not a real person and does not provide professional advice.</span>
+          <button class="disclaimer-toggle" id="disclaimerToggleMobile" aria-label="Show more information">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <div class="disclaimer-expanded" id="disclaimerExpandedMobile" style="display: none;">
+            AI characters cannot provide professional advice. For medical, legal, financial, or mental health concerns, always consult licensed professionals. 
+            Never make important decisions based on AI responses. You are 100% responsible for your own decisions and actions.
+            AI responses may contain errors or inappropriate content. Use at your own risk.
+            <br><br>
+            
+            Read our <a href="/privacy-policy" class="disclaimer-link">privacy policy</a> and <a href="/terms-and-conditions" class="disclaimer-link">terms and conditions</a> for full details.
           </div>
         </div>
       </div>
@@ -18627,6 +18649,20 @@ async function generateCompanionImage() {
       }
     }
   }
+  
+  // Mobile disclaimer toggle functionality
+  function setupMobileDisclaimer() {
+    const disclaimerToggleMobile = document.getElementById('disclaimerToggleMobile');
+    const disclaimerExpandedMobile = document.getElementById('disclaimerExpandedMobile');
+    
+    if (disclaimerToggleMobile && disclaimerExpandedMobile) {
+      disclaimerToggleMobile.addEventListener('click', function() {
+        const isExpanded = disclaimerExpandedMobile.style.display !== 'none';
+        disclaimerExpandedMobile.style.display = isExpanded ? 'none' : 'block';
+        disclaimerToggleMobile.classList.toggle('expanded', !isExpanded);
+      });
+    }
+  }
 
   // ===== NON-CRITICAL FEATURES LOADING =====
   // Load heavy features after page is fully loaded to improve initial performance
@@ -18636,6 +18672,7 @@ async function generateCompanionImage() {
     // Initialize mobile functionality
     syncInputs();
     showMobileOrganizeThoughts();
+    setupMobileDisclaimer();
     
     // Memory Hub and Customize features are now lazy loaded on demand
     // This section can be used for other heavy features in the future
