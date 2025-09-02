@@ -1,7 +1,7 @@
 // netlify/functions/memory.js - FIXED VERSION WITH FULL DEBUG
 
 exports.handler = async (event, context) => {
- console.log('🧠 memory function v3.0 - SIMPLIFIED NO IMPORTANCE FILTER');
+ console.log('🧠 memory function called - RESTORED WORKING VERSION');
  console.log('📨 Event body:', event.body);
  
  if (event.httpMethod !== 'POST') {
@@ -25,7 +25,10 @@ exports.handler = async (event, context) => {
 
  try {
    const body = JSON.parse(event.body || '{}');
-   const { action, user_uid, character_slug, min_importance = 1, max_results = 10, user_id, user_email } = body;
+   const { action, user_uid, character_slug, slug, min_importance = 1, max_results = 5, user_id, user_email } = body;
+   
+   // Handle both parameter names for backwards compatibility
+   const characterIdentifier = character_slug || slug;
    
    if (action === 'get_memories') {
      console.log('🔍 Getting memories for:', { user_uid, character_slug, min_importance, user_id, user_email });
@@ -102,9 +105,9 @@ exports.handler = async (event, context) => {
     console.log('🔍 Filter formula:', filterFormula);
     console.log('🔍 User lookup result:', { user_id, userRecordId });
     
-    // Get MORE records and sort by multiple criteria to include older important memories
-    console.log('🔍 DEBUG: Fetching records for user with broader search');
-    const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=200`;
+    // Get ALL records to find all possible user matches
+    console.log('🔍 DEBUG: Fetching ALL records to find user matches for email:', body.user_email);
+    const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=100`;
      
      const response = await fetch(url, {
        headers: {
@@ -135,8 +138,7 @@ exports.handler = async (event, context) => {
        };
      }
      
-     // Use character slug as identifier
-     const characterIdentifier = character_slug;
+     // Use character slug as identifier (already set above for compatibility)
      const memories = [];
      
      console.log('🔍 Searching for memories - NetlifyUID:', user_uid, 'Character:', characterIdentifier);
@@ -255,21 +257,13 @@ exports.handler = async (event, context) => {
          Message: fields.Message ? fields.Message.substring(0, 50) + '...' : null
        });
        
-       // ULTRA SIMPLIFIED: Include ALL messages that have content
+       // Include both user messages AND onboarding messages for memory
        const isUserMessage = fields.Role === 'user' || fields.Role === 'User';
-       const isAIMessage = fields.Role === 'ai assistant';
        const isOnboardingMessage = fields.message_type === 'onboarding';
-       const hasContent = fields.Message || fields.Summary;
        
-       if (!hasContent) {
-         console.log(`⏭️ Skipping empty message, record:`, record.id);
+       if (!isUserMessage && !isOnboardingMessage) {
+         console.log(`⏭️ Skipping non-memory message (Role=${fields.Role}, type=${fields.message_type}), record:`, record.id);
          continue;
-       }
-       
-       // Log what we're including  
-       console.log(`✅ Including message: Role=${fields.Role}, importance=${fields.Memory_Importance}, summary="${fields.Summary}"`);
-       if (fields.Memory_Importance >= 8) {
-         console.log(`🎯 HIGH IMPORTANCE MEMORY FOUND: ${fields.Memory_Importance} - ${fields.Summary}`);
        }
        
        // For onboarding messages, set high importance automatically
@@ -278,21 +272,74 @@ exports.handler = async (event, context) => {
          console.log(`🎯 Setting onboarding message to max importance`);
        }
        
-       // SIMPLIFIED: Check user match using the most reliable method
-      // We already looked up the user by NetlifyUID and have their userRecordId
-      const recordUserField = fields.User; // Should be array of record IDs like ["recWuhhuLbz9I54i3"]
-      let userMatch = false;
+       // Check user match - properly handle all field types
+const recordUserField = fields.User; // Can be string (User_ID like "42") or array of record IDs
+const recordUserEmail = fields.Email || fields['Email (from Email)'] || fields.User_Email;
+let userMatch = false;
 
-      // Check if this record matches ANY of the valid user record IDs for this email
-      if (Array.isArray(recordUserField)) {
-        userMatch = recordUserField.some(id => validUserRecordIds.includes(id));
-        console.log(`👤 EMAIL-BASED User match: ${JSON.stringify(recordUserField)} intersects ${JSON.stringify(validUserRecordIds)} = ${userMatch}`);
-      } else if (recordUserField && validUserRecordIds.includes(recordUserField)) {
-        userMatch = true;
-        console.log(`👤 EMAIL-BASED User match (single): "${recordUserField}" in ${JSON.stringify(validUserRecordIds)} = ${userMatch}`);
-      } else {
-        console.log(`👤 User match failed: recordUserField=${JSON.stringify(recordUserField)}, validUserRecordIds=${JSON.stringify(validUserRecordIds)}`);
-      }
+// First check if User field is a string (NetlifyUID)
+if (recordUserField && !Array.isArray(recordUserField)) {
+  // Direct string comparison
+  userMatch = String(recordUserField) === String(user_uid);
+  console.log(`👤 User field (string) match check: "${recordUserField}" === "${user_uid}" = ${userMatch}`);
+}
+
+// If User field is an array of record IDs
+if (!userMatch && Array.isArray(recordUserField) && recordUserField.length > 0) {
+  // Check if ANY of our valid user record IDs match
+  if (validUserRecordIds.length > 0) {
+    userMatch = recordUserField.some(recId => validUserRecordIds.includes(recId));
+    console.log(`👤 User record ID match check: ${recordUserField} includes any of ${validUserRecordIds} = ${userMatch}`);
+  } else if (userRecordId) {
+    userMatch = recordUserField.includes(userRecordId);
+    console.log(`👤 User record ID match check: ${recordUserField} includes ${userRecordId} = ${userMatch}`);
+  } else if (user_id && user_id.startsWith('rec')) {
+    // Direct record ID provided
+    userMatch = recordUserField.includes(user_id);
+    console.log(`👤 Direct record ID match: ${recordUserField} includes ${user_id} = ${userMatch}`);
+  }
+}
+
+// Email-based matching - also check the email from request body
+if (!userMatch && (body.user_email || (user_id && user_id.includes('@')))) {
+  const emailToCheck = body.user_email || user_id;
+  userMatch = String(recordUserEmail).toLowerCase() === String(emailToCheck).toLowerCase();
+  console.log(`👤 Email match check: ${recordUserEmail} === ${emailToCheck} = ${userMatch}`);
+}
+
+// FALLBACK: Check if the Email field in ChatHistory matches any valid emails
+if (!userMatch && validUserEmails.length > 0) {
+  // Get the actual email from the lookup field
+  const actualEmail = fields['Email (from Email)'] || recordUserEmail;
+  if (actualEmail) {
+    userMatch = validUserEmails.some(email => 
+      String(actualEmail).toLowerCase() === String(email).toLowerCase()
+    );
+    if (userMatch) {
+      console.log(`👤 FALLBACK Email match found: ${actualEmail} in valid emails`);
+    }
+  }
+}
+
+// If no match yet, check if the User field contains the user_id value directly
+// This handles the case where Make.com saves User_ID instead of record ID
+if (!userMatch && user_id && recordUserField) {
+  // Check if the User field contains the user_id value (not as array)
+  userMatch = String(recordUserField) === String(user_id);
+  console.log(`👤 Direct User_ID match check: ${recordUserField} === ${user_id} = ${userMatch}`);
+}
+
+// Also check the User_ID field if present
+if (!userMatch && user_id) {
+  const recordUserId = fields.User_ID || fields.user_id;
+  if (recordUserId) {
+    userMatch = String(recordUserId) === String(user_id);
+    console.log(`👤 User_ID field match check: ${recordUserId} === ${user_id} = ${userMatch}`);
+  }
+}
+
+// REMOVED DANGEROUS FALLBACK - No weak email matching allowed for privacy
+// Only exact NetlifyUID matches are allowed for memory access
        if (!userMatch) {
          console.log(`❌ User mismatch, skipping record`);
          continue;
@@ -353,10 +400,9 @@ exports.handler = async (event, context) => {
        
        console.log(`🧠 Memory check: importance=${memoryImportance}, min=${min_importance}, has_summary=${!!summary}, role=${fields.Role}`);
        
-       // NO FILTERING: Include ALL messages with content - AI decides relevance
-       if (summary || message) {
-         const logType = isOnboardingMessage ? 'ONBOARDING' : fields.Role;
-         console.log(`✅ Adding ${logType} memory: importance=${memoryImportance}, summary="${summary.substring(0, 30)}..."`, {
+       if (memoryImportance >= min_importance && (summary || message)) {
+         const memoryType = isOnboardingMessage ? 'ONBOARDING' : 'USER';
+         console.log(`✅ Adding ${memoryType} memory: importance=${memoryImportance}, summary="${summary.substring(0, 30)}..."`, {
            role: fields.Role,
            message: message.substring(0, 50) + '...',
            type: fields.message_type
@@ -373,10 +419,6 @@ exports.handler = async (event, context) => {
            }
          }
          
-         // Set correct type based on role
-         const recordType = fields.message_type === 'onboarding' ? 'onboarding' :
-                           (fields.Role === 'ai assistant' || fields.Role === 'assistant') ? 'ai_assistant' : 'user';
-         
          memories.push({
            id: record.id,
            message: message,
@@ -386,7 +428,7 @@ exports.handler = async (event, context) => {
            emotional_state: fields.Emotional_State || 'neutral',
            tags: fields.Memory_Tags || [],
            context: message.substring(0, 200),
-           type: recordType,
+           type: fields.message_type || 'user',
            metadata: additionalData
          });
        } else {
@@ -394,8 +436,13 @@ exports.handler = async (event, context) => {
        }
      }
      
-     // Sort by recency only - most recent first  
-     memories.sort((a, b) => new Date(b.date) - new Date(a.date));
+     // Sort by importance and recency
+     memories.sort((a, b) => {
+       if (b.importance !== a.importance) {
+         return b.importance - a.importance;
+       }
+       return new Date(b.date) - new Date(a.date);
+     });
      
      // Limit results
      const limitedMemories = memories.slice(0, max_results);
