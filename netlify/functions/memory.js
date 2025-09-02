@@ -370,14 +370,8 @@ exports.handler = async (event, context) => {
          }
          
          // Set correct type based on role
-         let memoryType = 'user'; // default
-         if (fields.message_type === 'onboarding') {
-           memoryType = 'onboarding';
-         } else if (fields.Role === 'ai assistant' || fields.Role === 'assistant') {
-           memoryType = 'ai_assistant';
-         } else if (fields.Role === 'user' || fields.Role === 'User') {
-           memoryType = 'user';
-         }
+         const recordType = fields.message_type === 'onboarding' ? 'onboarding' :
+                           (fields.Role === 'ai assistant' || fields.Role === 'assistant') ? 'ai_assistant' : 'user';
          
          memories.push({
            id: record.id,
@@ -388,7 +382,7 @@ exports.handler = async (event, context) => {
            emotional_state: fields.Emotional_State || 'neutral',
            tags: fields.Memory_Tags || [],
            context: message.substring(0, 200),
-           type: memoryType,
+           type: recordType,
            metadata: additionalData
          });
        } else {
