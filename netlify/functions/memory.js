@@ -76,14 +76,17 @@ exports.handler = async (event, context) => {
       const chatData = await chatResponse.json();
       console.log('📊 Found', chatData.records.length, 'total records');
       
-      // Step 3: Filter for this user's records by checking Email field
+      // Step 3: Filter for this user's records by NetlifyUID directly
       const userRecords = chatData.records.filter(record => {
-        const recordEmail = record.fields['Email (from User)'] || record.fields.Email;
-        const emailMatch = recordEmail && recordEmail.includes && recordEmail.includes(emailToSearch);
-        return emailMatch;
+        const recordUser = record.fields.User;
+        // Check if User field contains the NetlifyUID directly
+        if (Array.isArray(recordUser)) {
+          return recordUser.includes(user_uid);
+        }
+        return recordUser === user_uid;
       });
       
-      console.log('👤 Found', userRecords.length, 'records for this email');
+      console.log('👤 Found', userRecords.length, 'records for NetlifyUID:', user_uid);
       
       // Step 4: Filter for current character
       const characterSlugToUse = character_slug || slug;
