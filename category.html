@@ -48,31 +48,45 @@
   <style>
     /* ===== CSS CUSTOM PROPERTIES ===== */
     :root {
-      /* Primary Colors */
+      /* Primary Colors - Dark Theme */
       --color-white: #ffffff;
-      --color-off-white: #fafafa;
-      --color-light-gray: #f5f5f5;
+      --color-off-white: #1a1b23;
+      --color-light-gray: #2a2b35;
+      --color-dark: #0f0f14;
+      --color-darker: #0a0a0f;
       
-      /* Accent Colors */
-      --color-teal: #14b8a6;
-      --color-teal-light: #5eead4;
-      --color-teal-dark: #0f766e;
-      --color-teal-alt: #10a394; /* Slightly different green for tags */
-      --color-coral: #f97316;
-      --color-coral-light: #fb923c;
-      --color-coral-dark: #ea580c;
+      /* Accent Colors - Purple/Blue Theme */
+      --color-primary: #8b5cf6;
+      --color-primary-light: #a78bfa;
+      --color-primary-dark: #7c3aed;
+      --color-secondary: #3b82f6;
+      --color-secondary-light: #60a5fa;
+      --color-secondary-dark: #2563eb;
       
-      /* Supporting Colors */
-      --color-navy: #1e293b;
-      --color-navy-light: #334155;
-      --color-gray: #64748b;
-      --color-gray-light: #94a3b8;
-      --color-gray-dark: #475569;
+      /* Legacy Colors (keeping for compatibility) */
+      --color-teal: #8b5cf6;
+      --color-teal-light: #a78bfa;
+      --color-teal-dark: #7c3aed;
+      --color-teal-alt: #3b82f6;
+      --color-coral: #f59e0b;
+      --color-coral-light: #fbbf24;
+      --color-coral-dark: #d97706;
       
-      /* Gradients */
-      --gradient-primary: linear-gradient(135deg, var(--color-teal) 0%, var(--color-coral) 100%);
-      --gradient-subtle: linear-gradient(135deg, var(--color-teal-light) 0%, var(--color-coral-light) 100%);
-      --gradient-tags: linear-gradient(135deg, var(--color-teal-alt) 0%, var(--color-coral) 100%);
+      /* Supporting Colors - Dark Theme */
+      --color-navy: #f8fafc;
+      --color-navy-light: #e2e8f0;
+      --color-gray: #94a3b8;
+      --color-gray-light: #64748b;
+      --color-gray-dark: #cbd5e1;
+      --color-text-primary: #f8fafc;
+      --color-text-secondary: #cbd5e1;
+      --color-text-muted: #94a3b8;
+      
+      /* Gradients - Modern Purple/Blue */
+      --gradient-primary: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+      --gradient-subtle: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-secondary-light) 100%);
+      --gradient-tags: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-primary) 100%);
+      --gradient-background: linear-gradient(135deg, var(--color-darker) 0%, var(--color-dark) 100%);
       
       /* Shadows */
       --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -140,8 +154,8 @@
 
     body {
       font-family: var(--font-primary);
-      background: var(--color-off-white);
-      color: var(--color-navy);
+      background: var(--gradient-background);
+      color: var(--color-text-primary);
       line-height: 1.6;
       font-size: var(--font-size-base);
       -webkit-font-smoothing: antialiased;
@@ -167,10 +181,10 @@
       position: sticky;
       top: 0;
       z-index: var(--z-sticky);
-      background: rgba(255, 255, 255, 0.95);
+      background: rgba(10, 10, 15, 0.95);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       transition: all var(--transition-base);
     }
 
@@ -313,7 +327,7 @@
     }
 
     .nav-link {
-      color: var(--color-navy);
+      color: var(--color-text-primary);
       text-decoration: none;
       font-weight: 500;
       font-size: var(--font-size-sm);
@@ -334,7 +348,7 @@
     }
 
     .nav-link:hover {
-      color: var(--color-teal);
+      color: var(--color-primary);
     }
 
     .nav-link:hover::after {
@@ -387,7 +401,7 @@
       background: transparent;
       border: none;
       cursor: pointer;
-      color: var(--color-navy);
+      color: var(--color-text-primary);
       transition: all var(--transition-base);
       border-radius: var(--radius-md);
       flex-shrink: 0;
@@ -505,7 +519,8 @@
     }
 
     .mobile-menu-content {
-      background: var(--color-white);
+      background: var(--color-light-gray);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: var(--radius-xl);
       padding: var(--spacing-3xl) var(--spacing-xl);
       box-shadow: var(--shadow-xl);
@@ -537,7 +552,7 @@
     }
 
     .mobile-menu-subtitle {
-      color: var(--color-gray);
+      color: var(--color-text-secondary);
       font-size: var(--font-size-sm);
     }
 
@@ -551,18 +566,18 @@
       display: flex;
       align-items: center;
       padding: var(--spacing-md) var(--spacing-lg);
-      color: var(--color-navy);
+      color: var(--color-text-primary);
       text-decoration: none;
       font-weight: 500;
       font-size: var(--font-size-base);
       transition: all var(--transition-base);
       border-radius: var(--radius-md);
-      background: var(--color-off-white);
+      background: var(--color-light-gray);
     }
 
     .mobile-menu-link:hover {
-      background: var(--color-light-gray);
-      color: var(--color-teal);
+      background: var(--color-dark);
+      color: var(--color-primary);
       transform: translateX(4px);
     }
 
@@ -729,15 +744,252 @@
       .logo {
         font-size: var(--font-size-base);
       }
+      
+      .main-container {
+        padding: var(--spacing-sm);
+      }
+      
+      .character-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .search-container {
+        padding: var(--spacing-sm);
+      }
+      
+      .category-tabs {
+        gap: var(--spacing-xs);
+      }
+      
+      .category-tab {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: var(--font-size-xs);
+      }
     }
 
-    /* ===== CATEGORY PAGE SPECIFIC STYLES ===== */
+    /* ===== MODERN AI PLATFORM STYLES ===== */
 
-    /* Breadcrumbs */
+    /* Main Layout Container */
+    .main-container {
+      display: flex;
+      max-width: 1400px;
+      margin: 0 auto;
+      gap: var(--spacing-xl);
+      padding: var(--spacing-lg);
+      min-height: calc(100vh - 200px);
+    }
+
+    /* Sidebar Filters (Nectar.ai style) */
+    .filters-sidebar {
+      width: 280px;
+      background: var(--color-light-gray);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-lg);
+      height: fit-content;
+      position: sticky;
+      top: 100px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .filters-title {
+      color: var(--color-text-primary);
+      font-size: var(--font-size-lg);
+      font-weight: 700;
+      margin-bottom: var(--spacing-lg);
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
+
+    .filter-group {
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .filter-group-title {
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      margin-bottom: var(--spacing-sm);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .filter-option {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-xs) 0;
+      cursor: pointer;
+      transition: all var(--transition-base);
+    }
+
+    .filter-option:hover {
+      color: var(--color-primary);
+    }
+
+    .filter-option input[type="checkbox"] {
+      accent-color: var(--color-primary);
+    }
+
+    .filter-option.active {
+      color: var(--color-primary);
+      font-weight: 600;
+    }
+
+    /* NSFW Toggle */
+    .nsfw-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--spacing-sm);
+      background: rgba(var(--color-primary), 0.1);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 50px;
+      height: 26px;
+      background: var(--color-gray-light);
+      border-radius: 13px;
+      cursor: pointer;
+      transition: all var(--transition-base);
+    }
+
+    .toggle-switch.active {
+      background: var(--color-primary);
+    }
+
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      transition: all var(--transition-base);
+    }
+
+    .toggle-switch.active::after {
+      transform: translateX(24px);
+    }
+
+    /* Main Content Area */
+    .main-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* Modern Search Bar (Botify AI style) */
+    .search-container {
+      background: var(--color-light-gray);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-lg);
+      margin-bottom: var(--spacing-xl);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .search-bar {
+      position: relative;
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .search-input {
+      width: 100%;
+      padding: var(--spacing-md) var(--spacing-xl) var(--spacing-md) var(--spacing-lg);
+      background: var(--color-dark);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-md);
+      color: var(--color-text-primary);
+      font-size: var(--font-size-base);
+      transition: all var(--transition-base);
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+    }
+
+    .search-input::placeholder {
+      color: var(--color-text-muted);
+    }
+
+    .search-icon {
+      position: absolute;
+      right: var(--spacing-md);
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--color-text-muted);
+      font-size: var(--font-size-lg);
+    }
+
+    /* Category Tabs (Botify AI style) */
+    .category-tabs {
+      display: flex;
+      gap: var(--spacing-sm);
+      flex-wrap: wrap;
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .category-tab {
+      padding: var(--spacing-sm) var(--spacing-lg);
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: var(--radius-full);
+      color: var(--color-text-secondary);
+      text-decoration: none;
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+      transition: all var(--transition-base);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .category-tab:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: var(--color-text-primary);
+    }
+
+    .category-tab.active {
+      background: var(--gradient-primary);
+      color: white;
+      border-color: transparent;
+      font-weight: 600;
+    }
+
+    /* Sort Options */
+    .sort-container {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .sort-label {
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+    }
+
+    .sort-select {
+      padding: var(--spacing-xs) var(--spacing-md);
+      background: var(--color-light-gray);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-md);
+      color: var(--color-text-primary);
+      font-size: var(--font-size-sm);
+      cursor: pointer;
+    }
+
+    /* Breadcrumbs - Updated for dark theme */
     .breadcrumbs {
-      background: #f8f9fa;
+      background: rgba(255, 255, 255, 0.05);
       padding: 16px 20px;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .breadcrumb-content {
@@ -750,36 +1002,37 @@
     }
 
     .breadcrumb-link {
-      color: #666;
+      color: var(--color-text-muted);
       text-decoration: none;
       transition: color 0.2s ease;
     }
 
     .breadcrumb-link:hover {
-      color: #000;
+      color: var(--color-text-primary);
     }
 
     .breadcrumb-separator {
-      color: #999;
+      color: var(--color-text-muted);
     }
 
     .breadcrumb-current {
-      color: #000;
+      color: var(--color-text-primary);
       font-weight: 500;
     }
 
-    /* Creative Page Header */
+    /* Modern Page Header */
     .page-header {
       position: relative;
-      padding: var(--spacing-xl) var(--spacing-lg);
+      padding: var(--spacing-2xl) var(--spacing-lg);
       text-align: center;
       background: var(--gradient-primary);
       overflow: hidden;
-      min-height: 120px;
+      min-height: 200px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      border-radius: 0 0 var(--radius-xl) var(--radius-xl);
     }
 
     /* Animated background elements */
@@ -927,11 +1180,9 @@
       pointer-events: none;
     }
 
-    /* Category Navigation - Single Row */
+    /* Category Navigation - Hidden (replaced by sidebar) */
     .category-nav {
-      background: var(--color-white);
-      border-bottom: 1px solid var(--color-light-gray);
-      padding: var(--spacing-md) 0;
+      display: none;
     }
 
     .filters-container {
@@ -1068,11 +1319,9 @@
       box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
     }
 
-    /* Content */
+    /* Content - Updated for new layout */
     .content {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 40px 20px;
+      /* Removed fixed width and padding as it's now handled by main-container */
     }
 
     .results-header {
@@ -1083,76 +1332,106 @@
     }
 
     .results-count {
-      font-size: 16px;
-      color: #666;
+      font-size: var(--font-size-base);
+      color: var(--color-text-secondary);
+      font-weight: 600;
     }
 
-    /* Character Grid */
+    /* Character Grid - Modern Design */
     .character-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 20px;
-      margin-bottom: 40px;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: var(--spacing-lg);
+      margin-bottom: var(--spacing-2xl);
     }
 
     .character-card {
-      background: #ffffff;
-      border: 1px solid #e0e0e0;
-      border-radius: 12px;
-      padding: 20px;
+      background: var(--color-light-gray);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-lg);
       text-decoration: none;
       color: inherit;
-      transition: all 0.2s ease;
+      transition: all var(--transition-base);
       display: flex;
       flex-direction: column;
-      align-items: center;
-      text-align: center;
       position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .character-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--gradient-primary);
+      opacity: 0;
+      transition: opacity var(--transition-base);
     }
 
     .character-card:hover {
-      border-color: var(--color-teal);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      border-color: rgba(139, 92, 246, 0.3);
+    }
+
+    .character-card:hover::before {
+      opacity: 1;
+    }
+
+    /* Character Card Header */
+    .character-header {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-md);
     }
 
     .character-avatar {
-      width: 80px;
-      height: 80px;
+      width: 60px;
+      height: 60px;
       flex-shrink: 0;
-      border-radius: 50%;
-      background: #f0f0f0;
+      border-radius: var(--radius-md);
+      background: var(--color-dark);
       display: flex;
       align-items: center;
-      justify-content: center;        
-      font-size: 32px;
-      border: 2px solid #e0e0e0;
+      justify-content: center;
+      font-size: 24px;
+      border: 2px solid rgba(255, 255, 255, 0.1);
       position: relative;
-      overflow: visible;
-      margin: 0 auto 16px;
+      overflow: hidden;
     }
 
-    /* Creator nickname badge overlay on avatar - Made By You category */
+    .character-info {
+      flex: 1;
+      text-align: left;
+    }
+
+    /* Creator badge - Redesigned */
     .creator-badge {
       position: absolute;
-      top: -4px;
-      right: -4px;
-      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+      top: -6px;
+      right: -6px;
+      background: var(--gradient-primary);
       color: white;
-      padding: 2px 6px;
-      border-radius: 8px;
-      font-size: 9px;
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-xs);
       font-weight: 600;
-      box-shadow: 0 2px 6px rgba(59, 130, 246, 0.5);
+      box-shadow: var(--shadow-lg);
       z-index: 20;
       display: flex;
       align-items: center;
-      gap: 2px;
-      max-width: 70%;
+      gap: var(--spacing-xs);
+      max-width: 120px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      border: 1.5px solid white;
+      border: 2px solid var(--color-light-gray);
       pointer-events: none;
     }
     
@@ -1170,45 +1449,61 @@
     }
 
     .character-name {
-      font-weight: 600;
-      margin: 0 0 6px 0;
-      font-size: 16px;
-      color: #000;
+      font-weight: 700;
+      margin: 0 0 var(--spacing-xs) 0;
+      font-size: var(--font-size-lg);
+      color: var(--color-text-primary);
+      line-height: 1.2;
     }
 
     .character-title {
-      font-size: 14px;
-      color: #666;
-      margin: 0 0 8px 0;
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+      margin: 0;
       line-height: 1.3;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      word-break: break-word;
-      max-width: 180px;
-      margin-left: auto;
-      margin-right: auto;
+      font-weight: 500;
+    }
+
+    /* Character Stats */
+    .character-stats {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+      margin-top: var(--spacing-md);
+      padding-top: var(--spacing-md);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .character-stat {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+      color: var(--color-text-muted);
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+    }
+
+    .stat-icon {
+      font-size: var(--font-size-sm);
     }
     
-    /* User-created badge */
+    /* User-created badge - Redesigned */
     .user-created-badge {
       position: absolute;
-      top: 8px;
-      right: 8px;
-      background: rgba(59, 130, 246, 0.9);
+      top: var(--spacing-sm);
+      right: var(--spacing-sm);
+      background: var(--gradient-primary);
       color: white;
-      padding: 4px 8px;
-      border-radius: 12px;
-      font-size: 11px;
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-xs);
       font-weight: 600;
       display: flex;
       align-items: center;
-      gap: 4px;
-      backdrop-filter: blur(4px);
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      max-width: calc(100% - 16px);
+      gap: var(--spacing-xs);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow-md);
+      max-width: calc(100% - 32px);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -1220,11 +1515,15 @@
     }
 
     .character-description {
-      font-size: 13px;
-      color: #888;
-      margin: 0;
-      line-height: 1.4;
-      display: none; /* Hidden in grid view */
+      font-size: var(--font-size-sm);
+      color: var(--color-text-muted);
+      margin: var(--spacing-md) 0 0 0;
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     /* Loading Animation */
@@ -1347,11 +1646,39 @@
       background: var(--color-teal-dark);
     }
 
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+      .main-container {
+        flex-direction: column;
+        gap: var(--spacing-lg);
+      }
+
+      .filters-sidebar {
+        width: 100%;
+        position: static;
+        order: -1;
+      }
+
+      .character-grid {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      }
+    }
+
     /* Mobile Optimizations */
     @media (max-width: 768px) {
+      .main-container {
+        padding: var(--spacing-md);
+        gap: var(--spacing-md);
+      }
+
+      .filters-sidebar {
+        padding: var(--spacing-md);
+      }
+
       .page-header {
-        min-height: 100px;
-        padding: var(--spacing-lg) var(--spacing-md);
+        min-height: 150px;
+        padding: var(--spacing-xl) var(--spacing-md);
+        border-radius: 0;
       }
 
       .page-header h1 {
@@ -1386,14 +1713,32 @@
       }
 
       .character-grid {
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-        gap: 16px;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: var(--spacing-md);
+      }
+
+      .category-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+
+      .category-tabs::-webkit-scrollbar {
+        display: none;
+      }
+
+      .search-container {
+        padding: var(--spacing-md);
       }
 
       .character-avatar {
-        width: 60px;
-        height: 60px;
-        margin-bottom: 12px;
+        width: 50px;
+        height: 50px;
+      }
+
+      .character-header {
+        gap: var(--spacing-sm);
       }
     }
 
@@ -1411,8 +1756,8 @@
 
     /* ===== FOOTER STYLES ===== */
     .footer {
-      background: var(--color-white);
-      border-top: 1px solid var(--color-light-gray);
+      background: var(--color-dark);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
       padding: var(--spacing-xl) 0;
       margin-top: var(--spacing-3xl);
     }
@@ -1434,7 +1779,7 @@
     }
 
     .footer-link {
-      color: var(--color-gray);
+      color: var(--color-text-muted);
       text-decoration: none;
       font-size: var(--font-size-sm);
       font-weight: 500;
@@ -1442,16 +1787,16 @@
     }
 
     .footer-link:hover {
-      color: var(--color-teal);
+      color: var(--color-primary);
     }
 
     .footer-separator {
-      color: var(--color-gray-light);
+      color: var(--color-text-muted);
       font-size: var(--font-size-sm);
     }
 
     .footer-copyright {
-      color: var(--color-gray-light);
+      color: var(--color-text-muted);
       font-size: var(--font-size-xs);
       margin: 0;
     }
@@ -1652,7 +1997,7 @@
     </div>
   </div>
 
-  <!-- Page Header -->
+  <!-- Modern Page Header -->
   <div class="page-header">
     <!-- Floating particles -->
     <div class="header-particle">✨</div>
@@ -1675,37 +2020,123 @@
       </div>
       <h1 id="category-title">Loading Characters...</h1>
       <p id="category-description" style="margin-bottom: var(--spacing-xl);">Discover amazing characters in this category</p>
-      <a href="/create-character" class="category-btn create-companion-special" id="create-category-btn" style="margin-top: 0;">
-        ✨ <span id="create-btn-text">Create Companion</span>
-      </a>
     </div>
   </div>
 
-  <!-- Category Navigation - Single Row -->
-  <nav class="category-nav" aria-label="Browse by category and tags">
-    <div class="filters-container">
-      <!-- Categories Section -->
-      <div class="filter-section">
-        <div class="category-buttons" id="categoryButtons">
-          <!-- Dynamic category buttons will be inserted here -->
+  <!-- Main Container with Sidebar Layout -->
+  <div class="main-container">
+    <!-- Filters Sidebar (Nectar.ai style) -->
+    <aside class="filters-sidebar">
+      <div class="filters-title">
+        <span>🔍</span>
+        Filters
+      </div>
+      
+      <!-- NSFW Toggle -->
+      <div class="nsfw-toggle">
+        <span>NSFW</span>
+        <div class="toggle-switch" id="nsfwToggle"></div>
+      </div>
+      
+      <!-- Gender Filter -->
+      <div class="filter-group">
+        <div class="filter-group-title">Gender</div>
+        <div class="filter-option" data-filter="gender" data-value="female">
+          <input type="checkbox" id="female">
+          <label for="female">👩 Female</label>
+        </div>
+        <div class="filter-option" data-filter="gender" data-value="male">
+          <input type="checkbox" id="male">
+          <label for="male">👨 Male</label>
         </div>
       </div>
-    </div>
-  </nav>
-
-  <!-- Content -->
-  <div class="content">
-    <div class="results-header">
-      <div class="results-count" id="resultsCount">Loading characters...</div>
-    </div>
-
-    <div class="character-grid" id="characterGrid">
-      <div class="loading-grid">
-        <div class="loading"></div>
+      
+      <!-- Category Filter -->
+      <div class="filter-group">
+        <div class="filter-group-title">Categories</div>
+        <div class="filter-option" data-filter="category" data-value="anime">
+          <input type="checkbox" id="anime">
+          <label for="anime">🎌 Anime</label>
+        </div>
+        <div class="filter-option" data-filter="category" data-value="fictional">
+          <input type="checkbox" id="fictional">
+          <label for="fictional">📚 Fictional</label>
+        </div>
+        <div class="filter-option" data-filter="category" data-value="historical">
+          <input type="checkbox" id="historical">
+          <label for="historical">🏛️ Historical</label>
+        </div>
+        <div class="filter-option" data-filter="category" data-value="romance">
+          <input type="checkbox" id="romance">
+          <label for="romance">💕 Romance</label>
+        </div>
       </div>
-    </div>
+      
+      <!-- Tags Filter -->
+      <div class="filter-group">
+        <div class="filter-group-title">Tags</div>
+        <div class="filter-option" data-filter="tag" data-value="dominant">
+          <input type="checkbox" id="dominant">
+          <label for="dominant">🖤 Dominant</label>
+        </div>
+        <div class="filter-option" data-filter="tag" data-value="submissive">
+          <input type="checkbox" id="submissive">
+          <label for="submissive">💝 Submissive</label>
+        </div>
+        <div class="filter-option" data-filter="tag" data-value="romantic">
+          <input type="checkbox" id="romantic">
+          <label for="romantic">💖 Romantic</label>
+        </div>
+      </div>
+    </aside>
 
-    <div class="pagination" id="pagination"></div>
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Search Container (Botify AI style) -->
+      <div class="search-container">
+        <div class="search-bar">
+          <input 
+            type="text" 
+            class="search-input" 
+            id="mainSearchInput"
+            placeholder="Search Fantasies"
+            autocomplete="off"
+          >
+          <div class="search-icon">🔍</div>
+        </div>
+        
+        <!-- Category Tabs -->
+        <div class="category-tabs" id="categoryTabs">
+          <!-- Dynamic category tabs will be inserted here -->
+        </div>
+      </div>
+      
+      <!-- Sort Options -->
+      <div class="sort-container">
+        <span class="sort-label">Sort by</span>
+        <select class="sort-select" id="sortSelect">
+          <option value="popular">Popular</option>
+          <option value="recent">Recent chats</option>
+          <option value="name">Name</option>
+          <option value="newest">Newest</option>
+        </select>
+      </div>
+      
+      <!-- Results Header -->
+      <div class="results-header">
+        <div class="results-count" id="resultsCount">Loading characters...</div>
+      </div>
+
+      <!-- Character Grid -->
+      <div class="character-grid" id="characterGrid">
+        <div class="loading-grid">
+          <div class="loading"></div>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination" id="pagination"></div>
+    </main>
   </div>
 
   <script>
@@ -2107,7 +2538,7 @@
       return `chat.html?char=${slug}`;
     }
 
-    // ===== CHARACTER CARD CREATION =====
+    // ===== MODERN CHARACTER CARD CREATION =====
     function createCharacterCard(character) {
       const card = document.createElement('a');
       card.className = 'character-card';
@@ -2118,19 +2549,13 @@
       card.removeAttribute('href');
       card.style.cursor = 'pointer';
       
-      // For Made By You category, add special styling
-      if (currentCategory === 'made-by-you') {
-        card.style.position = 'relative';
-      }
+      // Create character header with avatar and info
+      const headerDiv = document.createElement('div');
+      headerDiv.className = 'character-header';
       
-      // Create card HTML with proper avatar handling
+      // Create avatar container
       const avatarDiv = document.createElement('div');
       avatarDiv.className = 'character-avatar';
-      
-      // Make avatar container relative positioned for badge
-      if (currentCategory === 'made-by-you') {
-        avatarDiv.style.position = 'relative';
-      }
       
       // Add creator badge for Made By You category
       if (currentCategory === 'made-by-you' && character.createdBy) {
@@ -2140,29 +2565,16 @@
         const creatorName = character.createdBy.includes('@') ? 
           character.createdBy.split('@')[0] : character.createdBy;
         creatorBadge.textContent = creatorName;
-        creatorBadge.style.cssText = `
-          position: absolute;
-          top: -8px;
-          right: -8px;
-          background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-          color: white;
-          padding: 4px 10px;
-          border-radius: 12px;
-          font-size: 11px;
-          font-weight: 600;
-          z-index: 10;
-          white-space: nowrap;
-        `;
+        avatarDiv.style.position = 'relative';
         avatarDiv.appendChild(creatorBadge);
       }
       
+      // Handle avatar image
       if (character.avatarUrl && (character.avatarUrl.startsWith('http') || character.avatarUrl.startsWith('data:'))) {
         const img = document.createElement('img');
-        
         img.src = character.avatarUrl;
-        
         img.alt = character.name;
-        img.style.cssText = 'width: 100%; height: 100%; object-fit: cover; border-radius: 50%;';
+        img.style.cssText = 'width: 100%; height: 100%; object-fit: cover; border-radius: var(--radius-md);';
         img.loading = 'lazy';
         
         img.onload = function() {
@@ -2170,35 +2582,75 @@
         };
         
         img.onerror = function() {
-          console.error('❌ Avatar failed for', character.name, 'URL:', character.avatarUrl.substring(0, 50) + '...');
-          avatarDiv.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 3rem; color: #94a3b8;">👤</div>';
+          console.error('❌ Avatar failed for', character.name);
+          avatarDiv.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 1.5rem; color: var(--color-text-muted);">👤</div>';
         };
         
         avatarDiv.appendChild(img);
       } else {
-        avatarDiv.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 3rem; color: #94a3b8;">👤</div>';
+        avatarDiv.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 1.5rem; color: var(--color-text-muted);">👤</div>';
       }
       
-      // First append all child elements
-      card.appendChild(avatarDiv);
+      // Create character info container
+      const infoDiv = document.createElement('div');
+      infoDiv.className = 'character-info';
       
       const nameDiv = document.createElement('div');
       nameDiv.className = 'character-name';
       nameDiv.textContent = character.name;
-      card.appendChild(nameDiv);
       
       const titleDiv = document.createElement('div');
       titleDiv.className = 'character-title';
       titleDiv.textContent = character.title;
-      card.appendChild(titleDiv);
       
-      // Add click event listener for companion limit protection
+      infoDiv.appendChild(nameDiv);
+      infoDiv.appendChild(titleDiv);
+      
+      headerDiv.appendChild(avatarDiv);
+      headerDiv.appendChild(infoDiv);
+      
+      // Create description
+      const descDiv = document.createElement('div');
+      descDiv.className = 'character-description';
+      descDiv.textContent = character.description || 'No description available';
+      
+      // Create stats section
+      const statsDiv = document.createElement('div');
+      statsDiv.className = 'character-stats';
+      
+      // Mock stats for demonstration
+      const chatCount = Math.floor(Math.random() * 100) + 'K';
+      const likeCount = Math.floor(Math.random() * 50) + 'K';
+      
+      statsDiv.innerHTML = `
+        <div class="character-stat">
+          <span class="stat-icon">💬</span>
+          <span>${chatCount}</span>
+        </div>
+        <div class="character-stat">
+          <span class="stat-icon">❤️</span>
+          <span>${likeCount}</span>
+        </div>
+      `;
+      
+      // Assemble card
+      card.appendChild(headerDiv);
+      card.appendChild(descDiv);
+      card.appendChild(statsDiv);
+      
+      // Add user-created badge if applicable
+      if (currentCategory === 'made-by-you') {
+        const badge = document.createElement('div');
+        badge.className = 'user-created-badge';
+        badge.innerHTML = '<span class="badge-icon">👤</span>Community';
+        card.appendChild(badge);
+      }
+      
+      // Add click event listener
       card.addEventListener('click', function(e) {
-        // Use the global checkCompanionLimitBeforeNavigation function
         if (window.checkCompanionLimitBeforeNavigation) {
           window.checkCompanionLimitBeforeNavigation(e);
         } else {
-          // Fallback if function not loaded yet
           console.warn('⚠️ Companion limit check function not loaded, allowing navigation');
           window.location.href = character.characterUrl;
         }
@@ -2431,9 +2883,9 @@
       });
     }
 
-    // ===== CATEGORY NAVIGATION =====
-    function generateCategoryNavigation() {
-      const container = document.getElementById('categoryButtons');
+    // ===== MODERN CATEGORY TABS =====
+    function generateCategoryTabs() {
+      const container = document.getElementById('categoryTabs');
       if (!container) return;
 
       container.innerHTML = '';
@@ -2442,46 +2894,103 @@
       const urlParams = new URLSearchParams(window.location.search);
       const currentCategoryParam = urlParams.get('cat');
       
-      // Use the same categories as index.html (in the specified order)
-      const allCategories = [
-        { id: 'friendship', name: '🤝 Friendship', title: 'Friendship' },
-        { id: 'life', name: '🌟 Life', title: 'Life' },
-        { id: 'career', name: '💼 Career', title: 'Career' },
-        { id: 'love', name: '💖 Love', title: 'Love' },
-        { id: 'made-by-you', name: '👥 Made By You', title: 'Made By You' },
-        { id: 'romance', name: '💕 Romance', title: 'Romance' },
-        { id: 'mindfulness', name: '🧘 Mindfulness', title: 'Mindfulness' },
-        { id: 'purpose', name: '🎯 Purpose', title: 'Purpose' },
-        { id: 'self-improvement', name: '📈 Self-Improvement', title: 'Self-Improvement' },
-        { id: 'motivation', name: '💪 Motivation', title: 'Motivation' },
-        { id: 'historical', name: '🏛️ Historical', title: 'Historical' },
-        { id: 'anime-manga', name: '🎌 Anime', title: 'Anime' },
-        { id: 'fictional', name: '📚 Fictional', title: 'Fictional' },
-        { id: 'original', name: '✨ Original', title: 'Original' }
+      // Main categories for tabs (like Botify AI)
+      const categoryTabs = [
+        { id: 'featured', name: '⭐ Featured', title: 'Featured' },
+        { id: 'recent-chats', name: '💬 Recent chats', title: 'Recent chats' },
+        { id: 'flirting', name: '😘 Flirting', title: 'Flirting' },
+        { id: 'female', name: '👩 Female', title: 'Female' },
+        { id: 'male', name: '👨 Male', title: 'Male' },
+        { id: 'anime', name: '🎌 Anime', title: 'Anime' },
+        { id: 'game', name: '🎮 Game', title: 'Game' },
+        { id: 'fiction', name: '📚 Fiction', title: 'Fiction' }
       ];
       
-      // Show all categories without shuffling
-      const selectedCategories = allCategories;
-      
-      selectedCategories.forEach(category => {
-        const link = document.createElement('a');
-        link.href = `category.html?cat=${category.id}`;
-        link.className = `category-btn ${currentCategoryParam === category.id ? 'active' : ''}`;
-        link.textContent = category.name;
-        container.appendChild(link);
+      // Always show Featured as active by default
+      categoryTabs.forEach((tab, index) => {
+        const tabElement = document.createElement('div');
+        tabElement.className = `category-tab ${index === 0 ? 'active' : ''}`;
+        tabElement.textContent = tab.name;
+        tabElement.dataset.category = tab.id;
+        
+        tabElement.addEventListener('click', () => {
+          // Remove active from all tabs
+          container.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+          // Add active to clicked tab
+          tabElement.classList.add('active');
+          // Filter characters (implementation would go here)
+          console.log('Switching to category:', tab.id);
+        });
+        
+        container.appendChild(tabElement);
       });
     }
 
-    // Generate tag buttons - disabled as we only show categories
-    function generateTagButtons() {
-      // Tags are not shown anymore
+    // ===== FILTER INITIALIZATION =====
+    function initializeFilters() {
+      // Initialize NSFW toggle
+      const nsfwToggle = document.getElementById('nsfwToggle');
+      if (nsfwToggle) {
+        nsfwToggle.addEventListener('click', function() {
+          this.classList.toggle('active');
+          console.log('NSFW toggle:', this.classList.contains('active'));
+        });
+      }
+      
+      // Initialize filter options
+      document.querySelectorAll('.filter-option').forEach(option => {
+        option.addEventListener('click', function() {
+          const checkbox = this.querySelector('input[type="checkbox"]');
+          if (checkbox) {
+            checkbox.checked = !checkbox.checked;
+            this.classList.toggle('active', checkbox.checked);
+            
+            const filterType = this.dataset.filter;
+            const filterValue = this.dataset.value;
+            console.log('Filter changed:', filterType, filterValue, checkbox.checked);
+            
+            // Apply filters (implementation would go here)
+            applyFilters();
+          }
+        });
+      });
+      
+      // Initialize sort dropdown
+      const sortSelect = document.getElementById('sortSelect');
+      if (sortSelect) {
+        sortSelect.addEventListener('change', function() {
+          console.log('Sort changed to:', this.value);
+          applySorting(this.value);
+        });
+      }
+      
+      // Initialize main search
+      const mainSearchInput = document.getElementById('mainSearchInput');
+      if (mainSearchInput) {
+        mainSearchInput.addEventListener('input', function() {
+          const searchTerm = this.value.toLowerCase();
+          console.log('Main search:', searchTerm);
+          filterCharacters(searchTerm);
+        });
+      }
+    }
+    
+    // ===== FILTER APPLICATION =====
+    function applyFilters() {
+      // This would filter the characters based on selected filters
+      console.log('Applying filters...');
+    }
+    
+    function applySorting(sortType) {
+      // This would sort the characters based on the selected sort type
+      console.log('Applying sort:', sortType);
     }
 
 
 
     // ===== INITIALIZATION =====
     document.addEventListener('DOMContentLoaded', function() {
-      console.log('🚀 Category page initializing...');
+      console.log('🚀 Modern category page initializing...');
       
       
       // Check voor referral parameter
@@ -2518,13 +3027,13 @@
         }
       }, 500);
       
-      // Generate category navigation
-      generateCategoryNavigation();
+      // Generate modern category tabs
+      generateCategoryTabs();
       
-      // Generate tag buttons
-      generateTagButtons();
+      // Initialize filters
+      initializeFilters();
       
-      console.log('✅ Category page initialization complete');
+      console.log('✅ Modern category page initialization complete');
     });
   </script>
 
