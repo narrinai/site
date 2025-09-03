@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Chat Demo Test - Narrin AI</title>
+  
+  <style>
+    :root {
+      --color-navy: #1a365d;
+      --color-teal: #319795;
+      --color-light-gray: #f0f4f8;
+      --color-white: #ffffff;
+      --color-gray-dark: #4a5568;
+      --gradient-primary: linear-gradient(135deg, #319795 0%, #2d3748 100%);
+      --spacing-sm: 8px;
+      --spacing-md: 16px;
+      --spacing-lg: 24px;
+      --spacing-xl: 32px;
+      --spacing-2xl: 48px;
+      --spacing-3xl: 64px;
+      --font-size-sm: 14px;
+      --font-size-base: 16px;
+      --font-size-lg: 18px;
+      --font-size-xl: 20px;
+      --font-size-2xl: 24px;
+      --font-size-3xl: 30px;
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --radius-xl: 16px;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      --transition-base: 0.3s ease;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--color-light-gray);
+      padding: var(--spacing-lg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .test-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: var(--color-white);
+      border-radius: var(--radius-xl);
+      padding: var(--spacing-xl);
+      box-shadow: var(--shadow-xl);
+    }
+
+    h1 {
+      color: var(--color-navy);
+      margin-bottom: var(--spacing-lg);
+      text-align: center;
+      font-size: var(--font-size-2xl);
+    }
+
+    .demo-controls {
+      text-align: center;
+      margin-bottom: var(--spacing-lg);
+      display: flex;
+      gap: var(--spacing-sm);
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .demo-btn {
+      padding: var(--spacing-sm) var(--spacing-md);
+      background: var(--gradient-primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-size: var(--font-size-sm);
+      transition: all var(--transition-base);
+    }
+
+    .demo-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .demo-btn.active {
+      background: var(--color-teal);
+      transform: scale(1.05);
+    }
+
+    .chat-demo-container {
+      background: var(--color-white);
+      border-radius: var(--radius-xl);
+      padding: var(--spacing-xl);
+      border: 2px solid var(--color-light-gray);
+      min-height: 300px;
+      position: relative;
+    }
+
+    .chat-conversation {
+      max-height: 400px;
+      overflow-y: auto;
+      margin-bottom: var(--spacing-md);
+    }
+
+    .chat-message {
+      margin-bottom: var(--spacing-md);
+      display: flex;
+      align-items: flex-start;
+      gap: var(--spacing-sm);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.6s ease-out;
+    }
+
+    .chat-message.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .user-message {
+      justify-content: flex-end;
+    }
+
+    .user-message .message-content {
+      background: var(--gradient-primary);
+      color: white;
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-radius: 18px 18px 4px 18px;
+      font-size: var(--font-size-sm);
+      line-height: 1.4;
+      max-width: 80%;
+      margin-left: auto;
+    }
+
+    .ai-message {
+      justify-content: flex-start;
+    }
+
+    .ai-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+      border: 2px solid var(--color-light-gray);
+    }
+
+    .ai-message .message-content {
+      background: var(--color-light-gray);
+      color: var(--color-navy);
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-radius: 18px 18px 18px 4px;
+      font-size: var(--font-size-sm);
+      line-height: 1.4;
+      max-width: 85%;
+    }
+
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      opacity: 0;
+      padding: var(--spacing-sm) var(--spacing-md);
+    }
+
+    .typing-indicator.show {
+      opacity: 1;
+      animation: fadeInMessage 0.3s ease-out;
+    }
+
+    .typing-dots {
+      display: flex;
+      gap: 4px;
+    }
+
+    .typing-dots span {
+      width: 6px;
+      height: 6px;
+      background: var(--color-gray-dark);
+      border-radius: 50%;
+      animation: typingBounce 1.4s infinite;
+    }
+
+    .typing-dots span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dots span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typingBounce {
+      0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.4;
+      }
+      30% {
+        transform: translateY(-10px);
+        opacity: 1;
+      }
+    }
+
+    @keyframes fadeInMessage {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .example-insight {
+      background: rgba(49, 151, 149, 0.1);
+      border-left: 4px solid var(--color-teal);
+      padding: var(--spacing-md);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      transition: opacity 0.6s ease-out;
+      margin-top: var(--spacing-md);
+    }
+
+    .progress-icon {
+      font-size: var(--font-size-lg);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="test-container">
+    <h1>🧠 Narrin AI Chat Demo Test</h1>
+    
+    <div class="demo-controls">
+      <button class="demo-btn active" onclick="playDemo(0)">Pattern Recognition</button>
+      <button class="demo-btn" onclick="playDemo(1)">Daily Organization</button>
+      <button class="demo-btn" onclick="playDemo(2)">Task Prioritization</button>
+      <button class="demo-btn" onclick="restartCurrentDemo()">Restart</button>
+    </div>
+    
+    <div class="chat-demo-container">
+      <div class="chat-conversation" id="chatDemo">
+        <!-- Messages will be dynamically inserted here -->
+      </div>
+      <div class="example-insight" id="insightText" style="opacity: 0;">
+        <span class="progress-icon">🧠</span>
+        <span id="insightContent">Progress saved: Sleep patterns identified → Evening routine target set</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const chatDemos = [
+      {
+        title: "Pattern Recognition",
+        messages: [
+          { type: 'user', content: 'idk why I feel anxious, maybe sleep? work stress?' },
+          { type: 'ai', avatar: 'https://narrin.ai/avatars/emerald-1754253047878.webp', content: "I've noticed you mentioned poor sleep + stress 3x this week. When sleep gets disrupted, work stress feels overwhelming. Let's focus on your evening routine first." }
+        ],
+        insight: "Progress saved: Sleep patterns identified → Evening routine target set"
+      },
+      {
+        title: "Daily Organization", 
+        messages: [
+          { type: 'user', content: 'Today sucked. Slow project, ignored in meeting, but gym was good.' },
+          { type: 'ai', avatar: 'https://narrin.ai/avatars/sol-1754289534624.webp', content: "Your frustration = waiting on others (project + meeting). Gym was your positive anchor. Action: prep meeting agenda so your voice gets heard." }
+        ],
+        insight: "Progress saved: 3 insights gained → 1 concrete action plan created"
+      },
+      {
+        title: "Task Prioritization",
+        messages: [
+          { type: 'user', content: 'My head is full of random stuff: pay bill, LinkedIn post, call mom, groceries, presentation prep' },
+          { type: 'ai', avatar: 'https://narrin.ai/avatars/galina-1754262878346.webp', content: "You've got 5 things competing for headspace. 2 are urgent (bill, mom), 2 are growth (LinkedIn, presentation), 1 is routine (groceries). Start with mom - connection often unlocks everything else." }
+        ],
+        insight: "Progress saved: Mental clutter organized → 3-priority system created"
+      }
+    ];
+
+    let currentDemoIndex = 0;
+    let demoTimeout;
+
+    function showTypingIndicator(avatar) {
+      const chatContainer = document.getElementById('chatDemo');
+      const typingDiv = document.createElement('div');
+      typingDiv.className = 'chat-message ai-message typing-indicator';
+      typingDiv.innerHTML = `
+        <img src="${avatar}" alt="AI Companion" class="ai-avatar">
+        <div class="message-content">
+          <div class="typing-dots">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+      `;
+      chatContainer.appendChild(typingDiv);
+      
+      // Fade in typing indicator
+      setTimeout(() => {
+        typingDiv.classList.add('show');
+      }, 100);
+      
+      return typingDiv;
+    }
+
+    function addChatMessage(message, delay = 0) {
+      return new Promise(resolve => {
+        setTimeout(() => {
+          const chatContainer = document.getElementById('chatDemo');
+          const messageDiv = document.createElement('div');
+          
+          if (message.type === 'user') {
+            messageDiv.className = 'chat-message user-message';
+            messageDiv.innerHTML = `<div class="message-content">${message.content}</div>`;
+          } else {
+            messageDiv.className = 'chat-message ai-message';
+            messageDiv.innerHTML = `
+              <img src="${message.avatar}" alt="AI Companion" class="ai-avatar">
+              <div class="message-content">${message.content}</div>
+            `;
+          }
+          
+          chatContainer.appendChild(messageDiv);
+          
+          // Trigger animation by adding show class
+          setTimeout(() => {
+            messageDiv.classList.add('show');
+            resolve();
+          }, 100);
+        }, delay);
+      });
+    }
+
+    async function playDemo(index) {
+      currentDemoIndex = index;
+      
+      // Update active button
+      document.querySelectorAll('.demo-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', i === index);
+      });
+      
+      const demo = chatDemos[index];
+      const chatContainer = document.getElementById('chatDemo');
+      const insightElement = document.getElementById('insightText');
+      const insightContent = document.getElementById('insightContent');
+      
+      if (!chatContainer) return;
+      
+      // Clear previous demo with fade out
+      Array.from(chatContainer.children).forEach(child => {
+        child.style.transition = 'opacity 0.3s ease-out';
+        child.style.opacity = '0';
+      });
+      
+      setTimeout(() => {
+        chatContainer.innerHTML = '';
+        if (insightElement) {
+          insightElement.style.opacity = '0';
+        }
+      }, 300);
+      
+      // Wait for clear, then start new demo
+      setTimeout(async () => {
+        // Play messages with realistic timing
+        for (let i = 0; i < demo.messages.length; i++) {
+          const message = demo.messages[i];
+          const isLastMessage = i === demo.messages.length - 1;
+          
+          if (message.type === 'ai') {
+            // Show typing indicator for AI messages
+            const typingIndicator = showTypingIndicator(message.avatar);
+            await new Promise(resolve => setTimeout(resolve, 1500)); // Typing duration
+            
+            // Remove typing indicator with fade
+            typingIndicator.style.transition = 'opacity 0.3s ease-out';
+            typingIndicator.style.opacity = '0';
+            setTimeout(() => typingIndicator.remove(), 300);
+            
+            // Add actual AI message
+            await addChatMessage(message, 200);
+            
+            if (isLastMessage) {
+              // Show insight after last AI message
+              setTimeout(() => {
+                if (insightContent && insightElement) {
+                  insightContent.textContent = demo.insight;
+                  insightElement.style.opacity = '1';
+                }
+              }, 1000);
+            }
+          } else {
+            // Add user message immediately
+            await addChatMessage(message, i === 0 ? 500 : 800);
+          }
+        }
+      }, 400);
+    }
+
+    function restartCurrentDemo() {
+      clearTimeout(demoTimeout);
+      playDemo(currentDemoIndex);
+    }
+
+    function startChatDemo() {
+      // Start with first demo
+      playDemo(0);
+      
+      // Auto-cycle through demos
+      function cycleDemos() {
+        demoTimeout = setTimeout(() => {
+          currentDemoIndex = (currentDemoIndex + 1) % chatDemos.length;
+          playDemo(currentDemoIndex);
+          cycleDemos(); // Continue cycle
+        }, 10000); // 10 seconds per demo
+      }
+      
+      // Start cycling after first demo completes
+      setTimeout(cycleDemos, 8000);
+    }
+
+    // Start demo when page loads
+    document.addEventListener('DOMContentLoaded', startChatDemo);
+  </script>
+</body>
+</html>
