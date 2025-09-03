@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Selira AI - Character Chat Platform</title>
+  <meta name="description" content="Chat with AI characters. Immersive conversations with diverse personalities on Selira AI." />
+  <!-- Social Media Meta -->
+  <meta property="og:title" content="Selira AI - Character Chat Platform" />
+  <meta property="og:description" content="Chat with AI characters. Immersive conversations with diverse personalities." />
+  <meta property="og:image" content="https://selira.ai/assets/selira-social.jpg" />
+  <meta property="og:url" content="https://selira.ai" />
+  <meta name="twitter:card" content="summary_large_image" />
+  
+  <style>
+    :root {
+      --bg-primary: #0a0a0a;
+      --bg-secondary: #1a1a1a;
+      --bg-tertiary: #2a2a2a;
+      --text-primary: #ffffff;
+      --text-secondary: #b3b3b3;
+      --accent: #6366f1;
+      --accent-hover: #5046e5;
+      --border: #333333;
+      --success: #10b981;
+      --error: #ef4444;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    .container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      height: 100vh;
+      z-index: 100;
+    }
+
+    .logo {
+      padding: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .nav-menu {
+      flex: 1;
+      padding: 24px 0;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 24px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: all 0.2s;
+      border-left: 3px solid transparent;
+    }
+
+    .nav-item:hover,
+    .nav-item.active {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border-left-color: var(--accent);
+    }
+
+    .nav-item i {
+      margin-right: 12px;
+      font-size: 18px;
+    }
+
+    .upgrade-section {
+      margin: 24px;
+      padding: 20px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .upgrade-btn {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background 0.2s;
+    }
+
+    .upgrade-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      margin-left: 280px;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      background: var(--bg-secondary);
+      padding: 16px 32px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .search-bar {
+      flex: 1;
+      max-width: 500px;
+      position: relative;
+      margin: 0 32px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px 16px 12px 44px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      color: var(--text-primary);
+      font-size: 14px;
+    }
+
+    .search-input::placeholder {
+      color: var(--text-secondary);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+    }
+
+    .user-menu {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Content Area */
+    .content {
+      padding: 32px;
+    }
+
+    .content-header {
+      margin-bottom: 32px;
+    }
+
+    .content-title {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .content-subtitle {
+      color: var(--text-secondary);
+      font-size: 16px;
+    }
+
+    /* Filter Tabs */
+    .filter-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+
+    .filter-tab {
+      padding: 8px 20px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 14px;
+    }
+
+    .filter-tab:hover,
+    .filter-tab.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    /* Character Grid */
+    .characters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .character-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .character-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+      border-color: var(--accent);
+    }
+
+    .character-image {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      background: var(--bg-tertiary);
+    }
+
+    .character-info {
+      padding: 20px;
+    }
+
+    .character-name {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--text-primary);
+    }
+
+    .character-title {
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    .character-description {
+      color: var(--text-secondary);
+      font-size: 14px;
+      line-height: 1.4;
+      margin-bottom: 16px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .character-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .chat-btn {
+      flex: 1;
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    .chat-btn:hover {
+      background: var(--accent-hover);
+    }
+
+    .heart-btn {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .heart-btn:hover {
+      color: var(--error);
+      border-color: var(--error);
+    }
+
+    /* Loading and Empty States */
+    .loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 200px;
+      color: var(--text-secondary);
+    }
+
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--border);
+      border-top: 3px solid var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 12px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 64px 32px;
+      color: var(--text-secondary);
+    }
+
+    .empty-state i {
+      font-size: 64px;
+      margin-bottom: 16px;
+      color: var(--border);
+    }
+
+    /* Mobile Responsive */
+    .mobile-menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text-primary);
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      .main-content {
+        margin-left: 0;
+      }
+
+      .mobile-menu-toggle {
+        display: block;
+      }
+
+      .search-bar {
+        margin: 0 16px;
+      }
+
+      .header {
+        padding: 16px 20px;
+      }
+
+      .content {
+        padding: 20px;
+      }
+
+      .characters-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .filter-tabs {
+        overflow-x: auto;
+        padding-bottom: 8px;
+      }
+
+      .filter-tab {
+        white-space: nowrap;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+      <div class="logo">
+        <h1>Selira AI</h1>
+      </div>
+      
+      <div class="nav-menu">
+        <a href="/" class="nav-item active">
+          <i>🏠</i>
+          <span>Home</span>
+        </a>
+        <a href="/category.html" class="nav-item">
+          <i>🔍</i>
+          <span>Discover</span>
+        </a>
+        <a href="/create-character.html" class="nav-item">
+          <i>➕</i>
+          <span>Create</span>
+        </a>
+        <a href="/profile.html" class="nav-item">
+          <i>👤</i>
+          <span>Profile</span>
+        </a>
+        <a href="/news.html" class="nav-item">
+          <i>📰</i>
+          <span>News</span>
+        </a>
+      </div>
+
+      <div class="upgrade-section">
+        <h3 style="margin-bottom: 8px;">Upgrade to Pro</h3>
+        <p style="font-size: 14px; opacity: 0.9;">Unlimited chats, priority access</p>
+        <button class="upgrade-btn" onclick="window.location.href='/pricing.html'">
+          Upgrade Now
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Header -->
+      <header class="header">
+        <button class="mobile-menu-toggle" onclick="toggleSidebar()">
+          ☰
+        </button>
+        
+        <div class="search-bar">
+          <i class="search-icon">🔍</i>
+          <input 
+            type="text" 
+            class="search-input" 
+            placeholder="Search characters..."
+            id="searchInput"
+            onkeypress="handleSearch(event)"
+          >
+        </div>
+
+        <div class="user-menu">
+          <div class="user-avatar" onclick="window.location.href='/profile.html'" id="userAvatar">
+            G
+          </div>
+        </div>
+      </header>
+
+      <!-- Content -->
+      <div class="content">
+        <div class="content-header">
+          <h1 class="content-title">Discover Characters</h1>
+          <p class="content-subtitle">Choose from thousands of AI personalities to chat with</p>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="filter-tabs">
+          <div class="filter-tab active" data-category="all">All</div>
+          <div class="filter-tab" data-category="Anime">Anime</div>
+          <div class="filter-tab" data-category="Movies & TV">Movies & TV</div>
+          <div class="filter-tab" data-category="Games">Games</div>
+          <div class="filter-tab" data-category="Books">Books</div>
+          <div class="filter-tab" data-category="Historical">Historical</div>
+          <div class="filter-tab" data-category="Fantasy">Fantasy</div>
+          <div class="filter-tab" data-category="Sci-Fi">Sci-Fi</div>
+        </div>
+
+        <!-- Characters Grid -->
+        <div class="characters-grid" id="charactersGrid">
+          <div class="loading">
+            <div class="spinner"></div>
+            Loading characters...
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    let allCharacters = [];
+    let currentFilter = 'all';
+    let searchQuery = '';
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+      initializeAuth();
+      loadCharacters();
+      setupFilterTabs();
+    });
+
+    // Authentication
+    function initializeAuth() {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const userAvatar = document.getElementById('userAvatar');
+      
+      if (user.email) {
+        userAvatar.textContent = user.email.charAt(0).toUpperCase();
+        userAvatar.title = user.email;
+      }
+    }
+
+    // Load characters from Airtable
+    async function loadCharacters() {
+      try {
+        const response = await fetch('/netlify/functions/characters');
+        if (!response.ok) throw new Error('Failed to load characters');
+        
+        const data = await response.json();
+        allCharacters = data.characters || [];
+        
+        renderCharacters();
+      } catch (error) {
+        console.error('❌ Error loading characters:', error);
+        document.getElementById('charactersGrid').innerHTML = `
+          <div class="empty-state">
+            <i>⚠️</i>
+            <h3>Unable to load characters</h3>
+            <p>Please try refreshing the page</p>
+          </div>
+        `;
+      }
+    }
+
+    // Render characters
+    function renderCharacters() {
+      const grid = document.getElementById('charactersGrid');
+      let filteredCharacters = allCharacters;
+
+      // Apply category filter
+      if (currentFilter !== 'all') {
+        filteredCharacters = allCharacters.filter(char => 
+          char.category && char.category.toLowerCase() === currentFilter.toLowerCase()
+        );
+      }
+
+      // Apply search filter
+      if (searchQuery) {
+        filteredCharacters = filteredCharacters.filter(char =>
+          (char.name && char.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+          (char.title && char.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
+          (char.description && char.description.toLowerCase().includes(searchQuery.toLowerCase()))
+        );
+      }
+
+      if (filteredCharacters.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state">
+            <i>🔍</i>
+            <h3>No characters found</h3>
+            <p>Try adjusting your filters or search terms</p>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = filteredCharacters.map(character => `
+        <div class="character-card" onclick="startChat('${character.slug || character.name}')">
+          <img 
+            src="${character.avatar || '/avatars/default.jpg'}" 
+            alt="${character.name}"
+            class="character-image"
+            onerror="this.src='/avatars/default.jpg'"
+          >
+          <div class="character-info">
+            <h3 class="character-name">${character.name || 'Unknown'}</h3>
+            <p class="character-title">${character.title || ''}</p>
+            <p class="character-description">${character.description || 'No description available'}</p>
+            <div class="character-actions">
+              <button class="chat-btn" onclick="event.stopPropagation(); startChat('${character.slug || character.name}')">
+                💬 Chat
+              </button>
+              <button class="heart-btn" onclick="event.stopPropagation(); toggleFavorite('${character.slug || character.name}')">
+                ❤️
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Setup filter tabs
+    function setupFilterTabs() {
+      const tabs = document.querySelectorAll('.filter-tab');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          // Update active state
+          tabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          
+          // Update filter and re-render
+          currentFilter = tab.dataset.category;
+          renderCharacters();
+        });
+      });
+    }
+
+    // Search functionality
+    function handleSearch(event) {
+      if (event.key === 'Enter') {
+        searchQuery = event.target.value.trim();
+        renderCharacters();
+      }
+    }
+
+    // Start chat with character
+    function startChat(characterSlug) {
+      if (!characterSlug) return;
+      
+      // Check authentication
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      if (!user.email) {
+        // Redirect to login
+        window.location.href = '/profile.html?redirect=' + encodeURIComponent('/chat.html?character=' + characterSlug);
+        return;
+      }
+
+      // Navigate to chat
+      window.location.href = `/chat.html?character=${encodeURIComponent(characterSlug)}`;
+    }
+
+    // Toggle favorite
+    function toggleFavorite(characterSlug) {
+      // Implementation for favorites system
+      console.log('Toggle favorite:', characterSlug);
+      // You can implement this later with user preferences
+    }
+
+    // Mobile menu toggle
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('open');
+    }
+
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', function(event) {
+      const sidebar = document.getElementById('sidebar');
+      const toggle = document.querySelector('.mobile-menu-toggle');
+      
+      if (window.innerWidth <= 768 && 
+          !sidebar.contains(event.target) && 
+          !toggle.contains(event.target) &&
+          sidebar.classList.contains('open')) {
+        sidebar.classList.remove('open');
+      }
+    });
+
+    // Handle window resize
+    window.addEventListener('resize', function() {
+      const sidebar = document.getElementById('sidebar');
+      if (window.innerWidth > 768) {
+        sidebar.classList.remove('open');
+      }
+    });
+  </script>
+</body>
+</html>
