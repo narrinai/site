@@ -891,12 +891,12 @@
       /* Chatlog - full screen between header and input */
       #chatlog {
         position: absolute !important;
-        top: 110px !important; /* Directly under character header */
+        top: 85px !important; /* Further reduced gap to character header */
         bottom: 85px !important; /* Account for mobile bottom section height */
         left: 0 !important;
         right: 0 !important;
         width: 100% !important;
-        height: calc(100vh - 195px) !important;
+        height: calc(100vh - 170px) !important;
         overflow-y: auto !important;
         overflow-x: hidden !important;
         padding: var(--spacing-sm) var(--spacing-md) !important;
@@ -1569,8 +1569,10 @@
       }
       
       .character-header {
-        padding: 8px 12px !important;
-        gap: 8px;
+        padding: 4px 12px !important;
+        gap: 6px !important;
+        height: 40px !important;
+        min-height: 40px !important;
       }
       
       .character-info h2 {
@@ -18905,6 +18907,14 @@ async function generateCompanionImage() {
     const desktopInput = document.getElementById('userInput');
     
     if (mobileInput && desktopInput) {
+      // Add Enter key listener to mobile input
+      mobileInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          handleSendClickMobile(e);
+        }
+      });
+      
       mobileInput.addEventListener('input', () => {
         desktopInput.value = mobileInput.value;
       });
