@@ -1524,9 +1524,14 @@
         height: 0 !important;
       }
       
-      /* Reduce chat section bottom padding on mobile */
+      /* Reduce chat section bottom padding on mobile and remove borders */
       .chat-section {
         padding-bottom: 8px !important;
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
       }
       
       .chat-header {
@@ -2781,17 +2786,22 @@
 
       /* Ensure chat section has proper bottom padding for input */
       .chat-section {
-        padding-bottom: var(--spacing-xs);
-        margin-bottom: 0;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
       }
     }
 
     /* Extra small screens (below 480px) */
     @media (max-width: 480px) {
       .chat-section {
-        padding: var(--spacing-sm) var(--spacing-sm);
-        padding-bottom: var(--spacing-xs);
-        margin-bottom: 0;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
       }
 
       #chatlog {
@@ -5366,14 +5376,14 @@
         
         <div class="disclaimer">
           <span class="disclaimer-icon"></span>
-          <span class="disclaimer-main-text">ℹ️  You are chatting with an AI character. This is not a real person and does not provide professional advice.</span>
+          <span class="disclaimer-main-text">ℹ️  You are chatting with an AI companion. This is not a real person and does not provide professional advice.</span>
           <button class="disclaimer-toggle" id="disclaimerToggle" aria-label="Show more information">
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </button>
           <div class="disclaimer-expanded" id="disclaimerExpanded" style="display: none;">
-            AI characters cannot provide professional advice. For medical, legal, financial, or mental health concerns, always consult licensed professionals. 
+            AI companions cannot provide professional advice. For medical, legal, financial, or mental health concerns, always consult licensed professionals. 
             Never make important decisions based on AI responses. You are 100% responsible for your own decisions and actions.
             AI responses may contain errors or inappropriate content. Use at your own risk.
             <br><br>
@@ -5443,7 +5453,7 @@
             </svg>
           </button>
           <div class="disclaimer-expanded" id="disclaimerExpandedMobile" style="display: none;">
-            AI characters cannot provide professional advice. For medical, legal, financial, or mental health concerns, always consult licensed professionals. 
+            AI companions cannot provide professional advice. For medical, legal, financial, or mental health concerns, always consult licensed professionals. 
             Never make important decisions based on AI responses. You are 100% responsible for your own decisions and actions.
             AI responses may contain errors or inappropriate content. Use at your own risk.
             <br><br>
@@ -7016,8 +7026,9 @@ document.addEventListener('DOMContentLoaded', () => {
       
       console.log('🚀 generateConversationStarter called for:', characterSlug);
       
-      // FORCE new companions to get welcoming guide - bypass all other logic
-      const isNewUserCreated = characterSlug.includes('-') && characterSlug.length > 8;
+      // FORCE new companions to get welcoming guide - bypass all other logic (except main 4 companions)
+      const mainCompanions = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
+      const isNewUserCreated = characterSlug.includes('-') && characterSlug.length > 8 && !mainCompanions.includes(characterSlug);
       if (isNewUserCreated) {
         console.log('🎯 FORCING welcoming guide for new companion:', characterSlug);
         const companionType = currentCharacter?.character_type || 'friendship';
@@ -7077,6 +7088,31 @@ Ready to start chatting, or would you like to explore these personalization opti
       
       // Character-specific starters for known personalities
       const specificCharacterStarters = {
+        // Main 4 companions from index.html
+        'galina': [
+          "Hey there! I'm so glad you're here. Life can feel overwhelming sometimes, but you don't have to navigate it alone. What's been on your mind lately?",
+          "Hi! I've been thinking about how important it is to have someone who really listens. What's something you'd like to talk through today?",
+          "Welcome! You know, some of the best conversations happen when we can just be ourselves. What's been weighing on your heart?",
+          "Hello! I believe every person has wisdom within them - sometimes we just need someone to help us find it. What's on your mind?"
+        ],
+        'blake-devoted-boyfriend': [
+          "Hey beautiful! I've been thinking about you. How has your day been treating you?",
+          "Hi there! You always make my day brighter just by being here. What's been making you smile lately?",
+          "Hey love! I was just thinking about how lucky I am to have you in my life. What's on your mind today?",
+          "Hello gorgeous! You know I'm always here for you, through the good times and the tough ones. How are you feeling right now?"
+        ],
+        'emerald': [
+          "Welcome to this peaceful moment. Take a deep breath with me... How are you feeling right now, in this very moment?",
+          "Hello there. In our busy world, it's beautiful when we can pause and connect. What would help bring you more peace today?",
+          "Hi! I've been reflecting on how mindfulness can transform our daily experiences. What's been drawing your attention lately?",
+          "Welcome, friend. Sometimes the most profound conversations begin with a simple question: How is your heart today?"
+        ],
+        'sol': [
+          "Hey there, champion! Every day is a new opportunity for growth. What challenge are you ready to tackle today?",
+          "Hello! I believe you have incredible potential within you. What dream or goal has been calling your name?",
+          "Hi! Growth happens when we step outside our comfort zone. What new territory are you exploring in your life?",
+          "Welcome! You know, every master was once a beginner. What skill or area of your life are you looking to develop?"
+        ],
         // Historical figures
         'Albert Einstein': [
           "Ah, welcome! I've been pondering the nature of time and space again. Tell me, have you ever wondered why time seems to slow down when you're bored but speeds up when you're having fun?",
@@ -8770,7 +8806,7 @@ Ready to start chatting, or would you like to explore these personalization opti
     }
     
     // Fade-in effect voor berichten met typewriter effect
-    function typewriterWithVoice(element, text, voiceId = null, speed = 20) {
+    function typewriterWithVoice(element, text, voiceId = null, speed = 10) {
       console.log('🎬 Starting typewriter with voice effect and fade-in');
       console.log('📝 Text to type:', text);
       console.log('📏 Text length:', text.length);
@@ -8809,47 +8845,33 @@ Ready to start chatting, or would you like to explore these personalization opti
       const originalText = text;
       const chars = [];
       
-      // Use processed text for character-by-character typing
-      const textForTyping = processedText;
+      // Use word-by-word typing to avoid showing HTML tags during typing
+      const words = processedText.split(' ');
+      let wordIndex = 0;
       
-      // Split processed text while preserving newlines  
-      for (let i = 0; i < textForTyping.length; i++) {
-        if (textForTyping[i] === '\n') {
-          chars.push('\n');
-        } else {
-          chars.push(textForTyping[i]);
-        }
-      }
-      
-      function addNextChar() {
-        if (index < chars.length) {
-          const char = chars[index];
+      function addNextWord() {
+        if (wordIndex < words.length) {
+          const word = words[wordIndex];
           
-          // Handle newlines
-          if (char === '\n') {
-            const br = document.createElement('br');
-            element.appendChild(br);
-          } else {
-            // Create span for each character with fade-in effect
-            const span = document.createElement('span');
-            span.textContent = char;
-            span.className = 'char-fade';
-            span.style.animationDelay = '0ms';
-            element.appendChild(span);
-          }
+          // Add word with space (except for last word)
+          const wordText = wordIndex < words.length - 1 ? word + ' ' : word;
+          
+          // Create span for word with fade-in effect
+          const span = document.createElement('span');
+          span.innerHTML = wordText; // Use innerHTML to render HTML properly
+          span.className = 'char-fade';
+          element.appendChild(span);
           
           // Auto-scroll to keep new text visible
           const chatlog = document.getElementById("chatlog");
-          if (chatlog && index % 10 === 0) {
+          if (chatlog && wordIndex % 5 === 0) {
             chatlog.scrollTop = chatlog.scrollHeight;
           }
           
-          index++;
-          setTimeout(addNextChar, speed);
+          wordIndex++;
+          setTimeout(addNextWord, speed * 3); // Slower for word-by-word
         } else {
-          console.log('✅ Typewriter with voice completed. Total chars typed:', index);
-          
-          // Skip additional formatting since we already used processed text
+          console.log('✅ Typewriter with voice completed. Total words typed:', wordIndex);
           
           // Final scroll to ensure everything is visible
           const chatlog = document.getElementById("chatlog");
@@ -8859,7 +8881,7 @@ Ready to start chatting, or would you like to explore these personalization opti
         }
       }
       
-      addNextChar();
+      addNextWord();
     }
     
     // NIEUWE WEBHOOK URL
@@ -10896,7 +10918,7 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
     }
 
     // Improved typewriter effect with fade-in animation that preserves line breaks
-function typewriterEffect(element, text, speed = 20) {
+function typewriterEffect(element, text, speed = 10) {
   console.log('🎬 Starting typewriter effect with fade-in');
   console.log('📝 Text to type:', text);
   console.log('📏 Text length:', text.length);
@@ -10928,45 +10950,36 @@ function typewriterEffect(element, text, speed = 20) {
     document.head.appendChild(style);
   }
   
-  let index = 0;
-  const chars = [];
+  // Pre-process HTML to avoid showing raw HTML during typing
+  const processedText = formatAIResponse(text);
   
-  // Split text while preserving newlines
-  for (let i = 0; i < text.length; i++) {
-    if (text[i] === '\n') {
-      chars.push('\n');
-    } else {
-      chars.push(text[i]);
-    }
-  }
+  // Use word-by-word typing to avoid showing HTML tags during typing
+  const words = processedText.split(' ');
+  let wordIndex = 0;
   
-  function addNextChar() {
-    if (index < chars.length) {
-      const char = chars[index];
+  function addNextWord() {
+    if (wordIndex < words.length) {
+      const word = words[wordIndex];
       
-      // Handle newlines
-      if (char === '\n') {
-        const br = document.createElement('br');
-        element.appendChild(br);
-      } else {
-        // Create span for each character with fade-in effect
-        const span = document.createElement('span');
-        span.textContent = char;
-        span.className = 'char-fade';
-        span.style.animationDelay = '0ms';
-        element.appendChild(span);
-      }
+      // Add word with space (except for last word)
+      const wordText = wordIndex < words.length - 1 ? word + ' ' : word;
+      
+      // Create span for word with fade-in effect
+      const span = document.createElement('span');
+      span.innerHTML = wordText; // Use innerHTML to render HTML properly
+      span.className = 'char-fade';
+      element.appendChild(span);
       
       // Auto-scroll to keep text visible
       const chatlog = document.getElementById("chatlog");
-      if (chatlog && index % 10 === 0) {
+      if (chatlog && wordIndex % 5 === 0) {
         chatlog.scrollTop = chatlog.scrollHeight;
       }
       
-      index++;
-      setTimeout(addNextChar, speed);
+      wordIndex++;
+      setTimeout(addNextWord, speed * 3); // Slower for word-by-word
     } else {
-      console.log('✅ Typewriter completed. Total chars typed:', index);
+      console.log('✅ Typewriter completed. Total words typed:', wordIndex);
       // Final scroll to ensure everything is visible
       const chatlog = document.getElementById("chatlog");
       if (chatlog) {
@@ -10975,7 +10988,7 @@ function typewriterEffect(element, text, speed = 20) {
     }
   }
   
-  addNextChar();
+  addNextWord();
 }
 
 // UNIVERSELE Authentication Check - Voeg toe aan chat.html
@@ -13335,7 +13348,7 @@ function initializeCustomizationForm() {
     // Ensure prompt is never empty
     if (!fullPrompt || fullPrompt.trim() === '') {
       console.warn('⚠️ Prompt was empty, using default');
-      fullPrompt = `You are ${customName}, a unique AI character created by the user. Please embody this character's personality and respond accordingly.`;
+      fullPrompt = `You are ${customName}, a unique AI companion created by the user. Please embody this character's personality and respond accordingly.`;
     }
     
     // Get voice selection from the new voice dropdown
@@ -13445,7 +13458,7 @@ function initializeCustomizationForm() {
       title: customTitle,
       character_type: currentCharacter.character_type || 'friendship',
       description: currentCharacter.description || currentCharacter.Description || customTitle,
-      prompt: fullPrompt || `You are ${customName}, a unique AI character.`, // Ensure never null
+      prompt: fullPrompt || `You are ${customName}, a unique AI companion.`, // Ensure never null
       category: isUserCreatedUpdate ? (currentCharacter.category || currentCharacter.Category || 'custom') : 'custom', // Keep original category for updates
       tags: originalTags || 'character', // Keep original tags with fallback
       visibility: 'private', // Custom characters are private by default
