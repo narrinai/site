@@ -10116,16 +10116,36 @@ async function processMemoryForMessage(recordId, message, conversationContext) {
 
     // ===== HELPER FUNCTION FOR SAFE TEXT DISPLAY =====
     function escapeHtmlButKeepEmojis(text) {
-      // First escape HTML entities to prevent XSS
-      const div = document.createElement('div');
-      div.textContent = text;
-      const escaped = div.innerHTML;
+      // Check if text contains safe HTML tags from formatAIResponse
+      const containsSafeHtml = text.includes('<br>') || text.includes('<ol>') || text.includes('<ul>') || text.includes('<li>');
       
-      // Convert newlines to <br> tags to preserve formatting
-      const withLineBreaks = escaped.replace(/\n/g, '<br>');
-      
-      // Return escaped text with line breaks preserved
-      return withLineBreaks;
+      if (containsSafeHtml) {
+        // Text already contains safe HTML formatting from formatAIResponse
+        // Only escape dangerous characters that could break HTML structure while preserving safe tags
+        return text
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          // Restore safe HTML tags
+          .replace(/&lt;br&gt;/g, '<br>')
+          .replace(/&lt;ol style="margin: 10px 0; padding-left: 20px;"&gt;/g, '<ol style="margin: 10px 0; padding-left: 20px;">')
+          .replace(/&lt;ul style="margin: 10px 0; padding-left: 20px;"&gt;/g, '<ul style="margin: 10px 0; padding-left: 20px;">')
+          .replace(/&lt;\/ol&gt;/g, '</ol>')
+          .replace(/&lt;\/ul&gt;/g, '</ul>')
+          .replace(/&lt;li style="margin: 5px 0;"&gt;/g, '<li style="margin: 5px 0;">')
+          .replace(/&lt;\/li&gt;/g, '</li>');
+      } else {
+        // Regular text without HTML formatting - escape everything for safety
+        const div = document.createElement('div');
+        div.textContent = text;
+        const escaped = div.innerHTML;
+        
+        // Convert newlines to <br> tags to preserve formatting
+        const withLineBreaks = escaped.replace(/\n/g, '<br>');
+        
+        // Return escaped text with line breaks preserved
+        return withLineBreaks;
+      }
     }
     
     // Function to split AI response into natural message chunks
@@ -15570,12 +15590,7 @@ hideTypingIndicator();
 
     const typingSpan = divBot.querySelector('.typing-text');
     
-    // Escape HTML entities to prevent breaking
-    const escapeHtml = (text) => {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    };
+    // HTML escaping is now handled by escapeHtmlButKeepEmojis function
     
     // Clean up any strange formatting symbols in the reply
     const cleanReply = reply.replace(/≡/g, '\n').replace(/\n\n+/g, '\n\n').trim();
