@@ -149,18 +149,36 @@ exports.handler = async (event, context) => {
       // Step 6: Convert to memory format
       const memories = characterRecords
         .filter(record => record.fields.Summary || record.fields.Message)
-        .map(record => ({
-          id: record.id,
-          message: record.fields.Message || '',
-          summary: record.fields.Summary || record.fields.Message || '',
-          date: record.fields.CreatedTime || '',
-          importance: parseInt(record.fields.Memory_Importance || 0),
-          emotional_state: record.fields.Emotional_State || 'neutral',
-          tags: record.fields.Memory_Tags || [],
-          context: (record.fields.Message || '').substring(0, 200),
-          type: record.fields.Role === 'user' ? 'user' : 'ai_assistant',
-          metadata: {}
-        }))
+        .map(record => {
+          // Parse metadata to extract import information
+          let parsedMetadata = {};
+          try {
+            if (record.fields.metadata) {
+              parsedMetadata = JSON.parse(record.fields.metadata);
+            }
+          } catch (e) {
+            console.warn('Failed to parse metadata for record:', record.id);
+          }
+          
+          return {
+            id: record.id,
+            memory_id: record.id, // Explicit memory ID for referencing
+            message: record.fields.Message || '',
+            summary: record.fields.Summary || record.fields.Message || '',
+            date: record.fields.CreatedTime || '',
+            importance: parseInt(record.fields.Memory_Importance || 0),
+            emotional_state: record.fields.Emotional_State || 'neutral',
+            tags: record.fields.Memory_Tags || [],
+            context: (record.fields.Message || '').substring(0, 200),
+            type: record.fields.Role === 'user' ? 'user' : 'ai_assistant',
+            message_type: record.fields.message_type || null,
+            import_date: parsedMetadata.import_date || null,
+            source: parsedMetadata.source || null,
+            original_category: parsedMetadata.original_category || null,
+            date_learned: parsedMetadata.date_learned || null,
+            metadata: parsedMetadata
+          };
+        })
         .sort((a, b) => new Date(b.date) - new Date(a.date))
         .slice(0, 20);
       
