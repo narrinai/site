@@ -8268,7 +8268,7 @@ Ready to start chatting, or would you like to explore these personalization opti
       
       // Check if character has onboarding flow - skip conversation starter for these
       const category = currentCharacter?.Category || currentCharacter?.category || '';
-      const hasOnboarding = ['Career', 'Life', 'Love'].includes(category);
+      const hasOnboarding = ['Career', 'Life', 'Love', 'Romance'].includes(category);
       
       if (hasOnboarding) {
         console.log('🎯 Character has onboarding flow, skipping conversation starter');
@@ -8843,9 +8843,6 @@ Ready to start chatting, or would you like to explore these personalization opti
       console.log('📝 Text to type:', text);
       console.log('📏 Text length:', text.length);
       
-      // Pre-process HTML to avoid showing raw HTML during typing
-      const processedText = formatAIResponse(text);
-      
       // Clear element and prepare for fade effect
       element.innerHTML = '';
       element.style.opacity = '1';
@@ -8877,8 +8874,8 @@ Ready to start chatting, or would you like to explore these personalization opti
       const originalText = text;
       const chars = [];
       
-      // Use word-by-word typing to avoid showing HTML tags during typing
-      const words = processedText.split(' ');
+      // Use word-by-word typing WITHOUT pre-processing HTML to avoid showing HTML tags
+      const words = text.split(' '); // Use original text, not processed
       let wordIndex = 0;
       
       function addNextWord() {
@@ -8888,9 +8885,9 @@ Ready to start chatting, or would you like to explore these personalization opti
           // Add word with space (except for last word)
           const wordText = wordIndex < words.length - 1 ? word + ' ' : word;
           
-          // Create span for word with fade-in effect
+          // Create span for word with fade-in effect - use textContent to prevent HTML rendering during typing
           const span = document.createElement('span');
-          span.innerHTML = wordText; // Use innerHTML to render HTML properly
+          span.textContent = wordText; // Use textContent to prevent raw HTML during typing
           span.className = 'char-fade';
           element.appendChild(span);
           
@@ -8904,6 +8901,10 @@ Ready to start chatting, or would you like to explore these personalization opti
           setTimeout(addNextWord, speed * 3); // Slower for word-by-word
         } else {
           console.log('✅ Typewriter with voice completed. Total words typed:', wordIndex);
+          
+          // After typing is complete, apply HTML formatting
+          const finalText = formatAIResponse(originalText);
+          element.innerHTML = finalText;
           
           // Final scroll to ensure everything is visible
           const chatlog = document.getElementById("chatlog");
@@ -12832,6 +12833,28 @@ function openCustomizationModal() {
   const deleteBtn = document.getElementById('deleteCustomBtn');
   const transferSection = document.getElementById('transferSection');
   
+  // Restore personality state from saved customization
+  if (existingCustom && existingCustom.personality_state) {
+    personalityState = {
+      sliders: { ...defaultPersonalityState.sliders, ...existingCustom.personality_state.sliders },
+      traits: [...(existingCustom.personality_state.traits || [])],
+      speaking: [...(existingCustom.personality_state.speaking || [])],
+      quirks: [...(existingCustom.personality_state.quirks || [])],
+      bonding: [...(existingCustom.personality_state.bonding || [])]
+    };
+    console.log('🔄 Restored personality state from saved customization:', personalityState);
+  } else {
+    // Reset to default state if no saved customization
+    personalityState = {
+      sliders: { ...defaultPersonalityState.sliders },
+      traits: [],
+      speaking: [],
+      quirks: [],
+      bonding: []
+    };
+    console.log('🔄 Reset personality state to default');
+  }
+  
   // Check if this is a user-created character
   // 1. Has Created_By field (already saved user-created character)
   // 2. Has existing customization (previously customized character)  
@@ -12931,6 +12954,8 @@ function openCustomizationModal() {
   if (existingCustom) {
     // Load existing customization
     document.getElementById('customName').value = existingCustom.name || currentCharacter.name || '';
+    document.getElementById('customPrompt').value = existingCustom.extra_instructions || '';
+    document.getElementById('voiceType').value = existingCustom.voice_id || 'none';
     document.getElementById('customAvatarUrl').value = existingCustom.avatar_url || existingCustom.Avatar_URL || '';
     
     // Show avatar preview if exists
@@ -13011,6 +13036,8 @@ function openCustomizationModal() {
   } else {
     // Pre-fill with original character data
     document.getElementById('customName').value = currentCharacter.name || currentCharacter.Name || '';
+    document.getElementById('customPrompt').value = '';
+    document.getElementById('voiceType').value = 'none';
     document.getElementById('customAvatarUrl').value = currentCharacter.avatar_url || currentCharacter.Avatar_URL || '';
     
     // Show current avatar preview
@@ -13064,6 +13091,26 @@ function openCustomizationModal() {
   // Re-initialize prompt generation
   generatePrompt();
   
+  // Pre-fill sliders with saved values
+  const sliderMappings = {
+    'social': 'introvertExtravert',
+    'thinking': 'logicalEmotional', 
+    'mood': 'seriousPlayful',
+    'formality': 'formalCasual',
+    'tempo': 'patientImpulsive'
+  };
+  
+  Object.keys(sliderMappings).forEach(trait => {
+    const sliderId = sliderMappings[trait];
+    const slider = document.getElementById(sliderId);
+    if (slider && personalityState.sliders[trait] !== undefined) {
+      slider.value = personalityState.sliders[trait];
+    }
+  });
+  
+  // Update UI to reflect current personality state
+  updateCommunicationStyleUI();
+  
   // Lazy load avatar upload on modal open
   if (typeof initializeCustomAvatarUpload === 'function') {
     initializeCustomAvatarUpload();
@@ -13078,6 +13125,66 @@ function closeCustomizationModal() {
   isCustomizationSubmitting = false;
   // Reset avatar upload state
   customAvatarUploadUrl = '';
+}
+
+// Function to save companion customizations from chat interactions
+function saveCompanionCustomization(updates = {}) {
+  if (!currentCharacter || !characterSlug) {
+    console.warn('⚠️ Cannot save customization - missing character data');
+    return;
+  }
+  
+  const customizedCharacters = JSON.parse(localStorage.getItem('customizedCharacters') || '{}');
+  const existing = customizedCharacters[characterSlug] || {};
+  
+  // Merge with existing customization
+  const updatedCustomization = {
+    ...existing,
+    name: existing.name || currentCharacter.name,
+    character_title: existing.character_title || currentCharacter.character_title || currentCharacter.Character_Title,
+    avatar_url: existing.avatar_url || currentCharacter.avatar_url || currentCharacter.Avatar_URL,
+    extra_instructions: existing.extra_instructions || '',
+    voice_id: existing.voice_id || 'none',
+    personality_state: existing.personality_state || {
+      sliders: { ...defaultPersonalityState.sliders },
+      traits: [],
+      speaking: [],
+      quirks: [],
+      bonding: []
+    },
+    ...updates, // Apply any new updates
+    lastUpdated: new Date().toISOString()
+  };
+  
+  customizedCharacters[characterSlug] = updatedCustomization;
+  localStorage.setItem('customizedCharacters', JSON.stringify(customizedCharacters));
+  
+  console.log('✅ Companion customization saved via chat:', updatedCustomization);
+  
+  // Apply changes to current character immediately
+  if (updates.name) {
+    currentCharacter.name = updates.name;
+    currentCharacter.Name = updates.name;
+    
+    // Update UI immediately
+    const nameElement = document.querySelector('.character-info h2');
+    if (nameElement) {
+      nameElement.textContent = updates.name;
+    }
+  }
+  
+  if (updates.avatar_url && updates.avatar_url !== currentCharacter.avatar_url) {
+    currentCharacter.avatar_url = updates.avatar_url;
+    currentCharacter.Avatar_URL = updates.avatar_url;
+    
+    // Update avatar in UI immediately
+    const avatarElement = document.getElementById('characterAvatar');
+    if (avatarElement) {
+      avatarElement.innerHTML = `<img src="${updates.avatar_url}" alt="${currentCharacter.name}" onclick="openAvatarModal('${updates.avatar_url}')" style="width: 100%; height: 100%; border-radius: var(--radius-full); object-fit: cover;">`;
+    }
+  }
+  
+  return updatedCustomization;
 }
 
 // Response length selection function
@@ -13206,6 +13313,8 @@ async function autoSaveCustomization() {
   const customName = document.getElementById('customName')?.value?.trim();
   const customTitle = document.getElementById('customTitle')?.value?.trim();
   const customAvatarUrl = document.getElementById('customAvatarUrl')?.value;
+  const customPrompt = document.getElementById('customPrompt')?.value?.trim() || '';
+  const voiceType = document.getElementById('voiceType')?.value || 'none';
   
   if (!customName || !currentCharacter) return; // Don't save if no name or character
   
@@ -13251,20 +13360,35 @@ async function autoSaveCustomization() {
     }
   }
   
+  // Capture current personality state (sliders, traits, speaking patterns)
+  const currentPersonalityState = {
+    sliders: { ...personalityState.sliders },
+    traits: [...personalityState.traits],
+    speaking: [...personalityState.speaking],
+    quirks: [...personalityState.quirks],
+    bonding: [...personalityState.bonding]
+  };
+  
   // Save to localStorage for persistence
   const characterSlug = new URLSearchParams(window.location.search).get('char') || 
                         currentCharacter?.slug || currentCharacter?.character_id || '';
   
   if (characterSlug) {
     const customizedCharacters = JSON.parse(localStorage.getItem('customizedCharacters') || '{}');
+    const existing = customizedCharacters[characterSlug] || {};
+    
     customizedCharacters[characterSlug] = {
+      ...existing, // Preserve existing data
       name: customName,
       character_title: customTitle || currentCharacter.character_title || currentCharacter.Character_Title,
       avatar_url: customAvatarUrl || currentCharacter.avatar_url || currentCharacter.Avatar_URL,
+      extra_instructions: customPrompt,
+      voice_id: voiceType,
+      personality_state: currentPersonalityState,
       lastUpdated: new Date().toISOString()
     };
     localStorage.setItem('customizedCharacters', JSON.stringify(customizedCharacters));
-    console.log('✅ Auto-saved to localStorage for:', characterSlug);
+    console.log('✅ Auto-saved to localStorage for:', characterSlug, customizedCharacters[characterSlug]);
     
     // Also save to Airtable if avatar URL changed
     if (customAvatarUrl && customAvatarUrl !== (currentCharacter.avatar_url || currentCharacter.Avatar_URL)) {
@@ -13302,7 +13426,7 @@ async function autoSaveCustomization() {
 
 // Set up auto-save listeners for form fields
 function setupAutoSave() {
-  const fields = ['customName', 'customTitle', 'customAvatarUrl'];
+  const fields = ['customName', 'customTitle', 'customAvatarUrl', 'customPrompt', 'voiceType'];
   
   fields.forEach(fieldId => {
     const field = document.getElementById(fieldId);
@@ -13321,7 +13445,16 @@ function setupAutoSave() {
     }
   });
   
-  console.log('✅ Auto-save listeners set up for form fields');
+  // Auto-save for sliders
+  const sliders = document.querySelectorAll('.personality-slider');
+  sliders.forEach(slider => {
+    slider.addEventListener('input', () => {
+      clearTimeout(autoSaveTimeout);
+      autoSaveTimeout = setTimeout(autoSaveCustomization, 500);
+    });
+  });
+  
+  console.log('✅ Auto-save listeners set up for all form fields, sliders, and controls');
 }
 
 function initializeCustomizationForm() {
@@ -13750,6 +13883,9 @@ function initializeCustomizationForm() {
             ? `${customName} has been updated.`
             : `${customName} created! You can now chat with your new companion.`);
         
+        // Trigger auto-save to ensure all current settings are preserved
+        autoSaveCustomization();
+        
         // Close the customization modal and redirect after successful creation/update
         setTimeout(() => {
           closeCustomizationModal();
@@ -14028,6 +14164,10 @@ function setupCommunicationStyle() {
       toggleArraySelection(personalityState.speaking, pattern, 3, button, 'speakingCounter', 'speaking patterns');
       updateSpeakingCounter();
       generatePrompt();
+      
+      // Auto-save after speaking pattern selection
+      clearTimeout(autoSaveTimeout);
+      autoSaveTimeout = setTimeout(autoSaveCustomization, 500);
     });
   });
   
@@ -14040,6 +14180,10 @@ function setupCommunicationStyle() {
       toggleArraySelection(personalityState.traits, trait, 5, button, 'traitsCounter', 'traits');
       updateTraitsCounter();
       generatePrompt();
+      
+      // Auto-save after trait selection
+      clearTimeout(autoSaveTimeout);
+      autoSaveTimeout = setTimeout(autoSaveCustomization, 500);
     });
   });
   
