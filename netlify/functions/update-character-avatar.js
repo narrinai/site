@@ -25,9 +25,13 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    const { characterId, avatarUrl, slug } = JSON.parse(event.body);
+    const body = JSON.parse(event.body || '{}');
+    console.log('📨 Request body:', body);
+    
+    const { characterId, avatarUrl, slug } = body;
     
     if (!avatarUrl) {
+      console.error('❌ No avatarUrl provided in request body');
       return {
         statusCode: 400,
         headers,
