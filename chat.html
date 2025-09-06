@@ -7058,16 +7058,19 @@ document.addEventListener('DOMContentLoaded', () => {
       
       console.log('🚀 generateConversationStarter called for:', characterSlug);
       
-      // FORCE new companions to get welcoming guide - bypass all other logic (except main 4 companions)
+      // FORCE new companions and Romance companions to get welcoming guide - bypass all other logic (except main 4 companions)
       const mainCompanions = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
       const isNewUserCreated = characterSlug.includes('-') && characterSlug.length > 8 && !mainCompanions.includes(characterSlug);
-      if (isNewUserCreated) {
+      const isRomanceCompanion = currentCharacter?.character_type === 'romance';
+      if (isNewUserCreated || isRomanceCompanion) {
         console.log('🎯 FORCING welcoming guide for new companion:', characterSlug);
         const companionType = currentCharacter?.character_type || 'friendship';
         let baseMessage = "Hey! I'm here to help you find peace and clarity. ";
         
         if (companionType === 'mindfulness') {
           baseMessage = "Hey! I'm here to help you find peace and clarity. ";
+        } else if (companionType === 'romance') {
+          baseMessage = "Hey there! I'm here to help you navigate matters of the heart and find clarity in your romantic life. ";
         }
         
         return `${baseMessage}To get the most personalized experience:
@@ -8268,7 +8271,9 @@ Ready to start chatting, or would you like to explore these personalization opti
       
       // Check if character has onboarding flow - skip conversation starter for these
       const category = currentCharacter?.Category || currentCharacter?.category || '';
-      const hasOnboarding = ['Career', 'Life', 'Love', 'Romance'].includes(category);
+      const characterType = currentCharacter?.character_type || '';
+      const hasOnboarding = ['Career', 'Life', 'Love', 'Romance'].includes(category) || 
+                          ['romance'].includes(characterType.toLowerCase());
       
       if (hasOnboarding) {
         console.log('🎯 Character has onboarding flow, skipping conversation starter');
