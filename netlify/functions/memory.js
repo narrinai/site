@@ -115,13 +115,30 @@ exports.handler = async (event, context) => {
       console.log('👤 Found', userRecords.length, 'records for user record ID:', userRecordId);
       
       // Step 5: Filter for current character using mapped field 'Slug (from Character)'
+      // Also include imported memories (without Character field) for general context
       const characterSlugToUse = character_slug || slug;
       const characterRecords = userRecords.filter(record => {
         const slugField = record.fields['Slug (from Character)'];
-        if (Array.isArray(slugField)) {
-          return slugField.includes(characterSlugToUse);
+        
+        // Include memories for this specific character
+        if (slugField) {
+          if (Array.isArray(slugField)) {
+            return slugField.includes(characterSlugToUse);
+          }
+          return slugField === characterSlugToUse;
         }
-        return slugField === characterSlugToUse;
+        
+        // Also include imported memories (no Character field) as general context
+        // These are identified by having no Character field and message_type 'imported'
+        const messageType = record.fields.message_type;
+        const hasCharacter = record.fields.Character;
+        
+        if (!hasCharacter && messageType === 'imported') {
+          console.log('📝 Including imported memory:', record.fields.Message?.substring(0, 50));
+          return true;
+        }
+        
+        return false;
       });
       
       console.log('🎭 Found', characterRecords.length, 'records for character:', characterSlugToUse);
