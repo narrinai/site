@@ -6034,6 +6034,34 @@ async function loadProfile() {
       localStorage.removeItem('cancelled_plan_type');
       localStorage.removeItem('justDowngraded');
       
+      // SPECIAL FIX: Ensure Free to paid plan transitions work properly
+      if ((data?.plan === 'Free' || !data?.plan) && (capitalizedUrlPlan === 'Immerse' || capitalizedUrlPlan === 'Engage')) {
+        console.log(`🔧 SPECIAL FIX: Free to ${capitalizedUrlPlan} transition detected - forcing plan update`);
+        
+        // Force update the plan in Airtable via Make.com webhook for immediate sync
+        try {
+          const updateResponse = await fetch('https://hook.eu2.make.com/h0l8lmzk4nw9qvfsjgj1qwqd1kz8vr96', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'force_plan_update',
+              email: localStorage.getItem('user_email'),
+              user_uid: localStorage.getItem('user_uid'),
+              new_plan: capitalizedUrlPlan,
+              reason: `Free_to_${capitalizedUrlPlan}_transition_fix`
+            })
+          });
+          
+          if (updateResponse.ok) {
+            console.log(`✅ Free to ${capitalizedUrlPlan} transition webhook sent successfully`);
+          } else {
+            console.warn(`⚠️ Free to ${capitalizedUrlPlan} transition webhook failed, but continuing with local update`);
+          }
+        } catch (error) {
+          console.warn(`⚠️ Free to ${capitalizedUrlPlan} transition webhook error:`, error);
+        }
+      }
+      
       // Set the new plan fresh
       userPlan = capitalizedUrlPlan;
       localStorage.setItem('user_plan', capitalizedUrlPlan);
