@@ -135,23 +135,10 @@ exports.handler = async (event, context) => {
         const role = record.fields.Role;
         
         if (!hasCharacter) {
-          // Include if explicitly marked as imported
-          if (messageType === 'imported') {
-            console.log('📝 Including imported memory:', record.fields.Message?.substring(0, 50));
-            return true;
-          }
-          
-          // Also include user messages without Character (likely imported or general)
-          if (role === 'user' && !messageType) {
-            console.log('📝 Including user memory without character:', record.fields.Message?.substring(0, 50));
-            return true;
-          }
-          
-          // Include any memory without character that has importance score (likely imported)
-          if (record.fields.Memory_Importance && parseInt(record.fields.Memory_Importance) > 0) {
-            console.log('📝 Including memory with importance:', record.fields.Message?.substring(0, 50));
-            return true;
-          }
+          // Include ALL memories without Character field as general context
+          // This ensures imported memories are always accessible regardless of their specific fields
+          console.log('📝 Including memory without character:', record.fields.Message?.substring(0, 50));
+          return true;
         }
         
         return false;
