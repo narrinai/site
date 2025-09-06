@@ -3552,12 +3552,60 @@ body .netlify-identity-widget > div[data-netlify-identity-modal] {
         }
       }
       
-      // Fallback to Netlify Identity current user
+      // Enhanced fallback for mobile Google SSO issues
       if (window.netlifyIdentity) {
         const currentUser = window.netlifyIdentity.currentUser();
         if (currentUser) {
           console.log('✅ Valid Netlify Identity user found');
-          handleLoginSuccess(currentUser);
+          
+          // MOBILE FIX: Force re-authentication for mobile Google users
+          const isMobile = window.innerWidth <= 768;
+          if (isMobile && currentUser.app_metadata?.provider === 'google') {
+            console.log('🔧 MOBILE FIX: Re-processing Google SSO user for mobile compatibility');
+            
+            // Force re-extract user data for mobile
+            handleLoginSuccess(currentUser);
+            
+            // Double-check that localStorage was properly set
+            setTimeout(() => {
+              const recheck = localStorage.getItem('user_uid');
+              if (!recheck) {
+                console.log('🚨 MOBILE FIX: localStorage not set properly, forcing manual save');
+                
+                // Manual extraction for mobile Google users
+                let userId = currentUser.id;
+                let email = currentUser.email;
+                
+                // Try JWT extraction for mobile
+                if (!userId || !email) {
+                  try {
+                    const token = currentUser.token?.access_token;
+                    if (token) {
+                      const tokenParts = token.split('.');
+                      const payload = JSON.parse(atob(tokenParts[1]));
+                      userId = userId || payload.sub;
+                      email = email || payload.email;
+                      console.log('🔧 MOBILE FIX: Extracted from JWT:', { userId, email });
+                    }
+                  } catch (e) {
+                    console.error('❌ MOBILE FIX: JWT extraction failed:', e);
+                  }
+                }
+                
+                // Force save to localStorage for mobile
+                if (userId && email) {
+                  localStorage.setItem('user_email', email);
+                  localStorage.setItem('user_uid', userId);
+                  localStorage.setItem('user_token', currentUser.token?.access_token || 'mobile_token');
+                  localStorage.setItem('user_auth_timestamp', Date.now().toString());
+                  console.log('✅ MOBILE FIX: Manually saved auth data for mobile user');
+                }
+              }
+            }, 1000);
+          } else {
+            handleLoginSuccess(currentUser);
+          }
+          
           return true;
         }
       }
@@ -4358,11 +4406,18 @@ function handleLoginSuccess(user, eventType = 'unknown') {
   
   // Get email from various possible locations
   // Enhanced debugging for mobile vs desktop issue
+  const isMobile = window.innerWidth <= 768;
   console.log('📱 Platform check:', {
-    isMobile: window.innerWidth <= 768,
+    isMobile: isMobile,
     screenWidth: window.innerWidth,
-    userAgent: navigator.userAgent
+    userAgent: navigator.userAgent,
+    isGoogleUser: user.app_metadata?.provider === 'google'
   });
+  
+  // MOBILE FIX: Special handling for Google SSO on mobile
+  if (isMobile && user.app_metadata?.provider === 'google') {
+    console.log('🔧 MOBILE GOOGLE SSO: Applying special mobile handling');
+  }
   
   // ENHANCED: For Google SSO, check all possible email locations
   let email = null;
@@ -4460,6 +4515,31 @@ function handleLoginSuccess(user, eventType = 'unknown') {
   localStorage.setItem('user_token', accessToken);
   localStorage.setItem('user_uid', userId);
   localStorage.setItem('user_auth_timestamp', Date.now().toString());
+  
+  // MOBILE FIX: Extra verification for mobile Google users
+  if (isMobile && user.app_metadata?.provider === 'google') {
+    // Double-check that data was saved properly
+    setTimeout(() => {
+      const savedEmail = localStorage.getItem('user_email');
+      const savedUid = localStorage.getItem('user_uid');
+      const savedToken = localStorage.getItem('user_token');
+      
+      if (!savedEmail || !savedUid || !savedToken) {
+        console.log('🚨 MOBILE FIX: localStorage save verification failed, retrying...');
+        console.log('Saved data check:', { savedEmail, savedUid, savedToken: !!savedToken });
+        
+        // Retry save with explicit values
+        localStorage.setItem('user_email', email);
+        localStorage.setItem('user_uid', userId);  
+        localStorage.setItem('user_token', accessToken);
+        localStorage.setItem('user_auth_timestamp', Date.now().toString());
+        
+        console.log('✅ MOBILE FIX: Retried localStorage save');
+      } else {
+        console.log('✅ MOBILE FIX: localStorage verification passed');
+      }
+    }, 500);
+  }
   
   // NIEUW: Store refresh token als beschikbaar
   if (refreshToken) {
@@ -5417,6 +5497,54 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       // Clean up anonymous flags for registered users
       if (userEmail && userEmail !== 'anonymous@narrin.ai') {
         localStorage.removeItem('is_anonymous_user');
+      }
+      
+      // MOBILE FIX: Extra check for mobile Google SSO users
+      const isMobile = window.innerWidth <= 768;
+      if (isMobile && window.netlifyIdentity) {
+        setTimeout(() => {
+          const currentUser = window.netlifyIdentity.currentUser();
+          if (currentUser && currentUser.app_metadata?.provider === 'google') {
+            console.log('🔧 MOBILE FIX: Detected mobile Google user on page load, verifying auth data');
+            
+            const storedUid = localStorage.getItem('user_uid');
+            const storedEmail = localStorage.getItem('user_email');
+            
+            if (!storedUid || !storedEmail) {
+              console.log('🚨 MOBILE FIX: Missing auth data for mobile Google user, forcing save');
+              
+              // Extract and save missing data
+              let userId = currentUser.id;
+              let email = currentUser.email;
+              
+              // Try JWT extraction if needed
+              if (!userId || !email) {
+                try {
+                  const token = currentUser.token?.access_token;
+                  if (token) {
+                    const tokenParts = token.split('.');
+                    const payload = JSON.parse(atob(tokenParts[1]));
+                    userId = userId || payload.sub;
+                    email = email || payload.email;
+                  }
+                } catch (e) {
+                  console.error('❌ MOBILE FIX: JWT extraction failed:', e);
+                }
+              }
+              
+              // Force save auth data
+              if (userId && email) {
+                localStorage.setItem('user_email', email);
+                localStorage.setItem('user_uid', userId);
+                localStorage.setItem('user_token', currentUser.token?.access_token || 'mobile_google_token');
+                localStorage.setItem('user_auth_timestamp', Date.now().toString());
+                console.log('✅ MOBILE FIX: Saved missing auth data for mobile Google user');
+              }
+            } else {
+              console.log('✅ MOBILE FIX: Mobile Google user auth data verified');
+            }
+          }
+        }, 200);
       }
       
       // Check if we're processing verification (should skip if handled by early script)
