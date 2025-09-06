@@ -374,10 +374,36 @@
       max-width: 400px;
       transform: scale(0.9) translateY(20px);
       transition: all var(--transition-base);
+      position: relative;
     }
 
     .mobile-menu-overlay.active .mobile-menu-content {
       transform: scale(1) translateY(0);
+    }
+    .mobile-menu-close {
+      position: absolute;
+      top: var(--spacing-lg);
+      right: var(--spacing-lg);
+      width: var(--touch-target);
+      height: var(--touch-target);
+      background: transparent;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      color: var(--color-gray);
+      transition: all var(--transition-base);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1;
+    }
+    .mobile-menu-close:hover {
+      background: var(--color-light-gray);
+      color: var(--color-navy);
+    }
+    .mobile-menu-close svg {
+      width: 24px;
+      height: 24px;
     }
 
     .mobile-menu-header {
@@ -912,6 +938,12 @@
   <!-- Mobile Menu Overlay -->
   <div class="mobile-menu-overlay" id="mobileMenuOverlay">
     <div class="mobile-menu-content">
+      <button class="mobile-menu-close" id="mobileMenuClose" aria-label="Sluit menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
       <div class="mobile-menu-header">
         <div class="mobile-menu-logo">Narrin AI</div>
         <div class="mobile-menu-subtitle">AI Companion Platform</div>
@@ -1212,6 +1244,8 @@
     }
 
     mobileMenuBtn?.addEventListener('click', toggleMobileMenu);
+    const mobileMenuClose = document.getElementById('mobileMenuClose');
+    mobileMenuClose?.addEventListener('click', closeMobileMenu);
 
     mobileMenuOverlay?.addEventListener('click', (e) => {
       if (e.target === mobileMenuOverlay) {
