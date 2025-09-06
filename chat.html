@@ -5401,7 +5401,7 @@
               <span class="mobile-icon">🧠</span>
               <span class="memory-notification-badge" id="memoryBadge" style="display: none;">1</span>
             </button>
-            <button class="btn-customize" onclick="lazyLoadCustomize(event)" id="customizeBtn" style="display: none;" title="Customize companion">
+            <button class="btn-customize" onclick="openCustomizationModal()" id="customizeBtn" style="display: none;" title="Customize companion">
               <span class="desktop-text">Customize</span>
               <span class="mobile-icon">✨</span>
             </button>
@@ -5465,7 +5465,7 @@
           <span>🧠</span> Memory
           <span class="memory-notification-badge" id="desktopMemoryBadge" style="display: none;">1</span>
         </button>
-        <button class="action-btn customize-btn" onclick="lazyLoadCustomize(event)">
+        <button class="action-btn customize-btn" onclick="openCustomizationModal()">
           <span>✨</span> Customize
         </button>
       </div>
@@ -7110,7 +7110,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${baseMessage}To get the most personalized experience:
 
 • <a href="#" onclick="lazyLoadMemoryHub(); return false;" style="color: var(--color-teal); text-decoration: none;">Take the personal quiz in Memory Hub 🧠</a>
-• <a href="#" onclick="lazyLoadCustomize(event); return false;" style="color: var(--color-teal); text-decoration: none;">Customize my personality ⚙️</a>
+• <a href="#" onclick="openCustomizationModal(); return false;" style="color: var(--color-teal); text-decoration: none;">Customize my personality ⚙️</a>
 • <a href="/memory-import" style="color: var(--color-teal); text-decoration: none;">Import your ChatGPT memories 📥</a>
 
 Ready to start chatting, or would you like to explore these personalization options first?`;
@@ -7907,7 +7907,7 @@ Ready to start chatting, or would you like to explore these personalization opti
         return `${baseMessage}To get the most personalized experience:
 
 • <a href="#" onclick="lazyLoadMemoryHub(); return false;" style="color: var(--color-teal); text-decoration: none;">Take the personal quiz in Memory Hub 🧠</a>
-• <a href="#" onclick="lazyLoadCustomize(event); return false;" style="color: var(--color-teal); text-decoration: none;">Customize my personality ⚙️</a>
+• <a href="#" onclick="openCustomizationModal(); return false;" style="color: var(--color-teal); text-decoration: none;">Customize my personality ⚙️</a>
 • <a href="/memory-import" style="color: var(--color-teal); text-decoration: none;">Import your ChatGPT memories 📥</a>
 
 Ready to start chatting, or would you like to explore these personalization options first?`;
@@ -7967,7 +7967,7 @@ Ready to start chatting, or would you like to explore these personalization opti
           return `${baseMessage}To get the most personalized experience:
 
 • <a href="#" onclick="lazyLoadMemoryHub(); return false;" style="color: var(--color-teal); text-decoration: none;">Take the personal quiz in Memory Hub 🧠</a>
-• <a href="#" onclick="lazyLoadCustomize(event); return false;" style="color: var(--color-teal); text-decoration: none;">Customize my personality ⚙️</a>
+• <a href="#" onclick="openCustomizationModal(); return false;" style="color: var(--color-teal); text-decoration: none;">Customize my personality ⚙️</a>
 • <a href="/memory-import" style="color: var(--color-teal); text-decoration: none;">Import your ChatGPT memories 📥</a>
 
 Ready to start chatting, or would you like to explore these personalization options first?`;
@@ -12853,7 +12853,12 @@ let personalityState = {
 };
 
 function openCustomizationModal() {
-  if (!currentCharacter) return;
+  if (!currentCharacter) {
+    console.warn('⚠️ Cannot open customization modal - no current character');
+    return;
+  }
+  
+  console.log('🎨 Opening customization modal for:', currentCharacter.name);
   
   // Lazy load customization form on first open
   if (typeof initializeCustomizationForm === 'function') {
@@ -13158,6 +13163,9 @@ function openCustomizationModal() {
   
   modal.style.display = 'flex';
 }
+
+// Ensure function is globally accessible
+window.openCustomizationModal = openCustomizationModal;
 
 function closeCustomizationModal() {
   document.getElementById('customizationModal').style.display = 'none';
