@@ -730,10 +730,10 @@
         z-index: 150 !important;
         background: var(--color-white) !important;
         border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
-        padding: 6px var(--spacing-md) !important; /* Reduced padding */
+        padding: 10px var(--spacing-md) !important; /* Increased padding for visibility */
         box-shadow: var(--shadow-sm) !important;
         margin: 0 !important;
-        min-height: 50px !important; /* Smaller header */
+        min-height: 65px !important; /* Increased height for avatar and buttons */
       }
       
       /* Chat section - keep visible but let chatlog be absolutely positioned */
@@ -918,12 +918,12 @@
       /* Chatlog - full screen between header and input */
       #chatlog {
         position: absolute !important;
-        top: 85px !important; /* Further reduced gap to character header */
+        top: 100px !important; /* Adjusted for increased header height (65px + 35px spacing) */
         bottom: 85px !important; /* Account for mobile bottom section height */
         left: 0 !important;
         right: 0 !important;
         width: 100% !important;
-        height: calc(100vh - 170px) !important;
+        height: calc(100vh - 185px) !important; /* Adjusted total height calculation */
         overflow-y: auto !important;
         overflow-x: hidden !important;
         padding: var(--spacing-sm) var(--spacing-md) !important;
@@ -12831,6 +12831,26 @@ function migrateCustomizations() {
 
 // Run migration on load
 migrateCustomizations();
+
+// Default personality state for customization
+const defaultPersonalityState = {
+  speaking: [],
+  traits: [],
+  bonding: [],
+  quirks: [],
+  sliders: {
+    // Response style sliders
+    length: 50,
+    style: 50,
+    content: 50,
+    // Personality spectrum sliders
+    social: 50,
+    thinking: 50,
+    mood: 50,
+    formality: 50,
+    tempo: 50
+  }
+};
 
 // Personality state for customization
 let personalityState = {
