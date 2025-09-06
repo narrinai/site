@@ -5367,7 +5367,7 @@
               <span class="mobile-icon">🧠</span>
               <span class="memory-notification-badge" id="memoryBadge" style="display: none;">1</span>
             </button>
-            <button class="btn-customize" onclick="lazyLoadCustomize()" id="customizeBtn" style="display: none;" title="Customize companion">
+            <button class="btn-customize" onclick="lazyLoadCustomize(event)" id="customizeBtn" style="display: none;" title="Customize companion">
               <span class="desktop-text">Customize</span>
               <span class="mobile-icon">✨</span>
             </button>
@@ -5431,7 +5431,7 @@
           <span>🧠</span> Memory
           <span class="memory-notification-badge" id="desktopMemoryBadge" style="display: none;">1</span>
         </button>
-        <button class="action-btn customize-btn" onclick="lazyLoadCustomize()">
+        <button class="action-btn customize-btn" onclick="lazyLoadCustomize(event)">
           <span>✨</span> Customize
         </button>
       </div>
@@ -6719,11 +6719,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Lazy load Customize functionality  
-    async function lazyLoadCustomize() {
+    async function lazyLoadCustomize(event) {
       if (!customizeLoaded) {
         console.log('🚀 Lazy loading Customize...');
         // Show loading indicator
-        const btn = event?.target.closest('button');
+        const btn = event?.target?.closest('button') || document.getElementById('customizeBtn');
         const originalText = btn?.textContent || btn?.innerText;
         if (btn) {
           btn.disabled = true;
@@ -7073,7 +7073,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${baseMessage}To get the most personalized experience:
 
 • <a href="#" onclick="lazyLoadMemoryHub(); return false;" style="color: var(--color-teal); text-decoration: none;">Take the personal quiz in Memory Hub 🧠</a>
-• <a href="#" onclick="lazyLoadCustomize(); return false;" style="color: var(--color-teal); text-decoration: none;">Customize my personality ⚙️</a>
+• <a href="#" onclick="lazyLoadCustomize(event); return false;" style="color: var(--color-teal); text-decoration: none;">Customize my personality ⚙️</a>
 • <a href="/memory-import" style="color: var(--color-teal); text-decoration: none;">Import your ChatGPT memories 📥</a>
 
 Ready to start chatting, or would you like to explore these personalization options first?`;
@@ -7870,7 +7870,7 @@ Ready to start chatting, or would you like to explore these personalization opti
         return `${baseMessage}To get the most personalized experience:
 
 • <a href="#" onclick="lazyLoadMemoryHub(); return false;" style="color: var(--color-teal); text-decoration: none;">Take the personal quiz in Memory Hub 🧠</a>
-• <a href="#" onclick="lazyLoadCustomize(); return false;" style="color: var(--color-teal); text-decoration: none;">Customize my personality ⚙️</a>
+• <a href="#" onclick="lazyLoadCustomize(event); return false;" style="color: var(--color-teal); text-decoration: none;">Customize my personality ⚙️</a>
 • <a href="/memory-import" style="color: var(--color-teal); text-decoration: none;">Import your ChatGPT memories 📥</a>
 
 Ready to start chatting, or would you like to explore these personalization options first?`;
@@ -7930,7 +7930,7 @@ Ready to start chatting, or would you like to explore these personalization opti
           return `${baseMessage}To get the most personalized experience:
 
 • <a href="#" onclick="lazyLoadMemoryHub(); return false;" style="color: var(--color-teal); text-decoration: none;">Take the personal quiz in Memory Hub 🧠</a>
-• <a href="#" onclick="lazyLoadCustomize(); return false;" style="color: var(--color-teal); text-decoration: none;">Customize my personality ⚙️</a>
+• <a href="#" onclick="lazyLoadCustomize(event); return false;" style="color: var(--color-teal); text-decoration: none;">Customize my personality ⚙️</a>
 • <a href="/memory-import" style="color: var(--color-teal); text-decoration: none;">Import your ChatGPT memories 📥</a>
 
 Ready to start chatting, or would you like to explore these personalization options first?`;
