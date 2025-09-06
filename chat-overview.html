@@ -2583,13 +2583,23 @@ line-clamp: 3;
 
 // UNIVERSELE Authentication Check - Voeg toe aan chat-overview.html
 function initializeAuthenticationCheck() {
-  console.log('🔐 Initializing authentication check...');
+  const isMobile = /Mobile|Android|iPhone|iPad/.test(navigator.userAgent);
+  console.log('🔐 Initializing authentication check...', { isMobile, userAgent: navigator.userAgent.substring(0, 50) });
   
   // Check localStorage first
   const token = localStorage.getItem('user_token');
   const email = localStorage.getItem('user_email');
   const uid = localStorage.getItem('user_uid');
   const timestamp = localStorage.getItem('user_auth_timestamp');
+  
+  console.log('🔑 localStorage auth data:', { 
+    hasToken: !!token, 
+    hasEmail: !!email, 
+    hasUid: !!uid,
+    tokenValue: token?.substring(0, 20) + '...',
+    emailValue: email,
+    uidValue: uid
+  });
   
   if (token && email && uid && token !== 'false' && token !== 'null') {
     // Check if token is not too old (24 hours)

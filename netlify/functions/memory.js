@@ -26,6 +26,15 @@ exports.handler = async (event, context) => {
     const body = JSON.parse(event.body || '{}');
     const { action, user_uid, character_slug, slug, user_email } = body;
     
+    // Enhanced mobile debugging
+    const userAgent = event.headers['user-agent'] || '';
+    const isMobile = /Mobile|Android|iPhone|iPad/.test(userAgent);
+    console.log('📱 Request info:', {
+      isMobile,
+      userAgent: userAgent.substring(0, 100),
+      body: { action, user_uid, character_slug, slug, user_email }
+    });
+    
     if (action === 'get_memories') {
       console.log('🔍 Simple memory lookup for:', { user_uid, character_slug, user_email });
       
