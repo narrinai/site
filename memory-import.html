@@ -2827,6 +2827,8 @@ Example JSON format:
 
     // Load and display recent imports
     async function loadRecentImports() {
+      console.log('🚀 loadRecentImports called');
+      
       const userToken = localStorage.getItem('user_token');
       const uid = localStorage.getItem('user_uid');
       const userEmail = localStorage.getItem('user_email');
@@ -2834,7 +2836,17 @@ Example JSON format:
       const isAnonymousEmail = userEmail === 'anonymous@narrin.ai';
       const isAuthenticated = userToken && uid && !isAnonymousUser && !isAnonymousEmail;
       
+      console.log('🔍 loadRecentImports auth check:', {
+        userToken: !!userToken,
+        uid: !!uid,
+        userEmail,
+        isAnonymousUser,
+        isAnonymousEmail,
+        isAuthenticated
+      });
+      
       if (!isAuthenticated) {
+        console.log('❌ loadRecentImports: User not authenticated, exiting');
         return; // Don't show recent imports for unauthenticated users
       }
 
