@@ -730,10 +730,10 @@
         z-index: 150 !important;
         background: var(--color-white) !important;
         border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
-        padding: 15px var(--spacing-md) !important; /* Further increased padding */
+        padding: 18px var(--spacing-md) !important; /* Maximum padding for complete visibility */
         box-shadow: var(--shadow-sm) !important;
         margin: 0 !important;
-        min-height: 75px !important; /* Further increased height for full visibility */
+        min-height: 80px !important; /* Maximum height to ensure buttons are fully visible */
       }
       
       /* Chat section - keep visible but let chatlog be absolutely positioned */
@@ -918,12 +918,12 @@
       /* Chatlog - full screen between header and input */
       #chatlog {
         position: absolute !important;
-        top: 110px !important; /* Adjusted for further increased header height (75px + 35px spacing) */
+        top: 115px !important; /* Adjusted for maximum header height (80px + 35px spacing) */
         bottom: 85px !important; /* Account for mobile bottom section height */
         left: 0 !important;
         right: 0 !important;
         width: 100% !important;
-        height: calc(100vh - 195px) !important; /* Adjusted total height calculation */
+        height: calc(100vh - 200px) !important; /* Adjusted total height calculation */
         overflow-y: auto !important;
         overflow-x: hidden !important;
         padding: var(--spacing-sm) var(--spacing-md) !important;
@@ -4232,6 +4232,15 @@
     
     .discuss-btn:active {
       transform: translateY(0);
+    }
+    
+    .memory-section-header {
+      font-weight: 600;
+      font-size: var(--font-size-lg);
+      color: var(--color-navy);
+      margin: 24px 0 16px 0;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--color-light-gray);
     }
 
     .memory-hub-footer {
@@ -12385,6 +12394,80 @@ function updateMemoryHubButtons(isAuthenticated) {
   }
 }
 
+// Make discussImportedMemory globally accessible
+window.discussImportedMemory = function(memoryId, memoryContent) {
+  console.log('💬 Discussing imported memory:', memoryId, memoryContent);
+  
+  // Close the Memory Hub modal
+  closeMemoryHub();
+  
+  // Create a discussion prompt about the imported memory
+  const discussionPrompt = `I'd like to discuss this memory from my ChatGPT history: "${memoryContent}"`;
+  
+  // Add the discussion prompt to the input field
+  const userInput = document.getElementById('userInput');
+  const mobileInput = document.getElementById('userInputMobile');
+  
+  if (userInput) {
+    userInput.value = discussionPrompt;
+    userInput.focus();
+  }
+  
+  if (mobileInput) {
+    mobileInput.value = discussionPrompt;
+  }
+  
+  console.log('✅ Discussion prompt added to input field');
+};
+
+// Function to fetch imported memories
+async function fetchImportedMemories() {
+  const uid = localStorage.getItem('user_uid');
+  const token = localStorage.getItem('user_token');
+  
+  if (!uid || !token) {
+    console.log('🔍 No auth data for fetching imported memories');
+    return [];
+  }
+  
+  try {
+    console.log('📥 Fetching imported memories...');
+    const response = await fetch('/.netlify/functions/memory', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'get_memories',
+        user_uid: uid,
+        character_id: characterSlug,
+        importance_threshold: 1 // Get all imported memories
+      })
+    });
+    
+    if (!response.ok) {
+      console.warn('⚠️ Failed to fetch imported memories:', response.status);
+      return [];
+    }
+    
+    const data = await response.json();
+    if (!data.success) {
+      console.warn('⚠️ Memory function returned error:', data.error);
+      return [];
+    }
+    
+    // Filter for imported memories only
+    const importedMemories = (data.memories || []).filter(memory => 
+      memory.message_type === 'imported' && memory.source === 'chatgpt'
+    );
+    
+    console.log(`✅ Found ${importedMemories.length} imported memories`);
+    return importedMemories;
+    
+  } catch (error) {
+    console.error('❌ Error fetching imported memories:', error);
+    return [];
+  }
+}
+
 async function openMemoryHub() {
   console.log('🧠 Opening Memory Hub');
   const modal = document.getElementById('memoryHubModal');
@@ -12495,9 +12578,12 @@ async function openMemoryHub() {
       }
     }
     
-    // Display the onboarding data
-    if (onboardingData && onboardingData.answers) {
-      displayMemoryHubContent(onboardingData.answers);
+    // Also fetch imported memories
+    const importedMemories = await fetchImportedMemories();
+    
+    // Display both onboarding data and imported memories
+    if ((onboardingData && onboardingData.answers) || importedMemories.length > 0) {
+      displayMemoryHubContent(onboardingData?.answers || {}, importedMemories);
     } else {
       content.innerHTML = `
         <div class="no-memories">
@@ -12529,7 +12615,7 @@ async function openMemoryHub() {
   }
 }
 
-function displayMemoryHubContent(answers) {
+function displayMemoryHubContent(answers, importedMemories = []) {
   const content = document.getElementById('memoryHubContent');
   // Use the normalized category helper
   const category = getNormalizedOnboardingCategory(currentCharacter);
@@ -12540,6 +12626,7 @@ function displayMemoryHubContent(answers) {
   console.log('📊 Available onboarding categories:', Object.keys(window.onboardingQuestions || {}));
   console.log('📊 Config found:', !!config);
   console.log('📊 Answers to display:', answers);
+  console.log('📊 Imported memories to display:', importedMemories.length);
   
   if (!config || !config.questions) {
     // Show onboarding invitation instead of error
@@ -12609,13 +12696,62 @@ function displayMemoryHubContent(answers) {
     }
   }
   
+  // Add imported memories section
+  if (importedMemories && importedMemories.length > 0) {
+    html += `<div class="memory-section-header">📥 Imported ChatGPT Memories</div>`;
+    
+    importedMemories.forEach((memory, index) => {
+      // Create a meaningful title from tags or content
+      let memoryTitle = `Memory ${index + 1}`;
+      
+      // Try to create a more descriptive title from tags
+      if (memory.tags && Array.isArray(memory.tags) && memory.tags.length > 0) {
+        const relevantTags = memory.tags.filter(tag => 
+          !['imported', 'chatgpt', 'personal_info'].includes(tag.toLowerCase())
+        );
+        if (relevantTags.length > 0) {
+          memoryTitle = relevantTags[0].replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+      }
+      
+      // If no good tags, use first part of content as title
+      if (memoryTitle === `Memory ${index + 1}`) {
+        const contentPreview = (memory.summary || memory.message || '').substring(0, 40);
+        if (contentPreview) {
+          memoryTitle = contentPreview + '...';
+        }
+      }
+      
+      const fullContent = memory.summary || memory.message || '';
+      const shortContent = fullContent.length > 100 ? fullContent.substring(0, 100) + '...' : fullContent;
+      
+      // Escape the content for onclick attribute
+      const escapedContent = fullContent
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "\\'")
+        .replace(/"/g, '&quot;')
+        .replace(/\n/g, '\\n')
+        .replace(/\r/g, '\\r');
+      
+      html += `
+        <div class="memory-item">
+          <div class="memory-question">${memoryTitle}</div>
+          <div class="memory-answer">${shortContent}</div>
+          <button class="discuss-btn" onclick="window.discussImportedMemory('${memory.id || index}', '${escapedContent}')">
+            💬 Discuss
+          </button>
+        </div>
+      `;
+    });
+  }
+  
   if (html) {
     content.innerHTML = html;
   } else {
     content.innerHTML = `
       <div class="no-memories">
         <div class="no-memories-title">No Memories Found</div>
-        <div class="no-memories-text">Your onboarding answers will appear here</div>
+        <div class="no-memories-text">Your onboarding answers and imported memories will appear here</div>
       </div>
     `;
   }
@@ -19096,9 +19232,8 @@ async function generateCompanionImage() {
     const topicButtons = document.getElementById('topicButtonsMobile');
     if (!topicButtons) return;
     
-    // Get the same topics as desktop version
-    const companionType = getCurrentCompanionType();
-    const topics = getConversationTopics(companionType);
+    // Get the same topics as desktop version using the correct function
+    const topics = getStructuredTopics(currentCharacter);
     
     // Clear existing topics
     topicButtons.innerHTML = '';
