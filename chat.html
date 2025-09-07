@@ -12454,10 +12454,48 @@ async function fetchImportedMemories() {
       return [];
     }
     
-    // Filter for imported memories only
-    const importedMemories = (data.memories || []).filter(memory => 
-      memory.message_type === 'imported' && memory.source === 'chatgpt'
-    );
+    // Enhanced filter for imported memories - check multiple formats
+    const importedMemories = (data.memories || []).filter(memory => {
+      // Method 1: Check explicit import metadata
+      if (memory.message_type === 'imported' && memory.source === 'chatgpt') {
+        return true;
+      }
+      
+      // Method 2: Check Character field for import markers
+      if (memory.Character === 'ChatGPT Import' || memory.Character === 'imported') {
+        return true;
+      }
+      
+      // Method 3: Check Memory content for ChatGPT import patterns
+      if (memory.Memory && (
+        memory.Memory.includes('ChatGPT import') || 
+        memory.Memory.includes('imported from ChatGPT')
+      )) {
+        return true;
+      }
+      
+      // Method 4: Check Memory content for typical imported memory patterns
+      if (memory.Memory) {
+        const memoryText = memory.Memory.toLowerCase();
+        const importPatterns = [
+          'you prefer',
+          'you are interested in',
+          'you often',
+          'you like',
+          'you enjoy',
+          'you have a',
+          'you work',
+          'you use',
+          'you treat chatgpt',
+          'you aim to',
+          'you actively'
+        ];
+        
+        return importPatterns.some(pattern => memoryText.includes(pattern));
+      }
+      
+      return false;
+    });
     
     console.log(`✅ Found ${importedMemories.length} imported memories`);
     return importedMemories;
@@ -15266,8 +15304,21 @@ CONVERSATIONAL STYLE FOR NATURAL TEXTING:
         : `Vary responses, ${responseLengthInstruction}. IMPORTANT: Do NOT use roleplay actions like *smiles*, *reaches out*, *leans forward*, or any physical descriptions in asterisks. This is a friendship/support conversation - express emotions only through your words and occasional emojis, not through physical actions.${conversationStyle}`;
       
       // Separate imported memories from chat memories for better AI understanding
-      const importedMemories = memories.filter(m => m.message_type === 'imported' && m.source === 'chatgpt');
-      const chatMemories = memories.filter(m => m.message_type !== 'imported');
+      const importedMemories = memories.filter(memory => {
+        // Use same enhanced filtering logic as Memory Hub
+        if (memory.message_type === 'imported' && memory.source === 'chatgpt') return true;
+        if (memory.Character === 'ChatGPT Import' || memory.Character === 'imported') return true;
+        if (memory.Memory && (memory.Memory.includes('ChatGPT import') || memory.Memory.includes('imported from ChatGPT'))) return true;
+        
+        if (memory.Memory) {
+          const memoryText = memory.Memory.toLowerCase();
+          const importPatterns = ['you prefer', 'you are interested in', 'you often', 'you like', 'you enjoy', 'you have a', 'you work', 'you use', 'you treat chatgpt', 'you aim to', 'you actively'];
+          return importPatterns.some(pattern => memoryText.includes(pattern));
+        }
+        return false;
+      });
+      
+      const chatMemories = memories.filter(m => !importedMemories.includes(m));
       
       const importedTexts = importedMemories.map(memory => `[${memory.summary || memory.message}]`);
       const chatTexts = chatMemories.map(memory => `[${memory.summary || memory.message}]`);

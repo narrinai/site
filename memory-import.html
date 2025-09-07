@@ -2860,17 +2860,48 @@ Example JSON format:
           console.log('📊 Memory function result:', result);
           
           if (result.success && result.memories && result.memories.length > 0) {
-            // Filter for imported memories (look for memories with import metadata)
-            const importedMemories = result.memories.filter(memory => 
-              memory.Memory && (
+            // Enhanced filter for imported memories - check multiple formats
+            const importedMemories = result.memories.filter(memory => {
+              // Method 1: Check explicit import metadata
+              if (memory.message_type === 'imported' && memory.source === 'chatgpt') {
+                return true;
+              }
+              
+              // Method 2: Check Character field for import markers
+              if (memory.Character === 'ChatGPT Import' || memory.Character === 'imported') {
+                return true;
+              }
+              
+              // Method 3: Check Memory content for ChatGPT import patterns
+              if (memory.Memory && (
                 memory.Memory.includes('ChatGPT import') || 
-                memory.Memory.includes('imported from ChatGPT') ||
-                memory.Character === 'ChatGPT Import' ||
-                memory.Memory.toLowerCase().includes('you prefer') ||
-                memory.Memory.toLowerCase().includes('you are interested in') ||
-                memory.Memory.toLowerCase().includes('you often')
-              )
-            );
+                memory.Memory.includes('imported from ChatGPT')
+              )) {
+                return true;
+              }
+              
+              // Method 4: Check Memory content for typical imported memory patterns
+              if (memory.Memory) {
+                const memoryText = memory.Memory.toLowerCase();
+                const importPatterns = [
+                  'you prefer',
+                  'you are interested in',
+                  'you often',
+                  'you like',
+                  'you enjoy',
+                  'you have a',
+                  'you work',
+                  'you use',
+                  'you treat chatgpt',
+                  'you aim to',
+                  'you actively'
+                ];
+                
+                return importPatterns.some(pattern => memoryText.includes(pattern));
+              }
+              
+              return false;
+            });
 
             if (importedMemories.length > 0) {
               console.log('✅ Found imported memories:', importedMemories.length);
