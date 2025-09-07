@@ -19292,12 +19292,25 @@ async function generateCompanionImage() {
     // Clear existing topics
     topicButtons.innerHTML = '';
     
+    // Safety check for topics
+    if (!topics || !Array.isArray(topics)) {
+      console.warn('⚠️ No topics available for mobile display');
+      topicButtons.innerHTML = '<div class="no-topics">No topics available</div>';
+      return;
+    }
+    
     // Add topics
     topics.forEach(topicGroup => {
+      // Safety check for topicGroup
+      if (!topicGroup || !topicGroup.topics || !Array.isArray(topicGroup.topics)) {
+        console.warn('⚠️ Invalid topic group:', topicGroup);
+        return;
+      }
+      
       // Add group title
       const groupTitle = document.createElement('div');
       groupTitle.className = 'topic-group-title';
-      groupTitle.textContent = topicGroup.group;
+      groupTitle.textContent = topicGroup.group || 'Topics';
       topicButtons.appendChild(groupTitle);
       
       // Add topic buttons
