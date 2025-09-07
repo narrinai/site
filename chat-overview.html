@@ -2837,51 +2837,65 @@ async function loadUserChats() {
     if (isMobile) {
     }
     
-    // BACKUP: Try direct Make.com webhook to get user chats (bypass failing Netlify functions)
+    // Platform-specific approach: desktop uses Netlify functions, mobile uses webhook backup
     let response;
-    try {
-      // Try Make.com webhook as backup
-      const webhookResponse = await fetch('https://hook.eu2.make.com/fjpapor4lkj9mpypaqx8no68d64bxe19', {
+    
+    if (isMobile) {
+      // MOBILE BACKUP: Use Make.com webhook since Netlify functions fail on mobile
+      console.log('📱 Mobile detected - using webhook backup');
+      try {
+        const webhookResponse = await fetch('https://hook.eu2.make.com/fjpapor4lkj9mpypaqx8no68d64bxe19', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'get_user_chats',
+            user_email: email,
+            user_uid: uid,
+            user_token: token
+          })
+        });
+        
+        if (webhookResponse.ok) {
+          const webhookData = await webhookResponse.json();
+          console.log('✅ Mobile webhook success:', webhookData);
+          
+          response = {
+            ok: true,
+            status: 200,
+            json: () => Promise.resolve({
+              success: true,
+              chats: webhookData.chats || webhookData.conversations || [],
+              message: 'Chats loaded via mobile webhook'
+            })
+          };
+        } else {
+          throw new Error('Mobile webhook failed');
+        }
+      } catch (error) {
+        console.log('⚠️ Mobile webhook failed, empty state');
+        response = {
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({ success: true, chats: [], message: 'No chats found' })
+        };
+      }
+    } else {
+      // DESKTOP: Use normal get-user-chats function
+      console.log('💻 Desktop - using normal get-user-chats function');
+      const functionUrl = '/.netlify/functions/get-user-chats';
+      
+      response = await fetch(functionUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: JSON.stringify({
-          action: 'get_user_chats',
           user_email: email,
           user_uid: uid,
           user_token: token
         })
       });
-      
-      if (webhookResponse.ok) {
-        const webhookData = await webhookResponse.json();
-        console.log('✅ Make.com webhook success:', webhookData);
-        
-        // Create compatible response format
-        response = {
-          ok: true,
-          status: 200,
-          json: () => Promise.resolve({
-            success: true,
-            chats: webhookData.chats || webhookData.conversations || [],
-            message: 'Chats loaded via backup webhook'
-          })
-        };
-      } else {
-        throw new Error('Webhook also failed');
-      }
-    } catch (error) {
-      console.log('⚠️ Webhook backup also failed, using empty state');
-      
-      // Final fallback - empty state but authenticated
-      response = {
-        ok: true,
-        status: 200,
-        json: () => Promise.resolve({
-          success: true,
-          chats: [],
-          message: 'No chats found - ready to create companions'
-        })
-      };
     }
 
     console.log('📡 Function response:', {
