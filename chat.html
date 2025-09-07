@@ -12717,28 +12717,43 @@ function displayMemoryHubContent(answers, importedMemories = []) {
     html += `<div class="memory-section-header">📥 Imported ChatGPT Memories</div>`;
     
     importedMemories.forEach((memory, index) => {
-      // Create a meaningful title from tags or content
+      // Create a meaningful title from imported memory content
       let memoryTitle = `Memory ${index + 1}`;
       
-      // Try to create a more descriptive title from tags
-      if (memory.tags && Array.isArray(memory.tags) && memory.tags.length > 0) {
-        const relevantTags = memory.tags.filter(tag => 
-          !['imported', 'chatgpt', 'personal_info'].includes(tag.toLowerCase())
-        );
-        if (relevantTags.length > 0) {
-          memoryTitle = relevantTags[0].replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      // Use the actual memory content to create a descriptive title
+      if (memory.Memory) {
+        const memoryContent = memory.Memory.trim();
+        
+        // Create short descriptive titles based on content patterns
+        if (memoryContent.toLowerCase().includes('your name is')) {
+          memoryTitle = "Personal Details";
+        } else if (memoryContent.toLowerCase().includes('you often express') || memoryContent.toLowerCase().includes('you often request')) {
+          memoryTitle = "Work & Communication Style";
+        } else if (memoryContent.toLowerCase().includes('you treat chatgpt')) {
+          memoryTitle = "AI Usage Preferences";
+        } else if (memoryContent.toLowerCase().includes('you are interested in')) {
+          memoryTitle = "Interests & Learning";
+        } else if (memoryContent.toLowerCase().includes('you are building') || memoryContent.toLowerCase().includes('you host') || memoryContent.toLowerCase().includes('you run')) {
+          memoryTitle = "Projects & Business";
+        } else if (memoryContent.toLowerCase().includes('you actively post') || memoryContent.toLowerCase().includes('you aim to grow')) {
+          memoryTitle = "Professional Goals";
+        } else if (memoryContent.toLowerCase().includes('you collect') || memoryContent.toLowerCase().includes('you are deeply engaged')) {
+          memoryTitle = "Personal Hobbies";
+        } else if (memoryContent.toLowerCase().includes('you live') || memoryContent.toLowerCase().includes('you are 35')) {
+          memoryTitle = "Background Info";
+        } else {
+          // Fallback: Use first 30 characters + ...
+          memoryTitle = memoryContent.substring(0, 30) + (memoryContent.length > 30 ? '...' : '');
         }
       }
-      
-      // If no good tags, use first part of content as title
       if (memoryTitle === `Memory ${index + 1}`) {
-        const contentPreview = (memory.summary || memory.message || '').substring(0, 40);
+        const contentPreview = (memory.Memory || memory.summary || memory.message || '').substring(0, 40);
         if (contentPreview) {
           memoryTitle = contentPreview + '...';
         }
       }
       
-      const fullContent = memory.summary || memory.message || '';
+      const fullContent = memory.Memory || memory.summary || memory.message || '';
       const shortContent = fullContent.length > 100 ? fullContent.substring(0, 100) + '...' : fullContent;
       
       // Escape the content for onclick attribute
