@@ -2860,28 +2860,32 @@ Example JSON format:
 
       try {
         console.log('🔍 Checking for imported memories in database...');
-        console.log('📤 Chat history function payload:', {
+        console.log('📤 Memory function payload (with importance 0):', {
+          action: 'get_memories',
           user_email: userEmail,
           user_uid: uid,
           user_token: !!userToken,
-          get_all_records: true
+          character_slug: 'general',
+          importance_threshold: 0
         });
         
-        // Try getting chat history directly to see all records for this user
-        const response = await fetch('/.netlify/functions/get-chat-history', {
+        // Use memory function with importance_threshold 0 to get ALL memories
+        const response = await fetch('/.netlify/functions/memory', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            action: 'get_memories',
             user_email: userEmail,
             user_uid: uid,
             user_token: userToken,
-            get_all_records: true // Try to get all records for this user
+            character_slug: 'general', // Use general to trigger imported memory inclusion
+            importance_threshold: 0 // Get ALL memories including importance 0
           })
         });
 
         if (response.ok) {
           const result = await response.json();
-          console.log('📊 Chat history function result:', result);
+          console.log('📊 Memory function result (importance 0):', result);
           console.log('🔍 First few memories for analysis:', result.memories?.slice(0, 3));
           
           if (result.success && result.memories && result.memories.length > 0) {
