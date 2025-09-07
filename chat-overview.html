@@ -2587,6 +2587,14 @@ line-clamp: 3;
       const email = localStorage.getItem('user_email');
       const uid = localStorage.getItem('user_uid');
       const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+      
+      // FIX: Clear anonymous flag for real users to prevent auth failures
+      let isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+      if (isAnonymousUser && email && email !== 'anonymous@narrin.ai') {
+        console.log('🔧 FIX: Clearing anonymous flag for real user in checkAuthAndLoadChats:', email);
+        localStorage.removeItem('is_anonymous_user');
+        isAnonymousUser = false;
+      }
 
       if ((token && email && uid) || netlifyUser) {
         console.log('✅ User is authenticated, loading chats');
@@ -2613,6 +2621,14 @@ function initializeAuthenticationCheck() {
   const email = localStorage.getItem('user_email');
   const uid = localStorage.getItem('user_uid');
   const timestamp = localStorage.getItem('user_auth_timestamp');
+  
+  // FIX: Clear anonymous flag for real users in authentication check
+  let isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+  if (isAnonymousUser && email && email !== 'anonymous@narrin.ai') {
+    console.log('🔧 FIX: Clearing anonymous flag for real user in initializeAuthenticationCheck:', email);
+    localStorage.removeItem('is_anonymous_user');
+    isAnonymousUser = false;
+  }
   
   console.log('🔑 localStorage auth data:', { 
     hasToken: !!token, 
