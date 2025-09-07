@@ -2215,9 +2215,35 @@ line-clamp: 3;
   checkLocalStorageSupport();
       console.log('🚀 Chat overview page loaded');
       
-      // DEBUG: Show on ALL devices to test mobile detection
+      // MOBILE FIX: Force check and restore auth data
       setTimeout(() => {
-        alert('DEBUG: Page loaded. Device=' + navigator.userAgent.substring(0, 30) + ' Email=' + (localStorage.getItem('user_email') || 'none'));
+        const email = localStorage.getItem('user_email');
+        const uid = localStorage.getItem('user_uid');
+        
+        if (!email || !uid) {
+          // Try to get from Netlify Identity
+          if (window.netlifyIdentity) {
+            const netlifyUser = window.netlifyIdentity.currentUser();
+            if (netlifyUser) {
+              // Force save auth data
+              localStorage.setItem('user_email', netlifyUser.email);
+              localStorage.setItem('user_uid', netlifyUser.id);
+              localStorage.setItem('user_token', netlifyUser.token?.access_token || 'mobile_token');
+              localStorage.setItem('user_auth_timestamp', Date.now().toString());
+              localStorage.removeItem('is_anonymous_user');
+              
+              alert('FIXED: Restored auth data for ' + netlifyUser.email);
+              
+              // Reload page to trigger auth flow
+              setTimeout(() => {
+                window.location.reload();
+              }, 2000);
+              return;
+            }
+          }
+        }
+        
+        alert('DEBUG: Email=' + (email || 'none') + ' UID=' + (uid || 'none'));
       }, 1000);
       
       // Run Safari compatibility checks first
