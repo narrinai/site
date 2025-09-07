@@ -14966,10 +14966,9 @@ function showGentleCheckIn() {
 }
 
 async function sendMessage(event) {
-  try {
-    event?.preventDefault();
-    
-    // Check usage limit before sending message
+  event?.preventDefault();
+  
+  // Check usage limit before sending message
   console.log('🔍 Checking usage limit before sending message...');
   const cachedSub = localStorage.getItem("subscription_status");
   console.log('🔍 Current cached subscription:', cachedSub);
@@ -15082,56 +15081,22 @@ async function sendMessage(event) {
   let memories = [];
   let memoryContext = "";
 
-  // Check if we have cached memories (cache for 3 minutes for faster responses)
-  const memoryCacheKey = `memories_${characterSlug}_${effective_user_id}`;
-  const memoryCacheTime = `memories_time_${characterSlug}_${effective_user_id}`;
-  const cachedMemories = sessionStorage.getItem(memoryCacheKey);
-  const cacheTime = parseInt(sessionStorage.getItem(memoryCacheTime) || '0');
-  const threeMinutesAgo = Date.now() - (3 * 60 * 1000);
-  
-  if (cachedMemories && cacheTime > threeMinutesAgo) {
-    console.log("⚡ Using cached memories for faster response");
-    try {
-      const cachedData = JSON.parse(cachedMemories);
-      memories = cachedData.memories || [];
-      relationshipContext = cachedData.relationshipContext || null;
-      recentSummary = cachedData.recentSummary || null;
-    } catch (e) {
-      console.warn("Failed to parse cached memories, fetching fresh");
+  // Always try to retrieve memories, regardless of existing history in current session
+  try {
+    const memoryResponse = await getRelevantMemories(effective_user_id, characterSlug, input);
+    
+    // Enhanced: Extract memories and relationship context
+    if (memoryResponse && typeof memoryResponse === 'object') {
+      memories = memoryResponse.memories || memoryResponse || [];
+      relationshipContext = memoryResponse.relationshipContext || null;
+      recentSummary = memoryResponse.recentSummary || null;
+    } else {
+      memories = memoryResponse || [];
     }
-  }
-  
-  // Only fetch fresh memories if cache is empty or expired
-  if (memories.length === 0) {
-    console.log("🧠 Fetching fresh memories...");
-    try {
-      const memoryResponse = await getRelevantMemories(effective_user_id, characterSlug, input);
-      
-      // Enhanced: Extract memories and relationship context
-      if (memoryResponse && typeof memoryResponse === 'object') {
-        memories = memoryResponse.memories || memoryResponse || [];
-        relationshipContext = memoryResponse.relationshipContext || null;
-        recentSummary = memoryResponse.recentSummary || null;
-      } else {
-        memories = memoryResponse || [];
-      }
-      
-      // Cache the memories for faster future responses
-      try {
-        const cacheData = { memories, relationshipContext, recentSummary };
-        sessionStorage.setItem(memoryCacheKey, JSON.stringify(cacheData));
-        sessionStorage.setItem(memoryCacheTime, Date.now().toString());
-        console.log("💾 Cached memories for faster future responses");
-      } catch (e) {
-        console.warn("Failed to cache memories");
-      }
-    } catch (error) {
-      console.error("❌ Memory retrieval error:", error);
-      memories = [];
-    }
-  
-  console.log("✅ Memory retrieval completed:", memories?.length || 0, "memories found");
-  if (relationshipContext) {
+    
+    console.log("✅ Memory retrieval completed:", memories?.length || 0, "memories found");
+    console.log("📊 Full memory response:", memoryResponse);
+    if (relationshipContext) {
       console.log("🤝 Relationship context:", relationshipContext.phase, `(${relationshipContext.totalMessages} messages)`);
     } else {
       console.log("⚠️ No relationship context found in response");
@@ -15182,6 +15147,10 @@ async function sendMessage(event) {
         }
       }
     }
+  } catch (error) {
+    console.error("❌ Memory retrieval failed:", error);
+    memories = []; // Fallback to empty array
+  }
 
   // Smart memory filtering based on relevance to current message
   if (memories && memories.length > 0) {
@@ -15939,6 +15908,7 @@ try {
       };
     }
   }
+}
 
     if (!data.success) {
       throw new Error("Chat request failed");
@@ -16284,6 +16254,7 @@ if (data && data.success) {
   window.memoryProcessingTimeout = setTimeout(() => {
     processMemoryForMessage(recordId, input, getLastMessages(3));
   }, 5000);
+}
     
   } catch (err) {
     console.error("❌ sendMessage Error:", err);
@@ -17118,7 +17089,8 @@ document.addEventListener('DOMContentLoaded', () => {
     console.warn('Speech-to-text not supported in this browser');
   }
 });
-</script>
+
+  </script>
 
   <!-- Footer -->
   <footer class="footer">
@@ -19463,8 +19435,22 @@ async function generateCompanionImage() {
   }
 
   // ===== NON-CRITICAL FEATURES LOADING =====
-  // Note: Non-critical features are already loaded via earlier addEventListener
-  // This duplicate listener has been removed to fix syntax errors
+  // Load heavy features after page is fully loaded to improve initial performance
+  window.addEventListener('load', () => {
+    console.log('🚀 Loading non-critical features...');
+    
+    // Initialize mobile functionality
+    syncInputs();
+    showMobileOrganizeThoughts();
+    setupMobileDisclaimer();
+    
+    // Memory Hub and Customize features are now lazy loaded on demand
+    // This section can be used for other heavy features in the future
+    
+    setTimeout(() => {
+      console.log('✅ Non-critical features ready for lazy loading');
+    }, 500);
+  });
 
   </script>
 
