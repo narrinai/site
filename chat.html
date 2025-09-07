@@ -497,7 +497,7 @@
       background: rgba(30, 41, 59, 0.95);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      z-index: var(--z-overlay);
+      z-index: var(--z-menu-overlay); /* Increased from z-overlay to z-menu-overlay for higher priority */
       opacity: 0;
       visibility: hidden;
       transition: all var(--transition-base);
@@ -817,7 +817,7 @@
         animation: slideUp 0.2s ease-out !important;
         max-height: 300px !important; /* Reasonable height for topics */
         overflow-y: auto !important; /* Allow scrolling if too many topics */
-        z-index: 400 !important; /* Above everything else */
+        z-index: 350 !important; /* Above chatlog but below mobile menu */
       }
       
       @keyframes slideUp {
@@ -19353,6 +19353,12 @@ async function generateCompanionImage() {
     if (topicButtons && topicsToggle) {
       topicButtons.style.display = 'none';
       topicsToggle.classList.remove('expanded');
+      
+      // Explicitly reset the arrow rotation
+      const arrow = topicsToggle.querySelector('.topics-arrow');
+      if (arrow) {
+        arrow.style.transform = 'rotate(0deg)';
+      }
     }
     
     // Also close the main organize thoughts popup
