@@ -19423,6 +19423,19 @@ async function generateCompanionImage() {
       if (topicButtons && topicButtons.children.length === 0) {
         generateConversationTopicsMobile();
       }
+      
+      // Automatically expand the topics after opening popup
+      const topicsToggle = document.getElementById('topicsToggleMobile');
+      if (topicButtons && topicsToggle) {
+        topicButtons.style.display = 'block'; // Show topics immediately
+        topicsToggle.classList.add('expanded'); // Add expanded class for arrow rotation
+        
+        // Ensure arrow is rotated to show expanded state
+        const arrow = topicsToggle.querySelector('.topics-arrow');
+        if (arrow) {
+          arrow.style.transform = 'rotate(180deg)';
+        }
+      }
     }
   }
   
