@@ -2845,8 +2845,7 @@ Example JSON format:
           user_email: userEmail,
           user_uid: uid,
           user_token: !!userToken,
-          character_slug: 'general',
-          importance_threshold: 0
+          character_slug: 'any'
         });
         
         // Call memory function to check for imported memories
@@ -2858,8 +2857,7 @@ Example JSON format:
             user_email: userEmail,
             user_uid: uid,
             user_token: userToken,
-            character_slug: 'general', // Use general slug to get memories
-            importance_threshold: 0 // Get ALL memories including lowest importance
+            character_slug: 'any' // Trigger the character filtering logic to include imported memories
           })
         });
 
@@ -2878,7 +2876,10 @@ Example JSON format:
                 message_type: memory.message_type,
                 source: memory.source,
                 character: memory.character,
-                character_name: memory.character_name
+                character_name: memory.character_name,
+                Memory: memory.Memory?.substring(0, 100) + '...',
+                Character: memory.Character,
+                Role: memory.Role
               });
               
               // Method 1: Check explicit import metadata
@@ -2887,25 +2888,26 @@ Example JSON format:
                 return true;
               }
               
-              // Method 2: Check character field for import markers
+              // Method 2: Check Character fields for import markers
               if (memory.character === 'ChatGPT Import' || memory.character === 'imported' || 
-                  memory.character_name === 'ChatGPT Import') {
+                  memory.character_name === 'ChatGPT Import' || memory.Character === 'ChatGPT Import') {
                 console.log('✅ Found by method 2: character field');
                 return true;
               }
               
-              // Method 3: Check message content for ChatGPT import patterns
-              if (memory.message && (
-                memory.message.includes('ChatGPT import') || 
-                memory.message.includes('imported from ChatGPT')
+              // Method 3: Check message/Memory content for ChatGPT import patterns
+              const contentToCheck = memory.message || memory.Memory || '';
+              if (contentToCheck && (
+                contentToCheck.includes('ChatGPT import') || 
+                contentToCheck.includes('imported from ChatGPT')
               )) {
                 console.log('✅ Found by method 3: explicit import content');
                 return true;
               }
               
-              // Method 4: Check message content for typical imported memory patterns
-              if (memory.message) {
-                const messageText = memory.message.toLowerCase();
+              // Method 4: Check message/Memory content for typical imported memory patterns
+              if (contentToCheck) {
+                const contentText = contentToCheck.toLowerCase();
                 const importPatterns = [
                   'you prefer',
                   'you are interested in',
@@ -2920,7 +2922,7 @@ Example JSON format:
                   'you actively'
                 ];
                 
-                const foundPattern = importPatterns.find(pattern => messageText.includes(pattern));
+                const foundPattern = importPatterns.find(pattern => contentText.includes(pattern));
                 if (foundPattern) {
                   console.log(`✅ Found by method 4: pattern "${foundPattern}"`);
                   return true;
