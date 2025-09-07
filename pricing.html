@@ -572,17 +572,34 @@
     div[data-netlify-identity-modal],
     div[data-netlify-identity-modal] * {
       z-index: 999999999 !important;
-      position: relative !important;
+      position: fixed !important;
     }
 
-    /* Lower z-index for navigation when modal is open */
+    /* Force Netlify modal iframe to highest z-index */
+    .netlify-identity-widget iframe {
+      z-index: 999999999 !important;
+      position: fixed !important;
+    }
+
+    /* Lower z-index for ALL navigation elements when modal is open */
     body:has(.netlify-identity-widget) .header,
     body:has(.netlify-identity-widget) .mobile-menu-overlay,
     body:has(.netlify-identity-widget) .mobile-search-overlay,
     body:has(.netlify-identity-widget) nav,
-    body:has(.netlify-identity-widget) header {
+    body:has(.netlify-identity-widget) header,
+    .header {
       z-index: 1 !important;
-      position: relative !important;
+    }
+
+    /* Alternative approach - force header lower z-index when any modal exists */
+    .header {
+      z-index: 200;
+    }
+    
+    /* When Netlify widget is present, force header to lowest z-index */
+    body .netlify-identity-widget ~ * .header,
+    body .header:has(~ .netlify-identity-widget) {
+      z-index: 1 !important;
     }
     
     /* Add "by signing up" disclaimer to signup form */
@@ -1576,6 +1593,48 @@
       window.netlifyIdentity.on('init', updateLoginButton);
       window.netlifyIdentity.on('login', updateLoginButton);
       window.netlifyIdentity.on('logout', updateLoginButton);
+      
+      // CRITICAL FIX: Force Netlify modal above navigation
+      window.netlifyIdentity.on('open', () => {
+        console.log('🔧 Netlify modal opened - fixing z-index');
+        
+        // Force header to lowest z-index immediately
+        const header = document.querySelector('.header');
+        if (header) {
+          header.style.zIndex = '1';
+          header.style.position = 'relative';
+        }
+        
+        // Force all Netlify elements to highest z-index
+        setTimeout(() => {
+          const netlifyElements = document.querySelectorAll('.netlify-identity-widget, .netlify-identity-widget *, .netlify-identity-widget iframe, div[data-netlify-identity-modal], div[data-netlify-identity-modal] *');
+          netlifyElements.forEach(el => {
+            if (el.style) {
+              el.style.zIndex = '999999999';
+              el.style.position = 'fixed';
+            }
+          });
+        }, 50);
+        
+        // Additional force after longer delay
+        setTimeout(() => {
+          const iframe = document.querySelector('.netlify-identity-widget iframe');
+          if (iframe) {
+            iframe.style.zIndex = '999999999';
+            iframe.style.position = 'fixed';
+          }
+        }, 200);
+      });
+
+      window.netlifyIdentity.on('close', () => {
+        console.log('🔧 Netlify modal closed - restoring z-index');
+        
+        // Restore header z-index
+        const header = document.querySelector('.header');
+        if (header) {
+          header.style.zIndex = '200';
+        }
+      });
     }
   </script>
 </body>
