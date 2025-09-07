@@ -2648,9 +2648,53 @@ function initializeAuthenticationCheck() {
   const isMobile = /Mobile|Android|iPhone|iPad/.test(navigator.userAgent);
   console.log('🔐 Initializing authentication check...', { isMobile, userAgent: navigator.userAgent.substring(0, 50) });
   
+  // MOBILE FIX: Force extract auth data from Netlify Identity if localStorage is empty
+  if (isMobile && !localStorage.getItem('user_email')) {
+    console.log('🔧 MOBILE FIX: No email in localStorage, checking Netlify Identity...');
+    
+    if (window.netlifyIdentity) {
+      const netlifyUser = window.netlifyIdentity.currentUser();
+      if (netlifyUser) {
+        console.log('✅ MOBILE FIX: Found Netlify user, extracting auth data');
+        
+        // Force extract and save all auth data
+        const email = netlifyUser.email;
+        let userId = netlifyUser.id;
+        let accessToken = netlifyUser.token?.access_token;
+        
+        // Try JWT extraction if needed
+        if (!userId || !accessToken) {
+          try {
+            const token = netlifyUser.token?.access_token;
+            if (token) {
+              const tokenParts = token.split('.');
+              const payload = JSON.parse(atob(tokenParts[1]));
+              userId = userId || payload.sub;
+              accessToken = accessToken || token;
+            }
+          } catch (e) {
+            console.error('JWT extraction failed:', e);
+          }
+        }
+        
+        // Force save to localStorage
+        if (email && userId) {
+          localStorage.setItem('user_email', email);
+          localStorage.setItem('user_uid', userId);
+          localStorage.setItem('user_token', accessToken || 'mobile_token');
+          localStorage.setItem('user_auth_timestamp', Date.now().toString());
+          localStorage.removeItem('is_anonymous_user');
+          console.log('✅ MOBILE FIX: Forced save auth data for mobile user');
+          
+          alert('MOBILE FIX: Restored auth data for ' + email);
+        }
+      }
+    }
+  }
+  
   // MOBILE DEBUG: Alert for mobile debugging
   if (isMobile) {
-    alert('MOBILE DEBUG: Auth check started for ' + (localStorage.getItem('user_email') || 'no email'));
+    alert('MOBILE DEBUG: Auth check started for ' + (localStorage.getItem('user_email') || 'undefined'));
   }
   
   // Check localStorage first
