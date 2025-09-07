@@ -2224,6 +2224,9 @@ line-clamp: 3;
           // Try to get from Netlify Identity
           if (window.netlifyIdentity) {
             const netlifyUser = window.netlifyIdentity.currentUser();
+            
+            alert('NETLIFY CHECK: Identity=' + (window.netlifyIdentity ? 'loaded' : 'missing') + ' User=' + (netlifyUser ? netlifyUser.email : 'none'));
+            
             if (netlifyUser) {
               // Force save auth data
               localStorage.setItem('user_email', netlifyUser.email);
@@ -2239,7 +2242,11 @@ line-clamp: 3;
                 window.location.reload();
               }, 2000);
               return;
+            } else {
+              alert('PROBLEM: Netlify Identity loaded but no currentUser found - login may have failed');
             }
+          } else {
+            alert('PROBLEM: Netlify Identity not loaded - script loading issue');
           }
         }
         
