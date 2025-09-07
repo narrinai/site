@@ -39,9 +39,9 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Direct query to ChatHistory table looking for imported memories
-    // Search by User field containing NetlifyUID directly
-    const chatUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${user_uid}',OR({Summary} != '',{Message} != '',{Memory} != ''))&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=500`;
+    // Direct query to ChatHistory table - get all records and filter in code
+    // This avoids complex Airtable formulas that might cause 500 errors
+    const chatUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=1000`;
     
     console.log('🔍 Direct ChatHistory query URL:', chatUrl);
     
@@ -53,34 +53,41 @@ exports.handler = async (event, context) => {
     });
     
     if (!chatResponse.ok) {
-      throw new Error(`ChatHistory fetch failed: ${chatResponse.status}`);
+      console.log('❌ ChatHistory fetch failed:', chatResponse.status);
+      const errorText = await chatResponse.text();
+      console.log('❌ Error response:', errorText);
+      throw new Error(`ChatHistory fetch failed: ${chatResponse.status} - ${errorText}`);
     }
     
     const chatData = await chatResponse.json();
-    console.log('📊 Found', chatData.records.length, 'total records for NetlifyUID');
+    console.log('📊 Found', chatData.records.length, 'total ChatHistory records');
     
-    if (chatData.records.length === 0) {
-      console.log('⚠️ No records found for NetlifyUID, trying email-based search...');
+    // Filter records for this specific user (by NetlifyUID or email)
+    const userRecords = chatData.records.filter(record => {
+      const recordNetlifyUID = record.fields.NetlifyUID;
+      const recordEmail = record.fields.Email;
+      const recordUser = record.fields.User;
       
-      // Fallback: Search by Email field in ChatHistory
-      const emailChatUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({Email}='${user_email}',OR({Message} != '',{Memory} != ''))&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=500`;
+      // Check multiple ways the user might be stored
+      if (recordNetlifyUID === user_uid) return true;
+      if (recordEmail === user_email) return true;
+      if (Array.isArray(recordUser) && recordUser.includes(user_uid)) return true;
+      if (recordUser === user_uid) return true;
       
-      const emailChatResponse = await fetch(emailChatUrl, {
-        headers: {
-          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (emailChatResponse.ok) {
-        const emailChatData = await emailChatResponse.json();
-        console.log('📊 Found', emailChatData.records.length, 'records by email');
-        chatData.records = emailChatData.records;
-      }
-    }
+      return false;
+    });
     
-    // Filter for imported memories - use Summary field as primary content
-    const allMemories = chatData.records.map(record => ({
+    console.log('📊 Found', userRecords.length, 'records for this user');
+    console.log('📊 First few user records:', userRecords.slice(0, 3).map(r => ({
+      id: r.id,
+      Summary: r.fields.Summary?.substring(0, 50),
+      Message: r.fields.Message?.substring(0, 50),
+      Character: r.fields.Character,
+      Role: r.fields.Role
+    })));
+    
+    // Process user records to find imported memories  
+    const allMemories = userRecords.map(record => ({
       id: record.id,
       Memory: record.fields.Summary || record.fields.Memory || record.fields.Message,
       Character: record.fields.Character,
