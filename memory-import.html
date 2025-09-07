@@ -2832,8 +2832,16 @@ Example JSON format:
       const userToken = localStorage.getItem('user_token');
       const uid = localStorage.getItem('user_uid');
       const userEmail = localStorage.getItem('user_email');
-      const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+      let isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
       const isAnonymousEmail = userEmail === 'anonymous@narrin.ai';
+      
+      // FIX: Clear anonymous flag for real users with non-anonymous email
+      if (isAnonymousUser && userEmail && userEmail !== 'anonymous@narrin.ai' && uid) {
+        console.log('🔧 FIX: Clearing anonymous flag for real user:', userEmail);
+        localStorage.removeItem('is_anonymous_user');
+        isAnonymousUser = false;
+      }
+      
       const isAuthenticated = userToken && uid && !isAnonymousUser && !isAnonymousEmail;
       
       console.log('🔍 loadRecentImports auth check:', {
