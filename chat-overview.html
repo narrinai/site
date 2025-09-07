@@ -2208,25 +2208,6 @@ line-clamp: 3;
         window.history.replaceState({}, document.title, cleanUrl);
       }
       
-      // MOBILE FIX: Force clean anonymous flags for Google users on page load
-      const userEmail = localStorage.getItem('user_email');
-      const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
-      if (isAnonymousUser && userEmail && userEmail !== 'anonymous@narrin.ai') {
-        console.log('🔧 PAGE LOAD FIX: Force clearing anonymous flag for:', userEmail);
-        localStorage.removeItem('is_anonymous_user');
-        
-        // Also ensure we have proper auth data
-        setTimeout(() => {
-          const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
-          if (netlifyUser) {
-            localStorage.setItem('user_email', netlifyUser.email || userEmail);
-            localStorage.setItem('user_uid', netlifyUser.id || localStorage.getItem('user_uid'));
-            localStorage.setItem('user_token', netlifyUser.token?.access_token || 'mobile_token');
-            localStorage.setItem('user_auth_timestamp', Date.now().toString());
-          }
-        }, 200);
-      }
-      
       // Initialize authentication check
   initializeAuthenticationCheck();
   
@@ -2271,19 +2252,6 @@ line-clamp: 3;
       });
 
       window.netlifyIdentity.on('login', user => {
-        console.log('🔑 Login event fired for:', user.email);
-        
-        // MOBILE FIX: Force save auth data for mobile users  
-        const isMobile = /Mobile|Android|iPhone|iPad/.test(navigator.userAgent);
-        if (isMobile) {
-          console.log('🔧 MOBILE LOGIN FIX: Saving auth data');
-          localStorage.setItem('user_email', user.email);
-          localStorage.setItem('user_uid', user.id);
-          localStorage.setItem('user_token', user.token?.access_token || 'mobile_token');
-          localStorage.setItem('user_auth_timestamp', Date.now().toString());
-          localStorage.removeItem('is_anonymous_user'); // Force remove anonymous flag
-        }
-        
         updateLoginButton();
         window.netlifyIdentity.close();
         checkAuthAndLoadChats();
@@ -2619,14 +2587,6 @@ line-clamp: 3;
       const email = localStorage.getItem('user_email');
       const uid = localStorage.getItem('user_uid');
       const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
-      
-      // FIX: Clear anonymous flag for real users to prevent auth failures
-      let isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
-      if (isAnonymousUser && email && email !== 'anonymous@narrin.ai') {
-        console.log('🔧 FIX: Clearing anonymous flag for real user in checkAuthAndLoadChats:', email);
-        localStorage.removeItem('is_anonymous_user');
-        isAnonymousUser = false;
-      }
 
       if ((token && email && uid) || netlifyUser) {
         console.log('✅ User is authenticated, loading chats');
@@ -2648,66 +2608,11 @@ function initializeAuthenticationCheck() {
   const isMobile = /Mobile|Android|iPhone|iPad/.test(navigator.userAgent);
   console.log('🔐 Initializing authentication check...', { isMobile, userAgent: navigator.userAgent.substring(0, 50) });
   
-  // MOBILE FIX: Force extract auth data from Netlify Identity if localStorage is empty
-  if (isMobile && !localStorage.getItem('user_email')) {
-    console.log('🔧 MOBILE FIX: No email in localStorage, checking Netlify Identity...');
-    
-    if (window.netlifyIdentity) {
-      const netlifyUser = window.netlifyIdentity.currentUser();
-      if (netlifyUser) {
-        console.log('✅ MOBILE FIX: Found Netlify user, extracting auth data');
-        
-        // Force extract and save all auth data
-        const email = netlifyUser.email;
-        let userId = netlifyUser.id;
-        let accessToken = netlifyUser.token?.access_token;
-        
-        // Try JWT extraction if needed
-        if (!userId || !accessToken) {
-          try {
-            const token = netlifyUser.token?.access_token;
-            if (token) {
-              const tokenParts = token.split('.');
-              const payload = JSON.parse(atob(tokenParts[1]));
-              userId = userId || payload.sub;
-              accessToken = accessToken || token;
-            }
-          } catch (e) {
-            console.error('JWT extraction failed:', e);
-          }
-        }
-        
-        // Force save to localStorage
-        if (email && userId) {
-          localStorage.setItem('user_email', email);
-          localStorage.setItem('user_uid', userId);
-          localStorage.setItem('user_token', accessToken || 'mobile_token');
-          localStorage.setItem('user_auth_timestamp', Date.now().toString());
-          localStorage.removeItem('is_anonymous_user');
-          console.log('✅ MOBILE FIX: Forced save auth data for mobile user');
-          
-        }
-      }
-    }
-  }
-  
-  // MOBILE DEBUG: Alert for mobile debugging
-  if (isMobile) {
-  }
-  
   // Check localStorage first
   const token = localStorage.getItem('user_token');
   const email = localStorage.getItem('user_email');
   const uid = localStorage.getItem('user_uid');
   const timestamp = localStorage.getItem('user_auth_timestamp');
-  
-  // FIX: Clear anonymous flag for real users in authentication check
-  let isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
-  if (isAnonymousUser && email && email !== 'anonymous@narrin.ai') {
-    console.log('🔧 FIX: Clearing anonymous flag for real user in initializeAuthenticationCheck:', email);
-    localStorage.removeItem('is_anonymous_user');
-    isAnonymousUser = false;
-  }
   
   console.log('🔑 localStorage auth data:', { 
     hasToken: !!token, 
@@ -2724,10 +2629,6 @@ function initializeAuthenticationCheck() {
     if (authAge < 24 * 60 * 60 * 1000) {
       console.log('✅ Valid authentication found in localStorage:', email);
       
-      // MOBILE DEBUG
-      if (isMobile) {
-      }
-      
       // Set global auth state
       window.isAuthenticated = true;
       window.currentUser = { email, uid, token };
@@ -2738,12 +2639,7 @@ function initializeAuthenticationCheck() {
       return true;
     } else {
       console.log('⏰ Authentication expired, clearing...');
-      if (isMobile) {
-      }
       clearAuthData();
-    }
-  } else {
-    if (isMobile) {
     }
   }
   
@@ -2796,18 +2692,10 @@ function clearAuthData() {
    // GEFIXTE versie voor chat-overview.html
 async function loadUserChats() {
   console.log('📡 Loading user chats...');
-  const isMobile = /Mobile|Android|iPhone|iPad/.test(navigator.userAgent);
-  
-  if (isMobile) {
-  }
   
   // NIEUWE authentication check
   if (!window.isAuthenticated || !window.currentUser) {
-    if (isMobile) {
-    }
     if (!initializeAuthenticationCheck()) {
-      if (isMobile) {
-      }
       showNotLoggedIn();
       return;
     }
@@ -2828,91 +2716,33 @@ async function loadUserChats() {
     // Test of de function bestaat
     console.log('🔗 Testing function endpoint...');
     
-    if (isMobile) {
-    }
+    // Direct Airtable API via Netlify Function
+    const functionUrl = '/.netlify/functions/get-user-chats';
+    console.log('📡 Calling:', functionUrl);
     
-    // BACKUP: Show authenticated UI since functions are giving 404 errors
-    console.log('📡 Functions giving 404 - showing basic authenticated UI');
-    
-    if (isMobile) {
-    }
-    
-    // Platform-specific approach: desktop uses Netlify functions, mobile uses webhook backup
-    let response;
-    
-    if (isMobile) {
-      // MOBILE BACKUP: Use Make.com webhook since Netlify functions fail on mobile
-      console.log('📱 Mobile detected - using webhook backup');
-      try {
-        const webhookResponse = await fetch('https://hook.eu2.make.com/fjpapor4lkj9mpypaqx8no68d64bxe19', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'get_user_chats',
-            user_email: email,
-            user_uid: uid,
-            user_token: token
-          })
-        });
-        
-        if (webhookResponse.ok) {
-          const webhookData = await webhookResponse.json();
-          console.log('✅ Mobile webhook success:', webhookData);
-          
-          response = {
-            ok: true,
-            status: 200,
-            json: () => Promise.resolve({
-              success: true,
-              chats: webhookData.chats || webhookData.conversations || [],
-              message: 'Chats loaded via mobile webhook'
-            })
-          };
-        } else {
-          throw new Error('Mobile webhook failed');
-        }
-      } catch (error) {
-        console.log('⚠️ Mobile webhook failed, empty state');
-        response = {
-          ok: true,
-          status: 200,
-          json: () => Promise.resolve({ success: true, chats: [], message: 'No chats found' })
-        };
-      }
-    } else {
-      // DESKTOP: Use normal get-user-chats function
-      console.log('💻 Desktop - using normal get-user-chats function');
-      const functionUrl = '/.netlify/functions/get-user-chats';
-      
-      response = await fetch(functionUrl, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          user_email: email,
-          user_uid: uid,
-          user_token: token
-        })
-      });
-    }
+    const response = await fetch(functionUrl, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        user_email: email,
+        user_uid: uid,
+        user_token: token
+      })
+    });
 
     console.log('📡 Function response:', {
       status: response.status,
       statusText: response.statusText,
       ok: response.ok,
-      headers: response.headers || {}
+      headers: Object.fromEntries(response.headers)
     });
-
-    if (isMobile) {
-    }
 
     // Check voor verschillende error types
     if (response.status === 404) {
       console.error('❌ Function not found - mogelijk deployment issue');
-      if (isMobile) {
-      }
       showError('Chat functie niet beschikbaar. Probeer pagina te verversen.');
       return;
     }
