@@ -62,20 +62,53 @@ exports.handler = async (event, context) => {
     const chatData = await chatResponse.json();
     console.log('📊 Found', chatData.records.length, 'total ChatHistory records');
     
-    // Filter records for this specific user (by NetlifyUID or email)
-    const userRecords = chatData.records.filter(record => {
-      const recordNetlifyUID = record.fields.NetlifyUID;
-      const recordEmail = record.fields.Email;
-      const recordUser = record.fields.User;
-      
-      // Check multiple ways the user might be stored
-      if (recordNetlifyUID === user_uid) return true;
-      if (recordEmail === user_email) return true;
-      if (Array.isArray(recordUser) && recordUser.includes(user_uid)) return true;
-      if (recordUser === user_uid) return true;
-      
-      return false;
-    });
+    // First, let's see what fields are actually available
+    console.log('📊 Sample record fields:', chatData.records[0]?.fields ? Object.keys(chatData.records[0].fields) : 'No records');
+    console.log('📊 Sample record data:', chatData.records.slice(0, 2).map(r => ({
+      User: r.fields.User,
+      NetlifyUID: r.fields.NetlifyUID,
+      Email: r.fields.Email,
+      Summary: r.fields.Summary?.substring(0, 50)
+    })));
+    
+    // Filter records for this specific user - try different approaches
+    let userRecords = [];
+    
+    // Method 1: Direct NetlifyUID field match
+    userRecords = chatData.records.filter(record => record.fields.NetlifyUID === user_uid);
+    console.log('📊 Method 1 (NetlifyUID field):', userRecords.length, 'records');
+    
+    // Method 2: If no results, try Email field  
+    if (userRecords.length === 0) {
+      userRecords = chatData.records.filter(record => record.fields.Email === user_email);
+      console.log('📊 Method 2 (Email field):', userRecords.length, 'records');
+    }
+    
+    // Method 3: If still no results, try User field (might be lookup)
+    if (userRecords.length === 0) {
+      userRecords = chatData.records.filter(record => {
+        const recordUser = record.fields.User;
+        if (Array.isArray(recordUser)) {
+          return recordUser.some(u => u === user_uid || u.includes?.(user_uid));
+        }
+        return recordUser === user_uid || recordUser?.includes?.(user_uid);
+      });
+      console.log('📊 Method 3 (User field lookup):', userRecords.length, 'records');
+    }
+    
+    // Method 4: As last resort, search by imported memory content patterns  
+    if (userRecords.length === 0) {
+      console.log('🔍 Method 4: Searching all records for imported memory patterns...');
+      userRecords = chatData.records.filter(record => {
+        const summary = record.fields.Summary || '';
+        const message = record.fields.Message || '';
+        const content = (summary + ' ' + message).toLowerCase();
+        
+        const importPatterns = ['you often', 'you are interested', 'you prefer', 'you treat chatgpt'];
+        return importPatterns.some(pattern => content.includes(pattern));
+      });
+      console.log('📊 Method 4 (content pattern):', userRecords.length, 'records');
+    }
     
     console.log('📊 Found', userRecords.length, 'records for this user');
     console.log('📊 First few user records:', userRecords.slice(0, 3).map(r => ({
