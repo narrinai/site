@@ -2826,11 +2826,11 @@ Example JSON format:
     }
 
     // Load and display recent imports
-    function loadRecentImports() {
+    async function loadRecentImports() {
       const userToken = localStorage.getItem('user_token');
       const uid = localStorage.getItem('user_uid');
-      const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
       const userEmail = localStorage.getItem('user_email');
+      const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
       const isAnonymousEmail = userEmail === 'anonymous@narrin.ai';
       const isAuthenticated = userToken && uid && !isAnonymousUser && !isAnonymousEmail;
       
@@ -2838,26 +2838,98 @@ Example JSON format:
         return; // Don't show recent imports for unauthenticated users
       }
 
-      // Check if user has any import history
-      const hasImportHistory = localStorage.getItem('chatgpt_import_timestamp');
-      if (!hasImportHistory) {
-        return; // No imports to show
-      }
+      try {
+        console.log('🔍 Checking for imported memories in database...');
+        
+        // Call memory function to check for imported memories
+        const response = await fetch('/.netlify/functions/memory', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_email: userEmail,
+            user_uid: uid,
+            user_token: userToken,
+            importance_threshold: 1, // Get all imported memories
+            action: 'get_imported_memories'
+          })
+        });
 
-      // Show the recent imports section
-      document.getElementById('recent-imports-section').style.display = 'block';
-      
-      // Create example recent imports (in real app, this would come from an API)
-      const recentImports = [
-        {
-          date: localStorage.getItem('chatgpt_import_timestamp') ? new Date(localStorage.getItem('chatgpt_import_timestamp')).toLocaleDateString() : new Date().toLocaleDateString(),
-          count: localStorage.getItem('chatgpt_import_count') || '24',
-          categories: ['Personal Info', 'Preferences', 'Professional', 'Goals'],
-          totalMemories: localStorage.getItem('chatgpt_import_count') || '24'
+        if (response.ok) {
+          const result = await response.json();
+          console.log('📊 Memory function result:', result);
+          
+          if (result.success && result.memories && result.memories.length > 0) {
+            // Filter for imported memories (look for memories with import metadata)
+            const importedMemories = result.memories.filter(memory => 
+              memory.Memory && (
+                memory.Memory.includes('ChatGPT import') || 
+                memory.Memory.includes('imported from ChatGPT') ||
+                memory.Character === 'ChatGPT Import' ||
+                memory.Memory.toLowerCase().includes('you prefer') ||
+                memory.Memory.toLowerCase().includes('you are interested in') ||
+                memory.Memory.toLowerCase().includes('you often')
+              )
+            );
+
+            if (importedMemories.length > 0) {
+              console.log('✅ Found imported memories:', importedMemories.length);
+              
+              // Get the most recent import date
+              const importDates = importedMemories
+                .map(m => new Date(m.Date || m.created_at))
+                .filter(d => !isNaN(d))
+                .sort((a, b) => b - a);
+              
+              const mostRecentDate = importDates[0] || new Date();
+              
+              // Show the recent imports section
+              document.getElementById('recent-imports-section').style.display = 'block';
+              
+              // Create recent imports data from actual imported memories
+              const recentImports = [
+                {
+                  date: mostRecentDate.toLocaleDateString(),
+                  count: importedMemories.length.toString(),
+                  categories: ['Personal Info', 'Preferences', 'Professional', 'Goals'],
+                  totalMemories: importedMemories.length.toString()
+                }
+              ];
+
+              // Update localStorage with current data for faster subsequent loads
+              localStorage.setItem('chatgpt_import_timestamp', mostRecentDate.toISOString());
+              localStorage.setItem('chatgpt_import_count', importedMemories.length.toString());
+
+              displayRecentImports(recentImports);
+            } else {
+              console.log('📝 No imported memories found after filtering');
+            }
+          } else {
+            console.log('📝 No memories found in database');
+          }
+        } else {
+          console.warn('⚠️ Failed to fetch memories from database');
         }
-      ];
-
-      displayRecentImports(recentImports);
+      } catch (error) {
+        console.error('❌ Error loading imported memories:', error);
+        
+        // Fallback to localStorage check
+        const hasImportHistory = localStorage.getItem('chatgpt_import_timestamp');
+        if (hasImportHistory) {
+          console.log('📱 Falling back to localStorage data');
+          document.getElementById('recent-imports-section').style.display = 'block';
+          
+          const recentImports = [
+            {
+              date: new Date(hasImportHistory).toLocaleDateString(),
+              count: localStorage.getItem('chatgpt_import_count') || '24',
+              categories: ['Personal Info', 'Preferences', 'Professional', 'Goals'],
+              totalMemories: localStorage.getItem('chatgpt_import_count') || '24'
+            }
+          ];
+          
+          displayRecentImports(recentImports);
+        }
+      }
     }
 
     function displayRecentImports(imports) {
