@@ -2208,6 +2208,25 @@ line-clamp: 3;
         window.history.replaceState({}, document.title, cleanUrl);
       }
       
+      // MOBILE FIX: Force clean anonymous flags for Google users on page load
+      const userEmail = localStorage.getItem('user_email');
+      const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+      if (isAnonymousUser && userEmail && userEmail !== 'anonymous@narrin.ai') {
+        console.log('🔧 PAGE LOAD FIX: Force clearing anonymous flag for:', userEmail);
+        localStorage.removeItem('is_anonymous_user');
+        
+        // Also ensure we have proper auth data
+        setTimeout(() => {
+          const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+          if (netlifyUser) {
+            localStorage.setItem('user_email', netlifyUser.email || userEmail);
+            localStorage.setItem('user_uid', netlifyUser.id || localStorage.getItem('user_uid'));
+            localStorage.setItem('user_token', netlifyUser.token?.access_token || 'mobile_token');
+            localStorage.setItem('user_auth_timestamp', Date.now().toString());
+          }
+        }, 200);
+      }
+      
       // Initialize authentication check
   initializeAuthenticationCheck();
   
@@ -2252,6 +2271,19 @@ line-clamp: 3;
       });
 
       window.netlifyIdentity.on('login', user => {
+        console.log('🔑 Login event fired for:', user.email);
+        
+        // MOBILE FIX: Force save auth data for mobile users  
+        const isMobile = /Mobile|Android|iPhone|iPad/.test(navigator.userAgent);
+        if (isMobile) {
+          console.log('🔧 MOBILE LOGIN FIX: Saving auth data');
+          localStorage.setItem('user_email', user.email);
+          localStorage.setItem('user_uid', user.id);
+          localStorage.setItem('user_token', user.token?.access_token || 'mobile_token');
+          localStorage.setItem('user_auth_timestamp', Date.now().toString());
+          localStorage.removeItem('is_anonymous_user'); // Force remove anonymous flag
+        }
+        
         updateLoginButton();
         window.netlifyIdentity.close();
         checkAuthAndLoadChats();
