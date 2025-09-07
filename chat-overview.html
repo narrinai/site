@@ -2616,6 +2616,11 @@ function initializeAuthenticationCheck() {
   const isMobile = /Mobile|Android|iPhone|iPad/.test(navigator.userAgent);
   console.log('🔐 Initializing authentication check...', { isMobile, userAgent: navigator.userAgent.substring(0, 50) });
   
+  // MOBILE DEBUG: Alert for mobile debugging
+  if (isMobile) {
+    alert('MOBILE DEBUG: Auth check started for ' + (localStorage.getItem('user_email') || 'no email'));
+  }
+  
   // Check localStorage first
   const token = localStorage.getItem('user_token');
   const email = localStorage.getItem('user_email');
@@ -2645,6 +2650,11 @@ function initializeAuthenticationCheck() {
     if (authAge < 24 * 60 * 60 * 1000) {
       console.log('✅ Valid authentication found in localStorage:', email);
       
+      // MOBILE DEBUG
+      if (isMobile) {
+        alert('MOBILE DEBUG: Auth SUCCESS - setting window.isAuthenticated = true');
+      }
+      
       // Set global auth state
       window.isAuthenticated = true;
       window.currentUser = { email, uid, token };
@@ -2655,7 +2665,14 @@ function initializeAuthenticationCheck() {
       return true;
     } else {
       console.log('⏰ Authentication expired, clearing...');
+      if (isMobile) {
+        alert('MOBILE DEBUG: Auth EXPIRED - token too old');
+      }
       clearAuthData();
+    }
+  } else {
+    if (isMobile) {
+      alert('MOBILE DEBUG: Auth FAILED - missing data: token=' + !!token + ' email=' + !!email + ' uid=' + !!uid);
     }
   }
   
@@ -2708,10 +2725,21 @@ function clearAuthData() {
    // GEFIXTE versie voor chat-overview.html
 async function loadUserChats() {
   console.log('📡 Loading user chats...');
+  const isMobile = /Mobile|Android|iPhone|iPad/.test(navigator.userAgent);
+  
+  if (isMobile) {
+    alert('MOBILE DEBUG: loadUserChats called');
+  }
   
   // NIEUWE authentication check
   if (!window.isAuthenticated || !window.currentUser) {
+    if (isMobile) {
+      alert('MOBILE DEBUG: Auth check failed, calling initializeAuthenticationCheck');
+    }
     if (!initializeAuthenticationCheck()) {
+      if (isMobile) {
+        alert('MOBILE DEBUG: initializeAuthenticationCheck returned false, showing not logged in');
+      }
       showNotLoggedIn();
       return;
     }
@@ -2731,6 +2759,10 @@ async function loadUserChats() {
 
     // Test of de function bestaat
     console.log('🔗 Testing function endpoint...');
+    
+    if (isMobile) {
+      alert('MOBILE DEBUG: About to call get-user-chats function');
+    }
     
     // Direct Airtable API via Netlify Function
     const functionUrl = '/.netlify/functions/get-user-chats';
@@ -2756,9 +2788,16 @@ async function loadUserChats() {
       headers: Object.fromEntries(response.headers)
     });
 
+    if (isMobile) {
+      alert('MOBILE DEBUG: get-user-chats response status: ' + response.status);
+    }
+
     // Check voor verschillende error types
     if (response.status === 404) {
       console.error('❌ Function not found - mogelijk deployment issue');
+      if (isMobile) {
+        alert('MOBILE DEBUG: 404 ERROR from get-user-chats function');
+      }
       showError('Chat functie niet beschikbaar. Probeer pagina te verversen.');
       return;
     }
