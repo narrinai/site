@@ -2860,96 +2860,30 @@ Example JSON format:
 
       try {
         console.log('🔍 Checking for imported memories in database...');
-        console.log('📤 Memory function payload (no character_slug):', {
-          action: 'get_memories',
+        console.log('📤 Direct imported memories function payload:', {
           user_email: userEmail,
-          user_uid: uid,
-          user_token: !!userToken
+          user_uid: uid
         });
         
-        // Use memory function with importance_threshold 0 to get ALL memories
-        const response = await fetch('/.netlify/functions/memory', {
+        // Use dedicated imported memories function
+        const response = await fetch('/.netlify/functions/get-imported-memories', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            action: 'get_memories',
             user_email: userEmail,
-            user_uid: uid,
-            user_token: userToken
-            // No character_slug to get all memories including imported ones
+            user_uid: uid
           })
         });
 
         if (response.ok) {
           const result = await response.json();
-          console.log('📊 Memory function result (importance 0):', result);
-          console.log('🔍 First few memories for analysis:', result.memories?.slice(0, 3));
+          console.log('📊 Direct imported memories result:', result);
+          console.log('🔍 Found imported memories:', result.imported_memories?.slice(0, 3));
           
-          if (result.success && result.memories && result.memories.length > 0) {
-            // Enhanced filter for imported memories - check multiple formats
-            console.log('🔍 Testing each memory for import patterns...');
-            const importedMemories = result.memories.filter((memory, index) => {
-              console.log(`Memory ${index + 1}:`, {
-                message: memory.message?.substring(0, 100) + '...',
-                summary: memory.summary,
-                message_type: memory.message_type,
-                source: memory.source,
-                character: memory.character,
-                character_name: memory.character_name,
-                Memory: memory.Memory?.substring(0, 100) + '...',
-                Character: memory.Character,
-                Role: memory.Role
-              });
-              
-              // Method 1: Check explicit import metadata
-              if (memory.message_type === 'imported' && memory.source === 'chatgpt') {
-                console.log('✅ Found by method 1: explicit metadata');
-                return true;
-              }
-              
-              // Method 2: Check Character fields for import markers
-              if (memory.character === 'ChatGPT Import' || memory.character === 'imported' || 
-                  memory.character_name === 'ChatGPT Import' || memory.Character === 'ChatGPT Import') {
-                console.log('✅ Found by method 2: character field');
-                return true;
-              }
-              
-              // Method 3: Check message/Memory content for ChatGPT import patterns
-              const contentToCheck = memory.message || memory.Memory || '';
-              if (contentToCheck && (
-                contentToCheck.includes('ChatGPT import') || 
-                contentToCheck.includes('imported from ChatGPT')
-              )) {
-                console.log('✅ Found by method 3: explicit import content');
-                return true;
-              }
-              
-              // Method 4: Check message/Memory content for typical imported memory patterns
-              if (contentToCheck) {
-                const contentText = contentToCheck.toLowerCase();
-                const importPatterns = [
-                  'you prefer',
-                  'you are interested in',
-                  'you often',
-                  'you like',
-                  'you enjoy',
-                  'you have a',
-                  'you work',
-                  'you use',
-                  'you treat chatgpt',
-                  'you aim to',
-                  'you actively'
-                ];
-                
-                const foundPattern = importPatterns.find(pattern => contentText.includes(pattern));
-                if (foundPattern) {
-                  console.log(`✅ Found by method 4: pattern "${foundPattern}"`);
-                  return true;
-                }
-              }
-              
-              return false;
-            });
+          if (result.success && result.imported_memories && result.imported_memories.length > 0) {
+            // Use the already filtered imported memories from the dedicated function
+            const importedMemories = result.imported_memories;
+            console.log('✅ Using pre-filtered imported memories:', importedMemories.length);
 
             if (importedMemories.length > 0) {
               console.log('✅ Found imported memories:', importedMemories.length);

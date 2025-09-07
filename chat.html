@@ -804,21 +804,36 @@
         color: white !important;
       }
       
-      /* Mobile organize popup */
+      /* Mobile organize popup - positioned to expand downward */
       .mobile-organize-popup {
-        position: absolute !important;
-        bottom: 100% !important;
+        position: fixed !important;
+        bottom: 85px !important; /* Position above the mobile bottom section */
         left: 0 !important;
         right: 0 !important;
         background: white !important;
         border-top: 1px solid var(--color-light-gray) !important;
-        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1) !important;
+        border-bottom: 1px solid var(--color-light-gray) !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
         animation: slideUp 0.2s ease-out !important;
+        max-height: 300px !important; /* Reasonable height for topics */
+        overflow-y: auto !important; /* Allow scrolling if too many topics */
+        z-index: 400 !important; /* Above everything else */
       }
       
       @keyframes slideUp {
         from {
           transform: translateY(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+      
+      @keyframes slideDown {
+        from {
+          transform: translateY(-100%);
           opacity: 0;
         }
         to {
