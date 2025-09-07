@@ -40,8 +40,8 @@ exports.handler = async (event, context) => {
     }
 
     // Direct query to ChatHistory table - get all records and filter in code
-    // This avoids complex Airtable formulas that might cause 500 errors
-    const chatUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=1000`;
+    // Increase maxRecords to capture all imported memories
+    const chatUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=2000`;
     
     console.log('🔍 Direct ChatHistory query URL:', chatUrl);
     
@@ -104,7 +104,13 @@ exports.handler = async (event, context) => {
         const message = record.fields.Message || '';
         const content = (summary + ' ' + message).toLowerCase();
         
-        const importPatterns = ['you often', 'you are interested', 'you prefer', 'you treat chatgpt'];
+        const importPatterns = [
+          'you often', 'you are interested', 'you prefer', 'you treat chatgpt',
+          'you like', 'you enjoy', 'you have a', 'you work', 'you use', 
+          'you aim to', 'you actively', 'your name is', 'you are building',
+          'you host', 'you run', 'you collect', 'you are detail-oriented',
+          'you are deeply engaged', 'you are an omnia'
+        ];
         return importPatterns.some(pattern => content.includes(pattern));
       });
       console.log('📊 Method 4 (content pattern):', userRecords.length, 'records');
@@ -144,17 +150,10 @@ exports.handler = async (event, context) => {
         if (memory.Memory) {
           const memoryText = memory.Memory.toLowerCase();
           const importPatterns = [
-            'you prefer',
-            'you are interested in',
-            'you often',
-            'you like',
-            'you enjoy',
-            'you have a',
-            'you work',
-            'you use',
-            'you treat chatgpt',
-            'you aim to',
-            'you actively'
+            'you prefer', 'you are interested', 'you often', 'you like', 'you enjoy',
+            'you have a', 'you work', 'you use', 'you treat chatgpt', 'you aim to', 
+            'you actively', 'your name is', 'you are building', 'you host', 'you run', 
+            'you collect', 'you are detail-oriented', 'you are deeply engaged', 'you are an omnia'
           ];
           
           const foundPattern = importPatterns.find(pattern => memoryText.includes(pattern));
