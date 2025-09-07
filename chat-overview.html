@@ -2837,11 +2837,11 @@ async function loadUserChats() {
     console.log('🔗 Testing function endpoint...');
     
     if (isMobile) {
-      alert('MOBILE DEBUG: About to call get-user-chats function');
+      alert('MOBILE DEBUG: About to call get-chat-history function');
     }
     
-    // Direct Airtable API via Netlify Function
-    const functionUrl = '/.netlify/functions/get-user-chats';
+    // Use get-chat-history function instead of get-user-chats (which gives 404)
+    const functionUrl = '/.netlify/functions/get-chat-history';
     console.log('📡 Calling:', functionUrl);
     
     const response = await fetch(functionUrl, {
@@ -2853,7 +2853,8 @@ async function loadUserChats() {
       body: JSON.stringify({
         user_email: email,
         user_uid: uid,
-        user_token: token
+        user_token: token,
+        char: 'overview' // Required parameter for get-chat-history
       })
     });
 
@@ -2872,7 +2873,7 @@ async function loadUserChats() {
     if (response.status === 404) {
       console.error('❌ Function not found - mogelijk deployment issue');
       if (isMobile) {
-        alert('MOBILE DEBUG: 404 ERROR from get-user-chats function');
+        alert('MOBILE DEBUG: 404 ERROR from get-chat-history function');
       }
       showError('Chat functie niet beschikbaar. Probeer pagina te verversen.');
       return;
