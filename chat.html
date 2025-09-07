@@ -12554,13 +12554,15 @@ async function openMemoryHub() {
     
     // If not in localStorage or we want fresher data, try to get from Airtable
     if (!onboardingData || !onboardingData.answers) {
-      console.log('📊 Fetching from Airtable...');
-      const response = await fetch('/.netlify/functions/get-chat-history', {
+      console.log('📊 Fetching from Airtable using memory function...');
+      const response = await fetch('/.netlify/functions/memory', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user_id: uid,
-          character_id: slug
+          action: 'get_memories',
+          user_uid: uid,
+          user_email: userEmail,
+          character_slug: slug || 'general'
         })
       });
       
