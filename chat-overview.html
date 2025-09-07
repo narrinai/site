@@ -2217,8 +2217,20 @@ line-clamp: 3;
       
       // MOBILE FIX: Force check and restore auth data
       setTimeout(() => {
-        const email = localStorage.getItem('user_email');
-        const uid = localStorage.getItem('user_uid');
+        let email = localStorage.getItem('user_email');
+        let uid = localStorage.getItem('user_uid');
+        
+        // FIX: Clean up "undefined" string values that break auth
+        if (email === 'undefined' || email === 'null') {
+          localStorage.removeItem('user_email');
+          email = null;
+          alert('CLEANED: Removed invalid email="undefined"');
+        }
+        if (uid === 'undefined' || uid === 'null') {
+          localStorage.removeItem('user_uid');  
+          uid = null;
+          alert('CLEANED: Removed invalid uid="undefined"');
+        }
         
         if (!email || !uid) {
           // Try to get from Netlify Identity
