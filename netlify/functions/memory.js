@@ -87,6 +87,9 @@ exports.handler = async (event, context) => {
       
       // Step 3: Get user record ID from NetlifyUID lookup
       const userLookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={NetlifyUID}='${user_uid}'&maxRecords=1`;
+      console.log('🔍 User lookup URL:', userLookupUrl);
+      console.log('🔍 Looking for NetlifyUID:', user_uid);
+      
       const userLookupResponse = await fetch(userLookupUrl, {
         headers: {
           'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
@@ -97,14 +100,47 @@ exports.handler = async (event, context) => {
       let userRecordId = null;
       if (userLookupResponse.ok) {
         const userData = await userLookupResponse.json();
+        console.log('📊 User lookup response:', userData);
+        console.log('📊 Found', userData.records.length, 'user records');
+        
         if (userData.records.length > 0) {
           userRecordId = userData.records[0].id;
           console.log('✅ Found user record ID:', userRecordId);
+          console.log('✅ User record data:', userData.records[0].fields);
+        } else {
+          console.log('❌ No user records found in lookup response');
         }
+      } else {
+        console.log('❌ User lookup request failed:', userLookupResponse.status);
       }
       
       if (!userRecordId) {
         console.log('❌ No user record found for NetlifyUID:', user_uid);
+        
+        // ADDITIONAL DEBUG: Try looking for user by email as backup
+        console.log('🔍 Trying fallback lookup by email:', user_email);
+        const emailLookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={Email}='${user_email}'&maxRecords=1`;
+        
+        try {
+          const emailLookupResponse = await fetch(emailLookupUrl, {
+            headers: {
+              'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (emailLookupResponse.ok) {
+            const emailUserData = await emailLookupResponse.json();
+            console.log('📊 Email lookup response:', emailUserData);
+            
+            if (emailUserData.records.length > 0) {
+              console.log('✅ Found user by email:', emailUserData.records[0].fields);
+              // Don't use this for now, just for debugging
+            }
+          }
+        } catch (emailError) {
+          console.log('❌ Email lookup error:', emailError);
+        }
         return {
           statusCode: 404,
           headers: { 'Content-Type': 'application/json' },
