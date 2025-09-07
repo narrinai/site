@@ -67,9 +67,9 @@ exports.handler = async (event, context) => {
         };
       }
       
-      // Step 2: Get ALL ChatHistory records for this email 
+      // Step 2: Get recent ChatHistory records for this email (limit to 50 for faster response)
       console.log('💬 Getting ChatHistory records for email:', emailToSearch);
-      const chatUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=100`;
+      const chatUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=50`;
       
       const chatResponse = await fetch(chatUrl, {
         headers: {

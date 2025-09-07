@@ -15081,22 +15081,56 @@ async function sendMessage(event) {
   let memories = [];
   let memoryContext = "";
 
-  // Always try to retrieve memories, regardless of existing history in current session
-  try {
-    const memoryResponse = await getRelevantMemories(effective_user_id, characterSlug, input);
-    
-    // Enhanced: Extract memories and relationship context
-    if (memoryResponse && typeof memoryResponse === 'object') {
-      memories = memoryResponse.memories || memoryResponse || [];
-      relationshipContext = memoryResponse.relationshipContext || null;
-      recentSummary = memoryResponse.recentSummary || null;
-    } else {
-      memories = memoryResponse || [];
+  // Check if we have cached memories (cache for 3 minutes for faster responses)
+  const memoryCacheKey = `memories_${characterSlug}_${effective_user_id}`;
+  const memoryCacheTime = `memories_time_${characterSlug}_${effective_user_id}`;
+  const cachedMemories = sessionStorage.getItem(memoryCacheKey);
+  const cacheTime = parseInt(sessionStorage.getItem(memoryCacheTime) || '0');
+  const threeMinutesAgo = Date.now() - (3 * 60 * 1000);
+  
+  if (cachedMemories && cacheTime > threeMinutesAgo) {
+    console.log("⚡ Using cached memories for faster response");
+    try {
+      const cachedData = JSON.parse(cachedMemories);
+      memories = cachedData.memories || [];
+      relationshipContext = cachedData.relationshipContext || null;
+      recentSummary = cachedData.recentSummary || null;
+    } catch (e) {
+      console.warn("Failed to parse cached memories, fetching fresh");
     }
-    
-    console.log("✅ Memory retrieval completed:", memories?.length || 0, "memories found");
-    console.log("📊 Full memory response:", memoryResponse);
-    if (relationshipContext) {
+  }
+  
+  // Only fetch fresh memories if cache is empty or expired
+  if (memories.length === 0) {
+    console.log("🧠 Fetching fresh memories...");
+    try {
+      const memoryResponse = await getRelevantMemories(effective_user_id, characterSlug, input);
+      
+      // Enhanced: Extract memories and relationship context
+      if (memoryResponse && typeof memoryResponse === 'object') {
+        memories = memoryResponse.memories || memoryResponse || [];
+        relationshipContext = memoryResponse.relationshipContext || null;
+        recentSummary = memoryResponse.recentSummary || null;
+      } else {
+        memories = memoryResponse || [];
+      }
+      
+      // Cache the memories for faster future responses
+      try {
+        const cacheData = { memories, relationshipContext, recentSummary };
+        sessionStorage.setItem(memoryCacheKey, JSON.stringify(cacheData));
+        sessionStorage.setItem(memoryCacheTime, Date.now().toString());
+        console.log("💾 Cached memories for faster future responses");
+      } catch (e) {
+        console.warn("Failed to cache memories");
+      }
+    } catch (error) {
+      console.error("❌ Memory retrieval error:", error);
+      memories = [];
+    }
+  
+  console.log("✅ Memory retrieval completed:", memories?.length || 0, "memories found");
+  if (relationshipContext) {
       console.log("🤝 Relationship context:", relationshipContext.phase, `(${relationshipContext.totalMessages} messages)`);
     } else {
       console.log("⚠️ No relationship context found in response");
@@ -15147,10 +15181,6 @@ async function sendMessage(event) {
         }
       }
     }
-  } catch (error) {
-    console.error("❌ Memory retrieval failed:", error);
-    memories = []; // Fallback to empty array
-  }
 
   // Smart memory filtering based on relevance to current message
   if (memories && memories.length > 0) {
