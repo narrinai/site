@@ -12446,15 +12446,14 @@ async function fetchImportedMemories() {
   }
   
   try {
-    console.log('📥 Fetching imported memories...');
-    const response = await fetch('/.netlify/functions/memory', {
+    console.log('📥 Fetching imported memories using dedicated function...');
+    const userEmail = localStorage.getItem('user_email');
+    const response = await fetch('/.netlify/functions/get-imported-memories', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        action: 'get_memories',
-        user_uid: uid,
-        character_id: characterSlug,
-        importance_threshold: 1 // Get all imported memories
+        user_email: userEmail,
+        user_uid: uid
       })
     });
     
@@ -12465,52 +12464,13 @@ async function fetchImportedMemories() {
     
     const data = await response.json();
     if (!data.success) {
-      console.warn('⚠️ Memory function returned error:', data.error);
+      console.warn('⚠️ Get-imported-memories function returned error:', data.error);
       return [];
     }
     
-    // Enhanced filter for imported memories - check multiple formats
-    const importedMemories = (data.memories || []).filter(memory => {
-      // Method 1: Check explicit import metadata
-      if (memory.message_type === 'imported' && memory.source === 'chatgpt') {
-        return true;
-      }
-      
-      // Method 2: Check Character field for import markers
-      if (memory.Character === 'ChatGPT Import' || memory.Character === 'imported') {
-        return true;
-      }
-      
-      // Method 3: Check Memory content for ChatGPT import patterns
-      if (memory.Memory && (
-        memory.Memory.includes('ChatGPT import') || 
-        memory.Memory.includes('imported from ChatGPT')
-      )) {
-        return true;
-      }
-      
-      // Method 4: Check Memory content for typical imported memory patterns
-      if (memory.Memory) {
-        const memoryText = memory.Memory.toLowerCase();
-        const importPatterns = [
-          'you prefer',
-          'you are interested in',
-          'you often',
-          'you like',
-          'you enjoy',
-          'you have a',
-          'you work',
-          'you use',
-          'you treat chatgpt',
-          'you aim to',
-          'you actively'
-        ];
-        
-        return importPatterns.some(pattern => memoryText.includes(pattern));
-      }
-      
-      return false;
-    });
+    // Use the already filtered imported memories from the dedicated function
+    const importedMemories = data.imported_memories || [];
+    console.log('📊 Memory Hub: Received', importedMemories.length, 'pre-filtered imported memories');
     
     console.log(`✅ Found ${importedMemories.length} imported memories`);
     return importedMemories;
