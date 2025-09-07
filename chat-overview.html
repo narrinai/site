@@ -2837,22 +2837,58 @@ async function loadUserChats() {
     if (isMobile) {
     }
     
-    // Create mock successful response to show authenticated UI
-    const response = {
-      ok: true,
-      status: 200,
-      json: () => Promise.resolve({
-        success: true,
-        chats: [], // Empty chats array - user can create new ones
-        message: 'No existing chats found - ready to create new companions'
-      })
-    };
+    // BACKUP: Try direct Make.com webhook to get user chats (bypass failing Netlify functions)
+    let response;
+    try {
+      // Try Make.com webhook as backup
+      const webhookResponse = await fetch('https://hook.eu2.make.com/fjpapor4lkj9mpypaqx8no68d64bxe19', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'get_user_chats',
+          user_email: email,
+          user_uid: uid,
+          user_token: token
+        })
+      });
+      
+      if (webhookResponse.ok) {
+        const webhookData = await webhookResponse.json();
+        console.log('✅ Make.com webhook success:', webhookData);
+        
+        // Create compatible response format
+        response = {
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({
+            success: true,
+            chats: webhookData.chats || webhookData.conversations || [],
+            message: 'Chats loaded via backup webhook'
+          })
+        };
+      } else {
+        throw new Error('Webhook also failed');
+      }
+    } catch (error) {
+      console.log('⚠️ Webhook backup also failed, using empty state');
+      
+      // Final fallback - empty state but authenticated
+      response = {
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({
+          success: true,
+          chats: [],
+          message: 'No chats found - ready to create companions'
+        })
+      };
+    }
 
     console.log('📡 Function response:', {
       status: response.status,
       statusText: response.statusText,
       ok: response.ok,
-      headers: Object.fromEntries(response.headers)
+      headers: response.headers || {}
     });
 
     if (isMobile) {
