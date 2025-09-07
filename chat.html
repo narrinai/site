@@ -19301,20 +19301,20 @@ async function generateCompanionImage() {
     
     // Add topics
     topics.forEach(topicGroup => {
-      // Safety check for topicGroup
-      if (!topicGroup || !topicGroup.topics || !Array.isArray(topicGroup.topics)) {
+      // Safety check for topicGroup - check for correct property names
+      if (!topicGroup || !topicGroup.subtopics || !Array.isArray(topicGroup.subtopics)) {
         console.warn('⚠️ Invalid topic group:', topicGroup);
         return;
       }
       
-      // Add group title
+      // Add group title using 'main' property
       const groupTitle = document.createElement('div');
       groupTitle.className = 'topic-group-title';
-      groupTitle.textContent = topicGroup.group || 'Topics';
+      groupTitle.textContent = topicGroup.main || 'Topics';
       topicButtons.appendChild(groupTitle);
       
-      // Add topic buttons
-      topicGroup.topics.forEach(topic => {
+      // Add topic buttons using 'subtopics' property
+      topicGroup.subtopics.forEach(topic => {
         const button = document.createElement('button');
         button.className = 'topic-btn';
         button.textContent = topic;
