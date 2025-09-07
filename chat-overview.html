@@ -2321,8 +2321,16 @@ line-clamp: 3;
       const localEmail = localStorage.getItem("user_email");
       const localToken = localStorage.getItem("user_token");
       
-      const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+      let isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
       const isAnonymousEmail = localEmail === 'anonymous@narrin.ai';
+      
+      // FIX: Clear anonymous flag for real users with non-anonymous email
+      if (isAnonymousUser && localEmail && localEmail !== 'anonymous@narrin.ai') {
+        console.log('🔧 FIX: Clearing anonymous flag for real user on chat-overview:', localEmail);
+        localStorage.removeItem('is_anonymous_user');
+        isAnonymousUser = false;
+      }
+      
       const isLoggedIn = netlifyUser || (localEmail && localToken && !isAnonymousUser && !isAnonymousEmail);
       
       console.log('🔍 updateLoginButton debug:', {
@@ -2395,8 +2403,15 @@ line-clamp: 3;
           const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
           const localEmail = localStorage.getItem("user_email");
           const localToken = localStorage.getItem("user_token");
-          const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+          let isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
       const isAnonymousEmail = localEmail === 'anonymous@narrin.ai';
+      
+      // FIX: Clear anonymous flag for real users  
+      if (isAnonymousUser && localEmail && localEmail !== 'anonymous@narrin.ai') {
+        localStorage.removeItem('is_anonymous_user');
+        isAnonymousUser = false;
+      }
+      
       const isLoggedIn = netlifyUser || (localEmail && localToken && !isAnonymousUser && !isAnonymousEmail);
           
           if (isLoggedIn) {
@@ -2418,8 +2433,15 @@ line-clamp: 3;
           const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
           const localEmail = localStorage.getItem("user_email");
           const localToken = localStorage.getItem("user_token");
-          const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+          let isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
       const isAnonymousEmail = localEmail === 'anonymous@narrin.ai';
+      
+      // FIX: Clear anonymous flag for real users  
+      if (isAnonymousUser && localEmail && localEmail !== 'anonymous@narrin.ai') {
+        localStorage.removeItem('is_anonymous_user');
+        isAnonymousUser = false;
+      }
+      
       const isLoggedIn = netlifyUser || (localEmail && localToken && !isAnonymousUser && !isAnonymousEmail);
           
           if (isLoggedIn) {
