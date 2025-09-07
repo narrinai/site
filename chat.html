@@ -724,7 +724,7 @@
       /* Fixed character header - smaller for more chat space */
       .character-header {
         position: fixed !important;
-        top: 85px !important; /* Further increased to 85px for adequate breathing room */
+        top: 110px !important; /* Significantly increased to 110px for proper clearance from navigation */
         left: 0 !important;
         right: 0 !important;
         z-index: 150 !important;
@@ -918,12 +918,12 @@
       /* Chatlog - full screen between header and input */
       #chatlog {
         position: absolute !important;
-        top: 140px !important; /* Adjusted for header at 85px + 80px height + 5px spacing */
+        top: 200px !important; /* Adjusted for header at 110px + 80px height + 10px spacing */
         bottom: 85px !important; /* Account for mobile bottom section height */
         left: 0 !important;
         right: 0 !important;
         width: 100% !important;
-        height: calc(100vh - 225px) !important; /* Adjusted for new header position */
+        height: calc(100vh - 285px) !important; /* Adjusted for header at 200px + bottom 85px */
         overflow-y: auto !important;
         overflow-x: hidden !important;
         padding: var(--spacing-sm) var(--spacing-md) !important;
@@ -12607,6 +12607,7 @@ async function openMemoryHub() {
       if (response.ok) {
         const data = await response.json();
         console.log('📊 Airtable response:', data);
+        console.log('🔍 First few memories for analysis:', data.memories?.slice(0, 3));
         
         // Look for onboarding data in metadata field
         if (data.metadata && data.metadata.onboarding) {

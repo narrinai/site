@@ -2858,10 +2858,18 @@ Example JSON format:
         if (response.ok) {
           const result = await response.json();
           console.log('📊 Memory function result:', result);
+          console.log('🔍 First few memories for analysis:', result.memories?.slice(0, 3));
           
           if (result.success && result.memories && result.memories.length > 0) {
             // Enhanced filter for imported memories - check multiple formats
-            const importedMemories = result.memories.filter(memory => {
+            console.log('🔍 Testing each memory for import patterns...');
+            const importedMemories = result.memories.filter((memory, index) => {
+              console.log(`Memory ${index + 1}:`, {
+                Memory: memory.Memory?.substring(0, 100) + '...',
+                Character: memory.Character,
+                message_type: memory.message_type,
+                source: memory.source
+              });
               // Method 1: Check explicit import metadata
               if (memory.message_type === 'imported' && memory.source === 'chatgpt') {
                 return true;
