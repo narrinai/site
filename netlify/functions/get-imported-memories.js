@@ -39,9 +39,9 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Strategy 1: Get all records for this user first to understand the data structure 
-    console.log('🔍 Getting user records to analyze structure...');
-    let chatUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=OR({NetlifyUID}='${user_uid}',{Email}='${user_email}')&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=200`;
+    // Strategy 1: Filter specifically for imported memories for this user
+    console.log('🔍 Searching for imported memories for user...');
+    let chatUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND(OR({NetlifyUID}='${user_uid}',{Email}='${user_email}'),{message_type}='imported')&sort[0][field]=CreatedTime&sort[0][direction]=desc`;
     
     console.log('🔍 User-specific query URL:', chatUrl);
     
@@ -56,8 +56,8 @@ exports.handler = async (event, context) => {
       console.log('❌ User-specific query failed:', chatResponse.status);
       console.log('🔄 Falling back to get all records strategy...');
       
-      // Fallback: Get all records and filter in code
-      chatUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=10000`;
+      // Fallback: Get all imported records and filter for user in code
+      chatUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula={message_type}='imported'&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=1000`;
       
       const fallbackResponse = await fetch(chatUrl, {
         headers: {
