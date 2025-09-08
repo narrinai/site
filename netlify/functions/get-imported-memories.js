@@ -74,39 +74,51 @@ exports.handler = async (event, context) => {
       message_type: r.fields.message_type
     })));
     
-    // Since we're already filtering in the query, these should be the user's records
-    // But let's verify the matching worked correctly
-    let userRecords = chatData.records;
-    console.log('📊 Initial filtered records from query:', userRecords.length);
+    // The imported memories use a User field (linked record) instead of NetlifyUID/Email directly
+    // We need to look up the user record ID first, then filter based on that
+    let userRecords = [];
     
-    // Debug: Check what NetlifyUID and Email values we're seeing
-    console.log('🔍 Sample record NetlifyUID/Email values:');
-    chatData.records.slice(0, 5).forEach((record, i) => {
-      console.log(`  Record ${i + 1}: NetlifyUID="${record.fields.NetlifyUID}", Email="${record.fields.Email}"`);
-    });
-    console.log('🔍 Looking for NetlifyUID=', user_uid, 'Email=', user_email);
+    console.log('📊 Got', chatData.records.length, 'total imported memories to filter');
+    console.log('🔍 Looking for user with NetlifyUID:', user_uid, 'Email:', user_email);
     
-    // Double-check: Filter again to make sure we have the right user
-    const verifiedRecords = chatData.records.filter(record => 
-      record.fields.NetlifyUID === user_uid || record.fields.Email === user_email
-    );
-    console.log('📊 Verified user records after double-check:', verifiedRecords.length);
-    
-    // Debug: Show sample NetlifyUID/Email values to understand why filtering might not work
-    console.log('🔍 First 3 records NetlifyUID/Email comparison:');
-    chatData.records.slice(0, 3).forEach((record, i) => {
-      console.log(`  Record ${i + 1}:`);
-      console.log(`    NetlifyUID: "${record.fields.NetlifyUID}" === "${user_uid}" ? ${record.fields.NetlifyUID === user_uid}`);
-      console.log(`    Email: "${record.fields.Email}" === "${user_email}" ? ${record.fields.Email === user_email}`);
-    });
-    
-    if (verifiedRecords.length > 0) {
-      userRecords = verifiedRecords;
-      console.log('✅ Using verified user records');
-    } else {
-      console.log('❌ No verified user records found - the Airtable query filter is not working correctly');
-      console.log('🔄 This means the query should have filtered but did not. Using manual filter.');
-      userRecords = verifiedRecords; // Use empty array if no user records match
+    // Step 1: Look up the user record ID in the Users table
+    try {
+      const userLookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=OR({NetlifyUID}='${user_uid}',{Email}='${user_email}')&maxRecords=1`;
+      console.log('🔍 User lookup URL:', userLookupUrl);
+      
+      const userLookupResponse = await fetch(userLookupUrl, {
+        headers: {
+          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (userLookupResponse.ok) {
+        const userData = await userLookupResponse.json();
+        console.log('📊 User lookup result:', userData.records.length, 'users found');
+        
+        if (userData.records.length > 0) {
+          const userRecordId = userData.records[0].id;
+          console.log('📊 Found user record ID:', userRecordId);
+          
+          // Step 2: Filter imported memories for this user record ID
+          userRecords = chatData.records.filter(record => {
+            const recordUser = record.fields.User;
+            // User field could be an array or single value
+            if (Array.isArray(recordUser)) {
+              return recordUser.includes(userRecordId);
+            }
+            return recordUser === userRecordId;
+          });
+          console.log('📊 Filtered to', userRecords.length, 'imported memories for this user');
+        } else {
+          console.log('❌ No user found in Users table for NetlifyUID/Email:', user_uid, user_email);
+        }
+      } else {
+        console.log('❌ User lookup failed with status:', userLookupResponse.status);
+      }
+    } catch (e) {
+      console.log('⚠️ Error in user lookup:', e.message);
     }
     
     console.log('📊 Found', userRecords.length, 'records for this user');
