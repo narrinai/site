@@ -2626,7 +2626,9 @@
 
      <!-- HIDDEN: Characters are automatically private -->
      <input type="hidden" name="visibility" value="private">
-
+     
+     <!-- Auto-selected voice ID based on name -->
+     <input type="hidden" id="selectedVoiceId" name="selectedVoiceId" value="ePPRaOM9BrJQfYvzFL5Y">
 
      <!-- Buttons -->
      <div class="button-group">
@@ -4168,6 +4170,11 @@ function generateUniqueSlug(text) {
          if (field.id === 'characterDescription') {
            generatePrompt();
          }
+         
+         // If character name changes and auto-voice is selected, update voice
+         if (field.id === 'characterName') {
+           autoSelectVoiceBasedOnName();
+         }
        });
      });
      
@@ -4178,6 +4185,49 @@ function generateUniqueSlug(text) {
          generatePrompt();
        });
      }
+   }
+   
+   function autoSelectVoiceBasedOnName() {
+     // Only auto-select if the auto voice option is selected
+     const autoVoiceSelected = document.querySelector('input[name="voiceSelection"][value="auto"]')?.checked;
+     if (!autoVoiceSelected) return;
+     
+     const characterName = document.getElementById('characterName').value.trim().toLowerCase();
+     if (!characterName) return;
+     
+     // Voice IDs for gender-based selection
+     const FEMALE_VOICE_ID = 'ePPRaOM9BrJQfYvzFL5Y'; // Galina's voice
+     const MALE_VOICE_ID = 'hFSbWotde4aAxqnuJtnS';   // Blake's voice
+     
+     // Simple gender detection based on name
+     const maleNames = ['blake', 'sol', 'alex', 'aaron', 'abel', 'marcus', 'david', 'john', 'michael', 'james', 'robert', 'william', 'richard', 'thomas', 'charles', 'daniel', 'matthew', 'anthony', 'mark', 'donald', 'steven', 'paul', 'andrew', 'joshua', 'kenneth'];
+     const femaleNames = ['galina', 'emerald', 'emily', 'aaliyah', 'abigail', 'aadhya', 'sarah', 'jessica', 'ashley', 'amanda', 'stephanie', 'melissa', 'nicole', 'jennifer', 'elizabeth', 'amy', 'angela', 'brenda', 'emma', 'olivia', 'sophia', 'isabella', 'charlotte', 'amelia', 'harper'];
+     
+     let selectedVoiceId = FEMALE_VOICE_ID; // Default to female voice
+     
+     // Check if name is explicitly male
+     if (maleNames.some(name => characterName.includes(name))) {
+       selectedVoiceId = MALE_VOICE_ID;
+     }
+     // Check if name is explicitly female
+     else if (femaleNames.some(name => characterName.includes(name))) {
+       selectedVoiceId = FEMALE_VOICE_ID;
+     }
+     // Fallback: detect by ending patterns
+     else if (characterName.endsWith('a') || characterName.endsWith('ia') || characterName.endsWith('ella') || characterName.endsWith('ina')) {
+       selectedVoiceId = FEMALE_VOICE_ID;
+     }
+     else if (characterName.endsWith('o') || characterName.endsWith('us') || characterName.endsWith('er')) {
+       selectedVoiceId = MALE_VOICE_ID;
+     }
+     
+     // Set the voice in the hidden field for form submission
+     const voiceIdField = document.getElementById('selectedVoiceId');
+     if (voiceIdField) {
+       voiceIdField.value = selectedVoiceId;
+     }
+     
+     console.log('🎙️ Auto-selected voice for', characterName, ':', selectedVoiceId === MALE_VOICE_ID ? 'Male (Blake)' : 'Female (Galina)');
    }
 
    // Update prompt counter
