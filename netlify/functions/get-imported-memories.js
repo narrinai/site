@@ -84,7 +84,7 @@ exports.handler = async (event, context) => {
       console.log('📊 Method 2 (Email field):', userRecords.length, 'records');
     }
     
-    // Method 3: If still no results, try User field (might be lookup)
+    // Method 3: If still no results, try User field (might be lookup) 
     if (userRecords.length === 0) {
       userRecords = chatData.records.filter(record => {
         const recordUser = record.fields.User;
@@ -94,6 +94,41 @@ exports.handler = async (event, context) => {
         return recordUser === user_uid || recordUser?.includes?.(user_uid);
       });
       console.log('📊 Method 3 (User field lookup):', userRecords.length, 'records');
+    }
+    
+    // Method 3b: Look up the user record ID and match against User field
+    if (userRecords.length === 0) {
+      console.log('📊 Method 3b: Looking up user record ID to match against User field...');
+      try {
+        const userLookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={NetlifyUID}='${user_uid}'&maxRecords=1`;
+        
+        const userLookupResponse = await fetch(userLookupUrl, {
+          headers: {
+            'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (userLookupResponse.ok) {
+          const userData = await userLookupResponse.json();
+          if (userData.records.length > 0) {
+            const userRecordId = userData.records[0].id;
+            console.log('📊 Found user record ID:', userRecordId);
+            
+            // Now search for records that link to this user record
+            userRecords = chatData.records.filter(record => {
+              const recordUser = record.fields.User;
+              if (Array.isArray(recordUser)) {
+                return recordUser.includes(userRecordId);
+              }
+              return recordUser === userRecordId;
+            });
+            console.log('📊 Method 3b (User record ID lookup):', userRecords.length, 'records');
+          }
+        }
+      } catch (e) {
+        console.log('⚠️ Error in user lookup:', e.message);
+      }
     }
     
     // Method 4: Check for any imported memories regardless of user (for debugging)
