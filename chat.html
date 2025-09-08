@@ -3746,13 +3746,27 @@ Ready to start chatting, or would you like to explore these personalization opti
           const date = memory.Date || memory.created_at ? new Date(memory.Date || memory.created_at).toLocaleDateString() : 'Unknown date';
           const memoryId = `imported_${index}`;
           
+          // Sanitize memory text for onclick attribute to prevent 500 errors
+          const sanitizedText = displayText
+            .replace(/[""]/g, '"')    // Replace smart quotes
+            .replace(/['']/g, "'")    // Replace smart apostrophes  
+            .replace(/—/g, "-")       // Replace em-dashes
+            .replace(/\n/g, " ")      // Replace newlines with spaces
+            .replace(/\r/g, " ")      // Replace carriage returns
+            .replace(/\t/g, " ")      // Replace tabs
+            .replace(/\s+/g, " ")     // Collapse multiple spaces
+            .replace(/'/g, "\\'")     // Escape single quotes for HTML
+            .replace(/"/g, "&quot;")  // Escape double quotes for HTML
+            .trim()
+            .substring(0, 200);       // Limit length for HTML attribute
+          
           memoryHTML += `
             <div class="memory-item">
               <div class="memory-answer">${displayText}</div>
               <small style="color: var(--color-gray); margin-top: 8px; display: block;">
                 Importance: ${importance} | ${date}
               </small>
-              <button onclick="discussMemory('${memoryId}', '${displayText.replace(/'/g, "\\'")}', 'imported')" 
+              <button onclick="discussMemory('${memoryId}', '${sanitizedText}', 'imported')" 
                       style="margin-top: 10px; padding: 6px 12px; background: var(--color-teal); color: white; border: none; border-radius: 6px; font-size: 12px; cursor: pointer; transition: all 0.2s ease;">
                 💬 Discuss This
               </button>
@@ -3799,7 +3813,18 @@ Ready to start chatting, or would you like to explore these personalization opti
           // Pre-fill the message input with a discussion starter
           let discussionStarter;
           if (memoryType === 'imported') {
-            discussionStarter = `I'd like to talk about this memory: "${memoryText}"`;
+            // Clean and truncate memory text to avoid webhook issues
+            const cleanMemoryText = memoryText
+              .replace(/[""]/g, '"')    // Replace smart quotes
+              .replace(/['']/g, "'")    // Replace smart apostrophes  
+              .replace(/—/g, "-")       // Replace em-dashes
+              .replace(/\n/g, " ")      // Replace newlines with spaces
+              .replace(/\s+/g, " ")     // Collapse multiple spaces
+              .trim()
+              .substring(0, 150);       // Limit to 150 characters
+            
+            // Remove quotes from format to avoid JSON parsing issues
+            discussionStarter = `I'd like to discuss this memory: ${cleanMemoryText}`;
           } else if (memoryType === 'onboarding') {
             discussionStarter = memoryText; // Already formatted as "Tell me more about: [question]"
           }
