@@ -936,11 +936,19 @@
         const response = await fetch(`/.netlify/functions/characters?slug=${encodeURIComponent(slug)}`);
         const data = await response.json();
         
-        if (data.success && data.character) {
-          currentCharacter = data.character;
-          updateCharacterUI(data.character);
+        if (data.success && data.characters && data.characters.length > 0) {
+          const character = data.characters[0];
+          currentCharacter = {
+            name: character.Name,
+            slug: character.Slug,
+            title: character.Character_Title,
+            description: character.Character_Description,
+            avatar_url: character.Avatar_URL,
+            voice_id: character.voice_id
+          };
+          updateCharacterUI(currentCharacter);
           await loadConversationTopics(slug);
-          showWelcomeMessage(data.character);
+          showWelcomeMessage(currentCharacter);
           
           // Check for memory hub notification after character is loaded
           setTimeout(() => {
