@@ -2048,11 +2048,31 @@
     function showWelcomeMessage(character) {
       if (!character) return;
       
-      // Generate conversation starter
-      const welcomeMessage = generateConversationStarter();
+      // Only show welcome message if this is the first time chatting (no history)
+      const historyKey = `chat_history_${character.slug || 'default'}`;
+      const existingHistory = localStorage.getItem(historyKey);
       
-      if (welcomeMessage) {
-        addMessage(welcomeMessage, 'ai');
+      // Check if there are any real messages (not just welcome messages)
+      let hasRealMessages = false;
+      if (existingHistory) {
+        try {
+          const history = JSON.parse(existingHistory);
+          hasRealMessages = history.some(msg => msg.sender === 'user');
+        } catch (e) {
+          console.warn('Error parsing chat history for welcome check');
+        }
+      }
+      
+      // Only show conversation starter if no previous user messages exist
+      if (!hasRealMessages) {
+        const welcomeMessage = generateConversationStarter();
+        
+        if (welcomeMessage) {
+          addMessage(welcomeMessage, 'ai');
+          
+          // Save this welcome message to history so it's not shown again
+          saveMessageToHistory(welcomeMessage, 'ai');
+        }
       }
     }
 
