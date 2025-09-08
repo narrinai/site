@@ -2236,7 +2236,7 @@
         name: 'Emily',
         title: 'Mindful Companion',
         description: 'Your thoughtful guide for mental clarity',
-        avatar_url: getRandomAvatar()
+        avatar_url: getRandomAvatar(currentCharacter?.slug)
       };
       updateCharacterUI(currentCharacter);
     }
@@ -2300,7 +2300,7 @@
       if (nameHeader) nameHeader.textContent = character.name || 'AI Companion';
       if (statusHeader) statusHeader.textContent = character.title || 'Your Thoughtful Guide';
       if (avatarImg) {
-        const avatarToUse = character.avatar_url || getRandomAvatar();
+        const avatarToUse = character.avatar_url || getRandomAvatar(character.slug);
         avatarImg.src = avatarToUse;
         avatarImg.alt = character.name;
         console.log('🖼️ Header avatar set to:', avatarToUse);
@@ -3009,7 +3009,7 @@ Ready to start chatting, or would you like to explore these personalization opti
       if (sender === 'ai') {
         messageDiv.innerHTML = `
           <div class="message-avatar">
-            <img src="${currentCharacter?.avatar_url || getRandomAvatar()}" alt="${currentCharacter?.name || 'AI'}" onerror="this.style.display='none'">
+            <img src="${currentCharacter?.avatar_url || getRandomAvatar(currentCharacter?.slug)}" alt="${currentCharacter?.name || 'AI'}" onerror="this.style.display='none'">
           </div>
           <div class="message-wrapper">
             <div class="message-content">${content.replace(/\n/g, '<br>')}</div>
@@ -3054,7 +3054,7 @@ Ready to start chatting, or would you like to explore these personalization opti
       
       messageDiv.innerHTML = `
         <div class="message-avatar">
-          <img src="${currentCharacter?.avatar_url || getRandomAvatar()}" alt="${currentCharacter?.name || 'AI'}" onerror="this.style.display='none'">
+          <img src="${currentCharacter?.avatar_url || getRandomAvatar(currentCharacter?.slug)}" alt="${currentCharacter?.name || 'AI'}" onerror="this.style.display='none'">
         </div>
         <div class="message-wrapper">
           <div class="message-content" id="typing-content"></div>
@@ -3094,7 +3094,7 @@ Ready to start chatting, or would you like to explore these personalization opti
       typingDiv.className = 'message ai typing-indicator';
       typingDiv.innerHTML = `
         <div class="message-avatar">
-          <img src="${currentCharacter?.avatar_url || getRandomAvatar()}" alt="${currentCharacter?.name || 'AI'}" onerror="this.style.display='none'">
+          <img src="${currentCharacter?.avatar_url || getRandomAvatar(currentCharacter?.slug)}" alt="${currentCharacter?.name || 'AI'}" onerror="this.style.display='none'">
         </div>
         <div class="message-content">
           <div class="typing-dots">
@@ -3335,7 +3335,7 @@ Ready to start chatting, or would you like to explore these personalization opti
       return !!(userToken && userUid && !isAnonymousUser && !isAnonymousEmail);
     }
     
-    function getRandomAvatar() {
+    function getRandomAvatar(characterSlug) {
       // Pool of existing avatars from /avatars folder - will be assigned consistently per character
       const avatarPool = [
         '/avatars/emily-1754251534076.webp',
@@ -3347,10 +3347,10 @@ Ready to start chatting, or would you like to explore these personalization opti
       ];
       
       // Use character slug to ensure consistent avatar selection
-      const characterSlug = currentCharacter?.slug || 'default';
+      const slug = characterSlug || currentCharacter?.slug || 'default';
       let hash = 0;
-      for (let i = 0; i < characterSlug.length; i++) {
-        const char = characterSlug.charCodeAt(i);
+      for (let i = 0; i < slug.length; i++) {
+        const char = slug.charCodeAt(i);
         hash = ((hash << 5) - hash) + char;
         hash = hash & hash; // Convert to 32-bit integer
       }
@@ -3358,7 +3358,7 @@ Ready to start chatting, or would you like to explore these personalization opti
       const index = Math.abs(hash) % avatarPool.length;
       const selectedAvatar = avatarPool[index];
       
-      console.log('🎲 Generated consistent avatar for', characterSlug, ':', selectedAvatar);
+      console.log('🎲 Generated consistent avatar for', slug, ':', selectedAvatar);
       return selectedAvatar;
     }
     
@@ -4009,7 +4009,7 @@ Ready to start chatting, or would you like to explore these personalization opti
         });
         
         // Use fallback avatar if currentCharacter has no avatar_url  
-        const avatarToUse = currentCharacter.avatar_url || getRandomAvatar();
+        const avatarToUse = currentCharacter.avatar_url || getRandomAvatar(currentCharacter?.slug);
         
         if (avatarToUse && avatarImg && placeholder) {
           console.log('✅ Setting avatar in customize modal (with fallback):', avatarToUse);
