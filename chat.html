@@ -2017,7 +2017,11 @@
           
           updateCharacterUI(currentCharacter);
           await loadConversationTopics(slug);
-          showWelcomeMessage(currentCharacter);
+          
+          // Show welcome message after chat history is loaded
+          setTimeout(() => {
+            showWelcomeMessage(currentCharacter);
+          }, 100);
           
           // Check for memory hub notification after character is loaded
           setTimeout(() => {
@@ -2575,15 +2579,28 @@ Ready to start chatting, or would you like to explore these personalization opti
         console.log('Raw response that failed to parse:', rawText);
         
         try {
-          // First attempt: Clean control characters and try parsing again
-          let cleanedText = rawText;
+          // More aggressive approach: Fix the JSON structure
+          let fixedJson = rawText;
           
-          // Remove problematic control characters but preserve intentional whitespace
-          cleanedText = cleanedText.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '');
+          // First, escape newlines within quoted strings
+          fixedJson = fixedJson.replace(/"reply":\s*"([^"]*(?:\\.[^"]*)*?)"/gs, (match, replyContent) => {
+            // Escape newlines and other special characters within the reply
+            const escapedContent = replyContent
+              .replace(/\n/g, '\\n')
+              .replace(/\r/g, '\\r')
+              .replace(/\t/g, '\\t')
+              .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '');
+            return `"reply": "${escapedContent}"`;
+          });
           
-          // Try parsing cleaned text
-          const parsed = JSON.parse(cleanedText);
+          // Try parsing the fixed JSON
+          const parsed = JSON.parse(fixedJson);
           if (parsed.reply) {
+            // Convert escaped newlines back to actual newlines for display
+            parsed.reply = parsed.reply
+              .replace(/\\n/g, '\n')
+              .replace(/\\r/g, '\r')
+              .replace(/\\t/g, '\t');
             parsed.reply = cleanAIResponse(parsed.reply);
           }
           return parsed;
