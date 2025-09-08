@@ -2911,6 +2911,16 @@ Example JSON format:
           console.log('📊 Direct imported memories result:', result);
           console.log('🔍 Found imported memories:', result.imported_memories?.slice(0, 3));
           
+          // NEW: Log debug information
+          if (result.debug_info) {
+            console.log('🔧 DEBUG INFO:');
+            console.log('  - Sample fields available:', result.debug_info.sample_fields);
+            console.log('  - Records with metadata:', result.debug_info.memories_with_metadata);
+            console.log('  - Possible imports found:', result.debug_info.possible_imports);
+            console.log('  - Sample user records:', result.debug_info.sample_user_records);
+            console.log('  - Sample possible imports:', result.debug_info.sample_possible_imports);
+          }
+          
           if (result.success && result.imported_memories && result.imported_memories.length > 0) {
             // Use the already filtered imported memories from the dedicated function
             const importedMemories = result.imported_memories;
