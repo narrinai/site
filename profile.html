@@ -4618,37 +4618,7 @@ function handleLoginSuccess(user, eventType = 'unknown') {
     }, 1000);
     // TEMPORARY: Log redirect check
     console.log('🔍 Checking for post-login redirect...');
-    
-    // Add delay for mobile Google SSO to ensure data is properly set
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    const isGoogleProvider = user?.app_metadata?.provider === 'google';
-    
-    if (isMobile && isGoogleProvider) {
-      console.log('📱 Mobile Google login detected, adding delay for data processing...');
-      setTimeout(() => {
-        // Verify localStorage has correct data before redirect
-        const verifyEmail = localStorage.getItem('user_email');
-        const verifyUid = localStorage.getItem('user_uid');
-        console.log('🔍 Pre-redirect verification:', { verifyEmail, verifyUid });
-        
-        if (!verifyEmail || verifyEmail === 'undefined' || !verifyUid) {
-          console.log('⚠️ Mobile data not ready yet, forcing re-save...');
-          // Force re-save user data
-          const email = user.email || user.user_metadata?.email;
-          const userId = user.id;
-          if (email && userId) {
-            localStorage.setItem('user_email', email);
-            localStorage.setItem('user_uid', userId);
-            localStorage.setItem('user_token', user.token?.access_token);
-            console.log('✅ Forced mobile data save:', { email, userId });
-          }
-        }
-        
-        handlePostLoginRedirect();
-      }, 2000); // 2 second delay for mobile Google
-    } else {
-      handlePostLoginRedirect();
-    }
+    handlePostLoginRedirect();
   } else {
     console.log('🤔 UNKNOWN EVENT TYPE: Defaulting to profile load');
     showProfileUI();
