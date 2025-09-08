@@ -2861,6 +2861,24 @@ Ready to start chatting, or would you like to explore these personalization opti
       
       console.log('📤 Sending to Make webhook:', payload);
       
+      // Validate payload before sending
+      try {
+        JSON.stringify(payload);
+        console.log('✅ Payload is valid JSON');
+      } catch (jsonError) {
+        console.error('❌ Payload contains invalid JSON:', jsonError);
+        throw new Error('Invalid payload data');
+      }
+      
+      // Check for potentially problematic fields
+      if (payload.memory_context && payload.memory_context.length > 5000) {
+        console.warn('⚠️ Large memory context:', payload.memory_context.length, 'characters');
+      }
+      
+      if (payload.conversation_history && payload.conversation_history.length > 20) {
+        console.warn('⚠️ Large conversation history:', payload.conversation_history.length, 'messages');
+      }
+      
       // Add timeout handling
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
