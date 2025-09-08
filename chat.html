@@ -1660,6 +1660,10 @@
             <span class="mobile-menu-link-icon">📰</span>
             News & Insights
           </a>
+          <a href="#" class="mobile-menu-link" id="mobileLoginBtn">
+            <span class="mobile-menu-link-icon">🔐</span>
+            Login/Register
+          </a>
           <a href="/profile" class="mobile-menu-link" id="mobileProfileLink" style="display: none;">
             <span class="mobile-menu-link-icon">👤</span>
             Profile
@@ -1957,6 +1961,9 @@
       
       // Update button tooltips based on authentication status
       updateButtonTooltips();
+      
+      // Setup mobile login button
+      setupMobileLoginButton();
     });
 
     function setupEventListeners() {
@@ -2429,6 +2436,15 @@ Ready to start chatting, or would you like to explore these personalization opti
       console.log(`📊 Usage limit check result: canSend = ${canSend}`);
       if (!canSend) {
         console.log('🚫 Message blocked due to usage limit');
+        
+        // Show upgrade prompt for usage limit
+        const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+        if (isAnonymousUser) {
+          showUpgradePrompt(5, 5, 'messages');
+        } else {
+          // For authenticated users who hit limit
+          alert('You\'ve reached your message limit. Please upgrade to continue chatting!');
+        }
         return;
       }
       console.log('✅ Usage limit check passed, proceeding with message');
@@ -3076,6 +3092,32 @@ Ready to start chatting, or would you like to explore these personalization opti
           customizeBtn.style.cursor = 'pointer';
           console.log('🏷️ Set customize button tooltip for unauthenticated user');
           console.log('🏷️ Customize button title is now:', customizeBtn.getAttribute('title'));
+        }
+      }
+    }
+    
+    function setupMobileLoginButton() {
+      const mobileLoginBtn = document.getElementById('mobileLoginBtn');
+      const mobileProfileLink = document.getElementById('mobileProfileLink');
+      
+      if (mobileLoginBtn) {
+        mobileLoginBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          if (window.netlifyIdentity) {
+            window.netlifyIdentity.open();
+          }
+        });
+      }
+      
+      // Show/hide login vs profile based on auth status
+      const isAuthenticated = checkUserAuthentication();
+      if (mobileLoginBtn && mobileProfileLink) {
+        if (isAuthenticated) {
+          mobileLoginBtn.style.display = 'none';
+          mobileProfileLink.style.display = 'flex';
+        } else {
+          mobileLoginBtn.style.display = 'flex';
+          mobileProfileLink.style.display = 'none';
         }
       }
     }
