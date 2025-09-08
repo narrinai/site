@@ -2205,7 +2205,7 @@
           };
           
           // Load custom avatar if it exists
-          loadCustomCharacterData(currentCharacter);
+          await loadCustomCharacterData(currentCharacter);
           
           updateCharacterUI(currentCharacter);
           await loadConversationTopics(slug);
@@ -2241,12 +2241,19 @@
       updateCharacterUI(currentCharacter);
     }
 
-    function loadCustomCharacterData(character) {
+    async function loadCustomCharacterData(character) {
       if (!character || !character.slug) return;
       
       const characterSlug = character.slug;
-      const customizedCharacters = JSON.parse(localStorage.getItem('customizedCharacters') || '{}');
-      const customData = customizedCharacters[characterSlug];
+      
+      // Try to load from server first for cross-device sync
+      let customData = await loadCustomizationFromServer(characterSlug);
+      
+      // If no server data, fall back to localStorage
+      if (!customData) {
+        const customizedCharacters = JSON.parse(localStorage.getItem('customizedCharacters') || '{}');
+        customData = customizedCharacters[characterSlug];
+      }
       
       console.log('🔍 Custom data lookup:', {
         characterSlug,
@@ -4057,8 +4064,8 @@ Ready to start chatting, or would you like to explore these personalization opti
       
       const autoSave = () => {
         clearTimeout(saveTimeout);
-        saveTimeout = setTimeout(() => {
-          saveCustomizationChanges();
+        saveTimeout = setTimeout(async () => {
+          await saveCustomizationChanges();
         }, 2000); // Save after 2 seconds of inactivity
       };
       
@@ -4085,7 +4092,7 @@ Ready to start chatting, or would you like to explore these personalization opti
       });
     }
     
-    function saveCustomizationChanges() {
+    async function saveCustomizationChanges() {
       if (!currentCharacter) return;
       
       const customName = document.getElementById('customName')?.value?.trim() || currentCharacter.name;
@@ -4112,8 +4119,8 @@ Ready to start chatting, or would you like to explore these personalization opti
         lastUpdated: new Date().toISOString()
       };
       
-      customizedCharacters[characterSlug] = customization;
-      localStorage.setItem('customizedCharacters', JSON.stringify(customizedCharacters));
+      // Save with server sync for cross-device access
+      await saveCustomizationWithSync(characterSlug, customization);
       
       // Apply changes to current character
       currentCharacter.name = customName;
@@ -4265,7 +4272,7 @@ Ready to start chatting, or would you like to explore these personalization opti
         currentCharacter.avatar_url = randomAvatar;
         
         // Trigger autosave to persist the change
-        saveCustomizationChanges();
+        await saveCustomizationChanges();
         
         // Update header avatar immediately
         updateCharacterUI(currentCharacter);
@@ -4313,8 +4320,8 @@ Ready to start chatting, or would you like to explore these personalization opti
         lastUpdated: new Date().toISOString()
       };
       
-      customizedCharacters[characterSlug] = customization;
-      localStorage.setItem('customizedCharacters', JSON.stringify(customizedCharacters));
+      // Save with server sync for cross-device access
+      await saveCustomizationWithSync(characterSlug, customization);
       
       // Apply changes immediately
       currentCharacter.name = customName;
@@ -4667,6 +4674,92 @@ Ready to start chatting, or would you like to explore these personalization opti
       // Update counters
       updateSelectionCounter('traitsCounter', personalityState.traits.length, 5, 'traits');
       updateSelectionCounter('speakingCounter', personalityState.speaking.length, 3, 'speaking patterns');
+    }
+
+    // Helper function to load customization from server for cross-device sync
+    async function loadCustomizationFromServer(characterSlug) {
+      try {
+        const userToken = localStorage.getItem('user_token');
+        const userUid = localStorage.getItem('user_uid');
+        
+        if (!userToken || !userUid) {
+          console.log('📱 Using local customization only - no auth data');
+          return null;
+        }
+        
+        console.log('🔄 Loading customization from server for cross-device sync...');
+        
+        const response = await fetch('/.netlify/functions/get-customization', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            user_uid: userUid,
+            character_slug: characterSlug
+          })
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.customization) {
+            console.log('✅ Loaded customization from server');
+            
+            // Also update localStorage with server data
+            const customizedCharacters = JSON.parse(localStorage.getItem('customizedCharacters') || '{}');
+            customizedCharacters[characterSlug] = result.customization;
+            localStorage.setItem('customizedCharacters', JSON.stringify(customizedCharacters));
+            
+            return result.customization;
+          }
+        }
+        
+        console.log('📱 No server customization found, using local data');
+        return null;
+      } catch (error) {
+        console.log('📱 Server sync failed, using local customization:', error.message);
+        return null;
+      }
+    }
+
+    // Helper function to save customization with server sync for cross-device access
+    async function saveCustomizationWithSync(characterSlug, customization) {
+      // Save to localStorage first (immediate access)
+      const customizedCharacters = JSON.parse(localStorage.getItem('customizedCharacters') || '{}');
+      customizedCharacters[characterSlug] = customization;
+      localStorage.setItem('customizedCharacters', JSON.stringify(customizedCharacters));
+      
+      // Sync to server for cross-device access (async, non-blocking)
+      try {
+        const userToken = localStorage.getItem('user_token');
+        const userUid = localStorage.getItem('user_uid');
+        
+        if (userToken && userUid) {
+          console.log('💾 Syncing customization to server for cross-device access...');
+          
+          const response = await fetch('/.netlify/functions/save-customization', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              user_uid: userUid,
+              character_slug: characterSlug,
+              customization: customization
+            })
+          });
+          
+          if (response.ok) {
+            console.log('✅ Customization synced to server successfully');
+          } else {
+            console.warn('⚠️ Server sync failed, but saved locally');
+          }
+        } else {
+          console.log('📱 Skipping server sync - no auth data');
+        }
+      } catch (error) {
+        console.warn('⚠️ Error syncing customization to server:', error);
+      }
     }
 
     // Initialize personality customization system
