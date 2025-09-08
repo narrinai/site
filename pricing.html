@@ -1481,7 +1481,17 @@
 
     // Check if user is logged in and update navigation
     document.addEventListener('DOMContentLoaded', () => {
+      // Check if user is authenticated and redirect to profile
       const userEmail = localStorage.getItem('user_email');
+      const userUid = localStorage.getItem('user_uid');
+      
+      // If user is logged in, redirect to profile page
+      if (userEmail && userUid) {
+        console.log('✅ User is authenticated, redirecting to profile...');
+        window.location.href = '/profile';
+        return; // Exit early to prevent further execution
+      }
+      
       const loginBtn = document.getElementById('loginBtn');
       const mobileLoginBtn = document.getElementById('mobileLoginBtn');
       const startTrialBtn = document.getElementById('startTrialBtn');
@@ -1586,12 +1596,32 @@
     document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => {
         updateLoginButton();
+        
+        // Additional authentication check with Netlify Identity (fallback)
+        if (window.netlifyIdentity) {
+          const netlifyUser = window.netlifyIdentity.currentUser();
+          if (netlifyUser) {
+            console.log('✅ Netlify Identity user found, redirecting to profile...');
+            window.location.href = '/profile';
+            return;
+          }
+        }
       }, 200);
     });
 
     // Also update on window load as backup
     window.addEventListener('load', () => {
       setTimeout(() => {
+        // Check authentication again as backup
+        const userEmail = localStorage.getItem('user_email');
+        const userUid = localStorage.getItem('user_uid');
+        
+        if (userEmail && userUid) {
+          console.log('✅ Backup auth check: User is authenticated, redirecting to profile...');
+          window.location.href = '/profile';
+          return;
+        }
+        
         updateLoginButton();
       }, 300);
     });
