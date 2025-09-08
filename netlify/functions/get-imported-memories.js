@@ -257,25 +257,46 @@ exports.handler = async (event, context) => {
         return true;
       }
       
-      // Method 4: Content pattern matching as fallback
+      // Method 4: Content pattern matching as fallback - enhanced for imported memories
       if (memory.Memory) {
         const memoryText = memory.Memory.toLowerCase();
         
-        // Broader patterns to catch more imported memories
-        const importPatterns = [
+        // Enhanced patterns specifically for imported memories - they typically start with "You"
+        const strongImportPatterns = [
+          'you are detail-oriented', 'you are interested in', 'you collect pokémon',
+          'you are deeply engaged', 'you use airtable', 'you are an omnia', 
+          'you host narrin', 'you run marketingtoolz', 'you are building narrin'
+        ];
+        
+        // General "You" patterns that indicate imported memories
+        const youPatterns = [
           'you prefer', 'you are interested', 'you often', 'you like', 'you enjoy',
           'you have a', 'you work', 'you use', 'you treat chatgpt', 'you aim to', 
           'you actively', 'your name is', 'you are building', 'you host', 'you run', 
-          'you collect', 'you are detail-oriented', 'you are deeply engaged', 'you are an omnia',
-          // Add more flexible patterns
-          'you tend to', 'you usually', 'you always', 'you never', 'you sometimes',
-          'your', 'you\'re', 'you are', 'you do', 'you don\'t', 'you have', 'you own'
+          'you collect', 'you are detail-oriented', 'you are deeply engaged', 'you are an',
+          'you tend to', 'you usually', 'you always', 'you never', 'you sometimes'
         ];
         
-        const foundPattern = importPatterns.find(pattern => memoryText.includes(pattern));
-        if (foundPattern && (!memory.Character || memory.Character === '')) {
-          console.log(`✅ Found imported memory (pattern "${foundPattern}"): "${memory.Memory.substring(0, 50)}..."`);
+        // Strong patterns (definitely imported)
+        const strongPattern = strongImportPatterns.find(pattern => memoryText.includes(pattern));
+        if (strongPattern) {
+          console.log(`✅ Found imported memory (strong pattern "${strongPattern}"): "${memory.Memory.substring(0, 50)}..."`);
           return true;
+        }
+        
+        // General "You" patterns + no character (likely imported)
+        if ((!memory.Character || memory.Character === '')) {
+          const foundPattern = youPatterns.find(pattern => memoryText.includes(pattern));
+          if (foundPattern) {
+            console.log(`✅ Found imported memory (you pattern "${foundPattern}"): "${memory.Memory.substring(0, 50)}..."`);
+            return true;
+          }
+          
+          // Also check if memory starts with "You" (common for imported memories)
+          if (memory.Memory.trim().toLowerCase().startsWith('you ')) {
+            console.log(`✅ Found imported memory (starts with 'you'): "${memory.Memory.substring(0, 50)}..."`);
+            return true;
+          }
         }
       }
       
@@ -285,33 +306,6 @@ exports.handler = async (event, context) => {
     
     console.log('🎉 Final result:', importedMemories.length, 'imported memories found');
     
-    // DEBUG: Check if we're finding the records from the screenshot
-    const debugRecordsForThisUser = chatData.records.filter(r => 
-      r.fields.NetlifyUID === user_uid || 
-      (r.fields.NetlifyUID && r.fields.NetlifyUID.includes('b1f16d84-9363-4a57-afc3'))
-    );
-    
-    // Also check for any records that contain the specific text from screenshot
-    const textBasedMatches = chatData.records.filter(r => {
-      const summary = r.fields.Summary || '';
-      const message = r.fields.Message || '';
-      const content = summary + ' ' + message;
-      return content.includes('detail-oriented and data-driven') || 
-             content.includes('interested in investing for passive income') ||
-             content.includes('collect Pokémon cards') ||
-             content.includes('deeply engaged in professional cycling');
-    });
-    
-    console.log('🔍 DEBUG: Records with matching NetlifyUID:', debugRecordsForThisUser.length);
-    console.log('🔍 DEBUG: Records with matching text content:', textBasedMatches.length);
-    
-    // Show some sample NetlifyUIDs from the database to see format
-    const sampleUIDs = chatData.records
-      .filter(r => r.fields.NetlifyUID)
-      .slice(0, 5)
-      .map(r => r.fields.NetlifyUID?.substring(0, 25) + '...');
-    console.log('🔍 DEBUG: Sample NetlifyUIDs in database:', sampleUIDs);
-    
     return {
       statusCode: 200,
       headers,
@@ -319,21 +313,7 @@ exports.handler = async (event, context) => {
         success: true,
         imported_memories: importedMemories,
         count: importedMemories.length,
-        total_records_checked: allMemories.length,
-        debug: {
-          records_with_matching_uid: debugRecordsForThisUser.length,
-          text_based_matches: textBasedMatches.length,
-          sample_uids_in_db: chatData.records
-            .filter(r => r.fields.NetlifyUID)
-            .slice(0, 5)
-            .map(r => r.fields.NetlifyUID?.substring(0, 25) + '...'),
-          text_matches_sample: textBasedMatches.slice(0, 3).map(r => ({
-            id: r.id.substring(0, 10),
-            NetlifyUID: r.fields.NetlifyUID?.substring(0, 20) + '...' || 'none',
-            message_type: r.fields.message_type,
-            Summary: r.fields.Summary?.substring(0, 50)
-          }))
-        }
+        total_records_checked: allMemories.length
       })
     };
     
