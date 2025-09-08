@@ -68,7 +68,10 @@ exports.handler = async (event, context) => {
       User: r.fields.User,
       NetlifyUID: r.fields.NetlifyUID,
       Email: r.fields.Email,
-      Summary: r.fields.Summary?.substring(0, 50)
+      Summary: r.fields.Summary?.substring(0, 50),
+      metadata: r.fields.metadata ? 'Has metadata' : 'No metadata',
+      Role: r.fields.Role,
+      message_type: r.fields.message_type
     })));
     
     // Filter records for this specific user - try different approaches
@@ -225,6 +228,32 @@ exports.handler = async (event, context) => {
     
     console.log('🔍 Processing', allMemories.length, 'total memories for import detection');
     console.log('🔍 First 3 memories structure:', allMemories.slice(0, 3));
+    
+    // Debug: Check which memories have metadata
+    const memoriesWithMetadata = allMemories.filter(m => m.metadata && Object.keys(m.metadata).length > 0);
+    console.log('🔍 DEBUG: Memories with metadata:', memoriesWithMetadata.length, '/', allMemories.length);
+    if (memoriesWithMetadata.length > 0) {
+      console.log('🔍 Sample metadata:', memoriesWithMetadata.slice(0, 2).map(m => ({
+        id: m.id,
+        metadata: m.metadata,
+        memoryStart: m.Memory?.substring(0, 30)
+      })));
+    }
+    
+    // Debug: Check for records that might be imports based on content
+    const possibleImports = allMemories.filter(m => 
+      m.Memory && m.Memory.toLowerCase().startsWith('you ') && m.Role === 'user'
+    );
+    console.log('🔍 DEBUG: Possible imports (start with "you"):', possibleImports.length);
+    if (possibleImports.length > 0) {
+      console.log('🔍 Sample possible imports:', possibleImports.slice(0, 2).map(m => ({
+        id: m.id,
+        memory: m.Memory?.substring(0, 50),
+        role: m.Role,
+        character: m.Character,
+        metadata: m.metadata
+      })));
+    }
     
     // Log sample of what we found for this user
     if (userRecords.length > 0) {
