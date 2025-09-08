@@ -4152,6 +4152,17 @@ Ready to start chatting, or would you like to explore these personalization opti
         placeholder.style.display = 'none';
         document.getElementById('customAvatarUrl').value = randomAvatar;
         
+        // Update current character and save immediately
+        currentCharacter.avatar_url = randomAvatar;
+        
+        // Trigger autosave to persist the change
+        saveCustomizationChanges();
+        
+        // Update header avatar immediately
+        updateCharacterUI(currentCharacter);
+        
+        console.log('✅ Avatar regenerated and saved:', randomAvatar);
+        
       } catch (error) {
         console.error('Error generating avatar:', error);
         placeholder.innerHTML = '👤';
