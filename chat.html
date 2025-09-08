@@ -2247,18 +2247,28 @@
       const customizedCharacters = JSON.parse(localStorage.getItem('customizedCharacters') || '{}');
       const customData = customizedCharacters[characterSlug];
       
+      console.log('🔍 Custom data lookup:', {
+        characterSlug,
+        hasCustomData: !!customData,
+        customDataKeys: customData ? Object.keys(customData) : [],
+        avatarUrl: customData?.avatar_url
+      });
+      
       if (customData) {
-        console.log('📂 Loading custom data for character:', characterSlug);
+        console.log('📂 Loading custom data for character:', characterSlug, customData);
         
         // Apply custom name
         if (customData.name) {
           character.name = customData.name;
+          console.log('📝 Applied custom name:', customData.name);
         }
         
         // Apply custom avatar
         if (customData.avatar_url) {
           character.avatar_url = customData.avatar_url;
           console.log('🖼️ Loading custom avatar:', customData.avatar_url);
+        } else {
+          console.log('❌ No custom avatar_url found in customData');
         }
         
         // Apply other customizations
