@@ -4529,9 +4529,19 @@ Ready to start chatting, or would you like to explore these personalization opti
       });
     }
 
-    // Close menu when clicking links
+    // Close menu when clicking links (with delay to allow navigation)
     document.querySelectorAll('.mobile-menu-link').forEach(link => {
-      link.addEventListener('click', closeMobileMenu);
+      link.addEventListener('click', (e) => {
+        // Only prevent default for # links (like login button), not for real navigation links
+        if (link.getAttribute('href') === '#') {
+          e.preventDefault();
+        }
+        
+        // Close menu with small delay to allow navigation to complete
+        setTimeout(() => {
+          closeMobileMenu();
+        }, 100);
+      });
     });
 
     // Close menu with Escape key
