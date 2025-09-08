@@ -3656,7 +3656,8 @@ body .netlify-identity-widget > div[data-netlify-identity-modal] {
       
       // Final fallback
       if (!email) {
-        email = localStorage.getItem('user_email') || 'unknown@email.com';
+        const fallbackEmail = localStorage.getItem('user_email');
+        email = (fallbackEmail && fallbackEmail !== 'undefined' && fallbackEmail !== 'null') ? fallbackEmail : 'unknown@email.com';
       }
                     
       // Netlify Identity user object structure can vary - extract ID properly
@@ -4474,9 +4475,16 @@ function handleLoginSuccess(user, eventType = 'unknown') {
     }
   }
   
-  // Final fallback
-  if (!email) {
-    email = localStorage.getItem('user_email') || 'unknown@email.com';
+  // Final fallback - ensure email is never undefined/null/string-undefined
+  if (!email || email === 'undefined' || email === 'null' || email === '') {
+    const fallbackEmail = localStorage.getItem('user_email');
+    if (fallbackEmail && fallbackEmail !== 'undefined' && fallbackEmail !== 'null' && fallbackEmail !== '') {
+      email = fallbackEmail;
+      console.log('🔧 Used localStorage fallback email:', email);
+    } else {
+      email = 'unknown@email.com';
+      console.log('⚠️ Using unknown fallback due to mobile Google SSO issue');
+    }
   }
                 
   console.log('📧 Email resolution:', {
