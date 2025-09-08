@@ -3295,9 +3295,9 @@ body .netlify-identity-widget > div[data-netlify-identity-modal] {
             </ul>
             
             <div class="card-action">
-              <a href="/" class="plan-button upgrade-button" id="discoverButton">
+              <button class="plan-button upgrade-button" id="discoverButton" type="button">
                 Active
-              </a>
+              </button>
             </div>
             <div class="benefit-item trial-benefit">
               <span class="checkmark">✓</span>
@@ -7061,7 +7061,12 @@ function updatePricingCard(plan) {
         discoverButton.disabled = false;
         discoverButton.classList.remove('current-plan');
         discoverButton.classList.add('upgrade-button', 'downgrade');
-        discoverButton.onclick = () => handleDowngrade();
+        discoverButton.onclick = (e) => { 
+          e.preventDefault(); 
+          e.stopPropagation(); 
+          handleDowngrade(); 
+          return false; 
+        };
         discoverButton.style.display = 'inline-flex'; // Force show
         console.log('✅ Engage user: Downgrade to Free button enabled');
       }
@@ -7108,7 +7113,12 @@ function updatePricingCard(plan) {
         discoverButton.disabled = false;
         discoverButton.classList.remove('current-plan');
         discoverButton.classList.add('upgrade-button', 'downgrade');
-        discoverButton.onclick = () => handleDowngrade();
+        discoverButton.onclick = (e) => { 
+          e.preventDefault(); 
+          e.stopPropagation(); 
+          handleDowngrade(); 
+          return false; 
+        };
         discoverButton.style.display = 'inline-flex'; // Force show
         console.log('✅ Immerse user: Downgrade to Free button enabled');
       }
