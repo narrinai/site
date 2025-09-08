@@ -3015,7 +3015,16 @@ Ready to start chatting, or would you like to explore these personalization opti
       const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
       const isAnonymousEmail = userEmail === 'anonymous@narrin.ai';
       
-      return userToken && userUid && !isAnonymousUser && !isAnonymousEmail;
+      console.log('🔍 Auth check details:', {
+        userToken: !!userToken,
+        userUid: !!userUid,
+        userEmail: userEmail,
+        isAnonymousUser,
+        isAnonymousEmail
+      });
+      
+      // Ensure we return a boolean
+      return !!(userToken && userUid && !isAnonymousUser && !isAnonymousEmail);
     }
     
     function updateButtonTooltips() {
