@@ -2297,9 +2297,11 @@
       
       if (nameHeader) nameHeader.textContent = character.name || 'AI Companion';
       if (statusHeader) statusHeader.textContent = character.title || 'Your Thoughtful Guide';
-      if (avatarImg && character.avatar_url) {
-        avatarImg.src = character.avatar_url;
+      if (avatarImg) {
+        const avatarToUse = character.avatar_url || '/avatars/emily-1754251534076.webp';
+        avatarImg.src = avatarToUse;
         avatarImg.alt = character.name;
+        console.log('🖼️ Header avatar set to:', avatarToUse);
       }
       if (welcomeText) {
         welcomeText.textContent = `Transform your thoughts into clarity with ${character.name}!`;
@@ -3005,7 +3007,7 @@ Ready to start chatting, or would you like to explore these personalization opti
       if (sender === 'ai') {
         messageDiv.innerHTML = `
           <div class="message-avatar">
-            <img src="${currentCharacter?.avatar_url || '/avatars/default-avatar.webp'}" alt="${currentCharacter?.name || 'AI'}" onerror="this.style.display='none'">
+            <img src="${currentCharacter?.avatar_url || '/avatars/emily-1754251534076.webp'}" alt="${currentCharacter?.name || 'AI'}" onerror="this.style.display='none'">
           </div>
           <div class="message-wrapper">
             <div class="message-content">${content.replace(/\n/g, '<br>')}</div>
@@ -3050,7 +3052,7 @@ Ready to start chatting, or would you like to explore these personalization opti
       
       messageDiv.innerHTML = `
         <div class="message-avatar">
-          <img src="${currentCharacter?.avatar_url || '/avatars/default-avatar.webp'}" alt="${currentCharacter?.name || 'AI'}" onerror="this.style.display='none'">
+          <img src="${currentCharacter?.avatar_url || '/avatars/emily-1754251534076.webp'}" alt="${currentCharacter?.name || 'AI'}" onerror="this.style.display='none'">
         </div>
         <div class="message-wrapper">
           <div class="message-content" id="typing-content"></div>
@@ -3090,7 +3092,7 @@ Ready to start chatting, or would you like to explore these personalization opti
       typingDiv.className = 'message ai typing-indicator';
       typingDiv.innerHTML = `
         <div class="message-avatar">
-          <img src="${currentCharacter?.avatar_url || '/avatars/default-avatar.webp'}" alt="${currentCharacter?.name || 'AI'}" onerror="this.style.display='none'">
+          <img src="${currentCharacter?.avatar_url || '/avatars/emily-1754251534076.webp'}" alt="${currentCharacter?.name || 'AI'}" onerror="this.style.display='none'">
         </div>
         <div class="message-content">
           <div class="typing-dots">
@@ -3977,14 +3979,24 @@ Ready to start chatting, or would you like to explore these personalization opti
           placeholder: !!placeholder
         });
         
-        if (currentCharacter.avatar_url && avatarImg && placeholder) {
-          console.log('✅ Setting avatar in customize modal:', currentCharacter.avatar_url);
-          avatarImg.src = currentCharacter.avatar_url;
+        // Use fallback avatar if currentCharacter has no avatar_url  
+        const avatarToUse = currentCharacter.avatar_url || '/avatars/emily-1754251534076.webp';
+        
+        if (avatarToUse && avatarImg && placeholder) {
+          console.log('✅ Setting avatar in customize modal (with fallback):', avatarToUse);
+          avatarImg.src = avatarToUse;
           avatarImg.style.display = 'block';
           placeholder.style.display = 'none';
-          document.getElementById('customAvatarUrl').value = currentCharacter.avatar_url;
+          document.getElementById('customAvatarUrl').value = avatarToUse;
+          
+          // Update currentCharacter with fallback avatar if it had none
+          if (!currentCharacter.avatar_url) {
+            currentCharacter.avatar_url = avatarToUse;
+            updateCharacterUI(currentCharacter); // Update header immediately
+            console.log('🔧 Applied fallback avatar to character without avatar_url');
+          }
         } else {
-          console.log('❌ Avatar not set - missing data or elements');
+          console.log('❌ Avatar not set - missing elements');
           if (placeholder) {
             placeholder.style.display = 'block';
             placeholder.innerHTML = '👤';
