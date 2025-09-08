@@ -2398,7 +2398,7 @@ Ready to start chatting, or would you like to explore these personalization opti
         action: "send_message",
         text: message,
         user_message: message,
-        memory_context: isAnonymousUser ? '' : '', // Could add memory context later
+        memory_context: isAnonymousUser ? '' : '',
         conversation_history: isAnonymousUser ? [] : recentMessages,
         emotional_complexity: 0.5,
         relationship_phase: isAnonymousUser ? 'anonymous' : 'ongoing',
@@ -2657,10 +2657,11 @@ Ready to start chatting, or would you like to explore these personalization opti
           },
           body: JSON.stringify({
             user_email: user_email,
-            character_slug: currentCharacter?.slug || 'default',
-            message: messageObj.content,
-            sender: messageObj.sender,
-            timestamp: messageObj.timestamp
+            user_uid: localStorage.getItem("user_uid") || user_email,
+            user_token: localStorage.getItem("user_token") || '',
+            char: currentCharacter?.slug || 'default',
+            user_message: messageObj.sender === 'user' ? messageObj.content : '',
+            ai_response: messageObj.sender === 'ai' ? messageObj.content : ''
           })
         });
       } catch (error) {
