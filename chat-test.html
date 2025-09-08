@@ -404,31 +404,31 @@
       transform: scale(1.05);
     }
 
-    /* Mobile Menu Button - shown on all screens */
+    /* Mobile Menu Button - fixed top-left corner */
     .mobile-menu-btn {
-      position: absolute;
-      top: 50%;
+      position: fixed;
+      top: 16px;
       left: 16px;
-      transform: translateY(-50%);
       z-index: 1000;
       width: 36px;
       height: 36px;
-      background: var(--color-light-gray);
-      border: none;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid var(--color-light-gray);
       border-radius: var(--radius-sm);
-      color: var(--color-gray);
+      color: var(--color-navy);
       font-size: 16px;
       cursor: pointer;
       transition: all var(--transition-base);
       display: flex;
       align-items: center;
       justify-content: center;
+      backdrop-filter: blur(10px);
     }
 
     .mobile-menu-btn:hover {
       background: var(--color-teal);
       color: var(--color-white);
-      transform: translateY(-50%) scale(1.05);
+      transform: scale(1.05);
     }
 
     /* Mobile Responsive - Selira inspired */
@@ -541,59 +541,74 @@
       }
     }
 
-    /* Disclaimer Styles */
-    .disclaimer {
-      font-size: 12px;
-      color: var(--color-gray);
-      text-align: center;
-      line-height: 1.4;
-      margin-top: var(--spacing-xs);
-      padding: var(--spacing-xs) var(--spacing-sm);
-      background: var(--color-off-white);
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--color-light-gray);
+    /* Info Section Styles */
+    .info-section {
+      position: relative;
       display: flex;
-      align-items: flex-start;
-      gap: var(--spacing-xs);
-      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: var(--spacing-xs);
     }
 
-    .disclaimer-main-text {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .disclaimer-toggle {
-      background: none;
+    .info-btn {
+      background: var(--color-light-gray);
       border: none;
       color: var(--color-gray);
       cursor: pointer;
-      padding: 4px;
-      width: 20px;
-      height: 20px;
-      border-radius: var(--radius-sm);
+      padding: 8px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
       transition: all var(--transition-base);
       display: flex;
       align-items: center;
       justify-content: center;
-      flex-shrink: 0;
+      font-size: 14px;
     }
 
-    .disclaimer-toggle:hover {
-      background: var(--color-light-gray);
-      color: var(--color-teal);
+    .info-btn:hover {
+      background: var(--color-teal);
+      color: var(--color-white);
+      transform: scale(1.1);
     }
 
-    .disclaimer-toggle.expanded {
-      transform: rotate(180deg);
+    .disclaimer-popup {
+      position: absolute;
+      bottom: 45px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 300px;
+      max-width: 90vw;
+      background: var(--color-white);
+      border: 1px solid var(--color-light-gray);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      animation: slideUp 0.3s ease-out;
+      z-index: 200;
     }
 
-    .disclaimer-expanded {
-      width: 100%;
-      margin-top: var(--spacing-xs);
-      padding-top: var(--spacing-xs);
-      border-top: 1px solid var(--color-light-gray);
-      animation: slideDown 0.3s ease-out;
+    .disclaimer-content {
+      padding: var(--spacing-md);
+    }
+
+    .disclaimer-content h4 {
+      font-family: var(--font-secondary);
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--color-navy);
+      margin-bottom: var(--spacing-xs);
+      text-align: center;
+    }
+
+    .disclaimer-content p {
+      font-size: 12px;
+      color: var(--color-gray-dark);
+      line-height: 1.4;
+      margin-bottom: var(--spacing-xs);
+      text-align: left;
+    }
+
+    .disclaimer-content p:last-child {
+      margin-bottom: 0;
     }
 
     .disclaimer-link {
@@ -608,14 +623,14 @@
       text-decoration: underline;
     }
 
-    @keyframes slideDown {
+    @keyframes slideUp {
       from {
         opacity: 0;
-        transform: translateY(-10px);
+        transform: translateX(-50%) translateY(10px);
       }
       to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateX(-50%) translateY(0);
       }
     }
 
@@ -720,17 +735,18 @@
           <span class="input-hint">Press Enter to send</span>
         </div>
         
-        <!-- AI Disclaimer -->
-        <div class="disclaimer">
-          <span class="disclaimer-main-text">ℹ️ You are chatting with an AI companion. This is not a real person and does not provide professional advice.</span>
-          <button class="disclaimer-toggle" id="disclaimerToggle" aria-label="Show more information">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+        <!-- Info Button for Disclaimer -->
+        <div class="info-section">
+          <button class="info-btn" onclick="toggleDisclaimer()" id="infoBtn" title="AI Companion Information">
+            ℹ️
           </button>
-          <div class="disclaimer-expanded" id="disclaimerExpanded" style="display: none;">
-            <p>AI companions can provide support and conversation, but they cannot replace professional mental health services, medical advice, or human relationships. If you're experiencing mental health concerns, please consult with qualified professionals.</p>
-            <p>Remember that AI responses are generated and may not always be accurate. Use your judgment and seek appropriate help when needed. For more information, see our <a href="/terms-and-conditions" class="disclaimer-link">Terms & Conditions</a>.</p>
+          <div class="disclaimer-popup" id="disclaimerPopup" style="display: none;">
+            <div class="disclaimer-content">
+              <h4>AI Companion Information</h4>
+              <p>You are chatting with an AI companion. This is not a real person and does not provide professional advice.</p>
+              <p>AI companions can provide support and conversation, but they cannot replace professional mental health services, medical advice, or human relationships. If you're experiencing mental health concerns, please consult with qualified professionals.</p>
+              <p>Remember that AI responses are generated and may not always be accurate. Use your judgment and seek appropriate help when needed. For more information, see our <a href="/terms-and-conditions" class="disclaimer-link">Terms & Conditions</a>.</p>
+            </div>
           </div>
         </div>
       </div>
