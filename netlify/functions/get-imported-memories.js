@@ -239,40 +239,6 @@ exports.handler = async (event, context) => {
       source: m.source
     })));
     
-    // TEMPORARY: Get ALL imported memories regardless of detection logic
-    console.log('🔍 TEMP: Bypassing detection logic to show ALL imported memories');
-    const allImportedInDB = chatData.records.filter(record => 
-      record.fields.message_type === 'imported' && 
-      record.fields.Role === 'user'
-    );
-    
-    console.log('📊 ALL imported memories in database:', allImportedInDB.length);
-    if (allImportedInDB.length > 0) {
-      const tempImportedMemories = allImportedInDB.map(record => ({
-        id: record.id,
-        Memory: record.fields.Summary || record.fields.Message,
-        Character: record.fields.Character,
-        Date: record.fields.CreatedTime || record.fields.Date,
-        message_type: record.fields.message_type,
-        Role: record.fields.Role,
-        NetlifyUID: record.fields.NetlifyUID,
-        Email: record.fields.Email,
-        Summary: record.fields.Summary,
-        Message: record.fields.Message
-      }));
-      
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({
-          success: true,
-          imported_memories: tempImportedMemories.slice(0, 10), // Show first 10
-          count: tempImportedMemories.length,
-          total_records_checked: allMemories.length,
-          note: "TEMPORARY: Showing all imported memories due to user ID issues"
-        })
-      };
-    }
 
     // Enhanced filter for imported memories - more lenient approach
     const importedMemories = allMemories.filter((memory, index) => {
