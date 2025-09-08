@@ -93,119 +93,29 @@ exports.handler = async (event, context) => {
       message_type: r.fields.message_type
     })));
     
-    // Filter records for this specific user - try different approaches
-    let userRecords = [];
+    // Since we're already filtering in the query, these should be the user's records
+    // But let's verify the matching worked correctly
+    let userRecords = chatData.records;
+    console.log('📊 Initial filtered records from query:', userRecords.length);
     
-    // Method 1: Direct NetlifyUID field match
-    userRecords = chatData.records.filter(record => record.fields.NetlifyUID === user_uid);
-    console.log('📊 Method 1 (NetlifyUID field):', userRecords.length, 'records');
+    // Debug: Check what NetlifyUID and Email values we're seeing
+    console.log('🔍 Sample record NetlifyUID/Email values:');
+    chatData.records.slice(0, 5).forEach((record, i) => {
+      console.log(`  Record ${i + 1}: NetlifyUID="${record.fields.NetlifyUID}", Email="${record.fields.Email}"`);
+    });
+    console.log('🔍 Looking for NetlifyUID=', user_uid, 'Email=', user_email);
     
-    // Method 2: If no results, try Email field  
-    if (userRecords.length === 0) {
-      userRecords = chatData.records.filter(record => record.fields.Email === user_email);
-      console.log('📊 Method 2 (Email field):', userRecords.length, 'records');
-    }
-    
-    // Method 3: If still no results, try User field (might be lookup) 
-    if (userRecords.length === 0) {
-      userRecords = chatData.records.filter(record => {
-        const recordUser = record.fields.User;
-        if (Array.isArray(recordUser)) {
-          return recordUser.some(u => u === user_uid || u.includes?.(user_uid));
-        }
-        return recordUser === user_uid || recordUser?.includes?.(user_uid);
-      });
-      console.log('📊 Method 3 (User field lookup):', userRecords.length, 'records');
-    }
-    
-    // Method 3b: Look up the user record ID and match against User field (THIS IS THE CORRECT METHOD)
-    if (userRecords.length === 0) {
-      console.log('📊 Method 3b: Looking up user record ID to match against User field...');
-      try {
-        const userLookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={NetlifyUID}='${user_uid}'&maxRecords=1`;
-        
-        console.log('🔍 User lookup URL:', userLookupUrl);
-        
-        const userLookupResponse = await fetch(userLookupUrl, {
-          headers: {
-            'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        if (userLookupResponse.ok) {
-          const userData = await userLookupResponse.json();
-          console.log('📊 User lookup result:', userData.records.length, 'users found');
-          
-          if (userData.records.length > 0) {
-            const userRecordId = userData.records[0].id;
-            console.log('📊 Found user record ID:', userRecordId, 'for NetlifyUID:', user_uid);
-            
-            // Now search for records that link to this user record
-            userRecords = chatData.records.filter(record => {
-              const recordUser = record.fields.User;
-              if (Array.isArray(recordUser)) {
-                return recordUser.includes(userRecordId);
-              }
-              return recordUser === userRecordId;
-            });
-            console.log('📊 Method 3b (User record ID lookup):', userRecords.length, 'records found for user ID', userRecordId);
-          } else {
-            console.log('❌ No user found in Users table for NetlifyUID:', user_uid);
-          }
-        } else {
-          console.log('❌ User lookup failed with status:', userLookupResponse.status);
-        }
-      } catch (e) {
-        console.log('⚠️ Error in user lookup:', e.message);
-      }
-    }
-    
-    // Method 4: Check for any imported memories regardless of user (for debugging)
-    const anyImportedRecords = chatData.records.filter(record => 
-      record.fields.message_type === 'imported' ||
-      (record.fields.Role === 'user' && !record.fields.Character)
+    // Double-check: Filter again to make sure we have the right user
+    const verifiedRecords = chatData.records.filter(record => 
+      record.fields.NetlifyUID === user_uid || record.fields.Email === user_email
     );
-    console.log('📊 DEBUG: Total imported records in database:', anyImportedRecords.length);
-    if (anyImportedRecords.length > 0) {
-      console.log('📊 Sample imported record:', {
-        NetlifyUID: anyImportedRecords[0].fields.NetlifyUID,
-        Email: anyImportedRecords[0].fields.Email,
-        message_type: anyImportedRecords[0].fields.message_type,
-        Role: anyImportedRecords[0].fields.Role,
-        Character: anyImportedRecords[0].fields.Character
-      });
-    }
+    console.log('📊 Verified user records after double-check:', verifiedRecords.length);
     
-    // Method 4: As last resort, search by imported memory content patterns  
-    if (userRecords.length === 0) {
-      console.log('🔍 Method 4: Searching all records for imported memory patterns...');
-      userRecords = chatData.records.filter(record => {
-        const summary = record.fields.Summary || '';
-        const message = record.fields.Message || '';
-        const content = (summary + ' ' + message).toLowerCase();
-        
-        const importPatterns = [
-          'you often', 'you are interested', 'you prefer', 'you treat chatgpt',
-          'you like', 'you enjoy', 'you have a', 'you work', 'you use', 
-          'you aim to', 'you actively', 'your name is', 'you are building',
-          'you host', 'you run', 'you collect', 'you are detail-oriented',
-          'you are deeply engaged', 'you are an omnia'
-        ];
-        return importPatterns.some(pattern => content.includes(pattern));
-      });
-      console.log('📊 Method 4 (content pattern):', userRecords.length, 'records');
-    }
-    
-    // Method 5: TEMPORARY FIX - If still no user records found, get ALL imported memories
-    // This is because imported memories don't have proper user identification
-    if (userRecords.length === 0) {
-      console.log('🔍 Method 5: TEMPORARY - Getting ALL imported memories due to missing user IDs...');
-      userRecords = chatData.records.filter(record => 
-        record.fields.message_type === 'imported' && 
-        record.fields.Role === 'user'
-      );
-      console.log('📊 Method 5 (all imported memories):', userRecords.length, 'records');
+    if (verifiedRecords.length > 0) {
+      userRecords = verifiedRecords;
+      console.log('✅ Using verified user records');
+    } else {
+      console.log('❌ No verified user records found, using all records from query');
     }
     
     console.log('📊 Found', userRecords.length, 'records for this user');
@@ -260,9 +170,15 @@ exports.handler = async (event, context) => {
     }
     
     // Debug: Check for records that might be imports based on content
-    const possibleImports = allMemories.filter(m => 
-      m.Memory && m.Memory.toLowerCase().startsWith('you ') && m.Role === 'user'
-    );
+    const possibleImports = allMemories.filter(m => {
+      const memoryText = m.Memory?.toLowerCase() || '';
+      const summaryText = m.Summary?.toLowerCase() || '';
+      return (
+        (memoryText.startsWith('you ') || summaryText.startsWith('you ')) && 
+        m.Role === 'user' &&
+        (!m.Character || m.Character === '' || m.Character.length === 0)
+      );
+    });
     console.log('🔍 DEBUG: Possible imports (start with "you"):', possibleImports.length);
     if (possibleImports.length > 0) {
       console.log('🔍 Sample possible imports:', possibleImports.slice(0, 2).map(m => ({
@@ -341,6 +257,15 @@ exports.handler = async (event, context) => {
         }
         
         console.log(`🔍 User message without character but doesn't start with 'you': "${memory.Memory?.substring(0, 30)}..."`);
+      }
+      
+      // Method 4B: ADDITIONAL CHECK - Look at Summary field for imported memories
+      if (memory.Summary && (!memory.Character || memory.Character === '')) {
+        const summaryText = memory.Summary.trim().toLowerCase();
+        if (summaryText.startsWith('you ')) {
+          console.log(`✅ Found imported memory (summary starts with 'you'): "${memory.Summary?.substring(0, 50)}..."`);
+          return true;
+        }
       }
       
       // Method 5: Content pattern matching as fallback - enhanced for imported memories
