@@ -2426,6 +2426,7 @@ line-clamp: 3;
           const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
           mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}Login/Register`;
           mobileLoginBtn.href = '#';
+          mobileLoginBtn.style.display = 'flex';
           // Remove existing listeners by cloning element
           const newMobileLoginBtn = mobileLoginBtn.cloneNode(true);
           mobileLoginBtn.parentNode.replaceChild(newMobileLoginBtn, mobileLoginBtn);
@@ -2438,6 +2439,10 @@ line-clamp: 3;
               window.netlifyIdentity.open();
             }
           });
+        }
+        if (mobileProfileLink) {
+          // Hide the separate Profile link when not logged in
+          mobileProfileLink.style.display = 'none';
         }
       }
     }
