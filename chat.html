@@ -2503,6 +2503,12 @@ Ready to start chatting, or would you like to explore these personalization opti
         return false;
       }
       
+      // For authenticated users with real accounts, always allow messages (they have quota)
+      if (!isAnonymousUser && email !== 'anonymous@narrin.ai') {
+        console.log('✅ Authenticated user - allowing message (has quota)');
+        return true;
+      }
+      
       // For anonymous users on featured characters, skip server check and use browser-only limits
       const featuredCharacters = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
       const currentCharSlug = new URLSearchParams(window.location.search).get('char') || new URLSearchParams(window.location.search).get('character');
@@ -2713,14 +2719,9 @@ Ready to start chatting, or would you like to explore these personalization opti
       if (!canSend) {
         console.log('🚫 Message blocked due to usage limit');
         
-        // Show upgrade prompt for usage limit
-        const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
-        if (isAnonymousUser) {
-          showUpgradePrompt(5, 5, 'messages');
-        } else {
-          // For authenticated users who hit limit
-          alert('You\'ve reached your message limit. Please upgrade to continue chatting!');
-        }
+        // Show upgrade prompt (checkUsageLimit already handled authenticated users)
+        console.log('🔍 Showing upgrade prompt for usage limit');
+        showUpgradePrompt(5, 5, 'messages');
         return;
       }
       console.log('✅ Usage limit check passed, proceeding with message');
