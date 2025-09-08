@@ -2236,7 +2236,7 @@
         name: 'Emily',
         title: 'Mindful Companion',
         description: 'Your thoughtful guide for mental clarity',
-        avatar_url: '/avatars/emily-1754251534076.webp'
+        avatar_url: getRandomAvatar()
       };
       updateCharacterUI(currentCharacter);
     }
@@ -2298,7 +2298,7 @@
       if (nameHeader) nameHeader.textContent = character.name || 'AI Companion';
       if (statusHeader) statusHeader.textContent = character.title || 'Your Thoughtful Guide';
       if (avatarImg) {
-        const avatarToUse = character.avatar_url || '/avatars/emily-1754251534076.webp';
+        const avatarToUse = character.avatar_url || getRandomAvatar();
         avatarImg.src = avatarToUse;
         avatarImg.alt = character.name;
         console.log('🖼️ Header avatar set to:', avatarToUse);
@@ -3007,7 +3007,7 @@ Ready to start chatting, or would you like to explore these personalization opti
       if (sender === 'ai') {
         messageDiv.innerHTML = `
           <div class="message-avatar">
-            <img src="${currentCharacter?.avatar_url || '/avatars/emily-1754251534076.webp'}" alt="${currentCharacter?.name || 'AI'}" onerror="this.style.display='none'">
+            <img src="${currentCharacter?.avatar_url || getRandomAvatar()}" alt="${currentCharacter?.name || 'AI'}" onerror="this.style.display='none'">
           </div>
           <div class="message-wrapper">
             <div class="message-content">${content.replace(/\n/g, '<br>')}</div>
@@ -3052,7 +3052,7 @@ Ready to start chatting, or would you like to explore these personalization opti
       
       messageDiv.innerHTML = `
         <div class="message-avatar">
-          <img src="${currentCharacter?.avatar_url || '/avatars/emily-1754251534076.webp'}" alt="${currentCharacter?.name || 'AI'}" onerror="this.style.display='none'">
+          <img src="${currentCharacter?.avatar_url || getRandomAvatar()}" alt="${currentCharacter?.name || 'AI'}" onerror="this.style.display='none'">
         </div>
         <div class="message-wrapper">
           <div class="message-content" id="typing-content"></div>
@@ -3092,7 +3092,7 @@ Ready to start chatting, or would you like to explore these personalization opti
       typingDiv.className = 'message ai typing-indicator';
       typingDiv.innerHTML = `
         <div class="message-avatar">
-          <img src="${currentCharacter?.avatar_url || '/avatars/emily-1754251534076.webp'}" alt="${currentCharacter?.name || 'AI'}" onerror="this.style.display='none'">
+          <img src="${currentCharacter?.avatar_url || getRandomAvatar()}" alt="${currentCharacter?.name || 'AI'}" onerror="this.style.display='none'">
         </div>
         <div class="message-content">
           <div class="typing-dots">
@@ -3331,6 +3331,33 @@ Ready to start chatting, or would you like to explore these personalization opti
       
       // Ensure we return a boolean
       return !!(userToken && userUid && !isAnonymousUser && !isAnonymousEmail);
+    }
+    
+    function getRandomAvatar() {
+      // Pool of existing avatars from /avatars folder - will be assigned consistently per character
+      const avatarPool = [
+        '/avatars/emily-1754251534076.webp',
+        '/avatars/aaliyah-1754250478518.webp',
+        '/avatars/aaron-1754250394855.webp',
+        '/avatars/abigail-1754251064609.webp', 
+        '/avatars/abel-1754250161582.webp',
+        '/avatars/aadhya-1754740209655.webp'
+      ];
+      
+      // Use character slug to ensure consistent avatar selection
+      const characterSlug = currentCharacter?.slug || 'default';
+      let hash = 0;
+      for (let i = 0; i < characterSlug.length; i++) {
+        const char = characterSlug.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32-bit integer
+      }
+      
+      const index = Math.abs(hash) % avatarPool.length;
+      const selectedAvatar = avatarPool[index];
+      
+      console.log('🎲 Generated consistent avatar for', characterSlug, ':', selectedAvatar);
+      return selectedAvatar;
     }
     
     function checkMemoryHubAccess() {
@@ -3980,7 +4007,7 @@ Ready to start chatting, or would you like to explore these personalization opti
         });
         
         // Use fallback avatar if currentCharacter has no avatar_url  
-        const avatarToUse = currentCharacter.avatar_url || '/avatars/emily-1754251534076.webp';
+        const avatarToUse = currentCharacter.avatar_url || getRandomAvatar();
         
         if (avatarToUse && avatarImg && placeholder) {
           console.log('✅ Setting avatar in customize modal (with fallback):', avatarToUse);
@@ -4214,7 +4241,7 @@ Ready to start chatting, or would you like to explore these personalization opti
       avatarImg.style.display = 'none';
       
       try {
-        // Generate random avatar from a pool of existing avatars
+        // Get a random avatar (truly random for regeneration, not hash-based)
         const avatarPool = [
           '/avatars/emily-1754251534076.webp',
           '/avatars/aaliyah-1754250478518.webp',
