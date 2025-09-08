@@ -39,11 +39,12 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Direct query to ChatHistory table - get all records and filter in code
-    // Increase maxRecords to capture all imported memories - use 5000 to get more records
-    const chatUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=5000`;
+    // Strategy 1: Look for imported memories specifically - they're older and might be past the first 75 records
+    // Search for records that contain import metadata or typical import patterns
+    console.log('🔍 Searching for imported memories with metadata...');
+    let chatUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND(OR({NetlifyUID}='${user_uid}',{Email}='${user_email}'),NOT({metadata}=''))&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=500`;
     
-    console.log('🔍 Direct ChatHistory query URL:', chatUrl);
+    console.log('🔍 User-specific query URL:', chatUrl);
     
     const chatResponse = await fetch(chatUrl, {
       headers: {
@@ -53,14 +54,33 @@ exports.handler = async (event, context) => {
     });
     
     if (!chatResponse.ok) {
-      console.log('❌ ChatHistory fetch failed:', chatResponse.status);
-      const errorText = await chatResponse.text();
-      console.log('❌ Error response:', errorText);
-      throw new Error(`ChatHistory fetch failed: ${chatResponse.status} - ${errorText}`);
+      console.log('❌ User-specific query failed:', chatResponse.status);
+      console.log('🔄 Falling back to get all records strategy...');
+      
+      // Fallback: Get all records and filter in code
+      chatUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=10000`;
+      
+      const fallbackResponse = await fetch(chatUrl, {
+        headers: {
+          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!fallbackResponse.ok) {
+        const errorText = await fallbackResponse.text();
+        console.log('❌ Fallback fetch failed:', fallbackResponse.status, errorText);
+        throw new Error(`ChatHistory fetch failed: ${fallbackResponse.status} - ${errorText}`);
+      }
+      
+      const fallbackData = await fallbackResponse.json();
+      console.log('📊 Fallback: Found', fallbackData.records.length, 'total records');
+      chatData = fallbackData;
+    } else {
+      const userData = await chatResponse.json();
+      console.log('📊 User-specific query: Found', userData.records.length, 'user records');
+      chatData = userData;
     }
-    
-    const chatData = await chatResponse.json();
-    console.log('📊 Found', chatData.records.length, 'total ChatHistory records');
     
     // First, let's see what fields are actually available
     console.log('📊 Sample record fields:', chatData.records[0]?.fields ? Object.keys(chatData.records[0].fields) : 'No records');
@@ -395,7 +415,26 @@ exports.handler = async (event, context) => {
         imported_memories: importedMemories,
         count: importedMemories.length,
         total_records_checked: allMemories.length,
-        debug_user_records_found: userRecords.length
+        debug_user_records_found: userRecords.length,
+        debug_info: {
+          sample_fields: chatData.records[0]?.fields ? Object.keys(chatData.records[0].fields) : [],
+          memories_with_metadata: memoriesWithMetadata.length,
+          possible_imports: possibleImports.length,
+          sample_user_records: userRecords.slice(0, 3).map(r => ({
+            id: r.id,
+            Summary: r.fields.Summary?.substring(0, 50),
+            Role: r.fields.Role,
+            message_type: r.fields.message_type,
+            metadata: r.fields.metadata?.substring(0, 100),
+            Character: r.fields.Character
+          })),
+          sample_possible_imports: possibleImports.slice(0, 2).map(m => ({
+            id: m.id,
+            memory: m.Memory?.substring(0, 50),
+            role: m.Role,
+            metadata: m.metadata
+          }))
+        }
       })
     };
     
