@@ -285,44 +285,15 @@ exports.handler = async (event, context) => {
     
     console.log('🎉 Final result:', importedMemories.length, 'imported memories found');
     
-    // DEBUG: Return additional debugging info
-    const debugInfo = {
-      success: true,
-      imported_memories: importedMemories,
-      count: importedMemories.length,
-      total_records_checked: allMemories.length,
-      debug: {
-        user_search_methods: {
-          netlify_uid_matches: chatData.records.filter(r => r.fields.NetlifyUID === user_uid).length,
-          email_matches: chatData.records.filter(r => r.fields.Email === user_email).length,
-          any_imported_in_db: chatData.records.filter(r => r.fields.message_type === 'imported').length
-        },
-        user_records_sample: userRecords.slice(0, 3).map(r => ({
-          id: r.id.substring(0, 8) + '...',
-          message_type: r.fields.message_type,
-          Role: r.fields.Role,
-          Character: r.fields.Character,
-          has_metadata: !!r.fields.metadata,
-          Summary: r.fields.Summary?.substring(0, 50)
-        })),
-        imported_memories_sample: chatData.records
-          .filter(r => r.fields.message_type === 'imported')
-          .slice(0, 3)
-          .map(r => ({
-            id: r.id.substring(0, 8) + '...',
-            NetlifyUID: r.fields.NetlifyUID?.substring(0, 8) + '...' || 'none',
-            Email: r.fields.Email || 'none',
-            message_type: r.fields.message_type,
-            Role: r.fields.Role,
-            Summary: r.fields.Summary?.substring(0, 50)
-          }))
-      }
-    };
-    
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify(debugInfo)
+      body: JSON.stringify({
+        success: true,
+        imported_memories: importedMemories,
+        count: importedMemories.length,
+        total_records_checked: allMemories.length
+      })
     };
     
   } catch (error) {

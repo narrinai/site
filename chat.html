@@ -2029,6 +2029,7 @@
           // Check for memory hub notification after character is loaded
           setTimeout(() => {
             checkMemoryHubNotification();
+            updateButtonTooltips(); // Update tooltips after character is fully loaded
           }, 1000);
         } else {
           console.error('Character not found:', slug);
@@ -3007,6 +3008,12 @@ Ready to start chatting, or would you like to explore these personalization opti
       const isAuthenticated = checkUserAuthentication();
       const memoryBtn = document.getElementById('memoryBtn');
       const customizeBtn = document.getElementById('customizeBtn');
+      
+      console.log('🏷️ Updating button tooltips:', {
+        isAuthenticated,
+        memoryBtn: !!memoryBtn,
+        customizeBtn: !!customizeBtn
+      });
       
       if (memoryBtn) {
         if (isAuthenticated) {
