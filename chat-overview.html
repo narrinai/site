@@ -1875,7 +1875,7 @@ line-clamp: 3;
         </svg>
       </button>
       <div class="mobile-menu-header">
-        <div class="mobile-menu-logo">Narrin AI</div>
+        <a href="/" class="mobile-menu-logo" style="text-decoration: none;">Narrin AI</a>
         <div class="mobile-menu-subtitle">AI Companion Platform</div>
       </div>
       <nav class="mobile-menu-nav" role="navigation" aria-label="Mobile navigation">
@@ -1899,7 +1899,7 @@ line-clamp: 3;
           <span class="mobile-menu-link-icon">👤</span>
           Login/Register
         </a>
-        <a href="/profile" class="mobile-menu-link">
+        <a href="/profile" class="mobile-menu-link" id="mobileProfileLink" style="display: none;">
           <span class="mobile-menu-link-icon">👤</span>
           Profile
         </a>
@@ -2363,6 +2363,7 @@ line-clamp: 3;
     function updateLoginButton() {
       const loginBtn = document.getElementById('loginBtn');
       const mobileLoginBtn = document.getElementById('mobileLoginBtn');
+      const mobileProfileLink = document.getElementById('mobileProfileLink');
       
       // Check both Netlify Identity and local storage for user info
       const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
@@ -2397,11 +2398,14 @@ line-clamp: 3;
           loginBtn.href = '/profile';
         }
         
-        // Update mobile button
+        // Update mobile buttons
         if (mobileLoginBtn) {
-          const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
-          mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}Profile`;
-          mobileLoginBtn.href = '/profile';
+          // Hide the mobileLoginBtn when logged in
+          mobileLoginBtn.style.display = 'none';
+        }
+        if (mobileProfileLink) {
+          // Show the separate Profile link when logged in
+          mobileProfileLink.style.display = 'flex';
         }
       } else {
         // User is not logged in

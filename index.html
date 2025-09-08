@@ -3276,7 +3276,7 @@ body.has-referral-banner {
           <span class="mobile-menu-link-icon">👤</span>
           Login/Register
         </a>
-        <a href="/profile" class="mobile-menu-link">
+        <a href="/profile" class="mobile-menu-link" id="mobileProfileLink" style="display: none;">
           <span class="mobile-menu-link-icon">👤</span>
           Profile
         </a>
@@ -4388,6 +4388,7 @@ body.has-referral-banner {
     function updateLoginButton() {
       const loginBtn = document.getElementById('loginBtn');
       const mobileLoginBtn = document.getElementById('mobileLoginBtn');
+      const mobileProfileLink = document.getElementById('mobileProfileLink');
       
       // Check both Netlify Identity and local storage for user info
       const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
@@ -4406,9 +4407,12 @@ body.has-referral-banner {
           loginBtn.href = '/profile';
         }
         if (mobileLoginBtn) {
-          const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
-          mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}Profile`;
-          mobileLoginBtn.href = '/profile';
+          // Hide the mobileLoginBtn when logged in
+          mobileLoginBtn.style.display = 'none';
+        }
+        if (mobileProfileLink) {
+          // Show the separate Profile link when logged in
+          mobileProfileLink.style.display = 'flex';
         }
       } else {
         if (loginBtn) {
@@ -4425,12 +4429,17 @@ body.has-referral-banner {
           const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
           mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}Login/Register`;
           mobileLoginBtn.href = '#';
+          mobileLoginBtn.style.display = 'flex';
           mobileLoginBtn.addEventListener('click', (e) => {
             e.preventDefault();
             if (window.netlifyIdentity) {
               window.netlifyIdentity.open();
             }
           });
+        }
+        if (mobileProfileLink) {
+          // Hide the separate Profile link when not logged in
+          mobileProfileLink.style.display = 'none';
         }
       }
     }
