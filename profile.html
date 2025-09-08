@@ -4012,7 +4012,16 @@ body .netlify-identity-widget > div[data-netlify-identity-modal] {
       const downgradeStatus = urlParams.get('downgrade');
       
       if (upgradeStatus === 'success') {
-        showSuccess('🎉 Upgrade successful! Welcome to your new plan!');
+        const urlPlan = urlParams.get('plan');
+        const planName = urlPlan ? urlPlan.charAt(0).toUpperCase() + urlPlan.slice(1) : '';
+        
+        if (planName === 'Engage') {
+          showSuccess('🎉 Engage Plan Activated! You now have unlimited messaging and access to all companions!');
+        } else if (planName === 'Immerse') {
+          showSuccess('🚀 Immerse Plan Activated! Enjoy the ultimate AI companion experience with all premium features!');
+        } else {
+          showSuccess('🎉 Upgrade successful! Welcome to your new plan!');
+        }
         
         // BELANGRIJKE TOEVOEGING: Automatisch profile data refreshen
         setTimeout(() => {
@@ -6316,6 +6325,32 @@ async function loadProfile() {
     
     setField('plan', userPlan);
     
+    // Apply special styling if plan was just upgraded
+    if (upgradeSuccess === 'success' && urlPlan && (urlPlan === 'engage' || urlPlan === 'immerse')) {
+      const planElement = document.getElementById('plan');
+      if (planElement) {
+        planElement.style.background = 'linear-gradient(135deg, #14b8a6 0%, #f97316 100%)';
+        planElement.style.color = 'white';
+        planElement.style.fontWeight = 'bold';
+        planElement.style.textTransform = 'uppercase';
+        planElement.style.letterSpacing = '0.05em';
+        planElement.style.animation = 'pulse 2s infinite';
+        
+        // Add pulse animation style if it doesn't exist
+        if (!document.getElementById('plan-pulse-animation')) {
+          const style = document.createElement('style');
+          style.id = 'plan-pulse-animation';
+          style.textContent = `
+            @keyframes pulse {
+              0%, 100% { transform: scale(1); }
+              50% { transform: scale(1.05); }
+            }
+          `;
+          document.head.appendChild(style);
+        }
+      }
+    }
+    
     // Store current plan in localStorage for cancellation logic
     localStorage.setItem('user_plan', userPlan);
     
@@ -7022,13 +7057,15 @@ function updatePricingCard(plan) {
     const planLower = plan.toLowerCase();
     
     if (planLower === 'engage' || planLower === 'premium' || planLower === 'pro' || planLower === 'paid') {
-      // User has Engage plan
+      // User has Engage plan - ALWAYS show downgrade option
       if (discoverButton) {
         discoverButton.textContent = 'Downgrade to Free';
         discoverButton.disabled = false;
         discoverButton.classList.remove('current-plan');
         discoverButton.classList.add('upgrade-button', 'downgrade');
         discoverButton.onclick = () => handleDowngrade();
+        discoverButton.style.display = 'inline-flex'; // Force show
+        console.log('✅ Engage user: Downgrade to Free button enabled');
       }
       
       // Hide Engage button, show active badge
@@ -7067,13 +7104,15 @@ function updatePricingCard(plan) {
       console.log('✅ Showing Engage plan as active');
       
     } else if (planLower === 'immerse') {
-      // User has Immerse plan
+      // User has Immerse plan - ALWAYS show downgrade option
       if (discoverButton) {
         discoverButton.textContent = 'Downgrade to Free';
         discoverButton.disabled = false;
         discoverButton.classList.remove('current-plan');
         discoverButton.classList.add('upgrade-button', 'downgrade');
         discoverButton.onclick = () => handleDowngrade();
+        discoverButton.style.display = 'inline-flex'; // Force show
+        console.log('✅ Immerse user: Downgrade to Free button enabled');
       }
       
       // Show Engage button as downgrade option
@@ -7203,7 +7242,8 @@ function updatePricingCard(plan) {
     window.handleDowngrade = async function() {
       console.log('⬇️ Downgrade button clicked');
       
-      customConfirm("Are you sure you want to cancel your subscription? You won't lose your character memories, we will store them for you safely. But you will lose access to your paid features.", 'Confirm Cancellation', () => {
+      const currentPlan = localStorage.getItem('user_plan') || 'Unknown';
+      customConfirm(`Are you sure you want to cancel your ${currentPlan} subscription and downgrade to Free? You won't lose your character memories, we will store them for you safely. But you will lose access to your paid features.`, 'Confirm Cancellation', () => {
         // Continue with downgrade logic
         performDowngrade();
       });
@@ -7323,7 +7363,8 @@ function updatePricingCard(plan) {
         
         console.log('✅ Downgrade response:', result);
         
-        showSuccess('Successfully cancelled your subscription. Your access will remain active until the end of your billing period.');
+        const currentPlan = localStorage.getItem('user_plan') || 'paid plan';
+        showSuccess(`✅ ${currentPlan} subscription cancelled successfully! Your access will remain active until the end of your billing period, then you'll automatically switch to the Free plan.`);
         
         // Reload profile to update UI with downgrade flag
         setTimeout(() => {
@@ -7505,6 +7546,14 @@ document.addEventListener('DOMContentLoaded', () => {
 // Check trial status and handle expiration
 async function checkTrialStatus(email, uid) {
   try {
+    // Skip trial check if user just successfully upgraded
+    const urlParams = new URLSearchParams(window.location.search);
+    const upgradeSuccess = urlParams.get('upgrade');
+    if (upgradeSuccess === 'success') {
+      console.log('✅ Skipping trial check - user just upgraded successfully');
+      return;
+    }
+    
     const response = await fetch('/.netlify/functions/check-trial', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -7549,6 +7598,15 @@ function updateTrialStatus() {
   console.log('🔍 updateTrialStatus called:', { subscriptionStatus, trialEndDate, hasTrialStatus: !!trialStatus });
   
   if (trialStatus) {
+    // Skip trial status display if user just upgraded successfully
+    const urlParams = new URLSearchParams(window.location.search);
+    const upgradeSuccess = urlParams.get('upgrade');
+    if (upgradeSuccess === 'success') {
+      console.log('✅ Hiding trial status - user just upgraded successfully');
+      trialStatus.style.display = 'none';
+      return;
+    }
+    
     if (subscriptionStatus === 'trial' && trialEndDate) {
       console.log('📅 Updating trial status display');
       
