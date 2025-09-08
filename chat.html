@@ -3156,12 +3156,66 @@ Ready to start chatting, or would you like to explore these personalization opti
       });
     }
 
-    function speakMessage(button) {
+    async function speakMessage(button) {
       const messageContent = button.closest('.message-wrapper').querySelector('.message-content').textContent;
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(messageContent);
-        window.speechSynthesis.speak(utterance);
+      
+      // Use ElevenLabs TTS with character's voice
+      const voice_id = currentCharacter?.voice_id || 'ePPRaOM9BrJQfYvzFL5Y'; // Default to Galina's voice
+      
+      console.log('🔊 Speaking message with ElevenLabs voice:', voice_id);
+      
+      // Update button to show loading
+      const originalText = button.innerHTML;
+      button.innerHTML = '⏳';
+      button.disabled = true;
+      
+      try {
+        const response = await fetch('/.netlify/functions/tts-simple', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: messageContent,
+            voice_id: voice_id
+          })
+        });
+        
+        if (response.ok) {
+          const audioData = await response.json();
+          if (audioData.success && audioData.audio) {
+            // Convert base64 to blob and play
+            const audioBytes = atob(audioData.audio);
+            const audioArray = new Uint8Array(audioBytes.length);
+            for (let i = 0; i < audioBytes.length; i++) {
+              audioArray[i] = audioBytes.charCodeAt(i);
+            }
+            const audioBlob = new Blob([audioArray], { type: 'audio/mpeg' });
+            const audioUrl = URL.createObjectURL(audioBlob);
+            
+            const audio = new Audio(audioUrl);
+            audio.play();
+            
+            audio.onended = () => {
+              URL.revokeObjectURL(audioUrl);
+            };
+            
+            console.log('✅ Playing ElevenLabs TTS audio');
+          }
+        } else {
+          throw new Error(`TTS failed: ${response.status}`);
+        }
+      } catch (error) {
+        console.error('❌ TTS error:', error);
+        // Fallback to browser TTS
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance(messageContent);
+          window.speechSynthesis.speak(utterance);
+          console.log('🔄 Fallback to browser TTS');
+        }
+      } finally {
+        // Restore button
+        button.innerHTML = originalText;
+        button.disabled = false;
       }
     }
 
