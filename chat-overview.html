@@ -2889,6 +2889,32 @@ function extractAvatarUrl(chat) {
   return null;
 }
 
+function getRandomAvatar(characterSlug) {
+  // Pool of existing avatars from /avatars folder - consistent per character
+  const avatarPool = [
+    '/avatars/emily-1754251534076.webp',
+    '/avatars/aaliyah-1754250478518.webp',
+    '/avatars/aaron-1754250394855.webp',
+    '/avatars/abigail-1754251064609.webp', 
+    '/avatars/abel-1754250161582.webp',
+    '/avatars/aadhya-1754740209655.webp'
+  ];
+  
+  // Use character slug to ensure consistent avatar selection
+  let hash = 0;
+  for (let i = 0; i < characterSlug.length; i++) {
+    const char = characterSlug.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  
+  const index = Math.abs(hash) % avatarPool.length;
+  const selectedAvatar = avatarPool[index];
+  
+  console.log('🎲 Generated consistent avatar for', characterSlug, ':', selectedAvatar);
+  return selectedAvatar;
+}
+
     // Retry functie voor netwerkverzoeken
     async function fetchWithRetry(url, options, retries = 3) {
       for (let i = 0; i < retries; i++) {
@@ -3118,9 +3144,18 @@ function extractAvatarUrl(chat) {
   // Extract avatar URL using helper function
   const avatarUrl = extractAvatarUrl(chat);
   
-  // Verbeterde avatar handling
-  const avatarContent = avatarUrl 
-    ? `<img src="${avatarUrl}" alt="${chat.character_name}" onerror="this.parentElement.innerHTML='👤'" loading="lazy">`
+  // Use fallback avatar if no avatar found
+  const finalAvatarUrl = avatarUrl || getRandomAvatar(chat.character_slug);
+  
+  console.log('🖼️ Avatar for', chat.character_name, ':', { 
+    originalUrl: avatarUrl, 
+    finalUrl: finalAvatarUrl,
+    usingFallback: !avatarUrl 
+  });
+  
+  // Verbeterde avatar handling with fallback
+  const avatarContent = finalAvatarUrl 
+    ? `<img src="${finalAvatarUrl}" alt="${chat.character_name}" onerror="this.parentElement.innerHTML='👤'" loading="lazy">`
     : '👤';
 
   // Filter out debug/memory messages from preview
