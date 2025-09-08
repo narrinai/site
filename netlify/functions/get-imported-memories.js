@@ -39,9 +39,10 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Strategy 1: Filter specifically for imported memories for this user
-    console.log('🔍 Searching for imported memories for user...');
-    let chatUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND(OR({NetlifyUID}='${user_uid}',{Email}='${user_email}'),{message_type}='imported')&sort[0][field]=CreatedTime&sort[0][direction]=desc`;
+    // Strategy 1: Get all imported memories first, then filter for user in code
+    // (Airtable query filtering seems unreliable for user-specific filters)
+    console.log('🔍 Getting all imported memories, then filtering for user...');
+    let chatUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula={message_type}='imported'&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=1000`;
     
     console.log('🔍 User-specific query URL:', chatUrl);
     
@@ -53,33 +54,13 @@ exports.handler = async (event, context) => {
     });
     
     if (!chatResponse.ok) {
-      console.log('❌ User-specific query failed:', chatResponse.status);
-      console.log('🔄 Falling back to get all records strategy...');
-      
-      // Fallback: Get all imported records and filter for user in code
-      chatUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula={message_type}='imported'&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=1000`;
-      
-      const fallbackResponse = await fetch(chatUrl, {
-        headers: {
-          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (!fallbackResponse.ok) {
-        const errorText = await fallbackResponse.text();
-        console.log('❌ Fallback fetch failed:', fallbackResponse.status, errorText);
-        throw new Error(`ChatHistory fetch failed: ${fallbackResponse.status} - ${errorText}`);
-      }
-      
-      const fallbackData = await fallbackResponse.json();
-      console.log('📊 Fallback: Found', fallbackData.records.length, 'total records');
-      chatData = fallbackData;
-    } else {
-      const userData = await chatResponse.json();
-      console.log('📊 User-specific query: Found', userData.records.length, 'user records');
-      chatData = userData;
+      const errorText = await chatResponse.text();
+      console.log('❌ Import memories fetch failed:', chatResponse.status, errorText);
+      throw new Error(`ChatHistory fetch failed: ${chatResponse.status} - ${errorText}`);
     }
+    
+    const chatData = await chatResponse.json();
+    console.log('📊 Found', chatData.records.length, 'total imported memories');
     
     // First, let's see what fields are actually available
     console.log('📊 Sample record fields:', chatData.records[0]?.fields ? Object.keys(chatData.records[0].fields) : 'No records');
