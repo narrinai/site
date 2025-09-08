@@ -96,11 +96,13 @@ exports.handler = async (event, context) => {
       console.log('📊 Method 3 (User field lookup):', userRecords.length, 'records');
     }
     
-    // Method 3b: Look up the user record ID and match against User field
+    // Method 3b: Look up the user record ID and match against User field (THIS IS THE CORRECT METHOD)
     if (userRecords.length === 0) {
       console.log('📊 Method 3b: Looking up user record ID to match against User field...');
       try {
         const userLookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={NetlifyUID}='${user_uid}'&maxRecords=1`;
+        
+        console.log('🔍 User lookup URL:', userLookupUrl);
         
         const userLookupResponse = await fetch(userLookupUrl, {
           headers: {
@@ -111,9 +113,11 @@ exports.handler = async (event, context) => {
         
         if (userLookupResponse.ok) {
           const userData = await userLookupResponse.json();
+          console.log('📊 User lookup result:', userData.records.length, 'users found');
+          
           if (userData.records.length > 0) {
             const userRecordId = userData.records[0].id;
-            console.log('📊 Found user record ID:', userRecordId);
+            console.log('📊 Found user record ID:', userRecordId, 'for NetlifyUID:', user_uid);
             
             // Now search for records that link to this user record
             userRecords = chatData.records.filter(record => {
@@ -123,8 +127,12 @@ exports.handler = async (event, context) => {
               }
               return recordUser === userRecordId;
             });
-            console.log('📊 Method 3b (User record ID lookup):', userRecords.length, 'records');
+            console.log('📊 Method 3b (User record ID lookup):', userRecords.length, 'records found for user ID', userRecordId);
+          } else {
+            console.log('❌ No user found in Users table for NetlifyUID:', user_uid);
           }
+        } else {
+          console.log('❌ User lookup failed with status:', userLookupResponse.status);
         }
       } catch (e) {
         console.log('⚠️ Error in user lookup:', e.message);
