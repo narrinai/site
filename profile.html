@@ -7699,7 +7699,40 @@ function updateTrialStatus() {
       return;
     }
     
-    if (subscriptionStatus === 'trial' && trialEndDate) {
+    // Check if this is a cancelled subscription (not a trial)
+    const cancelAt = localStorage.getItem('subscription_cancel_at');
+    const currentPlan = localStorage.getItem('user_plan');
+    
+    if (cancelAt && (currentPlan === 'Engage' || currentPlan === 'Immerse')) {
+      // User has a cancelled subscription with access until cancel date
+      console.log('🚫 Showing cancelled subscription messaging');
+      trialStatus.style.background = 'transparent';
+      trialStatus.style.border = 'none';
+      trialStatus.style.padding = '0';
+      
+      const cancelDate = new Date(cancelAt);
+      const now = new Date();
+      const isExpired = now > cancelDate;
+      
+      if (isExpired) {
+        // Subscription access has ended
+        trialStatus.innerHTML = `
+          <div style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%); border: 2px solid #f97316; border-radius: 16px; padding: 24px; text-align: center;">
+            <div style="font-size: 32px; margin-bottom: 16px;">💔</div>
+            <h3 style="color: #1e293b; margin-bottom: 12px; font-size: 20px;">Your Subscription Has Ended</h3>
+            <p style="color: #64748b; margin-bottom: 20px;">Your companions miss you! Upgrade to continue chatting and unlock unlimited companions.</p>
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+              <a href="#plans" onclick="document.getElementById('pricing-section').scrollIntoView({behavior: 'smooth'}); return false;" style="background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">Unlock Companions →</a>
+            </div>
+          </div>
+        `;
+      } else {
+        // Still have access until cancel date - don't show any warning
+        console.log('✅ Subscription cancelled but still active until:', cancelDate);
+        trialStatus.style.display = 'none';
+        return;
+      }
+    } else if (subscriptionStatus === 'trial' && trialEndDate) {
       console.log('📅 Updating trial status display');
       
       // Calculate days remaining
