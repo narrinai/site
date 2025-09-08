@@ -81,6 +81,18 @@ exports.handler = async (event, context) => {
         message_type: r.fields.message_type,
         summary: r.fields.Summary?.substring(0, 50)
       }));
+      
+    // ALSO show sample of ALL records to see what fields they have
+    const sampleAllRecords = chatData.records.slice(0, 5).map(r => ({
+      id: r.id.substring(0, 10),
+      fields_available: Object.keys(r.fields),
+      NetlifyUID: r.fields.NetlifyUID || 'missing',
+      Email: r.fields.Email || 'missing', 
+      message_type: r.fields.message_type || 'missing',
+      Role: r.fields.Role || 'missing',
+      Summary: r.fields.Summary?.substring(0, 40) || 'missing',
+      CreatedTime: r.fields.CreatedTime || 'missing'
+    }));
     
     return {
       statusCode: 200,
@@ -99,6 +111,7 @@ exports.handler = async (event, context) => {
           specific_content_matches: specificContentCheck.length
         },
         sample_uids: sampleUIDs,
+        sample_all_records: sampleAllRecords,
         specific_content_sample: specificContentCheck.slice(0, 3).map(r => ({
           id: r.id.substring(0, 10),
           NetlifyUID: r.fields.NetlifyUID?.substring(0, 30) || 'none',
