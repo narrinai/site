@@ -4379,7 +4379,30 @@ Join here: ${inviteLink}`;
       // Process de auth
       try {
         handleLoginSuccess(user, eventType);
-        window.netlifyIdentity.close();
+        
+        // Multiple attempts to close the modal
+        if (window.netlifyIdentity) {
+          window.netlifyIdentity.close();
+          
+          // Force close after a delay if still open
+          setTimeout(() => {
+            const modal = document.querySelector('[data-netlify-identity-modal]');
+            if (modal && modal.style.display !== 'none') {
+              console.log('🚪 Modal still open, forcing close...');
+              window.netlifyIdentity.close();
+              
+              // Last resort: hide the modal directly
+              setTimeout(() => {
+                const modalBackdrop = document.querySelector('.netlify-identity-modal');
+                if (modalBackdrop) {
+                  modalBackdrop.style.display = 'none';
+                  console.log('🚪 Force-hidden modal backdrop');
+                }
+              }, 500);
+            }
+          }, 1500);
+        }
+        
         updateLoginButton();
       } catch (error) {
         console.error('❌ Error in handleAuthEvent:', error);
@@ -4581,7 +4604,14 @@ function handleLoginSuccess(user, eventType = 'unknown') {
     console.log('🔄 EXISTING LOGIN: Loading profile without webhook call');
     showProfileUI();
     loadProfile();
-    initializeInviteForm();
+    
+    // Force close the modal after successful login
+    setTimeout(() => {
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.close();
+        console.log('🚪 Forced modal close after login');
+      }
+    }, 1000);
     // TEMPORARY: Log redirect check
     console.log('🔍 Checking for post-login redirect...');
     handlePostLoginRedirect();
