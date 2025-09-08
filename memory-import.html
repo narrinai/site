@@ -2863,9 +2863,13 @@ Example JSON format:
       });
       
       if (!isAuthenticated) {
-        console.log('❌ loadRecentImports: User not authenticated, exiting');
-        return; // Don't show recent imports for unauthenticated users
+        console.log('❌ loadRecentImports: User not authenticated, showing login prompt');
+        showRecentImportsLoginPrompt();
+        return;
       }
+      
+      // Always show the recent imports section for authenticated users
+      document.getElementById('recent-imports-section').style.display = 'block';
 
       try {
         console.log('🔍 Checking for imported memories in database...');
@@ -2925,12 +2929,15 @@ Example JSON format:
               displayRecentImports(recentImports);
             } else {
               console.log('📝 No imported memories found after filtering');
+              displayNoImports();
             }
           } else {
             console.log('📝 No memories found in database');
+            displayNoImports();
           }
         } else {
           console.warn('⚠️ Failed to fetch memories from database');
+          displayNoImports();
         }
       } catch (error) {
         console.error('❌ Error loading imported memories:', error);
@@ -2939,7 +2946,6 @@ Example JSON format:
         const hasImportHistory = localStorage.getItem('chatgpt_import_timestamp');
         if (hasImportHistory) {
           console.log('📱 Falling back to localStorage data');
-          document.getElementById('recent-imports-section').style.display = 'block';
           
           const recentImports = [
             {
@@ -2951,8 +2957,41 @@ Example JSON format:
           ];
           
           displayRecentImports(recentImports);
+        } else {
+          displayNoImports();
         }
       }
+    }
+
+    function showRecentImportsLoginPrompt() {
+      document.getElementById('recent-imports-section').style.display = 'block';
+      const container = document.getElementById('recent-imports-list');
+      
+      container.innerHTML = `
+        <div style="text-align: center; padding: var(--spacing-3xl); color: var(--color-gray);">
+          <div style="font-size: 48px; margin-bottom: var(--spacing-lg);">🔐</div>
+          <h3 style="margin-bottom: var(--spacing-md); color: var(--color-navy);">Login Required</h3>
+          <p style="margin-bottom: var(--spacing-xl); max-width: 400px; margin-left: auto; margin-right: auto;">
+            Please log in to view your previous memory imports from ChatGPT.
+          </p>
+          <button onclick="netlifyIdentity.open()" class="cta-button">Login / Sign Up</button>
+        </div>
+      `;
+    }
+    
+    function displayNoImports() {
+      const container = document.getElementById('recent-imports-list');
+      
+      container.innerHTML = `
+        <div style="text-align: center; padding: var(--spacing-3xl); color: var(--color-gray);">
+          <div style="font-size: 48px; margin-bottom: var(--spacing-lg);">📥</div>
+          <h3 style="margin-bottom: var(--spacing-md); color: var(--color-navy);">No Previous Imports</h3>
+          <p style="margin-bottom: var(--spacing-xl); max-width: 400px; margin-left: auto; margin-right: auto;">
+            You haven't imported any memories from ChatGPT yet. Use the import tool above to get started!
+          </p>
+          <a href="#import-steps" class="cta-button">Import My First Memories</a>
+        </div>
+      `;
     }
 
     function displayRecentImports(imports) {

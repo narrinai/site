@@ -3047,24 +3047,31 @@ Ready to start chatting, or would you like to explore these personalization opti
         // Try to get imported memories
         let importedMemories = [];
         try {
-          const importResponse = await fetch('/.netlify/functions/get-imported-memories', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              user_email: userEmail,
-              character_slug: slug
-            })
-          });
-          
-          if (importResponse.ok) {
-            const importData = await importResponse.json();
-            if (importData.success && importData.memories) {
-              importedMemories = importData.memories;
-              console.log(`📥 Loaded ${importedMemories.length} imported memories`);
+          const userUid = localStorage.getItem('user_uid');
+          if (userUid) {
+            console.log('🔍 Fetching imported memories for memory hub:', { userEmail, userUid });
+            const importResponse = await fetch('/.netlify/functions/get-imported-memories', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                user_email: userEmail,
+                user_uid: userUid
+              })
+            });
+            
+            if (importResponse.ok) {
+              const importData = await importResponse.json();
+              console.log('📥 Import response:', importData);
+              if (importData.success && importData.imported_memories) {
+                importedMemories = importData.imported_memories;
+                console.log(`✅ Loaded ${importedMemories.length} imported memories for memory hub`);
+              }
+            } else {
+              console.warn('⚠️ Import response not ok:', importResponse.status);
             }
           }
         } catch (error) {
-          console.error('Error fetching imported memories:', error);
+          console.error('❌ Error fetching imported memories:', error);
         }
         
         // Display memories
@@ -3102,10 +3109,11 @@ Ready to start chatting, or would you like to explore these personalization opti
       // Add imported memories first
       if (hasImported) {
         memoryHTML += '<div style="margin-bottom: 20px;"><h3 style="color: var(--color-navy); margin-bottom: 15px; font-size: 16px;">📥 Imported Memories</h3>';
-        importedMemories.forEach(memory => {
-          const displayText = memory.memory_text || memory.content || memory.description || 'No content';
+        importedMemories.forEach((memory, index) => {
+          const displayText = memory.Memory || memory.memory_text || memory.content || memory.description || 'No content';
           const importance = memory.importance_score || memory.importance || 'N/A';
-          const date = memory.created_at ? new Date(memory.created_at).toLocaleDateString() : 'Unknown date';
+          const date = memory.Date || memory.created_at ? new Date(memory.Date || memory.created_at).toLocaleDateString() : 'Unknown date';
+          const memoryId = `imported_${index}`;
           
           memoryHTML += `
             <div class="memory-item">
@@ -3113,6 +3121,10 @@ Ready to start chatting, or would you like to explore these personalization opti
               <small style="color: var(--color-gray); margin-top: 8px; display: block;">
                 Importance: ${importance} | ${date}
               </small>
+              <button onclick="discussMemory('${memoryId}', '${displayText.replace(/'/g, "\\'")}', 'imported')" 
+                      style="margin-top: 10px; padding: 6px 12px; background: var(--color-teal); color: white; border: none; border-radius: 6px; font-size: 12px; cursor: pointer; transition: all 0.2s ease;">
+                💬 Discuss This
+              </button>
             </div>
           `;
         });
@@ -3122,12 +3134,17 @@ Ready to start chatting, or would you like to explore these personalization opti
       // Add onboarding memories
       if (hasOnboarding) {
         memoryHTML += '<div><h3 style="color: var(--color-navy); margin-bottom: 15px; font-size: 16px;">🎯 Personal Details</h3>';
-        onboardingData.answers.forEach(item => {
+        onboardingData.answers.forEach((item, index) => {
           if (item.question && item.answer) {
+            const memoryId = `onboarding_${index}`;
             memoryHTML += `
               <div class="memory-item">
                 <div class="memory-question">${item.question}</div>
                 <div class="memory-answer">${item.answer}</div>
+                <button onclick="discussMemory('${memoryId}', 'Tell me more about: ${item.question}', 'onboarding')" 
+                        style="margin-top: 10px; padding: 6px 12px; background: var(--color-teal); color: white; border: none; border-radius: 6px; font-size: 12px; cursor: pointer; transition: all 0.2s ease;">
+                  💬 Discuss This
+                </button>
               </div>
             `;
           }
@@ -3136,6 +3153,37 @@ Ready to start chatting, or would you like to explore these personalization opti
       }
       
       content.innerHTML = memoryHTML;
+    }
+
+    function discussMemory(memoryId, memoryText, memoryType) {
+      console.log('💬 Discussing memory:', { memoryId, memoryType, text: memoryText.substring(0, 50) });
+      
+      // Close the memory hub modal
+      closeMemoryHub();
+      
+      // Wait a moment for the modal to close, then start the conversation
+      setTimeout(() => {
+        const messageInput = document.getElementById('messageInput');
+        if (messageInput) {
+          // Pre-fill the message input with a discussion starter
+          let discussionStarter;
+          if (memoryType === 'imported') {
+            discussionStarter = `I'd like to talk about this memory: "${memoryText}"`;
+          } else if (memoryType === 'onboarding') {
+            discussionStarter = memoryText; // Already formatted as "Tell me more about: [question]"
+          }
+          
+          messageInput.value = discussionStarter;
+          messageInput.focus();
+          
+          // Auto-resize the textarea
+          autoResizeTextarea();
+          
+          // Optionally auto-send the message
+          // Uncomment the next line if you want to automatically send the message
+          // sendMessage();
+        }
+      }, 300);
     }
 
     function updateMemoryHubButtons(isAuthenticated) {
