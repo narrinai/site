@@ -5028,6 +5028,8 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       // ===== BELANGRIJKSTE FIX: Gescheiden event handling =====
       window.netlifyIdentity.on('login', user => {
         console.log('🔑 LOGIN event fired for:', user.email);
+        console.log('✅ Login successful - closing modal');
+        netlifyIdentity.close(); // Close Netlify Identity modal
         // Only call handleAuthEvent - it will call handleLoginSuccess internally
         handleAuthEvent(user, 'login');
       });

@@ -2766,6 +2766,8 @@ Example JSON format:
     // Listen for auth changes to re-enable buttons
     if (window.netlifyIdentity) {
       window.netlifyIdentity.on('login', () => {
+        console.log('✅ Login successful - closing modal');
+        netlifyIdentity.close(); // Close Netlify Identity modal
         setTimeout(checkAuthAndUpdateButtons, 100);
       });
       window.netlifyIdentity.on('signup', () => {
@@ -3061,6 +3063,8 @@ Example JSON format:
         });
         
         netlifyIdentity.on('login', function() {
+          console.log('✅ Login successful - closing modal');
+          netlifyIdentity.close(); // Close Netlify Identity modal
           updateAuthDisplay();
           closeLoginModal();
         });

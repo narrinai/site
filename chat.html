@@ -2125,12 +2125,13 @@
       // Update button tooltips based on authentication status
       setTimeout(() => {
         updateButtonTooltips();
+        setupMobileLoginButton(); // Ensure mobile menu is updated
       }, 500);
       
-      // Setup mobile login button
+      // Also setup mobile login button with longer delay to ensure DOM is ready
       setTimeout(() => {
         setupMobileLoginButton();
-      }, 500);
+      }, 1000);
     });
 
     function setupEventListeners() {
@@ -3330,6 +3331,37 @@ Ready to start chatting, or would you like to explore these personalization opti
       return !!(userToken && userUid && !isAnonymousUser && !isAnonymousEmail);
     }
     
+    function checkMemoryHubAccess() {
+      // Check if user has paid plan or active trial
+      const userPlan = localStorage.getItem('user_plan') || 'Free';
+      const trialExpiry = localStorage.getItem('trial_expiry');
+      
+      console.log('🔍 Memory Hub access check:', { userPlan, trialExpiry });
+      
+      // Allow access for paid plans
+      if (userPlan && userPlan !== 'Free') {
+        console.log('✅ Access granted - paid plan:', userPlan);
+        return true;
+      }
+      
+      // Check trial status for Free users
+      if (trialExpiry) {
+        const now = new Date().getTime();
+        const expiryTime = new Date(trialExpiry).getTime();
+        const hasActiveTrial = now < expiryTime;
+        
+        console.log('🔍 Trial check:', { now, expiryTime, hasActiveTrial });
+        
+        if (hasActiveTrial) {
+          console.log('✅ Access granted - active trial');
+          return true;
+        }
+      }
+      
+      console.log('❌ Access denied - no paid plan or expired trial');
+      return false;
+    }
+    
     function updateButtonTooltips() {
       const isAuthenticated = checkUserAuthentication();
       const memoryBtn = document.getElementById('memoryBtn');
@@ -3440,6 +3472,14 @@ Ready to start chatting, or would you like to explore these personalization opti
         if (window.netlifyIdentity) {
           window.netlifyIdentity.open();
         }
+        return;
+      }
+      
+      // Check if user has access (paid plan or active trial)
+      const hasAccess = checkMemoryHubAccess();
+      if (!hasAccess) {
+        console.log('🚫 User does not have access to Memory Hub, redirecting to pricing');
+        window.location.href = '/pricing';
         return;
       }
       
@@ -3840,6 +3880,14 @@ Ready to start chatting, or would you like to explore these personalization opti
         if (window.netlifyIdentity) {
           window.netlifyIdentity.open();
         }
+        return;
+      }
+      
+      // Check if user has access (paid plan or active trial)
+      const hasAccess = checkMemoryHubAccess();
+      if (!hasAccess) {
+        console.log('🚫 User does not have access to Customize, redirecting to pricing');
+        window.location.href = '/pricing';
         return;
       }
       
@@ -4278,6 +4326,8 @@ Ready to start chatting, or would you like to explore these personalization opti
         });
         
         netlifyIdentity.on('login', () => {
+          console.log('✅ Login successful - closing modal');
+          netlifyIdentity.close(); // Close the modal immediately
           setTimeout(() => {
             updateButtonTooltips();
             setupMobileLoginButton();
