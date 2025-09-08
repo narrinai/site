@@ -3422,7 +3422,24 @@ Ready to start chatting, or would you like to explore these personalization opti
         return true;
       }
       
-      // Check trial status for Free users
+      // NEW: Allow access for newly registered users (automatic 3-day trial)
+      const userEmail = localStorage.getItem('user_email');
+      const authTimestamp = localStorage.getItem('user_auth_timestamp');
+      
+      if (authTimestamp && userEmail && userEmail !== 'anonymous@narrin.ai') {
+        const signupTime = parseInt(authTimestamp);
+        const now = Date.now();
+        const hoursSinceSignup = (now - signupTime) / (1000 * 60 * 60);
+        
+        if (hoursSinceSignup < 72) { // 72 hours = 3 days automatic trial
+          console.log('✅ Access granted - new user within 3-day auto trial:', hoursSinceSignup.toFixed(1), 'hours ago');
+          return true;
+        } else {
+          console.log('⏰ User trial period ended:', hoursSinceSignup.toFixed(1), 'hours ago');
+        }
+      }
+      
+      // Check explicit trial status
       if (trialExpiry) {
         const now = new Date().getTime();
         const expiryTime = new Date(trialExpiry).getTime();
@@ -3431,12 +3448,12 @@ Ready to start chatting, or would you like to explore these personalization opti
         console.log('🔍 Trial check:', { now, expiryTime, hasActiveTrial });
         
         if (hasActiveTrial) {
-          console.log('✅ Access granted - active trial');
+          console.log('✅ Access granted - active explicit trial');
           return true;
         }
       }
       
-      console.log('❌ Access denied - no paid plan or expired trial');
+      console.log('❌ Access denied - no paid plan, trial, or recent signup');
       return false;
     }
     
