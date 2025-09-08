@@ -2007,6 +2007,10 @@
             avatar_url: character.Avatar_URL,
             voice_id: character.voice_id
           };
+          
+          // Load custom avatar if it exists
+          loadCustomCharacterData(currentCharacter);
+          
           updateCharacterUI(currentCharacter);
           await loadConversationTopics(slug);
           showWelcomeMessage(currentCharacter);
@@ -2034,6 +2038,44 @@
         avatar_url: '/avatars/emily-1754251534076.webp'
       };
       updateCharacterUI(currentCharacter);
+    }
+
+    function loadCustomCharacterData(character) {
+      if (!character || !character.slug) return;
+      
+      const characterSlug = character.slug;
+      const customizedCharacters = JSON.parse(localStorage.getItem('customizedCharacters') || '{}');
+      const customData = customizedCharacters[characterSlug];
+      
+      if (customData) {
+        console.log('📂 Loading custom data for character:', characterSlug);
+        
+        // Apply custom name
+        if (customData.name) {
+          character.name = customData.name;
+        }
+        
+        // Apply custom avatar
+        if (customData.avatar_url) {
+          character.avatar_url = customData.avatar_url;
+          console.log('🖼️ Loading custom avatar:', customData.avatar_url);
+        }
+        
+        // Apply other customizations
+        if (customData.extra_instructions) {
+          character.customPrompt = customData.extra_instructions;
+          character.isCustomized = true;
+        }
+        
+        if (customData.voice_type) {
+          character.voice_type = customData.voice_type;
+        }
+        
+        // Apply personality state if it exists
+        if (customData.personality_state) {
+          character.personality_state = customData.personality_state;
+        }
+      }
     }
 
     function updateCharacterUI(character) {
@@ -2927,9 +2969,30 @@ Ready to start chatting, or would you like to explore these personalization opti
       }
     }
 
+    function checkUserAuthentication() {
+      const userToken = localStorage.getItem('user_token');
+      const userUid = localStorage.getItem('user_uid');
+      const userEmail = localStorage.getItem('user_email');
+      const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+      const isAnonymousEmail = userEmail === 'anonymous@narrin.ai';
+      
+      return userToken && userUid && !isAnonymousUser && !isAnonymousEmail;
+    }
+
     // Memory Hub
     async function openMemoryHub() {
       console.log('🧠 Opening Memory Hub');
+      
+      // Check if user is authenticated
+      const isAuthenticated = checkUserAuthentication();
+      if (!isAuthenticated) {
+        console.log('🚫 User not authenticated, showing login modal');
+        if (window.netlifyIdentity) {
+          window.netlifyIdentity.open();
+        }
+        return;
+      }
+      
       const modal = document.getElementById('memoryHubModal');
       const content = document.getElementById('memoryHubContent');
       
@@ -3320,6 +3383,16 @@ Ready to start chatting, or would you like to explore these personalization opti
 
     // Customize
     async function openCustomize() {
+      // Check if user is authenticated
+      const isAuthenticated = checkUserAuthentication();
+      if (!isAuthenticated) {
+        console.log('🚫 User not authenticated, showing login modal');
+        if (window.netlifyIdentity) {
+          window.netlifyIdentity.open();
+        }
+        return;
+      }
+      
       // Call the full customization modal function
       openCustomizationModal();
     }
