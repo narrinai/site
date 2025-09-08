@@ -3517,11 +3517,31 @@ Ready to start chatting, or would you like to explore these personalization opti
         // Handle avatar
         const avatarImg = document.getElementById('customAvatarImg');
         const placeholder = document.getElementById('avatarPlaceholder');
-        if (existingCustom.avatar_url) {
-          avatarImg.src = existingCustom.avatar_url;
+        
+        console.log('🖼️ Avatar debug (existing custom):', {
+          existingCustomAvatarUrl: existingCustom.avatar_url,
+          currentCharacterAvatarUrl: currentCharacter.avatar_url,
+          avatarImg: !!avatarImg,
+          placeholder: !!placeholder
+        });
+        
+        const avatarToUse = existingCustom.avatar_url || currentCharacter.avatar_url;
+        
+        if (avatarToUse && avatarImg && placeholder) {
+          console.log('✅ Setting avatar in customize modal (existing):', avatarToUse);
+          avatarImg.src = avatarToUse;
           avatarImg.style.display = 'block';
           placeholder.style.display = 'none';
-          document.getElementById('customAvatarUrl').value = existingCustom.avatar_url;
+          document.getElementById('customAvatarUrl').value = avatarToUse;
+        } else {
+          console.log('❌ Avatar not set (existing) - missing data or elements');
+          if (placeholder) {
+            placeholder.style.display = 'block';
+            placeholder.innerHTML = '👤';
+          }
+          if (avatarImg) {
+            avatarImg.style.display = 'none';
+          }
         }
       } else {
         // Load current character data
