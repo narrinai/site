@@ -39,16 +39,32 @@ exports.handler = async (event, context) => {
       truncatedText = text.substring(0, 297) + '...'; // Truncate instead of rejecting
     }
 
-    // Prepare request data
+    // Clean text to ensure English-only content
+    let cleanText = truncatedText
+      // Remove any Dutch words/phrases that might confuse language detection
+      .replace(/\b(de|het|een|en|van|in|op|met|voor|door|naar|uit|over|onder|tussen|bij|na|tijdens|zonder|binnen|buiten|tegen)\b/gi, '')
+      // Remove extra spaces
+      .replace(/\s+/g, ' ')
+      .trim();
+    
+    // If text is too short after cleaning, use original
+    if (cleanText.length < 10) {
+      cleanText = truncatedText;
+    }
+    
+    // Prepare request data with improved settings for cleaner English
     const postData = JSON.stringify({
-      text: truncatedText,
-      model_id: 'eleven_flash_v2_5', // 50% cheaper than multilingual_v2
+      text: cleanText,
+      model_id: 'eleven_multilingual_v2', // Better for accent control
       voice_settings: {
-        stability: 0.7, // Higher stability to avoid regenerations
-        similarity_boost: 0.75, // Better quality, prevents regenerations
-        style: 0, // Disable style to save processing
-        use_speaker_boost: false // Disable to save credits
-      }
+        stability: 0.8, // Higher stability for cleaner pronunciation
+        similarity_boost: 0.8, // Higher similarity to original voice
+        style: 0.2, // Small style amount for naturalness
+        use_speaker_boost: true, // Enable for better voice clarity
+        language: 'en' // Force English language
+      },
+      pronunciation_dictionary_locators: [],
+      language_id: 'en'
     });
 
     const options = {
