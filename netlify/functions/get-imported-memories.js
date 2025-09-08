@@ -143,33 +143,68 @@ exports.handler = async (event, context) => {
     console.log('🔍 Processing', allMemories.length, 'total memories for import detection');
     console.log('🔍 First 3 memories structure:', allMemories.slice(0, 3));
     
-    // Enhanced filter for imported memories
-    const importedMemories = allMemories.filter(memory => {
-      // Method 1: No Character field (imported memories are character-independent)
-      if (!memory.Character || memory.Character === '') {
-        if (memory.Memory) {
-          const memoryText = memory.Memory.toLowerCase();
-          const importPatterns = [
-            'you prefer', 'you are interested', 'you often', 'you like', 'you enjoy',
-            'you have a', 'you work', 'you use', 'you treat chatgpt', 'you aim to', 
-            'you actively', 'your name is', 'you are building', 'you host', 'you run', 
-            'you collect', 'you are detail-oriented', 'you are deeply engaged', 'you are an omnia'
-          ];
-          
-          const foundPattern = importPatterns.find(pattern => memoryText.includes(pattern));
-          if (foundPattern) {
-            console.log(`✅ Found imported memory (no character): "${memory.Memory.substring(0, 50)}..."`);
-            return true;
-          }
-        }
-      }
+    // Debug: Log all memories to see what we're working with
+    console.log('🔍 All memories sample:', allMemories.slice(0, 5).map(m => ({
+      id: m.id,
+      Character: m.Character,
+      Memory: m.Memory?.substring(0, 50),
+      Role: m.Role,
+      message_type: m.message_type,
+      source: m.source
+    })));
+    
+    // Enhanced filter for imported memories - more lenient approach
+    const importedMemories = allMemories.filter((memory, index) => {
+      console.log(`🔍 Checking memory ${index + 1}:`, {
+        Character: memory.Character,
+        Role: memory.Role,
+        message_type: memory.message_type,
+        source: memory.source,
+        hasMemory: !!memory.Memory,
+        memoryStart: memory.Memory?.substring(0, 30)
+      });
       
-      // Method 2: Explicit import markers
-      if (memory.Character === 'ChatGPT Import' || memory.message_type === 'imported') {
-        console.log(`✅ Found imported memory (explicit): "${memory.Memory?.substring(0, 50)}..."`);
+      // Method 1: Explicit import markers (most reliable)
+      if (memory.message_type === 'imported' || memory.source === 'chatgpt_import') {
+        console.log(`✅ Found imported memory (explicit marker): "${memory.Memory?.substring(0, 50)}..."`);
         return true;
       }
       
+      // Method 2: Character field indicates ChatGPT import
+      if (memory.Character === 'ChatGPT Import') {
+        console.log(`✅ Found imported memory (ChatGPT Import character): "${memory.Memory?.substring(0, 50)}..."`);
+        return true;
+      }
+      
+      // Method 3: No Character field AND contains import patterns (imported memories are character-independent)
+      if ((!memory.Character || memory.Character === '') && memory.Memory) {
+        const memoryText = memory.Memory.toLowerCase();
+        
+        // Broader patterns to catch more imported memories
+        const importPatterns = [
+          'you prefer', 'you are interested', 'you often', 'you like', 'you enjoy',
+          'you have a', 'you work', 'you use', 'you treat chatgpt', 'you aim to', 
+          'you actively', 'your name is', 'you are building', 'you host', 'you run', 
+          'you collect', 'you are detail-oriented', 'you are deeply engaged', 'you are an omnia',
+          // Add more flexible patterns
+          'you tend to', 'you usually', 'you always', 'you never', 'you sometimes',
+          'your', 'you\'re', 'you are', 'you do', 'you don\'t', 'you have', 'you own'
+        ];
+        
+        const foundPattern = importPatterns.find(pattern => memoryText.includes(pattern));
+        if (foundPattern) {
+          console.log(`✅ Found imported memory (pattern "${foundPattern}"): "${memory.Memory.substring(0, 50)}..."`);
+          return true;
+        }
+      }
+      
+      // Method 4: Role is 'user' and no Character (could be imported)
+      if (memory.Role === 'user' && (!memory.Character || memory.Character === '')) {
+        console.log(`✅ Found potential imported memory (user role, no character): "${memory.Memory?.substring(0, 50)}..."`);
+        return true;
+      }
+      
+      console.log(`❌ Memory ${index + 1} did not match import criteria`);
       return false;
     });
     
