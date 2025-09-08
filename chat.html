@@ -2105,19 +2105,19 @@
       const historyKey = `chat_history_${character.slug || 'default'}`;
       const existingHistory = localStorage.getItem(historyKey);
       
-      // Check if there are any real messages (not just welcome messages)
-      let hasRealMessages = false;
+      // Check if there are any messages already
+      let hasMessages = false;
       if (existingHistory) {
         try {
           const history = JSON.parse(existingHistory);
-          hasRealMessages = history.some(msg => msg.sender === 'user');
+          hasMessages = history.length > 0;
         } catch (e) {
           console.warn('Error parsing chat history for welcome check');
         }
       }
       
-      // Only show conversation starter if no previous user messages exist
-      if (!hasRealMessages) {
+      // Only show conversation starter if no previous messages exist
+      if (!hasMessages) {
         const welcomeMessage = generateConversationStarter();
         
         if (welcomeMessage) {
@@ -2665,7 +2665,7 @@ Ready to start chatting, or would you like to explore these personalization opti
             <img src="${currentCharacter?.avatar_url || '/avatars/default-avatar.webp'}" alt="${currentCharacter?.name || 'AI'}" onerror="this.style.display='none'">
           </div>
           <div class="message-wrapper">
-            <div class="message-content">${content}</div>
+            <div class="message-content">${content.replace(/\n/g, '<br>')}</div>
             <div class="message-meta">
               <span>${timestamp}</span>
               <div class="message-actions">
@@ -2677,7 +2677,7 @@ Ready to start chatting, or would you like to explore these personalization opti
       } else {
         messageDiv.innerHTML = `
           <div class="message-wrapper">
-            <div class="message-content">${content}</div>
+            <div class="message-content">${content.replace(/\n/g, '<br>')}</div>
             <div class="message-meta">
               <span>${timestamp}</span>
             </div>
@@ -3441,11 +3441,27 @@ Ready to start chatting, or would you like to explore these personalization opti
         // Handle current character avatar
         const avatarImg = document.getElementById('customAvatarImg');
         const placeholder = document.getElementById('avatarPlaceholder');
-        if (currentCharacter.avatar_url) {
+        console.log('🖼️ Avatar debug:', {
+          currentCharacterAvatarUrl: currentCharacter.avatar_url,
+          avatarImg: !!avatarImg,
+          placeholder: !!placeholder
+        });
+        
+        if (currentCharacter.avatar_url && avatarImg && placeholder) {
+          console.log('✅ Setting avatar in customize modal:', currentCharacter.avatar_url);
           avatarImg.src = currentCharacter.avatar_url;
           avatarImg.style.display = 'block';
           placeholder.style.display = 'none';
           document.getElementById('customAvatarUrl').value = currentCharacter.avatar_url;
+        } else {
+          console.log('❌ Avatar not set - missing data or elements');
+          if (placeholder) {
+            placeholder.style.display = 'block';
+            placeholder.innerHTML = '👤';
+          }
+          if (avatarImg) {
+            avatarImg.style.display = 'none';
+          }
         }
       }
       
@@ -3462,6 +3478,102 @@ Ready to start chatting, or would you like to explore these personalization opti
       }
       
       modal.style.display = 'flex';
+      
+      // Setup autosave
+      setupAutoSave();
+    }
+    
+    function setupAutoSave() {
+      let saveTimeout;
+      
+      const autoSave = () => {
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => {
+          saveCustomizationChanges();
+        }, 2000); // Save after 2 seconds of inactivity
+      };
+      
+      // Auto-save on input changes
+      const inputs = ['customName', 'customPrompt', 'voiceType'];
+      inputs.forEach(inputId => {
+        const input = document.getElementById(inputId);
+        if (input) {
+          input.addEventListener('input', autoSave);
+          input.addEventListener('change', autoSave);
+        }
+      });
+      
+      // Auto-save on slider changes
+      const sliders = document.querySelectorAll('.personality-slider');
+      sliders.forEach(slider => {
+        slider.addEventListener('input', autoSave);
+      });
+      
+      // Auto-save on button clicks
+      const buttons = document.querySelectorAll('.personality-button');
+      buttons.forEach(button => {
+        button.addEventListener('click', autoSave);
+      });
+    }
+    
+    function saveCustomizationChanges() {
+      if (!currentCharacter) return;
+      
+      const customName = document.getElementById('customName')?.value?.trim() || currentCharacter.name;
+      const customPrompt = document.getElementById('customPrompt')?.value?.trim() || '';
+      const voiceType = document.getElementById('voiceType')?.value || 'none';
+      const avatarUrl = document.getElementById('customAvatarUrl')?.value || currentCharacter.avatar_url;
+      
+      const characterSlug = currentCharacter.slug || 'default';
+      const customizedCharacters = JSON.parse(localStorage.getItem('customizedCharacters') || '{}');
+      
+      const customization = {
+        name: customName,
+        extra_instructions: customPrompt,
+        voice_type: voiceType,
+        avatar_url: avatarUrl,
+        character_slug: characterSlug,
+        personality_state: {
+          sliders: { ...personalityState.sliders },
+          traits: [...personalityState.traits],
+          speaking: [...personalityState.speaking],
+          quirks: [...personalityState.quirks],
+          bonding: [...personalityState.bonding]
+        },
+        lastUpdated: new Date().toISOString()
+      };
+      
+      customizedCharacters[characterSlug] = customization;
+      localStorage.setItem('customizedCharacters', JSON.stringify(customizedCharacters));
+      
+      // Apply changes to current character
+      currentCharacter.name = customName;
+      currentCharacter.customPrompt = customPrompt;
+      currentCharacter.voice_type = voiceType;
+      if (avatarUrl) {
+        currentCharacter.avatar_url = avatarUrl;
+      }
+      currentCharacter.isCustomized = true;
+      
+      // Update UI
+      updateCharacterUI(currentCharacter);
+      
+      // Show autosave indicator
+      showAutoSaveIndicator();
+      
+      console.log('💾 Auto-saved customization:', customization);
+    }
+    
+    function showAutoSaveIndicator() {
+      const indicator = document.querySelector('.auto-save-indicator');
+      if (indicator) {
+        indicator.innerHTML = '✅ Saved';
+        indicator.style.display = 'flex';
+        
+        setTimeout(() => {
+          indicator.style.display = 'none';
+        }, 2000);
+      }
     }
 
     function closeCustomizationModal() {
@@ -3540,11 +3652,24 @@ Ready to start chatting, or would you like to explore these personalization opti
     }
 
     async function generateCompanionImage() {
+      console.log('🎲 generateCompanionImage called');
       const avatarImg = document.getElementById('customAvatarImg');
       const placeholder = document.getElementById('avatarPlaceholder');
       
+      console.log('🖼️ Generate avatar elements:', {
+        avatarImg: !!avatarImg,
+        placeholder: !!placeholder
+      });
+      
+      if (!avatarImg || !placeholder) {
+        console.error('❌ Avatar elements not found');
+        return;
+      }
+      
       // Show loading state
       placeholder.innerHTML = '⏳';
+      placeholder.style.display = 'block';
+      avatarImg.style.display = 'none';
       
       try {
         // Generate random avatar from a pool of existing avatars
