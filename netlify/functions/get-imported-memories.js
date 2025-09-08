@@ -40,8 +40,8 @@ exports.handler = async (event, context) => {
     }
 
     // Direct query to ChatHistory table - get all records and filter in code
-    // Increase maxRecords to capture all imported memories
-    const chatUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=2000`;
+    // Increase maxRecords to capture all imported memories - use 5000 to get more records
+    const chatUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=5000`;
     
     console.log('🔍 Direct ChatHistory query URL:', chatUrl);
     
