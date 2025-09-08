@@ -4443,8 +4443,13 @@ Ready to start chatting, or would you like to explore these personalization opti
         currentUser = { email: user_email };
       }
       
-      // Listen for Netlify Identity events to update tooltips and mobile menu
+      // Initialize Netlify Identity with custom labels
       if (window.netlifyIdentity) {
+        netlifyIdentity.init({
+          namePlaceholder: 'Nickname'
+        });
+        
+        // Listen for Netlify Identity events to update tooltips and mobile menu
         netlifyIdentity.on('init', () => {
           updateButtonTooltips();
           setupMobileLoginButton();
