@@ -90,6 +90,7 @@ exports.handler = async (event, context) => {
       Email: r.fields.Email || 'missing', 
       message_type: r.fields.message_type || 'missing',
       Role: r.fields.Role || 'missing',
+      User: r.fields.User || 'missing', // This is the key field!
       Summary: r.fields.Summary?.substring(0, 40) || 'missing',
       CreatedTime: r.fields.CreatedTime || 'missing'
     }));
