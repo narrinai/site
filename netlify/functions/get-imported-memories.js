@@ -259,7 +259,7 @@ exports.handler = async (event, context) => {
         memoryStart: memory.Memory?.substring(0, 30)
       });
       
-      // Method 1: Explicit import markers (most reliable)
+      // Method 1: Explicit import markers (most reliable) - but these fields might not exist
       if (memory.message_type === 'imported' || memory.source === 'chatgpt_import' || memory.source === 'chatgpt') {
         console.log(`✅ Found imported memory (explicit marker): "${memory.Memory?.substring(0, 50)}..."`);
         return true;
@@ -271,10 +271,19 @@ exports.handler = async (event, context) => {
         return true;
       }
       
-      // Method 3: No Character field AND Role is 'user' (imported memories are character-independent)
-      if ((!memory.Character || memory.Character === '') && memory.Role === 'user' && memory.Memory) {
-        console.log(`✅ Found imported memory (user role, no character): "${memory.Memory?.substring(0, 50)}..."`);
-        return true;
+      // Method 3: PRIMARY DETECTION - No Character field AND Role is 'user' AND content starts with "You"
+      if ((!memory.Character || memory.Character === '' || !Array.isArray(memory.Character) || memory.Character.length === 0) && 
+          memory.Role === 'user' && memory.Memory) {
+        
+        const memoryText = memory.Memory.trim().toLowerCase();
+        
+        // If it starts with "You" it's very likely an imported memory
+        if (memoryText.startsWith('you ')) {
+          console.log(`✅ Found imported memory (user + no character + starts with 'you'): "${memory.Memory?.substring(0, 50)}..."`);
+          return true;
+        }
+        
+        console.log(`🔍 User message without character but doesn't start with 'you': "${memory.Memory?.substring(0, 30)}..."`);
       }
       
       // Method 4: Content pattern matching as fallback - enhanced for imported memories
