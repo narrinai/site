@@ -66,24 +66,18 @@ exports.handler = async (event, context) => {
     const userRecordId = userData.records[0].id;
 
     // Use ChatHistory table to store customization as a special record
+    // Only use fields that exist in ChatHistory table
     const record = {
       fields: {
         "User": [userRecordId],
-        // No Character field for customization records
-        "Role": "customization",
+        "Role": "user", // Use 'user' instead of 'customization' since that might not be allowed
         "Message": JSON.stringify(customization),
-        "Summary": `Customization for ${character_slug}`,
-        "message_type": "customization",
-        "metadata": JSON.stringify({
-          character_slug: character_slug,
-          type: "customization",
-          last_updated: new Date().toISOString()
-        })
+        "Summary": `[CUSTOMIZATION] ${character_slug}`
       }
     };
 
     // Check if customization record already exists
-    const existingUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${userRecordId}',{Role}='customization',FIND('${character_slug}',{Summary})>0)&maxRecords=1`;
+    const existingUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${userRecordId}',FIND('[CUSTOMIZATION] ${character_slug}',{Summary})>0)&maxRecords=1`;
     
     const existingResponse = await fetch(existingUrl, {
       headers: {
