@@ -108,6 +108,7 @@
       display: flex;
       align-items: center;
       gap: var(--spacing-sm);
+      margin-left: 60px; /* Space for hamburger menu */
     }
 
     .character-avatar-header {
@@ -403,38 +404,38 @@
       transform: scale(1.05);
     }
 
-    /* Mobile Menu Button */
+    /* Mobile Menu Button - shown on all screens */
     .mobile-menu-btn {
-      position: fixed;
-      top: 16px;
+      position: absolute;
+      top: 50%;
       left: 16px;
+      transform: translateY(-50%);
       z-index: 1000;
-      width: 40px;
-      height: 40px;
-      background: rgba(255, 255, 255, 0.9);
-      border: 1px solid var(--color-light-gray);
+      width: 36px;
+      height: 36px;
+      background: var(--color-light-gray);
+      border: none;
       border-radius: var(--radius-sm);
-      color: var(--color-navy);
-      font-size: 18px;
+      color: var(--color-gray);
+      font-size: 16px;
       cursor: pointer;
       transition: all var(--transition-base);
       display: flex;
       align-items: center;
       justify-content: center;
-      backdrop-filter: blur(10px);
     }
 
     .mobile-menu-btn:hover {
       background: var(--color-teal);
       color: var(--color-white);
-      transform: scale(1.05);
+      transform: translateY(-50%) scale(1.05);
     }
 
     /* Mobile Responsive - Selira inspired */
     @media (max-width: 768px) {
       .chat-header {
         padding: var(--spacing-sm) var(--spacing-md);
-        margin-left: 60px;
+        position: relative;
       }
 
       .character-avatar-header {
@@ -539,6 +540,117 @@
         transform: scale(1);
       }
     }
+
+    /* Disclaimer Styles */
+    .disclaimer {
+      font-size: 12px;
+      color: var(--color-gray);
+      text-align: center;
+      line-height: 1.4;
+      margin-top: var(--spacing-xs);
+      padding: var(--spacing-xs) var(--spacing-sm);
+      background: var(--color-off-white);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--color-light-gray);
+      display: flex;
+      align-items: flex-start;
+      gap: var(--spacing-xs);
+      flex-wrap: wrap;
+    }
+
+    .disclaimer-main-text {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .disclaimer-toggle {
+      background: none;
+      border: none;
+      color: var(--color-gray);
+      cursor: pointer;
+      padding: 4px;
+      width: 20px;
+      height: 20px;
+      border-radius: var(--radius-sm);
+      transition: all var(--transition-base);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .disclaimer-toggle:hover {
+      background: var(--color-light-gray);
+      color: var(--color-teal);
+    }
+
+    .disclaimer-toggle.expanded {
+      transform: rotate(180deg);
+    }
+
+    .disclaimer-expanded {
+      width: 100%;
+      margin-top: var(--spacing-xs);
+      padding-top: var(--spacing-xs);
+      border-top: 1px solid var(--color-light-gray);
+      animation: slideDown 0.3s ease-out;
+    }
+
+    .disclaimer-link {
+      color: var(--color-teal);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color var(--transition-base);
+    }
+
+    .disclaimer-link:hover {
+      color: var(--color-teal-dark);
+      text-decoration: underline;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Mic Button Styles */
+    .mic-button {
+      width: 36px;
+      height: 36px;
+      background: var(--color-light-gray);
+      border: none;
+      border-radius: 50%;
+      color: var(--color-gray);
+      cursor: pointer;
+      transition: all var(--transition-base);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .mic-button:hover {
+      background: var(--color-teal);
+      color: var(--color-white);
+      transform: scale(1.05);
+    }
+
+    .mic-button.recording {
+      background: var(--color-coral);
+      color: var(--color-white);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
   </style>
 </head>
 <body>
@@ -575,8 +687,8 @@
       <div class="chat-messages" id="chatMessages">
         <div class="welcome-message">
           <div class="welcome-icon">💭</div>
-          <h3>Welcome to Clean Chat</h3>
-          <p>Start a conversation with Emily using the Selira-inspired design!</p>
+          <h3>Welcome to Narrin AI</h3>
+          <p>Transform your thoughts into clarity with Emily, your mindful companion!</p>
         </div>
       </div>
 
@@ -592,12 +704,34 @@
             rows="1"
             maxlength="2000"
           ></textarea>
+          <button class="mic-button" onclick="toggleSpeechToText()" id="micButton" title="Voice input">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 1C10.34 1 9 2.34 9 4V12C9 13.66 10.34 15 12 15C13.66 15 15 13.66 15 12V4C15 2.34 13.66 1 12 1Z"/>
+              <path d="M19 10V12C19 15.866 15.866 19 12 19C8.13401 19 5 15.866 5 12V10"/>
+              <path d="M12 19V23"/>
+              <path d="M8 23H16"/>
+            </svg>
+          </button>
           <button class="send-btn" id="sendBtn" onclick="sendMessage()">
             ➤
           </button>
         </div>
         <div class="input-footer">
           <span class="input-hint">Press Enter to send</span>
+        </div>
+        
+        <!-- AI Disclaimer -->
+        <div class="disclaimer">
+          <span class="disclaimer-main-text">ℹ️ You are chatting with an AI companion. This is not a real person and does not provide professional advice.</span>
+          <button class="disclaimer-toggle" id="disclaimerToggle" aria-label="Show more information">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <div class="disclaimer-expanded" id="disclaimerExpanded" style="display: none;">
+            <p>AI companions can provide support and conversation, but they cannot replace professional mental health services, medical advice, or human relationships. If you're experiencing mental health concerns, please consult with qualified professionals.</p>
+            <p>Remember that AI responses are generated and may not always be accurate. Use your judgment and seek appropriate help when needed. For more information, see our <a href="/terms-and-conditions" class="disclaimer-link">Terms & Conditions</a>.</p>
+          </div>
         </div>
       </div>
     </main>
@@ -784,6 +918,53 @@
     function toggleMobileMenu() {
       alert('Mobile Menu - This would open the navigation menu');
     }
+
+    // Disclaimer toggle functionality
+    function toggleDisclaimer() {
+      const toggle = document.getElementById('disclaimerToggle');
+      const expanded = document.getElementById('disclaimerExpanded');
+      
+      if (expanded.style.display === 'none' || !expanded.style.display) {
+        expanded.style.display = 'block';
+        toggle.classList.add('expanded');
+      } else {
+        expanded.style.display = 'none';
+        toggle.classList.remove('expanded');
+      }
+    }
+
+    // Speech to text functionality (placeholder)
+    let isRecording = false;
+    function toggleSpeechToText() {
+      const micButton = document.getElementById('micButton');
+      
+      if (!isRecording) {
+        // Start recording
+        isRecording = true;
+        micButton.classList.add('recording');
+        micButton.title = 'Stop recording';
+        
+        // Simulate recording
+        setTimeout(() => {
+          isRecording = false;
+          micButton.classList.remove('recording');
+          micButton.title = 'Voice input';
+          
+          // Add some demo text
+          const messageInput = document.getElementById('messageInput');
+          messageInput.value = 'Hello, this is a voice message demo!';
+          autoResizeTextarea();
+        }, 2000);
+      }
+    }
+
+    // Add event listener for disclaimer toggle
+    document.addEventListener('DOMContentLoaded', function() {
+      const disclaimerToggle = document.getElementById('disclaimerToggle');
+      if (disclaimerToggle) {
+        disclaimerToggle.addEventListener('click', toggleDisclaimer);
+      }
+    });
 
     console.log('✅ Chat Test with Selira-inspired mobile design ready');
   </script>
