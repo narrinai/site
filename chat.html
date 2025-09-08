@@ -1635,51 +1635,51 @@
         switch(category.toLowerCase()) {
           case 'mindfulness':
             topics = [
-              "How are you feeling in this present moment?",
-              "What's been weighing on your mind lately?", 
-              "Tell me about something that brought you peace today",
-              "What would help you feel more centered right now?",
-              "How do you usually handle stress or overwhelm?"
+              "I'm feeling overwhelmed, can you help me find some calm?",
+              "Can you guide me through a mindful moment?", 
+              "I need help processing some difficult emotions",
+              "Help me find clarity in this situation I'm facing",
+              "I'm struggling with anxiety, what advice do you have?"
             ];
             break;
           case 'career':
           case 'professional':
             topics = [
-              "What's your biggest career challenge right now?",
-              "Tell me about a professional goal you're working toward",
-              "What skills would you like to develop?",
-              "How do you stay motivated at work?",
-              "What's your ideal work environment?"
+              "I'm facing a big career decision, what should I consider?",
+              "Help me figure out my next professional step",
+              "I'm feeling stuck in my job, what would you suggest?",
+              "How can I improve my work-life balance?",
+              "I need advice on dealing with workplace stress"
             ];
             break;
           case 'friendship':
           case 'life':
             topics = [
-              "Tell me about someone important in your life",
-              "What makes you feel most fulfilled?",
-              "How do you handle difficult situations?",
-              "What's bringing you joy lately?",
-              "What would make today feel successful?"
+              "I need advice about a friendship situation",
+              "Help me figure out what would make me happier",
+              "I'm dealing with a difficult situation, can you help?",
+              "How can I bring more joy into my daily life?",
+              "What would make me feel more fulfilled?"
             ];
             break;
           case 'fantasy':
           case 'fictional':
             topics = [
-              "What adventures shall we embark on?",
-              "Tell me about your greatest challenge",
-              "What magical quest interests you?",
-              "How do you define courage?",
-              "What wisdom guides your journey?"
+              "I need guidance on a quest I'm facing",
+              "Tell me about overcoming impossible challenges",
+              "I could use some magical wisdom for my situation",
+              "Help me find the courage I need",
+              "What wisdom do you have for my journey?"
             ];
             break;
           default:
             topics = [
-              "What's been on your mind today?",
-              "Tell me about something you're excited about",
-              "How has your day been so far?",
-              "What's a goal you're working towards?",
-              "What would help you feel better right now?",
-              "Share something that made you smile recently"
+              "I need someone to talk to about what's on my mind",
+              "Help me think through something I'm excited about",
+              "I want to process how my day went",
+              "I need help staying motivated toward my goals",
+              "I'm not feeling great, can you help me feel better?",
+              "I want to share something positive that happened"
             ];
         }
         
@@ -1771,8 +1771,20 @@
           return true;
         }
         
-        const data = await response.json();
-        return data.canSend || true;
+        const responseText = await response.text();
+        
+        // Handle non-JSON responses (like "Accepted")
+        if (responseText === 'Accepted' || responseText.includes('Accepted')) {
+          return true;
+        }
+        
+        try {
+          const data = JSON.parse(responseText);
+          return data.canSend || true;
+        } catch (parseError) {
+          console.warn('Usage check returned non-JSON:', responseText);
+          return true; // Allow on non-JSON response
+        }
       } catch (error) {
         console.error('Usage limit check error:', error);
         return true; // Allow on error
@@ -1935,16 +1947,52 @@
       console.log('📄 Make webhook raw response:', rawText);
       
       try {
-        return JSON.parse(rawText);
+        const parsed = JSON.parse(rawText);
+        
+        // Clean AI response - remove asterisk actions and fix formatting
+        if (parsed.reply) {
+          parsed.reply = cleanAIResponse(parsed.reply);
+        }
+        
+        return parsed;
       } catch (parseError) {
         console.error('JSON parsing error:', parseError);
-        // Try to extract just the reply if JSON is malformed
-        const replyMatch = rawText.match(/"reply":\s*"([^"]*?)"/);
+        
+        // Clean the raw text and try again
+        let cleanedText = rawText;
+        
+        // Remove control characters that break JSON
+        cleanedText = cleanedText.replace(/[\x00-\x1F\x7F-\x9F]/g, ' ');
+        
+        // Try to extract and clean the reply
+        const replyMatch = cleanedText.match(/"reply":\s*"(.*?)"/s);
         if (replyMatch) {
-          return { reply: replyMatch[1] };
+          const cleanReply = cleanAIResponse(replyMatch[1]);
+          return { reply: cleanReply };
         }
+        
         throw new Error('Invalid response format from AI service');
       }
+    }
+    
+    // Clean AI responses - remove asterisk actions and format properly
+    function cleanAIResponse(text) {
+      if (!text) return text;
+      
+      // Remove asterisk actions like *settles into a mindful pause*
+      text = text.replace(/\*[^*]+\*/g, '');
+      
+      // Remove control characters
+      text = text.replace(/[\x00-\x1F\x7F-\x9F]/g, ' ');
+      
+      // Clean up extra whitespace
+      text = text.replace(/\s+/g, ' ').trim();
+      
+      // Remove multiple consecutive newlines
+      text = text.replace(/\n\s*\n\s*\n/g, '\n\n');
+      
+      return text;
+    }
     }
 
     function addMessage(content, sender, autoScroll = true) {
