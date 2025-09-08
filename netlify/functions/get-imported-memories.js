@@ -96,6 +96,22 @@ exports.handler = async (event, context) => {
       console.log('📊 Method 3 (User field lookup):', userRecords.length, 'records');
     }
     
+    // Method 4: Check for any imported memories regardless of user (for debugging)
+    const anyImportedRecords = chatData.records.filter(record => 
+      record.fields.message_type === 'imported' ||
+      (record.fields.Role === 'user' && !record.fields.Character)
+    );
+    console.log('📊 DEBUG: Total imported records in database:', anyImportedRecords.length);
+    if (anyImportedRecords.length > 0) {
+      console.log('📊 Sample imported record:', {
+        NetlifyUID: anyImportedRecords[0].fields.NetlifyUID,
+        Email: anyImportedRecords[0].fields.Email,
+        message_type: anyImportedRecords[0].fields.message_type,
+        Role: anyImportedRecords[0].fields.Role,
+        Character: anyImportedRecords[0].fields.Character
+      });
+    }
+    
     // Method 4: As last resort, search by imported memory content patterns  
     if (userRecords.length === 0) {
       console.log('🔍 Method 4: Searching all records for imported memory patterns...');
@@ -126,22 +142,46 @@ exports.handler = async (event, context) => {
     })));
     
     // Process user records to find imported memories  
-    const allMemories = userRecords.map(record => ({
-      id: record.id,
-      Memory: record.fields.Summary || record.fields.Memory || record.fields.Message,
-      Character: record.fields.Character,
-      Date: record.fields.CreatedTime || record.fields.Date,
-      message_type: record.fields.message_type,
-      source: record.fields.source,
-      Role: record.fields.Role,
-      NetlifyUID: record.fields.NetlifyUID,
-      Email: record.fields.Email,
-      Summary: record.fields.Summary,
-      Message: record.fields.Message
-    }));
+    const allMemories = userRecords.map(record => {
+      // Parse metadata to extract source information
+      let metadata = {};
+      try {
+        if (record.fields.metadata) {
+          metadata = JSON.parse(record.fields.metadata);
+        }
+      } catch (e) {
+        console.log('⚠️ Could not parse metadata for record:', record.id);
+      }
+      
+      return {
+        id: record.id,
+        Memory: record.fields.Summary || record.fields.Memory || record.fields.Message,
+        Character: record.fields.Character,
+        Date: record.fields.CreatedTime || record.fields.Date,
+        message_type: record.fields.message_type,
+        source: record.fields.source || metadata.source,
+        Role: record.fields.Role,
+        NetlifyUID: record.fields.NetlifyUID,
+        Email: record.fields.Email,
+        Summary: record.fields.Summary,
+        Message: record.fields.Message,
+        metadata: metadata
+      };
+    });
     
     console.log('🔍 Processing', allMemories.length, 'total memories for import detection');
     console.log('🔍 First 3 memories structure:', allMemories.slice(0, 3));
+    
+    // Log sample of what we found for this user
+    if (userRecords.length > 0) {
+      console.log('📊 User records sample:', userRecords.slice(0, 2).map(r => ({
+        message_type: r.fields.message_type,
+        Role: r.fields.Role,
+        Character: r.fields.Character,
+        hasMetadata: !!r.fields.metadata,
+        Summary: r.fields.Summary?.substring(0, 30)
+      })));
+    }
     
     // Debug: Log all memories to see what we're working with
     console.log('🔍 All memories sample:', allMemories.slice(0, 5).map(m => ({
@@ -165,7 +205,7 @@ exports.handler = async (event, context) => {
       });
       
       // Method 1: Explicit import markers (most reliable)
-      if (memory.message_type === 'imported' || memory.source === 'chatgpt_import') {
+      if (memory.message_type === 'imported' || memory.source === 'chatgpt_import' || memory.source === 'chatgpt') {
         console.log(`✅ Found imported memory (explicit marker): "${memory.Memory?.substring(0, 50)}..."`);
         return true;
       }
@@ -176,8 +216,14 @@ exports.handler = async (event, context) => {
         return true;
       }
       
-      // Method 3: No Character field AND contains import patterns (imported memories are character-independent)
-      if ((!memory.Character || memory.Character === '') && memory.Memory) {
+      // Method 3: No Character field AND Role is 'user' (imported memories are character-independent)
+      if ((!memory.Character || memory.Character === '') && memory.Role === 'user' && memory.Memory) {
+        console.log(`✅ Found imported memory (user role, no character): "${memory.Memory?.substring(0, 50)}..."`);
+        return true;
+      }
+      
+      // Method 4: Content pattern matching as fallback
+      if (memory.Memory) {
         const memoryText = memory.Memory.toLowerCase();
         
         // Broader patterns to catch more imported memories
@@ -192,16 +238,10 @@ exports.handler = async (event, context) => {
         ];
         
         const foundPattern = importPatterns.find(pattern => memoryText.includes(pattern));
-        if (foundPattern) {
+        if (foundPattern && (!memory.Character || memory.Character === '')) {
           console.log(`✅ Found imported memory (pattern "${foundPattern}"): "${memory.Memory.substring(0, 50)}..."`);
           return true;
         }
-      }
-      
-      // Method 4: Role is 'user' and no Character (could be imported)
-      if (memory.Role === 'user' && (!memory.Character || memory.Character === '')) {
-        console.log(`✅ Found potential imported memory (user role, no character): "${memory.Memory?.substring(0, 50)}..."`);
-        return true;
       }
       
       console.log(`❌ Memory ${index + 1} did not match import criteria`);
