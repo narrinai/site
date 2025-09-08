@@ -269,7 +269,18 @@ exports.handler = async (event, context) => {
           Character: r.fields.Character,
           has_metadata: !!r.fields.metadata,
           Summary: r.fields.Summary?.substring(0, 50)
-        }))
+        })),
+        imported_memories_sample: chatData.records
+          .filter(r => r.fields.message_type === 'imported')
+          .slice(0, 3)
+          .map(r => ({
+            id: r.id.substring(0, 8) + '...',
+            NetlifyUID: r.fields.NetlifyUID?.substring(0, 8) + '...' || 'none',
+            Email: r.fields.Email || 'none',
+            message_type: r.fields.message_type,
+            Role: r.fields.Role,
+            Summary: r.fields.Summary?.substring(0, 50)
+          }))
       }
     };
     
