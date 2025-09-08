@@ -7260,10 +7260,23 @@ function updatePricingCard(plan) {
       });
       
       const currentPlan = localStorage.getItem('user_plan') || 'Unknown';
-      customConfirm(`Are you sure you want to cancel your ${currentPlan} subscription and downgrade to Free? You won't lose your character memories, we will store them for you safely. But you will lose access to your paid features.`, 'Confirm Cancellation', () => {
-        // Continue with downgrade logic
-        performDowngrade();
-      });
+      console.log('🤔 About to show customConfirm dialog for plan:', currentPlan);
+      
+      try {
+        customConfirm(`Are you sure you want to cancel your ${currentPlan} subscription and downgrade to Free? You won't lose your character memories, we will store them for you safely. But you will lose access to your paid features.`, 'Confirm Cancellation', () => {
+          console.log('✅ User confirmed downgrade, calling performDowngrade...');
+          performDowngrade();
+        }, () => {
+          console.log('❌ User cancelled downgrade');
+        });
+        console.log('📱 customConfirm called successfully');
+      } catch (error) {
+        console.error('❌ Error calling customConfirm:', error);
+        // Fallback to browser confirm
+        if (confirm(`Are you sure you want to cancel your ${currentPlan} subscription and downgrade to Free?`)) {
+          performDowngrade();
+        }
+      }
       return;
     }
     
