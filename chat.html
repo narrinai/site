@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="robots" content="noindex">
   <title>Chat with AI Companion | Organize Your Thoughts & Find Mental Clarity - Narrin AI</title>
   <meta name="description" content="Transform scattered thoughts into clear insights through personalized AI conversations. Chat with your companion to organize your mind and end each day feeling clearer.">
@@ -100,13 +100,19 @@
       background: var(--color-off-white);
       color: var(--color-navy);
       overflow: hidden;
-      height: 100vh;
+      height: 100vh; /* Fallback for older browsers */
+      height: 100dvh; /* Dynamic viewport height for mobile browsers */
+      padding-top: env(safe-area-inset-top);
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+      padding-bottom: env(safe-area-inset-bottom);
     }
 
     /* App Layout - Selira inspired */
     .app-container {
       display: flex;
-      height: 100vh;
+      height: 100vh; /* Fallback for older browsers */
+      height: 100dvh; /* Dynamic viewport height for mobile browsers */
       overflow: hidden;
     }
 
@@ -604,7 +610,8 @@
       border-radius: var(--radius-xl);
       max-width: 700px;
       width: 100%;
-      max-height: 80vh;
+      max-height: 80vh; /* Fallback */
+      max-height: 80dvh; /* Dynamic viewport height for mobile */
       overflow: hidden;
       box-shadow: var(--shadow-lg);
       display: flex;
@@ -772,7 +779,8 @@
       border-radius: var(--radius-xl);
       max-width: 800px;
       width: 100%;
-      max-height: 90vh;
+      max-height: 90vh; /* Fallback */
+      max-height: 90dvh; /* Dynamic viewport height for mobile */
       overflow-y: auto;
       box-shadow: var(--shadow-lg);
       animation: slideUp 0.3s ease-out;
@@ -1187,7 +1195,8 @@
       border-radius: var(--radius-lg);
       padding: var(--spacing-xl);
       max-width: 90vw;
-      max-height: 90vh;
+      max-height: 90vh; /* Fallback */
+      max-height: 90dvh; /* Dynamic viewport height for mobile */
       overflow-y: auto;
       box-shadow: var(--shadow-lg);
       transform: scale(0.95);
@@ -1372,7 +1381,8 @@
 
       /* Memory Hub Mobile */
       .memory-hub-modal {
-        max-height: 90vh;
+        max-height: 90vh; /* Fallback */
+        max-height: 90dvh; /* Dynamic viewport height for mobile */
         border-radius: var(--radius-lg);
       }
 
@@ -1406,7 +1416,8 @@
       }
 
       .customization-modal-content {
-        max-height: 95vh;
+        max-height: 95vh; /* Fallback */
+        max-height: 95dvh; /* Dynamic viewport height for mobile */
         border-radius: var(--radius-lg);
       }
 
@@ -2403,6 +2414,43 @@ Ready to start chatting, or would you like to explore these personalization opti
       // Get recent conversation context
       const recentMessages = conversationHistory.slice(-10);
       
+      // Get memory context for non-anonymous users
+      let memory_context = '';
+      if (!isAnonymousUser && user_uid) {
+        try {
+          console.log('🧠 Retrieving memory context for user:', user_uid);
+          const memoryResponse = await fetch('/.netlify/functions/memory', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              action: 'get_memories',
+              user_uid: user_uid,
+              character_slug: currentCharSlug,
+              user_email: user_email
+            })
+          });
+          
+          if (memoryResponse.ok) {
+            const memoryData = await memoryResponse.json();
+            if (memoryData.success && memoryData.memories && memoryData.memories.length > 0) {
+              // Format memories for context
+              const relevantMemories = memoryData.memories
+                .filter(memory => memory.importance >= 3) // Only important memories
+                .slice(0, 5) // Limit to top 5
+                .map(memory => memory.summary || memory.message)
+                .join('\n');
+              
+              memory_context = relevantMemories;
+              console.log('✅ Retrieved', memoryData.memories.length, 'memories for context');
+            }
+          }
+        } catch (error) {
+          console.error('❌ Error retrieving memory context:', error);
+        }
+      }
+      
       // Update anonymous usage counter
       if (isAnonymousUser) {
         const featuredCharacters = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
@@ -2418,7 +2466,7 @@ Ready to start chatting, or would you like to explore these personalization opti
         action: "send_message",
         text: message,
         user_message: message,
-        memory_context: isAnonymousUser ? '' : '',
+        memory_context: memory_context,
         conversation_history: isAnonymousUser ? [] : recentMessages,
         emotional_complexity: 0.5,
         relationship_phase: isAnonymousUser ? 'anonymous' : 'ongoing',
@@ -2478,18 +2526,59 @@ Ready to start chatting, or would you like to explore these personalization opti
         return parsed;
       } catch (parseError) {
         console.error('JSON parsing error:', parseError);
+        console.log('Raw response that failed to parse:', rawText);
         
-        // Clean the raw text and try again
-        let cleanedText = rawText;
-        
-        // Remove control characters that break JSON
-        cleanedText = cleanedText.replace(/[\x00-\x1F\x7F-\x9F]/g, ' ');
-        
-        // Try to extract and clean the reply
-        const replyMatch = cleanedText.match(/"reply":\s*"(.*?)"/s);
-        if (replyMatch) {
-          const cleanReply = cleanAIResponse(replyMatch[1]);
-          return { reply: cleanReply };
+        try {
+          // First attempt: Clean control characters and try parsing again
+          let cleanedText = rawText;
+          
+          // Remove problematic control characters but preserve intentional whitespace
+          cleanedText = cleanedText.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '');
+          
+          // Try parsing cleaned text
+          const parsed = JSON.parse(cleanedText);
+          if (parsed.reply) {
+            parsed.reply = cleanAIResponse(parsed.reply);
+          }
+          return parsed;
+          
+        } catch (secondParseError) {
+          console.error('Second JSON parse also failed:', secondParseError);
+          
+          // Fallback: Extract JSON manually using more robust approach
+          try {
+            // Look for the JSON structure boundaries
+            const jsonStart = rawText.indexOf('{');
+            const jsonEnd = rawText.lastIndexOf('}');
+            
+            if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+              let jsonSubstring = rawText.substring(jsonStart, jsonEnd + 1);
+              
+              // Clean up the substring
+              jsonSubstring = jsonSubstring.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '');
+              
+              const parsed = JSON.parse(jsonSubstring);
+              if (parsed.reply) {
+                parsed.reply = cleanAIResponse(parsed.reply);
+              }
+              return parsed;
+            }
+            
+            // Last resort: regex extraction
+            const replyMatch = rawText.match(/"reply":\s*"([\s\S]*?)"(?=\s*[,}])/);
+            if (replyMatch) {
+              const reply = replyMatch[1]
+                .replace(/\\n/g, '\n')  // Convert escaped newlines
+                .replace(/\\"/g, '"')   // Convert escaped quotes
+                .replace(/\\\\/g, '\\'); // Convert escaped backslashes
+              const cleanReply = cleanAIResponse(reply);
+              console.log('✅ Extracted reply using regex fallback');
+              return { reply: cleanReply };
+            }
+            
+          } catch (fallbackError) {
+            console.error('All parsing attempts failed:', fallbackError);
+          }
         }
         
         throw new Error('Invalid response format from AI service');
@@ -2669,23 +2758,67 @@ Ready to start chatting, or would you like to explore these personalization opti
     async function saveChatMessageToAirtable(messageObj) {
       try {
         const user_email = localStorage.getItem("user_email") || 'anonymous@narrin.ai';
+        const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
+        const user_uid = localStorage.getItem("user_uid");
+        const user_token = localStorage.getItem("user_token");
         
-        await fetch('/.netlify/functions/save-chat-message', {
+        // For anonymous users with featured characters, use special handling
+        let finalUserEmail = user_email;
+        let finalUserUid = user_uid;
+        let finalUserToken = user_token || 'anonymous_token';
+        
+        if (isAnonymousUser) {
+          const featuredCharacters = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
+          const currentCharSlug = currentCharacter?.slug || 'default';
+          const isFeaturedCharacter = featuredCharacters.includes(currentCharSlug);
+          
+          if (isFeaturedCharacter) {
+            // Use shared anonymous user for featured characters
+            finalUserEmail = 'anonymous@narrin.ai';
+            finalUserUid = 'anonymous_user_shared';
+            finalUserToken = 'anonymous_token';
+          } else {
+            // Use individual anonymous session for other characters
+            finalUserEmail = user_email;
+            finalUserUid = user_uid || `anonymous_${Date.now()}`;
+            finalUserToken = 'anonymous_token';
+          }
+        }
+        
+        // Only save if we have all required parameters
+        if (!finalUserEmail || !finalUserUid || !finalUserToken || !currentCharacter?.slug) {
+          console.log('🚫 Skipping save - missing required parameters:', {
+            email: !!finalUserEmail,
+            uid: !!finalUserUid, 
+            token: !!finalUserToken,
+            char: !!currentCharacter?.slug
+          });
+          return;
+        }
+        
+        const response = await fetch('/.netlify/functions/save-chat-message', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            user_email: user_email,
-            user_uid: localStorage.getItem("user_uid") || user_email,
-            user_token: localStorage.getItem("user_token") || '',
-            char: currentCharacter?.slug || 'default',
+            user_email: finalUserEmail,
+            user_uid: finalUserUid,
+            user_token: finalUserToken,
+            char: currentCharacter.slug,
             user_message: messageObj.sender === 'user' ? messageObj.content : '',
             ai_response: messageObj.sender === 'ai' ? messageObj.content : ''
           })
         });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('❌ Save chat message failed:', response.status, errorText);
+        } else {
+          console.log('✅ Message saved to Airtable successfully');
+        }
       } catch (error) {
-        console.error('Error saving message to Airtable:', error);
+        console.error('❌ Error saving message to Airtable:', error);
       }
     }
 
