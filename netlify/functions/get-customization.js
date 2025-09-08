@@ -66,7 +66,7 @@ exports.handler = async (event, context) => {
     const userRecordId = userData.records[0].id;
 
     // Get customization record from ChatHistory table  
-    const customizationUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${userRecordId}',FIND('CUSTOMIZATION_${character_slug}',{Summary})>0)&maxRecords=1`;
+    const customizationUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND({User}='${userRecordId}',{Summary}='CUSTOMIZATION_${character_slug}')&maxRecords=1`;
     
     const customizationResponse = await fetch(customizationUrl, {
       headers: {
