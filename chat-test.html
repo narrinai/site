@@ -403,10 +403,38 @@
       transform: scale(1.05);
     }
 
+    /* Mobile Menu Button */
+    .mobile-menu-btn {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      z-index: 1000;
+      width: 40px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid var(--color-light-gray);
+      border-radius: var(--radius-sm);
+      color: var(--color-navy);
+      font-size: 18px;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(10px);
+    }
+
+    .mobile-menu-btn:hover {
+      background: var(--color-teal);
+      color: var(--color-white);
+      transform: scale(1.05);
+    }
+
     /* Mobile Responsive - Selira inspired */
     @media (max-width: 768px) {
       .chat-header {
         padding: var(--spacing-sm) var(--spacing-md);
+        margin-left: 60px;
       }
 
       .character-avatar-header {
@@ -517,6 +545,11 @@
   <div class="app-container">
     <!-- Main Chat Area -->
     <main class="chat-main">
+      <!-- Mobile Menu Button -->
+      <button class="mobile-menu-btn" onclick="toggleMobileMenu()" title="Menu">
+        ☰
+      </button>
+
       <!-- Chat Header -->
       <header class="chat-header">
         <div class="character-info-header">
@@ -534,9 +567,6 @@
           </button>
           <button class="action-btn customize-btn" onclick="openCustomize()" title="Customize">
             ⚙️
-          </button>
-          <button class="action-btn" onclick="clearChat()" title="Clear Chat">
-            🗑️
           </button>
         </div>
       </header>
@@ -567,7 +597,6 @@
           </button>
         </div>
         <div class="input-footer">
-          <span class="character-count" id="characterCount">0/2000</span>
           <span class="input-hint">Press Enter to send</span>
         </div>
       </div>
@@ -598,9 +627,8 @@
       const messageInput = document.getElementById('messageInput');
       const characterCount = document.getElementById('characterCount');
       
-      if (messageInput && characterCount) {
+      if (messageInput) {
         messageInput.addEventListener('input', function() {
-          characterCount.textContent = `${this.value.length}/2000`;
           autoResizeTextarea();
         });
         
@@ -641,7 +669,6 @@
       addMessage(message, 'user');
       messageInput.value = '';
       autoResizeTextarea();
-      document.getElementById('characterCount').textContent = '0/2000';
       
       // Show typing indicator
       const typingIndicator = addTypingIndicator();
@@ -752,6 +779,10 @@
 
     function openCustomize() {
       alert('Customize - This would open character customization');
+    }
+
+    function toggleMobileMenu() {
+      alert('Mobile Menu - This would open the navigation menu');
     }
 
     console.log('✅ Chat Test with Selira-inspired mobile design ready');
