@@ -2404,7 +2404,20 @@ Ready to start chatting, or would you like to explore these personalization opti
       }
     }
     
-    // Note: showUpgradePrompt function is now provided by /js/upgrade-popups.js
+    // Wrapper function to ensure external script is loaded
+    function showUpgradePrompt(current, limit, type) {
+      console.log('🚀 showUpgradePrompt called:', { current, limit, type });
+      
+      if (window.showUpgradePrompt && window.showUpgradePrompt !== showUpgradePrompt) {
+        // Use the global function from upgrade-popups.js
+        console.log('✅ Using external upgrade popup');
+        window.showUpgradePrompt(current, limit, type);
+      } else {
+        // Fallback if external script not loaded yet
+        console.log('⚠️ External script not loaded, using fallback');
+        alert(`You've reached your ${type} limit (${current}/${limit}). Please upgrade to continue!`);
+      }
+    }
 
     // Message sending
     async function sendMessage(event) {
