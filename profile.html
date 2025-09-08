@@ -3803,11 +3803,21 @@ body .netlify-identity-widget > div[data-netlify-identity-modal] {
 
     // ===== CUSTOM NOTIFICATION SYSTEM =====
     function showNotification(type, title, message, buttons = null) {
+      console.log('🔔 showNotification called:', { type, title, message, buttons });
+      
       const overlay = document.getElementById('notificationOverlay');
       const icon = document.getElementById('notificationIcon');
       const titleEl = document.getElementById('notificationTitle');
       const messageEl = document.getElementById('notificationMessage');
       const buttonsEl = document.getElementById('notificationButtons');
+      
+      console.log('🔔 Notification elements found:', {
+        overlay: !!overlay,
+        icon: !!icon,
+        titleEl: !!titleEl,
+        messageEl: !!messageEl,
+        buttonsEl: !!buttonsEl
+      });
       
       // Set icon based on type
       const icons = {
@@ -3842,8 +3852,10 @@ body .netlify-identity-widget > div[data-netlify-identity-modal] {
       }
       
       // Show notification
+      console.log('🔔 About to show notification overlay...');
       overlay.classList.add('active');
       document.body.style.overflow = 'hidden';
+      console.log('🔔 Notification overlay shown, classes:', overlay.className);
     }
     
     function hideNotification() {
