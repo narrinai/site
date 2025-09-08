@@ -591,6 +591,166 @@
       50% { transform: scale(1.1); }
     }
 
+    /* Upgrade Overlay Styles */
+    .upgrade-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(30, 41, 59, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      z-index: 999999999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: all var(--transition-base);
+    }
+
+    .upgrade-overlay.active {
+      display: flex;
+      opacity: 1;
+    }
+
+    .upgrade-modal {
+      background: var(--color-white);
+      border-radius: var(--radius-xl);
+      padding: var(--spacing-3xl);
+      box-shadow: var(--shadow-xl);
+      max-width: 90vw;
+      width: 100%;
+      max-width: 480px;
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: scale(0.9) translateY(20px);
+      transition: all var(--transition-base);
+      text-align: center;
+      position: relative;
+    }
+
+    .upgrade-overlay.active .upgrade-modal {
+      transform: scale(1) translateY(0);
+    }
+
+    .upgrade-modal::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--gradient-primary);
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    }
+
+    .upgrade-header {
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .upgrade-title {
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-2xl);
+      font-weight: 700;
+      color: var(--color-navy);
+      margin: 0 0 var(--spacing-sm) 0;
+      letter-spacing: -0.01em;
+    }
+
+    .upgrade-subtitle {
+      color: var(--color-gray);
+      font-size: var(--font-size-base);
+      margin: 0 0 var(--spacing-xl) 0;
+      line-height: 1.5;
+    }
+
+    .upgrade-benefits {
+      background: var(--color-off-white);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-lg);
+      margin-bottom: var(--spacing-lg);
+      text-align: left;
+    }
+
+    .benefit-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: var(--spacing-sm);
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+      color: var(--color-navy);
+    }
+
+    .benefit-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .benefit-icon {
+      margin-right: var(--spacing-sm);
+      font-size: var(--font-size-lg);
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    }
+
+    .upgrade-buttons {
+      display: flex;
+      gap: var(--spacing-md);
+      justify-content: center;
+    }
+
+    .upgrade-btn {
+      padding: var(--spacing-md) var(--spacing-xl);
+      border: none;
+      border-radius: var(--radius-lg);
+      font-size: var(--font-size-base);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      font-family: var(--font-primary);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .upgrade-btn.primary {
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      box-shadow: var(--shadow-colored);
+    }
+
+    .upgrade-btn.primary:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-xl);
+    }
+
+    .upgrade-btn.secondary {
+      background: var(--color-white);
+      color: var(--color-gray);
+      border: 2px solid var(--color-light-gray);
+    }
+
+    .upgrade-btn.secondary:hover {
+      border-color: var(--color-teal);
+      color: var(--color-teal);
+      transform: translateY(-1px);
+    }
+
+    @media (max-width: 768px) {
+      .upgrade-modal {
+        margin: var(--spacing-lg);
+        padding: var(--spacing-2xl);
+        max-width: none;
+        max-height: 90vh;
+      }
+      
+      .upgrade-title {
+        font-size: var(--font-size-xl);
+      }
+      
+      .upgrade-buttons {
+        flex-direction: column;
+      }
+    }
+
     /* Modal Styles for Memory Hub and Customize */
     .modal-backdrop {
       position: fixed;
@@ -2404,18 +2564,116 @@ Ready to start chatting, or would you like to explore these personalization opti
       }
     }
     
-    // Wrapper function to ensure external script is loaded
-    function showUpgradePrompt(current, limit, type) {
-      console.log('🚀 showUpgradePrompt called:', { current, limit, type });
+    function showUpgradePrompt(usage, quota, type = 'messages') {
+      console.log('🚀 showUpgradePrompt called:', { usage, quota, type });
       
-      if (window.showUpgradePrompt && window.showUpgradePrompt !== showUpgradePrompt) {
-        // Use the global function from upgrade-popups.js
-        console.log('✅ Using external upgrade popup');
-        window.showUpgradePrompt(current, limit, type);
-      } else {
-        // Fallback if external script not loaded yet
-        console.log('⚠️ External script not loaded, using fallback');
-        alert(`You've reached your ${type} limit (${current}/${limit}). Please upgrade to continue!`);
+      // Check if this is a featured character
+      const featuredCharacters = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
+      const currentCharSlug = new URLSearchParams(window.location.search).get('char') || new URLSearchParams(window.location.search).get('character');
+      const isFeaturedCharacter = featuredCharacters.includes(currentCharSlug);
+      let upgradeOverlay = document.getElementById('upgradeOverlay');
+      
+      if (!upgradeOverlay) {
+        upgradeOverlay = document.createElement('div');
+        upgradeOverlay.id = 'upgradeOverlay';
+        upgradeOverlay.className = 'upgrade-overlay';
+        upgradeOverlay.innerHTML = \`
+          <div class="upgrade-modal">
+            <div class="upgrade-header">
+              <h3 class="upgrade-title">\${
+                type === 'tts' ? 'Voice Feature Unavailable' :
+                type === 'stt' ? 'Voice Input Unavailable' :
+                type === 'companions' ? 'Companion Limit Reached' :
+                'Message Limit Reached'
+              }</h3>
+              <p class="upgrade-subtitle">\${
+                type === 'tts' 
+                  ? \`<strong>Text-to-Speech is a premium feature.</strong><br><br>You tried to use voice messages, but this feature is only available on the Immerse plan. Upgrade now to hear your companions speak!\`
+                  : type === 'stt' 
+                  ? \`<strong>Speech-to-Text is a premium feature.</strong><br><br>You tried to use voice input, but this feature is only available on the Immerse plan. Upgrade now to talk naturally with your companions!\`
+                  : type === 'companions'
+                  ? \`<strong>You've reached your limit of \${quota} active companions.</strong><br><br>To activate more companions, you need to pause existing ones or upgrade to Immerse for unlimited active companions.\`
+                  : isFeaturedCharacter 
+                    ? \`<strong>You've used all \${quota} free messages with this character.</strong><br><br>Create an account for a 3-day unlimited trial, or upgrade to Engage for unlimited messaging!\`
+                    : \`<strong>Your trial has ended.</strong><br><br>Upgrade to Engage for unlimited messaging with all your companions!\`
+              }</p>
+            </div>
+            
+            <div class="upgrade-benefits">
+              <div class="benefit-item">
+                <span class="benefit-icon">💬</span>
+                <span class="benefit-text">Unlimited Chat Messages</span>
+              </div>
+              <div class="benefit-item">
+                <span class="benefit-icon">🎙️</span>
+                <span class="benefit-text">Unlimited Voice Messages (Text-to-Speech)</span>
+              </div>
+              <div class="benefit-item">
+                <span class="benefit-icon">🎧</span>
+                <span class="benefit-text">Voice Input (Speech-to-Text)</span>
+              </div>
+              <div class="benefit-item">
+                <span class="benefit-icon">🤝</span>
+                <span class="benefit-text">Unlimited Active Companions</span>
+              </div>
+              <div class="benefit-item">
+                <span class="benefit-icon">🧠</span>
+                <span class="benefit-text">Advanced Character Memory</span>
+              </div>
+              <div class="benefit-item">
+                <span class="benefit-icon">⚡</span>
+                <span class="benefit-text">Faster Response Times</span>
+              </div>
+              <div class="benefit-item">
+                <span class="benefit-icon">👑</span>
+                <span class="benefit-text">Priority Support</span>
+              </div>
+            </div>
+
+            <div class="upgrade-buttons">
+              <button class="upgrade-btn primary" id="mainUpgradeBtn">
+                View Plans
+              </button>
+              <button class="upgrade-btn secondary" id="mainUpgradeClose">
+                Not Now
+              </button>
+            </div>
+          </div>
+        \`;
+        
+        document.body.appendChild(upgradeOverlay);
+        
+        // Add event handlers
+        document.getElementById('mainUpgradeBtn').onclick = function() {
+          window.location.href = '/pricing';
+        };
+        
+        document.getElementById('mainUpgradeClose').onclick = function() {
+          closeUpgradePrompt();
+        };
+        
+        // Close on backdrop click
+        upgradeOverlay.onclick = function(e) {
+          if (e.target === upgradeOverlay) {
+            closeUpgradePrompt();
+          }
+        };
+      }
+      
+      // Show the modal
+      upgradeOverlay.style.display = 'flex';
+      setTimeout(() => {
+        upgradeOverlay.classList.add('active');
+      }, 10);
+    }
+    
+    function closeUpgradePrompt() {
+      const upgradeOverlay = document.getElementById('upgradeOverlay');
+      if (upgradeOverlay) {
+        upgradeOverlay.classList.remove('active');
+        setTimeout(() => {
+          upgradeOverlay.style.display = 'none';
+        }, 300);
       }
     }
 
