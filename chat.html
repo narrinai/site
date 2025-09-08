@@ -30,6 +30,9 @@
     gtag('config', 'G-D6T01M6XTJ');
   </script>
 
+  <!-- Netlify Identity Widget -->
+  <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+
   <!-- Network Performance Optimizations -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -3203,25 +3206,43 @@ Ready to start chatting, or would you like to explore these personalization opti
       const mobileLoginBtn = document.getElementById('mobileLoginBtn');
       const mobileProfileLink = document.getElementById('mobileProfileLink');
       
+      console.log('🔧 Setting up mobile login button...');
+      
       if (mobileLoginBtn) {
-        mobileLoginBtn.addEventListener('click', (e) => {
-          e.preventDefault();
-          if (window.netlifyIdentity) {
-            window.netlifyIdentity.open();
-          }
-        });
+        // Remove existing event listeners to avoid duplicates
+        mobileLoginBtn.removeEventListener('click', handleMobileLogin);
+        mobileLoginBtn.addEventListener('click', handleMobileLogin);
+        console.log('✅ Mobile login button click handler attached');
       }
       
       // Show/hide login vs profile based on auth status
       const isAuthenticated = checkUserAuthentication();
+      console.log('🔐 Mobile menu auth status:', isAuthenticated);
+      
       if (mobileLoginBtn && mobileProfileLink) {
         if (isAuthenticated) {
           mobileLoginBtn.style.display = 'none';
           mobileProfileLink.style.display = 'flex';
+          console.log('👤 Showing profile link in mobile menu');
         } else {
           mobileLoginBtn.style.display = 'flex';
           mobileProfileLink.style.display = 'none';
+          console.log('🔐 Showing login button in mobile menu');
         }
+      }
+    }
+    
+    function handleMobileLogin(e) {
+      e.preventDefault();
+      console.log('📱 Mobile login button clicked');
+      
+      if (window.netlifyIdentity) {
+        console.log('✅ Opening Netlify Identity modal');
+        closeMobileMenu(); // Close mobile menu first
+        window.netlifyIdentity.open();
+      } else {
+        console.error('❌ Netlify Identity not available');
+        alert('Login system is not available. Please refresh the page and try again.');
       }
     }
 
@@ -4055,21 +4076,24 @@ Ready to start chatting, or would you like to explore these personalization opti
         currentUser = { email: user_email };
       }
       
-      // Listen for Netlify Identity events to update tooltips
+      // Listen for Netlify Identity events to update tooltips and mobile menu
       if (window.netlifyIdentity) {
         netlifyIdentity.on('init', () => {
           updateButtonTooltips();
+          setupMobileLoginButton();
         });
         
         netlifyIdentity.on('login', () => {
           setTimeout(() => {
             updateButtonTooltips();
+            setupMobileLoginButton();
           }, 500);
         });
         
         netlifyIdentity.on('logout', () => {
           setTimeout(() => {
             updateButtonTooltips();
+            setupMobileLoginButton();
           }, 500);
         });
       }
