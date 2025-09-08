@@ -167,6 +167,17 @@ exports.handler = async (event, context) => {
       console.log('📊 Method 4 (content pattern):', userRecords.length, 'records');
     }
     
+    // Method 5: TEMPORARY FIX - If still no user records found, get ALL imported memories
+    // This is because imported memories don't have proper user identification
+    if (userRecords.length === 0) {
+      console.log('🔍 Method 5: TEMPORARY - Getting ALL imported memories due to missing user IDs...');
+      userRecords = chatData.records.filter(record => 
+        record.fields.message_type === 'imported' && 
+        record.fields.Role === 'user'
+      );
+      console.log('📊 Method 5 (all imported memories):', userRecords.length, 'records');
+    }
+    
     console.log('📊 Found', userRecords.length, 'records for this user');
     console.log('📊 First few user records:', userRecords.slice(0, 3).map(r => ({
       id: r.id,
