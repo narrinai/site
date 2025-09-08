@@ -2790,8 +2790,10 @@ Ready to start chatting, or would you like to explore these personalization opti
       // Get recent conversation context
       const recentMessages = conversationHistory.slice(-10);
       
-      // Get memory context for non-anonymous users
+      // Get memory context for non-anonymous users, add length instruction for all
       let memory_context = '';
+      const lengthInstruction = "CRITICAL: Keep responses to 1-2 sentences maximum. Be extremely brief and concise.";
+      
       if (!isAnonymousUser && user_uid) {
         try {
           console.log('🧠 Retrieving memory context for user:', user_uid);
@@ -2818,13 +2820,18 @@ Ready to start chatting, or would you like to explore these personalization opti
                 .map(memory => memory.summary || memory.message)
                 .join('\n');
               
-              memory_context = relevantMemories;
-              console.log('✅ Retrieved', memoryData.memories.length, 'memories for context');
+              // Add response length instruction to memory context for better enforcement
+              memory_context = relevantMemories + "\n\n" + lengthInstruction;
+              console.log('✅ Retrieved', memoryData.memories.length, 'memories for context + length instruction');
             }
           }
         } catch (error) {
           console.error('❌ Error retrieving memory context:', error);
         }
+      } else {
+        // For anonymous users, just use the length instruction
+        memory_context = lengthInstruction;
+        console.log('📝 Using length instruction only for anonymous user');
       }
       
       // Update anonymous usage counter
@@ -3171,6 +3178,14 @@ Ready to start chatting, or would you like to explore these personalization opti
       // Save to localStorage
       const historyKey = `chat_history_${currentCharacter?.slug || 'default'}`;
       localStorage.setItem(historyKey, JSON.stringify(conversationHistory));
+      
+      console.log('💾 Message saved to history:', {
+        sender,
+        messageLength: message.length,
+        totalMessages: conversationHistory.length,
+        historyKey,
+        savedToLocalStorage: !!localStorage.getItem(historyKey)
+      });
       
       // Also save to Airtable via Netlify function
       saveChatMessageToAirtable(messageObj);
