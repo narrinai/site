@@ -39,10 +39,9 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Strategy 1: Look for imported memories specifically - they're older and might be past the first 75 records
-    // Search for records that contain import metadata or typical import patterns
-    console.log('🔍 Searching for imported memories with metadata...');
-    let chatUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=AND(OR({NetlifyUID}='${user_uid}',{Email}='${user_email}'),NOT({metadata}=''))&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=500`;
+    // Strategy 1: Get all records for this user first to understand the data structure 
+    console.log('🔍 Getting user records to analyze structure...');
+    let chatUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula=OR({NetlifyUID}='${user_uid}',{Email}='${user_email}')&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=200`;
     
     console.log('🔍 User-specific query URL:', chatUrl);
     
@@ -422,11 +421,14 @@ exports.handler = async (event, context) => {
           possible_imports: possibleImports.length,
           sample_user_records: userRecords.slice(0, 3).map(r => ({
             id: r.id,
+            fields_available: Object.keys(r.fields),
             Summary: r.fields.Summary?.substring(0, 50),
+            Message: r.fields.Message?.substring(0, 50),
             Role: r.fields.Role,
             message_type: r.fields.message_type,
             metadata: r.fields.metadata?.substring(0, 100),
-            Character: r.fields.Character
+            Character: r.fields.Character,
+            all_fields: r.fields
           })),
           sample_possible_imports: possibleImports.slice(0, 2).map(m => ({
             id: m.id,
