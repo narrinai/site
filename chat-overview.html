@@ -117,7 +117,7 @@
       /* Z-index Scale */
       --z-dropdown: 100;
       --z-sticky: 200;
-      --z-overlay: 300;
+      --z-overlay: 999999;
       --z-modal: 400;
       --z-menu-overlay: 500;
     }
@@ -2505,13 +2505,15 @@ line-clamp: 3;
             // User is logged in, go directly to profile page
             window.location.href = '/profile';
           } else {
-            // User not logged in, store current page for redirect and open login
-            localStorage.setItem('login_redirect_url', window.location.href);
-            openLogin();
+            // Close mobile menu FIRST
+            closeMobileMenu();
+            
+            // Then open login after small delay
+            setTimeout(() => {
+              localStorage.setItem('login_redirect_url', window.location.href);
+              openLogin();
+            }, 200);
           }
-          
-          // Close mobile menu after click
-          closeMobileMenu();
         });
       }
     }
