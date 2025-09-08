@@ -291,18 +291,26 @@ exports.handler = async (event, context) => {
       (r.fields.NetlifyUID && r.fields.NetlifyUID.includes('b1f16d84-9363-4a57-afc3'))
     );
     
-    console.log('🔍 DEBUG: Records with matching NetlifyUID:', debugRecordsForThisUser.length);
-    debugRecordsForThisUser.slice(0, 5).forEach((r, i) => {
-      console.log(`  Record ${i + 1}:`, {
-        id: r.id.substring(0, 10),
-        NetlifyUID: r.fields.NetlifyUID?.substring(0, 20) + '...',
-        message_type: r.fields.message_type,
-        Role: r.fields.Role,
-        Character: r.fields.Character,
-        Summary: r.fields.Summary?.substring(0, 50),
-        Message: r.fields.Message?.substring(0, 50)
-      });
+    // Also check for any records that contain the specific text from screenshot
+    const textBasedMatches = chatData.records.filter(r => {
+      const summary = r.fields.Summary || '';
+      const message = r.fields.Message || '';
+      const content = summary + ' ' + message;
+      return content.includes('detail-oriented and data-driven') || 
+             content.includes('interested in investing for passive income') ||
+             content.includes('collect Pokémon cards') ||
+             content.includes('deeply engaged in professional cycling');
     });
+    
+    console.log('🔍 DEBUG: Records with matching NetlifyUID:', debugRecordsForThisUser.length);
+    console.log('🔍 DEBUG: Records with matching text content:', textBasedMatches.length);
+    
+    // Show some sample NetlifyUIDs from the database to see format
+    const sampleUIDs = chatData.records
+      .filter(r => r.fields.NetlifyUID)
+      .slice(0, 5)
+      .map(r => r.fields.NetlifyUID?.substring(0, 25) + '...');
+    console.log('🔍 DEBUG: Sample NetlifyUIDs in database:', sampleUIDs);
     
     return {
       statusCode: 200,
@@ -314,13 +322,16 @@ exports.handler = async (event, context) => {
         total_records_checked: allMemories.length,
         debug: {
           records_with_matching_uid: debugRecordsForThisUser.length,
-          sample_records: debugRecordsForThisUser.slice(0, 3).map(r => ({
+          text_based_matches: textBasedMatches.length,
+          sample_uids_in_db: chatData.records
+            .filter(r => r.fields.NetlifyUID)
+            .slice(0, 5)
+            .map(r => r.fields.NetlifyUID?.substring(0, 25) + '...'),
+          text_matches_sample: textBasedMatches.slice(0, 3).map(r => ({
             id: r.id.substring(0, 10),
+            NetlifyUID: r.fields.NetlifyUID?.substring(0, 20) + '...' || 'none',
             message_type: r.fields.message_type,
-            Role: r.fields.Role,
-            Character: r.fields.Character,
-            has_summary: !!r.fields.Summary,
-            has_message: !!r.fields.Message
+            Summary: r.fields.Summary?.substring(0, 50)
           }))
         }
       })
