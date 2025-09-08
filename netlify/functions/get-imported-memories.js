@@ -285,6 +285,25 @@ exports.handler = async (event, context) => {
     
     console.log('🎉 Final result:', importedMemories.length, 'imported memories found');
     
+    // DEBUG: Check if we're finding the records from the screenshot
+    const debugRecordsForThisUser = chatData.records.filter(r => 
+      r.fields.NetlifyUID === user_uid || 
+      (r.fields.NetlifyUID && r.fields.NetlifyUID.includes('b1f16d84-9363-4a57-afc3'))
+    );
+    
+    console.log('🔍 DEBUG: Records with matching NetlifyUID:', debugRecordsForThisUser.length);
+    debugRecordsForThisUser.slice(0, 5).forEach((r, i) => {
+      console.log(`  Record ${i + 1}:`, {
+        id: r.id.substring(0, 10),
+        NetlifyUID: r.fields.NetlifyUID?.substring(0, 20) + '...',
+        message_type: r.fields.message_type,
+        Role: r.fields.Role,
+        Character: r.fields.Character,
+        Summary: r.fields.Summary?.substring(0, 50),
+        Message: r.fields.Message?.substring(0, 50)
+      });
+    });
+    
     return {
       statusCode: 200,
       headers,
@@ -292,7 +311,18 @@ exports.handler = async (event, context) => {
         success: true,
         imported_memories: importedMemories,
         count: importedMemories.length,
-        total_records_checked: allMemories.length
+        total_records_checked: allMemories.length,
+        debug: {
+          records_with_matching_uid: debugRecordsForThisUser.length,
+          sample_records: debugRecordsForThisUser.slice(0, 3).map(r => ({
+            id: r.id.substring(0, 10),
+            message_type: r.fields.message_type,
+            Role: r.fields.Role,
+            Character: r.fields.Character,
+            has_summary: !!r.fields.Summary,
+            has_message: !!r.fields.Message
+          }))
+        }
       })
     };
     
