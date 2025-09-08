@@ -111,11 +111,21 @@ exports.handler = async (event, context) => {
     );
     console.log('📊 Verified user records after double-check:', verifiedRecords.length);
     
+    // Debug: Show sample NetlifyUID/Email values to understand why filtering might not work
+    console.log('🔍 First 3 records NetlifyUID/Email comparison:');
+    chatData.records.slice(0, 3).forEach((record, i) => {
+      console.log(`  Record ${i + 1}:`);
+      console.log(`    NetlifyUID: "${record.fields.NetlifyUID}" === "${user_uid}" ? ${record.fields.NetlifyUID === user_uid}`);
+      console.log(`    Email: "${record.fields.Email}" === "${user_email}" ? ${record.fields.Email === user_email}`);
+    });
+    
     if (verifiedRecords.length > 0) {
       userRecords = verifiedRecords;
       console.log('✅ Using verified user records');
     } else {
-      console.log('❌ No verified user records found, using all records from query');
+      console.log('❌ No verified user records found - the Airtable query filter is not working correctly');
+      console.log('🔄 This means the query should have filtered but did not. Using manual filter.');
+      userRecords = verifiedRecords; // Use empty array if no user records match
     }
     
     console.log('📊 Found', userRecords.length, 'records for this user');
