@@ -1940,6 +1940,9 @@
       setupEventListeners();
       loadCharacterFromURL();
       initializeAuth();
+      
+      // Update button tooltips based on authentication status
+      updateButtonTooltips();
     });
 
     function setupEventListeners() {
@@ -2999,6 +3002,36 @@ Ready to start chatting, or would you like to explore these personalization opti
       
       return userToken && userUid && !isAnonymousUser && !isAnonymousEmail;
     }
+    
+    function updateButtonTooltips() {
+      const isAuthenticated = checkUserAuthentication();
+      const memoryBtn = document.getElementById('memoryBtn');
+      const customizeBtn = document.getElementById('customizeBtn');
+      
+      if (memoryBtn) {
+        if (isAuthenticated) {
+          memoryBtn.title = 'Memory Hub';
+          memoryBtn.style.opacity = '1';
+          memoryBtn.style.cursor = 'pointer';
+        } else {
+          memoryBtn.title = '🔐 Sign up to access Memory Hub - View and manage your personal memories';
+          memoryBtn.style.opacity = '0.7';
+          memoryBtn.style.cursor = 'pointer';
+        }
+      }
+      
+      if (customizeBtn) {
+        if (isAuthenticated) {
+          customizeBtn.title = 'Customize';
+          customizeBtn.style.opacity = '1';
+          customizeBtn.style.cursor = 'pointer';
+        } else {
+          customizeBtn.title = '🔐 Sign up to customize - Personalize your companion\'s name, avatar & personality';
+          customizeBtn.style.opacity = '0.7';
+          customizeBtn.style.cursor = 'pointer';
+        }
+      }
+    }
 
     // Memory Hub
     async function openMemoryHub() {
@@ -3808,6 +3841,25 @@ Ready to start chatting, or would you like to explore these personalization opti
       if (user_email && user_email !== 'anonymous@narrin.ai') {
         isAuthenticated = true;
         currentUser = { email: user_email };
+      }
+      
+      // Listen for Netlify Identity events to update tooltips
+      if (window.netlifyIdentity) {
+        netlifyIdentity.on('init', () => {
+          updateButtonTooltips();
+        });
+        
+        netlifyIdentity.on('login', () => {
+          setTimeout(() => {
+            updateButtonTooltips();
+          }, 500);
+        });
+        
+        netlifyIdentity.on('logout', () => {
+          setTimeout(() => {
+            updateButtonTooltips();
+          }, 500);
+        });
       }
     }
 
