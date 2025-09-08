@@ -3012,7 +3012,7 @@ Ready to start chatting, or would you like to explore these personalization opti
       const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
       const userEmail = localStorage.getItem('user_email');
       const isAnonymousEmail = userEmail === 'anonymous@narrin.ai';
-      const isAuthenticated = userToken && uid && !isAnonymousUser && !isAnonymousEmail;
+      const authenticated = userToken && uid && !isAnonymousUser && !isAnonymousEmail;
       
       console.log('🔍 Memory Hub auth check:', { 
         userToken: !!userToken, 
@@ -3020,13 +3020,13 @@ Ready to start chatting, or would you like to explore these personalization opti
         isAnonymousUser, 
         userEmail,
         isAnonymousEmail,
-        isAuthenticated 
+        authenticated 
       });
       
       // Update footer buttons based on auth status
-      updateMemoryHubButtons(isAuthenticated);
+      updateMemoryHubButtons(authenticated);
       
-      if (!isAuthenticated) {
+      if (!authenticated) {
         // Show upgrade prompt for unauthenticated users
         content.innerHTML = `
           <div class="no-memories">
