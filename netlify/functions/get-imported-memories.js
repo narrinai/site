@@ -256,22 +256,31 @@ exports.handler = async (event, context) => {
         message_type: memory.message_type,
         source: memory.source,
         hasMemory: !!memory.Memory,
-        memoryStart: memory.Memory?.substring(0, 30)
+        memoryStart: memory.Memory?.substring(0, 30),
+        hasMetadata: !!memory.metadata,
+        metadataSource: memory.metadata?.source,
+        metadataImportDate: memory.metadata?.import_date
       });
       
-      // Method 1: Explicit import markers (most reliable) - but these fields might not exist
+      // Method 1: Check metadata for import information (MOST RELIABLE for new imports)
+      if (memory.metadata && memory.metadata.source === 'chatgpt' && memory.metadata.import_date) {
+        console.log(`✅ Found imported memory (metadata source): "${memory.Memory?.substring(0, 50)}..."`);
+        return true;
+      }
+      
+      // Method 2: Explicit import markers (legacy)
       if (memory.message_type === 'imported' || memory.source === 'chatgpt_import' || memory.source === 'chatgpt') {
         console.log(`✅ Found imported memory (explicit marker): "${memory.Memory?.substring(0, 50)}..."`);
         return true;
       }
       
-      // Method 2: Character field indicates ChatGPT import
+      // Method 3: Character field indicates ChatGPT import
       if (memory.Character === 'ChatGPT Import') {
         console.log(`✅ Found imported memory (ChatGPT Import character): "${memory.Memory?.substring(0, 50)}..."`);
         return true;
       }
       
-      // Method 3: PRIMARY DETECTION - No Character field AND Role is 'user' AND content starts with "You"
+      // Method 4: PRIMARY DETECTION - No Character field AND Role is 'user' AND content starts with "You"
       if ((!memory.Character || memory.Character === '' || !Array.isArray(memory.Character) || memory.Character.length === 0) && 
           memory.Role === 'user' && memory.Memory) {
         
@@ -286,7 +295,7 @@ exports.handler = async (event, context) => {
         console.log(`🔍 User message without character but doesn't start with 'you': "${memory.Memory?.substring(0, 30)}..."`);
       }
       
-      // Method 4: Content pattern matching as fallback - enhanced for imported memories
+      // Method 5: Content pattern matching as fallback - enhanced for imported memories
       if (memory.Memory) {
         const memoryText = memory.Memory.toLowerCase();
         
@@ -335,6 +344,20 @@ exports.handler = async (event, context) => {
     
     console.log('🎉 Final result:', importedMemories.length, 'imported memories found');
     
+    // Debug: Log summary of what we found
+    if (importedMemories.length > 0) {
+      console.log('📊 Summary of found imported memories:');
+      importedMemories.slice(0, 3).forEach((memory, i) => {
+        console.log(`  ${i + 1}. Memory: "${memory.Memory?.substring(0, 40)}..." | Source: ${memory.source || memory.metadata?.source} | Date: ${memory.metadata?.import_date}`);
+      });
+    } else {
+      console.log('❌ DEBUG: No imported memories found. Sample of user records:');
+      userRecords.slice(0, 3).forEach((record, i) => {
+        const metadata = record.fields.metadata ? JSON.parse(record.fields.metadata) : {};
+        console.log(`  ${i + 1}. Summary: "${record.fields.Summary?.substring(0, 40)}..." | Type: ${record.fields.message_type} | Source: ${metadata.source} | Import Date: ${metadata.import_date}`);
+      });
+    }
+    
     return {
       statusCode: 200,
       headers,
@@ -342,7 +365,8 @@ exports.handler = async (event, context) => {
         success: true,
         imported_memories: importedMemories,
         count: importedMemories.length,
-        total_records_checked: allMemories.length
+        total_records_checked: allMemories.length,
+        debug_user_records_found: userRecords.length
       })
     };
     
