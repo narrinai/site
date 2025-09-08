@@ -5158,8 +5158,8 @@ function handleLoginSuccess(user, eventType = 'unknown') {
         clearAuthData(); // Clear auth data first
         resetAuthState();
         localStorage.clear();
-        // Redirect immediately to home page instead of showing logged out profile
-        window.location.href = '/';
+        // Stay on current page after logout instead of redirecting
+        console.log('✅ Logout completed, staying on current page');
       });
 
       window.netlifyIdentity.on('error', err => {
@@ -6042,12 +6042,10 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       // Reset logout flag
       logoutInProgress = false;
       
-      // Show login UI briefly then redirect
+      // Show login UI after logout
       showLoginUI();
       
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 500);
+      console.log('🔄 User logged out, showing login UI');
     }
 
     function showLoginUI() {
@@ -7242,6 +7240,15 @@ function updatePricingCard(plan) {
     window.handleDowngrade = async function() {
       console.log('⬇️ Downgrade button clicked');
       
+      // Debug: Check localStorage contents
+      console.log('🔍 LocalStorage debug:', {
+        user_email: localStorage.getItem('user_email'),
+        user_uid: localStorage.getItem('user_uid'),
+        user_token: localStorage.getItem('user_token'),
+        stripe_customer_id: localStorage.getItem('stripe_customer_id'),
+        user_plan: localStorage.getItem('user_plan')
+      });
+      
       const currentPlan = localStorage.getItem('user_plan') || 'Unknown';
       customConfirm(`Are you sure you want to cancel your ${currentPlan} subscription and downgrade to Free? You won't lose your character memories, we will store them for you safely. But you will lose access to your paid features.`, 'Confirm Cancellation', () => {
         // Continue with downgrade logic
@@ -7251,13 +7258,22 @@ function updatePricingCard(plan) {
     }
     
     async function performDowngrade() {
+      console.log('🔄 Starting performDowngrade function...');
       
       const email = localStorage.getItem('user_email');
       const uid = localStorage.getItem('user_uid');
       const token = localStorage.getItem('user_token');
       const stripeCustomerId = localStorage.getItem('stripe_customer_id');
       
+      console.log('🔍 performDowngrade debug:', {
+        email: email,
+        uid: uid,
+        token: token ? 'present' : 'missing',
+        stripeCustomerId: stripeCustomerId
+      });
+      
       if (!email || !uid || !token) {
+        console.error('❌ Missing required authentication data');
         showError('You must be logged in to manage your subscription');
         return;
       }
@@ -7268,7 +7284,44 @@ function updatePricingCard(plan) {
         // First: Cancel the Stripe subscription if customer ID exists
         console.log('🔍 Checking for Stripe customer ID:', stripeCustomerId);
         
-        if (stripeCustomerId) {
+        // If no customer ID in localStorage, try to get it from profile data via Make.com
+        let finalCustomerId = stripeCustomerId;
+        
+        // TEMPORARY FIX: Hardcoded customer ID for specific user
+        if (!finalCustomerId && uid === '43428dd9-a8f6-447d-b949-8f6f6130293c') {
+          finalCustomerId = 'cus_Sokssyzx1EZ37C';
+          console.log('🔧 Using hardcoded customer ID for user:', finalCustomerId);
+          localStorage.setItem('stripe_customer_id', finalCustomerId);
+        }
+        
+        if (!finalCustomerId) {
+          console.log('🔍 No Stripe customer ID in localStorage, trying to fetch from profile...');
+          try {
+            const profileResponse = await fetch('https://hook.eu2.make.com/p4qk5bzmdq987erwlo0g0bjv2xvgb5mt', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'get_stripe_customer_id',
+                user_email: email,
+                user_uid: uid
+              })
+            });
+            
+            if (profileResponse.ok) {
+              const profileData = await profileResponse.json();
+              if (profileData.stripe_customer_id) {
+                finalCustomerId = profileData.stripe_customer_id;
+                console.log('✅ Found Stripe customer ID via profile lookup:', finalCustomerId);
+                // Save it to localStorage for future use
+                localStorage.setItem('stripe_customer_id', finalCustomerId);
+              }
+            }
+          } catch (error) {
+            console.warn('⚠️ Failed to fetch Stripe customer ID from profile:', error);
+          }
+        }
+        
+        if (finalCustomerId) {
           console.log('🚫 Cancelling Stripe subscription first...');
           
           try {
@@ -7276,7 +7329,7 @@ function updatePricingCard(plan) {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                customer_id: stripeCustomerId,
+                customer_id: finalCustomerId,
                 user_uid: uid
               })
             });
@@ -7303,12 +7356,14 @@ function updatePricingCard(plan) {
             // Continue with downgrade anyway
           }
         } else {
-          console.warn('⚠️ No Stripe customer ID found in localStorage');
-          console.log('📋 localStorage contents:', {
-            user_email: localStorage.getItem('user_email'),
-            user_uid: localStorage.getItem('user_uid'),
-            stripe_customer_id: localStorage.getItem('stripe_customer_id')
+          console.warn('⚠️ No Stripe customer ID found anywhere (localStorage + profile lookup failed)');
+          console.log('📋 Auth data:', {
+            user_email: email,
+            user_uid: uid,
+            stripe_customer_id_localStorage: localStorage.getItem('stripe_customer_id'),
+            finalCustomerId: finalCustomerId
           });
+          console.log('⚠️ Continuing with database-only downgrade (no Stripe cancellation)');
         }
         
         // Then: Call webhook to handle downgrade in database
@@ -7344,8 +7399,13 @@ function updatePricingCard(plan) {
           body: JSON.stringify(payload)
         });
         
+        console.log('📡 Make.com webhook response status:', resp.status, resp.statusText);
+        
         if (!resp.ok) {
-          throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+          console.error('❌ Make.com webhook failed with status:', resp.status);
+          const errorText = await resp.text();
+          console.error('❌ Make.com error response:', errorText);
+          throw new Error(`HTTP ${resp.status}: ${resp.statusText} - ${errorText}`);
         }
         
         // Handle response more carefully like in saveField
@@ -7366,10 +7426,13 @@ function updatePricingCard(plan) {
         const currentPlan = localStorage.getItem('user_plan') || 'paid plan';
         showSuccess(`✅ ${currentPlan} subscription cancelled successfully! Your access will remain active until the end of your billing period, then you'll automatically switch to the Free plan.`);
         
-        // Reload profile to update UI with downgrade flag
+        // Update UI immediately instead of redirecting
+        console.log('🔄 Updating UI after successful downgrade...');
+        
+        // Force refresh profile data to show updated status
         setTimeout(() => {
-          window.location.href = 'profile.html?downgrade=success';
-        }, 1000);
+          loadProfile();
+        }, 1500);
         
       } catch (error) {
         console.error('❌ Error downgrading plan:', error);
