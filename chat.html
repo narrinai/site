@@ -721,19 +721,12 @@
         align-items: center;
       }
       
-      /* Fixed character header - smaller for more chat space */
+      /* Character header - normal flow for mobile */
       .character-header {
-        position: fixed !important;
-        top: 60px !important;
-        left: 0 !important;
-        right: 0 !important;
-        z-index: 150 !important;
-        background: var(--color-white) !important;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
-        padding: 6px var(--spacing-md) !important;
-        box-shadow: var(--shadow-sm) !important;
-        margin: 0 !important;
-        min-height: 50px !important;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
       }
       
       /* Chat section - keep visible but let chatlog be absolutely positioned */
@@ -749,26 +742,15 @@
         z-index: 5 !important;
       }
       
-      /* Hide desktop input and topics on mobile */
-      .desktop-input,
+      /* Show regular input on mobile - hide only topics */
       .desktop-topics,
-      .input-group:not(.mobile-input),
       .conversation-topics:not(.mobile-topics) {
         display: none !important;
       }
       
-      /* Compact fixed bottom section */
+      /* Hide mobile bottom section - use regular input */
       .mobile-bottom-section {
-        display: block !important;
-        position: fixed !important;
-        bottom: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        background: white !important;
-        padding: 8px var(--spacing-sm) !important; /* Much smaller padding */
-        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1) !important;
-        z-index: 300 !important;
-        border-top: 1px solid var(--color-light-gray) !important;
+        display: none !important;
       }
       
       /* Compact mobile input with + icon */
@@ -930,28 +912,13 @@
         text-align: center !important;
       }
       
-      /* Chatlog - full screen between header and input */
+      /* Chatlog - normal mobile sizing */
       #chatlog {
-        position: absolute !important;
-        top: 85px !important;
-        bottom: 85px !important; /* Account for mobile bottom section height */
-        left: 0 !important;
-        right: 0 !important;
-        width: 100% !important;
-        height: calc(100vh - 170px) !important;
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
-        padding: var(--spacing-sm) var(--spacing-md) !important;
-        margin: 0 !important;
-        background: var(--color-off-white) !important;
-        border: none !important;
-        border-radius: 0 !important;
-        scroll-behavior: smooth !important;
-        -webkit-overflow-scrolling: touch !important;
-        touch-action: pan-y !important;
-        overscroll-behavior-y: contain !important;
-        overscroll-behavior-x: none !important;
-        z-index: 1 !important;
+        height: calc(60vh - 120px) !important;
+        min-height: 300px !important;
+        max-height: 500px !important;
+        padding: var(--spacing-md);
+        font-size: var(--font-size-sm);
       }"}
       
       /* Prevent page refresh/overscroll on mobile */
@@ -1595,14 +1562,9 @@
         height: 0 !important;
       }
       
-      /* Reduce chat section bottom padding on mobile and remove borders */
+      /* Normal chat section padding for mobile */
       .chat-section {
-        padding-bottom: 8px !important;
-        border: none !important;
-        box-shadow: none !important;
-        border-radius: 0 !important;
-        margin: 0 !important;
-        padding: 0 !important;
+        padding: var(--spacing-md) var(--spacing-md);
       }
       
       .chat-header {
@@ -2792,10 +2754,7 @@
         font-size: 18px;
       }
       
-      /* Make chat screen taller on mobile */
-      .chat-section {
-        min-height: calc(100vh - 160px);
-      }
+      /* Normal chat section height for mobile */
 
       #chatlog {
         height: calc(60vh - 120px) !important;
@@ -2859,25 +2818,11 @@
       
       /* Remove aggressive spacing overrides - use normal spacing */
 
-      /* Ensure chat section has proper bottom padding for input */
-      .chat-section {
-        padding: 0 !important;
-        margin: 0 !important;
-        border: none !important;
-        box-shadow: none !important;
-        border-radius: 0 !important;
-      }
+      /* Normal chat section styling */
     }
 
     /* Extra small screens (below 480px) */
     @media (max-width: 480px) {
-      .chat-section {
-        padding: 0 !important;
-        margin: 0 !important;
-        border: none !important;
-        box-shadow: none !important;
-        border-radius: 0 !important;
-      }
 
       #chatlog {
         height: calc(55vh - 150px);
