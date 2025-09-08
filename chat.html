@@ -2926,14 +2926,17 @@ Ready to start chatting, or would you like to explore these personalization opti
           // More aggressive approach: Fix the JSON structure
           let fixedJson = rawText;
           
-          // First, escape newlines within quoted strings
-          fixedJson = fixedJson.replace(/"reply":\s*"([^"]*(?:\\.[^"]*)*?)"/gs, (match, replyContent) => {
-            // Escape newlines and other special characters within the reply
+          // First, find and fix the reply field specifically
+          // Extract everything between "reply": and the next field
+          fixedJson = fixedJson.replace(/"reply":\s*"([\s\S]*?)"(?=\s*,\s*"[^"]+"|$|})/g, (match, replyContent) => {
+            // Escape all problematic characters in the reply content
             const escapedContent = replyContent
               .replace(/\n/g, '\\n')
-              .replace(/\r/g, '\\r')
+              .replace(/\r/g, '\\r') 
               .replace(/\t/g, '\\t')
-              .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '');
+              .replace(/"/g, '\\"')  // Escape internal quotes
+              .replace(/\\/g, '\\\\') // Escape backslashes
+              .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, ''); // Remove control chars
             return `"reply": "${escapedContent}"`;
           });
           
