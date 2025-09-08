@@ -3031,12 +3031,23 @@ Ready to start chatting, or would you like to explore these personalization opti
       const isAuthenticated = checkUserAuthentication();
       const memoryBtn = document.getElementById('memoryBtn');
       const customizeBtn = document.getElementById('customizeBtn');
+      const mobileProfileLink = document.getElementById('mobileProfileLink');
       
       console.log('🏷️ Updating button tooltips:', {
         isAuthenticated,
         memoryBtn: !!memoryBtn,
-        customizeBtn: !!customizeBtn
+        customizeBtn: !!customizeBtn,
+        mobileProfileLink: !!mobileProfileLink
       });
+      
+      // Handle Profile link visibility in mobile menu
+      if (mobileProfileLink) {
+        if (isAuthenticated) {
+          mobileProfileLink.style.display = 'flex';
+        } else {
+          mobileProfileLink.style.display = 'none';
+        }
+      }
       
       if (memoryBtn) {
         if (isAuthenticated) {
