@@ -4386,17 +4386,19 @@ Ready to start chatting, or would you like to explore these personalization opti
       avatarImg.style.display = 'none';
       
       try {
-        // Get a random avatar (truly random for regeneration, not hash-based)
-        const avatarPool = [
-          '/avatars/emily-1754251534076.webp',
-          '/avatars/aaliyah-1754250478518.webp',
-          '/avatars/aaron-1754250394855.webp',
-          '/avatars/abigail-1754251064609.webp',
-          '/avatars/abel-1754250161582.webp',
-          '/avatars/aadhya-1754740209655.webp'
-        ];
+        // Get a random avatar from server function (uses all available avatars)
+        const response = await fetch('/.netlify/functions/get-random-avatar');
         
-        const randomAvatar = avatarPool[Math.floor(Math.random() * avatarPool.length)];
+        if (!response.ok) {
+          throw new Error('Failed to get random avatar from server');
+        }
+        
+        const result = await response.json();
+        if (!result.success || !result.avatar_url) {
+          throw new Error('Invalid response from random avatar function');
+        }
+        
+        const randomAvatar = result.avatar_url;
         
         // Simulate API delay
         await new Promise(resolve => setTimeout(resolve, 1000));
