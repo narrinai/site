@@ -26,6 +26,8 @@
   <meta name="author" content="Narrin AI" />
   
   <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <!-- Global Netlify Identity Label Updater -->
+  <script src="/netlify-identity-nickname.js"></script>
   
   <!-- Microsoft Clarity Analytics -->
   <script type="text/javascript">
@@ -4452,6 +4454,56 @@ body.has-referral-banner {
      console.log('📌 Referral code saved BEFORE Identity init:', referralCode);
    }
    
+// Global function to update all Netlify Identity name labels
+window.updateNetlifyModalLabels = function() {
+  setTimeout(() => {
+    try {
+      // Find the Netlify Identity modal
+      const netlifyModal = document.querySelector('.netlify-identity-widget');
+      if (!netlifyModal) return;
+      
+      // Find name label and update it
+      const nameLabels = netlifyModal.querySelectorAll('label');
+      nameLabels.forEach(label => {
+        if (label.textContent && (label.textContent.toLowerCase().includes('name') || label.textContent === 'Name')) {
+          label.textContent = 'Nickname';
+          console.log('✅ Updated name label to "Nickname"');
+        }
+      });
+      
+      // Check for various name-related text patterns
+      const allElements = netlifyModal.querySelectorAll('*');
+      allElements.forEach(element => {
+        if (element.textContent) {
+          let updated = false;
+          let newText = element.textContent;
+          
+          if (newText.includes('Enter your name')) {
+            newText = newText.replace('Enter your name', 'Nickname');
+            updated = true;
+          }
+          if (newText.includes('Full name')) {
+            newText = newText.replace('Full name', 'Nickname');
+            updated = true;
+          }
+          if (newText === 'Name') {
+            newText = 'Nickname';
+            updated = true;
+          }
+          
+          if (updated) {
+            element.textContent = newText;
+            console.log('✅ Updated text to use "Nickname"');
+          }
+        }
+      });
+      
+    } catch (error) {
+      console.log('⚠️ Could not update modal labels:', error);
+    }
+  }, 100);
+}
+
    // Initialize Netlify Identity
 if (window.netlifyIdentity) {
   window.netlifyIdentity.init({
@@ -4466,6 +4518,8 @@ if (window.netlifyIdentity) {
     
     // Add modal-open class to body for CSS targeting
     document.body.classList.add('modal-open');
+    
+    // Labels will be updated automatically by netlify-identity-nickname.js
     
     // Add external disclaimer at bottom of screen
     setTimeout(() => {
