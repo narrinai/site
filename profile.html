@@ -5172,8 +5172,11 @@ function handleLoginSuccess(user, eventType = 'unknown') {
         clearAuthData(); // Clear auth data first
         resetAuthState();
         localStorage.clear();
-        // Stay on current page after logout instead of redirecting
-        console.log('✅ Logout completed, staying on current page');
+        // Redirect to homepage after logout
+        console.log('🔄 Logout completed, redirecting to homepage...');
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 500);
       });
 
       window.netlifyIdentity.on('error', err => {
@@ -6056,10 +6059,13 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       // Reset logout flag
       logoutInProgress = false;
       
-      // Show login UI after logout
+      // Show login UI briefly then redirect
       showLoginUI();
       
-      console.log('🔄 User logged out, showing login UI');
+      console.log('🔄 User logged out, redirecting to homepage...');
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1000);
     }
 
     function showLoginUI() {
