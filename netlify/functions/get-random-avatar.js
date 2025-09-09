@@ -14,31 +14,30 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    console.log('🎲 Getting random avatar from local folder...');
+    console.log('🎲 Getting random avatar from avatar list...');
     
-    // Path to avatars folder relative to Netlify function
-    const avatarsPath = path.join(process.cwd(), 'avatars');
+    // Load the avatar list from the JSON file
+    const avatarListPath = path.join(process.cwd(), 'avatars.json');
     
-    // Check if avatars directory exists
-    if (!fs.existsSync(avatarsPath)) {
-      throw new Error('Avatars directory not found');
+    // Check if avatars list exists
+    if (!fs.existsSync(avatarListPath)) {
+      throw new Error('Avatars list not found');
     }
     
-    // Get all avatar files
-    const avatarFiles = fs.readdirSync(avatarsPath)
-      .filter(file => file.endsWith('.webp') || file.endsWith('.jpg') || file.endsWith('.png'))
-      .filter(file => !file.includes('default')); // Exclude default avatars
+    // Read and parse avatar list
+    const avatarListData = fs.readFileSync(avatarListPath, 'utf8');
+    const avatarFiles = JSON.parse(avatarListData);
     
-    if (avatarFiles.length === 0) {
-      throw new Error('No avatar files found');
+    if (!Array.isArray(avatarFiles) || avatarFiles.length === 0) {
+      throw new Error('No avatar files in list');
     }
     
     // Select random avatar
     const randomIndex = Math.floor(Math.random() * avatarFiles.length);
-    const randomAvatarFile = avatarFiles[randomIndex];
-    const avatarUrl = `/avatars/${randomAvatarFile}`;
+    const randomAvatarPath = avatarFiles[randomIndex];
+    const avatarUrl = `/${randomAvatarPath}`;
     
-    console.log('✅ Selected random avatar:', randomAvatarFile);
+    console.log('✅ Selected random avatar:', randomAvatarPath);
     
     return {
       statusCode: 200,
@@ -46,7 +45,7 @@ exports.handler = async (event, context) => {
       body: JSON.stringify({
         success: true,
         avatar_url: avatarUrl,
-        filename: randomAvatarFile,
+        filename: path.basename(randomAvatarPath),
         total_available: avatarFiles.length
       })
     };
