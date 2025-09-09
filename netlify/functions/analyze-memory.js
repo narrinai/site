@@ -76,7 +76,25 @@ exports.handler = async (event, context) => {
   });
 
   try {
-    const body = JSON.parse(event.body || '{}');
+    // Enhanced JSON parsing with better error handling
+    let body;
+    try {
+      body = JSON.parse(event.body || '{}');
+    } catch (jsonError) {
+      console.error('❌ JSON parsing failed:', jsonError.message);
+      console.error('❌ Raw body (first 200 chars):', (event.body || '').substring(0, 200));
+      console.error('❌ Character at error position:', event.body ? event.body.charAt(jsonError.message.match(/\d+/)?.[0] || 0) : 'N/A');
+      
+      return {
+        statusCode: 400,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          error: 'Invalid JSON in request body',
+          details: jsonError.message,
+          position: jsonError.message.match(/\d+/)?.[0] || 'unknown'
+        })
+      };
+    }
     // Accept multiple parameter names for the message
     const message = body.message || body.text || body.user_message || '';
     const context = body.context || body.memory_context || '';
