@@ -7017,14 +7017,31 @@ function setField(field, text) {
         });
       }
       
-      // Add logout button event listener
+      // Add logout button event listener with debugging
       const logoutBtn = document.getElementById('logout-btn');
+      console.log('🔍 Logout button setup:', {
+        logoutBtn: !!logoutBtn,
+        btnId: logoutBtn?.id,
+        btnText: logoutBtn?.textContent?.trim()
+      });
+      
       if (logoutBtn) {
         logoutBtn.addEventListener('click', (e) => {
           e.preventDefault();
           console.log('🚪 Logout button clicked');
           handleLogout();
         });
+        console.log('✅ Logout event listener attached');
+      } else {
+        console.error('❌ Logout button not found with ID: logout-btn');
+        
+        // Try to find any logout-related elements
+        const allLinks = document.querySelectorAll('a');
+        console.log('🔍 All links on page:', Array.from(allLinks).map(a => ({
+          id: a.id,
+          text: a.textContent?.trim(),
+          href: a.href
+        })));
       }
     });
 
