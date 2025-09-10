@@ -96,26 +96,44 @@ exports.handler = async (event, context) => {
       if (userLookupResponse.ok) {
         const userData = await userLookupResponse.json();
         console.log('📊 User lookup result:', userData.records.length, 'users found');
+        console.log('📊 User lookup response:', userData);
         
         if (userData.records.length > 0) {
           const userRecordId = userData.records[0].id;
+          const userRecord = userData.records[0];
           console.log('📊 Found user record ID:', userRecordId);
+          console.log('📊 User record details:', {
+            id: userRecord.id,
+            NetlifyUID: userRecord.fields.NetlifyUID,
+            Email: userRecord.fields.Email,
+            fields: Object.keys(userRecord.fields)
+          });
           
           // Step 2: Filter imported memories for this user record ID
           userRecords = chatData.records.filter(record => {
             const recordUser = record.fields.User;
+            console.log(`🔍 Checking record ${record.id}: User field =`, recordUser, 'Looking for:', userRecordId);
+            
             // User field could be an array or single value
             if (Array.isArray(recordUser)) {
-              return recordUser.includes(userRecordId);
+              const match = recordUser.includes(userRecordId);
+              console.log(`  Array check: ${JSON.stringify(recordUser)} includes "${userRecordId}" = ${match}`);
+              return match;
+            } else {
+              const match = recordUser === userRecordId;
+              console.log(`  Direct check: "${recordUser}" === "${userRecordId}" = ${match}`);
+              return match;
             }
-            return recordUser === userRecordId;
           });
           console.log('📊 Filtered to', userRecords.length, 'imported memories for this user');
         } else {
           console.log('❌ No user found in Users table for NetlifyUID/Email:', user_uid, user_email);
+          console.log('📊 Available users sample:', userData);
         }
       } else {
+        const errorText = await userLookupResponse.text();
         console.log('❌ User lookup failed with status:', userLookupResponse.status);
+        console.log('❌ Error response:', errorText);
       }
     } catch (e) {
       console.log('⚠️ Error in user lookup:', e.message);
