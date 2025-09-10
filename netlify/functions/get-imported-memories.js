@@ -130,14 +130,52 @@ exports.handler = async (event, context) => {
         } else {
           console.log('❌ No user found in Users table for NetlifyUID/Email:', user_uid, user_email);
           console.log('📊 Available users sample:', userData);
+          
+          // FALLBACK: Try to filter imported memories directly by NetlifyUID/Email fields
+          console.log('🔄 FALLBACK: Attempting direct filtering on imported memories...');
+          userRecords = chatData.records.filter(record => {
+            // Check if imported memories have direct NetlifyUID/Email fields
+            const recordNetlifyUID = record.fields.NetlifyUID || record.fields.Netlify_UID || record.fields.netlifyUID;
+            const recordEmail = record.fields.Email;
+            
+            const uidMatch = recordNetlifyUID === user_uid;
+            const emailMatch = recordEmail === user_email;
+            
+            if (uidMatch || emailMatch) {
+              console.log(`✅ FALLBACK match found: NetlifyUID=${recordNetlifyUID}, Email=${recordEmail}`);
+              return true;
+            }
+            return false;
+          });
+          console.log('📊 FALLBACK: Found', userRecords.length, 'records via direct filtering');
         }
       } else {
         const errorText = await userLookupResponse.text();
         console.log('❌ User lookup failed with status:', userLookupResponse.status);
         console.log('❌ Error response:', errorText);
+        
+        // FALLBACK: Try to filter imported memories directly
+        console.log('🔄 FALLBACK: Attempting direct filtering due to user lookup failure...');
+        userRecords = chatData.records.filter(record => {
+          const recordNetlifyUID = record.fields.NetlifyUID || record.fields.Netlify_UID || record.fields.netlifyUID;
+          const recordEmail = record.fields.Email;
+          
+          return recordNetlifyUID === user_uid || recordEmail === user_email;
+        });
+        console.log('📊 FALLBACK: Found', userRecords.length, 'records via direct filtering');
       }
     } catch (e) {
       console.log('⚠️ Error in user lookup:', e.message);
+      
+      // FALLBACK: Try to filter imported memories directly
+      console.log('🔄 FALLBACK: Attempting direct filtering due to error...');
+      userRecords = chatData.records.filter(record => {
+        const recordNetlifyUID = record.fields.NetlifyUID || record.fields.Netlify_UID || record.fields.netlifyUID;
+        const recordEmail = record.fields.Email;
+        
+        return recordNetlifyUID === user_uid || recordEmail === user_email;
+      });
+      console.log('📊 FALLBACK: Found', userRecords.length, 'records via direct filtering');
     }
     
     console.log('📊 Found', userRecords.length, 'records for this user');
