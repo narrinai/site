@@ -2095,6 +2095,14 @@ Example JSON format:
       
       .main-content {
         padding: var(--spacing-xl) 0;
+        min-height: calc(100vh - 60px); /* Adjust for mobile header */
+      }
+      
+      /* Ensure main content is centered and full width on mobile */
+      .main-content > .container {
+        width: 100%;
+        max-width: 100%;
+        padding: 0 var(--spacing-sm);
       }
       
       .memory-import-header {
@@ -2173,17 +2181,42 @@ Example JSON format:
     }
 
     @media (max-width: 480px) {
+      .main-content > .container {
+        padding: 0 var(--spacing-xs);
+      }
+      
+      .memory-import-header {
+        padding: var(--spacing-lg) 0;
+        text-align: center;
+      }
+      
       .memory-import-header h1 {
         font-size: clamp(var(--font-size-xl), 4vw, var(--font-size-2xl));
         margin-bottom: var(--spacing-md);
+        line-height: 1.1;
       }
       
       .memory-import-header .subtitle {
         font-size: var(--font-size-sm);
+        line-height: 1.4;
       }
       
       .step-card {
         padding: var(--spacing-lg);
+        margin-bottom: var(--spacing-md);
+      }
+      
+      .prompt-container textarea, 
+      .response-container textarea {
+        min-height: 150px;
+        font-size: 16px; /* Prevent zoom on iOS */
+      }
+      
+      /* Improve button sizes for touch */
+      .copy-button, .parse-button {
+        padding: var(--spacing-lg);
+        font-size: var(--font-size-base);
+        min-height: 48px;
       }
       
       .step-number {
