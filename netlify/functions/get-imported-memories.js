@@ -352,6 +352,14 @@ exports.handler = async (event, context) => {
       });
     }
     
+    // Collect debug logs to send to client
+    const debugLogs = [];
+    
+    // Add key debug information
+    debugLogs.push(`🔍 Total imported memories from DB: ${chatData.records.length}`);
+    debugLogs.push(`🔍 Looking for NetlifyUID: ${user_uid}`);
+    debugLogs.push(`🔍 Looking for Email: ${user_email}`);
+    
     return {
       statusCode: 200,
       headers,
@@ -361,6 +369,7 @@ exports.handler = async (event, context) => {
         count: importedMemories.length,
         total_records_checked: allMemories.length,
         debug_user_records_found: userRecords.length,
+        debug_logs: debugLogs,
         debug_info: {
           sample_fields: chatData.records[0]?.fields ? Object.keys(chatData.records[0].fields) : [],
           memories_with_metadata: memoriesWithMetadata.length,
