@@ -2804,18 +2804,24 @@ Example JSON format:
       window.netlifyIdentity.on('login', (user) => {
         console.log('✅ Login successful - closing modal');
         
-        // Update localStorage with user data
-        localStorage.setItem('user_email', user.email);
-        localStorage.setItem('user_token', user.token?.access_token || '');
-        localStorage.setItem('user_uid', user.id);
-        localStorage.setItem('netlify_uid', user.id);
+        // Update localStorage with user data - check multiple property paths
+        const userEmail = user.email || user.user_metadata?.email || user.user_metadata?.full_name;
+        const userId = user.id || user.user_metadata?.sub;
+        const userToken = user.token?.access_token || user.access_token;
+        
+        localStorage.setItem('user_email', userEmail);
+        localStorage.setItem('user_token', userToken || '');
+        localStorage.setItem('user_uid', userId);
+        localStorage.setItem('netlify_uid', userId);
         localStorage.removeItem('is_anonymous_user');
         
         console.log('💾 Updated localStorage with user data:', {
-          email: user.email,
-          uid: user.id,
-          hasToken: !!user.token?.access_token
+          email: userEmail,
+          uid: userId,
+          hasToken: !!userToken
         });
+        
+        console.log('🔍 Full user object for debugging:', user);
         
         netlifyIdentity.close(); // Close Netlify Identity modal
         setTimeout(() => {
