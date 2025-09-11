@@ -4424,6 +4424,9 @@ body.has-referral-banner {
           loginBtn.addEventListener('click', (e) => {
             e.preventDefault();
             if (window.netlifyIdentity) {
+              // Store current URL for post-login redirect
+              localStorage.setItem('login_redirect_url', window.location.href);
+              console.log('🔄 Stored redirect URL:', window.location.href);
               window.netlifyIdentity.open();
             }
           });
@@ -4436,6 +4439,9 @@ body.has-referral-banner {
           mobileLoginBtn.addEventListener('click', (e) => {
             e.preventDefault();
             if (window.netlifyIdentity) {
+              // Store current URL for post-login redirect
+              localStorage.setItem('login_redirect_url', window.location.href);
+              console.log('🔄 Stored redirect URL:', window.location.href);
               window.netlifyIdentity.open();
             }
           });
@@ -4760,8 +4766,16 @@ if (window.netlifyIdentity) {
         }
       });
       
-      // User successfully logged in, update UI instead of redirecting
-      console.log('✅ User logged in successfully, staying on index page');
+      // Check for redirect URL and handle appropriately  
+      const redirectUrl = localStorage.getItem('login_redirect_url');
+      
+      if (redirectUrl && redirectUrl !== window.location.href) {
+        localStorage.removeItem('login_redirect_url');
+        console.log('✅ Redirecting back to:', redirectUrl);
+        window.location.href = redirectUrl;
+      } else {
+        console.log('✅ User logged in successfully, staying on current page');
+      }
     }, 500);
   }
   
@@ -4769,8 +4783,18 @@ if (window.netlifyIdentity) {
     handleLoginSuccess(user, 'login');
     window.netlifyIdentity.close();
     
-    // User logged in, update UI to show authenticated state
-    console.log('✅ Login complete, user stays on current page');
+    // Check for redirect URL after login event
+    const redirectUrl = localStorage.getItem('login_redirect_url');
+    
+    if (redirectUrl && redirectUrl !== window.location.href) {
+      localStorage.removeItem('login_redirect_url');  
+      console.log('✅ Login complete, redirecting to:', redirectUrl);
+      setTimeout(() => {
+        window.location.href = redirectUrl;
+      }, 100);
+    } else {
+      console.log('✅ Login complete, user stays on current page');
+    }
   });
   window.netlifyIdentity.on('logout', () => {
     clearAuthData();
@@ -4873,8 +4897,18 @@ if (window.netlifyIdentity) {
       }, 2000); // Wait 2 seconds for user to be created in Airtable
     }
     
-    // Stay on current page - no redirect
-    console.log('✅ Staying on index page after signup');
+    // Check for redirect URL after signup
+    const redirectUrl = localStorage.getItem('login_redirect_url');
+    
+    if (redirectUrl && redirectUrl !== window.location.href) {
+      localStorage.removeItem('login_redirect_url');
+      console.log('✅ Signup complete, redirecting to:', redirectUrl);
+      setTimeout(() => {
+        window.location.href = redirectUrl;
+      }, 2500); // Wait a bit longer for Airtable user creation
+    } else {
+      console.log('✅ Staying on current page after signup');
+    }
     
     // Close the identity modal
     window.netlifyIdentity.close();
