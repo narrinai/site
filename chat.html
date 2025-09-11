@@ -2208,7 +2208,7 @@
           // Load custom avatar if it exists
           await loadCustomCharacterData(currentCharacter);
           
-          updateCharacterUI(currentCharacter);
+          updateCharacterUI(currentCharacter, true);
           await loadConversationTopics(slug);
           
           // Show welcome message after chat history is loaded
@@ -2239,7 +2239,7 @@
         description: 'Your thoughtful guide for mental clarity',
         avatar_url: getRandomAvatar(currentCharacter?.slug)
       };
-      updateCharacterUI(currentCharacter);
+      updateCharacterUI(currentCharacter, true);
     }
 
     async function loadCustomCharacterData(character) {
@@ -2292,7 +2292,7 @@
       }
     }
 
-    function updateCharacterUI(character) {
+    function updateCharacterUI(character, shouldLoadHistory = false) {
       const nameHeader = document.getElementById('characterNameHeader');
       const statusHeader = document.getElementById('characterStatusHeader');
       const avatarImg = document.getElementById('headerAvatarImg');
@@ -2310,8 +2310,11 @@
         welcomeText.textContent = `Transform your thoughts into clarity with ${character.name}!`;
       }
       
-      // Load chat history for this character
-      loadChatHistory(character.slug);
+      // Only load chat history when explicitly requested (e.g., when switching characters)
+      if (shouldLoadHistory) {
+        console.log('📜 Loading chat history as requested for:', character.slug);
+        loadChatHistory(character.slug);
+      }
     }
 
     function showWelcomeMessage(character) {
@@ -3458,12 +3461,12 @@ Ready to start chatting, or would you like to explore these personalization opti
     function getRandomAvatar(characterSlug) {
       // Pool of existing avatars from /avatars folder - will be assigned consistently per character
       const avatarPool = [
-        '/avatars/aadhya-1754740209655.webp',
-        '/avatars/aaron-1754250394855.webp',
-        '/avatars/abel-1754250161582.webp',
-        '/avatars/abigail-1754251064609.webp',
-        '/avatars/abraham-lincoln.webp',
-        '/avatars/abram-1754252166885.webp'
+        '/avatars/kind-avery-1754248946975.webp',
+        '/avatars/kind-gray-1754249219414.webp',
+        '/avatars/kindness-kate-1754253275817.webp',
+        '/avatars/mitchell-1754253074501.webp',
+        '/avatars/friendly-kendall-1754252783506.webp',
+        '/avatars/happy-morgan-1754251292716.webp'
       ];
       
       // Use character slug to ensure consistent avatar selection
@@ -4433,26 +4436,26 @@ Ready to start chatting, or would you like to explore these personalization opti
       try {
         // Use local avatar pool (no server dependency)
         const avatarPool = [
-          '/avatars/aadhya-1754740209655.webp',
-          '/avatars/aaron-1754250394855.webp',
-          '/avatars/abel-1754250161582.webp',
-          '/avatars/abigail-1754251064609.webp',
-          '/avatars/abraham-lincoln.webp',
-          '/avatars/abram-1754252166885.webp',
-          '/avatars/academic-amy-1752449747.webp',
-          '/avatars/accent-anna-1752441525.webp',
-          '/avatars/ada-lovelace-1752443823.webp',
-          '/avatars/albert-einstein.webp',
-          '/avatars/alexander-the-great.webp',
-          '/avatars/all-might.webp',
-          '/avatars/amy-schumer.webp',
-          '/avatars/angel.webp',
-          '/avatars/aragorn.webp',
-          '/avatars/aristotle.webp',
-          '/avatars/batman.webp',
-          '/avatars/beethoven-1752440687.webp',
-          '/avatars/benjamin-franklin.webp',
-          '/avatars/buddha.webp'
+          '/avatars/kind-avery-1754248946975.webp',
+          '/avatars/kind-gray-1754249219414.webp',
+          '/avatars/kindness-kate-1754253275817.webp',
+          '/avatars/mitchell-1754253074501.webp',
+          '/avatars/friendly-kendall-1754252783506.webp',
+          '/avatars/happy-morgan-1754251292716.webp',
+          '/avatars/kind-1754252693464.webp',
+          '/avatars/kind-elliot-1754250974523.webp',
+          '/avatars/kind-riley-1754250696222.webp',
+          '/avatars/kindness-kate-1752448706.webp',
+          '/avatars/professional-pat-1752506564.webp',
+          '/avatars/professional-paul-1754249867556.webp',
+          '/avatars/professional-paul-1752437864.webp',
+          '/avatars/payroll-professional-casey-1752498591.webp',
+          '/avatars/payroll-professional-chris-1752505873.webp',
+          '/avatars/payroll-professional-nova-1752678349.webp',
+          '/avatars/payroll-professional-opal-1752676661.webp',
+          '/avatars/payroll-professional-zen-1752677082.webp',
+          '/avatars/one-of-a-kind-oscar-1752439076.webp',
+          '/avatars/happy-exceed-1752440363.webp'
         ];
         
         const randomAvatar = avatarPool[Math.floor(Math.random() * avatarPool.length)];
