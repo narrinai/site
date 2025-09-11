@@ -8,12 +8,23 @@
     try {
       console.log('🔄 Attempting to update Netlify Identity modal labels...');
       
+      // Debug: Log all potential modal elements
+      console.log('🔍 All elements with "netlify" in class or id:');
+      const allNetlifyElements = document.querySelectorAll('*[class*="netlify"], *[id*="netlify"]');
+      allNetlifyElements.forEach(el => {
+        console.log('  -', el.tagName, el.className, el.id);
+      });
+      
       // Multiple selectors to find the modal
       const possibleSelectors = [
         '.netlify-identity-widget',
         '[data-netlify-identity-widget]',
         'iframe[src*="identity"]',
-        '.netlify-identity-widget-container'
+        '.netlify-identity-widget-container',
+        '#netlify-identity-widget',
+        '[class*="netlify-identity"]',
+        '.netlify-identity-modal',
+        'div[role="dialog"]'
       ];
       
       let netlifyModal = null;
@@ -27,6 +38,11 @@
       
       if (!netlifyModal) {
         console.log('❌ Netlify Identity modal not found');
+        console.log('🔍 Available modal-like elements:');
+        const modals = document.querySelectorAll('div[role="dialog"], .modal, [class*="modal"]');
+        modals.forEach(modal => {
+          console.log('  -', modal.tagName, modal.className, modal.id);
+        });
         return;
       }
       
@@ -101,7 +117,7 @@
       updateElement(netlifyModal);
       
       // Try to find iframe content as well
-      const iframe = netlifyModal.querySelector('iframe');
+      const iframe = netlifyModal.querySelector('iframe') || document.querySelector('iframe[src*="identity"]');
       if (iframe) {
         try {
           const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
@@ -115,6 +131,38 @@
         }
       }
       
+      // Alternative approach: Try to find iframe directly and update its content
+      const allIframes = document.querySelectorAll('iframe');
+      allIframes.forEach(iframe => {
+        if (iframe.src && iframe.src.includes('identity')) {
+          try {
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            if (iframeDoc) {
+              const iframeElements = iframeDoc.querySelectorAll('*');
+              iframeElements.forEach(updateElement);
+              console.log('✅ Updated iframe content directly');
+            }
+          } catch (e) {
+            console.log('⚠️ Cross-origin iframe access blocked');
+            
+            // Fallback: Use postMessage to communicate with iframe
+            try {
+              iframe.contentWindow.postMessage({
+                type: 'UPDATE_LABELS',
+                replacements: [
+                  ['Enter your name', 'Nickname'],
+                  ['Full name', 'Nickname'],
+                  ['Name', 'Nickname']
+                ]
+              }, '*');
+              console.log('✅ Sent postMessage to iframe');
+            } catch (e2) {
+              console.log('⚠️ postMessage also failed');
+            }
+          }
+        }
+      });
+      
     } catch (error) {
       console.log('⚠️ Error updating modal labels:', error);
     }
@@ -125,13 +173,38 @@
     if (window.netlifyIdentity) {
       // Apply when modal opens with multiple attempts
       window.netlifyIdentity.on('open', () => {
+        console.log('🎯 Netlify Identity modal opened - starting label updates');
+        
+        // Use requestAnimationFrame for better timing with DOM updates
+        const tryUpdate = () => {
+          requestAnimationFrame(() => {
+            updateNetlifyModalLabels();
+          });
+        };
+        
         // Try multiple times with increasing delays for better mobile support
-        setTimeout(updateNetlifyModalLabels, 50);
-        setTimeout(updateNetlifyModalLabels, 100);
-        setTimeout(updateNetlifyModalLabels, 200);
-        setTimeout(updateNetlifyModalLabels, 500);
-        setTimeout(updateNetlifyModalLabels, 1000);
-        setTimeout(updateNetlifyModalLabels, 2000);
+        tryUpdate();
+        setTimeout(tryUpdate, 50);
+        setTimeout(tryUpdate, 100);
+        setTimeout(tryUpdate, 200);
+        setTimeout(tryUpdate, 500);
+        setTimeout(tryUpdate, 1000);
+        setTimeout(tryUpdate, 2000);
+        
+        // Additional approach: Look for any visible modal
+        setTimeout(() => {
+          const visibleModals = document.querySelectorAll('div[style*="block"], div[style*="flex"], [aria-modal="true"]');
+          visibleModals.forEach(modal => {
+            console.log('🔍 Found visible modal:', modal.className, modal.id);
+            const inputs = modal.querySelectorAll('input[placeholder*="name" i], input[placeholder*="Name"]');
+            inputs.forEach(input => {
+              if (input.placeholder.toLowerCase().includes('name')) {
+                input.placeholder = input.placeholder.replace(/enter your name/i, 'Nickname').replace(/full name/i, 'Nickname').replace(/^name$/i, 'Nickname');
+                console.log('✅ Updated input placeholder:', input.placeholder);
+              }
+            });
+          });
+        }, 300);
       });
       
       // Also try when DOM changes (for dynamic content)

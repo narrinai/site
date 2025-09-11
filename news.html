@@ -893,6 +893,10 @@
       }
     }
   </style>
+  
+  <!-- Netlify Identity -->
+  <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <script src="/netlify-identity-nickname.js"></script>
 </head>
 
 <body>
@@ -1358,6 +1362,36 @@
       }
     `;
     document.head.appendChild(filterStyle);
+    
+    // Initialize Netlify Identity
+    if (window.netlifyIdentity) {
+      window.netlifyIdentity.init({
+        namePlaceholder: 'Nickname'
+      });
+      
+      // Add login functionality to login buttons
+      const loginBtn = document.getElementById('loginBtn');
+      const mobileLoginBtn = document.getElementById('mobileLoginBtn');
+      
+      function openLogin() {
+        window.netlifyIdentity.open();
+      }
+      
+      if (loginBtn) {
+        loginBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          openLogin();
+        });
+      }
+      
+      if (mobileLoginBtn) {
+        mobileLoginBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          closeMobileMenu();
+          setTimeout(openLogin, 100);
+        });
+      }
+    }
   </script>
 </body>
 </html>
