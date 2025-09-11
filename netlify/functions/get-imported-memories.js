@@ -81,6 +81,15 @@ exports.handler = async (event, context) => {
     console.log('📊 Got', chatData.records.length, 'total imported memories to filter');
     console.log('🔍 Looking for user with NetlifyUID:', user_uid, 'Email:', user_email);
     
+    // DEBUG: Show sample imported memories to understand data structure
+    console.log('📊 Sample imported memories:', chatData.records.slice(0, 2).map(r => ({
+      id: r.id,
+      Summary: r.fields.Summary?.substring(0, 100),
+      User: r.fields.User,
+      Role: r.fields.Role,
+      message_type: r.fields.message_type
+    })));
+    
     // Step 1: Look up the user record ID in the Users table
     try {
       // First, get all users to see what fields are available
