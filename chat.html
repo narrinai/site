@@ -2007,6 +2007,9 @@
               <label for="voiceType">Voice Type</label>
               <select id="voiceType" name="voiceType" class="voice-select">
                 <option value="none">🔇 No Voice - Text only</option>
+                <option value="auto" data-voice-id="auto">🤖 Auto-generate - We choose the perfect voice</option>
+                <option value="female_default" data-voice-id="ePPRaOM9BrJQfYvzFL5Y">👩 Female (Galina) - Warm and friendly</option>
+                <option value="male_default" data-voice-id="hFSbWotde4aAxqnuJtnS">👨 Male (Blake) - Confident and caring</option>
                 <option value="royal_authority">👑 Royal Authority - Authoritative and majestic</option>
                 <option value="wise_mentor">🧙‍♂️ Wise Mentor - Supportive and experienced</option>
                 <option value="caring_therapist">💝 Caring Advisor - Understanding and soothing</option>
@@ -4125,7 +4128,7 @@ Ready to start chatting, or would you like to explore these personalization opti
       if (existingCustom) {
         document.getElementById('customName').value = existingCustom.name || currentCharacter.name || '';
         document.getElementById('customPrompt').value = existingCustom.extra_instructions || '';
-        document.getElementById('voiceType').value = existingCustom.voice_type || 'none';
+        setVoiceDropdownValue(currentCharacter, existingCustom.voice_type);
         
         // Handle avatar
         const avatarImg = document.getElementById('customAvatarImg');
@@ -4160,7 +4163,7 @@ Ready to start chatting, or would you like to explore these personalization opti
         // Load current character data
         document.getElementById('customName').value = currentCharacter.name || '';
         document.getElementById('customPrompt').value = currentCharacter.extra_instructions || '';
-        document.getElementById('voiceType').value = currentCharacter.voice_type || 'none';
+        setVoiceDropdownValue(currentCharacter);
         
         // Handle current character avatar
         const avatarImg = document.getElementById('customAvatarImg');
@@ -4706,6 +4709,39 @@ Ready to start chatting, or would you like to explore these personalization opti
       if (input && counter) {
         counter.textContent = input.value.length;
       }
+    }
+
+    // Voice selection logic
+    function setVoiceDropdownValue(character, customVoiceType = null) {
+      const voiceSelect = document.getElementById('voiceType');
+      if (!voiceSelect) return;
+      
+      const voiceType = customVoiceType || character.voice_type;
+      const voiceId = character.voice_id;
+      
+      console.log('🎙️ Setting voice dropdown:', { voiceType, voiceId });
+      
+      // If voice_type is 'auto', select auto option
+      if (voiceType === 'auto') {
+        voiceSelect.value = 'auto';
+      }
+      // If voice_id matches our default voices, select those
+      else if (voiceId === 'ePPRaOM9BrJQfYvzFL5Y') {
+        voiceSelect.value = 'female_default';
+      }
+      else if (voiceId === 'hFSbWotde4aAxqnuJtnS') {
+        voiceSelect.value = 'male_default';
+      }
+      // Otherwise use voice_type if it exists in dropdown
+      else if (voiceType && voiceType !== 'none') {
+        voiceSelect.value = voiceType;
+      }
+      // Default to none if no voice
+      else {
+        voiceSelect.value = 'none';
+      }
+      
+      console.log('✅ Voice dropdown set to:', voiceSelect.value);
     }
 
     // Voice preview functionality
