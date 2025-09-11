@@ -83,6 +83,28 @@ exports.handler = async (event, context) => {
     
     // Step 1: Look up the user record ID in the Users table
     try {
+      // First, get all users to see what fields are available
+      const allUsersUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?maxRecords=3`;
+      const allUsersResponse = await fetch(allUsersUrl, {
+        headers: {
+          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (allUsersResponse.ok) {
+        const allUsersData = await allUsersResponse.json();
+        console.log('📊 Available user fields:', allUsersData.records[0]?.fields ? Object.keys(allUsersData.records[0].fields) : 'No users');
+        console.log('📊 Sample user data:', allUsersData.records.slice(0, 2).map(r => ({
+          id: r.id,
+          Email: r.fields.Email,
+          NetlifyUID: r.fields.NetlifyUID,
+          Netlify_UID: r.fields.Netlify_UID,
+          netlifyUID: r.fields.netlifyUID,
+          fields: Object.keys(r.fields)
+        })));
+      }
+      
       // Try multiple possible field names for NetlifyUID 
       const userLookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=OR({NetlifyUID}='${user_uid}',{Netlify_UID}='${user_uid}',{netlifyUID}='${user_uid}',{Email}='${user_email}')&maxRecords=1`;
       console.log('🔍 User lookup URL:', userLookupUrl);
