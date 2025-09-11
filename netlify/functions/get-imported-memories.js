@@ -81,93 +81,51 @@ exports.handler = async (event, context) => {
     console.log('📊 Got', chatData.records.length, 'total imported memories to filter');
     console.log('🔍 Looking for user with NetlifyUID:', user_uid, 'Email:', user_email);
     
-    // Step 1: Look up the user record ID in the Users table
+    // Step 1: Look up the user record ID in the Users table  
     try {
-      // Try multiple possible field names for NetlifyUID with proper URL encoding
-      const encodedUID = encodeURIComponent(user_uid);
-      const encodedEmail = encodeURIComponent(user_email);
-      const userLookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=${encodeURIComponent(`OR({NetlifyUID}='${user_uid}',{Netlify_UID}='${user_uid}',{netlifyUID}='${user_uid}',{Email}='${user_email}')}`)}&maxRecords=5`;
-      console.log('🔍 User lookup URL:', userLookupUrl);
+      // Simple approach: get all users and filter in code
+      const allUsersUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users`;
+      console.log('🔍 Getting all users to find match...');
       
-      const userLookupResponse = await fetch(userLookupUrl, {
+      const allUsersResponse = await fetch(allUsersUrl, {
         headers: {
           'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
           'Content-Type': 'application/json'
         }
       });
       
-      if (userLookupResponse.ok) {
-        const userData = await userLookupResponse.json();
-        console.log('📊 User lookup result:', userData.records.length, 'users found');
-        console.log('📊 User lookup response:', userData);
+      if (allUsersResponse.ok) {
+        const allUsersData = await allUsersResponse.json();
+        console.log('📊 Total users in table:', allUsersData.records.length);
         
-        if (userData.records.length > 0) {
-          const userRecordId = userData.records[0].id;
-          const userRecord = userData.records[0];
-          console.log('📊 Found user record ID:', userRecordId);
-          console.log('📊 User record details:', {
-            id: userRecord.id,
-            NetlifyUID: userRecord.fields.NetlifyUID,
-            Email: userRecord.fields.Email,
-            fields: Object.keys(userRecord.fields)
-          });
+        // Find matching user by direct comparison
+        const matchingUser = allUsersData.records.find(user => {
+          const userEmail = user.fields.Email;
+          const userUID = user.fields.NetlifyUID;
+          console.log(`Checking: Email="${userEmail}", NetlifyUID="${userUID}"`);
+          return userEmail === user_email || userUID === user_uid;
+        });
+        
+        if (matchingUser) {
+          console.log('✅ Found matching user:', matchingUser.id);
+          console.log('✅ User details:', matchingUser.fields);
           
-          // Step 2: Filter imported memories for this user record ID
+          // Filter memories using this user ID
           userRecords = chatData.records.filter(record => {
             const recordUser = record.fields.User;
-            console.log(`🔍 Checking record ${record.id}: User field =`, recordUser, 'Looking for:', userRecordId);
-            
-            // User field could be an array or single value
             if (Array.isArray(recordUser)) {
-              const match = recordUser.includes(userRecordId);
-              console.log(`  Array check: ${JSON.stringify(recordUser)} includes "${userRecordId}" = ${match}`);
-              return match;
+              return recordUser.includes(matchingUser.id);
             } else {
-              const match = recordUser === userRecordId;
-              console.log(`  Direct check: "${recordUser}" === "${userRecordId}" = ${match}`);
-              return match;
+              return recordUser === matchingUser.id;
             }
           });
-          console.log('📊 Filtered to', userRecords.length, 'imported memories for this user');
+          console.log('✅ Found', userRecords.length, 'memories for user');
         } else {
-          console.log('❌ No user found in Users table for NetlifyUID/Email:', user_uid, user_email);
-          console.log('📊 Available users sample:', userData);
-          
-          // FALLBACK: Content filtering only for specific known user
-          if (user_email === 'emailnotiseb@gmail.com') {
-            console.log('🔄 FALLBACK: Using content patterns for known user emailnotiseb@gmail.com');
-            const userSpecificPatterns = [
-              'you often express excitement', 'you treat chatgpt', 'you are interested in personal development',
-              'you are detail-oriented', 'you are deeply engaged', 'you collect pokémon', 
-              'you use airtable', 'you host narrin', 'you run marketingtoolz', 'you are building narrin',
-              'narrin', 'omnia retail', 'cycling', 'giro', 'tour', 'pokemon', 'airtable'
-            ];
-            
-            userRecords = chatData.records.filter(record => {
-              const summary = (record.fields.Summary || '').toLowerCase();
-              const message = (record.fields.Message || '').toLowerCase();
-              const content = summary + ' ' + message;
-              
-              const matchedPattern = userSpecificPatterns.find(pattern => content.includes(pattern));
-              if (matchedPattern) {
-                console.log(`✅ CONTENT match: "${matchedPattern}" in "${summary.substring(0, 50)}..."`);
-                return true;
-              }
-              return false;
-            });
-            console.log('📊 FALLBACK: Found', userRecords.length, 'records via content filtering');
-          } else {
-            console.log('🔒 No user record found - returning empty results to protect privacy');
-            userRecords = [];
-          }
+          console.log('❌ No matching user found in', allUsersData.records.length, 'total users');
+          userRecords = [];
         }
       } else {
-        const errorText = await userLookupResponse.text();
-        console.log('❌ User lookup failed with status:', userLookupResponse.status);
-        console.log('❌ Error response:', errorText);
-        
-        // PRIVACY: Return empty results instead of guessing based on content
-        console.log('🔒 User lookup failed - returning empty results to protect privacy');
+        console.log('❌ Failed to fetch users from Airtable');
         userRecords = [];
       }
     } catch (e) {

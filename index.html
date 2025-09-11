@@ -26,6 +26,7 @@
   <meta name="author" content="Narrin AI" />
   
   <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <script src="/netlify-identity-nickname.js"></script>
   
   <!-- Microsoft Clarity Analytics -->
   <script type="text/javascript">
@@ -3090,6 +3091,13 @@ body.has-referral-banner {
       color: #999;
     }
     
+    /* Hide problematic placeholder texts that we'll replace with JS */
+    .netlify-identity-widget input[placeholder*="Enter your name"]::placeholder,
+    .netlify-identity-widget input[placeholder*="Full name"]::placeholder,
+    .netlify-identity-widget input[placeholder="Name"]::placeholder {
+      color: transparent !important;
+    }
+    
     /* Add "by signing up" disclaimer to signup form */
     .netlify-identity-widget .form[data-goatcounter-click="signup"]::after,
     .netlify-identity-widget .form.signup::after,
@@ -4474,7 +4482,35 @@ if (window.netlifyIdentity) {
     // Add modal-open class to body for CSS targeting
     document.body.classList.add('modal-open');
     
-    // Labels will be updated automatically by netlify-identity-nickname.js
+    // Force update placeholder text with aggressive approach
+    const forceUpdatePlaceholder = () => {
+      const allInputs = document.querySelectorAll('input');
+      allInputs.forEach(input => {
+        if (input.placeholder && (
+          input.placeholder.includes('Enter your name') ||
+          input.placeholder.includes('Full name') ||
+          input.placeholder === 'Name'
+        )) {
+          input.placeholder = 'Nickname';
+          console.log('✅ Force updated placeholder to Nickname');
+        }
+      });
+    };
+    
+    // Run multiple times to catch dynamic content
+    forceUpdatePlaceholder();
+    setTimeout(forceUpdatePlaceholder, 100);
+    setTimeout(forceUpdatePlaceholder, 500);
+    setTimeout(forceUpdatePlaceholder, 1000);
+    setTimeout(forceUpdatePlaceholder, 2000);
+    
+    // Also run continuously while modal is open
+    const interval = setInterval(forceUpdatePlaceholder, 500);
+    
+    // Stop when modal closes
+    window.netlifyIdentity.on('close', () => {
+      clearInterval(interval);
+    });
     
     // Add external disclaimer at bottom of screen
     setTimeout(() => {
