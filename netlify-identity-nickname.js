@@ -32,38 +32,64 @@
       
       // Enhanced text replacement with more comprehensive search
       const updateElement = (element) => {
-        if (!element.textContent) return;
-        
         let updated = false;
-        let newText = element.textContent;
         
-        // Comprehensive name field replacements
-        const replacements = [
-          ['Enter your name', 'Nickname'],
-          ['Enter your full name', 'Nickname'],
-          ['Full name', 'Nickname'],
-          ['Your name', 'Nickname'],
-          ['Name *', 'Nickname *'],
-          ['Name(required)', 'Nickname(required)']
-        ];
-        
-        replacements.forEach(([search, replace]) => {
-          if (newText.includes(search)) {
-            newText = newText.replace(new RegExp(search, 'gi'), replace);
+        // Update text content
+        if (element.textContent) {
+          let newText = element.textContent;
+          
+          // Comprehensive name field replacements
+          const replacements = [
+            ['Enter your name', 'Nickname'],
+            ['Enter your full name', 'Nickname'],
+            ['Full name', 'Nickname'],
+            ['Your name', 'Nickname'],
+            ['Name *', 'Nickname *'],
+            ['Name(required)', 'Nickname(required)']
+          ];
+          
+          replacements.forEach(([search, replace]) => {
+            if (newText.includes(search)) {
+              newText = newText.replace(new RegExp(search, 'gi'), replace);
+              updated = true;
+            }
+          });
+          
+          // Special case for exact "Name" label
+          if ((element.tagName === 'LABEL' || element.tagName === 'SPAN') && 
+              (newText.trim() === 'Name' || newText.trim() === 'Name *')) {
+            newText = newText.replace(/^Name\s*/, 'Nickname');
             updated = true;
           }
-        });
-        
-        // Special case for exact "Name" label
-        if ((element.tagName === 'LABEL' || element.tagName === 'SPAN') && 
-            (newText.trim() === 'Name' || newText.trim() === 'Name *')) {
-          newText = newText.replace(/^Name\s*/, 'Nickname');
-          updated = true;
+          
+          if (updated) {
+            element.textContent = newText;
+            console.log('✅ Updated text:', element.textContent);
+          }
         }
         
-        if (updated) {
-          element.textContent = newText;
-          console.log('✅ Updated text:', element.textContent);
+        // Update placeholder attributes for input fields
+        if (element.tagName === 'INPUT' && element.placeholder) {
+          const placeholderReplacements = [
+            ['Enter your name', 'Nickname'],
+            ['Enter your full name', 'Nickname'],
+            ['Full name', 'Nickname'],
+            ['Your name', 'Nickname'],
+            ['Name', 'Nickname']
+          ];
+          
+          let newPlaceholder = element.placeholder;
+          placeholderReplacements.forEach(([search, replace]) => {
+            if (newPlaceholder.includes(search)) {
+              newPlaceholder = newPlaceholder.replace(new RegExp(search, 'gi'), replace);
+              updated = true;
+            }
+          });
+          
+          if (updated) {
+            element.placeholder = newPlaceholder;
+            console.log('✅ Updated placeholder:', element.placeholder);
+          }
         }
       };
       
@@ -99,10 +125,13 @@
     if (window.netlifyIdentity) {
       // Apply when modal opens with multiple attempts
       window.netlifyIdentity.on('open', () => {
-        // Try multiple times with increasing delays
+        // Try multiple times with increasing delays for better mobile support
+        setTimeout(updateNetlifyModalLabels, 50);
         setTimeout(updateNetlifyModalLabels, 100);
+        setTimeout(updateNetlifyModalLabels, 200);
         setTimeout(updateNetlifyModalLabels, 500);
         setTimeout(updateNetlifyModalLabels, 1000);
+        setTimeout(updateNetlifyModalLabels, 2000);
       });
       
       // Also try when DOM changes (for dynamic content)
@@ -114,8 +143,15 @@
       
       observer.observe(document.body, {
         childList: true,
-        subtree: true
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['placeholder', 'value']
       });
+      
+      // Additional event listeners for mobile compatibility
+      window.netlifyIdentity.on('login', updateNetlifyModalLabels);
+      window.netlifyIdentity.on('signup', updateNetlifyModalLabels);
+      window.netlifyIdentity.on('init', updateNetlifyModalLabels);
     } else {
       // Retry if netlifyIdentity not loaded yet
       setTimeout(initLabelUpdater, 100);

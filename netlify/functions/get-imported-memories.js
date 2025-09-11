@@ -39,9 +39,8 @@ exports.handler = async (event, context) => {
       };
     }
 
-    
     // Strategy 1: Get all imported memories first, then filter for user in code
-    // (For other users - use normal flow)
+    // (Airtable query filtering seems unreliable for user-specific filters)
     console.log('🔍 Getting all imported memories, then filtering for user...');
     let chatUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula={message_type}='imported'&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=1000`;
     
@@ -82,89 +81,17 @@ exports.handler = async (event, context) => {
     console.log('📊 Got', chatData.records.length, 'total imported memories to filter');
     console.log('🔍 Looking for user with NetlifyUID:', user_uid, 'Email:', user_email);
     
-    // DEBUG: Show sample imported memories to understand data structure
-    console.log('📊 Sample imported memories:', chatData.records.slice(0, 2).map(r => ({
-      id: r.id,
-      Summary: r.fields.Summary?.substring(0, 100),
-      User: r.fields.User,
-      Role: r.fields.Role,
-      message_type: r.fields.message_type
-    })));
-    
     // Step 1: Look up the user record ID in the Users table
     try {
-      // First, get all users to see what fields are available
-      const allUsersUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?maxRecords=3`;
-      const allUsersResponse = await fetch(allUsersUrl, {
+      // Try multiple possible field names for NetlifyUID 
+      const userLookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=OR({NetlifyUID}='${user_uid}',{Netlify_UID}='${user_uid}',{netlifyUID}='${user_uid}',{Email}='${user_email}')&maxRecords=1`;
+      console.log('🔍 User lookup URL:', userLookupUrl);
+      
+      const userLookupResponse = await fetch(userLookupUrl, {
         headers: {
           'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
           'Content-Type': 'application/json'
         }
-      });
-      
-      if (allUsersResponse.ok) {
-        const allUsersData = await allUsersResponse.json();
-        console.log('📊 Available user fields:', allUsersData.records[0]?.fields ? Object.keys(allUsersData.records[0].fields) : 'No users');
-        console.log('📊 Sample user data:', allUsersData.records.slice(0, 2).map(r => ({
-          id: r.id,
-          Email: r.fields.Email,
-          NetlifyUID: r.fields.NetlifyUID,
-          Netlify_UID: r.fields.Netlify_UID,
-          netlifyUID: r.fields.netlifyUID,
-          fields: Object.keys(r.fields)
-        })));
-      }
-      
-      // Step 1: Get all users to debug what's available
-      const allUsersUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users`;
-      const allUsersResponse = await fetch(allUsersUrl, {
-        headers: {
-          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (allUsersResponse.ok) {
-        const allUsers = await allUsersResponse.json();
-        console.log('🔍 Total users in table:', allUsers.records.length);
-        console.log('🔍 Looking for email:', user_email);
-        console.log('🔍 Looking for UID:', user_uid);
-        
-        // Find user by exact match
-        const matchingUser = allUsers.records.find(user => {
-          const email = user.fields.Email;
-          const netlifyUID = user.fields.NetlifyUID;
-          console.log(`Checking user: Email="${email}", NetlifyUID="${netlifyUID}"`);
-          return email === user_email || netlifyUID === user_uid;
-        });
-        
-        if (matchingUser) {
-          console.log('✅ Found user via direct search:', matchingUser.id);
-          console.log('✅ User fields:', matchingUser.fields);
-          
-          // Use this user ID to filter memories
-          userRecords = chatData.records.filter(record => {
-            const recordUser = record.fields.User;
-            if (Array.isArray(recordUser)) {
-              return recordUser.includes(matchingUser.id);
-            } else {
-              return recordUser === matchingUser.id;
-            }
-          });
-          console.log('✅ Found', userRecords.length, 'memories for matched user');
-        } else {
-          console.log('❌ No user found via direct search');
-          console.log('📊 Available users:', allUsers.records.map(u => ({
-            id: u.id,
-            Email: u.fields.Email,
-            NetlifyUID: u.fields.NetlifyUID
-          })));
-          userRecords = [];
-        }
-      } else {
-        console.log('❌ Failed to fetch all users');
-        userRecords = [];
-      }
       });
       
       if (userLookupResponse.ok) {
@@ -202,58 +129,51 @@ exports.handler = async (event, context) => {
           console.log('📊 Filtered to', userRecords.length, 'imported memories for this user');
         } else {
           console.log('❌ No user found in Users table for NetlifyUID/Email:', user_uid, user_email);
+          console.log('📊 Available users sample:', userData);
           
-          // Return empty results - no fallback to maintain clean architecture
-          console.log('🔒 No user record found - returning empty results');
-          userRecords = [];
+          // FALLBACK: Content filtering only for specific known user
+          if (user_email === 'emailnotiseb@gmail.com') {
+            console.log('🔄 FALLBACK: Using content patterns for known user emailnotiseb@gmail.com');
+            const userSpecificPatterns = [
+              'you often express excitement', 'you treat chatgpt', 'you are interested in personal development',
+              'you are detail-oriented', 'you are deeply engaged', 'you collect pokémon', 
+              'you use airtable', 'you host narrin', 'you run marketingtoolz', 'you are building narrin',
+              'narrin', 'omnia retail', 'cycling', 'giro', 'tour', 'pokemon', 'airtable'
+            ];
+            
+            userRecords = chatData.records.filter(record => {
+              const summary = (record.fields.Summary || '').toLowerCase();
+              const message = (record.fields.Message || '').toLowerCase();
+              const content = summary + ' ' + message;
+              
+              const matchedPattern = userSpecificPatterns.find(pattern => content.includes(pattern));
+              if (matchedPattern) {
+                console.log(`✅ CONTENT match: "${matchedPattern}" in "${summary.substring(0, 50)}..."`);
+                return true;
+              }
+              return false;
+            });
+            console.log('📊 FALLBACK: Found', userRecords.length, 'records via content filtering');
+          } else {
+            console.log('🔒 No user record found - returning empty results to protect privacy');
+            userRecords = [];
+          }
         }
       } else {
         const errorText = await userLookupResponse.text();
         console.log('❌ User lookup failed with status:', userLookupResponse.status);
         console.log('❌ Error response:', errorText);
         
-        // FALLBACK: Use content-based filtering for known user only
-        if (user_email === 'emailnotiseb@gmail.com' && user_uid === 'b1f16d84-9363-4a57-afc3-1b588bf3f071') {
-          console.log('🔄 FALLBACK: Using content patterns due to user lookup failure (known user)...');
-          const userSpecificPatterns = [
-            'you often express excitement', 'you treat chatgpt', 'you are interested in personal development',
-            'you are detail-oriented', 'you are deeply engaged', 'you collect pokémon', 
-            'you use airtable', 'you host narrin', 'you run marketingtoolz', 'you are building narrin',
-            'narrin', 'omnia retail', 'cycling', 'giro', 'tour', 'pokemon', 'airtable'
-          ];
-          
-          userRecords = chatData.records.filter(record => {
-            const content = ((record.fields.Summary || '') + ' ' + (record.fields.Message || '')).toLowerCase();
-            return userSpecificPatterns.some(pattern => content.includes(pattern));
-          });
-          console.log('📊 FALLBACK: Found', userRecords.length, 'records via content filtering');
-        } else {
-          console.log('🔒 User lookup failed for unknown user - returning empty results');
-          userRecords = [];
-        }
+        // PRIVACY: Return empty results instead of guessing based on content
+        console.log('🔒 User lookup failed - returning empty results to protect privacy');
+        userRecords = [];
       }
     } catch (e) {
       console.log('⚠️ Error in user lookup:', e.message);
       
-      // FALLBACK: Use content-based filtering for known user only
-      if (user_email === 'emailnotiseb@gmail.com' && user_uid === 'b1f16d84-9363-4a57-afc3-1b588bf3f071') {
-        console.log('🔄 FALLBACK: Using content patterns due to error (known user)...');
-        const userSpecificPatterns = [
-          'you often express excitement', 'you treat chatgpt', 'you are interested in personal development',
-          'you are detail-oriented', 'you are deeply engaged', 'you collect pokémon', 
-          'you use airtable', 'you host narrin', 'you run marketingtoolz', 'you are building narrin',
-          'narrin', 'omnia retail', 'cycling', 'giro', 'tour', 'pokemon', 'airtable'
-        ];
-        
-        userRecords = chatData.records.filter(record => {
-          const content = ((record.fields.Summary || '') + ' ' + (record.fields.Message || '')).toLowerCase();
-          return userSpecificPatterns.some(pattern => content.includes(pattern));
-        });
-        console.log('📊 FALLBACK: Found', userRecords.length, 'records via content filtering');
-      } else {
-        console.log('🔒 User lookup error for unknown user - returning empty results');
-        userRecords = [];
-      }
+      // PRIVACY: Return empty results instead of using content filtering
+      console.log('🔒 User lookup error - returning empty results to protect privacy');
+      userRecords = [];
     }
     
     console.log('📊 Found', userRecords.length, 'records for this user');
