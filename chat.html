@@ -3337,9 +3337,13 @@ Ready to start chatting, or would you like to explore these personalization opti
           const history = JSON.parse(storedHistory);
           conversationHistory = history;
           
-          // Display the messages
+          // Clear existing messages from the DOM to prevent duplicates
           const messagesContainer = document.getElementById('chatMessages');
           const welcomeMessage = messagesContainer.querySelector('.welcome-message');
+          
+          // Remove all existing messages but preserve the welcome message
+          const existingMessages = messagesContainer.querySelectorAll('.message');
+          existingMessages.forEach(msg => msg.remove());
           
           if (history.length > 0 && welcomeMessage) {
             welcomeMessage.remove();
