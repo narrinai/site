@@ -5881,6 +5881,13 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       showLogoutConfirm(() => {
         console.log('🚪 Logout confirmed...');
         
+        // Show immediate feedback
+        const logoutBtns = document.querySelectorAll('.logout-btn, [onclick*="handleLogout"]');
+        logoutBtns.forEach(btn => {
+          btn.textContent = 'Logging out...';
+          btn.disabled = true;
+        });
+        
         // Try Netlify Identity logout first
         if (window.netlifyIdentity) {
           try {
@@ -6066,7 +6073,7 @@ function handleLoginSuccess(user, eventType = 'unknown') {
       console.log('🔄 User logged out, redirecting to homepage...');
       setTimeout(() => {
         window.location.href = '/';
-      }, 1000);
+      }, 500);
     }
 
     function showLoginUI() {
