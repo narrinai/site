@@ -39,76 +39,6 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // QUICK FIX: For specific user, use simplified approach
-    if (user_email === 'emailnotiseb@gmail.com' && user_uid === 'b1f16d84-9363-4a57-afc3-1b588bf3f071') {
-      console.log('🔥 QUICK FIX: Using direct content filtering for emailnotiseb@gmail.com');
-      
-      // Get all imported memories
-      let chatUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula={message_type}='imported'&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=1000`;
-      
-      const chatResponse = await fetch(chatUrl, {
-        headers: {
-          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (!chatResponse.ok) {
-        throw new Error(`ChatHistory fetch failed: ${chatResponse.status}`);
-      }
-      
-      const chatData = await chatResponse.json();
-      console.log('📊 Found', chatData.records.length, 'total imported memories');
-      
-      // Filter using content patterns (your working solution)
-      const userSpecificPatterns = [
-        'you often express excitement', 'you treat chatgpt', 'you are interested in personal development',
-        'you are detail-oriented', 'you are deeply engaged', 'you collect pokémon', 
-        'you use airtable', 'you host narrin', 'you run marketingtoolz', 'you are building narrin',
-        'narrin', 'omnia retail', 'cycling', 'giro', 'tour', 'pokemon', 'airtable'
-      ];
-      
-      const filteredRecords = chatData.records.filter(record => {
-        const summary = (record.fields.Summary || '').toLowerCase();
-        const message = (record.fields.Message || '').toLowerCase();
-        const content = summary + ' ' + message;
-        
-        const matchedPattern = userSpecificPatterns.find(pattern => content.includes(pattern));
-        if (matchedPattern) {
-          console.log(`✅ CONTENT match: "${matchedPattern}" in "${summary.substring(0, 50)}..."`);
-          return true;
-        }
-        return false;
-      });
-      
-      console.log('📊 QUICK FIX: Found', filteredRecords.length, 'imported memories via content filtering');
-      
-      // Convert to expected format
-      const importedMemories = filteredRecords.map(record => {
-        const metadata = record.fields.metadata ? JSON.parse(record.fields.metadata) : {};
-        return {
-          id: record.id,
-          Memory: record.fields.Summary || record.fields.Message || '',
-          Importance: record.fields.Memory_Importance || 5,
-          Date: record.fields.CreatedTime || record.fields.Date,
-          message_type: record.fields.message_type,
-          source: 'chatgpt_import',
-          metadata: metadata
-        };
-      });
-      
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({
-          success: true,
-          imported_memories: importedMemories,
-          count: importedMemories.length,
-          total_records_checked: chatData.records.length,
-          debug_method: 'quick_fix_content_filtering'
-        })
-      };
-    }
     
     // Strategy 1: Get all imported memories first, then filter for user in code
     // (For other users - use normal flow)
@@ -185,16 +115,56 @@ exports.handler = async (event, context) => {
         })));
       }
       
-      // Start simple: just look up by email first to test
-      const userLookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={Email}='${user_email}'&maxRecords=10`;
-      console.log('🔍 Simplified user lookup by email only:');
-      console.log('🔍 User lookup URL:', userLookupUrl);
-      
-      const userLookupResponse = await fetch(userLookupUrl, {
+      // Step 1: Get all users to debug what's available
+      const allUsersUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users`;
+      const allUsersResponse = await fetch(allUsersUrl, {
         headers: {
           'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
           'Content-Type': 'application/json'
         }
+      });
+      
+      if (allUsersResponse.ok) {
+        const allUsers = await allUsersResponse.json();
+        console.log('🔍 Total users in table:', allUsers.records.length);
+        console.log('🔍 Looking for email:', user_email);
+        console.log('🔍 Looking for UID:', user_uid);
+        
+        // Find user by exact match
+        const matchingUser = allUsers.records.find(user => {
+          const email = user.fields.Email;
+          const netlifyUID = user.fields.NetlifyUID;
+          console.log(`Checking user: Email="${email}", NetlifyUID="${netlifyUID}"`);
+          return email === user_email || netlifyUID === user_uid;
+        });
+        
+        if (matchingUser) {
+          console.log('✅ Found user via direct search:', matchingUser.id);
+          console.log('✅ User fields:', matchingUser.fields);
+          
+          // Use this user ID to filter memories
+          userRecords = chatData.records.filter(record => {
+            const recordUser = record.fields.User;
+            if (Array.isArray(recordUser)) {
+              return recordUser.includes(matchingUser.id);
+            } else {
+              return recordUser === matchingUser.id;
+            }
+          });
+          console.log('✅ Found', userRecords.length, 'memories for matched user');
+        } else {
+          console.log('❌ No user found via direct search');
+          console.log('📊 Available users:', allUsers.records.map(u => ({
+            id: u.id,
+            Email: u.fields.Email,
+            NetlifyUID: u.fields.NetlifyUID
+          })));
+          userRecords = [];
+        }
+      } else {
+        console.log('❌ Failed to fetch all users');
+        userRecords = [];
+      }
       });
       
       if (userLookupResponse.ok) {
@@ -232,38 +202,10 @@ exports.handler = async (event, context) => {
           console.log('📊 Filtered to', userRecords.length, 'imported memories for this user');
         } else {
           console.log('❌ No user found in Users table for NetlifyUID/Email:', user_uid, user_email);
-          console.log('📊 Available users sample:', userData);
           
-          // FALLBACK: Use very specific content-based filtering for known user
-          if (user_email === 'emailnotiseb@gmail.com' && user_uid === 'b1f16d84-9363-4a57-afc3-1b588bf3f071') {
-            console.log('🔄 FALLBACK: Using content patterns for known user (emailnotiseb@gmail.com)...');
-            
-            // Very specific patterns for emailnotiseb@gmail.com only
-            const userSpecificPatterns = [
-              'you often express excitement', 'you treat chatgpt', 'you are interested in personal development',
-              'you are detail-oriented', 'you are deeply engaged', 'you collect pokémon', 
-              'you use airtable', 'you host narrin', 'you run marketingtoolz', 'you are building narrin',
-              'narrin', 'omnia retail', 'cycling', 'giro', 'tour', 'pokemon', 'airtable'
-            ];
-            
-            userRecords = chatData.records.filter(record => {
-              const summary = (record.fields.Summary || '').toLowerCase();
-              const message = (record.fields.Message || '').toLowerCase();
-              const content = summary + ' ' + message;
-              
-              // Check for user-specific patterns
-              const matchedPattern = userSpecificPatterns.find(pattern => content.includes(pattern));
-              if (matchedPattern) {
-                console.log(`✅ CONTENT match: "${matchedPattern}" in "${summary.substring(0, 50)}..."`);
-                return true;
-              }
-              return false;
-            });
-            console.log('📊 FALLBACK: Found', userRecords.length, 'records via content filtering');
-          } else {
-            console.log('🔒 Unknown user - returning empty results to protect privacy');
-            userRecords = [];
-          }
+          // Return empty results - no fallback to maintain clean architecture
+          console.log('🔒 No user record found - returning empty results');
+          userRecords = [];
         }
       } else {
         const errorText = await userLookupResponse.text();
