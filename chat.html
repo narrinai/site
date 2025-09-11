@@ -1874,9 +1874,7 @@
               </div>
               <span id="import-timestamp" style="font-size: 12px; opacity: 0.7; display: none;"></span>
             </a>
-            <button class="update-answers-btn" onclick="restartOnboarding()">
-              <span>🔄</span> Take Personal Quiz
-            </button>
+            <!-- Personal Quiz button temporarily removed -->
           </div>
         </div>
       </div>
@@ -2355,7 +2353,6 @@
         }
         
         return `${baseMessage}To get the most personalized experience:<br><br>
-• <a href="#" onclick="lazyLoadMemoryHub(); return false;" style="color: var(--color-teal); text-decoration: none;">Take the personal quiz in Memory Hub 🧠</a>
 • <a href="#" onclick="lazyLoadCustomize(event); return false;" style="color: var(--color-teal); text-decoration: none;">Customize my personality ⚙️</a>
 • <a href="/memory-import" style="color: var(--color-teal); text-decoration: none;">Import your ChatGPT memories 📥</a><br><br>
 Ready to start chatting, or would you like to explore these personalization options first?`;
@@ -3719,7 +3716,7 @@ Ready to start chatting, or would you like to explore these personalization opti
           content.innerHTML = `
             <div class="no-memories">
               <div class="no-memories-title">No Memories Yet</div>
-              <div class="no-memories-text">Click the <strong>"Start Personal Quiz"</strong> button below to answer a few quick questions and create your personalized memories</div>
+              <div class="no-memories-text">Import your ChatGPT memories or start chatting to build personalized memories</div>
             </div>
           `;
           return;
@@ -3907,7 +3904,7 @@ Ready to start chatting, or would you like to explore these personalization opti
           let discussionStarter;
           if (memoryType === 'imported') {
             // Clean and truncate memory text to avoid webhook issues
-            const cleanMemoryText = memoryText
+            let cleanMemoryText = memoryText
               .replace(/[""]/g, '"')    // Replace smart quotes
               .replace(/['']/g, "'")    // Replace smart apostrophes  
               .replace(/—/g, "-")       // Replace em-dashes
@@ -3915,6 +3912,9 @@ Ready to start chatting, or would you like to explore these personalization opti
               .replace(/\s+/g, " ")     // Collapse multiple spaces
               .trim()
               .substring(0, 150);       // Limit to 150 characters
+            
+            // Convert perspective from "You..." to "I..." for user discussion
+            cleanMemoryText = convertMemoryPerspective(cleanMemoryText);
             
             // Remove quotes from format to avoid JSON parsing issues
             discussionStarter = `I'd like to discuss this memory: ${cleanMemoryText}`;
@@ -4027,6 +4027,47 @@ Ready to start chatting, or would you like to explore these personalization opti
       
       // For now, show an alert - this would be replaced with actual onboarding flow
       alert('Personal Quiz feature coming soon! This will allow you to build personalized memories.');
+    }
+
+    // Convert memory perspective from AI's "You..." to user's "I..." for discussions
+    function convertMemoryPerspective(memoryText) {
+      return memoryText
+        // Convert second person to first person
+        .replace(/\bYou are\b/gi, 'I am')
+        .replace(/\bYou were\b/gi, 'I was')
+        .replace(/\bYou have\b/gi, 'I have')
+        .replace(/\bYou had\b/gi, 'I had')
+        .replace(/\bYou will\b/gi, 'I will')
+        .replace(/\bYou would\b/gi, 'I would')
+        .replace(/\bYou should\b/gi, 'I should')
+        .replace(/\bYou could\b/gi, 'I could')
+        .replace(/\bYou can\b/gi, 'I can')
+        .replace(/\bYou do\b/gi, 'I do')
+        .replace(/\bYou did\b/gi, 'I did')
+        .replace(/\bYou don't\b/gi, "I don't")
+        .replace(/\bYou didn't\b/gi, "I didn't")
+        .replace(/\bYou won't\b/gi, "I won't")
+        .replace(/\bYou can't\b/gi, "I can't")
+        .replace(/\bYou like\b/gi, 'I like')
+        .replace(/\bYou love\b/gi, 'I love')
+        .replace(/\bYou want\b/gi, 'I want')
+        .replace(/\bYou need\b/gi, 'I need')
+        .replace(/\bYou feel\b/gi, 'I feel')
+        .replace(/\bYou think\b/gi, 'I think')
+        .replace(/\bYou believe\b/gi, 'I believe')
+        .replace(/\bYou said\b/gi, 'I said')
+        .replace(/\bYou told\b/gi, 'I told')
+        .replace(/\bYou mentioned\b/gi, 'I mentioned')
+        .replace(/\bYou explained\b/gi, 'I explained')
+        .replace(/\bYou shared\b/gi, 'I shared')
+        .replace(/\bYou work\b/gi, 'I work')
+        .replace(/\bYou live\b/gi, 'I live')
+        .replace(/\bYou enjoy\b/gi, 'I enjoy')
+        // Handle possessives
+        .replace(/\byour\b/gi, 'my')
+        .replace(/\byours\b/gi, 'mine')
+        // Handle reflexive
+        .replace(/\byourself\b/gi, 'myself');
     }
 
     // Memory notification badge system
