@@ -4760,8 +4760,8 @@ if (window.netlifyIdentity) {
         }
       });
       
-      // Redirect to profile
-      window.location.href = '/profile';
+      // User successfully logged in, update UI instead of redirecting
+      console.log('✅ User logged in successfully, staying on index page');
     }, 500);
   }
   
@@ -4769,10 +4769,8 @@ if (window.netlifyIdentity) {
     handleLoginSuccess(user, 'login');
     window.netlifyIdentity.close();
     
-    // Ensure redirect to profile
-    setTimeout(() => {
-      window.location.href = '/profile';
-    }, 500);
+    // User logged in, update UI to show authenticated state
+    console.log('✅ Login complete, user stays on current page');
   });
   window.netlifyIdentity.on('logout', () => {
     clearAuthData();
