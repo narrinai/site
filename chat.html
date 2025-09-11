@@ -4455,6 +4455,24 @@ Ready to start chatting, or would you like to explore these personalization opti
         // Simulate API delay
         await new Promise(resolve => setTimeout(resolve, 1000));
         
+        // Add error handling for missing avatars
+        avatarImg.onerror = () => {
+          console.warn('⚠️ Selected avatar failed to load:', randomAvatar);
+          // Try a different avatar as fallback
+          const fallbackAvatar = avatarPool[0]; // Use first avatar as fallback
+          if (fallbackAvatar !== randomAvatar) {
+            console.log('🔄 Using fallback avatar:', fallbackAvatar);
+            avatarImg.src = fallbackAvatar;
+          } else {
+            // If even fallback fails, show placeholder
+            console.error('❌ All avatars failed to load');
+            placeholder.innerHTML = '👤';
+            avatarImg.style.display = 'none';
+            placeholder.style.display = 'block';
+            return;
+          }
+        };
+        
         avatarImg.src = randomAvatar;
         avatarImg.style.display = 'block';
         placeholder.style.display = 'none';
