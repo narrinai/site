@@ -2707,7 +2707,7 @@
 
    // Auto voice assignment
    function getAutoVoice(characterData) {
-     const { name, category, personalityState } = characterData;
+     const { name, category, personalityState = {} } = characterData;
      
      // Gender detection
      const isFemale = detectFemaleCharacter(name, personalityState);
@@ -2719,8 +2719,8 @@
      if (category === 'educational') {
        voiceType = 'professional';
      } else if (category.includes('coach')) {
-       voiceType = personalityState.traits.includes('caring') ? 'nurturing' : 'professional';
-     } else if (personalityState.traits.includes('wise')) {
+       voiceType = (personalityState.traits && personalityState.traits.includes('caring')) ? 'nurturing' : 'professional';
+     } else if (personalityState.traits && personalityState.traits.includes('wise')) {
        voiceType = 'wise';
      } else if (personalityState.sliders && personalityState.sliders.mood > 70) {
        voiceType = 'energetic';
@@ -2740,7 +2740,7 @@
      if (femaleNames.some(fname => nameLower.includes(fname))) return true;
      
      // Check traits
-     if (personalityState.traits.includes('nurturing') || personalityState.traits.includes('caring')) {
+     if (personalityState.traits && (personalityState.traits.includes('nurturing') || personalityState.traits.includes('caring'))) {
        return true;
      }
      
