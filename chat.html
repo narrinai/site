@@ -2871,12 +2871,28 @@ Ready to start chatting, or would you like to explore these personalization opti
         }
       }
       
+      // Function to sanitize strings for JSON safety
+      function sanitizeForJSON(str) {
+        if (typeof str !== 'string') return str;
+        return str
+          .replace(/\\/g, '\\\\')   // Escape backslashes first
+          .replace(/"/g, '\\"')     // Escape double quotes
+          .replace(/\n/g, '\\n')    // Escape newlines
+          .replace(/\r/g, '\\r')    // Escape carriage returns
+          .replace(/\t/g, '\\t')    // Escape tabs
+          .replace(/\b/g, '\\b')    // Escape backspace
+          .replace(/\f/g, '\\f');   // Escape form feed
+      }
+      
       const payload = {
         action: "send_message",
-        text: message,
-        user_message: message,
-        memory_context: memory_context,
-        conversation_history: isAnonymousUser ? [] : recentMessages,
+        text: sanitizeForJSON(message),
+        user_message: sanitizeForJSON(message),
+        memory_context: sanitizeForJSON(memory_context),
+        conversation_history: isAnonymousUser ? [] : recentMessages.map(msg => ({
+          ...msg,
+          content: sanitizeForJSON(msg.content)
+        })),
         emotional_complexity: 0.5,
         relationship_phase: isAnonymousUser ? 'anonymous' : 'ongoing',
         total_messages: conversationHistory.length,
@@ -2884,7 +2900,7 @@ Ready to start chatting, or would you like to explore these personalization opti
         netlify_uid: user_uid || "",
         user_token: user_token || "",
         user_email: user_email,
-        custom_prompt: currentCharacter?.customPrompt || null,
+        custom_prompt: sanitizeForJSON(currentCharacter?.customPrompt) || null,
         is_customized: currentCharacter?.isCustomized || false,
         has_onboarding: false, // Could be enhanced later
         is_anonymous: isAnonymousUser,
@@ -4852,10 +4868,24 @@ Ready to start chatting, or would you like to explore these personalization opti
           bonding: [...(existingCustom.personality_state.bonding || [])]
         };
       } else {
-        // Reset to default state
+        // Load from Airtable character data or reset to defaults
+        let traitsFromAirtable = [];
+        let speakingFromAirtable = [];
+        
+        try {
+          if (currentCharacter.personality_traits) {
+            traitsFromAirtable = JSON.parse(currentCharacter.personality_traits);
+          }
+          if (currentCharacter.speaking_patterns) {
+            speakingFromAirtable = JSON.parse(currentCharacter.speaking_patterns);
+          }
+        } catch (e) {
+          console.log('Could not parse personality data from Airtable:', e);
+        }
+        
         personalityState = {
-          speaking: [],
-          traits: [],
+          speaking: [...speakingFromAirtable],
+          traits: [...traitsFromAirtable],
           bonding: [],
           quirks: [],
           sliders: {
