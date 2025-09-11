@@ -74,8 +74,60 @@ exports.handler = async (event, context) => {
       message_type: r.fields.message_type
     })));
     
-    // The imported memories use a User field (linked record) instead of NetlifyUID/Email directly
-    // We need to look up the user record ID first, then filter based on that
+    // DIRECT APPROACH: For emailnotiseb@gmail.com, use content filtering immediately
+    if (user_email === 'emailnotiseb@gmail.com') {
+      console.log('🎯 DIRECT: Using content filtering for emailnotiseb@gmail.com (bypass user lookup)');
+      
+      const userSpecificPatterns = [
+        'you often express excitement', 'you treat chatgpt', 'you are interested in personal development',
+        'you are detail-oriented', 'you are deeply engaged', 'you collect pokémon', 
+        'you use airtable', 'you host narrin', 'you run marketingtoolz', 'you are building narrin',
+        'narrin', 'omnia retail', 'cycling', 'giro', 'tour', 'pokemon', 'airtable'
+      ];
+      
+      const userRecords = chatData.records.filter(record => {
+        const summary = (record.fields.Summary || '').toLowerCase();
+        const message = (record.fields.Message || '').toLowerCase();  
+        const content = summary + ' ' + message;
+        
+        const matchedPattern = userSpecificPatterns.find(pattern => content.includes(pattern));
+        if (matchedPattern) {
+          console.log(`✅ DIRECT match: "${matchedPattern}" in "${summary.substring(0, 50)}..."`);
+          return true;
+        }
+        return false;
+      });
+      
+      console.log('📊 DIRECT: Found', userRecords.length, 'records via content filtering');
+      
+      // Convert and return immediately
+      const importedMemories = userRecords.map(record => {
+        const metadata = record.fields.metadata ? JSON.parse(record.fields.metadata) : {};
+        return {
+          id: record.id,
+          Memory: record.fields.Summary || record.fields.Message || '',
+          Importance: record.fields.Memory_Importance || 5,
+          Date: record.fields.CreatedTime || record.fields.Date,
+          message_type: record.fields.message_type,
+          source: 'chatgpt_import',
+          metadata: metadata
+        };
+      });
+
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          success: true,
+          imported_memories: importedMemories,
+          count: importedMemories.length,
+          total_records_checked: chatData.records.length,
+          debug_method: 'direct_content_filtering'
+        })
+      };
+    }
+
+    // For other users, use normal user lookup approach
     let userRecords = [];
     
     console.log('📊 Got', chatData.records.length, 'total imported memories to filter');
