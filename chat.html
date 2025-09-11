@@ -2887,31 +2887,54 @@ Ready to start chatting, or would you like to explore these personalization opti
         console.warn('⚠️ Large conversation history:', payload.conversation_history.length, 'messages');
       }
       
-      // Add timeout handling
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      // Add timeout handling and retry logic for rate limits
+      const maxRetries = 3;
+      const baseDelay = 1000; // 1 second
       
-      let response;
-      try {
-        response = await fetch('https://hook.eu2.make.com/36bygx4a2y4bkl97wkdjdmtn3o9ygjms', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-          signal: controller.signal
-        });
-      } catch (error) {
-        clearTimeout(timeoutId);
-        if (error.name === 'AbortError') {
-          throw new Error('The AI is taking longer than expected. Please try again.');
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+        
+        let response;
+        try {
+          response = await fetch('https://hook.eu2.make.com/36bygx4a2y4bkl97wkdjdmtn3o9ygjms', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+            signal: controller.signal
+          });
+        } catch (error) {
+          clearTimeout(timeoutId);
+          if (error.name === 'AbortError') {
+            throw new Error('The AI is taking longer than expected. Please try again.');
+          }
+          throw error;
         }
-        throw error;
-      }
-      clearTimeout(timeoutId);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        clearTimeout(timeoutId);
+        
+        // If successful, continue with response
+        if (response.ok) {
+          break;
+        }
+        
+        // Handle rate limits and server errors with retry
+        if ((response.status === 500 || response.status === 429) && attempt < maxRetries) {
+          const delay = baseDelay * Math.pow(2, attempt); // Exponential backoff
+          console.log(`⏳ Rate limited or server error (${response.status}), retrying in ${delay}ms... (attempt ${attempt + 1}/${maxRetries})`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        }
+        
+        // If we've exhausted retries or it's a different error, throw
+        if (response.status === 429) {
+          throw new Error('Het AI-systeem is momenteel overbelast. Probeer het over een paar minuten opnieuw.');
+        } else if (response.status === 500) {
+          throw new Error('Het AI-systeem heeft een tijdelijk probleem. Probeer het over een moment opnieuw.');
+        } else {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
       }
       
       const rawText = await response.text();
