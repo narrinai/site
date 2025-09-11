@@ -1832,7 +1832,7 @@
             <span class="mobile-menu-link-icon">👤</span>
             Profile
           </a>
-          <a href="/create-character" class="mobile-menu-link btn-primary">
+          <a href="/create-character" class="mobile-menu-link btn-primary" onclick="window.location.href='/create-character'; return false;">
             <span class="mobile-menu-link-icon">✨</span>
             Create Companion
           </a>
@@ -2370,12 +2370,13 @@
       
       console.log('🚀 generateConversationStarter called for:', characterSlug);
       
-      // FORCE new companions and Romance companions to get welcoming guide
+      // FORCE new companions, Romance companions, and Friendship companions to get welcoming guide
       const mainCompanions = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
       const isNewUserCreated = characterSlug.includes('-') && characterSlug.length > 8 && !mainCompanions.includes(characterSlug);
       const isRomanceCompanion = currentCharacter?.character_type === 'romance';
+      const isFriendshipCompanion = currentCharacter?.character_type === 'friendship';
       
-      if (isNewUserCreated || isRomanceCompanion) {
+      if (isNewUserCreated || isRomanceCompanion || isFriendshipCompanion) {
         console.log('🎯 FORCING welcoming guide for new companion:', characterSlug);
         const companionType = currentCharacter?.category || 'friendship';
         let baseMessage = "Hey! I'm here to help you find peace and clarity. ";
@@ -2384,6 +2385,8 @@
           baseMessage = "Hey! I'm here to help you find peace and clarity. ";
         } else if (companionType === 'romance') {
           baseMessage = "Hey there! I'm here to help you navigate matters of the heart and find clarity in your romantic life. ";
+        } else if (companionType === 'friendship' || currentCharacter?.character_type === 'friendship') {
+          baseMessage = "Hey there! I'm here to be your thoughtful companion and help you navigate life's ups and downs. ";
         }
         
         return `${baseMessage}To get the most personalized experience:
@@ -4446,7 +4449,7 @@ Ready to start chatting, or would you like to explore these personalization opti
           '/avatars/kind-elliot-1754250974523.webp',
           '/avatars/kind-riley-1754250696222.webp',
           '/avatars/kindness-kate-1752448706.webp',
-          '/avatars/professional-pat-1752506564.webp',
+          '/avatars/warm-alex-1754289476869.webp',
           '/avatars/professional-paul-1754249867556.webp',
           '/avatars/professional-paul-1752437864.webp',
           '/avatars/payroll-professional-casey-1752498591.webp',
