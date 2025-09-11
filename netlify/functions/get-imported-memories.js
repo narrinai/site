@@ -83,8 +83,10 @@ exports.handler = async (event, context) => {
     
     // Step 1: Look up the user record ID in the Users table
     try {
-      // Try multiple possible field names for NetlifyUID 
-      const userLookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=OR({NetlifyUID}='${user_uid}',{Netlify_UID}='${user_uid}',{netlifyUID}='${user_uid}',{Email}='${user_email}')&maxRecords=1`;
+      // Try multiple possible field names for NetlifyUID with proper URL encoding
+      const encodedUID = encodeURIComponent(user_uid);
+      const encodedEmail = encodeURIComponent(user_email);
+      const userLookupUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula=${encodeURIComponent(`OR({NetlifyUID}='${user_uid}',{Netlify_UID}='${user_uid}',{netlifyUID}='${user_uid}',{Email}='${user_email}')}`)}&maxRecords=5`;
       console.log('🔍 User lookup URL:', userLookupUrl);
       
       const userLookupResponse = await fetch(userLookupUrl, {
