@@ -108,6 +108,13 @@ exports.handler = async (event, context) => {
   }
 
   async function sendTrialEndingEmail(user) {
+    // Block emails to specific addresses
+    const blockedEmails = ['puscas.sergiu@gmail.com'];
+    if (blockedEmails.includes(user.email?.toLowerCase())) {
+      console.log('🚫 Email blocked for:', user.email);
+      return false; // Return false to prevent marking as sent
+    }
+    
     const emailBody = {
       personalizations: [{
         to: [{ email: user.email, name: user.name }],
@@ -199,6 +206,13 @@ exports.handler = async (event, context) => {
   }
 
   async function sendTrialExpiredEmail(user) {
+    // Block emails to specific addresses
+    const blockedEmails = ['puscas.sergiu@gmail.com'];
+    if (blockedEmails.includes(user.email?.toLowerCase())) {
+      console.log('🚫 Email blocked for:', user.email);
+      return false; // Return false to prevent marking as sent
+    }
+    
     const emailBody = {
       personalizations: [{
         to: [{ email: user.email, name: user.name }],

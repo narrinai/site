@@ -169,11 +169,12 @@ exports.handler = async (event, context) => {
           continue;
         }
         
-        // Skip test emails
+        // Skip test emails and blocked addresses
         const isTestEmail = userEmail && (
           userEmail.includes('@narrin.ai') || 
           userEmail.includes('sharklasers.com') ||
-          userEmail.includes('info@narrin.ai')
+          userEmail.includes('info@narrin.ai') ||
+          userEmail.toLowerCase() === 'puscas.sergiu@gmail.com'
         );
         
         if (isTestEmail) {
