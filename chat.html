@@ -2890,12 +2890,11 @@ Ready to start chatting, or would you like to explore these personalization opti
       // Add timeout handling and retry logic for rate limits
       const maxRetries = 3;
       const baseDelay = 1000; // 1 second
+      let response;
       
       for (let attempt = 0; attempt <= maxRetries; attempt++) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-        
-        let response;
         try {
           response = await fetch('https://hook.eu2.make.com/36bygx4a2y4bkl97wkdjdmtn3o9ygjms', {
             method: 'POST',
