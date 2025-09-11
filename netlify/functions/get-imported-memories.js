@@ -79,10 +79,10 @@ exports.handler = async (event, context) => {
       console.log('🎯 DIRECT: Using content filtering for emailnotiseb@gmail.com (bypass user lookup)');
       
       const userSpecificPatterns = [
-        'you often express excitement', 'you treat chatgpt', 'you are interested in personal development',
-        'you are detail-oriented', 'you are deeply engaged', 'you collect pokémon', 
-        'you use airtable', 'you host narrin', 'you run marketingtoolz', 'you are building narrin',
-        'narrin', 'omnia retail', 'cycling', 'giro', 'tour', 'pokemon', 'airtable'
+        'you often express excitement', 'you treat chatgpt as your technical assistant', 
+        'you are detail-oriented', 'you collect pokémon cards', 'you use airtable for',
+        'you host narrin', 'you run marketingtoolz', 'you are building narrin',
+        'marketingtoolz', 'you are an omnia retail', 'you actively post and engage on linkedin'
       ];
       
       const userRecords = chatData.records.filter(record => {
