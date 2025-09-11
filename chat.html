@@ -2738,8 +2738,10 @@ Ready to start chatting, or would you like to explore these personalization opti
       try {
         // Send to Make.com webhook
         const response = await sendToMakeWebhook(message);
+        console.log('🔍 Received response from webhook:', response);
         
         if (response && response.reply) {
+          console.log('✅ Response has reply, adding to chat:', response.reply);
           typingIndicator.remove();
           isTyping = false;
           
@@ -2941,10 +2943,12 @@ Ready to start chatting, or would you like to explore these personalization opti
       
       try {
         const parsed = JSON.parse(rawText);
+        console.log('✅ Parsed webhook response:', parsed);
         
         // Clean AI response - remove asterisk actions and fix formatting
         if (parsed.reply) {
           parsed.reply = cleanAIResponse(parsed.reply);
+          console.log('🧹 Cleaned reply:', parsed.reply);
         }
         
         return parsed;
