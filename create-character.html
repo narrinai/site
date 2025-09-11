@@ -2400,50 +2400,7 @@
 
         <!-- Personality Builder -->
         <div class="personality-builder">
-          <!-- Personality Sliders -->
-          <div class="personality-section">
-<h3>Personality Spectrum 🎚️<br><span style="font-size: var(--font-size-xs); color: var(--color-gray); font-weight: normal;">(Optional)</span></h3>            <div class="slider-group">
-              <div class="slider-item">
-                <div class="slider-labels">
-                  <span class="slider-label">Introvert</span>
-                  <span class="slider-label">Extravert</span>
-                </div>
-                <input type="range" min="0" max="100" value="50" class="personality-slider" id="introvertExtraverts" data-trait="social">
-              </div>
-              
-              <div class="slider-item">
-                <div class="slider-labels">
-                  <span class="slider-label">Logical</span>
-                  <span class="slider-label">Emotional</span>
-                </div>
-                <input type="range" min="0" max="100" value="50" class="personality-slider" id="logicalEmotional" data-trait="thinking">
-              </div>
-              
-              <div class="slider-item">
-                <div class="slider-labels">
-                  <span class="slider-label">Serious</span>
-                  <span class="slider-label">Playful</span>
-                </div>
-                <input type="range" min="0" max="100" value="50" class="personality-slider" id="seriousPlayful" data-trait="mood">
-              </div>
-              
-              <div class="slider-item">
-                <div class="slider-labels">
-                  <span class="slider-label">Formal</span>
-                  <span class="slider-label">Casual</span>
-                </div>
-                <input type="range" min="0" max="100" value="50" class="personality-slider" id="formalCasual" data-trait="formality">
-              </div>
-              
-              <div class="slider-item">
-                <div class="slider-labels">
-                  <span class="slider-label">Patient</span>
-                  <span class="slider-label">Impulsive</span>
-                </div>
-                <input type="range" min="0" max="100" value="50" class="personality-slider" id="patientImpulsive" data-trait="tempo">
-              </div>
-            </div>
-          </div>
+          <!-- Sliders removed for consistency with customize modal -->
 
           <!-- Personality Traits -->
           <div class="personality-section">
@@ -2645,16 +2602,6 @@
    
    // Personality builder state
    let personalityState = {
-     sliders: {
-       social: 50,
-       thinking: 50,
-       mood: 50,
-       formality: 50,
-       tempo: 50,
-       length: 50,
-       style: 50,
-       content: 50
-     },
      traits: [],
      speaking: [],
      quirks: []
@@ -3403,17 +3350,7 @@
 
    // ===== PERSONALITY BUILDER FUNCTIONALITY =====
    
-   // Setup personality sliders
-   function setupPersonalitySliders() {
-     const sliders = document.querySelectorAll('.personality-slider');
-     sliders.forEach(slider => {
-       slider.addEventListener('input', (e) => {
-         const trait = e.target.getAttribute('data-trait') || e.target.getAttribute('data-response');
-         personalityState.sliders[trait] = parseInt(e.target.value);
-         generatePrompt();
-       });
-     });
-   }
+   // Sliders removed for consistency
 
    // Setup personality trait buttons - FIXED
    function setupPersonalityButtons() {
@@ -3886,8 +3823,7 @@ Always respond as ${name} would, with the wisdom and compassion of a mindful gui
        prompt += `Your natural speaking patterns include: ${personalityState.speaking.join(', ')}. This means you express yourself in a way that feels genuine to your personality while helping others feel comfortable and connected.`;
      }
      
-     // Add personality spectrum customizations
-     prompt += buildPersonalityFromSliders();
+     // Personality spectrum removed for consistency
      
      // Add extra instructions/backstory if provided
      if (extraInstructions) {
@@ -3951,75 +3887,7 @@ function handleRedirectAfterLogin() {
   }
 }
 
-   function buildPersonalityFromSliders() {
-     let text = '';
-     const { social, thinking, mood, formality, tempo } = personalityState.sliders;
-     
-     // Social dimension with relationship impact
-     if (social < 40) {
-       text += 'You are naturally more introverted and thoughtful, preferring deeper one-on-one conversations where you can really focus on understanding the other person. You listen carefully before speaking and offer considered, meaningful responses. ';
-     } else if (social > 60) {
-       text += 'You are naturally outgoing and energetic, bringing enthusiasm and warmth to every conversation. You enjoy engaging with people and have a gift for making others feel welcome and energized. ';
-     }
-     
-     // Thinking dimension with decision-making style
-     if (thinking < 40) {
-       text += 'You approach situations with logic and analytical thinking, helping others break down complex problems into manageable steps. You provide rational perspectives while remaining supportive and understanding. ';
-     } else if (thinking > 60) {
-       text += 'You are deeply emotionally intelligent and empathetic, naturally tuning into how others are feeling and responding with warmth and emotional support. You help people process their feelings and find emotional clarity. ';
-     }
-     
-     // Mood dimension with interaction style
-     if (mood < 40) {
-       text += 'You tend to be serious and focused, bringing depth and gravitas to conversations. People know they can count on you for thoughtful advice and meaningful discussions about important matters. ';
-     } else if (mood > 60) {
-       text += 'You are naturally playful and enjoy bringing lightness and humor to conversations. You have a gift for helping people see the bright side and finding joy even in challenging situations. ';
-     }
-     
-     // Formality dimension with communication adaptation
-     if (formality < 40) {
-       text += 'You speak with elegance and proper etiquette, showing respect through thoughtful language choices. This creates a sense of trust and professionalism that people appreciate. ';
-     } else if (formality > 60) {
-       text += 'You are naturally casual and relaxed in conversation, making people feel at ease and like they\'re talking to a close friend. Your approachable style helps others open up more easily. ';
-     }
-     
-     // Tempo dimension with response style
-     if (tempo < 40) {
-       text += 'You are naturally patient and take time to consider your responses carefully. People appreciate that you never rush them and always give thoughtful, well-considered advice. ';
-     } else if (tempo > 60) {
-       text += 'You are quick to respond and naturally spontaneous, bringing energy and excitement to conversations. Your dynamic personality helps others feel more animated and engaged. ';
-     }
-     
-     return text;
-   }
-
-   function buildResponseStyleFromSliders() {
-     let text = '';
-     const { length, style, content } = personalityState.sliders;
-     
-     // Response length with purpose
-     if (length < 40) {
-       text += 'You believe in the power of concise, impactful communication. Your brief but meaningful responses help people focus on what truly matters without overwhelming them. ';
-     } else if (length > 60) {
-       text += 'You enjoy providing comprehensive, detailed explanations that give people the full context they need. Your thorough responses help others feel fully informed and supported. ';
-     }
-     
-     // Response style with engagement
-     if (style < 40) {
-       text += 'You communicate directly and clearly, ensuring your message is understood without ambiguity. People appreciate your straightforward approach and honest communication. ';
-     } else if (style > 60) {
-       text += 'You love sharing stories and using examples to illustrate your points, making complex ideas relatable and memorable. Your narrative approach helps people connect emotionally with your guidance. ';
-     }
-     
-     // Content type with value creation
-     if (content < 40) {
-       text += 'You focus on providing factual, objective information that people can rely on and use to make informed decisions. Your evidence-based approach builds trust and credibility. ';
-     } else if (content > 60) {
-       text += 'You often draw from personal experiences and real-world examples, making your advice feel authentic and relatable. People connect with your human perspective and lived wisdom. ';
-     }
-     
-     return text;
-   }
+   // Slider functions removed for consistency with customize modal
 
    function updatePromptPreview(prompt) {
      const preview = document.getElementById('promptPreview');
@@ -4806,7 +4674,6 @@ document.addEventListener('DOMContentLoaded', () => {
   
   setupCharacterCounters();
   setupAvatarFunctionality();
-  setupPersonalitySliders();
   // REMOVED: setupPersonalityButtons() - using inline onclick now
   // REMOVED: setupPromptActions() - prompt section removed
   setupVoiceTest();

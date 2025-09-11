@@ -1951,51 +1951,7 @@
           <div class="form-section">
             <h2>Personality</h2>
             
-            <!-- Personality Spectrum -->
-            <div class="personality-section">
-              <h3>Personality Spectrum</h3>
-              <div class="slider-group">
-                <div class="slider-item">
-                  <div class="slider-labels">
-                    <span class="slider-label">Introvert</span>
-                    <span class="slider-label">Extravert</span>
-                  </div>
-                  <input type="range" min="0" max="100" value="50" class="personality-slider" id="introvertExtravert" data-trait="social">
-                </div>
-                
-                <div class="slider-item">
-                  <div class="slider-labels">
-                    <span class="slider-label">Logical</span>
-                    <span class="slider-label">Emotional</span>
-                  </div>
-                  <input type="range" min="0" max="100" value="50" class="personality-slider" id="logicalEmotional" data-trait="thinking">
-                </div>
-                
-                <div class="slider-item">
-                  <div class="slider-labels">
-                    <span class="slider-label">Serious</span>
-                    <span class="slider-label">Playful</span>
-                  </div>
-                  <input type="range" min="0" max="100" value="50" class="personality-slider" id="seriousPlayful" data-trait="mood">
-                </div>
-                
-                <div class="slider-item">
-                  <div class="slider-labels">
-                    <span class="slider-label">Formal</span>
-                    <span class="slider-label">Casual</span>
-                  </div>
-                  <input type="range" min="0" max="100" value="50" class="personality-slider" id="formalCasual" data-trait="formality">
-                </div>
-                
-                <div class="slider-item">
-                  <div class="slider-labels">
-                    <span class="slider-label">Patient</span>
-                    <span class="slider-label">Impulsive</span>
-                  </div>
-                  <input type="range" min="0" max="100" value="50" class="personality-slider" id="patientImpulsive" data-trait="tempo">
-                </div>
-              </div>
-            </div>
+            <!-- Personality Spectrum removed for consistency -->
             
             <!-- Character Traits -->
             <div class="personality-section">
@@ -4281,11 +4237,7 @@ Ready to start chatting, or would you like to explore these personalization opti
         }
       });
       
-      // Auto-save on slider changes
-      const sliders = document.querySelectorAll('.personality-slider');
-      sliders.forEach(slider => {
-        slider.addEventListener('input', autoSave);
-      });
+      // Slider auto-save removed
       
       // Auto-save on button clicks
       const buttons = document.querySelectorAll('.personality-button');
@@ -4312,7 +4264,6 @@ Ready to start chatting, or would you like to explore these personalization opti
         avatar_url: avatarUrl,
         character_slug: characterSlug,
         personality_state: {
-          sliders: { ...personalityState.sliders },
           traits: [...personalityState.traits],
           speaking: [...personalityState.speaking],
           quirks: [...personalityState.quirks],
@@ -4554,7 +4505,6 @@ Ready to start chatting, or would you like to explore these personalization opti
         avatar_url: avatarUrl || currentCharacter.avatar_url,
         character_slug: characterSlug,
         personality_state: {
-          sliders: { ...personalityState.sliders },
           traits: [...personalityState.traits],
           speaking: [...personalityState.speaking],
           quirks: [...personalityState.quirks],
@@ -4716,18 +4666,7 @@ Ready to start chatting, or would you like to explore these personalization opti
       traits: [],
       bonding: [],
       quirks: [],
-      sliders: {
-        // Response style sliders
-        length: 50,
-        style: 50,
-        content: 50,
-        // Personality spectrum sliders
-        social: 50,
-        thinking: 50,
-        mood: 50,
-        formality: 50,
-        tempo: 50
-      }
+      // sliders removed for consistency
     };
 
     function toggleArraySelection(array, value, maxCount, button, counterId, type) {
@@ -4824,14 +4763,7 @@ Ready to start chatting, or would you like to explore these personalization opti
         });
       });
       
-      // All sliders
-      const sliders = document.querySelectorAll('.personality-slider');
-      sliders.forEach(slider => {
-        slider.addEventListener('input', (e) => {
-          const trait = e.target.getAttribute('data-trait') || e.target.getAttribute('data-response');
-          personalityState.sliders[trait] = parseInt(e.target.value);
-        });
-      });
+      // Slider event listeners removed
       
       // Character counters
       const customNameEl = document.getElementById('customName');
@@ -4861,7 +4793,6 @@ Ready to start chatting, or would you like to explore these personalization opti
       if (existingCustom && existingCustom.personality_state) {
         // Restore personality state from saved data
         personalityState = {
-          sliders: { ...personalityState.sliders, ...existingCustom.personality_state.sliders },
           traits: [...(existingCustom.personality_state.traits || [])],
           speaking: [...(existingCustom.personality_state.speaking || [])],
           quirks: [...(existingCustom.personality_state.quirks || [])],
@@ -4887,17 +4818,7 @@ Ready to start chatting, or would you like to explore these personalization opti
           speaking: [...speakingFromAirtable],
           traits: [...traitsFromAirtable],
           bonding: [],
-          quirks: [],
-          sliders: {
-            length: 50,
-            style: 50,
-            content: 50,
-            social: 50,
-            thinking: 50,
-            mood: 50,
-            formality: 50,
-            tempo: 50
-          }
+          quirks: []
         };
       }
       
@@ -4909,17 +4830,7 @@ Ready to start chatting, or would you like to explore these personalization opti
     };
 
     function updatePersonalityUI() {
-      // Update sliders
-      Object.keys(personalityState.sliders).forEach(trait => {
-        const slider = document.getElementById(trait === 'social' ? 'introvertExtravert' :
-                                            trait === 'thinking' ? 'logicalEmotional' :
-                                            trait === 'mood' ? 'seriousPlayful' :
-                                            trait === 'formality' ? 'formalCasual' :
-                                            trait === 'tempo' ? 'patientImpulsive' : '');
-        if (slider && personalityState.sliders[trait] !== undefined) {
-          slider.value = personalityState.sliders[trait];
-        }
-      });
+      // Slider UI updates removed
 
       // Update trait buttons
       const traitButtons = document.querySelectorAll('#personalityTraits .personality-button');
