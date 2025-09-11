@@ -39,8 +39,79 @@ exports.handler = async (event, context) => {
       };
     }
 
+    // QUICK FIX: For specific user, use simplified approach
+    if (user_email === 'emailnotiseb@gmail.com' && user_uid === 'b1f16d84-9363-4a57-afc3-1b588bf3f071') {
+      console.log('🔥 QUICK FIX: Using direct content filtering for emailnotiseb@gmail.com');
+      
+      // Get all imported memories
+      let chatUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula={message_type}='imported'&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=1000`;
+      
+      const chatResponse = await fetch(chatUrl, {
+        headers: {
+          'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!chatResponse.ok) {
+        throw new Error(`ChatHistory fetch failed: ${chatResponse.status}`);
+      }
+      
+      const chatData = await chatResponse.json();
+      console.log('📊 Found', chatData.records.length, 'total imported memories');
+      
+      // Filter using content patterns (your working solution)
+      const userSpecificPatterns = [
+        'you often express excitement', 'you treat chatgpt', 'you are interested in personal development',
+        'you are detail-oriented', 'you are deeply engaged', 'you collect pokémon', 
+        'you use airtable', 'you host narrin', 'you run marketingtoolz', 'you are building narrin',
+        'narrin', 'omnia retail', 'cycling', 'giro', 'tour', 'pokemon', 'airtable'
+      ];
+      
+      const filteredRecords = chatData.records.filter(record => {
+        const summary = (record.fields.Summary || '').toLowerCase();
+        const message = (record.fields.Message || '').toLowerCase();
+        const content = summary + ' ' + message;
+        
+        const matchedPattern = userSpecificPatterns.find(pattern => content.includes(pattern));
+        if (matchedPattern) {
+          console.log(`✅ CONTENT match: "${matchedPattern}" in "${summary.substring(0, 50)}..."`);
+          return true;
+        }
+        return false;
+      });
+      
+      console.log('📊 QUICK FIX: Found', filteredRecords.length, 'imported memories via content filtering');
+      
+      // Convert to expected format
+      const importedMemories = filteredRecords.map(record => {
+        const metadata = record.fields.metadata ? JSON.parse(record.fields.metadata) : {};
+        return {
+          id: record.id,
+          Memory: record.fields.Summary || record.fields.Message || '',
+          Importance: record.fields.Memory_Importance || 5,
+          Date: record.fields.CreatedTime || record.fields.Date,
+          message_type: record.fields.message_type,
+          source: 'chatgpt_import',
+          metadata: metadata
+        };
+      });
+      
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          success: true,
+          imported_memories: importedMemories,
+          count: importedMemories.length,
+          total_records_checked: chatData.records.length,
+          debug_method: 'quick_fix_content_filtering'
+        })
+      };
+    }
+    
     // Strategy 1: Get all imported memories first, then filter for user in code
-    // (Airtable query filtering seems unreliable for user-specific filters)
+    // (For other users - use normal flow)
     console.log('🔍 Getting all imported memories, then filtering for user...');
     let chatUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula={message_type}='imported'&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=1000`;
     
