@@ -2197,12 +2197,18 @@
         if (data.success && data.characters && data.characters.length > 0) {
           const character = data.characters[0];
           currentCharacter = {
-            name: character.Name,
+            name: character.Custom_Name || character.Name,
             slug: character.Slug,
             title: character.Character_Title,
             description: character.Character_Description,
-            avatar_url: character.Avatar_URL,
-            voice_id: character.voice_id
+            avatar_url: character.Custom_Avatar_URL || character.Avatar_URL,
+            voice_id: character.voice_id,
+            voice_type: character.voice_type || 'none',
+            character_type: character.character_type || '',
+            category: character.Category || '',
+            extra_instructions: character.Custom_Prompt || character.Prompt || character.Character_Description || '',
+            personality_traits: character.Personality_Traits || '',
+            speaking_patterns: character.Speaking_Patterns || ''
           };
           
           // Load custom avatar if it exists

@@ -227,6 +227,12 @@ exports.handler = async (event, context) => {
         Visibility: fields.Visibility || 'public',
         Created_by: createdBy,
         character_type: fields.Character_Type || fields.character_type || '',
+        Prompt: fields.Prompt || fields.Character_Prompt || fields.Extra_Instructions || '',
+        Custom_Name: fields.Custom_Name || '',
+        Custom_Prompt: fields.Custom_Prompt || fields.Extra_Instructions || '',
+        Custom_Avatar_URL: fields.Custom_Avatar_URL || '',
+        Personality_Traits: fields.Personality_Traits || '',
+        Speaking_Patterns: fields.Speaking_Patterns || '',
         _Created_by_record_id: (Array.isArray(fields.Created_By) && fields.Created_By.length > 0) ? fields.Created_By[0] : null
       };
     });
