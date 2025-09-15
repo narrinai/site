@@ -2711,19 +2711,26 @@ Ready to start chatting, or would you like to explore these personalization opti
       // Check usage limit before sending message
       console.log('🔍 Checking usage limit before sending message...');
       const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
-      if (isAnonymousUser) {
+
+      // Check for logout/incognito mode (no localStorage values)
+      const userToken = localStorage.getItem("user_token");
+      const userUid = localStorage.getItem("user_uid");
+      const userEmail = localStorage.getItem("user_email");
+      const isIncognitoMode = !userToken || !userUid || !userEmail;
+
+      if (isAnonymousUser || isIncognitoMode) {
         const featuredCharacters = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
         const currentCharSlug = new URLSearchParams(window.location.search).get('char') || new URLSearchParams(window.location.search).get('character');
         const isFeaturedCharacter = featuredCharacters.includes(currentCharSlug);
-        
+
         if (isFeaturedCharacter) {
           const usageKey = `anonymous_usage_${currentCharSlug}`;
           const currentUsage = parseInt(localStorage.getItem(usageKey) || '0');
-          
-          console.log(`📊 Anonymous usage check for ${currentCharSlug}: ${currentUsage}/5`);
-          
+
+          console.log(`📊 Anonymous/incognito usage check for ${currentCharSlug}: ${currentUsage}/5`);
+
           if (currentUsage >= 5) {
-            console.log('🚫 Anonymous user trying to send 6th message - showing limit popup');
+            console.log('🚫 Anonymous/incognito user trying to send 6th message - showing limit popup');
             showUpgradePrompt(5, 5, 'messages');
             return;
           }
