@@ -2333,28 +2333,33 @@
       
       console.log('🚀 generateConversationStarter called for:', characterSlug);
       
-      // FORCE new companions, Romance companions, and Friendship companions to get welcoming guide
+      // FORCE all user-created companions to get welcoming guide based on character_type
       const mainCompanions = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
-      const isNewUserCreated = characterSlug.includes('-') && characterSlug.length > 8 && !mainCompanions.includes(characterSlug);
-      const isRomanceCompanion = currentCharacter?.character_type === 'romance';
-      const isFriendshipCompanion = currentCharacter?.character_type === 'friendship';
-      
-      if (isNewUserCreated || isRomanceCompanion || isFriendshipCompanion) {
-        console.log('🎯 FORCING welcoming guide for new companion:', characterSlug);
-        const companionType = currentCharacter?.category || 'friendship';
+      const isMainCompanion = mainCompanions.includes(characterSlug);
+      const hasCharacterType = currentCharacter?.character_type && ['mindfulness', 'romance', 'friendship', 'mentorship'].includes(currentCharacter.character_type);
+
+      if (!isMainCompanion && hasCharacterType) {
+        console.log('🎯 FORCING welcoming guide for companion with character_type:', currentCharacter.character_type);
+        const companionType = currentCharacter?.character_type;
         let baseMessage = "Hey! I'm here to help you find peace and clarity. ";
-        
+
         if (companionType === 'mindfulness') {
           baseMessage = "Hey! I'm here to help you find peace and clarity. ";
         } else if (companionType === 'romance') {
           baseMessage = "Hey there! I'm here to help you navigate matters of the heart and find clarity in your romantic life. ";
-        } else if (companionType === 'friendship' || currentCharacter?.character_type === 'friendship') {
+        } else if (companionType === 'friendship') {
           baseMessage = "Hey there! I'm here to be your thoughtful companion and help you navigate life's ups and downs. ";
+        } else if (companionType === 'mentorship') {
+          baseMessage = "Hey there! I'm here to guide you on your growth journey and help you reach your potential. ";
+        } else {
+          baseMessage = "Hey! I'm here to be your companion and help you find clarity in whatever you're facing. ";
         }
         
         return `${baseMessage}To get the most personalized experience:<br><br>
-• <a href="#" onclick="lazyLoadCustomize(event); return false;" style="color: var(--color-teal); text-decoration: none;">Customize my personality ⚙️</a>
-• <a href="/memory-import" style="color: var(--color-teal); text-decoration: none;">Import your ChatGPT memories 📥</a><br><br>
+• <a href="#" onclick="lazyLoadCustomize(event); return false;" style="color: var(--color-teal); text-decoration: none;">Customize my personality ⚙️</a><br>
+• <a href="/memory-import" style="color: var(--color-teal); text-decoration: none;">Import your ChatGPT memories 📥</a><br>
+• <a href="#" onclick="openMemoryHub(event); return false;" style="color: var(--color-teal); text-decoration: none;">View my memory hub 🧠</a><br>
+• <a href="/chat-overview" style="color: var(--color-teal); text-decoration: none;">Manage all my companions 👥</a><br><br>
 Ready to start chatting, or would you like to explore these personalization options first?`;
       }
       
@@ -2774,9 +2779,8 @@ Ready to start chatting, or would you like to explore these personalization opti
       // Get recent conversation context
       const recentMessages = conversationHistory.slice(-10);
       
-      // Get memory context for non-anonymous users, add length instruction for all
+      // Get memory context for non-anonymous users
       let memory_context = '';
-      const lengthInstruction = "IMPORTANT: Keep responses to 1-3 sentences maximum. Be conversational but concise.";
       
       if (!isAnonymousUser && user_uid) {
         try {
@@ -2804,18 +2808,17 @@ Ready to start chatting, or would you like to explore these personalization opti
                 .map(memory => memory.summary || memory.message)
                 .join('\n');
               
-              // Add response length instruction to memory context for better enforcement
-              memory_context = relevantMemories + "\n\n" + lengthInstruction;
-              console.log('✅ Retrieved', memoryData.memories.length, 'memories for context + length instruction');
+              memory_context = relevantMemories;
+              console.log('✅ Retrieved', memoryData.memories.length, 'memories for context');
             }
           }
         } catch (error) {
           console.error('❌ Error retrieving memory context:', error);
         }
       } else {
-        // For anonymous users, just use the length instruction
-        memory_context = lengthInstruction;
-        console.log('📝 Using length instruction only for anonymous user');
+        // For anonymous users, no memory context available
+        memory_context = '';
+        console.log('📝 No memory context for anonymous user');
       }
       
       // Update anonymous usage counter
@@ -4656,6 +4659,14 @@ Ready to start chatting, or would you like to explore these personalization opti
         });
         
         netlifyIdentity.on('logout', () => {
+          // Clear anonymous usage counters when logging out
+          const featuredCharacters = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
+          featuredCharacters.forEach(charSlug => {
+            const usageKey = `anonymous_usage_${charSlug}`;
+            localStorage.removeItem(usageKey);
+          });
+          console.log('🧹 Cleared anonymous usage counters on logout');
+
           setTimeout(() => {
             updateButtonTooltips();
             setupMobileLoginButton();
