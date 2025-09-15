@@ -2500,8 +2500,22 @@ Ready to start chatting, or would you like to explore these personalization opti
       const uid = localStorage.getItem("user_uid");
       const email = localStorage.getItem("user_email");
       const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
-      
+
+      // If no localStorage values (incognito mode), treat as anonymous user for featured characters
       if (!token || !uid || !email) {
+        const featuredCharacters = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
+        const currentCharSlug = new URLSearchParams(window.location.search).get('char') || new URLSearchParams(window.location.search).get('character');
+        const isFeaturedCharacter = featuredCharacters.includes(currentCharSlug);
+
+        if (isFeaturedCharacter) {
+          console.log('📊 Incognito mode on featured character - using browser-only limit check');
+          const usageKey = `anonymous_usage_${currentCharSlug}`;
+          const currentUsage = parseInt(localStorage.getItem(usageKey) || '0');
+
+          console.log(`📊 Incognito usage check for ${currentCharSlug}: ${currentUsage}/5`);
+          return currentUsage < 5;
+        }
+
         return false;
       }
       
@@ -2640,7 +2654,7 @@ Ready to start chatting, or would you like to explore these personalization opti
 
             <div class="upgrade-buttons">
               <button class="upgrade-btn primary" id="mainUpgradeBtn">
-                View Plans
+                Start Trial
               </button>
               <button class="upgrade-btn secondary" id="mainUpgradeClose">
                 Not Now
@@ -2821,15 +2835,21 @@ Ready to start chatting, or would you like to explore these personalization opti
         console.log('📝 No memory context for anonymous user');
       }
       
-      // Update anonymous usage counter
-      if (isAnonymousUser) {
-        const featuredCharacters = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
-        const isFeaturedCharacter = featuredCharacters.includes(currentCharSlug);
-        if (isFeaturedCharacter) {
-          const usageKey = `anonymous_usage_${currentCharSlug}`;
-          const currentUsage = parseInt(localStorage.getItem(usageKey) || '0');
-          localStorage.setItem(usageKey, (currentUsage + 1).toString());
-        }
+      // Update anonymous usage counter (including incognito mode)
+      const featuredCharacters = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
+      const isFeaturedCharacter = featuredCharacters.includes(currentCharSlug);
+
+      // Check if this is an anonymous user (localStorage flag) or incognito mode (no user tokens)
+      const userToken = localStorage.getItem("user_token");
+      const userUid = localStorage.getItem("user_uid");
+      const userEmail = localStorage.getItem("user_email");
+      const isIncognitoMode = !userToken || !userUid || !userEmail;
+
+      if ((isAnonymousUser || isIncognitoMode) && isFeaturedCharacter) {
+        const usageKey = `anonymous_usage_${currentCharSlug}`;
+        const currentUsage = parseInt(localStorage.getItem(usageKey) || '0');
+        localStorage.setItem(usageKey, (currentUsage + 1).toString());
+        console.log(`📊 Updated usage counter for ${currentCharSlug}: ${currentUsage + 1}/5`);
       }
       
       // Function to sanitize strings for JSON safety
