@@ -20,6 +20,8 @@
   <meta property="twitter:description" content="An in-depth analysis of the AI mental health companion market, exploring platforms like Replika, Woebot, Wysa, and emerging solutions for therapeutic support and emotional wellness.">
   <meta property="twitter:image" content="https://narrin.ai/assets/ai-mental-health-market-growth-chart.svg">
 
+  <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+
   <style>
     :root {
       --color-primary: #14b8a6;
@@ -27,6 +29,8 @@
       --color-gray: #64748b;
       --color-light-gray: #f1f5f9;
       --color-white: #ffffff;
+      --color-teal: #14b8a6;
+      --color-coral: #f97316;
       --spacing-xs: 0.5rem;
       --spacing-sm: 0.75rem;
       --spacing-md: 1rem;
@@ -41,8 +45,17 @@
       --font-size-3xl: 1.875rem;
       --radius-md: 0.5rem;
       --radius-lg: 0.75rem;
+      --radius-full: 9999px;
       --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
       --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      --transition-base: 0.2s ease;
+      --gradient-primary: linear-gradient(135deg, var(--color-teal) 0%, var(--color-coral) 100%);
+      --touch-target: 44px;
+      --z-sticky: 1000;
+      --z-overlay: 9998;
+      --z-menu-overlay: 9999;
     }
 
     * {
@@ -56,6 +69,407 @@
       line-height: 1.6;
       color: var(--color-navy);
       background: var(--color-white);
+      margin: 0;
+      padding: 0;
+    }
+
+    /* ===== HEADER NAVIGATION ===== */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: var(--z-sticky);
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      transition: all var(--transition-base);
+    }
+
+    .header-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 var(--spacing-lg);
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 72px;
+      gap: var(--spacing-lg);
+      width: 100%;
+    }
+
+    /* Logo */
+    .logo {
+      font-family: system-ui, -apple-system, sans-serif;
+      font-size: var(--font-size-xl);
+      font-weight: 800;
+      color: var(--color-navy);
+      text-decoration: none;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      transition: transform var(--transition-base);
+      flex-shrink: 0;
+    }
+
+    .logo:hover {
+      transform: scale(1.05);
+    }
+
+    /* Desktop Navigation Links */
+    .nav-links {
+      display: none;
+      align-items: center;
+      gap: var(--spacing-xl);
+    }
+
+    .nav-link {
+      color: var(--color-navy);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: var(--font-size-sm);
+      transition: color var(--transition-base);
+      position: relative;
+      padding: var(--spacing-xs) 0;
+    }
+
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--gradient-primary);
+      transition: width var(--transition-base);
+    }
+
+    .nav-link:hover {
+      color: var(--color-teal);
+    }
+
+    .nav-link:hover::after {
+      width: 100%;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--spacing-sm) var(--spacing-lg);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      text-decoration: none;
+      border-radius: var(--radius-md);
+      border: none;
+      cursor: pointer;
+      transition: all var(--transition-base);
+    }
+
+    .btn-primary {
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    /* Mobile Navigation Container */
+    .mobile-nav-container {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      flex-shrink: 0;
+    }
+
+    /* Mobile Chat Button */
+    .mobile-chat-btn {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: var(--touch-target);
+      height: var(--touch-target);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--color-navy);
+      transition: all var(--transition-base);
+      border-radius: var(--radius-md);
+      flex-shrink: 0;
+      text-decoration: none;
+    }
+
+    .mobile-chat-btn:hover {
+      background: var(--color-light-gray);
+    }
+
+    .mobile-chat-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* Mobile Hamburger Menu */
+    .mobile-menu-btn {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: var(--touch-target);
+      height: var(--touch-target);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--color-navy);
+      transition: all var(--transition-base);
+      border-radius: var(--radius-md);
+      position: relative;
+      flex-shrink: 0;
+      z-index: var(--z-menu-overlay);
+    }
+
+    .mobile-menu-btn:hover {
+      background: var(--color-light-gray);
+    }
+
+    .hamburger {
+      width: 24px;
+      height: 18px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .hamburger span {
+      display: block;
+      height: 2px;
+      width: 100%;
+      background: var(--color-navy);
+      border-radius: 1px;
+      transition: all var(--transition-base);
+    }
+
+    .mobile-menu-btn.active .hamburger span:nth-child(1) {
+      transform: rotate(45deg) translate(6px, 6px);
+    }
+
+    .mobile-menu-btn.active .hamburger span:nth-child(2) {
+      opacity: 0;
+    }
+
+    .mobile-menu-btn.active .hamburger span:nth-child(3) {
+      transform: rotate(-45deg) translate(6px, -6px);
+    }
+
+    /* Mobile Menu Overlay */
+    .mobile-menu-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(30, 41, 59, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      z-index: var(--z-overlay);
+      opacity: 0;
+      visibility: hidden;
+      transition: all var(--transition-base);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .mobile-menu-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .mobile-menu-content {
+      background: var(--color-white);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-2xl) var(--spacing-xl);
+      box-shadow: var(--shadow-xl);
+      max-width: 90vw;
+      width: 100%;
+      max-width: 400px;
+      transform: scale(0.9) translateY(20px);
+      transition: all var(--transition-base);
+      position: relative;
+    }
+
+    .mobile-menu-close {
+      position: absolute;
+      top: var(--spacing-lg);
+      right: var(--spacing-lg);
+      width: var(--touch-target);
+      height: var(--touch-target);
+      background: transparent;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      color: var(--color-gray);
+      transition: all var(--transition-base);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1;
+    }
+
+    .mobile-menu-close:hover {
+      background: var(--color-light-gray);
+      color: var(--color-navy);
+    }
+
+    .mobile-menu-close svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .mobile-menu-overlay.active .mobile-menu-content {
+      transform: scale(1) translateY(0);
+    }
+
+    .mobile-menu-header {
+      text-align: center;
+      margin-bottom: var(--spacing-2xl);
+    }
+
+    .mobile-menu-logo {
+      font-family: system-ui, -apple-system, sans-serif;
+      font-size: var(--font-size-2xl);
+      font-weight: 800;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .mobile-menu-subtitle {
+      color: var(--color-gray);
+      font-size: var(--font-size-sm);
+    }
+
+    .mobile-menu-nav {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+    }
+
+    .mobile-menu-link {
+      display: flex;
+      align-items: center;
+      padding: var(--spacing-md) var(--spacing-lg);
+      color: var(--color-navy);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: var(--font-size-base);
+      transition: all var(--transition-base);
+      border-radius: var(--radius-md);
+      background: var(--color-light-gray);
+    }
+
+    .mobile-menu-link:hover {
+      background: var(--color-gray);
+      color: var(--color-teal);
+      transform: translateX(4px);
+    }
+
+    .mobile-menu-link.btn-primary {
+      background: var(--gradient-primary);
+      color: var(--color-white);
+      justify-content: center;
+      font-weight: 700;
+      margin-top: var(--spacing-lg);
+    }
+
+    .mobile-menu-link.btn-primary:hover {
+      background: var(--gradient-primary);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .mobile-menu-link-icon {
+      margin-right: var(--spacing-sm);
+      font-size: var(--font-size-lg);
+    }
+
+    /* Desktop Styles */
+    @media (min-width: 769px) {
+      .nav-links {
+        display: flex;
+      }
+
+      .mobile-nav-container {
+        display: none;
+      }
+
+      .mobile-chat-btn {
+        display: none !important;
+      }
+
+      .mobile-menu-btn {
+        display: none !important;
+      }
+
+      .mobile-menu-overlay {
+        display: none !important;
+      }
+    }
+
+    /* Mobile Styles */
+    @media (max-width: 768px) {
+      .header-container {
+        padding: 0 var(--spacing-md);
+      }
+
+      .header-content {
+        min-height: 60px;
+        gap: var(--spacing-sm);
+        padding: 0;
+        display: grid;
+        grid-template-columns: auto 1fr auto auto auto;
+        align-items: center;
+      }
+
+      .logo {
+        font-size: var(--font-size-lg);
+        flex-shrink: 0;
+        min-width: fit-content;
+        grid-column: 1;
+      }
+
+      .mobile-nav-container {
+        flex-shrink: 0;
+        min-width: fit-content;
+        display: flex !important;
+        gap: var(--spacing-xs);
+        grid-column: 3 / 6;
+        justify-self: end;
+      }
+
+      .mobile-chat-btn {
+        display: flex;
+        flex-shrink: 0;
+      }
+
+      .nav-links {
+        display: none !important;
+      }
+
+      .mobile-menu-btn {
+        display: flex;
+        flex-shrink: 0;
+      }
     }
 
     .article-container {
@@ -319,7 +733,103 @@
   </style>
 </head>
 <body>
-  <div class="article-container">
+  <!-- Header Navigation -->
+  <header class="header" role="banner">
+    <div class="header-container">
+      <div class="header-content">
+        <!-- Logo -->
+        <a href="/" class="logo" aria-label="Narrin AI Home">Narrin AI</a>
+
+        <!-- Desktop Navigation Links -->
+        <nav class="nav-links" role="navigation" aria-label="Secondary navigation">
+          <a href="/pricing" class="nav-link">Plans</a>
+          <a href="/chat-overview" class="nav-link">My Companions</a>
+          <a href="/memory-import" class="nav-link">Import Memory</a>
+          <a href="/news" class="nav-link">News & Insights</a>
+          <a href="#" class="nav-link" id="loginBtn">Login/Register</a>
+          <a href="/create-character" class="btn btn-primary">✨ Create Companion</a>
+        </nav>
+
+        <!-- Mobile Navigation Container -->
+        <div class="mobile-nav-container">
+          <!-- Mobile Chat Button -->
+          <a
+            href="/chat-overview"
+            class="mobile-chat-btn"
+            aria-label="Go to chats"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </a>
+
+          <!-- Mobile Hamburger Menu -->
+          <button
+            class="mobile-menu-btn"
+            id="mobileMenuBtn"
+            aria-label="Open navigation menu"
+            aria-expanded="false"
+          >
+            <div class="hamburger">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Menu Overlay -->
+  <div class="mobile-menu-overlay" id="mobileMenuOverlay">
+    <div class="mobile-menu-content">
+      <button class="mobile-menu-close" id="mobileMenuClose" aria-label="Close menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <div class="mobile-menu-header">
+        <a href="/" class="mobile-menu-logo" style="text-decoration: none;">Narrin AI</a>
+        <div class="mobile-menu-subtitle">AI Companion Platform</div>
+      </div>
+      <nav class="mobile-menu-nav" role="navigation" aria-label="Mobile navigation">
+        <a href="/chat-overview" class="mobile-menu-link">
+          <span class="mobile-menu-link-icon">💬</span>
+          My Companions
+        </a>
+        <a href="/pricing" class="mobile-menu-link">
+          <span class="mobile-menu-link-icon">💎</span>
+          Plans
+        </a>
+        <a href="/memory-import" class="mobile-menu-link">
+          <span class="mobile-menu-link-icon">🧠</span>
+          Import Memory
+        </a>
+        <a href="/news" class="mobile-menu-link">
+          <span class="mobile-menu-link-icon">📰</span>
+          News & Insights
+        </a>
+        <a href="#" class="mobile-menu-link" id="mobileLoginBtn">
+          <span class="mobile-menu-link-icon">👤</span>
+          Login/Register
+        </a>
+        <a href="/profile" class="mobile-menu-link" id="mobileProfileLink" style="display: none;">
+          <span class="mobile-menu-link-icon">👤</span>
+          Profile
+        </a>
+        <a href="/create-character" class="mobile-menu-link btn-primary">
+          <span class="mobile-menu-link-icon">✨</span>
+          Create Companion
+        </a>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main role="main">
+    <div class="article-container">
     <header class="article-header">
       <h1 class="article-title">The AI Mental Health Companion Revolution: A Comprehensive Market Analysis for 2025</h1>
       <p class="article-subtitle">How artificial intelligence is reshaping emotional support, therapy, and mental wellness through conversational companions</p>
@@ -1067,6 +1577,138 @@
       <p style="margin-top: var(--spacing-md);"><strong>Disclaimer:</strong> This article is for informational purposes only and does not constitute medical advice. Individuals with mental health concerns should consult qualified healthcare professionals.</p>
       <p style="margin-top: var(--spacing-md);"><a href="/news" style="color: var(--color-primary); text-decoration: none;">← Back to Narrin AI News</a></p>
     </footer>
-  </div>
+    </div>
+  </main>
+
+  <!-- JavaScript for navigation -->
+  <script>
+    // Mobile Menu Elements
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+    const mobileMenuClose = document.getElementById('mobileMenuClose');
+
+    // Mobile Menu Functionality
+    function toggleMobileMenu() {
+      if (!mobileMenuOverlay) return;
+
+      const isActive = mobileMenuOverlay.classList.contains('active');
+
+      if (isActive) {
+        closeMobileMenu();
+      } else {
+        openMobileMenu();
+      }
+    }
+
+    function openMobileMenu() {
+      if (mobileMenuOverlay) {
+        mobileMenuOverlay.classList.add('active');
+      }
+      if (mobileMenuBtn) {
+        mobileMenuBtn.classList.add('active');
+        mobileMenuBtn.setAttribute('aria-expanded', 'true');
+      }
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeMobileMenu() {
+      if (mobileMenuOverlay) {
+        mobileMenuOverlay.classList.remove('active');
+      }
+      if (mobileMenuBtn) {
+        mobileMenuBtn.classList.remove('active');
+        mobileMenuBtn.setAttribute('aria-expanded', 'false');
+      }
+      document.body.style.overflow = '';
+    }
+
+    // Event Listeners
+    mobileMenuBtn?.addEventListener('click', toggleMobileMenu);
+    mobileMenuClose?.addEventListener('click', closeMobileMenu);
+
+    mobileMenuOverlay?.addEventListener('click', (e) => {
+      if (e.target === mobileMenuOverlay) {
+        closeMobileMenu();
+      }
+    });
+
+    document.querySelectorAll('.mobile-menu-link').forEach(link => {
+      link.addEventListener('click', closeMobileMenu);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (mobileMenuOverlay && mobileMenuOverlay.classList.contains('active')) {
+          closeMobileMenu();
+        }
+      }
+    });
+
+    // Netlify Identity Integration
+    function updateAuthButtons() {
+      const loginBtn = document.getElementById('loginBtn');
+      const mobileLoginBtn = document.getElementById('mobileLoginBtn');
+      const mobileProfileLink = document.getElementById('mobileProfileLink');
+
+      if (window.netlifyIdentity && window.netlifyIdentity.currentUser()) {
+        const user = window.netlifyIdentity.currentUser();
+
+        if (loginBtn) {
+          loginBtn.textContent = 'Logout';
+          loginBtn.href = '#';
+          loginBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.netlifyIdentity.logout();
+          });
+        }
+
+        if (mobileLoginBtn) {
+          mobileLoginBtn.style.display = 'none';
+        }
+
+        if (mobileProfileLink) {
+          mobileProfileLink.style.display = 'flex';
+        }
+      } else {
+        if (loginBtn) {
+          loginBtn.textContent = 'Login/Register';
+          loginBtn.href = '#';
+          loginBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (window.netlifyIdentity) {
+              window.netlifyIdentity.open();
+            }
+          });
+        }
+
+        if (mobileLoginBtn) {
+          const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
+          mobileLoginBtn.innerHTML = `${icon ? icon.outerHTML : '<span class="mobile-menu-link-icon">👤</span>'}Login/Register`;
+          mobileLoginBtn.href = '#';
+          mobileLoginBtn.style.display = 'flex';
+          mobileLoginBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (window.netlifyIdentity) {
+              window.netlifyIdentity.open();
+            }
+          });
+        }
+
+        if (mobileProfileLink) {
+          mobileProfileLink.style.display = 'none';
+        }
+      }
+    }
+
+    // Initialize Netlify Identity when available
+    if (window.netlifyIdentity) {
+      window.netlifyIdentity.on('init', updateAuthButtons);
+      window.netlifyIdentity.on('login', updateAuthButtons);
+      window.netlifyIdentity.on('logout', updateAuthButtons);
+    }
+
+    // Initial auth state check
+    document.addEventListener('DOMContentLoaded', updateAuthButtons);
+  </script>
 </body>
 </html>
