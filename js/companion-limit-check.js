@@ -104,7 +104,7 @@ function showCompanionLimitModal(current, max) {
 
         <div class="upgrade-buttons">
           <button class="upgrade-btn primary" onclick="window.location.href='profile.html'">
-            View Plans
+            Start Trial
           </button>
           <button class="upgrade-btn secondary" onclick="closeCompanionLimitModal()">
             Not Now

@@ -275,7 +275,7 @@ function getUpgradeContent(usage, quota, type) {
       
       <div class="upgrade-actions">
         <button class="upgrade-btn secondary" onclick="closeUpgradePrompt()">Maybe Later</button>
-        <a href="profile.html" class="upgrade-btn primary">View Plans</a>
+        <a href="profile.html" class="upgrade-btn primary">Start Trial</a>
       </div>
     </div>
   `;
