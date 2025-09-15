@@ -103,8 +103,8 @@ function showCompanionLimitModal(current, max) {
         </div>
 
         <div class="upgrade-buttons">
-          <button class="upgrade-btn primary" onclick="window.location.href='profile.html'">
-            Start Trial
+          <button class="upgrade-btn primary" onclick="if(window.netlifyIdentity) window.netlifyIdentity.open('signup'); else window.location.href='profile.html'">
+            Start Free Trial
           </button>
           <button class="upgrade-btn secondary" onclick="closeCompanionLimitModal()">
             Not Now

@@ -272,10 +272,15 @@ function getUpgradeContent(usage, quota, type) {
       </div>
       
       ${benefitsContent}
-      
+
+      <div style="text-align: center; margin: 20px 0; padding: 16px; background: rgba(20, 184, 166, 0.1); border-radius: 12px; border: 1px solid rgba(20, 184, 166, 0.2);">
+        <p style="color: #0f766e; font-weight: 600; margin: 0 0 8px 0; font-size: 16px;">Experience the Engage Plan - no payment required</p>
+        <p style="color: #0f766e; margin: 0; font-size: 14px; opacity: 0.8;">Automatically expires without charging</p>
+      </div>
+
       <div class="upgrade-actions">
         <button class="upgrade-btn secondary" onclick="closeUpgradePrompt()">Maybe Later</button>
-        <a href="profile.html" class="upgrade-btn primary">Start Trial</a>
+        <button onclick="if(window.netlifyIdentity) window.netlifyIdentity.open('signup'); else window.location.href='profile.html'" class="upgrade-btn primary">Start Free Trial</button>
       </div>
     </div>
   `;
