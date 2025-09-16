@@ -336,13 +336,26 @@
 
         <div class="template-card">
           <div class="template-preview">
+            <div style="width: 120px; height: 120px; background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%); display: flex; align-items: center; justify-content: center; border-radius: 24px; margin: 0 auto;">
+              <div style="color: white; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: -1px;">
+                Narrin AI
+              </div>
+            </div>
+          </div>
+          <div class="template-title">Square Logo (No Tagline)</div>
+          <div class="template-dimensions">400x400px</div>
+          <button class="download-btn" onclick="downloadTemplate('square-logo')">Download PNG</button>
+        </div>
+
+        <div class="template-card">
+          <div class="template-preview">
             <div style="width: 100%; height: 120px; background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%); display: flex; align-items: center; justify-content: center; border-radius: 8px;">
               <div style="color: white; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 24px; letter-spacing: -1px;">
                 Narrin AI
               </div>
             </div>
           </div>
-          <div class="template-title">Logo Only (No Tagline)</div>
+          <div class="template-title">Rectangular Logo (No Tagline)</div>
           <div class="template-dimensions">Various sizes</div>
           <button class="download-btn" onclick="downloadTemplate('logo-only')">Download PNG</button>
         </div>
@@ -448,52 +461,6 @@
           <div class="template-dimensions">1200x630px</div>
           <button class="download-btn" onclick="downloadTemplate('facebook-cover')">Download PNG</button>
         </div>
-      </div>
-    </div>
-
-    <!-- YouTube -->
-    <div class="template-section">
-      <h2>YouTube</h2>
-      <div class="template-grid">
-        <div class="template-card">
-          <div class="template-preview">
-            <div class="youtube-banner">
-              <div class="pattern-overlay"></div>
-              <div style="text-align: center; z-index: 1;">
-                <div class="banner-logo" style="font-size: 48px; margin-bottom: 10px;">
-                  Narrin AI
-                </div>
-                <div class="banner-tagline">Your Daily Thought Organizer</div>
-              </div>
-            </div>
-          </div>
-          <div class="template-title">YouTube Channel Banner</div>
-          <div class="template-dimensions">2560x1440px</div>
-          <button class="download-btn" onclick="downloadTemplate('youtube-banner')">Download PNG</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Instagram -->
-    <div class="template-section">
-      <h2>Instagram</h2>
-      <div class="template-grid">
-        <div class="template-card">
-          <div class="template-preview">
-            <div class="instagram-post">
-              <div class="pattern-overlay"></div>
-              <div style="text-align: center; z-index: 1;">
-                <div class="icon-circle" style="width: 80px; height: 80px; font-size: 40px; margin: 0 auto 20px;">N</div>
-                <div class="banner-logo">Narrin AI</div>
-                <div class="banner-tagline">Your Daily Thought Organizer</div>
-              </div>
-            </div>
-          </div>
-          <div class="template-title">Instagram Post Square</div>
-          <div class="template-dimensions">1080x1080px</div>
-          <button class="download-btn" onclick="downloadTemplate('instagram-post')">Download PNG</button>
-        </div>
-
       </div>
     </div>
 
@@ -618,6 +585,7 @@
       const templates = {
         'profile-universal': { width: 400, height: 400, isCircle: true },
         'square-icon': { width: 240, height: 240, isSquareIcon: true },
+        'square-logo': { width: 400, height: 400, isSquareLogo: true },
         'logo-only': { width: 800, height: 300, logoOnly: true },
         'linkedin-company': { width: 1128, height: 191 },
         'linkedin-personal': { width: 1584, height: 396 },
@@ -673,6 +641,23 @@
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText('N', canvas.width / 2, canvas.height / 2);
+      } else if (config.isSquareLogo) {
+        // For square logo, create rounded rectangle with gradient and "Narrin AI" text
+        ctx.fillStyle = gradient;
+        const cornerRadius = canvas.width * 0.15; // 15% of width for rounded corners
+
+        // Draw rounded rectangle
+        ctx.beginPath();
+        ctx.roundRect(0, 0, canvas.width, canvas.height, cornerRadius);
+        ctx.fill();
+
+        // Add "Narrin AI" text in center
+        const fontSize = canvas.width * 0.15; // 15% of canvas width for readable text
+        ctx.fillStyle = 'white';
+        ctx.font = `bold ${fontSize}px Outfit, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Narrin AI', canvas.width / 2, canvas.height / 2);
       } else if (config.logoOnly) {
         // For logo-only template, fill with gradient
         ctx.fillStyle = gradient;
