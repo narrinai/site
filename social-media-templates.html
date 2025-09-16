@@ -336,6 +336,19 @@
 
         <div class="template-card">
           <div class="template-preview">
+            <div style="width: 120px; height: 120px; background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%); display: flex; align-items: center; justify-content: center; border-radius: 24px; margin: 0 auto;">
+              <div style="color: white; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 48px; letter-spacing: -1px;">
+                N
+              </div>
+            </div>
+          </div>
+          <div class="template-title">Square Icon</div>
+          <div class="template-dimensions">240x240px</div>
+          <button class="download-btn" onclick="downloadTemplate('square-icon')">Download PNG</button>
+        </div>
+
+        <div class="template-card">
+          <div class="template-preview">
             <div style="width: 100%; height: 120px; background: linear-gradient(135deg, #14b8a6 0%, #f97316 100%); display: flex; align-items: center; justify-content: center; border-radius: 8px;">
               <div style="color: white; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 24px; letter-spacing: -1px;">
                 Narrin AI
@@ -633,6 +646,7 @@
       const templates = {
         'profile-universal': { width: 400, height: 400, isCircle: true },
         'profile-green': { width: 400, height: 400, isCircle: true, bgColor: '#22c55e' },
+        'square-icon': { width: 240, height: 240, isSquareIcon: true },
         'logo-only': { width: 800, height: 300, logoOnly: true },
         'linkedin-company': { width: 1128, height: 191 },
         'linkedin-personal': { width: 1584, height: 396 },
@@ -669,9 +683,26 @@
         // For profile pictures, fill entire canvas with gradient
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
+
         // Draw logo in center
         drawNarrinLogo(ctx, canvas.width / 2 - 60, canvas.height / 2 - 60, 120, config.bgColor);
+      } else if (config.isSquareIcon) {
+        // For square icon, create rounded rectangle with gradient
+        ctx.fillStyle = gradient;
+        const cornerRadius = canvas.width * 0.2; // 20% of width for rounded corners
+
+        // Draw rounded rectangle
+        ctx.beginPath();
+        ctx.roundRect(0, 0, canvas.width, canvas.height, cornerRadius);
+        ctx.fill();
+
+        // Add large "N" letter in center
+        const fontSize = canvas.width * 0.5; // 50% of canvas width
+        ctx.fillStyle = 'white';
+        ctx.font = `bold ${fontSize}px Outfit, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('N', canvas.width / 2, canvas.height / 2);
       } else if (config.logoOnly) {
         // For logo-only template, fill with gradient
         ctx.fillStyle = gradient;
