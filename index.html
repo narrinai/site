@@ -4692,6 +4692,13 @@ body.has-referral-banner {
         if (loginBtn) {
           loginBtn.textContent = 'Profile';
           loginBtn.href = '/profile';
+
+          // Remove any existing click event listener that prevents default navigation
+          if (loginBtn._hasLoginListener) {
+            loginBtn.removeEventListener('click', loginBtn._loginClickHandler);
+            loginBtn._hasLoginListener = false;
+            loginBtn._loginClickHandler = null;
+          }
         }
         if (mobileLoginBtn) {
           // Hide the mobileLoginBtn when logged in
@@ -4707,7 +4714,7 @@ body.has-referral-banner {
           loginBtn.href = '#';
           // Only add event listener if not already added
           if (!loginBtn._hasLoginListener) {
-            loginBtn.addEventListener('click', (e) => {
+            const loginClickHandler = (e) => {
               e.preventDefault();
               // Skip if auth just completed to prevent reopening
               if (window._authInProgress) {
@@ -4720,7 +4727,10 @@ body.has-referral-banner {
                 console.log('🔄 Stored redirect URL:', window.location.href);
                 window.netlifyIdentity.open();
               }
-            });
+            };
+
+            loginBtn.addEventListener('click', loginClickHandler);
+            loginBtn._loginClickHandler = loginClickHandler;
             loginBtn._hasLoginListener = true;
           }
         }
