@@ -42,6 +42,13 @@
 <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
   <script src="/netlify-identity-nickname.js"></script>
 
+<!-- FirstPromoter Affiliate Tracking -->
+<script>(function(w){w.fpr=w.fpr||function(){w.fpr.q =
+w.fpr.q||[];w.fpr.q[arguments[0]=='set'?'unshift':'push'](arguments);};})(window);
+fpr("init", {cid:"f662ec0a"}); fpr("click");
+</script>
+<script src="https://cdn.firstpromoter.com/fpr.js" async></script>
+
 <!-- Microsoft Clarity Analytics -->
 <script type="text/javascript">
   (function(c,l,a,r,i,t,y){
@@ -3990,6 +3997,25 @@ body .netlify-identity-widget > div[data-netlify-identity-modal] {
           }
         }
         
+        // Get FirstPromoter tracking ID for affiliate tracking
+        function getFPTid() {
+          return window.FPROM && window.FPROM.data && window.FPROM.data.tid;
+        }
+
+        const fpTid = getFPTid();
+        console.log('🔗 FirstPromoter tid:', fpTid);
+
+        // Prepare metadata with affiliate tracking
+        const metadata = {
+          netlify_uid: uid
+        };
+
+        // Add FirstPromoter tracking if available
+        if (fpTid) {
+          metadata.fp_tid = fpTid;
+          console.log('✅ Adding FirstPromoter tracking to checkout:', fpTid);
+        }
+
         // THEN: Redirect to Stripe Checkout for new subscription
         const { error } = await stripe.redirectToCheckout({
           lineItems: [{
@@ -4000,7 +4026,8 @@ body .netlify-identity-widget > div[data-netlify-identity-modal] {
           successUrl: `${window.location.origin}/profile.html?upgrade=success&plan=${planType}`,
           cancelUrl: `${window.location.origin}/profile.html?upgrade=cancelled`,
           customerEmail: email,
-          clientReferenceId: uid // NetlifyUID wordt gebruikt voor identificatie
+          clientReferenceId: uid, // NetlifyUID wordt gebruikt voor identificatie
+          metadata: metadata
         });
         
         if (error) {
