@@ -5258,7 +5258,16 @@ if (window.netlifyIdentity) {
   
   if (referralCode) {
     console.log('🎁 Referral code detected:', referralCode);
-    
+
+    // Skip banner for Product Hunt traffic
+    if (referralCode === 'producthunt') {
+      console.log('🚀 Product Hunt traffic detected - skipping banner');
+      // Clean URL (verwijder ?ref= parameter)
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
+      return;
+    }
+
     try {
       // Validate referral and get full referrer ID
       const response = await fetch(`/.netlify/functions/referral?ref=${referralCode}`);
