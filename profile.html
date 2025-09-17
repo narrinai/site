@@ -5140,7 +5140,23 @@ function handleLoginSuccess(user, eventType = 'unknown') {
             userId: userId,
             hasToken: !!accessToken
           });
-          
+
+          // FirstPromoter referral tracking
+          if (window.fpr && typeof window.fpr === 'function') {
+            try {
+              console.log('🔗 Tracking FirstPromoter referral for:', email);
+              window.fpr('referral', {
+                email: email,
+                uid: userId
+              });
+              console.log('✅ FirstPromoter referral tracked successfully');
+            } catch (error) {
+              console.error('❌ FirstPromoter referral tracking error:', error);
+            }
+          } else {
+            console.warn('⚠️ FirstPromoter not available for referral tracking');
+          }
+
           // Manually store auth data to ensure it's available after refresh
           localStorage.setItem('user_email', email);
           localStorage.setItem('user_token', accessToken);

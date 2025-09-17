@@ -5056,7 +5056,23 @@ if (window.netlifyIdentity) {
     // Handle authentication data
     handleLoginSuccess(user, 'signup');
     updateLoginButton();
-    
+
+    // FirstPromoter referral tracking
+    if (window.fpr && typeof window.fpr === 'function') {
+      try {
+        console.log('🔗 Tracking FirstPromoter referral for:', user.email);
+        window.fpr('referral', {
+          email: user.email,
+          uid: user.id
+        });
+        console.log('✅ FirstPromoter referral tracked successfully');
+      } catch (error) {
+        console.error('❌ FirstPromoter referral tracking error:', error);
+      }
+    } else {
+      console.warn('⚠️ FirstPromoter not available for referral tracking');
+    }
+
     // Setup 3-day Engage trial for new users (with delay for user creation)
     setTimeout(async () => {
       try {
