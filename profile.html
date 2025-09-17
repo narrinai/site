@@ -4002,17 +4002,18 @@ body .netlify-identity-widget > div[data-netlify-identity-modal] {
           return window.FPROM && window.FPROM.data && window.FPROM.data.tid;
         }
 
+        // Get FirstPromoter tracking ID for affiliate tracking
         const fpTid = getFPTid();
         console.log('🔗 FirstPromoter tid:', fpTid);
 
-        // Prepare metadata with affiliate tracking
-        const metadata = {
-          netlify_uid: uid
+        // Prepare clientReferenceId with tracking data (JSON string for multiple values)
+        const referenceData = {
+          netlify_uid: uid,
+          fp_tid: fpTid || null
         };
 
         // Add FirstPromoter tracking if available
         if (fpTid) {
-          metadata.fp_tid = fpTid;
           console.log('✅ Adding FirstPromoter tracking to checkout:', fpTid);
         }
 
@@ -4026,8 +4027,7 @@ body .netlify-identity-widget > div[data-netlify-identity-modal] {
           successUrl: `${window.location.origin}/profile.html?upgrade=success&plan=${planType}`,
           cancelUrl: `${window.location.origin}/profile.html?upgrade=cancelled`,
           customerEmail: email,
-          clientReferenceId: uid, // NetlifyUID wordt gebruikt voor identificatie
-          metadata: metadata
+          clientReferenceId: JSON.stringify(referenceData) // Include both UID and FirstPromoter tracking
         });
         
         if (error) {
@@ -6889,13 +6889,7 @@ function setField(field, text) {
   }
 }
 
-    function showError(msg) {
-      hideMessages();
-      const errorDiv = document.getElementById('error');
-      errorDiv.textContent = msg;
-      errorDiv.style.display = 'block';
-      setTimeout(hideMessages, 5000);
-    }
+    // Removed duplicate showError function - using the notification version instead
 
     function showSuccess(msg) {
       hideMessages();
