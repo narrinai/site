@@ -4674,7 +4674,18 @@ body.has-referral-banner {
       const loginBtn = document.getElementById('loginBtn');
       const mobileLoginBtn = document.getElementById('mobileLoginBtn');
       const mobileProfileLink = document.getElementById('mobileProfileLink');
-      
+
+      // Skip if authentication is in progress to prevent modal reopening
+      if (window._authInProgress) {
+        console.log('⏸️ Skipping updateLoginButton - auth in progress');
+        // Clear flag after a short delay
+        setTimeout(() => {
+          window._authInProgress = false;
+          console.log('✅ Auth in progress flag cleared');
+        }, 1000);
+        return;
+      }
+
       // Check both Netlify Identity and local storage for user info
       const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
       const localEmail = localStorage.getItem("user_email");
@@ -5012,6 +5023,9 @@ if (window.netlifyIdentity) {
   }
   
   window.netlifyIdentity.on('login', (user) => {
+    // Set flag to prevent modal auto-opening
+    window._authInProgress = true;
+
     handleLoginSuccess(user, 'login');
     window.netlifyIdentity.close();
     
@@ -5052,6 +5066,9 @@ if (window.netlifyIdentity) {
   window.netlifyIdentity.on('signup', async user => {
     console.log('🎉 New user signup:', user.email);
     console.log('📍 Current page:', window.location.pathname);
+
+    // Set flag to prevent modal auto-opening
+    window._authInProgress = true;
 
     // Close Netlify Identity modal immediately
     window.netlifyIdentity.close();
