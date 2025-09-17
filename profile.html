@@ -4002,32 +4002,35 @@ body .netlify-identity-widget > div[data-netlify-identity-modal] {
           return window.FPROM && window.FPROM.data && window.FPROM.data.tid;
         }
 
-        // Get FirstPromoter tracking ID for affiliate tracking
         const fpTid = getFPTid();
         console.log('🔗 FirstPromoter tid:', fpTid);
 
-        // Prepare clientReferenceId with tracking data (JSON string for multiple values)
-        const referenceData = {
-          netlify_uid: uid,
-          fp_tid: fpTid || null
-        };
+        // Create checkout session via Netlify function (supports metadata for FirstPromoter)
+        const checkoutResponse = await fetch('/.netlify/functions/create-checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            priceId: priceId,
+            email: email,
+            uid: uid,
+            fpTid: fpTid,
+            planType: planType,
+            successUrl: `${window.location.origin}/profile.html?upgrade=success&plan=${planType}`,
+            cancelUrl: `${window.location.origin}/profile.html?upgrade=cancelled`
+          })
+        });
 
-        // Add FirstPromoter tracking if available
-        if (fpTid) {
-          console.log('✅ Adding FirstPromoter tracking to checkout:', fpTid);
+        if (!checkoutResponse.ok) {
+          const errorData = await checkoutResponse.json();
+          throw new Error(errorData.error || 'Failed to create checkout session');
         }
 
-        // THEN: Redirect to Stripe Checkout for new subscription
+        const { sessionId } = await checkoutResponse.json();
+        console.log('✅ Checkout session created:', sessionId);
+
+        // Redirect to Stripe Checkout
         const { error } = await stripe.redirectToCheckout({
-          lineItems: [{
-            price: priceId,
-            quantity: 1,
-          }],
-          mode: 'subscription',
-          successUrl: `${window.location.origin}/profile.html?upgrade=success&plan=${planType}`,
-          cancelUrl: `${window.location.origin}/profile.html?upgrade=cancelled`,
-          customerEmail: email,
-          clientReferenceId: JSON.stringify(referenceData) // Include both UID and FirstPromoter tracking
+          sessionId: sessionId
         });
         
         if (error) {
