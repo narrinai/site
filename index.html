@@ -5052,7 +5052,11 @@ if (window.netlifyIdentity) {
   window.netlifyIdentity.on('signup', async user => {
     console.log('🎉 New user signup:', user.email);
     console.log('📍 Current page:', window.location.pathname);
-    
+
+    // Close Netlify Identity modal immediately
+    window.netlifyIdentity.close();
+    console.log('🔒 Netlify Identity modal closed after signup');
+
     // Handle authentication data
     handleLoginSuccess(user, 'signup');
     updateLoginButton();

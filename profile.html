@@ -5098,7 +5098,11 @@ function handleLoginSuccess(user, eventType = 'unknown') {
 
       window.netlifyIdentity.on('signup', async user => {
         console.log('🎉 SIGNUP event fired for:', user.email);
-        
+
+        // Close Netlify Identity modal immediately
+        netlifyIdentity.close();
+        console.log('🔒 Netlify Identity modal closed after signup');
+
         // IMPORTANT: Clear any stored redirect URL immediately to prevent redirects
         localStorage.removeItem('login_redirect_url');
         console.log('🚫 Cleared redirect URL to prevent signup redirect');
