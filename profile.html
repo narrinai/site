@@ -6359,9 +6359,11 @@ async function loadProfile() {
       // User just completed downgrade - force plan to Free
       console.log(`⬇️ Downgrade success - forcing plan to "Free" instead of Airtable plan "${userPlan}"`);
       userPlan = 'Free';
-      
+
       // Update localStorage to match
       localStorage.setItem('user_plan', 'Free');
+      // Mark that user had a paid plan before downgrading
+      localStorage.setItem('had_paid_plan', 'true');
       console.log('📱 Updated localStorage to Free after downgrade');
       
     } else if (localPlan && localPlan !== userPlan) {
@@ -7850,6 +7852,16 @@ function updateTrialStatus() {
         console.log('✅ Trial status display updated');
       }
     } else if (subscriptionStatus === 'expired_trial' || (subscriptionStatus !== 'trial' && trialEndDate)) {
+      // Check if user had a paid plan (Engage/Immerse) and downgraded
+      const hadPaidPlan = localStorage.getItem('had_paid_plan') === 'true';
+
+      if (hadPaidPlan) {
+        // User downgraded from paid plan - don't show trial ended message
+        console.log('✅ User had paid plan - hiding trial status after downgrade');
+        trialStatus.style.display = 'none';
+        return;
+      }
+
       // Handle explicitly expired trials or free users with past trial dates
       console.log('⏰ Showing expired trial messaging');
       // Remove parent container styling to avoid double border
