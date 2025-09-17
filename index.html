@@ -4675,16 +4675,7 @@ body.has-referral-banner {
       const mobileLoginBtn = document.getElementById('mobileLoginBtn');
       const mobileProfileLink = document.getElementById('mobileProfileLink');
 
-      // Skip if authentication is in progress to prevent modal reopening
-      if (window._authInProgress) {
-        console.log('⏸️ Skipping updateLoginButton - auth in progress');
-        // Clear flag after a short delay
-        setTimeout(() => {
-          window._authInProgress = false;
-          console.log('✅ Auth in progress flag cleared');
-        }, 1000);
-        return;
-      }
+      // Don't skip entire function - we need UI updates
 
       // Check both Netlify Identity and local storage for user info
       const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
@@ -4714,15 +4705,24 @@ body.has-referral-banner {
         if (loginBtn) {
           loginBtn.textContent = 'Login/Register';
           loginBtn.href = '#';
-          loginBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (window.netlifyIdentity) {
-              // Store current URL for post-login redirect
-              localStorage.setItem('login_redirect_url', window.location.href);
-              console.log('🔄 Stored redirect URL:', window.location.href);
-              window.netlifyIdentity.open();
-            }
-          });
+          // Only add event listener if not already added
+          if (!loginBtn._hasLoginListener) {
+            loginBtn.addEventListener('click', (e) => {
+              e.preventDefault();
+              // Skip if auth just completed to prevent reopening
+              if (window._authInProgress) {
+                console.log('⏸️ Ignoring login click - auth in progress');
+                return;
+              }
+              if (window.netlifyIdentity) {
+                // Store current URL for post-login redirect
+                localStorage.setItem('login_redirect_url', window.location.href);
+                console.log('🔄 Stored redirect URL:', window.location.href);
+                window.netlifyIdentity.open();
+              }
+            });
+            loginBtn._hasLoginListener = true;
+          }
         }
         if (mobileLoginBtn) {
           const icon = mobileLoginBtn.querySelector('.mobile-menu-link-icon');
