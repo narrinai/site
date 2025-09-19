@@ -1,0 +1,306 @@
+exports.handler = async (event, context) => {
+  // CORS headers
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Content-Type': 'application/json'
+  };
+
+  // Handle preflight
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers,
+      body: ''
+    };
+  }
+
+  try {
+    // Check environment variables
+    if (!process.env.AIRTABLE_TOKEN) {
+      console.error('❌ AIRTABLE_TOKEN not found');
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          success: true,
+          valid: false,
+          message: 'Configuration error',
+          referrer_id: null
+        })
+      };
+    }
+    if (!process.env.AIRTABLE_BASE_ID) {
+      console.error('❌ AIRTABLE_BASE_ID not found');
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          success: true,
+          valid: false,
+          message: 'Configuration error',
+          referrer_id: null
+        })
+      };
+    }
+
+    const { httpMethod, body, queryStringParameters } = event;
+
+    // Handle GET - Check referral user validity
+    if (httpMethod === 'GET') {
+      const { ref, email } = queryStringParameters || {};
+      
+      // If no parameters, return no referral (for Make.com compatibility)
+      if (!ref && !email) {
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify({
+            success: true,
+            valid: false,
+            message: 'No referral parameters provided',
+            referrer_id: null
+          })
+        };
+      }
+
+      let url;
+      
+      // Check if searching by email - for Make.com integration
+      if (email && !ref) {
+        console.log('📧 Email lookup requested for:', email);
+        
+        // Decode the email properly (+ becomes space in URLs)
+        const decodedEmail = decodeURIComponent(email.replace(/\+/g, '%20'));
+        console.log('📧 Decoded email:', decodedEmail);
+        
+        // For Make.com - we return no referral for email lookups
+        // The actual referral is processed after signup via the frontend
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify({
+            success: true,
+            valid: false,
+            message: 'Email lookup - no referral found',
+            referrer_id: null
+          })
+        };
+      }
+      
+      // Regular referral code lookup
+      if (ref) {
+        console.log('🔍 Checking referral ID (NetlifyUID):', ref);
+
+        // Find user with netlify_uid that starts with the referral code
+        // Use SEARCH which is more forgiving than LEFT
+        const formula = `SEARCH("${ref}", {netlify_uid}) = 1`;
+        url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Users?filterByFormula=${encodeURIComponent(formula)}`;
+      }
+      
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${process.env.AIRTABLE_TOKEN}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Airtable API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.records && data.records.length > 0) {
+        const referrer = data.records[0];
+        console.log('✅ Valid referral from user:', referrer.fields.Email);
+        
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify({
+            success: true,
+            valid: true,
+            referrer_email: referrer.fields.Email,
+            referrer_id: referrer.id
+          })
+        };
+      } else {
+        console.log('❌ Invalid referral ID:', ref);
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify({
+            success: true,
+            valid: false
+          })
+        };
+      }
+    }
+
+    // Handle POST - Process referral bonus
+    if (httpMethod === 'POST') {
+      const { user_id, user_uid, referrer_id } = JSON.parse(body);
+      
+      // Accept either user_id (Airtable record ID) or user_uid (NetlifyUID)
+      if ((!user_id && !user_uid) || !referrer_id) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'Missing required fields: user_id/user_uid and referrer_id' })
+        };
+      }
+
+      console.log('💰 Processing referral bonus:', { user_id, user_uid, referrer_id });
+
+      // Check if referrer_id is a short code (4 chars) or full NetlifyUID
+      let referrerUrl;
+      if (referrer_id.length === 4) {
+        console.log('🔍 Looking up referrer by short code:', referrer_id);
+        referrerUrl = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Users?filterByFormula=LEFT({netlify_uid},4)='${referrer_id}'`;
+      } else {
+        console.log('🔍 Looking up referrer by full NetlifyUID:', referrer_id);
+        referrerUrl = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Users?filterByFormula={netlify_uid}='${referrer_id}'`;
+      }
+      
+      const referrerResponse = await fetch(referrerUrl, {
+        headers: {
+          'Authorization': `Bearer ${process.env.AIRTABLE_TOKEN}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!referrerResponse.ok) {
+        throw new Error(`Failed to find referrer: ${referrerResponse.status}`);
+      }
+
+      const referrerData = await referrerResponse.json();
+      
+      if (!referrerData.records || referrerData.records.length === 0) {
+        return {
+          statusCode: 404,
+          headers,
+          body: JSON.stringify({ error: 'Referrer not found' })
+        };
+      }
+
+      const referrer = referrerData.records[0];
+      const referrerId = referrer.id;
+      const currentReferralBonus = referrer.fields.total_referral_bonus || 0;
+
+      // Update new user with referrer info
+      console.log('🔗 Linking new user to referrer:', referrerId);
+      
+      // If we have user_uid but not user_id, find the user record first
+      let actualUserId = user_id;
+      
+      if (!user_id && user_uid) {
+        console.log('🔍 Looking up user by NetlifyUID:', user_uid);
+        const userLookupUrl = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Users?filterByFormula={NetlifyUID}='${user_uid}'`;
+        
+        const userLookupResponse = await fetch(userLookupUrl, {
+          headers: {
+            'Authorization': `Bearer ${process.env.AIRTABLE_TOKEN}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (!userLookupResponse.ok) {
+          throw new Error(`Failed to find user by NetlifyUID: ${userLookupResponse.status}`);
+        }
+        
+        const userLookupData = await userLookupResponse.json();
+        
+        if (!userLookupData.records || userLookupData.records.length === 0) {
+          return {
+            statusCode: 404,
+            headers,
+            body: JSON.stringify({ error: 'User not found by NetlifyUID' })
+          };
+        }
+        
+        actualUserId = userLookupData.records[0].id;
+        console.log('✅ Found user record ID:', actualUserId);
+      }
+      
+      const updateUserUrl = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Users/${actualUserId}`;
+      
+      const updateUserResponse = await fetch(updateUserUrl, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${process.env.AIRTABLE_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          fields: {
+            referred_by: [referrerId],
+            referral_bonus_received: true
+            // Note: Message quota handled by Make.com webhook
+          }
+        })
+      });
+
+      if (!updateUserResponse.ok) {
+        const error = await updateUserResponse.text();
+        console.error('❌ Failed to update new user:', error);
+        throw new Error(`Failed to update new user: ${updateUserResponse.status}`);
+      }
+
+      // Update referrer with bonus count
+      console.log('💎 Adding bonus count to referrer:', referrerId);
+      
+      const updateReferrerUrl = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Users/${referrerId}`;
+      
+      const updateReferrerResponse = await fetch(updateReferrerUrl, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${process.env.AIRTABLE_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          fields: {
+            total_referral_bonus: currentReferralBonus + 50
+            // Note: Actual message quota updates handled by Make.com
+          }
+        })
+      });
+
+      if (!updateReferrerResponse.ok) {
+        const error = await updateReferrerResponse.text();
+        console.error('❌ Failed to update referrer:', error);
+        throw new Error(`Failed to update referrer: ${updateReferrerResponse.status}`);
+      }
+
+      console.log('✅ Referral processed successfully!');
+
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          success: true,
+          message: 'Referral bonus applied successfully',
+          bonus_applied: 50
+        })
+      };
+    }
+
+    return {
+      statusCode: 405,
+      headers,
+      body: JSON.stringify({ error: 'Method not allowed' })
+    };
+
+  } catch (error) {
+    console.error('💥 Referral function error:', error);
+    
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({
+        success: false,
+        error: error.message
+      })
+    };
+  }
+};

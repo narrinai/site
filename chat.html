@@ -2148,7 +2148,7 @@
       try {
         console.log('🔄 Loading character:', slug);
         
-        const response = await fetch(`/.netlify/functions/characters?slug=${encodeURIComponent(slug)}`);
+        const response = await fetch(`/.netlify/functions/narrin-characters?slug=${encodeURIComponent(slug)}`);
         const data = await response.json();
         
         if (data.success && data.characters && data.characters.length > 0) {
@@ -2812,7 +2812,7 @@ Ready to start chatting, or would you like to explore these personalization opti
       if (!isAnonymousUser && user_uid) {
         try {
           console.log('🧠 Retrieving memory context for user:', user_uid);
-          const memoryResponse = await fetch('/.netlify/functions/memory', {
+          const memoryResponse = await fetch('/.netlify/functions/narrin-memory', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -3224,7 +3224,7 @@ Ready to start chatting, or would you like to explore these personalization opti
       button.disabled = true;
       
       try {
-        const response = await fetch('/.netlify/functions/tts-simple', {
+        const response = await fetch('/.netlify/functions/narrin-tts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -3783,7 +3783,7 @@ Ready to start chatting, or would you like to explore these personalization opti
         // If not in localStorage or we want fresher data, try to get from Airtable
         if (!onboardingData || !onboardingData.answers) {
           console.log('📊 Fetching from Airtable using memory function...');
-          const response = await fetch('/.netlify/functions/memory', {
+          const response = await fetch('/.netlify/functions/narrin-memory', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -3815,7 +3815,7 @@ Ready to start chatting, or would you like to explore these personalization opti
           const userUid = localStorage.getItem('user_uid');
           if (userUid) {
             console.log('🔍 Fetching imported memories for memory hub:', { userEmail, userUid });
-            const importResponse = await fetch('/.netlify/functions/get-imported-memories', {
+            const importResponse = await fetch('/.netlify/functions/narrin-imported-memories', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({

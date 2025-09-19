@@ -3900,7 +3900,7 @@ body.has-referral-banner {
     // ===== CONFIGURATION =====
     const CONFIG = {
   // Netlify Function endpoint
-  CHARACTERS_API: '/.netlify/functions/characters',
+  CHARACTERS_API: '/.netlify/functions/narrin-characters',
   MAX_CHARACTERS_PER_CATEGORY: 8,
   // Only show top 4 most popular categories for fast loading
   CATEGORIES: [
@@ -5104,7 +5104,7 @@ if (window.netlifyIdentity) {
     setTimeout(async () => {
       try {
         console.log('🎁 Setting up 3-day Engage trial...');
-        const trialResponse = await fetch('/.netlify/functions/setup-trial', {
+        const trialResponse = await fetch('/.netlify/functions/narrin-setup-trial', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -5146,7 +5146,7 @@ if (window.netlifyIdentity) {
       // Send referral to be processed
       setTimeout(async () => {
         try {
-          const response = await fetch('/.netlify/functions/referral', {
+          const response = await fetch('/.netlify/functions/narrin-referral', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -5234,7 +5234,7 @@ if (window.netlifyIdentity) {
       
       try {
         // Get user's chat history to check active companions
-        const chatHistoryResponse = await fetch(`/.netlify/functions/get-chat-history?user_id=${uid}`, {
+        const chatHistoryResponse = await fetch(`/.netlify/functions/narrin-chat-history?user_id=${uid}`, {
           headers: {
             'X-User-Email': email,
             'X-User-UID': uid
@@ -5319,7 +5319,7 @@ if (window.netlifyIdentity) {
 
     try {
       // Validate referral and get full referrer ID
-      const response = await fetch(`/.netlify/functions/referral?ref=${referralCode}`);
+      const response = await fetch(`/.netlify/functions/narrin-referral?ref=${referralCode}`);
       
       if (!response.ok) {
         console.error('❌ Referral API error:', response.status);
@@ -5545,7 +5545,7 @@ if (window.netlifyIdentity) {
 // Check trial status and handle expiration
     async function checkTrialStatus(email, uid) {
   try {
-    const response = await fetch('/.netlify/functions/check-trial', {
+    const response = await fetch('/.netlify/functions/narrin-check-trial', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ user_email: email, user_uid: uid })
