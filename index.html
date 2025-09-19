@@ -4594,7 +4594,7 @@ body.has-referral-banner {
       const timestamp = localStorage.getItem('user_auth_timestamp');
 
       if (email && uid) {
-        // Check if token is not too old (24 hours)
+        // Check if authentication is not too old (24 hours)
         const authAge = Date.now() - parseInt(timestamp || '0');
         if (authAge < 24 * 60 * 60 * 1000) {
           console.log('✅ Valid authentication found in localStorage:', email);
@@ -4604,7 +4604,7 @@ body.has-referral-banner {
           
           // Set global auth state
           window.isAuthenticated = true;
-          window.currentUser = { email, uid, token };
+          window.currentUser = { email, uid };
           
           // Update UI
           updateLoginButton();
@@ -4659,7 +4659,7 @@ body.has-referral-banner {
       
       // Set global auth state
       window.isAuthenticated = true;
-      window.currentUser = { email: user.email, uid: user.id, token: user.token?.access_token };
+      window.currentUser = { email: user.email, uid: user.id };
       
       // Update UI
       updateLoginButton();
