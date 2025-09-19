@@ -31,13 +31,12 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    const { 
-      user_email, 
-      user_uid, 
-      user_token, 
-      char, 
-      user_message, 
-      ai_response 
+    const {
+      user_email,
+      user_uid,
+      char,
+      user_message,
+      ai_response
     } = JSON.parse(event.body);
     
     // Check if this is an anonymous user for featured characters
@@ -45,10 +44,9 @@ exports.handler = async (event, context) => {
     const featuredCharacters = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
     const isFeaturedCharacter = featuredCharacters.includes(char);
     
-    console.log('🔍 SaveChatMessage request:', { 
-      user_email, 
-      user_uid: !!user_uid, 
-      user_token: !!user_token, 
+    console.log('🔍 SaveChatMessage request:', {
+      user_email,
+      user_uid: !!user_uid,
       char,
       isAnonymousUser,
       isFeaturedCharacter,
@@ -77,13 +75,13 @@ exports.handler = async (event, context) => {
       });
     }
 
-    if (!user_email || !user_uid || !user_token || !char) {
+    if (!user_email || !user_uid || !char) {
       return {
         statusCode: 400,
         headers,
-        body: JSON.stringify({ 
-          success: false, 
-          error: 'Missing required fields: user_email, user_uid, user_token, char' 
+        body: JSON.stringify({
+          success: false,
+          error: 'Missing required fields: user_email, user_uid, char'
         })
       };
     }
