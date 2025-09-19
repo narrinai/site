@@ -2496,13 +2496,12 @@ Ready to start chatting, or would you like to explore these personalization opti
 
     // Usage limit checking
     async function checkUsageLimit() {
-      const token = localStorage.getItem("user_token");
       const uid = localStorage.getItem("user_uid");
       const email = localStorage.getItem("user_email");
       const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
 
       // If no localStorage values (incognito mode), treat as anonymous user for featured characters
-      if (!token || !uid || !email) {
+      if (!uid || !email) {
         const featuredCharacters = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
         const currentCharSlug = new URLSearchParams(window.location.search).get('char') || new URLSearchParams(window.location.search).get('character');
         const isFeaturedCharacter = featuredCharacters.includes(currentCharSlug);
@@ -2722,10 +2721,9 @@ Ready to start chatting, or would you like to explore these personalization opti
       const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
 
       // Check for logout/incognito mode (no localStorage values)
-      const userToken = localStorage.getItem("user_token");
       const userUid = localStorage.getItem("user_uid");
       const userEmail = localStorage.getItem("user_email");
-      const isIncognitoMode = !userToken || !userUid || !userEmail;
+      const isIncognitoMode = !userUid || !userEmail;
 
       if (isAnonymousUser || isIncognitoMode) {
         const featuredCharacters = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
@@ -2802,7 +2800,6 @@ Ready to start chatting, or would you like to explore these personalization opti
     async function sendToMakeWebhook(message) {
       const currentCharSlug = currentCharacter?.slug || 'emily';
       const user_email = localStorage.getItem("user_email") || 'anonymous@narrin.ai';
-      const user_token = localStorage.getItem("user_token");
       const user_uid = localStorage.getItem("user_uid");
       const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
       
@@ -2855,11 +2852,10 @@ Ready to start chatting, or would you like to explore these personalization opti
       const featuredCharacters = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
       const isFeaturedCharacter = featuredCharacters.includes(currentCharSlug);
 
-      // Check if this is an anonymous user (localStorage flag) or incognito mode (no user tokens)
-      const userToken = localStorage.getItem("user_token");
+      // Check if this is an anonymous user (localStorage flag) or incognito mode (no user data)
       const userUid = localStorage.getItem("user_uid");
       const userEmail = localStorage.getItem("user_email");
-      const isIncognitoMode = !userToken || !userUid || !userEmail;
+      const isIncognitoMode = !userUid || !userEmail;
 
       if ((isAnonymousUser || isIncognitoMode) && isFeaturedCharacter) {
         const usageKey = `anonymous_usage_${currentCharSlug}`;
@@ -2894,7 +2890,6 @@ Ready to start chatting, or would you like to explore these personalization opti
         total_messages: conversationHistory.length,
         slug: currentCharSlug,
         netlify_uid: user_uid || "",
-        user_token: user_token || "",
         user_email: user_email,
         custom_prompt: sanitizeForJSON(currentCharacter?.customPrompt) || null,
         is_customized: currentCharacter?.isCustomized || false,
@@ -3309,12 +3304,10 @@ Ready to start chatting, or would you like to explore these personalization opti
         const user_email = localStorage.getItem("user_email") || 'anonymous@narrin.ai';
         const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
         const user_uid = localStorage.getItem("user_uid");
-        const user_token = localStorage.getItem("user_token");
-        
+
         // For anonymous users with featured characters, use special handling
         let finalUserEmail = user_email;
         let finalUserUid = user_uid;
-        let finalUserToken = user_token || 'anonymous_token';
         
         if (isAnonymousUser) {
           const featuredCharacters = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
@@ -3325,21 +3318,18 @@ Ready to start chatting, or would you like to explore these personalization opti
             // Use shared anonymous user for featured characters
             finalUserEmail = 'anonymous@narrin.ai';
             finalUserUid = 'anonymous_user_shared';
-            finalUserToken = 'anonymous_token';
           } else {
             // Use individual anonymous session for other characters
             finalUserEmail = user_email;
             finalUserUid = user_uid || `anonymous_${Date.now()}`;
-            finalUserToken = 'anonymous_token';
           }
         }
         
         // Only save if we have all required parameters
-        if (!finalUserEmail || !finalUserUid || !finalUserToken || !currentCharacter?.slug) {
+        if (!finalUserEmail || !finalUserUid || !currentCharacter?.slug) {
           console.log('🚫 Skipping save - missing required parameters:', {
             email: !!finalUserEmail,
-            uid: !!finalUserUid, 
-            token: !!finalUserToken,
+            uid: !!finalUserUid,
             char: !!currentCharacter?.slug
           });
           return;
@@ -3353,7 +3343,6 @@ Ready to start chatting, or would you like to explore these personalization opti
           body: JSON.stringify({
             user_email: finalUserEmail,
             user_uid: finalUserUid,
-            user_token: finalUserToken,
             char: currentCharacter.slug,
             user_message: messageObj.sender === 'user' ? messageObj.content : '',
             ai_response: messageObj.sender === 'ai' ? messageObj.content : ''
@@ -3481,22 +3470,20 @@ Ready to start chatting, or would you like to explore these personalization opti
     }
 
     function checkUserAuthentication() {
-      const userToken = localStorage.getItem('user_token');
       const userUid = localStorage.getItem('user_uid');
       const userEmail = localStorage.getItem('user_email');
       const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
       const isAnonymousEmail = userEmail === 'anonymous@narrin.ai';
-      
+
       console.log('🔍 Auth check details:', {
-        userToken: !!userToken,
         userUid: !!userUid,
         userEmail: userEmail,
         isAnonymousUser,
         isAnonymousEmail
       });
-      
+
       // Ensure we return a boolean
-      return !!(userToken && userUid && !isAnonymousUser && !isAnonymousEmail);
+      return !!(userUid && userEmail && !isAnonymousUser && !isAnonymousEmail);
     }
     
     function getRandomAvatar(characterSlug) {
@@ -3724,20 +3711,18 @@ Ready to start chatting, or would you like to explore these personalization opti
       hideMemoryHubBadge();
       
       // Check if user is authenticated (including anonymous users)
-      const userToken = localStorage.getItem('user_token');
       const uid = localStorage.getItem('user_uid');
       const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
       const userEmail = localStorage.getItem('user_email');
       const isAnonymousEmail = userEmail === 'anonymous@narrin.ai';
-      const authenticated = userToken && uid && !isAnonymousUser && !isAnonymousEmail;
-      
-      console.log('🔍 Memory Hub auth check:', { 
-        userToken: !!userToken, 
-        uid: !!uid, 
-        isAnonymousUser, 
+      const authenticated = uid && userEmail && !isAnonymousUser && !isAnonymousEmail;
+
+      console.log('🔍 Memory Hub auth check:', {
+        uid: !!uid,
+        isAnonymousUser,
         userEmail,
         isAnonymousEmail,
-        authenticated 
+        authenticated
       });
       
       // Update footer buttons based on auth status

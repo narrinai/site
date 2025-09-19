@@ -4091,11 +4091,10 @@ body.has-referral-banner {
       console.log('🔐 Initializing authentication check...');
       
       // Check localStorage first
-      const token = localStorage.getItem('user_token');
       const email = localStorage.getItem('user_email');
-      const uid = localStorage.getItem('user_id');
-      
-      if (!token || !email || !uid) {
+      const uid = localStorage.getItem('user_uid');
+
+      if (!email || !uid) {
         console.log('❌ No valid authentication found');
         updateLoginButton();
         return;
@@ -4590,12 +4589,11 @@ body.has-referral-banner {
       console.log('🔐 Initializing authentication check...');
       
       // Check localStorage first
-      const token = localStorage.getItem('user_token');
       const email = localStorage.getItem('user_email');
       const uid = localStorage.getItem('user_uid');
       const timestamp = localStorage.getItem('user_auth_timestamp');
-      
-      if (token && email && uid && token !== 'false' && token !== 'null') {
+
+      if (email && uid) {
         // Check if token is not too old (24 hours)
         const authAge = Date.now() - parseInt(timestamp || '0');
         if (authAge < 24 * 60 * 60 * 1000) {
@@ -4640,7 +4638,6 @@ body.has-referral-banner {
     // Clear authentication data
     function clearAuthData() {
       localStorage.removeItem('user_email');
-      localStorage.removeItem('user_token');
       localStorage.removeItem('user_uid');
       localStorage.removeItem('user_auth_timestamp');
       localStorage.removeItem('user_refresh_token');
@@ -4656,7 +4653,6 @@ body.has-referral-banner {
       
       // Store authentication data in localStorage
       localStorage.setItem('user_email', user.email);
-      localStorage.setItem('user_token', user.token?.access_token || 'true');
       localStorage.setItem('user_uid', user.id);
       localStorage.setItem('user_auth_timestamp', Date.now().toString());
       localStorage.setItem('user_netlify_data', JSON.stringify(user));
@@ -4680,12 +4676,12 @@ body.has-referral-banner {
       // Check both Netlify Identity and local storage for user info
       const netlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
       const localEmail = localStorage.getItem("user_email");
-      const localToken = localStorage.getItem("user_token");
+      const localUid = localStorage.getItem("user_uid");
       const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
       const isAnonymousEmail = localEmail === 'anonymous@narrin.ai';
-      
+
       // Only consider truly authenticated users (not anonymous)
-      const isLoggedIn = netlifyUser || (localEmail && localToken && !isAnonymousUser && !isAnonymousEmail);
+      const isLoggedIn = netlifyUser || (localEmail && localUid && !isAnonymousUser && !isAnonymousEmail);
       
       if (isLoggedIn) {
         // Always show "Profile" for logged in users instead of their name
@@ -5240,7 +5236,6 @@ if (window.netlifyIdentity) {
         // Get user's chat history to check active companions
         const chatHistoryResponse = await fetch(`/.netlify/functions/get-chat-history?user_id=${uid}`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('user_token')}`,
             'X-User-Email': email,
             'X-User-UID': uid
           }
