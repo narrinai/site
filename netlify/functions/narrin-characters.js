@@ -29,14 +29,14 @@ exports.handler = async (event, context) => {
   try {
     console.log('🚀 Function started');
     console.log('Environment check:', {
-      hasToken: !!process.env.AIRTABLE_TABLE_ID_NARRIN,
+      hasToken: !!process.env.AIRTABLE_TOKEN,
       hasBaseId: !!process.env.AIRTABLE_BASE_ID_NARRIN,
       hasTableId: !!process.env.AIRTABLE_TABLE_ID_NARRIN
     });
 
-    // Check environment variables
-    if (!process.env.AIRTABLE_TABLE_ID_NARRIN) {
-      throw new Error('AIRTABLE_TABLE_ID_NARRIN not found');
+    // Check environment variables - token blijft AIRTABLE_TOKEN
+    if (!process.env.AIRTABLE_TOKEN) {
+      throw new Error('AIRTABLE_TOKEN not found');
     }
     if (!process.env.AIRTABLE_BASE_ID_NARRIN) {
       throw new Error('AIRTABLE_BASE_ID_NARRIN not found');
@@ -106,7 +106,7 @@ exports.handler = async (event, context) => {
       // Make Airtable API call
       const response = await fetch(url, {
         headers: {
-          'Authorization': `Bearer ${process.env.AIRTABLE_TABLE_ID_NARRIN}`,
+          'Authorization': `Bearer ${process.env.AIRTABLE_TOKEN}`,
           'Content-Type': 'application/json'
         }
       });
@@ -257,7 +257,7 @@ exports.handler = async (event, context) => {
           
           const userResponse = await fetch(userUrl, {
             headers: {
-              'Authorization': `Bearer ${process.env.AIRTABLE_TABLE_ID_NARRIN}`,
+              'Authorization': `Bearer ${process.env.AIRTABLE_TOKEN}`,
               'Content-Type': 'application/json'
             }
           });
