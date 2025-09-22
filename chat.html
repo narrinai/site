@@ -38,6 +38,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://narrin.ai">
+  <link rel="preconnect" href="https://hook.eu2.make.com">
   <link rel="dns-prefetch" href="https://api.airtable.com">
 
   <!-- Fonts -->
@@ -2553,8 +2554,11 @@ Ready to start chatting, or would you like to explore these personalization opti
           action: 'check_usage'
         };
         
-        // Usage check disabled for new Narrin flow - handled internally
-        const response = { ok: true, text: () => Promise.resolve('{"canSend": true}') };
+        const response = await fetch('https://hook.eu2.make.com/36bygx4a2y4bkl97wkdjdmtn3o9ygjms', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
         
         if (!response.ok) {
           console.warn('Usage check failed, allowing message');
