@@ -29,20 +29,17 @@ exports.handler = async (event, context) => {
   try {
     console.log('🚀 Function started');
     console.log('Environment check:', {
-      hasToken: !!process.env.AIRTABLE_TOKEN,
-      hasBaseId: !!process.env.AIRTABLE_BASE_ID,
-      hasTableId: !!process.env.AIRTABLE_TABLE_ID
+      hasToken: !!process.env.AIRTABLE_TABLE_ID_NARRIN,
+      hasBaseId: !!process.env.AIRTABLE_BASE_ID_NARRIN,
+      hasTableId: !!process.env.AIRTABLE_TABLE_ID_NARRIN
     });
 
     // Check environment variables
-    if (!process.env.AIRTABLE_TOKEN) {
-      throw new Error('AIRTABLE_TOKEN not found');
+    if (!process.env.AIRTABLE_TABLE_ID_NARRIN) {
+      throw new Error('AIRTABLE_TABLE_ID_NARRIN not found');
     }
-    if (!process.env.AIRTABLE_BASE_ID) {
-      throw new Error('AIRTABLE_BASE_ID not found');
-    }
-    if (!process.env.AIRTABLE_TABLE_ID) {
-      throw new Error('AIRTABLE_TABLE_ID not found');
+    if (!process.env.AIRTABLE_BASE_ID_NARRIN) {
+      throw new Error('AIRTABLE_BASE_ID_NARRIN not found');
     }
 
     // Get query parameters
@@ -61,7 +58,7 @@ exports.handler = async (event, context) => {
       console.log(`📡 Making request ${requestCount} to Airtable...`);
       
       // Build Airtable URL for this request
-      let url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_TABLE_ID}`;
+      let url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID_NARRIN}/Characters`;
       const params = new URLSearchParams();
       
       // Build filter formula
@@ -109,7 +106,7 @@ exports.handler = async (event, context) => {
       // Make Airtable API call
       const response = await fetch(url, {
         headers: {
-          'Authorization': `Bearer ${process.env.AIRTABLE_TOKEN}`,
+          'Authorization': `Bearer ${process.env.AIRTABLE_TABLE_ID_NARRIN}`,
           'Content-Type': 'application/json'
         }
       });
@@ -256,11 +253,11 @@ exports.handler = async (event, context) => {
           const batch = recordIdsToFetch.slice(i, i + 10);
           const filterFormula = `OR(${batch.map(id => `RECORD_ID()='${id}'`).join(',')})`;
           
-          const userUrl = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Users?filterByFormula=${encodeURIComponent(filterFormula)}`;
+          const userUrl = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID_NARRIN}/Users?filterByFormula=${encodeURIComponent(filterFormula)}`;
           
           const userResponse = await fetch(userUrl, {
             headers: {
-              'Authorization': `Bearer ${process.env.AIRTABLE_TOKEN}`,
+              'Authorization': `Bearer ${process.env.AIRTABLE_TABLE_ID_NARRIN}`,
               'Content-Type': 'application/json'
             }
           });
