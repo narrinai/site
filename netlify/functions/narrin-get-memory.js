@@ -1,4 +1,4 @@
-const AIRTABLE_TOKEN = process.env.AIRTABLE_TABLE_ID_NARRIN;
+const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
 const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID_NARRIN;
 
 console.log('🧠 Narrin Get Memory Function v1.0');
