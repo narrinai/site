@@ -38,16 +38,19 @@ exports.handler = async (event, context) => {
       user_message: user_message ? user_message.substring(0, 50) + '...' : 'none'
     });
 
-    if (!user_email || !user_uid || !character_slug || !user_message) {
+    if (!user_email || !character_slug || !user_message) {
       return {
         statusCode: 400,
         headers,
         body: JSON.stringify({
           success: false,
-          error: 'Missing required fields: user_email, user_uid, character_slug, user_message'
+          error: 'Missing required fields: user_email, character_slug, user_message'
         })
       };
     }
+
+    // Allow empty user_uid for anonymous users
+    const actualUserUid = user_uid || 'anonymous_user';
 
     // Step 1: Get memory context
     console.log('🧠 Step 1: Getting memory context...');
@@ -55,7 +58,7 @@ exports.handler = async (event, context) => {
     try {
       const memoryResponse = await callNarrinFunction('narrin-get-memory', {
         action: 'get_memories',
-        user_uid,
+        user_uid: actualUserUid,
         character_slug,
         user_email
       });
@@ -81,7 +84,7 @@ exports.handler = async (event, context) => {
     try {
       const historyResponse = await callNarrinFunction('narrin-get-chat-history', {
         user_email,
-        user_uid,
+        user_uid: actualUserUid,
         char: character_slug
       });
 
@@ -97,7 +100,7 @@ exports.handler = async (event, context) => {
     console.log('🤖 Step 3: Generating AI response...');
     const aiResponse = await callNarrinFunction('narrin-openrouter-chat', {
       user_email,
-      user_uid,
+      user_uid: actualUserUid,
       character_slug,
       user_message,
       conversation_history: conversationHistory,
@@ -115,7 +118,7 @@ exports.handler = async (event, context) => {
     try {
       const saveResponse = await callNarrinFunction('save-narrin-chat', {
         user_email,
-        user_uid,
+        user_uid: actualUserUid,
         char: character_slug,
         user_message,
         ai_response: aiResponse.reply
@@ -137,7 +140,7 @@ exports.handler = async (event, context) => {
       // Fire and forget - analyze memory in background
       callNarrinFunction('analyze-memory', {
         user_email,
-        user_uid,
+        user_uid: actualUserUid,
         character_slug,
         user_message,
         ai_response: aiResponse.reply
