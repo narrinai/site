@@ -1,6 +1,6 @@
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
 const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID_NARRIN;
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY_NARRIN;
 
 console.log('🤖 Narrin OpenRouter Chat Function v1.0');
 
@@ -60,7 +60,7 @@ exports.handler = async (event, context) => {
         headers,
         body: JSON.stringify({
           success: false,
-          error: 'OpenRouter API key not configured'
+          error: 'OpenRouter API key for Narrin not configured'
         })
       };
     }
