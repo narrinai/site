@@ -1,6 +1,6 @@
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
 const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID_NARRIN;
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 
 console.log('🤖 Narrin OpenRouter Chat Function v1.0');
 
@@ -54,13 +54,13 @@ exports.handler = async (event, context) => {
       };
     }
 
-    if (!OPENAI_API_KEY) {
+    if (!OPENROUTER_API_KEY) {
       return {
         statusCode: 500,
         headers,
         body: JSON.stringify({
           success: false,
-          error: 'OpenAI API key not configured'
+          error: 'OpenRouter API key not configured'
         })
       };
     }
@@ -146,17 +146,19 @@ exports.handler = async (event, context) => {
       content: user_message
     });
 
-    console.log('💬 Sending to OpenAI with', messages.length, 'messages');
+    console.log('💬 Sending to OpenRouter with', messages.length, 'messages');
 
-    // Step 3: Call OpenAI API
-    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Step 3: Call OpenRouter API
+    const openrouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json'
+        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://narrin.ai',
+        'X-Title': 'Narrin AI'
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'anthropic/claude-3.5-sonnet',
         messages: messages,
         max_tokens: 1000,
         temperature: 0.8,
@@ -166,17 +168,17 @@ exports.handler = async (event, context) => {
       })
     });
 
-    if (!openaiResponse.ok) {
-      const errorText = await openaiResponse.text();
-      console.error('❌ OpenAI API error:', openaiResponse.status, errorText);
-      throw new Error(`OpenAI API error: ${openaiResponse.status}`);
+    if (!openrouterResponse.ok) {
+      const errorText = await openrouterResponse.text();
+      console.error('❌ OpenRouter API error:', openrouterResponse.status, errorText);
+      throw new Error(`OpenRouter API error: ${openrouterResponse.status}`);
     }
 
-    const aiResponse = await openaiResponse.json();
+    const aiResponse = await openrouterResponse.json();
 
     if (!aiResponse.choices || !aiResponse.choices[0] || !aiResponse.choices[0].message) {
-      console.error('❌ Invalid OpenAI response:', aiResponse);
-      throw new Error('Invalid response from OpenAI API');
+      console.error('❌ Invalid OpenRouter response:', aiResponse);
+      throw new Error('Invalid response from OpenRouter API');
     }
 
     const aiMessage = aiResponse.choices[0].message.content;
