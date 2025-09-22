@@ -2769,8 +2769,8 @@ Ready to start chatting, or would you like to explore these personalization opti
       isTyping = true;
       
       try {
-        // Send to Make.com webhook
-        const response = await sendToMakeWebhook(message);
+        // Send to Narrin chat flow
+        const response = await sendToNarrinFlow(message);
         console.log('🔍 Received response from webhook:', response);
         
         if (response && response.reply) {
@@ -2797,57 +2797,20 @@ Ready to start chatting, or would you like to explore these personalization opti
       }
     }
 
-    async function sendToMakeWebhook(message) {
+    async function sendToNarrinFlow(message) {
       const currentCharSlug = currentCharacter?.slug || 'emily';
       const user_email = localStorage.getItem("user_email") || 'anonymous@narrin.ai';
       const user_uid = localStorage.getItem("user_uid");
       const isAnonymousUser = localStorage.getItem('is_anonymous_user') === 'true';
-      
-      // Get recent conversation context
-      const recentMessages = conversationHistory.slice(-10);
-      
-      // Get memory context for non-anonymous users
-      let memory_context = '';
-      
-      if (!isAnonymousUser && user_uid) {
-        try {
-          console.log('🧠 Retrieving memory context for user:', user_uid);
-          const memoryResponse = await fetch('/.netlify/functions/narrin-memory', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              action: 'get_memories',
-              user_uid: user_uid,
-              character_slug: currentCharSlug,
-              user_email: user_email
-            })
-          });
-          
-          if (memoryResponse.ok) {
-            const memoryData = await memoryResponse.json();
-            if (memoryData.success && memoryData.memories && memoryData.memories.length > 0) {
-              // Format memories for context
-              const relevantMemories = memoryData.memories
-                .filter(memory => memory.importance >= 3) // Only important memories
-                .slice(0, 5) // Limit to top 5
-                .map(memory => memory.summary || memory.message)
-                .join('\n');
-              
-              memory_context = relevantMemories;
-              console.log('✅ Retrieved', memoryData.memories.length, 'memories for context');
-            }
-          }
-        } catch (error) {
-          console.error('❌ Error retrieving memory context:', error);
-        }
-      } else {
-        // For anonymous users, no memory context available
-        memory_context = '';
-        console.log('📝 No memory context for anonymous user');
-      }
-      
+
+      console.log('🔄 Starting Narrin chat flow for:', {
+        character: currentCharSlug,
+        user_email,
+        user_uid: !!user_uid,
+        isAnonymous: isAnonymousUser,
+        message: message.substring(0, 50) + '...'
+      });
+
       // Update anonymous usage counter (including incognito mode)
       const featuredCharacters = ['galina', 'blake-devoted-boyfriend', 'emerald', 'sol'];
       const isFeaturedCharacter = featuredCharacters.includes(currentCharSlug);
@@ -2863,72 +2826,27 @@ Ready to start chatting, or would you like to explore these personalization opti
         localStorage.setItem(usageKey, (currentUsage + 1).toString());
         console.log(`📊 Updated usage counter for ${currentCharSlug}: ${currentUsage + 1}/5`);
       }
-      
-      // Function to sanitize strings for JSON safety
-      function sanitizeForJSON(str) {
-        if (typeof str !== 'string') return str;
-        return str
-          .replace(/\\/g, '\\\\')   // Escape backslashes first
-          .replace(/"/g, '\\"')     // Escape double quotes
-          .replace(/\n/g, '\\n')    // Escape newlines
-          .replace(/\r/g, '\\r')    // Escape carriage returns
-          .replace(/\t/g, '\\t')    // Escape tabs
-          .replace(/\f/g, '\\f');   // Escape form feed
-      }
-      
+
       const payload = {
-        action: "send_message",
-        text: sanitizeForJSON(message),
-        user_message: sanitizeForJSON(message),
-        memory_context: sanitizeForJSON(memory_context),
-        conversation_history: isAnonymousUser ? [] : recentMessages.map(msg => ({
-          ...msg,
-          content: sanitizeForJSON(msg.content)
-        })),
-        emotional_complexity: 0.5,
-        relationship_phase: isAnonymousUser ? 'anonymous' : 'ongoing',
-        total_messages: conversationHistory.length,
-        slug: currentCharSlug,
-        netlify_uid: user_uid || "",
         user_email: user_email,
-        custom_prompt: sanitizeForJSON(currentCharacter?.customPrompt) || null,
-        is_customized: currentCharacter?.isCustomized || false,
-        has_onboarding: false, // Could be enhanced later
-        is_anonymous: isAnonymousUser,
-        anonymous_session: isAnonymousUser ? localStorage.getItem('anonymous_character') : null
+        user_uid: user_uid || "",
+        character_slug: currentCharSlug,
+        user_message: message
       };
-      
-      console.log('📤 Sending to Make webhook:', payload);
-      console.log('📜 Conversation history being sent:', payload.conversation_history);
-      
-      // Validate payload before sending
-      try {
-        JSON.stringify(payload);
-        console.log('✅ Payload is valid JSON');
-      } catch (jsonError) {
-        console.error('❌ Payload contains invalid JSON:', jsonError);
-        throw new Error('Invalid payload data');
-      }
-      
-      // Check for potentially problematic fields
-      if (payload.memory_context && payload.memory_context.length > 5000) {
-        console.warn('⚠️ Large memory context:', payload.memory_context.length, 'characters');
-      }
-      
-      if (payload.conversation_history && payload.conversation_history.length > 20) {
-        console.warn('⚠️ Large conversation history:', payload.conversation_history.length, 'messages');
-      }
-      
-      // Add timeout handling and retry logic for rate limits
+
+      console.log('📤 Sending to Narrin chat flow:', payload);
+
+      // Add timeout handling and retry logic
       const maxRetries = 3;
       const baseDelay = 1000; // 1 second
       let response;
-      
+
       for (let attempt = 0; attempt <= maxRetries; attempt++) {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 45000); // 45 second timeout
+
         try {
-          response = await fetch('https://hook.eu2.make.com/36bygx4a2y4bkl97wkdjdmtn3o9ygjms', {
+          response = await fetch('/.netlify/functions/narrin-chat-flow', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -2944,12 +2862,12 @@ Ready to start chatting, or would you like to explore these personalization opti
           throw error;
         }
         clearTimeout(timeoutId);
-        
+
         // If successful, continue with response
         if (response.ok) {
           break;
         }
-        
+
         // Handle rate limits and server errors with retry
         if ((response.status === 500 || response.status === 429) && attempt < maxRetries) {
           const delay = baseDelay * Math.pow(2, attempt); // Exponential backoff
@@ -2957,7 +2875,7 @@ Ready to start chatting, or would you like to explore these personalization opti
           await new Promise(resolve => setTimeout(resolve, delay));
           continue;
         }
-        
+
         // If we've exhausted retries or it's a different error, throw
         if (response.status === 429) {
           throw new Error('Het AI-systeem is momenteel overbelast. Probeer het over een paar minuten opnieuw.');
@@ -2967,103 +2885,19 @@ Ready to start chatting, or would you like to explore these personalization opti
           throw new Error(`HTTP error! status: ${response.status}`);
         }
       }
-      
-      const rawText = await response.text();
-      console.log('📄 Make webhook raw response:', rawText);
-      
-      try {
-        const parsed = JSON.parse(rawText);
-        console.log('✅ Parsed webhook response:', parsed);
-        
-        // Clean AI response - remove asterisk actions and fix formatting
-        if (parsed.reply) {
-          parsed.reply = cleanAIResponse(parsed.reply);
-          console.log('🧹 Cleaned reply:', parsed.reply);
-        }
-        
-        return parsed;
-      } catch (parseError) {
-        console.error('JSON parsing error:', parseError);
-        console.log('Raw response that failed to parse:', rawText);
-        
-        try {
-          // More aggressive approach: Fix the JSON structure
-          let fixedJson = rawText;
-          
-          // First, find and fix the reply field specifically
-          // Extract everything between "reply": and the next field
-          fixedJson = fixedJson.replace(/"reply":\s*"([\s\S]*?)"(?=\s*,\s*"[^"]+"|$|})/g, (match, replyContent) => {
-            // Escape all problematic characters in the reply content
-            const escapedContent = replyContent
-              // First handle Unicode characters that break JSON
-              .replace(/[""]/g, '"')    // Replace smart quotes with regular quotes
-              .replace(/['']/g, "'")    // Replace smart apostrophes  
-              .replace(/—/g, "-")       // Replace em-dash with regular dash
-              .replace(/–/g, "-")       // Replace en-dash with regular dash
-              .replace(/…/g, "...")     // Replace ellipsis with three dots
-              .replace(/\*/g, "")       // Remove asterisks that can break parsing
-              // Then escape JSON special characters
-              .replace(/\\/g, '\\\\')   // Escape backslashes first
-              .replace(/"/g, '\\"')     // Escape quotes
-              .replace(/\n/g, '\\n')    // Escape newlines
-              .replace(/\r/g, '\\r')    // Escape carriage returns
-              .replace(/\t/g, '\\t')    // Escape tabs
-              .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, ''); // Remove control chars
-            return `"reply": "${escapedContent}"`;
-          });
-          
-          // Try parsing the fixed JSON
-          const parsed = JSON.parse(fixedJson);
-          if (parsed.reply) {
-            // Convert escaped newlines back to actual newlines for display
-            parsed.reply = parsed.reply
-              .replace(/\\n/g, '\n')
-              .replace(/\\r/g, '\r')
-              .replace(/\\t/g, '\t');
-            parsed.reply = cleanAIResponse(parsed.reply);
-          }
-          return parsed;
-          
-        } catch (secondParseError) {
-          console.error('Second JSON parse also failed:', secondParseError);
-          
-          // Fallback: Extract JSON manually using more robust approach
-          try {
-            // Look for the JSON structure boundaries
-            const jsonStart = rawText.indexOf('{');
-            const jsonEnd = rawText.lastIndexOf('}');
-            
-            if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
-              let jsonSubstring = rawText.substring(jsonStart, jsonEnd + 1);
-              
-              // Clean up the substring
-              jsonSubstring = jsonSubstring.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '');
-              
-              const parsed = JSON.parse(jsonSubstring);
-              if (parsed.reply) {
-                parsed.reply = cleanAIResponse(parsed.reply);
-              }
-              return parsed;
-            }
-            
-            // Last resort: regex extraction
-            const replyMatch = rawText.match(/"reply":\s*"([\s\S]*?)"(?=\s*[,}])/);
-            if (replyMatch) {
-              const reply = replyMatch[1]
-                .replace(/\\n/g, '\n')  // Convert escaped newlines
-                .replace(/\\"/g, '"')   // Convert escaped quotes
-                .replace(/\\\\/g, '\\'); // Convert escaped backslashes
-              const cleanReply = cleanAIResponse(reply);
-              console.log('✅ Extracted reply using regex fallback');
-              return { reply: cleanReply };
-            }
-            
-          } catch (fallbackError) {
-            console.error('All parsing attempts failed:', fallbackError);
-          }
-        }
-        
-        throw new Error('Invalid response format from AI service');
+
+      const responseData = await response.json();
+      console.log('📄 Narrin chat flow response:', responseData);
+
+      if (!responseData.success) {
+        throw new Error(responseData.error || 'Chat flow failed');
+      }
+
+      // Return in format expected by the existing code
+      return {
+        reply: responseData.reply,
+        character: responseData.character,
+        usage: responseData.usage
       }
     }
     
