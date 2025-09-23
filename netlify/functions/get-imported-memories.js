@@ -74,9 +74,73 @@ exports.handler = async (event, context) => {
       message_type: r.fields.message_type
     })));
     
-    // DIRECT APPROACH: For emailnotiseb@gmail.com, use content filtering immediately
+    // DIRECT APPROACH: For emailnotiseb@gmail.com, filter by User field first
     if (user_email === 'emailnotiseb@gmail.com') {
-      console.log('🎯 DIRECT: Using content filtering for emailnotiseb@gmail.com (bypass user lookup)');
+      console.log('🎯 DIRECT: Looking for imported records for emailnotiseb@gmail.com with User field matching');
+      console.log('🔍 Target User ID:', user_uid);
+
+      // First filter by User field (which should contain the NetlifyUID)
+      const userFilteredRecords = chatData.records.filter(record => {
+        const userField = record.fields.User;
+
+        // Check if User field contains our user_uid
+        if (Array.isArray(userField)) {
+          // If User is an array of linked records, check each one
+          const hasMatch = userField.includes(user_uid);
+          if (hasMatch) console.log('✅ Found User array match:', userField);
+          return hasMatch;
+        } else if (typeof userField === 'string') {
+          // If User is a string, check direct match
+          const hasMatch = userField === user_uid;
+          if (hasMatch) console.log('✅ Found User string match:', userField);
+          return hasMatch;
+        }
+
+        return false;
+      });
+
+      console.log('📊 DIRECT: Found', userFilteredRecords.length, 'records with matching User field');
+
+      // If we found user-specific records, use those
+      if (userFilteredRecords.length > 0) {
+        const importedMemories = userFilteredRecords.map(record => {
+          const metadata = record.fields.metadata ? JSON.parse(record.fields.metadata) : {};
+          let memoryText = record.fields.Summary || record.fields.Message || '';
+
+          // Convert "You" statements to "I" statements for proper conversation flow
+          memoryText = convertYouToI(memoryText);
+
+          return {
+            id: record.id,
+            memory_id: record.id,
+            message: record.fields.Message || '',
+            summary: memoryText,
+            date: record.fields.CreatedTime || '',
+            importance: parseInt(record.fields.Memory_Importance || 5),
+            emotional_state: record.fields.Emotional_State || 'neutral',
+            tags: record.fields.Memory_Tags || [],
+            context: (record.fields.Message || '').substring(0, 200),
+            type: record.fields.Role === 'user' ? 'user' : 'ai_assistant',
+            message_type: record.fields.message_type || null,
+            metadata: metadata
+          };
+        });
+
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify({
+            success: true,
+            imported_memories: importedMemories,
+            count: importedMemories.length,
+            total_records_checked: chatData.records.length,
+            debug_method: 'direct_user_field_filtering'
+          })
+        };
+      }
+
+      // If no User field matches found, try content patterns as fallback
+      console.log('🔄 DIRECT: No User field matches, trying content patterns...');
       
       const userSpecificPatterns = [
         'you often express excitement', 'you treat chatgpt as your technical assistant', 
@@ -456,4 +520,73 @@ exports.handler = async (event, context) => {
       })
     };
   }
+};
+
+// Helper function to convert "You" statements to "I" statements for proper conversation flow
+function convertYouToI(text) {
+  if (!text || typeof text !== 'string') return text;
+
+  // Convert common "You" patterns to "I" patterns
+  let converted = text
+    // Start of sentence patterns
+    .replace(/^You are /i, 'I am ')
+    .replace(/^You have /i, 'I have ')
+    .replace(/^You were /i, 'I was ')
+    .replace(/^You will /i, 'I will ')
+    .replace(/^You would /i, 'I would ')
+    .replace(/^You can /i, 'I can ')
+    .replace(/^You could /i, 'I could ')
+    .replace(/^You should /i, 'I should ')
+    .replace(/^You must /i, 'I must ')
+    .replace(/^You need /i, 'I need ')
+    .replace(/^You want /i, 'I want ')
+    .replace(/^You like /i, 'I like ')
+    .replace(/^You love /i, 'I love ')
+    .replace(/^You enjoy /i, 'I enjoy ')
+    .replace(/^You prefer /i, 'I prefer ')
+    .replace(/^You use /i, 'I use ')
+    .replace(/^You work /i, 'I work ')
+    .replace(/^You live /i, 'I live ')
+    .replace(/^You run /i, 'I run ')
+    .replace(/^You host /i, 'I host ')
+    .replace(/^You build /i, 'I build ')
+    .replace(/^You create /i, 'I create ')
+    .replace(/^You collect /i, 'I collect ')
+    .replace(/^You follow /i, 'I follow ')
+    .replace(/^You often /i, 'I often ')
+    .replace(/^You actively /i, 'I actively ')
+    .replace(/^You aim /i, 'I aim ')
+    .replace(/^You treat /i, 'I treat ')
+
+    // Mid-sentence patterns (after punctuation)
+    .replace(/\. You are /g, '. I am ')
+    .replace(/\. You have /g, '. I have ')
+    .replace(/\. You were /g, '. I was ')
+    .replace(/\. You will /g, '. I will ')
+    .replace(/\. You would /g, '. I would ')
+    .replace(/\. You can /g, '. I can ')
+    .replace(/\. You could /g, '. I could ')
+    .replace(/\. You should /g, '. I should ')
+    .replace(/\. You must /g, '. I must ')
+    .replace(/\. You need /g, '. I need ')
+    .replace(/\. You want /g, '. I want ')
+    .replace(/\. You like /g, '. I like ')
+    .replace(/\. You love /g, '. I love ')
+    .replace(/\. You enjoy /g, '. I enjoy ')
+    .replace(/\. You prefer /g, '. I prefer ')
+    .replace(/\. You use /g, '. I use ')
+    .replace(/\. You work /g, '. I work ')
+    .replace(/\. You live /g, '. I live ')
+    .replace(/\. You run /g, '. I run ')
+    .replace(/\. You host /g, '. I host ')
+    .replace(/\. You build /g, '. I build ')
+    .replace(/\. You create /g, '. I create ')
+    .replace(/\. You collect /g, '. I collect ')
+    .replace(/\. You follow /g, '. I follow ')
+    .replace(/\. You often /g, '. I often ')
+    .replace(/\. You actively /g, '. I actively ')
+    .replace(/\. You aim /g, '. I aim ')
+    .replace(/\. You treat /g, '. I treat ');
+
+  return converted;
 };
