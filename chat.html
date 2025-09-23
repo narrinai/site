@@ -2780,7 +2780,8 @@ Ready to start chatting, or would you like to explore these personalization opti
           
           // Add AI response with typewriter effect
           await addMessageWithTypewriter(response.reply, 'ai');
-          saveMessageToHistory(response.reply, 'ai');
+          // Note: Don't call saveMessageToHistory for AI responses as they're already saved by narrin-chat-flow
+          saveMessageToLocalStorageOnly(response.reply, 'ai');
           
           // Handle TTS if enabled
           if (response.tts_url) {
@@ -3114,13 +3115,13 @@ Ready to start chatting, or would you like to explore these personalization opti
         sender: sender,
         timestamp: new Date().toISOString()
       };
-      
+
       conversationHistory.push(messageObj);
-      
+
       // Save to localStorage
       const historyKey = `chat_history_${currentCharacter?.slug || 'default'}`;
       localStorage.setItem(historyKey, JSON.stringify(conversationHistory));
-      
+
       console.log('💾 Message saved to history:', {
         sender,
         messageLength: message.length,
@@ -3128,9 +3129,31 @@ Ready to start chatting, or would you like to explore these personalization opti
         historyKey,
         savedToLocalStorage: !!localStorage.getItem(historyKey)
       });
-      
+
       // Also save to Airtable via Netlify function
       saveChatMessageToAirtable(messageObj);
+    }
+
+    function saveMessageToLocalStorageOnly(message, sender) {
+      const messageObj = {
+        content: message,
+        sender: sender,
+        timestamp: new Date().toISOString()
+      };
+
+      conversationHistory.push(messageObj);
+
+      // Save to localStorage only (no Airtable save)
+      const historyKey = `chat_history_${currentCharacter?.slug || 'default'}`;
+      localStorage.setItem(historyKey, JSON.stringify(conversationHistory));
+
+      console.log('💾 Message saved to localStorage only:', {
+        sender,
+        messageLength: message.length,
+        totalMessages: conversationHistory.length,
+        historyKey,
+        savedToLocalStorage: !!localStorage.getItem(historyKey)
+      });
     }
 
     async function saveChatMessageToAirtable(messageObj) {
@@ -3744,7 +3767,7 @@ Ready to start chatting, or would you like to explore these personalization opti
             <div class="memory-item">
               <div class="memory-answer">${displayText}</div>
               <small style="color: var(--color-gray); margin-top: 8px; display: block;">
-                Importance: ${importance} | ${date}
+                ${date}
               </small>
               <button onclick="discussMemory('${memoryId}', '${sanitizedText}', 'imported')" 
                       style="margin-top: 10px; padding: 6px 12px; background: var(--color-teal); color: white; border: none; border-radius: 6px; font-size: 12px; cursor: pointer; transition: all 0.2s ease;">
