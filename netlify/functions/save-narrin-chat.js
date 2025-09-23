@@ -1,5 +1,5 @@
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
-const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
+const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID_NARRIN;
 
 console.log('🔐 Environment check:', {
   hasToken: !!AIRTABLE_TOKEN,
