@@ -99,21 +99,52 @@ exports.handler = async (event, context) => {
       console.log('🎯 DIRECT: Looking for imported records for emailnotiseb@gmail.com with User field matching');
       console.log('🔍 Target User ID:', user_uid);
 
-      // First filter by User field (which should contain the NetlifyUID)
+      // First, get the User record ID from the Users table
+      console.log('🔍 Step 1: Finding User record ID in Users table...');
+      let userRecordId = null;
+
+      try {
+        const usersResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Users?filterByFormula={NetlifyUID}='${user_uid}'&maxRecords=1`, {
+          headers: {
+            'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (usersResponse.ok) {
+          const usersData = await usersResponse.json();
+          if (usersData.records.length > 0) {
+            userRecordId = usersData.records[0].id;
+            console.log('✅ Found User record ID:', userRecordId);
+          } else {
+            console.log('❌ No User record found with NetlifyUID:', user_uid);
+          }
+        }
+      } catch (error) {
+        console.warn('⚠️ Error looking up User record:', error.message);
+      }
+
+      // Now filter ChatHistory by User record ID
       const userFilteredRecords = chatData.records.filter(record => {
         const userField = record.fields.User;
 
-        // Check if User field contains our user_uid
+        // Check if User field contains our userRecordId
         if (Array.isArray(userField)) {
           // If User is an array of linked records, check each one
-          const hasMatch = userField.includes(user_uid);
-          if (hasMatch) console.log('✅ Found User array match:', userField);
+          const hasMatch = userField.includes(userRecordId);
+          if (hasMatch) console.log('✅ Found User array match with record ID:', userField);
           return hasMatch;
         } else if (typeof userField === 'string') {
-          // If User is a string, check direct match
-          const hasMatch = userField === user_uid;
-          if (hasMatch) console.log('✅ Found User string match:', userField);
+          // If User is a single linked record, check direct match
+          const hasMatch = userField === userRecordId;
+          if (hasMatch) console.log('✅ Found User string match with record ID:', userField);
           return hasMatch;
+        }
+
+        // Also try direct NetlifyUID match as fallback
+        if (typeof userField === 'string' && userField === user_uid) {
+          console.log('✅ Found direct NetlifyUID match:', userField);
+          return true;
         }
 
         return false;
@@ -208,17 +239,34 @@ exports.handler = async (event, context) => {
           const fallbackData = await fallbackResponse.json();
           console.log('📊 FALLBACK: Found', fallbackData.records.length, 'total records to search');
 
+          // For fallback, also try User record ID matching if we have it
           const fallbackRecords = fallbackData.records.filter(record => {
+            const userField = record.fields.User;
+
+            // First try User record ID matching
+            if (userRecordId) {
+              if (Array.isArray(userField)) {
+                const hasMatch = userField.includes(userRecordId);
+                if (hasMatch) {
+                  console.log(`✅ FALLBACK User record match: "${userRecordId}" in`, userField);
+                  return true;
+                }
+              } else if (typeof userField === 'string' && userField === userRecordId) {
+                console.log(`✅ FALLBACK User record match: "${userRecordId}"`);
+                return true;
+              }
+            }
+
+            // Then try content patterns
             const summary = (record.fields.Summary || '').toLowerCase();
             const message = (record.fields.Message || '').toLowerCase();
             const content = summary + ' ' + message;
 
-            // Broader patterns for fallback
             const broaderPatterns = ['seb', 'pokemon', 'airtable', 'narrin', 'marketingtoolz'];
             const matchedPattern = broaderPatterns.find(pattern => content.includes(pattern));
 
             if (matchedPattern) {
-              console.log(`✅ FALLBACK match: "${matchedPattern}" in "${summary.substring(0, 50)}..."`);
+              console.log(`✅ FALLBACK content match: "${matchedPattern}" in "${summary.substring(0, 50)}..."`);
               return true;
             }
             return false;
