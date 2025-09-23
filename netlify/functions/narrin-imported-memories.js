@@ -43,6 +43,9 @@ exports.handler = async (event, context) => {
     // (Airtable query filtering seems unreliable for user-specific filters)
     console.log('🔍 Getting all imported memories, then filtering for user...');
     let chatUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?filterByFormula={message_type}='imported'&sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=1000`;
+
+    // Also try a broader search if no imported records found
+    let fallbackUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/ChatHistory?sort[0][field]=CreatedTime&sort[0][direction]=desc&maxRecords=500`;
     
     console.log('🔍 User-specific query URL:', chatUrl);
     
@@ -61,18 +64,23 @@ exports.handler = async (event, context) => {
     
     const chatData = await chatResponse.json();
     console.log('📊 Found', chatData.records.length, 'total imported memories');
-    
+
     // First, let's see what fields are actually available
     console.log('📊 Sample record fields:', chatData.records[0]?.fields ? Object.keys(chatData.records[0].fields) : 'No records');
-    console.log('📊 Sample record data:', chatData.records.slice(0, 2).map(r => ({
+    console.log('📊 Sample record data:', chatData.records.slice(0, 5).map(r => ({
       User: r.fields.User,
       NetlifyUID: r.fields.NetlifyUID,
       Email: r.fields.Email,
       Summary: r.fields.Summary?.substring(0, 50),
+      Message: r.fields.Message?.substring(0, 50),
       metadata: r.fields.metadata ? 'Has metadata' : 'No metadata',
       Role: r.fields.Role,
       message_type: r.fields.message_type
     })));
+
+    // Debug: Show all message_types found
+    const messageTypes = [...new Set(chatData.records.map(r => r.fields.message_type))];
+    console.log('📊 All message_types found:', messageTypes);
     
     // DIRECT APPROACH: For emailnotiseb@gmail.com, use content filtering immediately
     if (user_email === 'emailnotiseb@gmail.com') {
@@ -85,21 +93,97 @@ exports.handler = async (event, context) => {
         'marketingtoolz', 'you are an omnia retail', 'you actively post and engage on linkedin'
       ];
       
+      // Debug first few records to see what content we're working with
+      console.log('🔍 DIRECT: Sample content for pattern matching:');
+      chatData.records.slice(0, 3).forEach((record, index) => {
+        const summary = (record.fields.Summary || '').toLowerCase();
+        const message = (record.fields.Message || '').toLowerCase();
+        console.log(`📝 Record ${index}: Summary="${summary.substring(0, 80)}" Message="${message.substring(0, 80)}"`);
+      });
+
       const userRecords = chatData.records.filter(record => {
         const summary = (record.fields.Summary || '').toLowerCase();
-        const message = (record.fields.Message || '').toLowerCase();  
+        const message = (record.fields.Message || '').toLowerCase();
         const content = summary + ' ' + message;
-        
+
         const matchedPattern = userSpecificPatterns.find(pattern => content.includes(pattern));
         if (matchedPattern) {
           console.log(`✅ DIRECT match: "${matchedPattern}" in "${summary.substring(0, 50)}..."`);
           return true;
         }
+
+        // Debug: Check for any Seb-related content even if not matching exact patterns
+        if (content.includes('seb') || content.includes('pokemon') || content.includes('airtable') || content.includes('narrin')) {
+          console.log(`🤔 DIRECT potential match (seb/pokemon/airtable/narrin): "${summary.substring(0, 80)}..."`);
+        }
+
         return false;
       });
       
       console.log('📊 DIRECT: Found', userRecords.length, 'records via content filtering');
-      
+
+      // If no records found via message_type='imported', try broader search
+      if (userRecords.length === 0) {
+        console.log('🔄 DIRECT: No imported records found, trying fallback search...');
+
+        const fallbackResponse = await fetch(fallbackUrl, {
+          headers: {
+            'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (fallbackResponse.ok) {
+          const fallbackData = await fallbackResponse.json();
+          console.log('📊 FALLBACK: Found', fallbackData.records.length, 'total records to search');
+
+          const fallbackRecords = fallbackData.records.filter(record => {
+            const summary = (record.fields.Summary || '').toLowerCase();
+            const message = (record.fields.Message || '').toLowerCase();
+            const content = summary + ' ' + message;
+
+            // Broader patterns for fallback
+            const broaderPatterns = ['seb', 'pokemon', 'airtable', 'narrin', 'marketingtoolz'];
+            const matchedPattern = broaderPatterns.find(pattern => content.includes(pattern));
+
+            if (matchedPattern) {
+              console.log(`✅ FALLBACK match: "${matchedPattern}" in "${summary.substring(0, 50)}..."`);
+              return true;
+            }
+            return false;
+          });
+
+          console.log('📊 FALLBACK: Found', fallbackRecords.length, 'records via broader search');
+
+          if (fallbackRecords.length > 0) {
+            const fallbackMemories = fallbackRecords.map(record => {
+              const metadata = record.fields.metadata ? JSON.parse(record.fields.metadata) : {};
+              return {
+                id: record.id,
+                Memory: record.fields.Summary || record.fields.Message || '',
+                Importance: record.fields.Memory_Importance || 5,
+                Date: record.fields.CreatedTime || record.fields.Date,
+                message_type: record.fields.message_type || 'fallback',
+                source: 'fallback_search',
+                metadata: metadata
+              };
+            });
+
+            return {
+              statusCode: 200,
+              headers,
+              body: JSON.stringify({
+                success: true,
+                imported_memories: fallbackMemories,
+                count: fallbackMemories.length,
+                total_records_checked: fallbackData.records.length,
+                debug_method: 'fallback_broader_search'
+              })
+            };
+          }
+        }
+      }
+
       // Convert and return immediately
       const importedMemories = userRecords.map(record => {
         const metadata = record.fields.metadata ? JSON.parse(record.fields.metadata) : {};
