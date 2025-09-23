@@ -5113,32 +5113,38 @@ if (!characterSlug && formData.name) {
 // Create character function with improved error handling
 async function createCharacter(formData) {
   try {
-    // Get user credentials
-    const userEmail = localStorage.getItem("user_email");
-    const userToken = localStorage.getItem("user_token");
-    
+    // Get user credentials - check both Netlify Identity and localStorage
+    const currentNetlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+    const userEmail = localStorage.getItem("user_email") || currentNetlifyUser?.email;
+    let userToken = localStorage.getItem("user_token");
+
+    // If no token in localStorage but user is authenticated with Netlify Identity, get token from there
+    if (!userToken && currentNetlifyUser) {
+      userToken = currentNetlifyUser.token?.access_token || 'netlify_authenticated';
+      console.log('🔐 Using Netlify Identity token for authenticated user');
+    }
+
     if (!userEmail || !userToken) {
       throw new Error('User not logged in - missing credentials');
     }
     
     // Generate slug from character name
-const slug = generateUniqueSlug(formData.name);    
-console.log('🔗 Generated slug:', slug);
+    const slug = generateUniqueSlug(formData.name);
+    console.log('🔗 Generated slug:', slug);
 
     // Debug user data
-    const currentNetlifyUser = window.netlifyIdentity && window.netlifyIdentity.currentUser();
     console.log('🔍 Debug user data:');
     console.log('- currentNetlifyUser:', currentNetlifyUser);
     console.log('- currentNetlifyUser.id:', currentNetlifyUser?.id);
     console.log('- localStorage netlify_uid:', localStorage.getItem("netlify_uid"));
     console.log('- localStorage user_uid:', localStorage.getItem("user_uid"));
-    
+
     // For Google SSO users, the ID is stored in user_uid, not netlify_uid
     const userUid = currentNetlifyUser?.id || localStorage.getItem("user_uid") || localStorage.getItem("netlify_uid");
     console.log('- Final user_uid to send:', userUid);
-    
-    // Also ensure we have the email - Google SSO might store it differently
-    const finalEmail = userEmail || currentNetlifyUser?.email || localStorage.getItem("user_email");
+
+    // Use the email we already determined
+    const finalEmail = userEmail;
     console.log('- Final email to send:', finalEmail);
     
     if (!userUid || userUid === 'undefined') {
