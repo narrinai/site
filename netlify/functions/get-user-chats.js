@@ -10,8 +10,8 @@ exports.handler = async (event, context) => {
   console.log('🚀 DEBUG Function started, method:', event.httpMethod);
   console.log('🔑 Environment check at start:', {
     hasToken: !!process.env.AIRTABLE_TOKEN,
-    hasBaseId: !!process.env.AIRTABLE_BASE_ID,
-    hasTableId: !!process.env.AIRTABLE_TABLE_ID,
+    hasBaseId: !!process.env.AIRTABLE_BASE_ID_NARRIN,
+    hasTableId: !!process.env.AIRTABLE_TABLE_ID_NARRIN,
     timestamp: new Date().toISOString()
   });
 
@@ -57,8 +57,8 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Airtable configuratie
-    const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
+    // Airtable configuratie - using Narrin-specific environment variables
+    const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID_NARRIN;
     const AIRTABLE_API_KEY = process.env.AIRTABLE_TOKEN;
     
     console.log('🔧 DEBUG Environment check:', {

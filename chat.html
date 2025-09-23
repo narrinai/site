@@ -3350,17 +3350,24 @@ Ready to start chatting, or would you like to explore these personalization opti
       // Check if user has paid plan or active trial
       const userPlan = localStorage.getItem('user_plan') || 'Free';
       const trialExpiry = localStorage.getItem('trial_expiry');
-      
-      console.log('🔍 Memory Hub access check:', { userPlan, trialExpiry });
-      
+      const userEmail = localStorage.getItem('user_email');
+
+      console.log('🔍 Memory Hub access check:', { userPlan, trialExpiry, userEmail });
+
+      // Special case: Known Immerse plan users
+      const immersePlanUsers = ['emailnotiseb@gmail.com'];
+      if (userEmail && immersePlanUsers.includes(userEmail)) {
+        console.log('✅ Access granted - Immerse plan user:', userEmail);
+        return true;
+      }
+
       // Allow access for paid plans
       if (userPlan && userPlan !== 'Free') {
         console.log('✅ Access granted - paid plan:', userPlan);
         return true;
       }
-      
+
       // NEW: Allow access for newly registered users (automatic 3-day trial)
-      const userEmail = localStorage.getItem('user_email');
       const authTimestamp = localStorage.getItem('user_auth_timestamp');
       
       if (authTimestamp && userEmail && userEmail !== 'anonymous@narrin.ai') {
@@ -4081,7 +4088,8 @@ Ready to start chatting, or would you like to explore these personalization opti
       } else {
         // Load current character data
         document.getElementById('customName').value = currentCharacter.name || '';
-        document.getElementById('customPrompt').value = currentCharacter.extra_instructions || '';
+        // Only load user-defined extra instructions, not the system prompt
+        document.getElementById('customPrompt').value = '';
         setVoiceDropdownValue(currentCharacter);
         
         // Handle current character avatar
