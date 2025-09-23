@@ -4480,21 +4480,36 @@ Ready to start chatting, or would you like to explore these personalization opti
       }
     }
 
-    // Authentication placeholder
+    // Authentication function
     function initializeAuth() {
-      // This would integrate with Netlify Identity
-      // For now, using localStorage for demo
-      const user_email = localStorage.getItem("user_email");
-      if (user_email && user_email !== 'anonymous@narrin.ai') {
-        isAuthenticated = true;
-        currentUser = { email: user_email };
-      }
-      
-      // Initialize Netlify Identity with custom labels
+      // Get current Netlify Identity user
       if (window.netlifyIdentity) {
         netlifyIdentity.init({
           namePlaceholder: 'Nickname'
         });
+
+        // Check if user is currently logged in
+        const currentNetlifyUser = netlifyIdentity.currentUser();
+        if (currentNetlifyUser) {
+          console.log('✅ Found logged in Netlify user:', currentNetlifyUser);
+
+          // Update localStorage with current user data
+          localStorage.setItem("user_email", currentNetlifyUser.email);
+          localStorage.setItem("user_uid", currentNetlifyUser.id);
+          localStorage.removeItem("is_anonymous_user"); // Clear anonymous flag
+
+          isAuthenticated = true;
+          currentUser = currentNetlifyUser;
+        } else {
+          console.log('🔍 No Netlify user logged in, checking localStorage...');
+
+          // Fallback to localStorage for backwards compatibility
+          const user_email = localStorage.getItem("user_email");
+          if (user_email && user_email !== 'anonymous@narrin.ai') {
+            isAuthenticated = true;
+            currentUser = { email: user_email };
+          }
+        }
         
         // Listen for Netlify Identity events to update tooltips and mobile menu
         netlifyIdentity.on('init', () => {
@@ -4502,8 +4517,17 @@ Ready to start chatting, or would you like to explore these personalization opti
           setupMobileLoginButton();
         });
         
-        netlifyIdentity.on('login', () => {
-          console.log('✅ Login successful - closing modal');
+        netlifyIdentity.on('login', (user) => {
+          console.log('✅ Login successful - updating localStorage and closing modal');
+
+          // Update localStorage with user data
+          localStorage.setItem("user_email", user.email);
+          localStorage.setItem("user_uid", user.id);
+          localStorage.removeItem("is_anonymous_user"); // Clear anonymous flag
+
+          isAuthenticated = true;
+          currentUser = user;
+
           netlifyIdentity.close(); // Close the modal immediately
           setTimeout(() => {
             updateButtonTooltips();
@@ -4519,6 +4543,14 @@ Ready to start chatting, or would you like to explore these personalization opti
             localStorage.removeItem(usageKey);
           });
           console.log('🧹 Cleared anonymous usage counters on logout');
+
+          // Also clear user authentication data
+          localStorage.removeItem("user_email");
+          localStorage.removeItem("user_uid");
+          localStorage.removeItem("is_anonymous_user");
+
+          isAuthenticated = false;
+          currentUser = null;
 
           setTimeout(() => {
             updateButtonTooltips();
