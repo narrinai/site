@@ -81,13 +81,79 @@ exports.handler = async (event, context) => {
     // Debug: Show all message_types found
     const messageTypes = [...new Set(chatData.records.map(r => r.fields.message_type))];
     console.log('📊 All message_types found:', messageTypes);
+
+    // Debug: Show User field structure for first few records
+    console.log('🔍 User field structure analysis:');
+    chatData.records.slice(0, 5).forEach((record, index) => {
+      const userField = record.fields.User;
+      console.log(`📝 Record ${index} User field:`, {
+        type: typeof userField,
+        isArray: Array.isArray(userField),
+        value: userField,
+        length: Array.isArray(userField) ? userField.length : 'N/A'
+      });
+    });
     
-    // DIRECT APPROACH: For emailnotiseb@gmail.com, use content filtering immediately
+    // DIRECT APPROACH: For emailnotiseb@gmail.com, filter by User field first
     if (user_email === 'emailnotiseb@gmail.com') {
-      console.log('🎯 DIRECT: Using content filtering for emailnotiseb@gmail.com (bypass user lookup)');
-      
+      console.log('🎯 DIRECT: Looking for imported records for emailnotiseb@gmail.com with User field matching');
+      console.log('🔍 Target User ID:', user_uid);
+
+      // First filter by User field (which should contain the NetlifyUID)
+      const userFilteredRecords = chatData.records.filter(record => {
+        const userField = record.fields.User;
+
+        // Check if User field contains our user_uid
+        if (Array.isArray(userField)) {
+          // If User is an array of linked records, check each one
+          const hasMatch = userField.includes(user_uid);
+          if (hasMatch) console.log('✅ Found User array match:', userField);
+          return hasMatch;
+        } else if (typeof userField === 'string') {
+          // If User is a string, check direct match
+          const hasMatch = userField === user_uid;
+          if (hasMatch) console.log('✅ Found User string match:', userField);
+          return hasMatch;
+        }
+
+        return false;
+      });
+
+      console.log('📊 DIRECT: Found', userFilteredRecords.length, 'records with matching User field');
+
+      // If we found user-specific records, use those
+      if (userFilteredRecords.length > 0) {
+        const importedMemories = userFilteredRecords.map(record => {
+          const metadata = record.fields.metadata ? JSON.parse(record.fields.metadata) : {};
+          return {
+            id: record.id,
+            Memory: record.fields.Summary || record.fields.Message || '',
+            Importance: record.fields.Memory_Importance || 5,
+            Date: record.fields.CreatedTime || record.fields.Date,
+            message_type: record.fields.message_type,
+            source: 'chatgpt_import',
+            metadata: metadata
+          };
+        });
+
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify({
+            success: true,
+            imported_memories: importedMemories,
+            count: importedMemories.length,
+            total_records_checked: chatData.records.length,
+            debug_method: 'direct_user_field_filtering'
+          })
+        };
+      }
+
+      // If no User field matches found, try content patterns as fallback
+      console.log('🔄 DIRECT: No User field matches, trying content patterns...');
+
       const userSpecificPatterns = [
-        'you often express excitement', 'you treat chatgpt as your technical assistant', 
+        'you often express excitement', 'you treat chatgpt as your technical assistant',
         'you are detail-oriented', 'you collect pokémon cards', 'you use airtable for',
         'you host narrin', 'you run marketingtoolz', 'you are building narrin',
         'marketingtoolz', 'you are an omnia retail', 'you actively post and engage on linkedin'
