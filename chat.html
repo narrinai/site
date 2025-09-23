@@ -4480,6 +4480,16 @@ Ready to start chatting, or would you like to explore these personalization opti
       }
     }
 
+    // Clean URL hash function
+    function cleanUrlHash() {
+      if (window.location.hash) {
+        console.log('🧹 Cleaning URL hash after authentication');
+        // Remove hash from URL without reloading the page
+        const cleanUrl = window.location.pathname + window.location.search;
+        window.history.replaceState({}, document.title, cleanUrl);
+      }
+    }
+
     // Authentication function
     function initializeAuth() {
       // Get current Netlify Identity user
@@ -4513,6 +4523,8 @@ Ready to start chatting, or would you like to explore these personalization opti
         
         // Listen for Netlify Identity events to update tooltips and mobile menu
         netlifyIdentity.on('init', () => {
+          // Clean any authentication hashes on init
+          cleanUrlHash();
           updateButtonTooltips();
           setupMobileLoginButton();
         });
@@ -4529,6 +4541,10 @@ Ready to start chatting, or would you like to explore these personalization opti
           currentUser = user;
 
           netlifyIdentity.close(); // Close the modal immediately
+
+          // Clean URL hash that Netlify Identity might have added
+          cleanUrlHash();
+
           setTimeout(() => {
             updateButtonTooltips();
             setupMobileLoginButton();
