@@ -2163,6 +2163,7 @@
             character_type: character.character_type || '',
             category: character.Category || '',
             extra_instructions: character.Custom_Prompt || character.Prompt || character.Character_Description || '',
+            Custom_Prompt: character.Custom_Prompt || '',
             personality_traits: character.Personality_Traits || '',
             speaking_patterns: character.Speaking_Patterns || ''
           };
@@ -4092,8 +4093,8 @@ Ready to start chatting, or would you like to explore these personalization opti
       } else {
         // Load current character data
         document.getElementById('customName').value = currentCharacter.name || '';
-        // Only load user-defined extra instructions, not the system prompt
-        document.getElementById('customPrompt').value = '';
+        // Load Custom_Prompt from Airtable if it exists (user-created extra instructions)
+        document.getElementById('customPrompt').value = currentCharacter.Custom_Prompt || '';
         setVoiceDropdownValue(currentCharacter);
         
         // Handle current character avatar
