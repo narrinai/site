@@ -221,29 +221,69 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // User message
+    // Analyze user message for memory data
+    let userAnalysis = null;
+    if (user_message && user_message.trim()) {
+      try {
+        console.log('🧠 Analyzing user message for memory data...');
+        const analyzeMemoryHandler = require('./analyze-memory').handler;
+        const analyzeEvent = {
+          httpMethod: 'POST',
+          body: JSON.stringify({ message: user_message.trim() })
+        };
+        const analyzeResult = await analyzeMemoryHandler(analyzeEvent, {});
+
+        if (analyzeResult.statusCode === 200) {
+          const analyzeData = JSON.parse(analyzeResult.body);
+          if (analyzeData.success && analyzeData.analysis) {
+            userAnalysis = analyzeData.analysis;
+            console.log('✅ User message analysis:', userAnalysis);
+          }
+        }
+      } catch (error) {
+        console.warn('⚠️ Memory analysis failed for user message:', error.message);
+      }
+    }
+
+    // User message with memory fields
     if (user_message && user_message.trim()) {
       const userMessageFields = {
         'Role': 'user',
         'Message': user_message.trim(),
         'User': [userRecordId],
-        'Character': [characterRecordId]
+        'Character': [characterRecordId],
+        'message_type': 'normal',
+        'is_system': false
       };
 
-      console.log('✅ Creating user message with lookups:', { userRecordId, characterRecordId });
+      // Add memory analysis results if available
+      if (userAnalysis) {
+        userMessageFields['Memory_Importance'] = userAnalysis.memory_importance || 3;
+        userMessageFields['Emotional_State'] = userAnalysis.emotional_state || 'neutral';
+        userMessageFields['Memory_Tags'] = userAnalysis.memory_tags || ['general'];
+        userMessageFields['Summary'] = userAnalysis.summary || user_message.trim();
+      }
+
+      console.log('✅ Creating user message with memory data:', { userRecordId, characterRecordId, hasAnalysis: !!userAnalysis });
       recordsToCreate.push({ fields: userMessageFields });
     }
 
-    // AI response
+    // AI response (no memory analysis needed for AI messages)
     if (ai_response && ai_response.trim()) {
       const aiMessageFields = {
         'Role': 'ai assistant',
         'Message': ai_response.trim(),
         'User': [userRecordId],
-        'Character': [characterRecordId]
+        'Character': [characterRecordId],
+        'message_type': 'normal',
+        'is_system': false,
+        'Memory_Importance': 2, // AI responses typically have lower importance
+        'Emotional_State': 'neutral',
+        'Memory_Tags': ['general'],
+        'Summary': ai_response.trim().length > 100 ? ai_response.trim().substring(0, 97) + '...' : ai_response.trim()
       };
 
-      console.log('✅ Creating AI message with lookups:', { userRecordId, characterRecordId });
+      console.log('✅ Creating AI message with memory data:', { userRecordId, characterRecordId });
       recordsToCreate.push({ fields: aiMessageFields });
     }
 

@@ -134,22 +134,8 @@ exports.handler = async (event, context) => {
       // Don't fail the entire request if saving fails
     }
 
-    // Step 5: Analyze memory (async, don't wait for result)
-    console.log('🔍 Step 5: Analyzing memory (async)...');
-    try {
-      // Fire and forget - analyze memory in background
-      callNarrinFunction('analyze-memory', {
-        user_email,
-        user_uid: actualUserUid,
-        character_slug,
-        user_message,
-        ai_response: aiResponse.reply
-      }).catch(error => {
-        console.warn('⚠️ Memory analysis failed (background):', error.message);
-      });
-    } catch (error) {
-      console.warn('⚠️ Memory analysis startup failed:', error.message);
-    }
+    // Step 5: Memory analysis is now handled directly in save-narrin-chat function
+    console.log('✅ Memory analysis will be handled during chat save');
 
     // Return successful response
     return {
@@ -199,9 +185,6 @@ async function callNarrinFunction(functionName, payload) {
         break;
       case 'save-narrin-chat':
         handler = require('./save-narrin-chat').handler;
-        break;
-      case 'analyze-memory':
-        handler = require('./analyze-memory').handler;
         break;
       default:
         throw new Error(`Unknown function: ${functionName}`);
